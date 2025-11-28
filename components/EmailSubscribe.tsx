@@ -4,10 +4,11 @@ import { useState } from 'react';
 
 interface EmailSubscribeProps {
   variant?: 'hero' | 'inline' | 'footer' | 'dark';
+  source?: string;
   className?: string;
 }
 
-export default function EmailSubscribe({ variant = 'hero', className = '' }: EmailSubscribeProps) {
+export default function EmailSubscribe({ variant = 'hero', source, className = '' }: EmailSubscribeProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -23,15 +24,30 @@ export default function EmailSubscribe({ variant = 'hero', className = '' }: Ema
 
     setStatus('loading');
 
-    // Simulate API call - replace with actual Supabase integration
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          source: source || variant,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok && response.status !== 200) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
       setStatus('success');
-      setMessage('You\'re on the list! We\'ll notify you when we launch.');
+      setMessage(data.message || "You're on the list! We'll notify you when we launch.");
       setEmail('');
-    } catch {
+    } catch (error) {
       setStatus('error');
-      setMessage('Something went wrong. Please try again.');
+      setMessage(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
     }
   };
 

@@ -171,7 +171,7 @@ export default function Home() {
               </p>
 
               {/* Email Form */}
-              <EmailSubscribe variant="hero" className="mb-6" />
+              <EmailSubscribe variant="hero" source="hero" className="mb-6" />
 
               {/* Trust indicators */}
               <p className="text-sm text-[var(--foreground-muted)] flex items-center gap-2 mb-12">
@@ -466,25 +466,10 @@ export default function Home() {
                 </p>
 
                 {/* Email Form */}
-                <div className="max-w-md mx-auto">
-                  <form className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="email"
-                      placeholder="Enter your email"
-                      className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
-                      suppressHydrationWarning
-                    />
-                    <button
-                      type="submit"
-                      className="px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all"
-                    >
-                      Join Waitlist
-                    </button>
-                  </form>
-                  <p className="mt-4 text-sm text-white/40">
-                    No spam, ever. We respect your inbox.
-                  </p>
-                </div>
+                <EmailSubscribe variant="dark" source="cta" />
+                <p className="mt-4 text-sm text-white/40">
+                  No spam, ever. We respect your inbox.
+                </p>
               </div>
             </div>
           </div>
