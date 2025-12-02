@@ -59,6 +59,11 @@ export interface Activity {
   type: "attraction" | "restaurant" | "activity" | "transport";
   description: string;
   location: string;
+  address?: string; // Full street address for map links
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   estimated_cost: {
     amount: number;
     currency: string;
@@ -67,6 +72,7 @@ export interface Activity {
   tips: string[];
   booking_required: boolean;
   booking_url?: string;
+  official_website?: string;
   image_url?: string;
 }
 

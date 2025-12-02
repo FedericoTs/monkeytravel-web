@@ -190,7 +190,15 @@ export default async function TripDetailPage({
 
                 {/* Activities */}
                 <div className="p-6 space-y-4">
-                  {day.activities.map((activity, idx) => (
+                  {day.activities.map((activity, idx) => {
+                    // Generate Google Maps search URL
+                    const mapSearchQuery = encodeURIComponent(
+                      `${activity.name} ${activity.address || activity.location}`
+                    );
+                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
+                    const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
+
+                    return (
                     <div key={idx} className="flex gap-4">
                       <div className="flex-shrink-0 text-center">
                         <div className="text-sm font-medium text-slate-900">
@@ -202,16 +210,18 @@ export default async function TripDetailPage({
                       </div>
                       <div className="flex-1 border-l-2 border-slate-200 pl-4 pb-4">
                         <div className="flex items-start justify-between">
-                          <div>
+                          <div className="flex-1">
                             <h4 className="font-medium text-slate-900">
                               {activity.name}
                             </h4>
                             <p className="text-sm text-slate-600 mt-1">
                               {activity.description}
                             </p>
-                            <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
+
+                            {/* Location with address */}
+                            <div className="flex items-start gap-2 mt-2 text-sm text-slate-500">
                               <svg
-                                className="w-4 h-4"
+                                className="w-4 h-4 mt-0.5 flex-shrink-0"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -229,10 +239,60 @@ export default async function TripDetailPage({
                                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                 />
                               </svg>
-                              {activity.location}
+                              <span>
+                                {activity.address || activity.location}
+                              </span>
                             </div>
+
+                            {/* Action Links */}
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              <a
+                                href={googleMapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                View on Maps
+                              </a>
+                              <a
+                                href={googleSearchUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                </svg>
+                                Verify
+                              </a>
+                              {activity.official_website && (
+                                <a
+                                  href={activity.official_website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium rounded-lg transition-colors"
+                                >
+                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  Official Site
+                                </a>
+                              )}
+                              {activity.booking_required && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-lg">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                  Booking required
+                                </span>
+                              )}
+                            </div>
+
                             {activity.tips && activity.tips.length > 0 && (
-                              <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                              <div className="mt-3 p-2 bg-blue-50 rounded-lg">
                                 <div className="text-xs font-medium text-blue-700">
                                   Tips:
                                 </div>
@@ -244,7 +304,7 @@ export default async function TripDetailPage({
                               </div>
                             )}
                           </div>
-                          <div className="text-right flex-shrink-0">
+                          <div className="text-right flex-shrink-0 ml-4">
                             <div className="text-sm font-medium text-slate-900">
                               {activity.estimated_cost.amount === 0
                                 ? "Free"
@@ -267,7 +327,8 @@ export default async function TripDetailPage({
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -279,11 +340,20 @@ export default async function TripDetailPage({
         )}
 
         {/* AI Disclaimer */}
-        <div className="mt-8 p-4 bg-slate-100 rounded-lg text-center">
-          <p className="text-sm text-slate-600">
-            This itinerary was generated by AI. Please verify opening hours and
-            availability before your trip.
-          </p>
+        <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex gap-3">
+            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-amber-800">
+                AI-Generated Itinerary
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                This itinerary was created by AI using real places. We recommend using the &quot;View on Maps&quot; and &quot;Verify&quot; links to confirm each location exists, check current opening hours, and read recent reviews before your trip.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
