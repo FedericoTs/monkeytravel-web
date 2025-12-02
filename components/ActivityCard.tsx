@@ -220,10 +220,10 @@ export default function ActivityCard({
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="border-t border-slate-100 p-4 bg-slate-50/50">
+        <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
           {/* Photo Gallery */}
           {showGallery && (
-            <div className="mb-4">
+            <div className="mb-4 overflow-hidden max-w-full">
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}

@@ -131,10 +131,10 @@ export default function PlaceGallery({
 
   return (
     <>
-      <div className={`${className}`}>
+      <div className={`${className} w-full overflow-hidden`}>
         {/* Info Badges */}
         {showRating && (placeData.rating || placeData.priceLevelSymbol) && (
-          <div className="flex flex-wrap items-center gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
             {/* Rating */}
             {placeData.rating && (
               <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded-full border border-amber-100">
