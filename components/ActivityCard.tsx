@@ -42,10 +42,10 @@ export default function ActivityCard({
       }`}
     >
       {/* Main Content */}
-      <div className="p-4">
-        <div className="flex gap-4">
-          {/* Time Column */}
-          <div className="flex-shrink-0 text-center w-16">
+      <div className="p-3 sm:p-4">
+        <div className="flex gap-3 sm:gap-4">
+          {/* Time Column - hidden on mobile, shows inline instead */}
+          <div className="hidden sm:flex flex-shrink-0 text-center w-16 flex-col">
             <div className="text-lg font-semibold text-slate-900">
               {activity.start_time}
             </div>
@@ -81,20 +81,52 @@ export default function ActivityCard({
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
+            {/* Mobile time/type indicator */}
+            <div className="flex sm:hidden items-center gap-2 mb-2 text-sm">
+              <div
+                className={`w-6 h-6 rounded-full ${colors.bg} ${colors.text} flex items-center justify-center flex-shrink-0`}
+              >
+                {activity.type === "restaurant" && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
+                  </svg>
+                )}
+                {activity.type === "attraction" && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {activity.type === "activity" && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {activity.type === "transport" && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                  </svg>
+                )}
+              </div>
+              <span className="font-medium text-slate-900">{activity.start_time}</span>
+              <span className="text-slate-400">·</span>
+              <span className="text-slate-500">{activity.duration_minutes} min</span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-semibold text-slate-900 text-lg">
+                  <h4 className="font-semibold text-slate-900 text-base sm:text-lg">
                     {activity.name}
                   </h4>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
+                    className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                   >
                     {activity.type}
                   </span>
                   {activity.booking_required && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      Booking required
+                      Booking
                     </span>
                   )}
                 </div>
@@ -113,9 +145,10 @@ export default function ActivityCard({
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="text-right flex-shrink-0">
-                <div className="text-lg font-semibold text-slate-900">
+              {/* Price - shown inline on mobile */}
+              <div className="sm:text-right flex-shrink-0 mt-1 sm:mt-0">
+                <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
+                  <span className="sm:hidden text-slate-400 font-normal text-sm">Est.</span>
                   {activity.estimated_cost.amount === 0
                     ? "Free"
                     : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}

@@ -232,23 +232,23 @@ export default function PlaceGallery({
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox - Mobile optimized */}
       {selectedPhotoIndex !== null && placeData.photos[selectedPhotoIndex] && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center touch-pan-y"
           onClick={() => setSelectedPhotoIndex(null)}
         >
-          {/* Close button */}
+          {/* Close button - larger touch target on mobile */}
           <button
             onClick={() => setSelectedPhotoIndex(null)}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-3 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-colors"
           >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          {/* Navigation arrows */}
+          {/* Navigation arrows - hidden on mobile, use swipe instead */}
           {placeData.photos.length > 1 && (
             <>
               <button
@@ -260,7 +260,7 @@ export default function PlaceGallery({
                       : 0
                   );
                 }}
-                className="absolute left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                className="hidden sm:flex absolute left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors items-center justify-center"
               >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -273,7 +273,7 @@ export default function PlaceGallery({
                     prev !== null ? (prev + 1) % placeData.photos.length : 0
                   );
                 }}
-                className="absolute right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                className="hidden sm:flex absolute right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors items-center justify-center"
               >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -282,30 +282,59 @@ export default function PlaceGallery({
             </>
           )}
 
-          {/* Main image */}
+          {/* Main image - tap sides to navigate on mobile */}
           <div
-            className="relative max-w-[90vw] max-h-[85vh]"
+            className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Left tap zone - mobile only */}
+            {placeData.photos.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPhotoIndex((prev) =>
+                    prev !== null
+                      ? (prev - 1 + placeData.photos.length) % placeData.photos.length
+                      : 0
+                  );
+                }}
+                className="sm:hidden absolute left-0 top-0 w-1/4 h-full z-10"
+              />
+            )}
+
             <img
               src={placeData.photos[selectedPhotoIndex].url}
               alt={`${placeName} photo ${selectedPhotoIndex + 1}`}
-              className="max-w-full max-h-[85vh] object-contain"
+              className="max-w-[95vw] sm:max-w-[90vw] max-h-[70vh] sm:max-h-[85vh] object-contain"
             />
+
+            {/* Right tap zone - mobile only */}
+            {placeData.photos.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPhotoIndex((prev) =>
+                    prev !== null ? (prev + 1) % placeData.photos.length : 0
+                  );
+                }}
+                className="sm:hidden absolute right-0 top-0 w-1/4 h-full z-10"
+              />
+            )}
           </div>
 
-          {/* Photo counter and attribution */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+          {/* Photo counter and mobile nav hint */}
+          <div className="absolute bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
             <div className="text-white/80 text-sm">
               {selectedPhotoIndex + 1} / {placeData.photos.length}
             </div>
-            <div className="text-white/50 text-xs">
-              Photo by {placeData.photos[selectedPhotoIndex].attribution}
+            <div className="text-white/50 text-xs text-center">
+              <span className="hidden sm:inline">Photo by {placeData.photos[selectedPhotoIndex].attribution}</span>
+              <span className="sm:hidden">Tap sides to navigate</span>
             </div>
           </div>
 
-          {/* Thumbnail strip */}
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2">
+          {/* Thumbnail strip - scrollable on mobile */}
+          <div className="absolute bottom-4 sm:bottom-16 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex gap-2 px-4 sm:px-0 overflow-x-auto scrollbar-hide justify-start sm:justify-center">
             {placeData.photos.map((photo, idx) => (
               <button
                 key={idx}
@@ -313,10 +342,10 @@ export default function PlaceGallery({
                   e.stopPropagation();
                   setSelectedPhotoIndex(idx);
                 }}
-                className={`w-12 h-12 rounded-lg overflow-hidden relative transition-all ${
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden relative transition-all flex-shrink-0 ${
                   idx === selectedPhotoIndex
                     ? "ring-2 ring-white scale-110"
-                    : "opacity-60 hover:opacity-100"
+                    : "opacity-60 hover:opacity-100 active:opacity-100"
                 }`}
               >
                 <img

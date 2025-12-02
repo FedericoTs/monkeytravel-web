@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">1. Introduction</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
-                MonkeyTravel (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website (collectively, the &quot;Service&quot;).
+                MonkeyTravel ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website (collectively, the "Service").
               </p>
               <p className="text-[var(--foreground-muted)]">
                 Please read this Privacy Policy carefully. By using the Service, you agree to the collection and use of information in accordance with this policy.
@@ -135,7 +135,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">9. Children&apos;s Privacy</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">9. Children's Privacy</h2>
               <p className="text-[var(--foreground-muted)]">
                 Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>, and we will delete such information.
               </p>
@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">11. Changes to This Privacy Policy</h2>
               <p className="text-[var(--foreground-muted)]">
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date. You are advised to review this Privacy Policy periodically for any changes.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy Policy periodically for any changes.
               </p>
             </section>
 

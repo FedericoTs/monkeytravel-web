@@ -111,36 +111,36 @@ export default function DestinationHero({
 
             {/* Title Section */}
             <div className="text-white">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 drop-shadow-lg">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 drop-shadow-lg leading-tight">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-white/80 text-lg mb-4 drop-shadow-md max-w-2xl">
+                <p className="text-white/80 text-sm sm:text-base md:text-lg mb-3 sm:mb-4 drop-shadow-md max-w-2xl line-clamp-2 sm:line-clamp-none">
                   {subtitle}
                 </p>
               )}
 
-              {/* Meta info */}
-              <div className="flex flex-wrap items-center gap-4 text-sm">
+              {/* Meta info - compact on mobile */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                 {dateRange && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {dateRange}
+                    <span className="truncate max-w-[120px] sm:max-w-none">{dateRange}</span>
                   </div>
                 )}
                 {budget && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Est. {budget.currency} {budget.total.toLocaleString()}
+                    {budget.currency} {budget.total.toLocaleString()}
                   </div>
                 )}
                 {days && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {days} days
@@ -168,14 +168,14 @@ export default function DestinationHero({
         </div>
       )}
 
-      {/* Gallery preview - floating cards */}
+      {/* Gallery preview - floating cards, hidden on very small screens */}
       {destinationData?.galleryPhotos && destinationData.galleryPhotos.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 -mt-6 relative z-10">
+        <div className="hidden sm:block max-w-4xl mx-auto px-4 -mt-6 relative z-10">
           <div className="flex gap-2 justify-end">
             {destinationData.galleryPhotos.slice(0, 3).map((photo, idx) => (
               <div
                 key={idx}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
+                className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
               >
                 <img
                   src={photo.thumbnailUrl}
@@ -186,7 +186,7 @@ export default function DestinationHero({
               </div>
             ))}
             {destinationData.galleryPhotos.length > 3 && (
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-slate-900/80 flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-slate-900/80 flex items-center justify-center text-white text-xs sm:text-sm font-medium">
                 +{destinationData.galleryPhotos.length - 3}
               </div>
             )}

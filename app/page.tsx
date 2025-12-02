@@ -68,7 +68,7 @@ export default function Home() {
                 <p className="text-lg sm:text-xl text-[var(--foreground-muted)] mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                   MonkeyTravel uses AI to create <span className="text-[var(--foreground)] font-medium">personalized day-by-day itineraries</span> in
                   seconds — not hours. Tell us where, when, and your budget.
-                  We&apos;ll handle the rest.
+                  We'll handle the rest.
                 </p>
 
                 {/* Email Capture */}
@@ -156,7 +156,7 @@ export default function Home() {
                 Trip planning is <span className="text-[var(--error)]">broken</span>
               </h2>
               <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                You shouldn&apos;t need 47 browser tabs, 3 spreadsheets, and a week of research
+                You shouldn't need 47 browser tabs, 3 spreadsheets, and a week of research
                 just to plan a vacation.
               </p>
             </div>
@@ -188,7 +188,7 @@ export default function Home() {
                     </svg>
                   ),
                   title: 'Generic Itineraries',
-                  description: 'Cookie-cutter travel guides that don&apos;t match your style, pace, or budget.',
+                  description: "Cookie-cutter travel guides that don't match your style, pace, or budget.",
                 },
               ].map((item, index) => (
                 <div key={index} className="text-center p-8 rounded-2xl bg-[var(--background-alt)] border border-gray-100">
@@ -288,7 +288,7 @@ export default function Home() {
                     </svg>
                   ),
                   title: 'Smart Hotel Picks',
-                  description: 'AI recommends hotels based on your daily activities — stay close to where you&apos;ll actually be.',
+                  description: "AI recommends hotels based on your daily activities — stay close to where you'll actually be.",
                   color: 'bg-cyan-50 text-cyan-500',
                 },
               ].map((feature, index) => (
@@ -419,8 +419,8 @@ export default function Home() {
                   <span className="gradient-text">ready to explore</span>
                 </h2>
                 <p className="text-lg text-[var(--foreground-muted)] mb-10 leading-relaxed">
-                  MonkeyTravel isn&apos;t just another travel app. It&apos;s your personal AI concierge
-                  that understands your style and creates adventures you&apos;ll actually want to take.
+                  MonkeyTravel isn't just another travel app. It's your personal AI concierge
+                  that understands your style and creates adventures you'll actually want to take.
                 </p>
 
                 <ul className="space-y-5">
@@ -509,7 +509,7 @@ export default function Home() {
             {/* Contact */}
             <div className="mt-12 text-center p-8 bg-[var(--background-alt)] rounded-3xl">
               <p className="text-[var(--foreground-muted)] mb-6">
-                Still have questions? We&apos;d love to hear from you.
+                Still have questions? We'd love to hear from you.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a

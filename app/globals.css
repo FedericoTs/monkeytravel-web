@@ -471,3 +471,29 @@ h1, h2, h3 {
     font-size: 15px;
   }
 }
+
+/* Hide scrollbar utility for clean horizontal scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly tap targets */
+@media (pointer: coarse) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Improve text readability on mobile */
+@media (max-width: 640px) {
+  p, li {
+    line-height: 1.7;
+  }
+}

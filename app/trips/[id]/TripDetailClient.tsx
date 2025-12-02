@@ -271,7 +271,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
-            <p className="text-slate-600">This trip doesn&apos;t have any activities planned yet.</p>
+            <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
           </div>
         )}
 
@@ -292,7 +292,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
               <p className="text-sm text-amber-800">
                 This itinerary was created by AI and enriched with real-time data from Google Places.
                 Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
-                and availability before your trip. Click &quot;More&quot; on any activity to see verified details and photos.
+                and availability before your trip. Click "More" on any activity to see verified details and photos.
               </p>
             </div>
           </div>

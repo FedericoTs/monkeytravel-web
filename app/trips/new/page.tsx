@@ -400,7 +400,7 @@ export default function NewTripPage() {
                 <h4 className="font-semibold text-amber-900 mb-1">AI-Generated Itinerary with Verified Data</h4>
                 <p className="text-sm text-amber-800">
                   This itinerary was created by AI and enriched with real-time data from Google Places.
-                  Click &quot;More&quot; on any activity to see verified photos, ratings, and price levels.
+                  Click "More" on any activity to see verified photos, ratings, and price levels.
                   We recommend double-checking opening hours before your trip.
                 </p>
               </div>

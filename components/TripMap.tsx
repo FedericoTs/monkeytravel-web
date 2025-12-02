@@ -210,10 +210,10 @@ export default function TripMap({
         </div>
       )}
 
-      {/* Day Legend */}
-      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-md">
-        <div className="text-xs font-medium text-slate-700 mb-1">Days</div>
-        <div className="flex flex-wrap gap-1">
+      {/* Day Legend - repositioned for mobile */}
+      <div className="absolute bottom-4 left-4 right-4 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-md max-w-[calc(100%-2rem)] sm:max-w-none">
+        <div className="text-xs font-medium text-slate-700 mb-1.5 hidden sm:block">Days</div>
+        <div className="flex flex-wrap gap-1.5 sm:gap-1 justify-center sm:justify-start">
           {days.map((day) => (
             <button
               key={day.day_number}
@@ -229,7 +229,7 @@ export default function TripMap({
                   map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
                 }
               }}
-              className={`w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 ${
+              className={`w-8 h-8 sm:w-6 sm:h-6 rounded-full text-white text-sm sm:text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
                 selectedDay === day.day_number ? "ring-2 ring-offset-1 ring-slate-900" : ""
               }`}
               style={{
