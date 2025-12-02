@@ -67,6 +67,10 @@ function buildUserPrompt(params: TripCreationParams): string {
         (1000 * 60 * 60 * 24)
     ) + 1;
 
+  // Pre-compute URL-safe destination for booking links
+  const destEncoded = encodeURIComponent(params.destination);
+  const destSlug = params.destination.split(",")[0].toLowerCase().replace(/\s+/g, "");
+
   return `Plan a ${duration}-day trip to ${params.destination}.
 
 ## Travel Details
@@ -76,7 +80,7 @@ function buildUserPrompt(params: TripCreationParams): string {
 - Travel Pace: ${params.pace}
 
 ## Traveler Preferences
-- Interests: ${params.interests.join(", ")}
+- Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 
 ## Required Output
@@ -94,22 +98,22 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
   "days": [
     {
       "day_number": 1,
-      "date": "${params.startDate}",
-      "theme": "Day theme (e.g., 'Historic Center')",
+      "date": "YYYY-MM-DD",
+      "theme": "Day theme (e.g., Historic Center)",
       "activities": [
         {
           "time_slot": "morning",
           "start_time": "09:00",
           "duration_minutes": 120,
-          "name": "Activity Name (must be the real, official name)",
+          "name": "Real Place Name",
           "type": "attraction",
           "description": "What to do here",
-          "location": "Neighborhood or area name",
-          "address": "Full street address (e.g., 'Via del Corso 123, 00186 Rome, Italy')",
-          "official_website": "https://example.com (only if you know the real URL, otherwise null)",
+          "location": "Neighborhood name",
+          "address": "Full street address",
+          "official_website": null,
           "estimated_cost": {
             "amount": 25,
-            "currency": "EUR",
+            "currency": "USD",
             "tier": "moderate"
           },
           "tips": ["Tip 1", "Tip 2"],
@@ -128,36 +132,41 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
   ],
   "trip_summary": {
     "total_estimated_cost": 450,
-    "currency": "EUR",
+    "currency": "USD",
     "highlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
     "packing_suggestions": ["Item 1", "Item 2", "Item 3"]
   },
   "booking_links": {
     "flights": [
-      {"provider": "Skyscanner", "url": "https://www.skyscanner.com/transport/flights/nyc/${params.destination.split(",")[0].toLowerCase().replace(/\s+/g, "")}/${params.startDate}", "label": "Search flights on Skyscanner"},
-      {"provider": "Google Flights", "url": "https://www.google.com/travel/flights?q=flights+to+${encodeURIComponent(params.destination)}", "label": "Search on Google Flights"}
+      {"provider": "Skyscanner", "url": "https://www.skyscanner.com/transport/flights/nyc/${destSlug}/${params.startDate}", "label": "Search flights on Skyscanner"},
+      {"provider": "Google Flights", "url": "https://www.google.com/travel/flights?q=flights+to+${destEncoded}", "label": "Search on Google Flights"}
     ],
     "hotels": [
-      {"provider": "Booking.com", "url": "https://www.booking.com/searchresults.html?ss=${encodeURIComponent(params.destination)}&checkin=${params.startDate}&checkout=${params.endDate}", "label": "Find hotels on Booking.com"},
-      {"provider": "Airbnb", "url": "https://www.airbnb.com/s/${encodeURIComponent(params.destination)}/homes?checkin=${params.startDate}&checkout=${params.endDate}", "label": "Browse Airbnb stays"}
+      {"provider": "Booking.com", "url": "https://www.booking.com/searchresults.html?ss=${destEncoded}&checkin=${params.startDate}&checkout=${params.endDate}", "label": "Find hotels on Booking.com"},
+      {"provider": "Airbnb", "url": "https://www.airbnb.com/s/${destEncoded}/homes?checkin=${params.startDate}&checkout=${params.endDate}", "label": "Browse Airbnb stays"}
     ]
   }
 }
 
-Important:
-- Return ONLY the JSON object, no additional text or markdown
-- Ensure all dates are in YYYY-MM-DD format
-- Include 3-5 activities per day depending on pace
-- Make sure activities flow logically through the day`;
+Rules:
+1. Return ONLY valid JSON, no markdown or extra text
+2. All dates must be in YYYY-MM-DD format starting from ${params.startDate}
+3. Include 3-5 activities per day based on ${params.pace} pace
+4. Use REAL place names that exist on Google Maps
+5. For official_website, use null if unsure (do not make up URLs)
+6. Activities should flow logically through each day`;
 }
 
 export async function generateItinerary(
-  params: TripCreationParams
+  params: TripCreationParams,
+  retryCount = 0
 ): Promise<GeneratedItinerary> {
+  const MAX_RETRIES = 2;
+
   const model = genAI.getGenerativeModel({
     model: MODELS.fast,
     generationConfig: {
-      temperature: 1.0,
+      temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
       topK: 40,
       maxOutputTokens: 8192,
@@ -183,16 +192,53 @@ export async function generateItinerary(
   });
 
   const userPrompt = buildUserPrompt(params);
-  const result = await chat.sendMessage(userPrompt);
-  const response = result.response;
-  const text = response.text();
 
   try {
-    const itinerary = JSON.parse(text) as GeneratedItinerary;
-    return itinerary;
-  } catch {
-    console.error("Failed to parse AI response:", text);
-    throw new Error("Failed to generate valid itinerary");
+    const result = await chat.sendMessage(userPrompt);
+    const response = result.response;
+    const text = response.text();
+
+    // Try to parse JSON
+    try {
+      const itinerary = JSON.parse(text) as GeneratedItinerary;
+
+      // Validate required fields exist
+      if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
+        throw new Error("Invalid itinerary structure");
+      }
+
+      return itinerary;
+    } catch (parseError) {
+      console.error(
+        `JSON parse error (attempt ${retryCount + 1}):`,
+        parseError instanceof Error ? parseError.message : "Unknown",
+        "\nResponse preview:",
+        text.substring(0, 500)
+      );
+
+      // Retry with lower temperature
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying generation (attempt ${retryCount + 2})...`);
+        return generateItinerary(params, retryCount + 1);
+      }
+
+      throw new Error("Failed to generate valid itinerary after retries");
+    }
+  } catch (error) {
+    // Handle API errors (rate limits, network issues, etc.)
+    if (error instanceof Error && error.message.includes("after retries")) {
+      throw error;
+    }
+
+    console.error("Gemini API error:", error);
+
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
+      return generateItinerary(params, retryCount + 1);
+    }
+
+    throw new Error("Failed to generate itinerary: AI service unavailable");
   }
 }
 
