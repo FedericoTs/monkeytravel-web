@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 
 interface DestinationData {
   placeId: string;
@@ -72,16 +72,13 @@ export default function DestinationHero({
         {/* Background Image */}
         {destinationData?.coverImageUrl ? (
           <>
-            <Image
+            <img
               src={destinationData.coverImageUrl}
               alt={destination}
-              fill
-              className={`object-cover transition-opacity duration-700 ${
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
-              priority
               onLoad={() => setImageLoaded(true)}
-              sizes="100vw"
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
@@ -180,12 +177,11 @@ export default function DestinationHero({
                 key={idx}
                 className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
               >
-                <Image
+                <img
                   src={photo.thumbnailUrl}
                   alt={`${destination} gallery ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
             ))}

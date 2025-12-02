@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 
 interface PlacePhoto {
   url: string;
@@ -206,12 +206,11 @@ export default function PlaceGallery({
                 compact ? "w-16 h-16" : "w-24 h-24"
               } flex-shrink-0 rounded-lg overflow-hidden relative group cursor-pointer transition-transform hover:scale-105`}
             >
-              <Image
+              <img
                 src={photo.thumbnailUrl}
                 alt={`${placeName} photo ${idx + 1}`}
-                fill
-                className="object-cover"
-                sizes={compact ? "64px" : "96px"}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                 <svg
@@ -285,16 +284,13 @@ export default function PlaceGallery({
 
           {/* Main image */}
           <div
-            className="relative max-w-[90vw] max-h-[85vh] aspect-[4/3]"
+            className="relative max-w-[90vw] max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            <img
               src={placeData.photos[selectedPhotoIndex].url}
               alt={`${placeName} photo ${selectedPhotoIndex + 1}`}
-              fill
-              className="object-contain"
-              sizes="90vw"
-              priority
+              className="max-w-full max-h-[85vh] object-contain"
             />
           </div>
 
@@ -323,12 +319,11 @@ export default function PlaceGallery({
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image
+                <img
                   src={photo.thumbnailUrl}
                   alt={`Thumbnail ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
                 />
               </button>
             ))}
