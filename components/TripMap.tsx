@@ -1,0 +1,332 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
+import type { Activity, ItineraryDay } from "@/types";
+
+interface MapActivity extends Activity {
+  dayNumber: number;
+  resolvedLocation?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+interface TripMapProps {
+  days: ItineraryDay[];
+  destination: string;
+  className?: string;
+  selectedDay?: number | null;
+  onActivityClick?: (activity: Activity, dayNumber: number) => void;
+}
+
+const mapContainerStyle = {
+  width: "100%",
+  height: "100%",
+};
+
+const defaultCenter = {
+  lat: 40.7128,
+  lng: -74.006,
+};
+
+const mapOptions: google.maps.MapOptions = {
+  disableDefaultUI: false,
+  zoomControl: true,
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: true,
+  styles: [
+    {
+      featureType: "poi",
+      elementType: "labels",
+      stylers: [{ visibility: "off" }],
+    },
+    {
+      featureType: "transit",
+      elementType: "labels",
+      stylers: [{ visibility: "off" }],
+    },
+  ],
+};
+
+// Day colors for markers
+const DAY_COLORS = [
+  "#0A4B73", // Primary blue
+  "#F2C641", // Accent yellow
+  "#10B981", // Green
+  "#8B5CF6", // Purple
+  "#F59E0B", // Orange
+  "#EF4444", // Red
+  "#06B6D4", // Cyan
+  "#EC4899", // Pink
+];
+
+export default function TripMap({
+  days,
+  destination,
+  className = "",
+  selectedDay,
+  onActivityClick,
+}: TripMapProps) {
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
+    null
+  );
+  const [activities, setActivities] = useState<MapActivity[]>([]);
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: ["places"],
+  });
+
+  // Geocode activities to get their coordinates
+  useEffect(() => {
+    if (!isLoaded || !window.google) return;
+
+    const geocodeActivities = async () => {
+      setIsGeocoding(true);
+      const geocoder = new google.maps.Geocoder();
+      const mappedActivities: MapActivity[] = [];
+
+      for (const day of days) {
+        for (const activity of day.activities) {
+          const searchQuery = `${activity.name} ${activity.address || activity.location} ${destination}`;
+
+          try {
+            const result = await new Promise<google.maps.GeocoderResult[]>(
+              (resolve, reject) => {
+                geocoder.geocode({ address: searchQuery }, (results, status) => {
+                  if (status === "OK" && results) {
+                    resolve(results);
+                  } else {
+                    reject(new Error(status));
+                  }
+                });
+              }
+            );
+
+            if (result[0]) {
+              mappedActivities.push({
+                ...activity,
+                dayNumber: day.day_number,
+                resolvedLocation: {
+                  lat: result[0].geometry.location.lat(),
+                  lng: result[0].geometry.location.lng(),
+                },
+              });
+            }
+          } catch {
+            // If geocoding fails, still add activity without location
+            mappedActivities.push({
+              ...activity,
+              dayNumber: day.day_number,
+            });
+          }
+
+          // Small delay to avoid rate limiting
+          await new Promise((r) => setTimeout(r, 100));
+        }
+      }
+
+      setActivities(mappedActivities);
+      setIsGeocoding(false);
+
+      // Center map on first activity or destination
+      const firstWithLocation = mappedActivities.find((a) => a.resolvedLocation);
+      if (firstWithLocation?.resolvedLocation) {
+        setMapCenter(firstWithLocation.resolvedLocation);
+      }
+    };
+
+    geocodeActivities();
+  }, [isLoaded, days, destination]);
+
+  // Fit bounds when activities change
+  useEffect(() => {
+    if (!map || activities.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+    let hasValidLocations = false;
+
+    activities.forEach((activity) => {
+      if (activity.resolvedLocation) {
+        bounds.extend(activity.resolvedLocation);
+        hasValidLocations = true;
+      }
+    });
+
+    if (hasValidLocations) {
+      map.fitBounds(bounds, {
+        top: 50,
+        right: 50,
+        bottom: 50,
+        left: 50,
+      });
+    }
+  }, [map, activities]);
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    setMap(null);
+  }, []);
+
+  const filteredActivities = selectedDay
+    ? activities.filter((a) => a.dayNumber === selectedDay)
+    : activities;
+
+  if (loadError) {
+    return (
+      <div className={`bg-slate-100 rounded-xl flex items-center justify-center ${className}`}>
+        <p className="text-slate-500">Failed to load map</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className={`bg-slate-100 rounded-xl flex items-center justify-center animate-pulse ${className}`}>
+        <div className="text-slate-400">Loading map...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
+      {isGeocoding && (
+        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-slate-600 shadow-md">
+          <span className="inline-block w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse mr-2" />
+          Loading locations...
+        </div>
+      )}
+
+      {/* Day Legend */}
+      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-md">
+        <div className="text-xs font-medium text-slate-700 mb-1">Days</div>
+        <div className="flex flex-wrap gap-1">
+          {days.map((day) => (
+            <button
+              key={day.day_number}
+              onClick={() => {
+                const dayActivities = activities.filter(
+                  (a) => a.dayNumber === day.day_number && a.resolvedLocation
+                );
+                if (dayActivities.length > 0 && map) {
+                  const bounds = new google.maps.LatLngBounds();
+                  dayActivities.forEach((a) => {
+                    if (a.resolvedLocation) bounds.extend(a.resolvedLocation);
+                  });
+                  map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+                }
+              }}
+              className={`w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 ${
+                selectedDay === day.day_number ? "ring-2 ring-offset-1 ring-slate-900" : ""
+              }`}
+              style={{
+                backgroundColor: DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length],
+              }}
+            >
+              {day.day_number}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={mapCenter}
+        zoom={13}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={mapOptions}
+      >
+        {filteredActivities.map((activity, idx) =>
+          activity.resolvedLocation ? (
+            <Marker
+              key={`${activity.dayNumber}-${idx}`}
+              position={activity.resolvedLocation}
+              onClick={() => setSelectedActivity(activity)}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 12,
+                fillColor: DAY_COLORS[(activity.dayNumber - 1) % DAY_COLORS.length],
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 2,
+              }}
+              label={{
+                text: String(activity.dayNumber),
+                color: "#ffffff",
+                fontSize: "10px",
+                fontWeight: "bold",
+              }}
+            />
+          ) : null
+        )}
+
+        {selectedActivity && selectedActivity.resolvedLocation && (
+          <InfoWindow
+            position={selectedActivity.resolvedLocation}
+            onCloseClick={() => setSelectedActivity(null)}
+          >
+            <div className="p-2 max-w-xs">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className="w-5 h-5 rounded-full text-white text-xs font-bold flex items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      DAY_COLORS[(selectedActivity.dayNumber - 1) % DAY_COLORS.length],
+                  }}
+                >
+                  {selectedActivity.dayNumber}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {selectedActivity.start_time}
+                </span>
+              </div>
+              <h4 className="font-semibold text-slate-900 text-sm">
+                {selectedActivity.name}
+              </h4>
+              <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                {selectedActivity.description}
+              </p>
+              <div className="mt-2 flex gap-2">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${selectedActivity.name} ${selectedActivity.address || selectedActivity.location}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[var(--primary)] hover:underline"
+                >
+                  Open in Maps
+                </a>
+                {onActivityClick && (
+                  <button
+                    onClick={() => {
+                      onActivityClick(selectedActivity, selectedActivity.dayNumber);
+                      setSelectedActivity(null);
+                    }}
+                    className="text-xs text-[var(--primary)] hover:underline"
+                  >
+                    View Details
+                  </button>
+                )}
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </div>
+  );
+}

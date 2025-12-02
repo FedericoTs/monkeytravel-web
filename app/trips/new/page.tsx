@@ -3,9 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneratedItinerary, TripCreationParams } from "@/types";
+import DestinationHero from "@/components/DestinationHero";
+import ActivityCard from "@/components/ActivityCard";
+
+// Dynamic import for TripMap to avoid SSR issues
+const TripMap = dynamic(() => import("@/components/TripMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
+      <span className="text-slate-400">Loading map...</span>
+    </div>
+  ),
+});
 
 const INTERESTS = [
   { id: "culture", label: "Culture & Museums", emoji: "🏛️" },
@@ -187,79 +199,99 @@ export default function NewTripPage() {
 
   // Show generated itinerary
   if (generatedItinerary) {
+    const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        {/* Hero with Cover Image */}
+        <DestinationHero
+          destination={fullDestination}
+          title={fullDestination}
+          subtitle={generatedItinerary.destination.description}
+          dateRange={`${startDate} to ${endDate}`}
+          budget={{
+            total: generatedItinerary.trip_summary.total_estimated_cost,
+            currency: generatedItinerary.trip_summary.currency,
+          }}
+          days={generatedItinerary.days.length}
+          tags={generatedItinerary.destination.best_for}
+          showBackButton={false}
+        />
+
+        {/* Sticky Save Button */}
+        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <Link href="/trips" className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back
+              Discard
             </Link>
-            <button
-              onClick={handleSaveTrip}
-              disabled={loading}
-              className="bg-[var(--primary)] text-white px-6 py-2 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Saving..." : "Save Trip"}
-            </button>
-          </div>
-        </header>
-
-        {/* Itinerary Display */}
-        <main className="max-w-4xl mx-auto px-4 py-8">
-          {/* Destination Header */}
-          <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 rounded-2xl p-8 text-white mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              {generatedItinerary.destination.name}, {generatedItinerary.destination.country}
-            </h1>
-            <p className="text-white/80 mb-4">{generatedItinerary.destination.description}</p>
-            <div className="flex flex-wrap gap-2">
-              {generatedItinerary.destination.best_for.map((tag) => (
-                <span key={tag} className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-500 hidden sm:block">
+                {generatedItinerary.days.length} days · {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
+              </span>
+              <button
+                onClick={handleSaveTrip}
+                disabled={loading}
+                className="bg-[var(--primary)] text-white px-6 py-2.5 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--primary)]/25"
+              >
+                {loading ? "Saving..." : "Save Trip"}
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Summary */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <div className="text-sm text-slate-500">Duration</div>
-                <div className="font-semibold text-slate-900">
-                  {generatedItinerary.days.length} days
-                </div>
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Interactive Map */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">Trip Overview</h2>
+              <span className="text-sm text-slate-500">{generatedItinerary.destination.weather_note}</span>
+            </div>
+            <TripMap
+              days={generatedItinerary.days}
+              destination={fullDestination}
+              className="h-[350px]"
+            />
+          </div>
+
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Duration</div>
+              <div className="font-semibold text-xl text-slate-900">{generatedItinerary.days.length} days</div>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Est. Budget</div>
+              <div className="font-semibold text-xl text-slate-900">
+                {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
               </div>
-              <div>
-                <div className="text-sm text-slate-500">Est. Budget</div>
-                <div className="font-semibold text-slate-900">
-                  {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
-                </div>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Activities</div>
+              <div className="font-semibold text-xl text-slate-900">
+                {generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0)}
               </div>
-              <div>
-                <div className="text-sm text-slate-500">Weather</div>
-                <div className="font-semibold text-slate-900">
-                  {generatedItinerary.destination.weather_note}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-slate-500">Pace</div>
-                <div className="font-semibold text-slate-900 capitalize">{pace}</div>
-              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Pace</div>
+              <div className="font-semibold text-xl text-slate-900 capitalize">{pace}</div>
             </div>
           </div>
 
           {/* Booking Links */}
           {generatedItinerary.booking_links && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-amber-900 mb-4">Book Your Travel</h3>
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 mb-8">
+              <h3 className="font-semibold text-amber-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Book Your Travel
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-sm text-amber-700 mb-2">Flights</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">Flights</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.flights.map((link) => (
                       <a
@@ -267,7 +299,7 @@ export default function NewTripPage() {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-white border border-amber-200 rounded-full text-sm text-amber-900 hover:bg-amber-100 transition-colors"
+                        className="px-4 py-2 bg-white border border-amber-200 rounded-lg text-sm text-amber-900 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-sm"
                       >
                         {link.provider} ↗
                       </a>
@@ -275,7 +307,7 @@ export default function NewTripPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-amber-700 mb-2">Hotels</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">Hotels</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.hotels.map((link) => (
                       <a
@@ -283,7 +315,7 @@ export default function NewTripPage() {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-white border border-amber-200 rounded-full text-sm text-amber-900 hover:bg-amber-100 transition-colors"
+                        className="px-4 py-2 bg-white border border-amber-200 rounded-lg text-sm text-amber-900 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-sm"
                       >
                         {link.provider} ↗
                       </a>
@@ -294,145 +326,42 @@ export default function NewTripPage() {
             </div>
           )}
 
-          {/* Day by Day */}
-          <div className="space-y-6">
+          {/* Day by Day with ActivityCards */}
+          <div className="space-y-8">
             {generatedItinerary.days.map((day) => (
-              <div key={day.day_number} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div key={day.day_number}>
                 {/* Day Header */}
-                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center justify-center font-bold text-lg shadow-lg">
                       {day.day_number}
                     </div>
                     <div>
-                      <div className="font-semibold text-slate-900">Day {day.day_number}</div>
-                      <div className="text-sm text-slate-500">{day.theme}</div>
+                      <h2 className="font-bold text-xl text-slate-900">Day {day.day_number}</h2>
+                      {day.theme && <p className="text-slate-500 text-sm">{day.theme}</p>}
                     </div>
-                    {day.daily_budget && (
-                      <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">Est. Cost</div>
-                        <div className="font-medium text-slate-900">
-                          {generatedItinerary.trip_summary.currency} {day.daily_budget.total}
-                        </div>
-                      </div>
-                    )}
                   </div>
+                  {day.daily_budget && (
+                    <div className="ml-auto text-right">
+                      <div className="text-sm text-slate-500">Est. Budget</div>
+                      <div className="font-semibold text-slate-900">
+                        {generatedItinerary.trip_summary.currency} {day.daily_budget.total}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Activities */}
-                <div className="p-6 space-y-4">
-                  {day.activities.map((activity, idx) => {
-                    // Generate Google Maps and search URLs
-                    const mapSearchQuery = encodeURIComponent(
-                      `${activity.name} ${activity.address || activity.location}`
-                    );
-                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
-                    const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
-
-                    return (
-                    <div key={idx} className="flex gap-4">
-                      <div className="flex-shrink-0 text-center">
-                        <div className="text-sm font-medium text-slate-900">{activity.start_time}</div>
-                        <div className="text-xs text-slate-500">{activity.duration_minutes}min</div>
-                      </div>
-                      <div className="flex-1 border-l-2 border-slate-200 pl-4 pb-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-900">{activity.name}</h4>
-                            <p className="text-sm text-slate-600 mt-1">{activity.description}</p>
-
-                            {/* Location with address */}
-                            <div className="flex items-start gap-2 mt-2 text-sm text-slate-500">
-                              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                              <span>{activity.address || activity.location}</span>
-                            </div>
-
-                            {/* Action Links */}
-                            <div className="flex flex-wrap gap-2 mt-3">
-                              <a
-                                href={googleMapsUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                </svg>
-                                View on Maps
-                              </a>
-                              <a
-                                href={googleSearchUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                                </svg>
-                                Verify
-                              </a>
-                              {activity.official_website && (
-                                <a
-                                  href={activity.official_website}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium rounded-lg transition-colors"
-                                >
-                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                  </svg>
-                                  Official Site
-                                </a>
-                              )}
-                              {activity.booking_required && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-lg">
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                  Booking required
-                                </span>
-                              )}
-                            </div>
-
-                            {activity.tips.length > 0 && (
-                              <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                                <div className="text-xs font-medium text-blue-700">Tips:</div>
-                                <ul className="text-xs text-blue-600 mt-1">
-                                  {activity.tips.map((tip, i) => (
-                                    <li key={i}>• {tip}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-right flex-shrink-0 ml-4">
-                            <div className="text-sm font-medium text-slate-900">
-                              {activity.estimated_cost.amount === 0
-                                ? "Free"
-                                : `${activity.estimated_cost.currency} ${activity.estimated_cost.amount}`}
-                            </div>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                activity.type === "restaurant"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : activity.type === "attraction"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : activity.type === "activity"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-purple-100 text-purple-700"
-                              }`}
-                            >
-                              {activity.type}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    );
-                  })}
+                {/* Activities as Cards */}
+                <div className="grid gap-4">
+                  {day.activities.map((activity, idx) => (
+                    <ActivityCard
+                      key={idx}
+                      activity={activity}
+                      index={idx}
+                      currency={generatedItinerary.trip_summary.currency}
+                      showGallery={true}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
@@ -440,11 +369,16 @@ export default function NewTripPage() {
 
           {/* Packing Suggestions */}
           {generatedItinerary.trip_summary.packing_suggestions.length > 0 && (
-            <div className="mt-8 bg-slate-50 rounded-xl p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Packing Suggestions</h3>
+            <div className="mt-10 bg-slate-50 rounded-xl p-6">
+              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                Packing Suggestions
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {generatedItinerary.trip_summary.packing_suggestions.map((item) => (
-                  <span key={item} className="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-700">
+                  <span key={item} className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 shadow-sm">
                     {item}
                   </span>
                 ))}
@@ -453,20 +387,38 @@ export default function NewTripPage() {
           )}
 
           {/* AI Disclaimer */}
-          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex gap-3">
-              <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+          <div className="mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
               <div>
-                <p className="text-sm font-medium text-amber-800">
-                  AI-Generated Itinerary
-                </p>
-                <p className="text-sm text-amber-700 mt-1">
-                  This itinerary was created by AI using real places. We recommend using the &quot;View on Maps&quot; and &quot;Verify&quot; links to confirm each location exists, check current opening hours, and read recent reviews before your trip.
+                <h4 className="font-semibold text-amber-900 mb-1">AI-Generated Itinerary with Verified Data</h4>
+                <p className="text-sm text-amber-800">
+                  This itinerary was created by AI and enriched with real-time data from Google Places.
+                  Click &quot;More&quot; on any activity to see verified photos, ratings, and price levels.
+                  We recommend double-checking opening hours before your trip.
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Bottom Save CTA */}
+          <div className="mt-10 text-center">
+            <button
+              onClick={handleSaveTrip}
+              disabled={loading}
+              className="bg-[var(--primary)] text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 shadow-xl shadow-[var(--primary)]/25"
+            >
+              {loading ? "Saving Your Trip..." : "Save This Trip"}
+            </button>
+            <p className="text-sm text-slate-500 mt-3">
+              Your trip will be saved to your account and accessible anytime
+            </p>
           </div>
         </main>
       </div>
