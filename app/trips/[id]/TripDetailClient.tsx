@@ -532,15 +532,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           <TripBookingLinks bookingLinks={trip.meta.booking_links} />
         )}
 
-        {/* Hotel Recommendations - Before Timeline */}
-        <HotelRecommendations
-          destination={destination}
-          itinerary={displayItinerary}
-          startDate={trip.startDate}
-          endDate={trip.endDate}
-        />
-
-        {/* Interactive Map */}
+        {/* Interactive Map - First */}
         {showMap && displayItinerary.length > 0 && (
           <div className="mb-8">
             <TripMap
@@ -552,7 +544,15 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         )}
 
-            {/* Day Filter Pills */}
+        {/* Hotel Recommendations - After Map */}
+        <HotelRecommendations
+          destination={destination}
+          itinerary={displayItinerary}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+        />
+
+        {/* Day Filter Pills */}
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setSelectedDay(null)}
