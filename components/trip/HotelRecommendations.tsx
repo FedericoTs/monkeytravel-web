@@ -369,6 +369,7 @@ export default function HotelRecommendations({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [searchMode, setSearchMode] = useState<"geo" | "destination">("geo");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate activity center from itinerary
@@ -384,15 +385,57 @@ export default function HotelRecommendations({
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }, [startDate, endDate]);
 
-  // Fetch hotels
-  const fetchHotels = useCallback(async () => {
-    if (!geoCenter || geoCenter.coverage < 30) {
-      // Not enough activity coordinates for geo-based search
-      return;
+  // Fetch hotels via geocoding (fallback when no activity coordinates)
+  const fetchHotelsViaGeocoding = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setSearchMode("destination");
+
+    try {
+      // First, geocode the destination to get coordinates
+      const geocodeResponse = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(destination)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+      const geocodeData = await geocodeResponse.json();
+
+      if (geocodeData.status !== "OK" || !geocodeData.results?.[0]) {
+        throw new Error("Could not find destination coordinates");
+      }
+
+      const location = geocodeData.results[0].geometry.location;
+
+      // Now search for hotels near that location
+      const params = new URLSearchParams({
+        latitude: location.lat.toString(),
+        longitude: location.lng.toString(),
+        radius: "10000", // 10km default radius for destination search
+        destination,
+      });
+
+      const response = await fetch(`/api/hotels/places?${params}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch hotels");
+      }
+
+      setHotels(data.hotels || []);
+      setHasLoaded(true);
+    } catch (err) {
+      console.error("Error fetching hotels via geocoding:", err);
+      setError(err instanceof Error ? err.message : "Failed to load hotels");
+    } finally {
+      setLoading(false);
     }
+  }, [destination]);
+
+  // Fetch hotels using activity centroid
+  const fetchHotelsViaGeoCenter = useCallback(async () => {
+    if (!geoCenter) return;
 
     setLoading(true);
     setError(null);
+    setSearchMode("geo");
 
     try {
       const params = new URLSearchParams({
@@ -419,12 +462,22 @@ export default function HotelRecommendations({
     }
   }, [geoCenter, destination]);
 
-  // Auto-fetch on mount if we have geo data
+  // Fetch hotels - prefer geo center, fallback to destination geocoding
+  const fetchHotels = useCallback(async () => {
+    if (geoCenter && geoCenter.coverage >= 30) {
+      await fetchHotelsViaGeoCenter();
+    } else {
+      // Fallback: geocode destination and search nearby
+      await fetchHotelsViaGeocoding();
+    }
+  }, [geoCenter, fetchHotelsViaGeoCenter, fetchHotelsViaGeocoding]);
+
+  // Auto-fetch on mount
   useEffect(() => {
-    if (geoCenter && !hasLoaded && !loading) {
+    if (!hasLoaded && !loading && destination) {
       fetchHotels();
     }
-  }, [geoCenter, hasLoaded, loading, fetchHotels]);
+  }, [hasLoaded, loading, destination, fetchHotels]);
 
   // Scroll handlers
   const scrollLeft = () => {
@@ -439,8 +492,8 @@ export default function HotelRecommendations({
     }
   };
 
-  // Don't render if no geo data available
-  if (!geoCenter || geoCenter.coverage < 30) {
+  // Always render if we have a destination
+  if (!destination) {
     return null;
   }
 
@@ -470,7 +523,9 @@ export default function HotelRecommendations({
                 Curated Stays
               </h3>
               <p className="text-sm text-slate-500">
-                Hotels near your {geoCenter.activityCount} planned activities
+                {geoCenter
+                  ? `Hotels near your ${geoCenter.activityCount} planned activities`
+                  : `Hotels in ${destination}`}
               </p>
             </div>
           </div>
@@ -544,28 +599,30 @@ export default function HotelRecommendations({
             ({nights} {nights === 1 ? "night" : "nights"})
           </span>
         </div>
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm">
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          <span>Within {Math.ceil(geoCenter.radius)}km of activities</span>
-        </div>
+        {geoCenter && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span>Within {Math.ceil(geoCenter.radius)}km of activities</span>
+          </div>
+        )}
       </div>
 
       {/* Loading state */}
