@@ -181,6 +181,97 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Cohort Retention Matrix */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              Weekly Cohort Retention Matrix
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              User retention by signup week (% still active in each subsequent week)
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Low</span>
+            <div className="flex">
+              <div className="w-4 h-4 bg-red-500 rounded-l" />
+              <div className="w-4 h-4 bg-orange-400" />
+              <div className="w-4 h-4 bg-yellow-400" />
+              <div className="w-4 h-4 bg-lime-400" />
+              <div className="w-4 h-4 bg-green-500 rounded-r" />
+            </div>
+            <span className="text-slate-500">High</span>
+          </div>
+        </div>
+
+        {stats.churn.cohortRetention && stats.churn.cohortRetention.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left py-2 px-3 font-medium text-slate-600 bg-slate-50 rounded-tl-lg">
+                    Cohort
+                  </th>
+                  <th className="text-center py-2 px-3 font-medium text-slate-600 bg-slate-50">
+                    Users
+                  </th>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <th key={i} className={`text-center py-2 px-3 font-medium text-slate-600 bg-slate-50 ${i === 7 ? 'rounded-tr-lg' : ''}`}>
+                      W{i}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {stats.churn.cohortRetention.map((cohort, cohortIndex) => (
+                  <tr key={cohort.cohort} className={cohortIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <td className="py-2 px-3 font-medium text-slate-700">
+                      {cohort.cohort}
+                    </td>
+                    <td className="py-2 px-3 text-center text-slate-600">
+                      {cohort.cohortSize}
+                    </td>
+                    {Array.from({ length: 8 }).map((_, weekIndex) => {
+                      const retention = cohort.retention[weekIndex];
+                      const hasData = retention !== undefined;
+
+                      return (
+                        <td key={weekIndex} className="py-2 px-1 text-center">
+                          {hasData ? (
+                            <div
+                              className="mx-auto w-12 h-8 rounded flex items-center justify-center text-xs font-semibold"
+                              style={{
+                                backgroundColor: getRetentionColor(retention),
+                                color: retention > 50 ? '#fff' : '#374151',
+                              }}
+                            >
+                              {retention}%
+                            </div>
+                          ) : (
+                            <div className="mx-auto w-12 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
+                              -
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-400">
+            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p>Not enough data for cohort analysis yet</p>
+            <p className="text-sm mt-1">Retention matrix will appear as more users sign up</p>
+          </div>
+        )}
+      </div>
+
       {/* Trips Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Trip Status */}
@@ -481,4 +572,14 @@ function formatTimestamp(timestamp: string): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString();
+}
+
+// Heat map color for retention percentage
+function getRetentionColor(percentage: number): string {
+  // Red (0%) -> Orange (25%) -> Yellow (50%) -> Lime (75%) -> Green (100%)
+  if (percentage >= 80) return "#22c55e"; // green-500
+  if (percentage >= 60) return "#84cc16"; // lime-500
+  if (percentage >= 40) return "#eab308"; // yellow-500
+  if (percentage >= 20) return "#f97316"; // orange-500
+  return "#ef4444"; // red-500
 }

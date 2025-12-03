@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 
+// Cohort retention data for matrix visualization
+export interface CohortData {
+  cohort: string; // Week label (e.g., "Nov 25" or "Week 48")
+  cohortSize: number; // Users who signed up in this cohort
+  retention: number[]; // Retention % for Week 0, Week 1, etc.
+}
+
 export interface AdminStats {
   // User Metrics
   users: {
@@ -17,6 +24,7 @@ export interface AdminStats {
     neverCreatedTrip: number;
     inactiveLast30Days: number;
     retentionRate: number;
+    cohortRetention: CohortData[]; // Weekly cohort retention matrix
   };
   // Trip Metrics
   trips: {
@@ -195,6 +203,7 @@ export async function GET() {
         neverCreatedTrip,
         inactiveLast30Days,
         retentionRate: Math.round(retentionRate * 10) / 10,
+        cohortRetention: await fetchCohortRetention(supabase),
       },
       trips: {
         total: tripMetrics.total || 0,
@@ -347,4 +356,89 @@ async function fetchRecentActivity(supabase: Awaited<ReturnType<typeof createCli
   return activities
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 15);
+}
+
+// Cohort retention matrix - tracks weekly user retention
+async function fetchCohortRetention(supabase: Awaited<ReturnType<typeof createClient>>): Promise<CohortData[]> {
+  // Get all users with their signup and last activity dates
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, created_at, last_sign_in_at")
+    .order("created_at", { ascending: true });
+
+  if (!users || users.length === 0) return [];
+
+  // Group users by signup week
+  const cohorts = new Map<string, { users: typeof users; weekStart: Date }>();
+  const now = new Date();
+
+  users.forEach((user) => {
+    const signupDate = new Date(user.created_at);
+    // Get the Monday of the signup week
+    const weekStart = getWeekStart(signupDate);
+    const weekKey = weekStart.toISOString().split("T")[0];
+
+    if (!cohorts.has(weekKey)) {
+      cohorts.set(weekKey, { users: [], weekStart });
+    }
+    cohorts.get(weekKey)!.users.push(user);
+  });
+
+  // Calculate retention for each cohort
+  const cohortData: CohortData[] = [];
+  const sortedCohorts = Array.from(cohorts.entries()).sort(
+    ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
+  );
+
+  // Only show last 8 cohorts for readability
+  const recentCohorts = sortedCohorts.slice(-8);
+
+  recentCohorts.forEach(([weekKey, { users: cohortUsers, weekStart }]) => {
+    const cohortSize = cohortUsers.length;
+    const retention: number[] = [];
+
+    // Calculate weeks since cohort started
+    const weeksSinceCohort = Math.floor(
+      (now.getTime() - weekStart.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+
+    // Calculate retention for each week (Week 0 to current week)
+    for (let week = 0; week <= Math.min(weeksSinceCohort, 7); week++) {
+      const weekEnd = new Date(weekStart.getTime() + (week + 1) * 7 * 24 * 60 * 60 * 1000);
+
+      // Count users who were active during or after this week
+      const activeUsers = cohortUsers.filter((user) => {
+        if (!user.last_sign_in_at) return week === 0; // Count as active only in week 0 if never signed in again
+        const lastActive = new Date(user.last_sign_in_at);
+        return lastActive >= weekStart && lastActive >= new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);
+      }).length;
+
+      const retentionPct = cohortSize > 0 ? Math.round((activeUsers / cohortSize) * 100) : 0;
+      retention.push(retentionPct);
+    }
+
+    // Format cohort label (e.g., "Nov 25")
+    const cohortLabel = weekStart.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+
+    cohortData.push({
+      cohort: cohortLabel,
+      cohortSize,
+      retention,
+    });
+  });
+
+  return cohortData;
+}
+
+// Helper: Get Monday of the week for a given date
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
