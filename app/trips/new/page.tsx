@@ -12,6 +12,7 @@ import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import GenerationProgress from "@/components/trip/GenerationProgress";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import DestinationAutocomplete from "@/components/ui/DestinationAutocomplete";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -539,36 +540,41 @@ export default function NewTripPage() {
                 Where do you want to go?
               </h1>
               <p className="text-slate-600">
-                Enter a city, region, or country to explore
+                Search for a city to start planning your trip
               </p>
             </div>
 
-            <div>
-              <input
-                type="text"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="e.g., Paris, France"
-                className="w-full px-4 py-4 text-lg rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                autoFocus
-              />
-            </div>
+            <DestinationAutocomplete
+              value={destination}
+              onChange={setDestination}
+              placeholder="e.g., Paris, Tokyo, New York..."
+              autoFocus
+            />
 
             {/* Popular destinations */}
             <div>
               <div className="text-sm text-slate-500 mb-3">Popular destinations</div>
               <div className="flex flex-wrap gap-2">
-                {["Paris, France", "Tokyo, Japan", "Rome, Italy", "Barcelona, Spain", "New York, USA", "Bali, Indonesia"].map(
-                  (place) => (
-                    <button
-                      key={place}
-                      onClick={() => setDestination(place)}
-                      className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-                    >
-                      {place}
-                    </button>
-                  )
-                )}
+                {[
+                  { name: "Paris, France", flag: "🇫🇷" },
+                  { name: "Tokyo, Japan", flag: "🇯🇵" },
+                  { name: "Rome, Italy", flag: "🇮🇹" },
+                  { name: "Barcelona, Spain", flag: "🇪🇸" },
+                  { name: "New York, USA", flag: "🇺🇸" },
+                  { name: "Bali, Indonesia", flag: "🇮🇩" },
+                ].map((place) => (
+                  <button
+                    key={place.name}
+                    onClick={() => setDestination(place.name)}
+                    className="px-4 py-2 rounded-full border border-slate-200 text-slate-700
+                               hover:border-[var(--primary)] hover:text-[var(--primary)]
+                               hover:bg-[var(--primary)]/5 transition-all duration-200
+                               flex items-center gap-2"
+                  >
+                    <span>{place.flag}</span>
+                    <span>{place.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
