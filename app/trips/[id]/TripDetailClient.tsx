@@ -263,17 +263,33 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   // Refetch trip data from the database (called after AI modifications)
   const handleRefetchTrip = useCallback(async () => {
-    console.log("[TripDetailClient] Refetching trip data...");
+    console.log("[TripDetailClient] Refetching trip data from database...");
     try {
-      const response = await fetch(`/api/trips/${trip.id}`);
+      const response = await fetch(`/api/trips/${trip.id}`, {
+        cache: 'no-store', // Ensure we get fresh data
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch trip");
+        throw new Error(`Failed to fetch trip: ${response.status}`);
       }
       const data = await response.json();
-      console.log("[TripDetailClient] Trip data fetched, itinerary has", data.trip?.itinerary?.length, "days");
+      console.log("[TripDetailClient] Trip data fetched successfully:", {
+        tripId: data.trip?.id,
+        itineraryDays: data.trip?.itinerary?.length,
+        firstDayActivities: data.trip?.itinerary?.[0]?.activities?.map((a: Activity) => a.name),
+      });
 
       if (data.trip?.itinerary) {
-        const processedItinerary = ensureActivityIds(data.trip.itinerary);
+        // Deep clone to ensure we're working with fresh data
+        const freshItinerary = JSON.parse(JSON.stringify(data.trip.itinerary));
+        const processedItinerary = ensureActivityIds(freshItinerary);
+
+        console.log("[TripDetailClient] Processed itinerary:", {
+          days: processedItinerary.length,
+          day1Activities: processedItinerary[0]?.activities?.map((a: Activity) => a.name),
+        });
 
         // Find changed activities for animation
         for (let dayIdx = 0; dayIdx < processedItinerary.length; dayIdx++) {
@@ -284,8 +300,9 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
             if (newDay.activities.length !== oldDay.activities.length) {
               // Find the new activity
               for (const act of newDay.activities) {
-                const exists = oldDay.activities.some(a => a.id === act.id || a.name === act.name);
+                const exists = oldDay.activities.some((a: Activity) => a.id === act.id || a.name === act.name);
                 if (!exists) {
+                  console.log("[TripDetailClient] Found new activity:", act.name);
                   aiUpdateRef.current = { dayIndex: dayIdx, activityId: act.id || "" };
                   break;
                 }
@@ -296,6 +313,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                 const newAct = newDay.activities[actIdx];
                 const oldAct = oldDay.activities[actIdx];
                 if (oldAct && newAct.name !== oldAct.name) {
+                  console.log("[TripDetailClient] Found replaced activity:", oldAct.name, "->", newAct.name);
                   aiUpdateRef.current = { dayIndex: dayIdx, activityId: newAct.id || "" };
                   break;
                 }
@@ -304,15 +322,24 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           }
         }
 
-        setEditedItinerary(processedItinerary);
+        // Force update by creating new array reference
+        console.log("[TripDetailClient] Updating state with new itinerary...");
+        setEditedItinerary([...processedItinerary]);
         setIsEditMode(true);
-        setItineraryVersion((v) => v + 1);
-        console.log("[TripDetailClient] State updated with new itinerary");
+        setItineraryVersion((v) => {
+          const newVersion = v + 1;
+          console.log("[TripDetailClient] Itinerary version bumped to:", newVersion);
+          return newVersion;
+        });
 
         // Clear the AI update ref after animation time
         setTimeout(() => {
           aiUpdateRef.current = null;
         }, 2000);
+
+        console.log("[TripDetailClient] State update complete - UI should re-render now");
+      } else {
+        console.error("[TripDetailClient] No itinerary in response:", data);
       }
     } catch (error) {
       console.error("[TripDetailClient] Failed to refetch trip:", error);

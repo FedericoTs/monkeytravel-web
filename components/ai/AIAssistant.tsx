@@ -140,29 +140,19 @@ export default function AIAssistant({
         // Debug logging
         console.log("[AIAssistant] Response received:", {
           hasModifiedItinerary: !!data.modifiedItinerary,
-          hasOnItineraryUpdate: !!onItineraryUpdate,
           hasOnRefetchTrip: !!onRefetchTrip,
           actionApplied: data.message?.action?.applied,
           debug: data.debug,
         });
 
         // Handle itinerary updates from autonomous actions
-        // Method 1: Use modifiedItinerary if returned
-        if (data.modifiedItinerary) {
-          console.log("[AIAssistant] Modified itinerary received with", data.modifiedItinerary.length, "days");
-          if (onItineraryUpdate) {
-            console.log("[AIAssistant] Calling onItineraryUpdate callback...");
-            onItineraryUpdate(data.modifiedItinerary);
-            console.log("[AIAssistant] Callback executed successfully");
-          }
-        }
-        // Method 2: Refetch trip if action was applied but no modifiedItinerary returned
-        // This is more reliable since the database IS updated
-        else if (data.message?.action?.applied && onRefetchTrip) {
-          console.log("[AIAssistant] Action was applied, refetching trip data...");
+        // ALWAYS refetch from database when an action was applied
+        // This is the most reliable method since the database IS updated
+        if (data.message?.action?.applied && onRefetchTrip) {
+          console.log("[AIAssistant] Action was applied, refetching trip data from database...");
           try {
             await onRefetchTrip();
-            console.log("[AIAssistant] Trip data refetched successfully");
+            console.log("[AIAssistant] Trip data refetched successfully - UI should now be updated");
           } catch (err) {
             console.error("[AIAssistant] Failed to refetch trip:", err);
           }
@@ -182,7 +172,7 @@ export default function AIAssistant({
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onItineraryUpdate, onRefetchTrip, itinerary]
+    [tripId, conversationId, isLoading, onAction, onRefetchTrip, itinerary]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
