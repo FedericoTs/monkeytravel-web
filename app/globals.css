@@ -167,6 +167,25 @@ body {
   50% { transform: translateY(-8px); }
 }
 
+@keyframes pulse-once {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(10, 75, 115, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(10, 75, 115, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(10, 75, 115, 0);
+  }
+}
+
+.animate-pulse-once {
+  animation: pulse-once 1s ease-out;
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }

@@ -312,7 +312,8 @@ export async function POST(request: NextRequest) {
 
     // Detect if user wants to modify activities
     const actionIntent = detectActionIntent(message);
-    let modifiedItinerary = [...itinerary];
+    // Deep clone the itinerary to avoid reference issues
+    let modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
     let actionTaken: StructuredAssistantResponse["action"] | undefined;
     let replacementCard: AssistantCard | undefined;
 

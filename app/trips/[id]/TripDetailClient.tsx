@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, Activity } from "@/types";
@@ -59,6 +59,12 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
+
+  // Version counter to force re-render after AI updates
+  const [itineraryVersion, setItineraryVersion] = useState(0);
+
+  // Ref to track if we just updated from AI (for animations)
+  const aiUpdateRef = useRef<{ dayIndex: number; activityId: string } | null>(null);
 
   // Track if there are unsaved changes
   const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(ensureActivityIds(trip.itinerary));
@@ -220,6 +226,40 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     },
     [isEditMode, trip.itinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
   );
+
+  // Handle itinerary updates from AI assistant (autonomous changes)
+  const handleItineraryUpdate = useCallback((newItinerary: ItineraryDay[]) => {
+    // Deep clone and ensure IDs
+    const processedItinerary = ensureActivityIds(
+      JSON.parse(JSON.stringify(newItinerary))
+    );
+
+    // Find the changed activity for animation
+    for (let dayIdx = 0; dayIdx < processedItinerary.length; dayIdx++) {
+      const newDay = processedItinerary[dayIdx];
+      const oldDay = editedItinerary[dayIdx];
+      if (oldDay) {
+        for (let actIdx = 0; actIdx < newDay.activities.length; actIdx++) {
+          const newAct = newDay.activities[actIdx];
+          const oldAct = oldDay.activities[actIdx];
+          if (!oldAct || newAct.id !== oldAct.id || newAct.name !== oldAct.name) {
+            aiUpdateRef.current = { dayIndex: dayIdx, activityId: newAct.id || "" };
+            break;
+          }
+        }
+      }
+    }
+
+    // Update state - use functional updates to avoid stale closures
+    setEditedItinerary(processedItinerary);
+    setIsEditMode(true);
+    setItineraryVersion((v) => v + 1);
+
+    // Clear the AI update ref after animation time
+    setTimeout(() => {
+      aiUpdateRef.current = null;
+    }, 2000);
+  }, [editedItinerary]);
 
   // Use edited itinerary in edit mode, original otherwise
   const displayItinerary = isEditMode ? editedItinerary : ensureActivityIds(trip.itinerary);
@@ -401,11 +441,11 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
         {/* Itinerary */}
         {displayItinerary.length > 0 ? (
-          <div className="space-y-8">
+          <div className="space-y-8" key={`itinerary-v${itineraryVersion}`}>
             {displayItinerary
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day, dayIndex) => (
-                <div key={day.day_number}>
+                <div key={`day-${day.day_number}-v${itineraryVersion}`}>
                   {/* Day Header */}
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center gap-3">
@@ -438,36 +478,42 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                   {/* Activities */}
                   {viewMode === "cards" ? (
                     <div className="grid gap-4">
-                      {day.activities.map((activity, idx) => (
-                        isEditMode ? (
-                          <EditableActivityCard
-                            key={activity.id || idx}
-                            activity={activity}
-                            index={idx}
-                            currency={trip.budget?.currency}
-                            showGallery={true}
-                            isEditMode={true}
-                            onMove={(direction) => handleActivityMove(activity.id!, direction)}
-                            onDelete={() => handleActivityDelete(activity.id!)}
-                            onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                            onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
-                            onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                            canMoveUp={idx > 0}
-                            canMoveDown={idx < day.activities.length - 1}
-                            availableDays={availableDays}
-                            currentDayIndex={dayIndex}
-                            isRegenerating={regeneratingActivityId === activity.id}
-                          />
-                        ) : (
-                          <ActivityCard
-                            key={activity.id || idx}
-                            activity={activity}
-                            index={idx}
-                            currency={trip.budget?.currency}
-                            showGallery={true}
-                          />
-                        )
-                      ))}
+                      {day.activities.map((activity, idx) => {
+                        const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                        return (
+                          <div
+                            key={`${activity.id || idx}-v${itineraryVersion}`}
+                            className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
+                          >
+                            {isEditMode ? (
+                              <EditableActivityCard
+                                activity={activity}
+                                index={idx}
+                                currency={trip.budget?.currency}
+                                showGallery={true}
+                                isEditMode={true}
+                                onMove={(direction) => handleActivityMove(activity.id!, direction)}
+                                onDelete={() => handleActivityDelete(activity.id!)}
+                                onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
+                                onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
+                                onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
+                                canMoveUp={idx > 0}
+                                canMoveDown={idx < day.activities.length - 1}
+                                availableDays={availableDays}
+                                currentDayIndex={dayIndex}
+                                isRegenerating={regeneratingActivityId === activity.id}
+                              />
+                            ) : (
+                              <ActivityCard
+                                activity={activity}
+                                index={idx}
+                                currency={trip.budget?.currency}
+                                showGallery={true}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     /* Timeline View */
@@ -691,14 +737,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
         onAction={handleAIAction}
-        onItineraryUpdate={(newItinerary) => {
-          // Update local state with AI-modified itinerary
-          setEditedItinerary(ensureActivityIds(newItinerary));
-          // Enter edit mode if not already
-          if (!isEditMode) {
-            setIsEditMode(true);
-          }
-        }}
+        onItineraryUpdate={handleItineraryUpdate}
       />
     </div>
   );
