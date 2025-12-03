@@ -19,6 +19,8 @@ import {
   replaceActivity,
   generateActivityId,
 } from "@/lib/utils/activity-id";
+import FlightSearch from "@/components/booking/FlightSearch";
+import HotelSearch from "@/components/booking/HotelSearch";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -45,19 +47,28 @@ interface TripDetailClientProps {
   dateRange: string;
 }
 
+// Tab type for main navigation
+type MainTab = 'itinerary' | 'flights' | 'hotels';
+
 export default function TripDetailClient({ trip, dateRange }: TripDetailClientProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<MainTab>('itinerary');
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
     ensureActivityIds(trip.itinerary)
   );
+  // Track the last saved state (so we can detect changes and revert without page reload)
+  const [savedItinerary, setSavedItinerary] = useState<ItineraryDay[]>(() =>
+    ensureActivityIds(trip.itinerary)
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
 
   // Version counter to force re-render after AI updates
@@ -66,8 +77,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   // Ref to track if we just updated from AI (for animations)
   const aiUpdateRef = useRef<{ dayIndex: number; activityId: string } | null>(null);
 
-  // Track if there are unsaved changes
-  const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(ensureActivityIds(trip.itinerary));
+  // Track if there are unsaved changes (compare against saved state, not prop)
+  const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(savedItinerary);
 
   // Extract destination from title (e.g., "Rome Trip" -> "Rome")
   const destination = trip.title.replace(/ Trip$/, "");
@@ -143,6 +154,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const handleSaveChanges = useCallback(async () => {
     setIsSaving(true);
     setSaveError(null);
+    setSaveSuccess(false);
 
     try {
       const response = await fetch(`/api/trips/${trip.id}`, {
@@ -155,10 +167,15 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         throw new Error("Failed to save changes");
       }
 
+      // Update saved state to match current edited state (deep clone to avoid reference issues)
+      setSavedItinerary(JSON.parse(JSON.stringify(editedItinerary)));
       // Exit edit mode on success
       setIsEditMode(false);
-      // Reload the page to get fresh data
-      window.location.reload();
+      // Show success feedback
+      setSaveSuccess(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+      // NO window.location.reload() - seamless update!
     } catch (error) {
       console.error("Error saving changes:", error);
       setSaveError("Failed to save changes. Please try again.");
@@ -168,15 +185,17 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   }, [trip.id, editedItinerary]);
 
   const handleDiscardChanges = useCallback(() => {
-    setEditedItinerary(ensureActivityIds(trip.itinerary));
+    // Revert to last saved state (not trip.itinerary prop, which may be stale)
+    setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(false);
     setSaveError(null);
-  }, [trip.itinerary]);
+  }, [savedItinerary]);
 
   const handleEnterEditMode = useCallback(() => {
-    setEditedItinerary(ensureActivityIds(trip.itinerary));
+    // Start editing from the last saved state
+    setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(true);
-  }, [trip.itinerary]);
+  }, [savedItinerary]);
 
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
@@ -328,7 +347,10 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
         // Force update by creating new array reference
         console.log("[TripDetailClient] Updating state with new itinerary...");
-        setEditedItinerary([...processedItinerary]);
+        const freshCopy = [...processedItinerary];
+        setEditedItinerary(freshCopy);
+        // Also update saved state since this is fresh data from database
+        setSavedItinerary(JSON.parse(JSON.stringify(freshCopy)));
         setIsEditMode(true);
         setItineraryVersion((v) => {
           const newVersion = v + 1;
@@ -489,19 +511,65 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         </div>
 
-        {/* Interactive Map */}
-        {showMap && displayItinerary.length > 0 && (
-          <div className="mb-8">
-            <TripMap
-              days={displayItinerary}
-              destination={destination}
-              selectedDay={selectedDay}
-              className="h-[400px]"
-            />
-          </div>
-        )}
+        {/* Main Tab Navigation */}
+        <div className="flex items-center gap-1 mb-6 border-b border-slate-200">
+          <button
+            onClick={() => setActiveTab('itinerary')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'itinerary'
+                ? 'border-[var(--primary)] text-[var(--primary)]'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Itinerary
+          </button>
+          <button
+            onClick={() => setActiveTab('flights')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'flights'
+                ? 'border-[var(--primary)] text-[var(--primary)]'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Flights
+          </button>
+          <button
+            onClick={() => setActiveTab('hotels')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'hotels'
+                ? 'border-[var(--primary)] text-[var(--primary)]'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Hotels
+          </button>
+        </div>
 
-        {/* Day Filter Pills */}
+        {/* Tab Content */}
+        {activeTab === 'itinerary' && (
+          <>
+            {/* Interactive Map */}
+            {showMap && displayItinerary.length > 0 && (
+              <div className="mb-8">
+                <TripMap
+                  days={displayItinerary}
+                  destination={destination}
+                  selectedDay={selectedDay}
+                  className="h-[400px]"
+                />
+              </div>
+            )}
+
+            {/* Day Filter Pills */}
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setSelectedDay(null)}
@@ -712,6 +780,39 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
             </div>
           </div>
         )}
+          </>
+        )}
+
+        {/* Flights Tab Content */}
+        {activeTab === 'flights' && (
+          <div className="max-w-2xl mx-auto">
+            <FlightSearch
+              tripDestination={destination}
+              tripStartDate={trip.startDate}
+              tripEndDate={trip.endDate}
+              onFlightSelect={(flight) => {
+                console.log('Selected flight:', flight);
+                // TODO: Save to trip record (Phase 2)
+              }}
+            />
+          </div>
+        )}
+
+        {/* Hotels Tab Content */}
+        {activeTab === 'hotels' && (
+          <div className="max-w-2xl mx-auto">
+            <HotelSearch
+              tripDestination={destination}
+              tripStartDate={trip.startDate}
+              tripEndDate={trip.endDate}
+              itinerary={displayItinerary}
+              onHotelSelect={(hotel) => {
+                console.log('Selected hotel:', hotel);
+                // TODO: Save to trip record (Phase 2)
+              }}
+            />
+          </div>
+        )}
       </main>
 
       {/* Edit Mode Save/Discard Bar */}
@@ -830,6 +931,31 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         onItineraryUpdate={handleItineraryUpdate}
         onRefetchTrip={handleRefetchTrip}
       />
+
+      {/* Success Toast Notification */}
+      {saveSuccess && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in-up">
+          <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-lg shadow-lg">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-green-800">Changes saved!</p>
+              <p className="text-sm text-green-600">Your trip has been updated successfully.</p>
+            </div>
+            <button
+              onClick={() => setSaveSuccess(false)}
+              className="text-green-500 hover:text-green-700 ml-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
