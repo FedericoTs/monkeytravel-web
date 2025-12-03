@@ -203,14 +203,14 @@ export default function AIAssistant({
     <>
       {/* Backdrop for mobile */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 z-[60] lg:hidden backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Sidebar / Bottom Sheet */}
+      {/* Sidebar / Bottom Sheet - z-[70] ensures it's above MobileBottomNav (z-50) */}
       <div
         className={`
-          fixed z-50 bg-white shadow-2xl
+          fixed z-[70] bg-white shadow-2xl
           lg:right-0 lg:top-0 lg:h-full lg:w-[420px] lg:border-l lg:border-slate-200
           bottom-0 left-0 right-0 h-[85vh] rounded-t-3xl lg:rounded-none
           flex flex-col overflow-hidden
