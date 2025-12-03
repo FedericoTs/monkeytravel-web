@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdmin } from "@/lib/admin";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -45,6 +46,26 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(url);
+  }
+
+  // Admin routes - require authentication AND admin email
+  const isAdminPath = request.nextUrl.pathname.startsWith("/admin");
+
+  if (isAdminPath) {
+    if (!user) {
+      // Not logged in - redirect to login
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("redirect", request.nextUrl.pathname);
+      return NextResponse.redirect(url);
+    }
+
+    if (!isAdmin(user.email)) {
+      // Logged in but not an admin - redirect to home
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   // Redirect logged in users away from auth pages
