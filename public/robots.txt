@@ -1,0 +1,19 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow private/admin areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /auth/callback
+
+# Allow important pages
+Allow: /trips
+Allow: /privacy
+Allow: /terms
+
+# Sitemap location
+Sitemap: https://monkeytravel.app/sitemap.xml
+
+# Crawl delay (optional, be nice to servers)
+Crawl-delay: 1
