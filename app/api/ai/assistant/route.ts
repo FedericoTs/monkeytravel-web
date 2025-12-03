@@ -59,23 +59,27 @@ function detectActionIntent(message: string): {
 } {
   const lowerMsg = message.toLowerCase();
 
-  // Replace patterns
+  // Replace patterns - more flexible matching
   const replacePatterns = [
-    /replace\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|by|for)/i,
-    /swap\s+(?:out\s+)?["']?([^"']+?)["']?\s+(?:with|for)/i,
-    /change\s+["']?([^"']+?)["']?\s+to\s+/i,
-    /instead\s+of\s+["']?([^"']+?)["']?/i,
-    /don['']?t\s+(?:want|like)\s+["']?([^"']+?)["']?/i,
-    /(?:can\s+you\s+)?replace\s+["']?([^"']+?)["']?/i,
-    /switch\s+["']?([^"']+?)["']?\s+(?:to|with|for)/i,
+    /replace\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|by|for)\s+/i,
+    /swap\s+(?:out\s+)?(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|for)\s+/i,
+    /change\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to|with)\s+/i,
+    /instead\s+of\s+(?:the\s+)?["']?([^"']+?)["']?/i,
+    /(?:i\s+)?don['']?t\s+(?:want|like)\s+(?:the\s+)?["']?([^"']+?)["']?/i,
+    /(?:can\s+you\s+)?replace\s+(?:the\s+)?["']?([^"']+?)["']?$/i,
+    /(?:can\s+you\s+)?replace\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|to|for|by)/i,
+    /switch\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to|with|for)\s+/i,
+    /(?:let['']?s\s+)?(?:do\s+)?something\s+(?:else\s+)?instead\s+of\s+(?:the\s+)?["']?([^"']+?)["']?/i,
   ];
 
   for (const pattern of replacePatterns) {
     const match = message.match(pattern);
     if (match) {
+      const activityName = match[1].trim();
+      console.log(`[AI Assistant] Detected REPLACE intent for activity: "${activityName}"`);
       return {
         type: "replace",
-        activityName: match[1].trim(),
+        activityName,
         preference: message,
       };
     }
@@ -122,26 +126,75 @@ function detectActionIntent(message: string): {
   return { type: "none" };
 }
 
-// Find activity by name (fuzzy match)
+// Find activity by name (improved fuzzy match)
 function findActivityByName(
   itinerary: ItineraryDay[],
-  name: string
+  searchName: string
 ): { activity: Activity; dayIndex: number; activityIndex: number } | null {
-  const lowerName = name.toLowerCase().trim();
+  const lowerSearch = searchName.toLowerCase().trim();
+
+  // Remove common words that might interfere with matching
+  const cleanSearch = lowerSearch
+    .replace(/^(the|a|an|visit|go to|see|explore)\s+/i, "")
+    .replace(/\s+(visit|tour|experience|activity)$/i, "")
+    .trim();
+
+  console.log(`[AI Assistant] Searching for activity: "${searchName}" (cleaned: "${cleanSearch}")`);
+  console.log(`[AI Assistant] Activities in itinerary:`);
+
+  let bestMatch: { activity: Activity; dayIndex: number; activityIndex: number; score: number } | null = null;
 
   for (let dayIdx = 0; dayIdx < itinerary.length; dayIdx++) {
     const day = itinerary[dayIdx];
     for (let actIdx = 0; actIdx < day.activities.length; actIdx++) {
       const activity = day.activities[actIdx];
       const activityName = activity.name.toLowerCase();
+      const cleanActivityName = activityName
+        .replace(/^(the|a|an|visit|go to|see|explore)\s+/i, "")
+        .replace(/\s+(visit|tour|experience|activity)$/i, "")
+        .trim();
 
-      // Exact match or contains
-      if (activityName === lowerName || activityName.includes(lowerName) || lowerName.includes(activityName)) {
-        return { activity, dayIndex: dayIdx, activityIndex: actIdx };
+      console.log(`  - Day ${dayIdx + 1}: "${activity.name}"`);
+
+      let score = 0;
+
+      // Exact match (highest priority)
+      if (activityName === lowerSearch || cleanActivityName === cleanSearch) {
+        score = 100;
+      }
+      // Activity name contains search term
+      else if (activityName.includes(lowerSearch) || cleanActivityName.includes(cleanSearch)) {
+        score = 80;
+      }
+      // Search term contains activity name
+      else if (lowerSearch.includes(activityName) || cleanSearch.includes(cleanActivityName)) {
+        score = 70;
+      }
+      // Word-by-word matching
+      else {
+        const searchWords = cleanSearch.split(/\s+/);
+        const activityWords = cleanActivityName.split(/\s+/);
+        const matchedWords = searchWords.filter(sw =>
+          activityWords.some(aw => aw.includes(sw) || sw.includes(aw))
+        );
+        if (matchedWords.length > 0) {
+          score = (matchedWords.length / searchWords.length) * 60;
+        }
+      }
+
+      if (score > 0 && (!bestMatch || score > bestMatch.score)) {
+        bestMatch = { activity, dayIndex: dayIdx, activityIndex: actIdx, score };
+        console.log(`  [Match found] Score: ${score} for "${activity.name}"`);
       }
     }
   }
 
+  if (bestMatch && bestMatch.score >= 40) {
+    console.log(`[AI Assistant] Best match: "${bestMatch.activity.name}" with score ${bestMatch.score}`);
+    return { activity: bestMatch.activity, dayIndex: bestMatch.dayIndex, activityIndex: bestMatch.activityIndex };
+  }
+
+  console.log(`[AI Assistant] No matching activity found for "${searchName}"`);
   return null;
 }
 
@@ -215,6 +268,8 @@ async function generateNewActivity(
   dayNumber: number,
   timeSlot: "morning" | "afternoon" | "evening" = "afternoon"
 ): Promise<Activity> {
+  console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
+
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const prompt = `Generate a travel activity for ${destination}.
@@ -242,6 +297,7 @@ Return ONLY valid JSON for the activity:
   // Parse JSON from response
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    console.error("[AI Assistant] Failed to parse activity JSON from response:", text);
     throw new Error("Failed to generate activity");
   }
 
@@ -249,10 +305,13 @@ Return ONLY valid JSON for the activity:
   activity.id = generateActivityId();
   activity.time_slot = timeSlot;
 
+  console.log(`[AI Assistant] Generated activity: "${activity.name}"`);
   return activity;
 }
 
 export async function POST(request: NextRequest) {
+  console.log("[AI Assistant] POST request received");
+
   try {
     const supabase = await createClient();
 
@@ -266,6 +325,10 @@ export async function POST(request: NextRequest) {
 
     const body: AssistantRequest = await request.json();
     const { tripId, message, conversationId, itinerary: clientItinerary } = body;
+
+    console.log(`[AI Assistant] Message: "${message}"`);
+    console.log(`[AI Assistant] Trip ID: ${tripId}`);
+    console.log(`[AI Assistant] Client itinerary provided: ${!!clientItinerary}`);
 
     if (!tripId || !message) {
       return NextResponse.json(
@@ -297,6 +360,7 @@ export async function POST(request: NextRequest) {
 
     // Use client itinerary if provided (for real-time edits), otherwise use DB
     const itinerary = (clientItinerary || trip.itinerary || []) as ItineraryDay[];
+    console.log(`[AI Assistant] Itinerary has ${itinerary.length} days`);
 
     const tripContext: TripContext = {
       id: trip.id,
@@ -312,16 +376,24 @@ export async function POST(request: NextRequest) {
 
     // Detect if user wants to modify activities
     const actionIntent = detectActionIntent(message);
+    console.log(`[AI Assistant] Action intent: ${JSON.stringify(actionIntent)}`);
+
     // Deep clone the itinerary to avoid reference issues
     let modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
     let actionTaken: StructuredAssistantResponse["action"] | undefined;
     let replacementCard: AssistantCard | undefined;
+    let replacementError: string | undefined;
+    let itineraryWasModified = false;
 
     // Handle autonomous activity replacement
     if (actionIntent.type === "replace" && actionIntent.activityName) {
+      console.log(`[AI Assistant] Attempting to replace activity: "${actionIntent.activityName}"`);
+
       const found = findActivityByName(itinerary, actionIntent.activityName);
 
       if (found) {
+        console.log(`[AI Assistant] Found activity to replace: "${found.activity.name}" on Day ${found.dayIndex + 1}`);
+
         try {
           // Generate replacement activity
           const newActivity = await generateNewActivity(
@@ -337,8 +409,9 @@ export async function POST(request: NextRequest) {
           newActivity.start_time = found.activity.start_time;
           newActivity.duration_minutes = found.activity.duration_minutes || newActivity.duration_minutes;
 
-          // Apply the replacement
+          // Apply the replacement to our deep-cloned itinerary
           modifiedItinerary[found.dayIndex].activities[found.activityIndex] = newActivity;
+          itineraryWasModified = true;
 
           actionTaken = {
             type: "replace_activity",
@@ -362,16 +435,32 @@ export async function POST(request: NextRequest) {
           };
 
           // Save to database
-          await supabase
+          console.log(`[AI Assistant] Saving modified itinerary to database...`);
+          const { error: updateError } = await supabase
             .from("trips")
             .update({
               itinerary: modifiedItinerary,
               updated_at: new Date().toISOString(),
             })
             .eq("id", tripId);
+
+          if (updateError) {
+            console.error("[AI Assistant] Database update failed:", updateError);
+            replacementError = "Failed to save changes to database";
+            itineraryWasModified = false;
+          } else {
+            console.log(`[AI Assistant] Successfully replaced "${found.activity.name}" with "${newActivity.name}"`);
+          }
         } catch (err) {
-          console.error("Failed to generate replacement:", err);
+          console.error("[AI Assistant] Failed to generate replacement activity:", err);
+          replacementError = `Failed to generate replacement: ${err instanceof Error ? err.message : "Unknown error"}`;
+          // Reset actionTaken since replacement failed
+          actionTaken = undefined;
+          replacementCard = undefined;
         }
+      } else {
+        console.log(`[AI Assistant] Could not find activity matching "${actionIntent.activityName}"`);
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
       }
     }
 
@@ -413,9 +502,15 @@ export async function POST(request: NextRequest) {
     // Build prompt with action context
     let actionContext = "";
     if (actionTaken && replacementCard) {
+      const rc = replacementCard as { oldActivity: { name: string }; newActivity: { name: string } };
       actionContext = `
-IMPORTANT: I have already replaced "${(replacementCard as any).oldActivity.name}" with a new activity.
-Include the replacement card in your response and confirm the change was made.`;
+IMPORTANT: I have already replaced "${rc.oldActivity.name}" with "${rc.newActivity.name}".
+Include the replacement card in your response and confirm the change was made.
+The change has been saved to the database and will appear in the itinerary.`;
+    } else if (replacementError) {
+      actionContext = `
+NOTE: The user tried to replace an activity, but it failed: ${replacementError}
+Explain this to the user and suggest alternatives.`;
     }
 
     const systemPrompt = buildSystemPrompt(tripContext);
@@ -501,21 +596,34 @@ Respond with valid JSON only.`;
       })
       .eq("id", conversation.id);
 
-    return NextResponse.json({
+    // CRITICAL: Always return modifiedItinerary if it was actually modified
+    const responsePayload = {
       message: assistantMessage,
       conversationId: conversation.id,
       model: modelConfig.name,
       complexity: classification.complexity,
-      modifiedItinerary: actionTaken?.applied ? modifiedItinerary : undefined,
+      // Return modified itinerary if we actually made changes
+      modifiedItinerary: itineraryWasModified ? modifiedItinerary : undefined,
       usage: {
         inputTokens,
         outputTokens,
         costCents,
         remainingRequests: rateLimitCheck.stats.remainingRequests - 1,
       },
-    });
+      // Debug info
+      debug: {
+        actionIntent: actionIntent.type,
+        activityName: actionIntent.activityName,
+        itineraryWasModified,
+        replacementError,
+      },
+    };
+
+    console.log(`[AI Assistant] Response: modifiedItinerary=${!!responsePayload.modifiedItinerary}, itineraryWasModified=${itineraryWasModified}`);
+
+    return NextResponse.json(responsePayload);
   } catch (error) {
-    console.error("AI Assistant error:", error);
+    console.error("[AI Assistant] Error:", error);
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 }

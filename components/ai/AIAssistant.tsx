@@ -135,9 +135,23 @@ export default function AIAssistant({
           model: data.model,
         });
 
+        // Debug logging
+        console.log("[AIAssistant] Response received:", {
+          hasModifiedItinerary: !!data.modifiedItinerary,
+          hasOnItineraryUpdate: !!onItineraryUpdate,
+          debug: data.debug,
+        });
+
         // Handle itinerary updates from autonomous actions
-        if (data.modifiedItinerary && onItineraryUpdate) {
-          onItineraryUpdate(data.modifiedItinerary);
+        if (data.modifiedItinerary) {
+          console.log("[AIAssistant] Modified itinerary received with", data.modifiedItinerary.length, "days");
+          if (onItineraryUpdate) {
+            console.log("[AIAssistant] Calling onItineraryUpdate callback...");
+            onItineraryUpdate(data.modifiedItinerary);
+            console.log("[AIAssistant] Callback executed successfully");
+          } else {
+            console.warn("[AIAssistant] onItineraryUpdate callback is not defined!");
+          }
         }
 
         // Handle action if present
