@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { formatDateRange } from "@/lib/utils";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, TripMeta } from "@/types";
 import TripDetailClient from "./TripDetailClient";
 
 export default async function TripDetailPage({
@@ -34,6 +34,8 @@ export default async function TripDetailPage({
 
   const itinerary = (trip.itinerary as ItineraryDay[]) || [];
   const budget = trip.budget as { total: number; currency: string } | null;
+  const tripMeta = (trip.trip_meta as TripMeta) || {};
+  const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
 
   return (
     <TripDetailClient
@@ -47,6 +49,8 @@ export default async function TripDetailPage({
         tags: trip.tags,
         budget,
         itinerary,
+        meta: tripMeta,
+        packingList,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date)}
     />

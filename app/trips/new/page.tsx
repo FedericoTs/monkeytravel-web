@@ -210,6 +210,15 @@ export default function NewTripPage() {
         }
       }
 
+      // Build trip metadata from generated itinerary (preserves AI-generated data)
+      const tripMeta = {
+        weather_note: generatedItinerary.destination.weather_note,
+        highlights: generatedItinerary.trip_summary.highlights,
+        booking_links: generatedItinerary.booking_links,
+        destination_best_for: generatedItinerary.destination.best_for,
+        packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
+      };
+
       const { data: trip, error: tripError } = await supabase
         .from("trips")
         .insert({
@@ -228,6 +237,8 @@ export default function NewTripPage() {
             currency: generatedItinerary.trip_summary.currency,
           },
           tags: selectedInterests,
+          trip_meta: tripMeta, // Preserve AI-generated metadata
+          packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
         })
         .select()
         .single();

@@ -3,13 +3,16 @@
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { ItineraryDay, Activity } from "@/types";
+import type { ItineraryDay, Activity, TripMeta } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
 import ExportMenu from "@/components/trip/ExportMenu";
 import AIAssistant from "@/components/ai/AIAssistant";
+import TripInfoCards from "@/components/trip/TripInfoCards";
+import TripPackingList from "@/components/trip/TripPackingList";
+import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import {
   ensureActivityIds,
   moveActivityInDay,
@@ -47,6 +50,8 @@ interface TripDetailClientProps {
     tags?: string[];
     budget: { total: number; currency: string } | null;
     itinerary: ItineraryDay[];
+    meta?: TripMeta;
+    packingList?: string[];
   };
   dateRange: string;
 }
@@ -511,6 +516,22 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         </div>
 
+        {/* Trip Info Cards - Weather, Stats, Highlights */}
+        {trip.meta && (
+          <TripInfoCards
+            meta={trip.meta}
+            itinerary={displayItinerary}
+            budget={trip.budget}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+          />
+        )}
+
+        {/* Booking Links - Flights & Hotels */}
+        {trip.meta?.booking_links && (
+          <TripBookingLinks bookingLinks={trip.meta.booking_links} />
+        )}
+
         {/* Hotel Recommendations - Before Timeline */}
         <HotelRecommendations
           destination={destination}
@@ -691,6 +712,13 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
             </svg>
             <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
             <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
+          </div>
+        )}
+
+        {/* Packing List */}
+        {trip.packingList && trip.packingList.length > 0 && (
+          <div className="mt-10">
+            <TripPackingList items={trip.packingList} />
           </div>
         )}
 
