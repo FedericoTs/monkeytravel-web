@@ -465,6 +465,59 @@ function getWeekStart(date: Date): Date {
   return d;
 }
 
+// ISO country code to full name mapping
+const COUNTRY_NAMES: Record<string, string> = {
+  US: "United States",
+  IT: "Italy",
+  GB: "United Kingdom",
+  DE: "Germany",
+  FR: "France",
+  ES: "Spain",
+  NL: "Netherlands",
+  BE: "Belgium",
+  CH: "Switzerland",
+  AT: "Austria",
+  PT: "Portugal",
+  GR: "Greece",
+  SE: "Sweden",
+  NO: "Norway",
+  DK: "Denmark",
+  FI: "Finland",
+  PL: "Poland",
+  CZ: "Czech Republic",
+  IE: "Ireland",
+  CA: "Canada",
+  AU: "Australia",
+  NZ: "New Zealand",
+  JP: "Japan",
+  CN: "China",
+  KR: "South Korea",
+  IN: "India",
+  BR: "Brazil",
+  MX: "Mexico",
+  AR: "Argentina",
+  CO: "Colombia",
+  CL: "Chile",
+  ZA: "South Africa",
+  EG: "Egypt",
+  AE: "United Arab Emirates",
+  SA: "Saudi Arabia",
+  IL: "Israel",
+  TR: "Turkey",
+  RU: "Russia",
+  UA: "Ukraine",
+  SG: "Singapore",
+  MY: "Malaysia",
+  TH: "Thailand",
+  VN: "Vietnam",
+  ID: "Indonesia",
+  PH: "Philippines",
+};
+
+function getCountryName(code: string): string {
+  return COUNTRY_NAMES[code] || code;
+}
+
 // Fetch geo metrics from page_views table
 async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["geo"]> {
   const now = new Date();
@@ -497,18 +550,18 @@ async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>
     pageViews.map((pv) => pv.session_id || pv.user_id || pv.id)
   ).size;
 
-  // Group by country
+  // Group by country (using ISO code as key, display full name)
   const countryMap = new Map<string, { country: string; countryCode: string; count: number }>();
   pageViews.forEach((pv) => {
     if (pv.country) {
-      const key = pv.country_code || pv.country;
-      const existing = countryMap.get(key);
+      const code = pv.country_code || pv.country;
+      const existing = countryMap.get(code);
       if (existing) {
         existing.count++;
       } else {
-        countryMap.set(key, {
-          country: pv.country,
-          countryCode: pv.country_code || "",
+        countryMap.set(code, {
+          country: getCountryName(code),  // Convert ISO code to full name
+          countryCode: code,
           count: 1,
         });
       }
@@ -527,14 +580,15 @@ async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>
   const cityMap = new Map<string, { city: string; country: string; count: number }>();
   pageViews.forEach((pv) => {
     if (pv.city) {
-      const key = `${pv.city}-${pv.country || ""}`;
+      const countryCode = pv.country_code || pv.country || "";
+      const key = `${pv.city}-${countryCode}`;
       const existing = cityMap.get(key);
       if (existing) {
         existing.count++;
       } else {
         cityMap.set(key, {
           city: pv.city,
-          country: pv.country || "",
+          country: getCountryName(countryCode),  // Convert to full name
           count: 1,
         });
       }

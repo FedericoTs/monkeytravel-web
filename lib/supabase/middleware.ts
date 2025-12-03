@@ -23,10 +23,10 @@ async function trackPageView(request: NextRequest, userId?: string) {
     const pageView = {
       path,
       referrer: request.headers.get("referer") || null,
-      country: geo.country || null,
-      country_code: geo.countryRegion || geo.country || null,
+      country: geo.country || null,  // ISO country code (US, IT, DE, etc.)
+      country_code: geo.country || null,  // Same as country for grouping
       city: geo.city || null,
-      region: geo.region || null,
+      region: geo.countryRegion || null,  // State/province code (TX, CA, etc.)
       latitude: geo.latitude ? parseFloat(geo.latitude) : null,
       longitude: geo.longitude ? parseFloat(geo.longitude) : null,
       user_agent: request.headers.get("user-agent") || null,
