@@ -107,11 +107,9 @@ export const metadata: Metadata = {
     },
   },
 
-  // Verification - Add your Search Console verification code here
-  // To get this: Go to Google Search Console > Settings > Ownership verification > HTML tag
+  // Verification - Google Search Console
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
-    // yandex: "your-yandex-verification-code",
+    google: "KJqVVN_ZJWViJBugcmfFkOLX-ZDgACGJQTOLt1l2Mvo",
   },
 
   // App links for mobile
