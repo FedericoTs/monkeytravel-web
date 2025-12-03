@@ -259,37 +259,106 @@ GUIDELINES:
 - Keep the trip's existing style and budget level in mind`;
 }
 
-// Generate a new activity using AI
+// Extract geographic context from activities (neighborhoods, areas, addresses)
+function extractGeographicContext(activities: Activity[]): {
+  neighborhoods: string[];
+  addresses: string[];
+  summary: string;
+} {
+  const neighborhoods = new Set<string>();
+  const addresses: string[] = [];
+
+  for (const activity of activities) {
+    // Extract location/neighborhood
+    if (activity.location) {
+      neighborhoods.add(activity.location);
+    }
+    // Extract address
+    if (activity.address) {
+      addresses.push(`${activity.name}: ${activity.address}`);
+    }
+  }
+
+  const neighborhoodList = Array.from(neighborhoods);
+  const summary = neighborhoodList.length > 0
+    ? `Activities are concentrated in: ${neighborhoodList.join(", ")}`
+    : addresses.length > 0
+      ? `Activities are located at: ${addresses.slice(0, 3).join("; ")}`
+      : "";
+
+  return {
+    neighborhoods: neighborhoodList,
+    addresses,
+    summary,
+  };
+}
+
+// Generate a new activity using AI with geographic awareness
 async function generateNewActivity(
   genAI: GoogleGenerativeAI,
   destination: string,
   preference: string,
   existingActivity: Activity | null,
   dayNumber: number,
-  timeSlot: "morning" | "afternoon" | "evening" = "afternoon"
+  timeSlot: "morning" | "afternoon" | "evening" = "afternoon",
+  sameDayActivities: Activity[] = [] // NEW: Other activities on the same day for geographic context
 ): Promise<Activity> {
   console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
+  console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.location || a.address || 'no location'})`).join(", ")}`);
 
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+  // Extract geographic context from other activities on the same day
+  const geoContext = extractGeographicContext(sameDayActivities);
+
+  // Build geographic constraint section
+  let geographicConstraint = "";
+  if (geoContext.neighborhoods.length > 0 || geoContext.addresses.length > 0) {
+    geographicConstraint = `
+GEOGRAPHIC CONSTRAINT (CRITICAL):
+The other activities on Day ${dayNumber} are located in these areas:
+${geoContext.neighborhoods.map(n => `- ${n}`).join("\n")}
+${geoContext.addresses.length > 0 ? `\nSpecific locations:\n${geoContext.addresses.map(a => `- ${a}`).join("\n")}` : ""}
+
+You MUST suggest an activity that is:
+1. In the SAME neighborhood/district as the other Day ${dayNumber} activities
+2. Within walking distance (max 15-20 minutes walk) from the other activities
+3. Geographically logical to visit on the same day without excessive travel
+
+DO NOT suggest activities in other parts of the city that would require long transit.
+The goal is to keep Day ${dayNumber} activities clustered together for efficient travel.
+`;
+  }
+
+  // Build list of same-day activities for context
+  const sameDayContext = sameDayActivities.length > 0
+    ? `\nOther activities planned for Day ${dayNumber}:\n${sameDayActivities.map(a =>
+        `- ${a.name} (${a.type}) at ${a.start_time || "TBD"} - Location: ${a.location || a.address || "unspecified"}`
+      ).join("\n")}\n`
+    : "";
+
   const prompt = `Generate a travel activity for ${destination}.
-${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type})` : "New activity"}
+${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type}) - was located in: ${existingActivity.location || existingActivity.address || "unspecified"}` : "New activity"}
 User preference: ${preference}
 Time slot: ${timeSlot}
 Day: ${dayNumber}
-
+${sameDayContext}
+${geographicConstraint}
 Return ONLY valid JSON for the activity:
 {
   "name": "Activity Name",
   "type": "attraction|restaurant|activity|transport",
   "description": "2-3 sentence engaging description",
-  "location": "Neighborhood/Area name",
+  "location": "Neighborhood/Area name - MUST be in the same area as other Day ${dayNumber} activities",
+  "address": "Specific street address if known",
   "start_time": "HH:MM",
   "duration_minutes": 60-180,
   "estimated_cost": { "amount": number, "currency": "EUR", "tier": "budget|moderate|expensive" },
   "tips": ["1 helpful tip"],
   "booking_required": true/false
-}`;
+}
+
+IMPORTANT: The "location" field must be in the same neighborhood as the other activities on this day.`;
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
@@ -305,7 +374,7 @@ Return ONLY valid JSON for the activity:
   activity.id = generateActivityId();
   activity.time_slot = timeSlot;
 
-  console.log(`[AI Assistant] Generated activity: "${activity.name}"`);
+  console.log(`[AI Assistant] Generated activity: "${activity.name}" in location: "${activity.location}"`);
   return activity;
 }
 
@@ -395,14 +464,21 @@ export async function POST(request: NextRequest) {
         console.log(`[AI Assistant] Found activity to replace: "${found.activity.name}" on Day ${found.dayIndex + 1}`);
 
         try {
-          // Generate replacement activity
+          // Get other activities on the same day (excluding the one being replaced) for geographic context
+          const sameDayActivities = itinerary[found.dayIndex].activities.filter(
+            (a, idx) => idx !== found.activityIndex
+          );
+          console.log(`[AI Assistant] Same-day activities for geographic context: ${sameDayActivities.map(a => a.name).join(", ")}`);
+
+          // Generate replacement activity with geographic awareness
           const newActivity = await generateNewActivity(
             genAI,
             tripContext.destination,
             message,
             found.activity,
             found.dayIndex + 1,
-            found.activity.time_slot
+            found.activity.time_slot,
+            sameDayActivities // Pass other activities for geographic clustering
           );
 
           // Preserve time from original
@@ -512,14 +588,19 @@ export async function POST(request: NextRequest) {
 
           console.log(`[AI Assistant] Adding to Day ${targetDayNumber}, slot: ${targetTimeSlot}, time: ${startTime}`);
 
-          // Generate the new activity
+          // Get existing activities on this day for geographic context
+          const existingDayActivities = targetDay.activities;
+          console.log(`[AI Assistant] Existing activities on Day ${targetDayNumber} for geographic context: ${existingDayActivities.map(a => a.name).join(", ")}`);
+
+          // Generate the new activity with geographic awareness
           const newActivity = await generateNewActivity(
             genAI,
             tripContext.destination,
             actionIntent.preference || message,
             null,
             targetDayNumber,
-            targetTimeSlot
+            targetTimeSlot,
+            existingDayActivities // Pass existing activities for geographic clustering
           );
 
           newActivity.start_time = startTime;

@@ -6,15 +6,12 @@
  * Search for hotel offers using Amadeus Hotel APIs.
  * Includes caching and rate limiting.
  *
- * Uses Edge runtime for 30s timeout (vs 10s on Node.js Hobby plan)
+ * Note: Vercel Hobby plan has 10s timeout. We optimize by:
+ * - Limiting hotel count to 5
+ * - Skipping non-essential auth/logging
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-
-// Use Edge runtime for longer timeout (30s vs 10s)
-export const runtime = 'edge';
-export const maxDuration = 30;
-import { createClient } from '@/lib/supabase/server';
 import {
   searchHotelOffers,
   transformHotelOffer,
@@ -37,11 +34,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Auth check
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Skip auth check to save time (hotel search is read-only)
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -171,23 +164,7 @@ export async function GET(request: NextRequest) {
       .map((offer) => transformHotelOffer(offer))
       .filter(Boolean);
 
-    // Log API usage (if user is authenticated)
-    if (user) {
-      try {
-        await supabase.from('api_request_logs').insert({
-          user_id: user.id,
-          api_name: 'amadeus',
-          endpoint: '/hotels/search',
-          request_params: params,
-          response_status: 200,
-          response_time_ms: Date.now() - startTime,
-          cache_hit: result.cached,
-          result_count: result.data.length,
-        });
-      } catch (logError) {
-        console.error('[Amadeus] Failed to log API usage:', logError);
-      }
-    }
+    // Skip API logging to save time on Hobby plan timeout
 
     return NextResponse.json({
       data: result.data,

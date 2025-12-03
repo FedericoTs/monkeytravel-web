@@ -10,6 +10,7 @@ import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
+import GenerationProgress from "@/components/trip/GenerationProgress";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -76,7 +77,6 @@ export default function NewTripPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
 
@@ -135,13 +135,7 @@ export default function NewTripPage() {
 
   const handleGenerate = async () => {
     setGenerating(true);
-    setProgress(0);
     setError(null);
-
-    // Simulate progress
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + Math.random() * 15, 90));
-    }, 500);
 
     try {
       const params: TripCreationParams = {
@@ -168,12 +162,8 @@ export default function NewTripPage() {
         throw new Error(data.error || "Generation failed");
       }
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
       setGeneratedItinerary(data.itinerary);
     } catch (err) {
-      clearInterval(progressInterval);
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setGenerating(false);
@@ -480,37 +470,13 @@ export default function NewTripPage() {
     );
   }
 
-  // Generating state
+  // Generating state - use premium progress component
   if (generating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="w-20 h-20 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-[var(--primary)]/10 animate-ping" />
-            <div className="relative w-full h-full rounded-full bg-[var(--primary)]/20 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
-            Creating your perfect trip...
-          </h2>
-          <p className="text-slate-600 mb-8">
-            Our AI is researching {destination} and building your personalized itinerary
-          </p>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-[var(--primary)] h-2 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="text-sm text-slate-500">{Math.round(progress)}%</p>
-        </div>
-      </div>
+      <GenerationProgress
+        destination={destination}
+        isGenerating={generating}
+      />
     );
   }
 

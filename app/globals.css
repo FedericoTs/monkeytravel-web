@@ -194,8 +194,49 @@ body {
   animation: float-slow 8s ease-in-out infinite;
 }
 
+.animate-float-slow-reverse {
+  animation: float-slow 8s ease-in-out infinite reverse;
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-plane-bob {
+  animation: plane-bob 1.5s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+/* Generation Progress Animations */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes plane-bob {
+  0%, 100% { transform: translateY(0) rotate(-45deg); }
+  50% { transform: translateY(-3px) rotate(-45deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.1) rotate(10deg); opacity: 0.8; }
 }
 
 .animate-shimmer {
