@@ -10,9 +10,8 @@ import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
 import ExportMenu from "@/components/trip/ExportMenu";
 import AIAssistant from "@/components/ai/AIAssistant";
-import TripInfoCards from "@/components/trip/TripInfoCards";
-import TripPackingList from "@/components/trip/TripPackingList";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
+import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import {
   ensureActivityIds,
   moveActivityInDay,
@@ -391,7 +390,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero with Cover Image */}
+      {/* Hero with Cover Image - Enhanced with weather and stats */}
       <DestinationHero
         destination={destination}
         title={trip.title}
@@ -399,6 +398,14 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         dateRange={dateRange}
         budget={trip.budget || undefined}
         days={trip.itinerary.length}
+        nights={(() => {
+          const start = new Date(trip.startDate);
+          const end = new Date(trip.endDate);
+          return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        })()}
+        activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
+        weatherNote={trip.meta?.weather_note}
+        highlights={trip.meta?.highlights}
         tags={trip.tags}
         showBackButton={true}
         onBack={() => window.history.back()}
@@ -515,17 +522,6 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
             )}
           </div>
         </div>
-
-        {/* Trip Info Cards - Weather, Stats, Highlights */}
-        {trip.meta && (
-          <TripInfoCards
-            meta={trip.meta}
-            itinerary={displayItinerary}
-            budget={trip.budget}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-          />
-        )}
 
         {/* Booking Links - Flights & Hotels */}
         {trip.meta?.booking_links && (
@@ -715,11 +711,12 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         )}
 
-        {/* Packing List */}
+        {/* Journey Essentials - Premium Packing List */}
         {trip.packingList && trip.packingList.length > 0 && (
-          <div className="mt-10">
-            <TripPackingList items={trip.packingList} />
-          </div>
+          <TripPackingEssentials
+            items={trip.packingList}
+            destination={destination}
+          />
         )}
 
         {/* AI Disclaimer */}

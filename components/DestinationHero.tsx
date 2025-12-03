@@ -20,10 +20,37 @@ interface DestinationHeroProps {
   dateRange?: string;
   budget?: { total: number; currency: string };
   days?: number;
+  nights?: number;
+  activitiesCount?: number;
+  weatherNote?: string;
+  highlights?: string[];
   tags?: string[];
   showBackButton?: boolean;
   onBack?: () => void;
   children?: React.ReactNode;
+}
+
+// Weather icon helper based on weather description
+function getWeatherIcon(weather: string) {
+  const lowerWeather = weather.toLowerCase();
+
+  if (lowerWeather.includes("sun") || lowerWeather.includes("clear") || lowerWeather.includes("warm") || lowerWeather.includes("hot")) {
+    return { icon: "☀️", color: "text-amber-300" };
+  }
+  if (lowerWeather.includes("cloud") || lowerWeather.includes("overcast")) {
+    return { icon: "☁️", color: "text-slate-300" };
+  }
+  if (lowerWeather.includes("rain") || lowerWeather.includes("shower")) {
+    return { icon: "🌧️", color: "text-blue-300" };
+  }
+  if (lowerWeather.includes("snow") || lowerWeather.includes("cold") || lowerWeather.includes("winter")) {
+    return { icon: "❄️", color: "text-cyan-300" };
+  }
+  if (lowerWeather.includes("wind")) {
+    return { icon: "💨", color: "text-slate-300" };
+  }
+  // Default - mild weather
+  return { icon: "🌤️", color: "text-amber-200" };
 }
 
 export default function DestinationHero({
@@ -33,6 +60,10 @@ export default function DestinationHero({
   dateRange,
   budget,
   days,
+  nights,
+  activitiesCount,
+  weatherNote,
+  highlights,
   tags,
   showBackButton = true,
   onBack,
@@ -120,8 +151,17 @@ export default function DestinationHero({
                 </p>
               )}
 
-              {/* Meta info - compact on mobile */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+              {/* Meta info chips - Enhanced with weather and stats */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                {/* Weather chip - prominent with icon */}
+                {weatherNote && (
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-white/20 shadow-lg">
+                    <span className="text-base sm:text-lg">{getWeatherIcon(weatherNote).icon}</span>
+                    <span className="font-medium truncate max-w-[100px] sm:max-w-[180px]">{weatherNote.split('.')[0]}</span>
+                  </div>
+                )}
+
+                {/* Date Range */}
                 {dateRange && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,23 +170,56 @@ export default function DestinationHero({
                     <span className="truncate max-w-[120px] sm:max-w-none">{dateRange}</span>
                   </div>
                 )}
-                {budget && (
+
+                {/* Days & Nights combined */}
+                {(days || nights) && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+                    </svg>
+                    <span>
+                      {days && `${days}D`}
+                      {days && nights && " · "}
+                      {nights && `${nights}N`}
+                    </span>
+                  </div>
+                )}
+
+                {/* Activities count */}
+                {activitiesCount && activitiesCount > 0 && (
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span>{activitiesCount} activities</span>
+                  </div>
+                )}
+
+                {/* Budget */}
+                {budget && (
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)]/90 text-slate-900 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full font-medium">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {budget.currency} {budget.total.toLocaleString()}
                   </div>
                 )}
-                {days && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {days} days
-                  </div>
-                )}
               </div>
+
+              {/* Highlights - shown as inline badges on larger screens */}
+              {highlights && highlights.length > 0 && (
+                <div className="hidden md:flex flex-wrap items-center gap-2 mt-3">
+                  <span className="text-white/60 text-xs uppercase tracking-wider">Highlights:</span>
+                  {highlights.slice(0, 3).map((highlight, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white/90 text-xs rounded-full border border-white/10"
+                    >
+                      {highlight.length > 40 ? highlight.substring(0, 40) + '...' : highlight}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
