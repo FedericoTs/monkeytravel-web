@@ -26,6 +26,10 @@ export interface PlacePrediction {
   countryCode: string | null;
   flag: string;
   types: string[];
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface DestinationAutocompleteProps {
@@ -96,14 +100,36 @@ export default function DestinationAutocomplete({
     fetchPredictions();
   }, [debouncedValue, sessionToken]);
 
-  // Handle selection
+  // Handle selection - fetch coordinates and pass to callback
   const handleSelect = useCallback(
-    (prediction: PlacePrediction) => {
+    async (prediction: PlacePrediction) => {
       onChange(prediction.fullText);
-      onSelect?.(prediction);
       setIsOpen(false);
       setPredictions([]);
       inputRef.current?.blur();
+
+      // Fetch coordinates for accurate weather/seasonal calculations
+      try {
+        const response = await fetch(
+          `/api/places/details?placeId=${encodeURIComponent(prediction.placeId)}`
+        );
+
+        if (response.ok) {
+          const details = await response.json();
+          const enrichedPrediction: PlacePrediction = {
+            ...prediction,
+            coordinates: details.location,
+          };
+          onSelect?.(enrichedPrediction);
+        } else {
+          // Fallback: pass prediction without coordinates
+          onSelect?.(prediction);
+        }
+      } catch (error) {
+        console.error("Failed to fetch place details:", error);
+        // Fallback: pass prediction without coordinates
+        onSelect?.(prediction);
+      }
     },
     [onChange, onSelect]
   );

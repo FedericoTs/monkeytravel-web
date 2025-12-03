@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -54,6 +56,8 @@ export default function RootLayout({
         <ToastProvider>
           {children}
         </ToastProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

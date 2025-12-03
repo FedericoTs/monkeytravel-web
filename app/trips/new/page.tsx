@@ -12,7 +12,7 @@ import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import GenerationProgress from "@/components/trip/GenerationProgress";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import DestinationAutocomplete from "@/components/ui/DestinationAutocomplete";
+import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -84,6 +84,7 @@ export default function NewTripPage() {
 
   // Form state
   const [destination, setDestination] = useState("");
+  const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
@@ -96,14 +97,19 @@ export default function NewTripPage() {
   const TOTAL_STEPS = 4; // Added vibe step
 
   // Build seasonal context when destination and dates are set
+  // Uses latitude for accurate hemisphere detection (fixes Southern Hemisphere bug)
   useEffect(() => {
     if (destination && startDate) {
-      const context = buildSeasonalContext(destination, startDate);
+      const context = buildSeasonalContext(
+        destination,
+        startDate,
+        destinationCoords?.latitude // Pass latitude for correct hemisphere
+      );
       setSeasonalContext(context);
     } else {
       setSeasonalContext(null);
     }
-  }, [destination, startDate]);
+  }, [destination, startDate, destinationCoords]);
 
   const toggleInterest = (id: string) => {
     if (selectedInterests.includes(id)) {
@@ -125,6 +131,13 @@ export default function NewTripPage() {
         return selectedInterests.length > 0;
       default:
         return false;
+    }
+  };
+
+  // Handle destination selection from autocomplete
+  const handleDestinationSelect = (prediction: PlacePrediction) => {
+    if (prediction.coordinates) {
+      setDestinationCoords(prediction.coordinates);
     }
   };
 
@@ -547,25 +560,29 @@ export default function NewTripPage() {
             <DestinationAutocomplete
               value={destination}
               onChange={setDestination}
+              onSelect={handleDestinationSelect}
               placeholder="e.g., Paris, Tokyo, New York..."
               autoFocus
             />
 
-            {/* Popular destinations */}
+            {/* Popular destinations - with coordinates for accurate weather */}
             <div>
               <div className="text-sm text-slate-500 mb-3">Popular destinations</div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { name: "Paris, France", flag: "🇫🇷" },
-                  { name: "Tokyo, Japan", flag: "🇯🇵" },
-                  { name: "Rome, Italy", flag: "🇮🇹" },
-                  { name: "Barcelona, Spain", flag: "🇪🇸" },
-                  { name: "New York, USA", flag: "🇺🇸" },
-                  { name: "Bali, Indonesia", flag: "🇮🇩" },
+                  { name: "Paris, France", flag: "🇫🇷", coords: { latitude: 48.8566, longitude: 2.3522 } },
+                  { name: "Tokyo, Japan", flag: "🇯🇵", coords: { latitude: 35.6762, longitude: 139.6503 } },
+                  { name: "Rome, Italy", flag: "🇮🇹", coords: { latitude: 41.9028, longitude: 12.4964 } },
+                  { name: "Barcelona, Spain", flag: "🇪🇸", coords: { latitude: 41.3851, longitude: 2.1734 } },
+                  { name: "New York, USA", flag: "🇺🇸", coords: { latitude: 40.7128, longitude: -74.0060 } },
+                  { name: "Sydney, Australia", flag: "🇦🇺", coords: { latitude: -33.8688, longitude: 151.2093 } },
                 ].map((place) => (
                   <button
                     key={place.name}
-                    onClick={() => setDestination(place.name)}
+                    onClick={() => {
+                      setDestination(place.name);
+                      setDestinationCoords(place.coords);
+                    }}
                     className="px-4 py-2 rounded-full border border-slate-200 text-slate-700
                                hover:border-[var(--primary)] hover:text-[var(--primary)]
                                hover:bg-[var(--primary)]/5 transition-all duration-200
@@ -623,6 +640,7 @@ export default function NewTripPage() {
                 destination={destination}
                 startDate={startDate}
                 endDate={endDate}
+                coordinates={destinationCoords || undefined}
                 onVibeSuggestionClick={handleVibeSuggestion}
                 className="mt-6"
               />

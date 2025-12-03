@@ -383,6 +383,156 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Geo Analytics - Visitors by Country */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              Visitor Analytics
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Geographic distribution of page views
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+              <span className="text-slate-500">{stats.geo.totalPageViews.toLocaleString()} total views</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[var(--secondary)]"></span>
+              <span className="text-slate-500">{stats.geo.uniqueVisitors.toLocaleString()} unique</span>
+            </div>
+          </div>
+        </div>
+
+        {stats.geo.totalPageViews === 0 ? (
+          <div className="text-center py-12 text-slate-400">
+            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No page view data yet</p>
+            <p className="text-sm mt-1">Visitor data will appear once deployed to Vercel</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* By Country */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                By Country
+              </h3>
+              <div className="space-y-2">
+                {stats.geo.byCountry.length === 0 ? (
+                  <p className="text-sm text-slate-400">No country data</p>
+                ) : (
+                  stats.geo.byCountry.slice(0, 8).map((item, i) => (
+                    <div key={item.countryCode || item.country} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-slate-100 text-xs font-medium text-slate-500">
+                          {i + 1}
+                        </span>
+                        <span className="text-slate-600">
+                          {getCountryFlag(item.countryCode)} {item.country}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{item.count}</span>
+                        <span className="text-xs text-slate-400">({item.percentage}%)</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* By City */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Top Cities
+              </h3>
+              <div className="space-y-2">
+                {stats.geo.byCity.length === 0 ? (
+                  <p className="text-sm text-slate-400">No city data</p>
+                ) : (
+                  stats.geo.byCity.slice(0, 8).map((item, i) => (
+                    <div key={`${item.city}-${item.country}`} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-slate-100 text-xs font-medium text-slate-500">
+                          {i + 1}
+                        </span>
+                        <span className="text-slate-600">{item.city}</span>
+                        <span className="text-xs text-slate-400">{item.country}</span>
+                      </div>
+                      <span className="font-medium">{item.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Top Pages */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Top Pages
+              </h3>
+              <div className="space-y-2">
+                {stats.geo.topPages.length === 0 ? (
+                  <p className="text-sm text-slate-400">No page data</p>
+                ) : (
+                  stats.geo.topPages.slice(0, 8).map((item, i) => (
+                    <div key={item.path} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-slate-100 text-xs font-medium text-slate-500 flex-shrink-0">
+                          {i + 1}
+                        </span>
+                        <span className="text-slate-600 truncate" title={item.path}>
+                          {item.path === "/" ? "Home" : item.path}
+                        </span>
+                      </div>
+                      <span className="font-medium flex-shrink-0">{item.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Time-based stats */}
+        {stats.geo.totalPageViews > 0 && (
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--foreground)]">
+                {stats.geo.totalPageViews.toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Total Page Views</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {stats.geo.last7Days.toLocaleString()}
+              </div>
+              <div className="text-sm text-green-600">Last 7 Days</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {stats.geo.last30Days.toLocaleString()}
+              </div>
+              <div className="text-sm text-blue-600">Last 30 Days</div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Recent Activity */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
@@ -582,4 +732,16 @@ function getRetentionColor(percentage: number): string {
   if (percentage >= 40) return "#eab308"; // yellow-500
   if (percentage >= 20) return "#f97316"; // orange-500
   return "#ef4444"; // red-500
+}
+
+// Convert country code to flag emoji
+function getCountryFlag(countryCode: string | undefined): string {
+  if (!countryCode || countryCode.length !== 2) return "🌍";
+
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+
+  return String.fromCodePoint(...codePoints);
 }

@@ -13,6 +13,7 @@ interface SeasonalContextCardProps {
   destination: string;
   startDate: string;
   endDate: string;
+  coordinates?: { latitude: number; longitude: number };
   onVibeSuggestionClick?: (vibeId: TripVibe) => void;
   className?: string;
 }
@@ -21,6 +22,7 @@ export default function SeasonalContextCard({
   destination,
   startDate,
   endDate,
+  coordinates,
   onVibeSuggestionClick,
   className = "",
 }: SeasonalContextCardProps) {
@@ -37,8 +39,12 @@ export default function SeasonalContextCard({
 
     setIsLoading(true);
 
-    // Build seasonal context (could be enhanced with geocoding API for latitude)
-    const context = buildSeasonalContext(destination, startDate);
+    // Build seasonal context with latitude for accurate hemisphere detection
+    const context = buildSeasonalContext(
+      destination,
+      startDate,
+      coordinates?.latitude // Pass latitude for correct hemisphere (fixes Southern Hemisphere bug)
+    );
     setSeasonalContext(context);
 
     // Get vibe suggestions based on season and holidays
@@ -51,7 +57,7 @@ export default function SeasonalContextCard({
     setVibeSuggestions(suggestions);
 
     setIsLoading(false);
-  }, [destination, startDate]);
+  }, [destination, startDate, coordinates]);
 
   if (isLoading) {
     return (

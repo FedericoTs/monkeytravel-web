@@ -54,6 +54,16 @@ export interface AdminStats {
     verified: number;
     unsubscribed: number;
   };
+  // Geo/Analytics - Page Views by Country
+  geo: {
+    totalPageViews: number;
+    last7Days: number;
+    last30Days: number;
+    byCountry: { country: string; countryCode: string; count: number; percentage: number }[];
+    byCity: { city: string; country: string; count: number }[];
+    topPages: { path: string; count: number }[];
+    uniqueVisitors: number;
+  };
   // Top Destinations
   topDestinations: { destination: string; count: number }[];
   // Recent Activity Timeline
@@ -95,6 +105,7 @@ export async function GET() {
       aiModelResult,
       aiTokensResult,
       topDestinationsResult,
+      geoMetricsResult,
     ] = await Promise.all([
       // User counts
       supabase.rpc("get_user_metrics"),
@@ -174,6 +185,8 @@ export async function GET() {
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
         }),
+      // Geo metrics from page_views
+      fetchGeoMetrics(supabase),
     ]);
 
     // Fallback to direct queries if RPC doesn't exist
@@ -232,6 +245,15 @@ export async function GET() {
         last30Days: subscriberMetrics.last30Days || 0,
         verified: subscriberMetrics.verified || 0,
         unsubscribed: subscriberMetrics.unsubscribed || 0,
+      },
+      geo: geoMetricsResult || {
+        totalPageViews: 0,
+        last7Days: 0,
+        last30Days: 0,
+        byCountry: [],
+        byCity: [],
+        topPages: [],
+        uniqueVisitors: 0,
       },
       topDestinations: topDestinationsResult || [],
       recentActivity: await fetchRecentActivity(supabase),
@@ -441,4 +463,106 @@ function getWeekStart(date: Date): Date {
   d.setDate(diff);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+// Fetch geo metrics from page_views table
+async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["geo"]> {
+  const now = new Date();
+  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  // Fetch all page views
+  const { data: pageViews } = await supabase
+    .from("page_views")
+    .select("id, path, country, country_code, city, user_id, session_id, created_at");
+
+  if (!pageViews || pageViews.length === 0) {
+    return {
+      totalPageViews: 0,
+      last7Days: 0,
+      last30Days: 0,
+      byCountry: [],
+      byCity: [],
+      topPages: [],
+      uniqueVisitors: 0,
+    };
+  }
+
+  // Calculate time-based metrics
+  const last7DaysViews = pageViews.filter((pv) => new Date(pv.created_at) > day7Ago).length;
+  const last30DaysViews = pageViews.filter((pv) => new Date(pv.created_at) > day30Ago).length;
+
+  // Count unique visitors (by session_id or user_id)
+  const uniqueVisitors = new Set(
+    pageViews.map((pv) => pv.session_id || pv.user_id || pv.id)
+  ).size;
+
+  // Group by country
+  const countryMap = new Map<string, { country: string; countryCode: string; count: number }>();
+  pageViews.forEach((pv) => {
+    if (pv.country) {
+      const key = pv.country_code || pv.country;
+      const existing = countryMap.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        countryMap.set(key, {
+          country: pv.country,
+          countryCode: pv.country_code || "",
+          count: 1,
+        });
+      }
+    }
+  });
+
+  const byCountry = Array.from(countryMap.values())
+    .map((c) => ({
+      ...c,
+      percentage: Math.round((c.count / pageViews.length) * 1000) / 10,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Group by city
+  const cityMap = new Map<string, { city: string; country: string; count: number }>();
+  pageViews.forEach((pv) => {
+    if (pv.city) {
+      const key = `${pv.city}-${pv.country || ""}`;
+      const existing = cityMap.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        cityMap.set(key, {
+          city: pv.city,
+          country: pv.country || "",
+          count: 1,
+        });
+      }
+    }
+  });
+
+  const byCity = Array.from(cityMap.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Group by path (top pages)
+  const pathMap = new Map<string, number>();
+  pageViews.forEach((pv) => {
+    pathMap.set(pv.path, (pathMap.get(pv.path) || 0) + 1);
+  });
+
+  const topPages = Array.from(pathMap.entries())
+    .map(([path, count]) => ({ path, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    totalPageViews: pageViews.length,
+    last7Days: last7DaysViews,
+    last30Days: last30DaysViews,
+    byCountry,
+    byCity,
+    topPages,
+    uniqueVisitors,
+  };
 }

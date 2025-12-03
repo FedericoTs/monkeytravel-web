@@ -1,6 +1,56 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
+import { geolocation } from "@vercel/functions";
+
+// Track page views with geo data (non-blocking)
+async function trackPageView(request: NextRequest, userId?: string) {
+  // Skip tracking for API routes, static assets, and admin pages
+  const path = request.nextUrl.pathname;
+  if (
+    path.startsWith("/api/") ||
+    path.startsWith("/_next/") ||
+    path.startsWith("/admin") ||
+    path.includes(".")
+  ) {
+    return;
+  }
+
+  try {
+    // Get geo data from Vercel's geolocation
+    const geo = geolocation(request);
+
+    const pageView = {
+      path,
+      referrer: request.headers.get("referer") || null,
+      country: geo.country || null,
+      country_code: geo.countryRegion || geo.country || null,
+      city: geo.city || null,
+      region: geo.region || null,
+      latitude: geo.latitude ? parseFloat(geo.latitude) : null,
+      longitude: geo.longitude ? parseFloat(geo.longitude) : null,
+      user_agent: request.headers.get("user-agent") || null,
+      user_id: userId || null,
+      session_id: request.cookies.get("session_id")?.value || null,
+    };
+
+    // Fire and forget - don't await to avoid blocking the response
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/page_views`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(pageView),
+    }).catch(() => {
+      // Silently ignore errors to not impact user experience
+    });
+  } catch {
+    // Silently ignore errors
+  }
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -34,6 +84,9 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Track page view with geo data (non-blocking)
+  trackPageView(request, user?.id);
 
   // Protected routes - redirect to login if not authenticated
   const protectedPaths = ["/trips"];
