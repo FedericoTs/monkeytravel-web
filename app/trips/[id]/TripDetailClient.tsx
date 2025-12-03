@@ -19,8 +19,12 @@ import {
   replaceActivity,
   generateActivityId,
 } from "@/lib/utils/activity-id";
-import FlightSearch from "@/components/booking/FlightSearch";
-import HotelSearch from "@/components/booking/HotelSearch";
+// Amadeus booking components - kept for future use
+// import FlightSearch from "@/components/booking/FlightSearch";
+// import HotelSearch from "@/components/booking/HotelSearch";
+
+// Google Places-based hotel recommendations
+import HotelRecommendations from "@/components/trip/HotelRecommendations";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -47,15 +51,11 @@ interface TripDetailClientProps {
   dateRange: string;
 }
 
-// Tab type for main navigation
-type MainTab = 'itinerary' | 'flights' | 'hotels';
-
 export default function TripDetailClient({ trip, dateRange }: TripDetailClientProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<MainTab>('itinerary');
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -511,63 +511,25 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         </div>
 
-        {/* Main Tab Navigation */}
-        <div className="flex items-center gap-1 mb-6 border-b border-slate-200">
-          <button
-            onClick={() => setActiveTab('itinerary')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'itinerary'
-                ? 'border-[var(--primary)] text-[var(--primary)]'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Itinerary
-          </button>
-          <button
-            onClick={() => setActiveTab('flights')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'flights'
-                ? 'border-[var(--primary)] text-[var(--primary)]'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-            Flights
-          </button>
-          <button
-            onClick={() => setActiveTab('hotels')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'hotels'
-                ? 'border-[var(--primary)] text-[var(--primary)]'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            Hotels
-          </button>
-        </div>
+        {/* Hotel Recommendations - Before Timeline */}
+        <HotelRecommendations
+          destination={destination}
+          itinerary={displayItinerary}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+        />
 
-        {/* Tab Content */}
-        {activeTab === 'itinerary' && (
-          <>
-            {/* Interactive Map */}
-            {showMap && displayItinerary.length > 0 && (
-              <div className="mb-8">
-                <TripMap
-                  days={displayItinerary}
-                  destination={destination}
-                  selectedDay={selectedDay}
-                  className="h-[400px]"
-                />
-              </div>
-            )}
+        {/* Interactive Map */}
+        {showMap && displayItinerary.length > 0 && (
+          <div className="mb-8">
+            <TripMap
+              days={displayItinerary}
+              destination={destination}
+              selectedDay={selectedDay}
+              className="h-[400px]"
+            />
+          </div>
+        )}
 
             {/* Day Filter Pills */}
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
@@ -778,39 +740,6 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                 </p>
               </div>
             </div>
-          </div>
-        )}
-          </>
-        )}
-
-        {/* Flights Tab Content */}
-        {activeTab === 'flights' && (
-          <div className="max-w-2xl mx-auto">
-            <FlightSearch
-              tripDestination={destination}
-              tripStartDate={trip.startDate}
-              tripEndDate={trip.endDate}
-              onFlightSelect={(flight) => {
-                console.log('Selected flight:', flight);
-                // TODO: Save to trip record (Phase 2)
-              }}
-            />
-          </div>
-        )}
-
-        {/* Hotels Tab Content */}
-        {activeTab === 'hotels' && (
-          <div className="max-w-2xl mx-auto">
-            <HotelSearch
-              tripDestination={destination}
-              tripStartDate={trip.startDate}
-              tripEndDate={trip.endDate}
-              itinerary={displayItinerary}
-              onHotelSelect={(hotel) => {
-                console.log('Selected hotel:', hotel);
-                // TODO: Save to trip record (Phase 2)
-              }}
-            />
           </div>
         )}
       </main>
