@@ -278,12 +278,12 @@ function VibeCard({
       onClick={onClick}
       disabled={isDisabled}
       className={`
-        relative p-4 rounded-xl text-left transition-all duration-300
+        relative p-4 rounded-xl text-left transition-all duration-300 overflow-hidden
         ${
           isSelected
-            ? "ring-2 shadow-lg scale-[1.02]"
+            ? "ring-2 shadow-lg scale-[1.02] border-2"
             : isDisabled
-            ? "opacity-50 cursor-not-allowed bg-slate-50"
+            ? "cursor-not-allowed bg-white border border-slate-200/60"
             : "bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:scale-[1.01] active:scale-[0.99]"
         }
       `}
@@ -291,14 +291,24 @@ function VibeCard({
         isSelected
           ? {
               borderColor: vibe.color,
-              // Use CSS custom property for Tailwind ring color
               ["--tw-ring-color" as string]: vibe.color,
-              backgroundColor: `color-mix(in srgb, ${vibe.color} 8%, white)`,
-              boxShadow: `0 10px 25px -5px color-mix(in srgb, ${vibe.color} 25%, transparent)`,
+              backgroundColor: `color-mix(in srgb, ${vibe.color} 10%, white)`,
+              boxShadow: `0 10px 25px -5px color-mix(in srgb, ${vibe.color} 30%, transparent)`,
             }
           : undefined
       }
     >
+      {/* Disabled overlay with subtle pattern - shows when 3 vibes selected */}
+      {isDisabled && (
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/90 to-slate-100/90 backdrop-blur-[1px] z-10 flex items-center justify-center">
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+          }} />
+          <div className="px-2 py-1 rounded-full bg-white/80 border border-slate-200 shadow-sm">
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Max reached</span>
+          </div>
+        </div>
+      )}
       {/* Selection Order Badge */}
       {selectionOrder && (
         <div

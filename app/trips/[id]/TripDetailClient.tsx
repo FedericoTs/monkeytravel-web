@@ -523,10 +523,10 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         </div>
 
-        {/* Booking Links - Flights & Hotels */}
-        {trip.meta?.booking_links && (
+        {/* Booking Links - Flights & Hotels (commented out for now) */}
+        {/* {trip.meta?.booking_links && (
           <TripBookingLinks bookingLinks={trip.meta.booking_links} />
-        )}
+        )} */}
 
         {/* Interactive Map - First */}
         {showMap && displayItinerary.length > 0 && (

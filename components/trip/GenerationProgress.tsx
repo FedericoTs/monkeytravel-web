@@ -119,22 +119,46 @@ function FloatingOrbs() {
 
 // Animated plane that travels across (left to right)
 function TravelingPlane({ progress }: { progress: number }) {
+  // Calculate the position - use percentage of the track width
+  const clampedProgress = Math.min(Math.max(progress, 0), 95);
+
   return (
-    <div
-      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out z-10"
-      style={{ left: `${Math.min(progress, 95)}%` }}
-    >
-      <div className="relative">
-        {/* Trail effect - behind the plane (to the left), fading away from plane */}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 w-20 h-0.5 bg-gradient-to-l from-[var(--primary)]/60 to-transparent" />
-        {/* Plane - rotated 135deg (90 + 45) to point right with slight downward tilt */}
-        <svg
-          className="w-7 h-7 text-[var(--primary)] rotate-[135deg] drop-shadow-lg animate-plane-bob"
-          fill="currentColor"
-          viewBox="0 0 24 24"
+    <div className="absolute inset-0 pointer-events-none">
+      {/* Plane container - uses transform for smooth animation */}
+      <div
+        className="absolute top-1/2 h-0 w-full"
+        style={{
+          transform: `translateY(-50%)`,
+        }}
+      >
+        <div
+          className="absolute left-0 transition-transform duration-500 ease-out"
+          style={{
+            transform: `translateX(calc(${clampedProgress}% * 1)) translateX(-50%)`,
+            left: `${clampedProgress}%`,
+          }}
         >
-          <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-        </svg>
+          <div className="relative flex items-center">
+            {/* Trail effect - behind the plane (to the left), fading away from plane */}
+            <div
+              className="absolute right-full top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-l from-[var(--primary)]/60 to-transparent transition-all duration-500"
+              style={{ width: `${Math.min(clampedProgress * 2, 80)}px` }}
+            />
+            {/* Plane - pointing right (nose facing direction of travel) */}
+            <div className="relative">
+              <svg
+                className="w-8 h-8 text-[var(--primary)] drop-shadow-lg"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                style={{ transform: 'rotate(90deg)' }}
+              >
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+              </svg>
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 bg-[var(--primary)]/20 blur-md rounded-full scale-150" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
