@@ -464,6 +464,114 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Handle autonomous activity ADD
+    if (actionIntent.type === "add") {
+      console.log(`[AI Assistant] Attempting to add activity: "${actionIntent.preference}"`);
+
+      try {
+        // Determine which day to add to (default to day 1 if not specified)
+        const targetDayNumber = actionIntent.dayNumber || 1;
+        const targetDayIndex = Math.min(targetDayNumber - 1, modifiedItinerary.length - 1);
+        const targetDay = modifiedItinerary[targetDayIndex];
+
+        if (!targetDay) {
+          console.error(`[AI Assistant] Day ${targetDayNumber} not found in itinerary`);
+          replacementError = `Day ${targetDayNumber} not found in your itinerary`;
+        } else {
+          // Determine time slot based on existing activities
+          const existingSlots = new Set(targetDay.activities.map(a => a.time_slot));
+          let targetTimeSlot: "morning" | "afternoon" | "evening" = "afternoon";
+          let startTime = "12:00";
+
+          // Find an available slot or insert between activities
+          if (!existingSlots.has("morning")) {
+            targetTimeSlot = "morning";
+            startTime = "09:00";
+          } else if (!existingSlots.has("afternoon")) {
+            targetTimeSlot = "afternoon";
+            startTime = "14:00";
+          } else if (!existingSlots.has("evening")) {
+            targetTimeSlot = "evening";
+            startTime = "18:00";
+          } else {
+            // All slots taken, find the best insertion point
+            const lastActivity = targetDay.activities[targetDay.activities.length - 1];
+            if (lastActivity) {
+              // Parse the last activity end time and add after it
+              const [hours, mins] = lastActivity.start_time.split(":").map(Number);
+              const endMinutes = hours * 60 + mins + (lastActivity.duration_minutes || 90);
+              const newHours = Math.floor(endMinutes / 60);
+              const newMins = endMinutes % 60;
+              startTime = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
+
+              if (newHours < 12) targetTimeSlot = "morning";
+              else if (newHours < 17) targetTimeSlot = "afternoon";
+              else targetTimeSlot = "evening";
+            }
+          }
+
+          console.log(`[AI Assistant] Adding to Day ${targetDayNumber}, slot: ${targetTimeSlot}, time: ${startTime}`);
+
+          // Generate the new activity
+          const newActivity = await generateNewActivity(
+            genAI,
+            tripContext.destination,
+            actionIntent.preference || message,
+            null,
+            targetDayNumber,
+            targetTimeSlot
+          );
+
+          newActivity.start_time = startTime;
+
+          // Add to the day's activities and sort by time
+          modifiedItinerary[targetDayIndex].activities.push(newActivity);
+          modifiedItinerary[targetDayIndex].activities.sort((a, b) =>
+            a.start_time.localeCompare(b.start_time)
+          );
+          itineraryWasModified = true;
+
+          actionTaken = {
+            type: "add_activity",
+            applied: true,
+            dayNumber: targetDayNumber,
+            newActivity,
+          };
+
+          // Create an activity_added card for the added activity
+          replacementCard = {
+            type: "activity_added",
+            activity: newActivity,
+            dayNumber: targetDayNumber,
+            reason: `Added based on your request`,
+          } as AssistantCard;
+
+          // Save to database
+          console.log(`[AI Assistant] Saving modified itinerary with new activity to database...`);
+          const { error: updateError } = await supabase
+            .from("trips")
+            .update({
+              itinerary: modifiedItinerary,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", tripId);
+
+          if (updateError) {
+            console.error("[AI Assistant] Database update failed:", updateError);
+            replacementError = "Failed to save changes to database";
+            itineraryWasModified = false;
+          } else {
+            console.log(`[AI Assistant] Successfully added "${newActivity.name}" to Day ${targetDayNumber}`);
+          }
+        }
+      } catch (err) {
+        console.error("[AI Assistant] Failed to generate new activity:", err);
+        replacementError = `Failed to generate activity: ${err instanceof Error ? err.message : "Unknown error"}`;
+        actionTaken = undefined;
+        replacementCard = undefined;
+      }
+    }
+
     // Load conversation
     let conversation: { id: string; messages: AssistantMessage[] };
 
@@ -502,14 +610,22 @@ export async function POST(request: NextRequest) {
     // Build prompt with action context
     let actionContext = "";
     if (actionTaken && replacementCard) {
-      const rc = replacementCard as { oldActivity: { name: string }; newActivity: { name: string } };
-      actionContext = `
+      if (actionTaken.type === "replace_activity") {
+        const rc = replacementCard as { oldActivity: { name: string }; newActivity: { name: string } };
+        actionContext = `
 IMPORTANT: I have already replaced "${rc.oldActivity.name}" with "${rc.newActivity.name}".
 Include the replacement card in your response and confirm the change was made.
 The change has been saved to the database and will appear in the itinerary.`;
+      } else if (actionTaken.type === "add_activity") {
+        const ac = replacementCard as { activity: { name: string }; dayNumber: number };
+        actionContext = `
+IMPORTANT: I have already added "${ac.activity.name}" to Day ${ac.dayNumber} of the itinerary.
+Include the activity_suggestion card in your response and confirm the activity was added.
+The change has been saved to the database and will appear in the itinerary.`;
+      }
     } else if (replacementError) {
       actionContext = `
-NOTE: The user tried to replace an activity, but it failed: ${replacementError}
+NOTE: The user tried to modify the itinerary, but it failed: ${replacementError}
 Explain this to the user and suggest alternatives.`;
     }
 
