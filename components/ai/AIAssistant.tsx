@@ -220,7 +220,7 @@ export default function AIAssistant({
       >
         {/* Header - Premium gradient */}
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] via-[var(--primary)] to-[#0A3D5C]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] via-[var(--primary)] to-[var(--primary-deeper)]" />
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtNi42MjcgMC0xMiA1LjM3My0xMiAxMnM1LjM3MyAxMiAxMiAxMiAxMi01LjM3MyAxMi0xMi01LjM3My0xMi0xMi0xMnptMCAxOGMtMy4zMTQgMC02LTIuNjg2LTYtNnMyLjY4Ni02IDYtNiA2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNnoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9nPjwvc3ZnPg==')] opacity-30" />
 
           <div className="relative flex items-center justify-between px-4 py-4">
@@ -324,7 +324,7 @@ export default function AIAssistant({
                   <div
                     className={`max-w-[88%] ${
                       message.role === "user"
-                        ? "bg-gradient-to-br from-[var(--primary)] to-[#0A3D5C] text-white rounded-2xl rounded-br-md px-4 py-3 shadow-md"
+                        ? "bg-gradient-to-br from-[var(--primary)] to-[var(--primary-deeper)] text-white rounded-2xl rounded-br-md px-4 py-3 shadow-md"
                         : "space-y-3"
                     }`}
                   >
@@ -439,7 +439,7 @@ export default function AIAssistant({
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="p-3 bg-gradient-to-br from-[var(--primary)] to-[#0A3D5C] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-md"
+              className="p-3 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-deeper)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-md"
             >
               <svg
                 className="w-5 h-5"

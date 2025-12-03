@@ -48,11 +48,12 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
   const contentWidth = pageWidth - margin * 2;
   let yPosition = margin;
 
-  // Colors
-  const primaryColor = [10, 75, 115] as [number, number, number]; // #0A4B73
-  const accentColor = [242, 198, 65] as [number, number, number]; // #F2C641
-  const textColor = [30, 41, 59] as [number, number, number]; // slate-800
-  const mutedColor = [100, 116, 139] as [number, number, number]; // slate-500
+  // Colors - Fresh Voyager theme
+  const primaryColor = [255, 107, 107] as [number, number, number]; // #FF6B6B (Coral)
+  const accentColor = [255, 217, 61] as [number, number, number]; // #FFD93D (Gold)
+  const secondaryColor = [0, 180, 166] as [number, number, number]; // #00B4A6 (Teal)
+  const textColor = [45, 52, 54] as [number, number, number]; // #2D3436
+  const mutedColor = [99, 110, 114] as [number, number, number]; // #636E72
 
   // Helper function to check if we need a new page
   const checkNewPage = (requiredSpace: number) => {

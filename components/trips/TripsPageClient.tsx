@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/utils";
 
-// Gradient fallbacks for loading states
+// Gradient fallbacks for loading states - Fresh Voyager theme
 const DESTINATION_GRADIENTS: Record<string, { from: string; to: string; accent: string }> = {
   tokyo: { from: "#FFB7C5", to: "#FF6B9D", accent: "#FFF0F3" },
   paris: { from: "#E8B4B8", to: "#D4919A", accent: "#FDF4F5" },
@@ -17,7 +17,7 @@ const DESTINATION_GRADIENTS: Record<string, { from: string; to: string; accent: 
   dubai: { from: "#D69E2E", to: "#B7791F", accent: "#FFFFF0" },
   bali: { from: "#4FD1C5", to: "#38B2AC", accent: "#E6FFFA" },
   sydney: { from: "#63B3ED", to: "#4299E1", accent: "#EBF8FF" },
-  default: { from: "#0A4B73", to: "#063855", accent: "#F0F9FF" },
+  default: { from: "#FF6B6B", to: "#E85555", accent: "#FFF5EB" },
 };
 
 function getDestinationGradient(title: string) {

@@ -38,27 +38,27 @@ function parseWeatherNote(weather: string): { condition: string; temp?: string; 
   const tempMatch = weather.match(/(\d+[-–]\d+°[CF]|\d+°[CF])/);
   const temp = tempMatch ? tempMatch[1] : undefined;
 
-  // Determine condition and styling
+  // Determine condition and styling - Fresh Voyager theme colors
   if (lowerWeather.includes("sun") || lowerWeather.includes("clear") || lowerWeather.includes("warm") || lowerWeather.includes("hot")) {
-    return { condition: "Sunny", temp, icon: "☀️", gradient: "from-amber-400 to-orange-500" };
+    return { condition: "Sunny", temp, icon: "☀️", gradient: "from-[#FF6B6B] to-[#FFB4B4]" };
   }
   if (lowerWeather.includes("cloud") || lowerWeather.includes("overcast")) {
     return { condition: "Cloudy", temp, icon: "☁️", gradient: "from-slate-400 to-slate-500" };
   }
   if (lowerWeather.includes("rain") || lowerWeather.includes("shower")) {
-    return { condition: "Rainy", temp, icon: "🌧️", gradient: "from-blue-400 to-blue-600" };
+    return { condition: "Rainy", temp, icon: "🌧️", gradient: "from-[#00B4A6] to-[#008B80]" };
   }
   if (lowerWeather.includes("snow") || lowerWeather.includes("cold") || lowerWeather.includes("winter")) {
-    return { condition: "Cold", temp, icon: "❄️", gradient: "from-cyan-300 to-blue-400" };
+    return { condition: "Cold", temp, icon: "❄️", gradient: "from-[#74B9FF] to-[#0984e3]" };
   }
   if (lowerWeather.includes("wind")) {
     return { condition: "Windy", temp, icon: "💨", gradient: "from-slate-300 to-slate-500" };
   }
   if (lowerWeather.includes("mild") || lowerWeather.includes("pleasant")) {
-    return { condition: "Pleasant", temp, icon: "🌤️", gradient: "from-sky-400 to-blue-500" };
+    return { condition: "Pleasant", temp, icon: "🌤️", gradient: "from-[#FFD93D] to-[#E5C235]" };
   }
   // Default
-  return { condition: "Mild", temp, icon: "🌤️", gradient: "from-sky-300 to-blue-400" };
+  return { condition: "Mild", temp, icon: "🌤️", gradient: "from-[#00B4A6] to-[#55EFC4]" };
 }
 
 // Floating Weather Badge Component - Weather app inspired

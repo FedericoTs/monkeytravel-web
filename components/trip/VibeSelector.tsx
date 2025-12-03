@@ -203,7 +203,7 @@ export default function VibeSelector({
       <div>
         <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
           <span>Fantasy & Whimsical</span>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-700">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-[var(--secondary)]/20 text-[var(--secondary-dark)]">
             Unique
           </span>
         </div>
