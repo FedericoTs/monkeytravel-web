@@ -156,16 +156,8 @@ export default function VibeSelector({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">
-            What's your travel vibe?
-          </h3>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Choose up to {maxVibes} moods that capture your ideal trip experience
-          </p>
-        </div>
+      {/* Selection Counter */}
+      <div className="flex justify-end">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-slate-600">
           <span className={selectedVibes.length > 0 ? "text-[var(--primary)]" : ""}>
             {selectedVibes.length}
