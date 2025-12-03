@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import ImageCarousel from "./ui/ImageCarousel";
 /* eslint-disable @next/next/no-img-element */
 
 interface PlacePhoto {
@@ -83,32 +84,6 @@ export default function PlaceGallery({
       fetchPlaceData();
     }
   }, [placeName, placeAddress, maxPhotos]);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (selectedPhotoIndex === null || !placeData?.photos) return;
-
-      if (e.key === "Escape") {
-        setSelectedPhotoIndex(null);
-      } else if (e.key === "ArrowRight") {
-        setSelectedPhotoIndex((prev) =>
-          prev !== null ? (prev + 1) % placeData.photos.length : 0
-        );
-      } else if (e.key === "ArrowLeft") {
-        setSelectedPhotoIndex((prev) =>
-          prev !== null
-            ? (prev - 1 + placeData.photos.length) % placeData.photos.length
-            : 0
-        );
-      }
-    },
-    [selectedPhotoIndex, placeData?.photos]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
 
   if (loading) {
     return (
@@ -203,161 +178,73 @@ export default function PlaceGallery({
               key={idx}
               onClick={() => setSelectedPhotoIndex(idx)}
               className={`${
-                compact ? "w-16 h-16" : "w-24 h-24"
-              } flex-shrink-0 rounded-lg overflow-hidden relative group cursor-pointer transition-transform hover:scale-105`}
+                compact ? "w-16 h-16" : "w-20 h-20 sm:w-24 sm:h-24"
+              } flex-shrink-0 rounded-xl overflow-hidden relative group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 ring-1 ring-black/5`}
             >
               <img
                 src={photo.thumbnailUrl}
                 alt={`${placeName} photo ${idx + 1}`}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                  />
-                </svg>
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              {/* Expand icon */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                  <svg
+                    className="w-4 h-4 text-slate-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"
+                    />
+                  </svg>
+                </div>
+              </div>
+              {/* Photo number badge */}
+              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {idx + 1}/{placeData.photos.length}
               </div>
             </button>
           ))}
+          {/* View all button if many photos */}
+          {placeData.photos.length > 4 && (
+            <button
+              onClick={() => setSelectedPhotoIndex(0)}
+              className={`${
+                compact ? "w-16 h-16" : "w-20 h-20 sm:w-24 sm:h-24"
+              } flex-shrink-0 rounded-xl overflow-hidden relative group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] flex items-center justify-center`}
+            >
+              <div className="text-center">
+                <svg className="w-5 h-5 mx-auto text-white/90 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="text-xs font-semibold text-white">View All</span>
+              </div>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Lightbox - Mobile optimized */}
-      {selectedPhotoIndex !== null && placeData.photos[selectedPhotoIndex] && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center touch-pan-y"
-          onClick={() => setSelectedPhotoIndex(null)}
-        >
-          {/* Close button - larger touch target on mobile */}
-          <button
-            onClick={() => setSelectedPhotoIndex(null)}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-3 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-colors"
-          >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Navigation arrows - hidden on mobile, use swipe instead */}
-          {placeData.photos.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIndex((prev) =>
-                    prev !== null
-                      ? (prev - 1 + placeData.photos.length) % placeData.photos.length
-                      : 0
-                  );
-                }}
-                className="hidden sm:flex absolute left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors items-center justify-center"
-              >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIndex((prev) =>
-                    prev !== null ? (prev + 1) % placeData.photos.length : 0
-                  );
-                }}
-                className="hidden sm:flex absolute right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors items-center justify-center"
-              >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
-
-          {/* Main image - tap sides to navigate on mobile */}
-          <div
-            className="relative w-full h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Left tap zone - mobile only */}
-            {placeData.photos.length > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIndex((prev) =>
-                    prev !== null
-                      ? (prev - 1 + placeData.photos.length) % placeData.photos.length
-                      : 0
-                  );
-                }}
-                className="sm:hidden absolute left-0 top-0 w-1/4 h-full z-10"
-              />
-            )}
-
-            <img
-              src={placeData.photos[selectedPhotoIndex].url}
-              alt={`${placeName} photo ${selectedPhotoIndex + 1}`}
-              className="max-w-[95vw] sm:max-w-[90vw] max-h-[70vh] sm:max-h-[85vh] object-contain"
-            />
-
-            {/* Right tap zone - mobile only */}
-            {placeData.photos.length > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIndex((prev) =>
-                    prev !== null ? (prev + 1) % placeData.photos.length : 0
-                  );
-                }}
-                className="sm:hidden absolute right-0 top-0 w-1/4 h-full z-10"
-              />
-            )}
-          </div>
-
-          {/* Photo counter and mobile nav hint */}
-          <div className="absolute bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
-            <div className="text-white/80 text-sm">
-              {selectedPhotoIndex + 1} / {placeData.photos.length}
-            </div>
-            <div className="text-white/50 text-xs text-center">
-              <span className="hidden sm:inline">Photo by {placeData.photos[selectedPhotoIndex].attribution}</span>
-              <span className="sm:hidden">Tap sides to navigate</span>
-            </div>
-          </div>
-
-          {/* Thumbnail strip - scrollable on mobile */}
-          <div className="absolute bottom-4 sm:bottom-16 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex gap-2 px-4 sm:px-0 overflow-x-auto scrollbar-hide justify-start sm:justify-center">
-            {placeData.photos.map((photo, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIndex(idx);
-                }}
-                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden relative transition-all flex-shrink-0 ${
-                  idx === selectedPhotoIndex
-                    ? "ring-2 ring-white scale-110"
-                    : "opacity-60 hover:opacity-100 active:opacity-100"
-                }`}
-              >
-                <img
-                  src={photo.thumbnailUrl}
-                  alt={`Thumbnail ${idx + 1}`}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Image Carousel Lightbox */}
+      {selectedPhotoIndex !== null && placeData.photos.length > 0 && (
+        <ImageCarousel
+          images={placeData.photos.map((photo) => ({
+            url: photo.url,
+            thumbnailUrl: photo.thumbnailUrl,
+            alt: `${placeName} photo`,
+            attribution: photo.attribution,
+          }))}
+          initialIndex={selectedPhotoIndex}
+          onClose={() => setSelectedPhotoIndex(null)}
+          placeName={placeName}
+        />
       )}
     </>
   );

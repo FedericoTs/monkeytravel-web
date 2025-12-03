@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import type { GeneratedItinerary, TripCreationParams } from "@/types";
+import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
+import VibeSelector from "@/components/trip/VibeSelector";
+import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
+import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -83,10 +86,22 @@ export default function NewTripPage() {
   const [endDate, setEndDate] = useState("");
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
   const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
+  const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [requirements, setRequirements] = useState("");
+  const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
 
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 4; // Added vibe step
+
+  // Build seasonal context when destination and dates are set
+  useEffect(() => {
+    if (destination && startDate) {
+      const context = buildSeasonalContext(destination, startDate);
+      setSeasonalContext(context);
+    } else {
+      setSeasonalContext(null);
+    }
+  }, [destination, startDate]);
 
   const toggleInterest = (id: string) => {
     if (selectedInterests.includes(id)) {
@@ -103,9 +118,18 @@ export default function NewTripPage() {
       case 2:
         return startDate && endDate && new Date(endDate) >= new Date(startDate);
       case 3:
+        return selectedVibes.length > 0; // At least one vibe required
+      case 4:
         return selectedInterests.length > 0;
       default:
         return false;
+    }
+  };
+
+  // Handle vibe suggestion from seasonal context
+  const handleVibeSuggestion = (vibeId: TripVibe) => {
+    if (!selectedVibes.includes(vibeId) && selectedVibes.length < 3) {
+      setSelectedVibes([...selectedVibes, vibeId]);
     }
   };
 
@@ -126,6 +150,8 @@ export default function NewTripPage() {
         endDate,
         budgetTier,
         pace,
+        vibes: selectedVibes,
+        seasonalContext: seasonalContext || undefined,
         interests: selectedInterests,
         requirements: requirements || undefined,
       };
@@ -166,6 +192,34 @@ export default function NewTripPage() {
 
       if (!user) throw new Error("Not authenticated");
 
+      // Fetch a proper cover image for this destination
+      let coverImageUrl: string | undefined;
+      try {
+        const imageResponse = await fetch(
+          `/api/images/destination?destination=${encodeURIComponent(generatedItinerary.destination.name)}`
+        );
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          coverImageUrl = imageData.url;
+        }
+      } catch (imageError) {
+        console.error("Failed to fetch cover image:", imageError);
+      }
+
+      // Fallback: Try to find a high-quality activity image
+      if (!coverImageUrl) {
+        for (const day of generatedItinerary.days) {
+          for (const activity of day.activities) {
+            // Prefer Google Places photos (they have maps.googleapis.com)
+            if (activity.image_url && activity.image_url.includes("googleapis.com")) {
+              coverImageUrl = activity.image_url;
+              break;
+            }
+          }
+          if (coverImageUrl) break;
+        }
+      }
+
       const { data: trip, error: tripError } = await supabase
         .from("trips")
         .insert({
@@ -177,6 +231,7 @@ export default function NewTripPage() {
           status: "planning",
           visibility: "private",
           itinerary: generatedItinerary.days,
+          cover_image_url: coverImageUrl,
           budget: {
             total: generatedItinerary.trip_summary.total_estimated_cost,
             spent: 0,
@@ -571,25 +626,56 @@ export default function NewTripPage() {
                 />
               </div>
             </div>
+
+            {/* Seasonal Context Card - Auto-displays when dates are set */}
+            {destination && startDate && endDate && (
+              <SeasonalContextCard
+                destination={destination}
+                startDate={startDate}
+                endDate={endDate}
+                onVibeSuggestionClick={handleVibeSuggestion}
+                className="mt-6"
+              />
+            )}
           </div>
         )}
 
-        {/* Step 3: Preferences */}
+        {/* Step 3: Vibe Selection (NEW) */}
         {step === 3 && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                What's your travel vibe?
+              </h1>
+              <p className="text-slate-600">
+                Choose the mood that captures your ideal {destination} experience
+              </p>
+            </div>
+
+            <VibeSelector
+              selectedVibes={selectedVibes}
+              onVibesChange={setSelectedVibes}
+              maxVibes={3}
+            />
+          </div>
+        )}
+
+        {/* Step 4: Preferences */}
+        {step === 4 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Customize your trip
+                Fine-tune your trip
               </h1>
               <p className="text-slate-600">
-                Tell us about your travel style and interests
+                Set your budget, pace, and specific interests
               </p>
             </div>
 
             {/* Budget */}
             <div>
               <div className="text-sm font-medium text-slate-700 mb-3">Budget preference</div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {BUDGET_TIERS.map((tier) => (
                   <button
                     key={tier.id}
@@ -600,8 +686,14 @@ export default function NewTripPage() {
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className={`font-semibold ${tier.color}`}>{tier.label}</div>
-                    <div className="text-xs text-slate-500 mt-1">{tier.range}</div>
+                    <div className="flex items-center justify-between sm:block">
+                      <div>
+                        <div className={`font-semibold ${tier.color}`}>{tier.label}</div>
+                        <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 hidden sm:block">{tier.description}</div>
+                      </div>
+                      <div className="text-sm text-slate-600 sm:hidden">{tier.range}</div>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1 hidden sm:block">{tier.range}</div>
                   </button>
                 ))}
               </div>
@@ -610,7 +702,7 @@ export default function NewTripPage() {
             {/* Pace */}
             <div>
               <div className="text-sm font-medium text-slate-700 mb-3">Travel pace</div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {PACE_OPTIONS.map((option) => (
                   <button
                     key={option.id}
@@ -621,8 +713,10 @@ export default function NewTripPage() {
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-semibold text-slate-900">{option.label}</div>
-                    <div className="text-xs text-slate-500 mt-1">{option.description}</div>
+                    <div className="flex items-center justify-between sm:block">
+                      <div className="font-semibold text-slate-900">{option.label}</div>
+                      <div className="text-xs text-slate-500 sm:mt-1">{option.description}</div>
+                    </div>
                   </button>
                 ))}
               </div>

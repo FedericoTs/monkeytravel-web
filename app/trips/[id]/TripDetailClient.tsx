@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, Activity } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
+import EditableActivityCard from "@/components/trip/EditableActivityCard";
+import ShareButton from "@/components/trip/ShareButton";
+import ExportMenu from "@/components/trip/ExportMenu";
+import AIAssistant from "@/components/ai/AIAssistant";
+import {
+  ensureActivityIds,
+  moveActivityInDay,
+  moveActivityToDay,
+  deleteActivity,
+  updateActivity,
+  replaceActivity,
+  generateActivityId,
+} from "@/lib/utils/activity-id";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -36,9 +49,180 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
+    ensureActivityIds(trip.itinerary)
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
+
+  // Track if there are unsaved changes
+  const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(ensureActivityIds(trip.itinerary));
 
   // Extract destination from title (e.g., "Rome Trip" -> "Rome")
   const destination = trip.title.replace(/ Trip$/, "");
+
+  // Available days for "move to day" feature
+  const availableDays = editedItinerary.map((day) => day.day_number);
+
+  // Edit handlers
+  const handleActivityMove = useCallback(
+    (activityId: string, direction: "up" | "down") => {
+      setEditedItinerary((prev) => moveActivityInDay(prev, activityId, direction));
+    },
+    []
+  );
+
+  const handleActivityMoveToDay = useCallback(
+    (activityId: string, targetDayIndex: number) => {
+      setEditedItinerary((prev) => moveActivityToDay(prev, activityId, targetDayIndex));
+    },
+    []
+  );
+
+  const handleActivityDelete = useCallback((activityId: string) => {
+    setEditedItinerary((prev) => deleteActivity(prev, activityId));
+  }, []);
+
+  const handleActivityUpdate = useCallback(
+    (activityId: string, updates: Partial<Activity>) => {
+      setEditedItinerary((prev) => updateActivity(prev, activityId, updates));
+    },
+    []
+  );
+
+  const handleActivityRegenerate = useCallback(
+    async (activityId: string, dayIndex: number) => {
+      setRegeneratingActivityId(activityId);
+      try {
+        const response = await fetch("/api/ai/regenerate-activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tripId: trip.id,
+            activityId,
+            dayIndex,
+            destination,
+            itinerary: editedItinerary,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to regenerate activity");
+        }
+
+        const data = await response.json();
+        if (data.activity) {
+          setEditedItinerary((prev) =>
+            replaceActivity(prev, activityId, {
+              ...data.activity,
+              id: activityId,
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Error regenerating activity:", error);
+        setSaveError("Failed to regenerate activity. Please try again.");
+      } finally {
+        setRegeneratingActivityId(null);
+      }
+    },
+    [trip.id, destination, editedItinerary]
+  );
+
+  const handleSaveChanges = useCallback(async () => {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const response = await fetch(`/api/trips/${trip.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itinerary: editedItinerary }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save changes");
+      }
+
+      // Exit edit mode on success
+      setIsEditMode(false);
+      // Reload the page to get fresh data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      setSaveError("Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [trip.id, editedItinerary]);
+
+  const handleDiscardChanges = useCallback(() => {
+    setEditedItinerary(ensureActivityIds(trip.itinerary));
+    setIsEditMode(false);
+    setSaveError(null);
+  }, [trip.itinerary]);
+
+  const handleEnterEditMode = useCallback(() => {
+    setEditedItinerary(ensureActivityIds(trip.itinerary));
+    setIsEditMode(true);
+  }, [trip.itinerary]);
+
+  // Handle AI assistant suggested actions
+  const handleAIAction = useCallback(
+    (action: string, data?: Record<string, unknown>) => {
+      // Enter edit mode if not already in it
+      if (!isEditMode) {
+        setEditedItinerary(ensureActivityIds(trip.itinerary));
+        setIsEditMode(true);
+      }
+
+      // Handle different action types
+      switch (action) {
+        case "add_activity":
+          // The AI suggested adding an activity - this would typically open a modal
+          // For now, we'll just enter edit mode and show a message
+          console.log("AI suggested adding activity:", data);
+          break;
+        case "remove_activity":
+          if (data?.activityId) {
+            handleActivityDelete(data.activityId as string);
+          }
+          break;
+        case "move_activity":
+          if (data?.activityId && data?.direction) {
+            handleActivityMove(data.activityId as string, data.direction as "up" | "down");
+          }
+          break;
+        case "reorder_day":
+          // Suggest reordering - user can then manually reorder
+          console.log("AI suggested reordering day:", data);
+          break;
+        case "optimize_budget":
+          // Show budget optimization suggestions
+          console.log("AI suggested budget optimization:", data);
+          break;
+        case "regenerate_activity":
+          if (data?.activityId && data?.dayIndex !== undefined) {
+            handleActivityRegenerate(data.activityId as string, data.dayIndex as number);
+          }
+          break;
+        case "suggest_activity":
+        default:
+          // General suggestion - user can act on it manually
+          console.log("AI suggestion:", action, data);
+          break;
+      }
+    },
+    [isEditMode, trip.itinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
+  );
+
+  // Use edited itinerary in edit mode, original otherwise
+  const displayItinerary = isEditMode ? editedItinerary : ensureActivityIds(trip.itinerary);
 
   const statusColors = {
     planning: "bg-amber-100 text-amber-700",
@@ -74,24 +258,26 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         </div>
       </DestinationHero>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
+          {/* Left side - Back button */}
           <div className="flex items-center gap-2">
             <Link
               href="/trips"
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Trips
+              <span className="hidden sm:inline">Back to Trips</span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-100 rounded-lg p-1">
+          {/* Right side - Controls */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* View Mode Toggle - Hidden on mobile */}
+            <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode("cards")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -114,28 +300,70 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
               </button>
             </div>
 
-            {/* Map Toggle */}
+            {/* Map Toggle - Icon only on mobile */}
             <button
               onClick={() => setShowMap(!showMap)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
                 showMap
                   ? "bg-[var(--primary)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
+              title={showMap ? "Hide Map" : "Show Map"}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              {showMap ? "Hide Map" : "Show Map"}
+              <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
             </button>
+
+            {/* Share Button */}
+            {!isEditMode && (
+              <ShareButton tripId={trip.id} tripTitle={trip.title} />
+            )}
+
+            {/* Export Menu */}
+            {!isEditMode && (
+              <ExportMenu
+                trip={{
+                  title: trip.title,
+                  description: trip.description,
+                  startDate: trip.startDate,
+                  endDate: trip.endDate,
+                  budget: trip.budget,
+                  itinerary: displayItinerary,
+                }}
+              />
+            )}
+
+            {/* Edit Mode Toggle */}
+            {!isEditMode ? (
+              <button
+                onClick={handleEnterEditMode}
+                className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
+                title="Edit Trip"
+              >
+                <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="hidden sm:inline">Edit Trip</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="hidden sm:inline">Editing Mode</span>
+                <span className="sm:hidden">Editing</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Interactive Map */}
-        {showMap && trip.itinerary.length > 0 && (
+        {showMap && displayItinerary.length > 0 && (
           <div className="mb-8">
             <TripMap
-              days={trip.itinerary}
+              days={displayItinerary}
               destination={destination}
               selectedDay={selectedDay}
               className="h-[400px]"
@@ -155,7 +383,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           >
             All Days
           </button>
-          {trip.itinerary.map((day) => (
+          {displayItinerary.map((day) => (
             <button
               key={day.day_number}
               onClick={() => setSelectedDay(day.day_number)}
@@ -172,16 +400,20 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         </div>
 
         {/* Itinerary */}
-        {trip.itinerary.length > 0 ? (
+        {displayItinerary.length > 0 ? (
           <div className="space-y-8">
-            {trip.itinerary
+            {displayItinerary
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
-              .map((day) => (
+              .map((day, dayIndex) => (
                 <div key={day.day_number}>
                   {/* Day Header */}
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                      <div className={`w-12 h-12 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-lg ${
+                        isEditMode
+                          ? "bg-gradient-to-br from-amber-500 to-amber-600"
+                          : "bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80"
+                      }`}>
                         {day.day_number}
                       </div>
                       <div>
@@ -207,13 +439,34 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                   {viewMode === "cards" ? (
                     <div className="grid gap-4">
                       {day.activities.map((activity, idx) => (
-                        <ActivityCard
-                          key={idx}
-                          activity={activity}
-                          index={idx}
-                          currency={trip.budget?.currency}
-                          showGallery={true}
-                        />
+                        isEditMode ? (
+                          <EditableActivityCard
+                            key={activity.id || idx}
+                            activity={activity}
+                            index={idx}
+                            currency={trip.budget?.currency}
+                            showGallery={true}
+                            isEditMode={true}
+                            onMove={(direction) => handleActivityMove(activity.id!, direction)}
+                            onDelete={() => handleActivityDelete(activity.id!)}
+                            onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
+                            onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
+                            onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
+                            canMoveUp={idx > 0}
+                            canMoveDown={idx < day.activities.length - 1}
+                            availableDays={availableDays}
+                            currentDayIndex={dayIndex}
+                            isRegenerating={regeneratingActivityId === activity.id}
+                          />
+                        ) : (
+                          <ActivityCard
+                            key={activity.id || idx}
+                            activity={activity}
+                            index={idx}
+                            currency={trip.budget?.currency}
+                            showGallery={true}
+                          />
+                        )
                       ))}
                     </div>
                   ) : (
@@ -276,28 +529,177 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         )}
 
         {/* AI Disclaimer */}
-        <div className="mt-12 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
+        {!isEditMode && (
+          <div className="mt-12 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-900 mb-1">
+                  AI-Generated Itinerary with Verified Data
+                </h4>
+                <p className="text-sm text-amber-800">
+                  This itinerary was created by AI and enriched with real-time data from Google Places.
+                  Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
+                  and availability before your trip. Click "More" on any activity to see verified details and photos.
+                </p>
               </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-amber-900 mb-1">
-                AI-Generated Itinerary with Verified Data
-              </h4>
-              <p className="text-sm text-amber-800">
-                This itinerary was created by AI and enriched with real-time data from Google Places.
-                Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
-                and availability before your trip. Click "More" on any activity to see verified details and photos.
-              </p>
+          </div>
+        )}
+
+        {/* Edit Mode Instructions */}
+        {isEditMode && (
+          <div className="mt-12 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-blue-900 mb-1">
+                  Edit Mode Active
+                </h4>
+                <p className="text-sm text-blue-800">
+                  You can now edit, move, delete, or regenerate activities. Use the buttons on each activity card
+                  to make changes. Click "Save Changes" when you're done, or "Discard" to cancel your edits.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Edit Mode Save/Discard Bar */}
+      {isEditMode && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {hasChanges && (
+                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                    Unsaved changes
+                  </span>
+                )}
+                {saveError && (
+                  <span className="text-sm text-red-600">{saveError}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleDiscardChanges}
+                  disabled={isSaving}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Discard Changes
+                </button>
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isSaving || !hasChanges}
+                  className="px-4 py-2 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </main>
+      )}
+
+      {/* Bottom padding when edit bar is showing */}
+      {isEditMode && <div className="h-20" />}
+
+      {/* AI Assistant Floating Button */}
+      {!isEditMode && (
+        <button
+          onClick={() => setIsAIAssistantOpen(true)}
+          className="fixed bottom-6 right-6 lg:bottom-8 lg:right-8 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
+          title="AI Trip Assistant"
+        >
+          <svg
+            className="w-7 h-7"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
+          {/* Pulse animation */}
+          <span className="absolute -top-1 -right-1 w-4 h-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-[var(--accent)]"></span>
+          </span>
+        </button>
+      )}
+
+      {/* Edit mode AI button (smaller, positioned above save bar) */}
+      {isEditMode && (
+        <button
+          onClick={() => setIsAIAssistantOpen(true)}
+          className="fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center"
+          title="AI Trip Assistant"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* AI Assistant Sidebar/Bottom Sheet */}
+      <AIAssistant
+        tripId={trip.id}
+        tripTitle={trip.title}
+        itinerary={displayItinerary}
+        isOpen={isAIAssistantOpen}
+        onClose={() => setIsAIAssistantOpen(false)}
+        onAction={handleAIAction}
+        onItineraryUpdate={(newItinerary) => {
+          // Update local state with AI-modified itinerary
+          setEditedItinerary(ensureActivityIds(newItinerary));
+          // Enter edit mode if not already
+          if (!isEditMode) {
+            setIsEditMode(true);
+          }
+        }}
+      />
     </div>
   );
 }

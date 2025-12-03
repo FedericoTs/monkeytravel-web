@@ -33,6 +33,20 @@
   --error: #EF4444;
   --warning: #F59E0B;
 
+  /* Vibe Colors - For trip mood selection */
+  --vibe-adventure: #06B6D4;     /* Cyan - energetic outdoor */
+  --vibe-cultural: #6366F1;      /* Indigo - sophisticated */
+  --vibe-foodie: #F97316;        /* Orange - warm, inviting */
+  --vibe-wellness: #84CC16;      /* Lime - fresh, peaceful */
+  --vibe-romantic: #EC4899;      /* Pink - elegant, intimate */
+  --vibe-urban: #64748B;         /* Slate - modern, sleek */
+  --vibe-nature: #16A34A;        /* Green - grounded, natural */
+  --vibe-offbeat: #8B5CF6;       /* Violet - unique, quirky */
+  --vibe-wonderland: #A855F7;    /* Purple - whimsical, surreal */
+  --vibe-movie-magic: #EF4444;   /* Red - dramatic, cinematic */
+  --vibe-fairytale: #F472B6;     /* Rose - enchanting, magical */
+  --vibe-retro: #78716C;         /* Stone - nostalgic, vintage */
+
   /* Premium Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);

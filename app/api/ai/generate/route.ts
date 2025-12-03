@@ -25,6 +25,8 @@ export async function POST(request: NextRequest) {
       endDate: body.endDate,
       budgetTier: body.budgetTier || "balanced",
       pace: body.pace || "moderate",
+      vibes: body.vibes || [],
+      seasonalContext: body.seasonalContext,
       interests: body.interests || [],
       requirements: body.requirements,
     };
@@ -62,6 +64,7 @@ export async function POST(request: NextRequest) {
       request_params: {
         user_id: user.id,
         destination: params.destination,
+        vibes: params.vibes,
         duration:
           Math.ceil(
             (new Date(params.endDate).getTime() -

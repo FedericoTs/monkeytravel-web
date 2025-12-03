@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { GeneratedItinerary, TripCreationParams } from "@/types";
+import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay } from "@/types";
+import { generateActivityId } from "./utils/activity-id";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -54,6 +55,22 @@ const SYSTEM_PROMPT = `You are MonkeyTravel AI, an expert travel planner with de
    - Consider weather conditions for the travel dates
    - Adjust outdoor activities based on season
    - Suggest indoor alternatives for rainy days
+   - Include seasonal activities (Christmas markets in winter, cherry blossoms in spring)
+   - Account for local holidays and festivals
+
+8. **Vibe Alignment** (CRITICAL - Match activities to traveler's chosen vibes):
+   - Adventure: outdoor activities, hiking, water sports, thrill-seeking experiences
+   - Cultural: museums, heritage sites, local traditions, historical tours
+   - Foodie: food markets, cooking classes, local restaurants, culinary experiences
+   - Wellness: spas, yoga, meditation, peaceful nature walks, retreats
+   - Romantic: sunset spots, intimate dining, scenic views, couple activities
+   - Urban: city life, nightlife, modern architecture, trendy cafes and bars
+   - Nature: national parks, wildlife watching, eco-tourism, wilderness
+   - Offbeat: hidden gems, local secrets, non-touristy spots, unique experiences
+   - Wonderland: quirky museums, whimsical cafes, surreal/artistic locations
+   - Movie-Magic: film locations, studio tours, cinematic spots, iconic scenes
+   - Fairytale: castles, charming villages, enchanted forests, storybook locations
+   - Retro: vintage shops, retro diners, historic districts, nostalgic spots
 
 ## Output Format
 
@@ -71,6 +88,46 @@ function buildUserPrompt(params: TripCreationParams): string {
   const destEncoded = encodeURIComponent(params.destination);
   const destSlug = params.destination.split(",")[0].toLowerCase().replace(/\s+/g, "");
 
+  // Build vibe section with weighted influence
+  const vibeLabels: Record<string, string> = {
+    adventure: "Adventure Seeker - outdoor activities, hiking, adrenaline",
+    cultural: "Cultural Explorer - museums, heritage, local traditions",
+    foodie: "Foodie Journey - food markets, local cuisine, restaurants",
+    wellness: "Wellness Escape - spa, yoga, peaceful retreats",
+    romantic: "Romantic Getaway - intimate experiences, sunset views",
+    urban: "Urban Discovery - city life, nightlife, architecture",
+    nature: "Nature Immersion - wildlife, parks, wilderness",
+    offbeat: "Off the Beaten Path - hidden gems, non-touristy spots",
+    wonderland: "Wonderland Adventure - quirky, whimsical, surreal spots",
+    "movie-magic": "Movie Magic - film locations, cinematic experiences",
+    fairytale: "Fairytale Escape - castles, enchanted forests, storybook villages",
+    retro: "Retro Time Travel - vintage cafes, historic districts, nostalgia",
+  };
+
+  const vibeSection = params.vibes && params.vibes.length > 0
+    ? `## Travel Vibes (${params.vibes.length} selected - PRIORITIZE THESE)
+${params.vibes.map((v, i) => {
+  const influence = i === 0 ? "50% Primary" : i === 1 ? "30% Secondary" : "20% Accent";
+  return `- ${influence}: ${vibeLabels[v] || v}`;
+}).join("\n")}
+
+IMPORTANT: Blend these vibes throughout the itinerary. For fantasy vibes (wonderland, movie-magic, fairytale, retro), seek out unusual, photogenic, and story-worthy locations that match that aesthetic.
+`
+    : "";
+
+  // Build seasonal context section
+  const seasonalSection = params.seasonalContext
+    ? `## Seasonal Context
+- Season: ${params.seasonalContext.season}
+- Expected Weather: ${params.seasonalContext.weather}
+- Temperature: ${params.seasonalContext.avgTemp.min}°C to ${params.seasonalContext.avgTemp.max}°C
+- Crowd Level: ${params.seasonalContext.crowdLevel}
+${params.seasonalContext.holidays.length > 0 ? `- Holidays/Events: ${params.seasonalContext.holidays.join(", ")}` : ""}
+
+Consider these seasonal factors when selecting activities and timing. Include seasonal-specific experiences if relevant.
+`
+    : "";
+
   return `Plan a ${duration}-day trip to ${params.destination}.
 
 ## Travel Details
@@ -79,7 +136,7 @@ function buildUserPrompt(params: TripCreationParams): string {
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace}
 
-## Traveler Preferences
+${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 
@@ -242,6 +299,156 @@ export async function generateItinerary(
   }
 }
 
+/**
+ * Regenerate a single activity within an itinerary
+ * Used when a user wants to replace one activity with a different suggestion
+ */
+export interface RegenerateActivityParams {
+  destination: string;
+  activityToReplace: Activity;
+  dayContext: ItineraryDay;
+  budgetTier: "budget" | "balanced" | "premium";
+  existingActivityNames: string[];
+  preferences?: {
+    category?: "attraction" | "restaurant" | "activity" | "transport";
+    similarTo?: boolean; // If true, generate something similar
+  };
+}
+
+const REGENERATE_SYSTEM_PROMPT = `You are MonkeyTravel AI. Generate a SINGLE replacement activity for a travel itinerary.
+
+## Rules
+1. **Real Places Only**: Only suggest real, verifiable locations that exist today. The place must be searchable on Google Maps.
+2. **Avoid Duplicates**: Do not suggest any place already in the itinerary.
+3. **Context Aware**: The replacement should fit the time slot and day theme.
+4. **Verifiable**: Include full street address. Only include official_website if you're certain it's correct, otherwise use null.
+
+## Output Format
+Return ONLY a valid JSON object for a single activity. No markdown, no extra text.`;
+
+export async function regenerateSingleActivity(
+  params: RegenerateActivityParams,
+  retryCount = 0
+): Promise<Activity> {
+  const MAX_RETRIES = 2;
+
+  const model = genAI.getGenerativeModel({
+    model: MODELS.fast,
+    generationConfig: {
+      temperature: retryCount > 0 ? 0.8 : 1.2, // Higher temperature for variety
+      topP: 0.95,
+      topK: 40,
+      maxOutputTokens: 2048,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const { activityToReplace, dayContext, existingActivityNames, preferences } = params;
+
+  const userPrompt = `Generate a replacement activity for a trip to ${params.destination}.
+
+## Current Activity to Replace
+- Name: ${activityToReplace.name}
+- Type: ${activityToReplace.type}
+- Time Slot: ${activityToReplace.time_slot}
+- Start Time: ${activityToReplace.start_time}
+- Duration: ${activityToReplace.duration_minutes} minutes
+- Location: ${activityToReplace.location}
+
+## Day Context
+- Day Theme: ${dayContext.theme || "General exploration"}
+- Date: ${dayContext.date}
+- Other activities this day: ${dayContext.activities.filter(a => a.name !== activityToReplace.name).map(a => a.name).join(", ") || "None"}
+
+## Constraints
+- Budget Tier: ${params.budgetTier}
+- Time Slot: ${activityToReplace.time_slot}
+- Start Time: ${activityToReplace.start_time}
+- Duration should be approximately: ${activityToReplace.duration_minutes} minutes
+${preferences?.category ? `- Category preference: ${preferences.category}` : ""}
+${preferences?.similarTo ? "- Should be similar in type/style to the replaced activity" : "- Should be different/fresh compared to the replaced activity"}
+
+## Do NOT suggest any of these places (already in itinerary):
+${existingActivityNames.join(", ")}
+
+## Required JSON Output
+{
+  "time_slot": "${activityToReplace.time_slot}",
+  "start_time": "${activityToReplace.start_time}",
+  "duration_minutes": ${activityToReplace.duration_minutes},
+  "name": "Real Place Name",
+  "type": "attraction|restaurant|activity|transport",
+  "description": "What to do here (2-3 sentences)",
+  "location": "Neighborhood or area name",
+  "address": "Full street address",
+  "official_website": null,
+  "estimated_cost": {
+    "amount": 0,
+    "currency": "USD",
+    "tier": "free|budget|moderate|expensive"
+  },
+  "tips": ["Tip 1", "Tip 2"],
+  "booking_required": false
+}
+
+Return ONLY the JSON object, no extra text.`;
+
+  try {
+    const result = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: REGENERATE_SYSTEM_PROMPT }] },
+        { role: "model", parts: [{ text: "Understood. I will generate a single replacement activity as valid JSON." }] },
+        { role: "user", parts: [{ text: userPrompt }] },
+      ],
+    });
+
+    const response = result.response;
+    const text = response.text();
+
+    try {
+      const activity = JSON.parse(text) as Activity;
+
+      // Validate required fields
+      if (!activity.name || !activity.type || !activity.time_slot) {
+        throw new Error("Invalid activity structure");
+      }
+
+      // Add unique ID
+      activity.id = generateActivityId();
+
+      return activity;
+    } catch (parseError) {
+      console.error(
+        `Activity regeneration JSON parse error (attempt ${retryCount + 1}):`,
+        parseError instanceof Error ? parseError.message : "Unknown",
+        "\nResponse preview:",
+        text.substring(0, 300)
+      );
+
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying activity regeneration (attempt ${retryCount + 2})...`);
+        return regenerateSingleActivity(params, retryCount + 1);
+      }
+
+      throw new Error("Failed to regenerate activity after retries");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("after retries")) {
+      throw error;
+    }
+
+    console.error("Gemini API error during activity regeneration:", error);
+
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
+      return regenerateSingleActivity(params, retryCount + 1);
+    }
+
+    throw new Error("Failed to regenerate activity: AI service unavailable");
+  }
+}
+
 // Input validation
 const DANGEROUS_PATTERNS = [
   /ignore previous instructions/gi,
@@ -331,6 +538,26 @@ export function validateTripParams(
   // Interests validation
   if (params.interests && params.interests.length > 10) {
     return { valid: false, error: "Maximum 10 interests allowed" };
+  }
+
+  // Vibes validation
+  const validVibes = [
+    "adventure", "cultural", "foodie", "wellness",
+    "romantic", "urban", "nature", "offbeat",
+    "wonderland", "movie-magic", "fairytale", "retro"
+  ];
+  if (params.vibes) {
+    if (params.vibes.length === 0) {
+      return { valid: false, error: "At least one vibe is required" };
+    }
+    if (params.vibes.length > 3) {
+      return { valid: false, error: "Maximum 3 vibes allowed" };
+    }
+    for (const vibe of params.vibes) {
+      if (!validVibes.includes(vibe)) {
+        return { valid: false, error: `Invalid vibe: ${vibe}` };
+      }
+    }
   }
 
   return { valid: true };

@@ -28,6 +28,8 @@ export interface Trip {
   destination_ids?: string[];
   budget?: TripBudget;
   itinerary?: ItineraryDay[];
+  share_token?: string;
+  shared_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -113,6 +115,43 @@ export interface BookingLink {
   label: string;
 }
 
+// Trip vibe types (12 options: 8 practical + 4 fantasy/whimsical)
+export type TripVibe =
+  | "adventure"    // Outdoor activities, hiking, water sports, adrenaline
+  | "cultural"     // Museums, heritage sites, local traditions, history
+  | "foodie"       // Food markets, cooking classes, local cuisine, fine dining
+  | "wellness"     // Spa, yoga, meditation, peaceful retreats
+  | "romantic"     // Intimate experiences, sunset views, couple activities
+  | "urban"        // City life, nightlife, architecture, trendy spots
+  | "nature"       // Wildlife, national parks, wilderness, eco-tourism
+  | "offbeat"      // Hidden gems, local secrets, non-touristy experiences
+  | "wonderland"   // Alice in Wonderland vibes - quirky, whimsical, surreal spots
+  | "movie-magic"  // Film locations, cinematic experiences, famous backdrops
+  | "fairytale"    // Castles, enchanted forests, storybook villages
+  | "retro";       // Vintage cafes, historic districts, nostalgic experiences
+
+// Seasonal context for trip planning
+export interface SeasonalContext {
+  season: "spring" | "summer" | "autumn" | "winter";
+  hemisphere: "northern" | "southern" | "tropical";
+  avgTemp: { min: number; max: number };
+  weather: string;
+  holidays: string[];
+  events: string[];
+  crowdLevel: "low" | "moderate" | "high" | "peak";
+}
+
+// Vibe option for UI display
+export interface VibeOption {
+  id: TripVibe;
+  label: string;
+  emoji: string;
+  color: string;
+  description: string;
+  details: string[];
+  category: "practical" | "fantasy";
+}
+
 // Trip creation params
 export interface TripCreationParams {
   destination: string;
@@ -120,6 +159,88 @@ export interface TripCreationParams {
   endDate: string;
   budgetTier: "budget" | "balanced" | "premium";
   pace: "relaxed" | "moderate" | "active";
+  vibes: TripVibe[];  // Array of 1-3 vibes (ordered by priority)
+  seasonalContext?: SeasonalContext;
   interests: string[];
   requirements?: string;
+}
+
+// AI Assistant structured response types
+export type AssistantCardType =
+  | "activity_suggestion"  // Suggesting a new activity
+  | "activity_replacement" // Replacing an existing activity
+  | "activity_added"       // Confirmation that activity was added
+  | "tip"                  // Quick tip or info
+  | "comparison"           // Comparing multiple options
+  | "confirmation"         // Action completed confirmation
+  | "error";               // Error message
+
+export interface AssistantActivityCard {
+  type: "activity_suggestion" | "activity_added";
+  activity: Activity;
+  dayNumber?: number;
+  reason?: string;
+}
+
+export interface AssistantReplacementCard {
+  type: "activity_replacement";
+  oldActivity: {
+    id: string;
+    name: string;
+    type: Activity["type"];
+  };
+  newActivity: Activity;
+  dayNumber: number;
+  reason?: string;
+  autoApplied?: boolean;  // Whether the change was automatically applied
+}
+
+export interface AssistantTipCard {
+  type: "tip";
+  icon: "lightbulb" | "warning" | "info" | "clock" | "money" | "weather";
+  title: string;
+  content: string;
+}
+
+export interface AssistantComparisonCard {
+  type: "comparison";
+  title: string;
+  options: Array<{
+    name: string;
+    pros: string[];
+    cons: string[];
+    recommended?: boolean;
+  }>;
+}
+
+export interface AssistantConfirmationCard {
+  type: "confirmation";
+  icon: "check" | "swap" | "plus" | "trash";
+  title: string;
+  description: string;
+}
+
+export interface AssistantErrorCard {
+  type: "error";
+  message: string;
+}
+
+export type AssistantCard =
+  | AssistantActivityCard
+  | AssistantReplacementCard
+  | AssistantTipCard
+  | AssistantComparisonCard
+  | AssistantConfirmationCard
+  | AssistantErrorCard;
+
+export interface StructuredAssistantResponse {
+  summary: string;           // Brief text summary (1-2 sentences max)
+  cards?: AssistantCard[];   // Optional structured cards
+  action?: {
+    type: "replace_activity" | "add_activity" | "remove_activity" | "reorder";
+    applied: boolean;        // Whether the action was auto-applied
+    activityId?: string;     // For replace/remove actions
+    dayNumber?: number;
+    newActivity?: Activity;  // For add/replace actions
+  };
 }
