@@ -135,15 +135,15 @@ export async function searchHotelOffers(params: HotelSearchParams): Promise<{
         ratings: params.ratings,
         amenities: params.amenities,
       });
-      // Limit to 20 hotels to conserve API quota
-      hotelIds = hotels.data.slice(0, 20).map((h) => h.hotelId);
+      // Limit to 8 hotels to avoid Vercel timeout (10s on Hobby plan)
+      hotelIds = hotels.data.slice(0, 8).map((h) => h.hotelId);
     } else if (params.latitude && params.longitude) {
       const hotels = await searchHotelsByGeo(params.latitude, params.longitude, {
         radius: params.radius,
         radiusUnit: params.radiusUnit,
         ratings: params.ratings,
       });
-      hotelIds = hotels.data.slice(0, 20).map((h) => h.hotelId);
+      hotelIds = hotels.data.slice(0, 8).map((h) => h.hotelId);
     }
   }
 

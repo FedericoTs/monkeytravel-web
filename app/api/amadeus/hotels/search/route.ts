@@ -5,9 +5,15 @@
  *
  * Search for hotel offers using Amadeus Hotel APIs.
  * Includes caching and rate limiting.
+ *
+ * Uses Edge runtime for 30s timeout (vs 10s on Node.js Hobby plan)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Use Edge runtime for longer timeout (30s vs 10s)
+export const runtime = 'edge';
+export const maxDuration = 30;
 import { createClient } from '@/lib/supabase/server';
 import {
   searchHotelOffers,
