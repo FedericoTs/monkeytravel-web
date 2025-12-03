@@ -117,19 +117,19 @@ function FloatingOrbs() {
   );
 }
 
-// Animated plane that travels across
+// Animated plane that travels across (left to right)
 function TravelingPlane({ progress }: { progress: number }) {
   return (
     <div
-      className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-out"
+      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out z-10"
       style={{ left: `${Math.min(progress, 95)}%` }}
     >
       <div className="relative">
-        {/* Trail effect */}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 w-16 h-0.5 bg-gradient-to-l from-[var(--primary)]/50 to-transparent" />
-        {/* Plane */}
+        {/* Trail effect - behind the plane (to the left), fading away from plane */}
+        <div className="absolute right-full top-1/2 -translate-y-1/2 w-20 h-0.5 bg-gradient-to-l from-[var(--primary)]/60 to-transparent" />
+        {/* Plane - rotated 90deg to point right (direction of travel) */}
         <svg
-          className="w-6 h-6 text-[var(--primary)] -rotate-45 drop-shadow-lg animate-plane-bob"
+          className="w-7 h-7 text-[var(--primary)] rotate-90 drop-shadow-lg animate-plane-bob"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
