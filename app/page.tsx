@@ -3,6 +3,7 @@ import PhoneMockup from '@/components/PhoneMockup';
 import EmailSubscribe from '@/components/EmailSubscribe';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
@@ -16,9 +17,45 @@ const APP_SCREENSHOTS = {
   },
 };
 
+/* ============================================================================
+   FAQ DATA - Used for both display and structured data (SEO)
+   ============================================================================ */
+const FAQS = [
+  {
+    question: 'Is MonkeyTravel really free?',
+    answer: 'Yes! The web app is completely free to use. Create an account, plan unlimited trips, and export your itineraries — all at no cost. We may introduce premium features in the future, but the core experience will always be free.',
+  },
+  {
+    question: 'Do I need to download an app?',
+    answer: 'No download needed! MonkeyTravel works entirely in your web browser on any device. Our iOS and Android apps are currently in development and will launch soon for an even better mobile experience.',
+  },
+  {
+    question: 'How does the AI create itineraries?',
+    answer: "We use Google's Gemini AI to analyze your destination, dates, and preferences. It creates realistic day-by-day schedules with properly timed activities, local restaurants, and attractions — all verified with real data from Google Places.",
+  },
+  {
+    question: 'Can I customize the itinerary?',
+    answer: "Absolutely! Every activity can be edited, moved, or removed. You can also use our AI assistant to regenerate specific activities or ask for alternatives. It's your trip — make it perfect.",
+  },
+  {
+    question: 'What destinations do you support?',
+    answer: 'MonkeyTravel works for destinations worldwide — from major cities like Paris and Tokyo to hidden gems. If Google has data on it, we can plan it.',
+  },
+  {
+    question: 'How do I share my trip with others?',
+    answer: 'Click the share button on any trip to generate a shareable link. Anyone with the link can view your complete itinerary. You can also export to PDF for offline access.',
+  },
+];
+
+// Generate FAQ structured data for SEO (rich snippets in Google)
+const faqSchema = generateFAQSchema(FAQS);
+
 export default function Home() {
   return (
     <>
+      {/* FAQ Structured Data for rich snippets in Google Search */}
+      <script {...jsonLdScriptProps(faqSchema)} />
+
       <Navbar />
 
       <main>
@@ -516,38 +553,13 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              {[
-                {
-                  q: 'Is MonkeyTravel really free?',
-                  a: 'Yes! The web app is completely free to use. Create an account, plan unlimited trips, and export your itineraries — all at no cost. We may introduce premium features in the future, but the core experience will always be free.',
-                },
-                {
-                  q: 'Do I need to download an app?',
-                  a: 'No download needed! MonkeyTravel works entirely in your web browser on any device. Our iOS and Android apps are currently in development and will launch soon for an even better mobile experience.',
-                },
-                {
-                  q: 'How does the AI create itineraries?',
-                  a: 'We use Google\'s Gemini AI to analyze your destination, dates, and preferences. It creates realistic day-by-day schedules with properly timed activities, local restaurants, and attractions — all verified with real data from Google Places.',
-                },
-                {
-                  q: 'Can I customize the itinerary?',
-                  a: 'Absolutely! Every activity can be edited, moved, or removed. You can also use our AI assistant to regenerate specific activities or ask for alternatives. It\'s your trip — make it perfect.',
-                },
-                {
-                  q: 'What destinations do you support?',
-                  a: 'MonkeyTravel works for destinations worldwide — from major cities like Paris and Tokyo to hidden gems. If Google has data on it, we can plan it.',
-                },
-                {
-                  q: 'How do I share my trip with others?',
-                  a: 'Click the share button on any trip to generate a shareable link. Anyone with the link can view your complete itinerary. You can also export to PDF for offline access.',
-                },
-              ].map((faq, index) => (
+              {FAQS.map((faq, index) => (
                 <details
                   key={index}
                   className="group bg-[var(--background-alt)] rounded-2xl overflow-hidden"
                 >
                   <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                    <span className="font-semibold text-[var(--foreground)] pr-4">{faq.q}</span>
+                    <span className="font-semibold text-[var(--foreground)] pr-4">{faq.question}</span>
                     <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                       <svg
                         className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"
@@ -560,7 +572,7 @@ export default function Home() {
                     </div>
                   </summary>
                   <div className="px-6 pb-6">
-                    <p className="text-[var(--foreground-muted)] leading-relaxed">{faq.a}</p>
+                    <p className="text-[var(--foreground-muted)] leading-relaxed">{faq.answer}</p>
                   </div>
                 </details>
               ))}

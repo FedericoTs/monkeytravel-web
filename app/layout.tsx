@@ -3,6 +3,12 @@ import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/Toast";
+import {
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+  generateSoftwareApplicationSchema,
+  jsonLdScriptProps,
+} from "@/lib/seo/structured-data";
 import "./globals.css";
 
 // Display font for headings - elegant serif
@@ -101,11 +107,12 @@ export const metadata: Metadata = {
     },
   },
 
-  // Verification (add your codes when available)
-  // verification: {
-  //   google: "your-google-verification-code",
-  //   yandex: "your-yandex-verification-code",
-  // },
+  // Verification - Add your Search Console verification code here
+  // To get this: Go to Google Search Console > Settings > Ownership verification > HTML tag
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+    // yandex: "your-yandex-verification-code",
+  },
 
   // App links for mobile
   appleWebApp: {
@@ -130,6 +137,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Generate global structured data schemas
+const organizationSchema = generateOrganizationSchema();
+const webSiteSchema = generateWebSiteSchema();
+const softwareApplicationSchema = generateSoftwareApplicationSchema();
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -137,6 +149,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Global Structured Data (JSON-LD) for SEO */}
+        <script {...jsonLdScriptProps(organizationSchema)} />
+        <script {...jsonLdScriptProps(webSiteSchema)} />
+        <script {...jsonLdScriptProps(softwareApplicationSchema)} />
+      </head>
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
       >

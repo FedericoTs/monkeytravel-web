@@ -4,6 +4,11 @@ import { formatDateRange } from "@/lib/utils";
 import type { ItineraryDay } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
+import {
+  generateTripSchema,
+  generateBreadcrumbSchema,
+  jsonLdScriptProps,
+} from "@/lib/seo/structured-data";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -59,21 +64,44 @@ export default async function SharedTripPage({ params }: PageProps) {
   const itinerary = (trip.itinerary as ItineraryDay[]) || [];
   const budget = trip.budget as { total: number; currency: string } | null;
 
+  // Generate structured data for SEO
+  const tripUrl = `https://monkeytravel.app/shared/${token}`;
+  const tripSchema = generateTripSchema({
+    name: trip.title,
+    description: trip.description,
+    url: tripUrl,
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+    destination: trip.destination,
+  });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: "https://monkeytravel.app" },
+    { name: "Shared Trips", url: "https://monkeytravel.app/shared" },
+    { name: trip.title, url: tripUrl },
+  ]);
+
   return (
-    <SharedTripView
-      trip={{
-        id: trip.id,
-        title: trip.title,
-        description: trip.description,
-        status: trip.status,
-        startDate: trip.start_date,
-        endDate: trip.end_date,
-        tags: trip.tags,
-        budget,
-        itinerary,
-        sharedAt: trip.shared_at,
-      }}
-      dateRange={formatDateRange(trip.start_date, trip.end_date)}
-    />
+    <>
+      {/* Structured Data for SEO */}
+      <script {...jsonLdScriptProps(tripSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+
+      <SharedTripView
+        trip={{
+          id: trip.id,
+          title: trip.title,
+          description: trip.description,
+          status: trip.status,
+          startDate: trip.start_date,
+          endDate: trip.end_date,
+          tags: trip.tags,
+          budget,
+          itinerary,
+          sharedAt: trip.shared_at,
+        }}
+        dateRange={formatDateRange(trip.start_date, trip.end_date)}
+      />
+    </>
   );
 }
