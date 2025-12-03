@@ -181,18 +181,22 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
     (action: string, data?: Record<string, unknown>) => {
-      // Enter edit mode if not already in it
-      if (!isEditMode) {
+      // For actions that were already applied by the AI (replace_activity, add_activity),
+      // the refetch has already updated the itinerary - don't overwrite it!
+      const actionWasApplied = data?.applied === true;
+
+      // Only enter edit mode and reset itinerary for non-applied actions
+      if (!actionWasApplied && !isEditMode) {
         setEditedItinerary(ensureActivityIds(trip.itinerary));
         setIsEditMode(true);
       }
 
       // Handle different action types
       switch (action) {
+        case "replace_activity":
         case "add_activity":
-          // The AI suggested adding an activity - this would typically open a modal
-          // For now, we'll just enter edit mode and show a message
-          console.log("AI suggested adding activity:", data);
+          // These are already handled by onRefetchTrip - just log for debugging
+          console.log("AI action (already applied via refetch):", action, data);
           break;
         case "remove_activity":
           if (data?.activityId) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -8,6 +8,9 @@ import {
   InfoWindow,
 } from "@react-google-maps/api";
 import type { Activity, ItineraryDay } from "@/types";
+
+// IMPORTANT: Define libraries outside component to prevent infinite re-renders
+const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
 
 interface MapActivity extends Activity {
   dayNumber: number;
@@ -84,7 +87,7 @@ export default function TripMap({
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places"],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   // Geocode activities to get their coordinates
