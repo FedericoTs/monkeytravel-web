@@ -127,9 +127,9 @@ function TravelingPlane({ progress }: { progress: number }) {
       <div className="relative">
         {/* Trail effect - behind the plane (to the left), fading away from plane */}
         <div className="absolute right-full top-1/2 -translate-y-1/2 w-20 h-0.5 bg-gradient-to-l from-[var(--primary)]/60 to-transparent" />
-        {/* Plane - rotated 90deg to point right (direction of travel) */}
+        {/* Plane - rotated 135deg (90 + 45) to point right with slight downward tilt */}
         <svg
-          className="w-7 h-7 text-[var(--primary)] rotate-90 drop-shadow-lg animate-plane-bob"
+          className="w-7 h-7 text-[var(--primary)] rotate-[135deg] drop-shadow-lg animate-plane-bob"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
