@@ -30,27 +30,67 @@ interface DestinationHeroProps {
   children?: React.ReactNode;
 }
 
-// Weather icon helper based on weather description
-function getWeatherIcon(weather: string) {
+// Weather parsing - extracts condition and optional temperature
+function parseWeatherNote(weather: string): { condition: string; temp?: string; icon: string; gradient: string } {
   const lowerWeather = weather.toLowerCase();
 
+  // Try to extract temperature (e.g., "20-25°C" or "68°F")
+  const tempMatch = weather.match(/(\d+[-–]\d+°[CF]|\d+°[CF])/);
+  const temp = tempMatch ? tempMatch[1] : undefined;
+
+  // Determine condition and styling
   if (lowerWeather.includes("sun") || lowerWeather.includes("clear") || lowerWeather.includes("warm") || lowerWeather.includes("hot")) {
-    return { icon: "☀️", color: "text-amber-300" };
+    return { condition: "Sunny", temp, icon: "☀️", gradient: "from-amber-400 to-orange-500" };
   }
   if (lowerWeather.includes("cloud") || lowerWeather.includes("overcast")) {
-    return { icon: "☁️", color: "text-slate-300" };
+    return { condition: "Cloudy", temp, icon: "☁️", gradient: "from-slate-400 to-slate-500" };
   }
   if (lowerWeather.includes("rain") || lowerWeather.includes("shower")) {
-    return { icon: "🌧️", color: "text-blue-300" };
+    return { condition: "Rainy", temp, icon: "🌧️", gradient: "from-blue-400 to-blue-600" };
   }
   if (lowerWeather.includes("snow") || lowerWeather.includes("cold") || lowerWeather.includes("winter")) {
-    return { icon: "❄️", color: "text-cyan-300" };
+    return { condition: "Cold", temp, icon: "❄️", gradient: "from-cyan-300 to-blue-400" };
   }
   if (lowerWeather.includes("wind")) {
-    return { icon: "💨", color: "text-slate-300" };
+    return { condition: "Windy", temp, icon: "💨", gradient: "from-slate-300 to-slate-500" };
   }
-  // Default - mild weather
-  return { icon: "🌤️", color: "text-amber-200" };
+  if (lowerWeather.includes("mild") || lowerWeather.includes("pleasant")) {
+    return { condition: "Pleasant", temp, icon: "🌤️", gradient: "from-sky-400 to-blue-500" };
+  }
+  // Default
+  return { condition: "Mild", temp, icon: "🌤️", gradient: "from-sky-300 to-blue-400" };
+}
+
+// Floating Weather Badge Component - Weather app inspired
+function WeatherBadge({ weatherNote }: { weatherNote: string }) {
+  const weather = parseWeatherNote(weatherNote);
+
+  return (
+    <div className="absolute top-4 right-20 sm:right-24 z-20">
+      <div className={`
+        flex items-center gap-2 px-3 py-2 rounded-2xl
+        bg-gradient-to-br ${weather.gradient}
+        shadow-lg shadow-black/20
+        border border-white/30
+        backdrop-blur-sm
+      `}>
+        {/* Large weather icon */}
+        <span className="text-2xl sm:text-3xl drop-shadow-md filter">{weather.icon}</span>
+
+        {/* Condition and temp */}
+        <div className="flex flex-col leading-none">
+          <span className="text-white font-semibold text-sm sm:text-base drop-shadow-sm">
+            {weather.condition}
+          </span>
+          {weather.temp && (
+            <span className="text-white/90 text-xs font-medium">
+              {weather.temp}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function DestinationHero({
@@ -124,6 +164,9 @@ export default function DestinationHero({
           <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse" />
         )}
 
+        {/* Weather Badge - Floating top right (before status badge) */}
+        {weatherNote && <WeatherBadge weatherNote={weatherNote} />}
+
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end">
           <div className="max-w-4xl mx-auto w-full px-4 pb-6">
@@ -151,16 +194,8 @@ export default function DestinationHero({
                 </p>
               )}
 
-              {/* Meta info chips - Enhanced with weather and stats */}
+              {/* Meta info chips - Trip stats */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                {/* Weather chip - prominent with icon */}
-                {weatherNote && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-white/20 shadow-lg">
-                    <span className="text-base sm:text-lg">{getWeatherIcon(weatherNote).icon}</span>
-                    <span className="font-medium truncate max-w-[100px] sm:max-w-[180px]">{weatherNote.split('.')[0]}</span>
-                  </div>
-                )}
-
                 {/* Date Range */}
                 {dateRange && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
