@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Activity } from "@/types";
 import PlaceGallery from "./PlaceGallery";
+import ActivityDetailSheet from "./ui/ActivityDetailSheet";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -18,6 +19,27 @@ export default function ActivityCard({
   showGallery = true,
 }: ActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showMobileSheet, setShowMobileSheet] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Handle More button click - different behavior for mobile vs desktop
+  const handleMoreClick = () => {
+    if (isMobile) {
+      setShowMobileSheet(true);
+    } else {
+      setExpanded(!expanded);
+    }
+  };
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -194,10 +216,10 @@ export default function ActivityCard({
                 </a>
               )}
               <button
-                onClick={() => setExpanded(!expanded)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors ml-auto"
+                onClick={handleMoreClick}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors ml-auto min-h-[36px]"
               >
-                {expanded ? (
+                {expanded && !isMobile ? (
                   <>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -218,8 +240,8 @@ export default function ActivityCard({
         </div>
       </div>
 
-      {/* Expanded Content */}
-      {expanded && (
+      {/* Expanded Content - Desktop only */}
+      {expanded && !isMobile && (
         <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
           {/* Photo Gallery */}
           {showGallery && (
@@ -254,6 +276,14 @@ export default function ActivityCard({
           )}
         </div>
       )}
+
+      {/* Mobile Activity Detail Sheet */}
+      <ActivityDetailSheet
+        activity={activity}
+        currency={currency}
+        isOpen={showMobileSheet}
+        onClose={() => setShowMobileSheet(false)}
+      />
     </div>
   );
 }

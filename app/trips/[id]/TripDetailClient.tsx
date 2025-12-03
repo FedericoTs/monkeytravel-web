@@ -13,6 +13,7 @@ import AIAssistant from "@/components/ai/AIAssistant";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import DaySlider from "@/components/ui/DaySlider";
 import {
   ensureActivityIds,
   moveActivityInDay,
@@ -549,33 +550,13 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           endDate={trip.endDate}
         />
 
-        {/* Day Filter Pills */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-          <button
-            onClick={() => setSelectedDay(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedDay === null
-                ? "bg-[var(--primary)] text-white"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-            }`}
-          >
-            All Days
-          </button>
-          {displayItinerary.map((day) => (
-            <button
-              key={day.day_number}
-              onClick={() => setSelectedDay(day.day_number)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedDay === day.day_number
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              Day {day.day_number}
-              {day.theme && <span className="ml-1 opacity-70">· {day.theme}</span>}
-            </button>
-          ))}
-        </div>
+        {/* Day Filter Slider - Mobile optimized */}
+        <DaySlider
+          days={displayItinerary}
+          selectedDay={selectedDay}
+          onSelectDay={setSelectedDay}
+          className="mb-6"
+        />
 
         {/* Itinerary */}
         {displayItinerary.length > 0 ? (
