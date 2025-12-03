@@ -104,8 +104,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right - Phone Mockup */}
-              <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+              {/* Right - Phone Mockup (hidden on mobile) */}
+              <div className="relative hidden lg:flex lg:order-2 justify-center lg:justify-end">
                 <div className="relative">
                   {/* Glow behind phone */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-[var(--accent)]/20 to-[var(--primary)]/15 rounded-full blur-[80px]" />

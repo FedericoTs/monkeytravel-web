@@ -11,6 +11,7 @@ import ActivityCard from "@/components/ActivityCard";
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import GenerationProgress from "@/components/trip/GenerationProgress";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -497,8 +498,14 @@ export default function NewTripPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/trips" className="text-slate-600 hover:text-slate-900">
-            ← Back
+          <Link
+            href="/trips"
+            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 px-2 py-1.5 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="hidden sm:inline">Back</span>
           </Link>
           <div className="flex items-center gap-2">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -756,9 +763,12 @@ export default function NewTripPage() {
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
-              className="px-6 py-3 text-slate-600 hover:text-slate-900 font-medium"
+              className="flex items-center gap-2 px-4 py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-lg hover:bg-slate-100 transition-colors"
             >
-              ← Back
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="hidden sm:inline">Back</span>
             </button>
           ) : (
             <div />
@@ -786,6 +796,9 @@ export default function NewTripPage() {
           )}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activePage="new" />
     </div>
   );
 }

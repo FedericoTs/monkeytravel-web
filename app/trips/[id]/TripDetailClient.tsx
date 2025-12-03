@@ -12,6 +12,7 @@ import ExportMenu from "@/components/trip/ExportMenu";
 import AIAssistant from "@/components/ai/AIAssistant";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import {
   ensureActivityIds,
   moveActivityInDay,
@@ -827,7 +828,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
       {!isEditMode && (
         <button
           onClick={() => setIsAIAssistantOpen(true)}
-          className="fixed bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group"
+          className="fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group"
           title="AI Trip Assistant"
         >
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300 hover:scale-[1.02]">
@@ -924,6 +925,9 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation - hidden during edit mode */}
+      {!isEditMode && <MobileBottomNav activePage="trip-detail" tripId={trip.id} />}
     </div>
   );
 }
