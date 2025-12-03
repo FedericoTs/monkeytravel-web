@@ -261,6 +261,65 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     }, 2000);
   }, [editedItinerary]);
 
+  // Refetch trip data from the database (called after AI modifications)
+  const handleRefetchTrip = useCallback(async () => {
+    console.log("[TripDetailClient] Refetching trip data...");
+    try {
+      const response = await fetch(`/api/trips/${trip.id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch trip");
+      }
+      const data = await response.json();
+      console.log("[TripDetailClient] Trip data fetched, itinerary has", data.trip?.itinerary?.length, "days");
+
+      if (data.trip?.itinerary) {
+        const processedItinerary = ensureActivityIds(data.trip.itinerary);
+
+        // Find changed activities for animation
+        for (let dayIdx = 0; dayIdx < processedItinerary.length; dayIdx++) {
+          const newDay = processedItinerary[dayIdx];
+          const oldDay = editedItinerary[dayIdx];
+          if (newDay && oldDay) {
+            // Check if activity count changed (added activity)
+            if (newDay.activities.length !== oldDay.activities.length) {
+              // Find the new activity
+              for (const act of newDay.activities) {
+                const exists = oldDay.activities.some(a => a.id === act.id || a.name === act.name);
+                if (!exists) {
+                  aiUpdateRef.current = { dayIndex: dayIdx, activityId: act.id || "" };
+                  break;
+                }
+              }
+            } else {
+              // Check for replaced activity
+              for (let actIdx = 0; actIdx < newDay.activities.length; actIdx++) {
+                const newAct = newDay.activities[actIdx];
+                const oldAct = oldDay.activities[actIdx];
+                if (oldAct && newAct.name !== oldAct.name) {
+                  aiUpdateRef.current = { dayIndex: dayIdx, activityId: newAct.id || "" };
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        setEditedItinerary(processedItinerary);
+        setIsEditMode(true);
+        setItineraryVersion((v) => v + 1);
+        console.log("[TripDetailClient] State updated with new itinerary");
+
+        // Clear the AI update ref after animation time
+        setTimeout(() => {
+          aiUpdateRef.current = null;
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("[TripDetailClient] Failed to refetch trip:", error);
+      throw error;
+    }
+  }, [trip.id, editedItinerary]);
+
   // Use edited itinerary in edit mode, original otherwise
   const displayItinerary = isEditMode ? editedItinerary : ensureActivityIds(trip.itinerary);
 
@@ -738,6 +797,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         onClose={() => setIsAIAssistantOpen(false)}
         onAction={handleAIAction}
         onItineraryUpdate={handleItineraryUpdate}
+        onRefetchTrip={handleRefetchTrip}
       />
     </div>
   );

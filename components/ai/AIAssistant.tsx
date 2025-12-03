@@ -25,6 +25,7 @@ interface AIAssistantProps {
   onClose: () => void;
   onAction?: (action: string, data?: Record<string, unknown>) => void;
   onItineraryUpdate?: (newItinerary: ItineraryDay[]) => void;
+  onRefetchTrip?: () => Promise<void>; // Refetch trip data after AI modifications
 }
 
 // Quick action suggestions - more concise
@@ -43,6 +44,7 @@ export default function AIAssistant({
   onClose,
   onAction,
   onItineraryUpdate,
+  onRefetchTrip,
 }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -139,18 +141,30 @@ export default function AIAssistant({
         console.log("[AIAssistant] Response received:", {
           hasModifiedItinerary: !!data.modifiedItinerary,
           hasOnItineraryUpdate: !!onItineraryUpdate,
+          hasOnRefetchTrip: !!onRefetchTrip,
+          actionApplied: data.message?.action?.applied,
           debug: data.debug,
         });
 
         // Handle itinerary updates from autonomous actions
+        // Method 1: Use modifiedItinerary if returned
         if (data.modifiedItinerary) {
           console.log("[AIAssistant] Modified itinerary received with", data.modifiedItinerary.length, "days");
           if (onItineraryUpdate) {
             console.log("[AIAssistant] Calling onItineraryUpdate callback...");
             onItineraryUpdate(data.modifiedItinerary);
             console.log("[AIAssistant] Callback executed successfully");
-          } else {
-            console.warn("[AIAssistant] onItineraryUpdate callback is not defined!");
+          }
+        }
+        // Method 2: Refetch trip if action was applied but no modifiedItinerary returned
+        // This is more reliable since the database IS updated
+        else if (data.message?.action?.applied && onRefetchTrip) {
+          console.log("[AIAssistant] Action was applied, refetching trip data...");
+          try {
+            await onRefetchTrip();
+            console.log("[AIAssistant] Trip data refetched successfully");
+          } catch (err) {
+            console.error("[AIAssistant] Failed to refetch trip:", err);
           }
         }
 
@@ -168,7 +182,7 @@ export default function AIAssistant({
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onItineraryUpdate, itinerary]
+    [tripId, conversationId, isLoading, onAction, onItineraryUpdate, onRefetchTrip, itinerary]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
