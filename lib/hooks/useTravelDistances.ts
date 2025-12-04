@@ -69,7 +69,9 @@ export function useTravelDistances(
   const [travelData, setTravelData] = useState<Map<number, DayTravelData>>(
     new Map()
   );
-  const [isLoading, setIsLoading] = useState(false);
+  // Start as true to prevent hydration mismatch - server and client both show loading
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
   const [error, setError] = useState<string>();
 
   // Extract all unique addresses that need geocoding
@@ -258,12 +260,22 @@ export function useTravelDistances(
     }
   }, [itinerary, addressesNeedingGeocode]);
 
+  // Track mount state to prevent hydration mismatch
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // Fetch on mount and when itinerary changes
   useEffect(() => {
+    if (!hasMounted) return;
+
     if (itinerary && itinerary.length > 0) {
       fetchTravelData();
+    } else {
+      // No itinerary, stop loading
+      setIsLoading(false);
     }
-  }, [fetchTravelData]);
+  }, [fetchTravelData, hasMounted, itinerary]);
 
   // Helper to get segment between two activities
   const getSegmentBetween = useCallback(
