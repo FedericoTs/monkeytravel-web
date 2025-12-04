@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateItinerary, validateTripParams } from "@/lib/gemini";
+import { isAdmin } from "@/lib/admin";
 import type { TripCreationParams } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -37,20 +38,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Check rate limits (simple version - 10 generations per day per user)
-    const today = new Date().toISOString().split("T")[0];
-    const { count } = await supabase
-      .from("api_request_logs")
-      .select("*", { count: "exact", head: true })
-      .eq("api_name", "gemini")
-      .gte("timestamp", `${today}T00:00:00Z`)
-      .eq("request_params->>user_id", user.id);
+    // Check rate limits (10 generations per day for regular users, unlimited for admins)
+    const userIsAdmin = isAdmin(user.email);
 
-    if ((count || 0) >= 10) {
-      return NextResponse.json(
-        { error: "Daily generation limit reached. Try again tomorrow." },
-        { status: 429 }
-      );
+    if (!userIsAdmin) {
+      const today = new Date().toISOString().split("T")[0];
+      const { count } = await supabase
+        .from("api_request_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("api_name", "gemini")
+        .gte("timestamp", `${today}T00:00:00Z`)
+        .eq("request_params->>user_id", user.id);
+
+      if ((count || 0) >= 10) {
+        return NextResponse.json(
+          { error: "Daily generation limit reached. Try again tomorrow." },
+          { status: 429 }
+        );
+      }
     }
 
     // Generate itinerary
@@ -71,6 +76,7 @@ export async function POST(request: NextRequest) {
               new Date(params.startDate).getTime()) /
               (1000 * 60 * 60 * 24)
           ) + 1,
+        is_admin: userIsAdmin,
       },
       response_status: 200,
       response_time_ms: generationTime,
