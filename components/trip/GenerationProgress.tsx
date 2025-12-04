@@ -118,35 +118,31 @@ function FloatingOrbs() {
 }
 
 // Animated plane that travels across (left to right) with jet trail
-// Using transform-based animation for GPU acceleration and reliability
+// BULLETPROOF PATTERN: Single width-expanding container with fill and marker as children
+// This eliminates Fragment reconciliation issues and ensures both elements move together
 function TravelingPlane({ progress }: { progress: number }) {
   const clampedProgress = Math.min(Math.max(progress, 0), 95);
 
   return (
-    <>
-      {/* Jet Trail - filled progress bar with gradient */}
+    // Single container that expands with progress - both fill and marker are children
+    <div
+      className="absolute inset-y-0 left-0"
+      style={{ width: `${clampedProgress}%` }}
+    >
+      {/* Jet Trail Fill - covers entire container */}
       <div
-        className="absolute top-0 left-0 h-full rounded-full"
+        className="absolute inset-0 rounded-full"
         style={{
-          width: `${clampedProgress}%`,
           background: 'linear-gradient(90deg, #FFD93D 0%, #FF6B6B 100%)',
           boxShadow: '0 0 12px rgba(255, 107, 107, 0.5)',
-          transition: 'width 0.15s linear',
         }}
       />
 
-      {/* Airplane - absolutely positioned using left percentage */}
-      <div
-        className="absolute top-1/2"
-        style={{
-          left: `${clampedProgress}%`,
-          transform: 'translate(-50%, -50%)',
-          transition: 'left 0.15s linear',
-        }}
-      >
+      {/* Airplane - positioned at right edge of container, translated to center over the edge */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10">
         {/* Glow behind airplane */}
         <div
-          className="absolute rounded-full"
+          className="absolute rounded-full -z-10"
           style={{
             width: '32px',
             height: '32px',
@@ -170,7 +166,7 @@ function TravelingPlane({ progress }: { progress: number }) {
           <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
         </svg>
       </div>
-    </>
+    </div>
   );
 }
 
