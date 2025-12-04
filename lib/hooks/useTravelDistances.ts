@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { ItineraryDay } from "@/types";
 
 interface Coordinates {
@@ -60,6 +60,20 @@ interface DistanceResult {
 }
 
 /**
+ * Generate a stable hash for the itinerary to detect real changes
+ */
+function getItineraryHash(itinerary: ItineraryDay[] | undefined): string {
+  if (!itinerary) return "";
+  return itinerary
+    .map((day) =>
+      day.activities
+        .map((a) => `${a.id || a.name}:${a.address || a.location}`)
+        .join("|")
+    )
+    .join("||");
+}
+
+/**
  * Hook to fetch travel distances between consecutive activities in an itinerary
  * Uses geocoding for addresses without coordinates and caches results
  */
@@ -73,6 +87,13 @@ export function useTravelDistances(
   const [isLoading, setIsLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   const [error, setError] = useState<string>();
+
+  // Track what we've fetched to prevent re-fetching
+  const fetchedHashRef = useRef<string>("");
+  const isFetchingRef = useRef(false);
+
+  // Stable hash of itinerary to detect real changes
+  const itineraryHash = useMemo(() => getItineraryHash(itinerary), [itinerary]);
 
   // Extract all unique addresses that need geocoding
   const addressesNeedingGeocode = useMemo(() => {
@@ -101,9 +122,19 @@ export function useTravelDistances(
     return addresses;
   }, [itinerary]);
 
-  const fetchTravelData = useCallback(async () => {
+  const fetchTravelData = useCallback(async (forceRefresh = false) => {
     if (!itinerary || itinerary.length === 0) return;
 
+    // Prevent duplicate fetches
+    if (isFetchingRef.current) return;
+
+    // Skip if we've already fetched this exact itinerary (unless forced)
+    if (!forceRefresh && fetchedHashRef.current === itineraryHash) {
+      setIsLoading(false);
+      return;
+    }
+
+    isFetchingRef.current = true;
     setIsLoading(true);
     setError(undefined);
 
@@ -252,30 +283,34 @@ export function useTravelDistances(
       }
 
       setTravelData(newTravelData);
+      fetchedHashRef.current = itineraryHash;
     } catch (err) {
       console.error("Failed to fetch travel distances:", err);
       setError("Failed to calculate travel distances");
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [itinerary, addressesNeedingGeocode]);
+  }, [itinerary, addressesNeedingGeocode, itineraryHash]);
 
   // Track mount state to prevent hydration mismatch
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Fetch on mount and when itinerary changes
+  // Fetch on mount and when itinerary hash changes
   useEffect(() => {
     if (!hasMounted) return;
 
-    if (itinerary && itinerary.length > 0) {
+    if (itineraryHash) {
       fetchTravelData();
     } else {
       // No itinerary, stop loading
       setIsLoading(false);
     }
-  }, [fetchTravelData, hasMounted, itinerary]);
+    // Only depend on hasMounted and itineraryHash to prevent re-fetching loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMounted, itineraryHash]);
 
   // Helper to get segment between two activities
   const getSegmentBetween = useCallback(
@@ -291,11 +326,16 @@ export function useTravelDistances(
     [travelData]
   );
 
+  // Force refresh function
+  const refetch = useCallback(() => {
+    fetchTravelData(true);
+  }, [fetchTravelData]);
+
   return {
     travelData,
     isLoading,
     error,
-    refetch: fetchTravelData,
+    refetch,
     getSegmentBetween,
   };
 }

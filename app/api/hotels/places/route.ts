@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
     // Transform and enrich results
     const hotels: HotelPlaceResult[] = (data.results || [])
       .filter((place) => place.business_status !== 'CLOSED_PERMANENTLY')
-      .slice(0, 12) // Limit to 12 hotels for performance
+      .slice(0, 5) // Limit to 5 hotels for cleaner display
       .map((place) => {
         const distance = calculateDistance(
           latitude,

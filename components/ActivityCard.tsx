@@ -170,11 +170,12 @@ export default function ActivityCard({
               {/* Price - shown inline on mobile */}
               <div className="sm:text-right flex-shrink-0 mt-1 sm:mt-0">
                 <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                  <span className="sm:hidden text-slate-400 font-normal text-sm">Est.</span>
+                  <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
                   {activity.estimated_cost.amount === 0
                     ? "Free"
                     : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
                 </div>
+                <div className="text-[10px] text-slate-400 hidden sm:block">AI estimate</div>
               </div>
             </div>
 
