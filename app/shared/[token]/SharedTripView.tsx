@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
@@ -440,10 +441,16 @@ export default function SharedTripView({ trip, dateRange }: SharedTripViewProps)
       <footer className="bg-slate-50 border-t border-slate-200 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🐒</span>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/images/logo.png"
+                alt="MonkeyTravel Logo"
+                width={28}
+                height={28}
+                className="w-7 h-7 object-contain"
+              />
               <span className="font-semibold text-slate-900">MonkeyTravel</span>
-            </div>
+            </Link>
             <p className="text-sm text-slate-500">
               AI-powered travel planning made simple
             </p>
