@@ -123,49 +123,63 @@ function TravelingPlane({ progress }: { progress: number }) {
   const clampedProgress = Math.min(Math.max(progress, 0), 95);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-visible">
+    <>
       {/* Jet Trail - THE progress indicator (vapor/contrail effect) */}
       {/* Extends from left edge to airplane position */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full transition-all duration-300 ease-out"
+        className="absolute top-0 bottom-0 left-0 rounded-full"
         style={{
-          width: `calc(${clampedProgress}% + 4px)`,
+          width: `${clampedProgress}%`,
           background: `linear-gradient(90deg,
-            rgba(255, 217, 61, 0.1) 0%,
-            rgba(255, 217, 61, 0.4) 20%,
-            rgba(255, 217, 61, 0.7) 60%,
-            var(--accent) 85%,
+            rgba(255, 217, 61, 0.2) 0%,
+            rgba(255, 217, 61, 0.5) 30%,
+            rgba(255, 217, 61, 0.8) 70%,
+            var(--accent) 90%,
             var(--primary) 100%
           )`,
           boxShadow: '0 0 8px rgba(255, 217, 61, 0.4), 0 0 16px rgba(255, 217, 61, 0.2)',
+          transition: 'width 0.3s ease-out',
         }}
       >
         {/* Shimmer effect on trail */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer rounded-full" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer rounded-full" />
       </div>
 
-      {/* Airplane - centered perfectly on track, positioned at progress point */}
+      {/* Airplane - positioned at the end of the trail */}
       <div
-        className="absolute top-1/2 transition-all duration-300 ease-out"
+        className="absolute top-1/2 pointer-events-none"
         style={{
           left: `${clampedProgress}%`,
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%) translateY(-50%)',
+          transition: 'left 0.3s ease-out',
         }}
       >
         {/* Glow effect behind plane */}
         <div
-          className="absolute inset-0 bg-[var(--primary)] blur-xl rounded-full scale-[2] opacity-30"
-          style={{ width: '32px', height: '32px', left: '-8px', top: '-8px' }}
+          className="absolute bg-[var(--primary)] blur-lg rounded-full opacity-40"
+          style={{
+            width: '28px',
+            height: '28px',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
         />
         {/* Small vapor puffs behind plane */}
         <div
-          className="absolute right-full top-1/2 -translate-y-1/2 flex items-center gap-0.5 mr-1 opacity-60"
+          className="absolute flex items-center gap-0.5 opacity-70"
+          style={{
+            right: '100%',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            marginRight: '2px',
+          }}
         >
-          <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-          <div className="w-1 h-1 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
-          <div className="w-0.5 h-0.5 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+          <div className="w-1 h-1 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+          <div className="w-0.5 h-0.5 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
         </div>
-        {/* The airplane icon */}
+        {/* The airplane icon - pointing right */}
         <svg
           className="w-7 h-7 text-[var(--primary)] drop-shadow-lg relative z-10"
           fill="currentColor"
@@ -175,7 +189,7 @@ function TravelingPlane({ progress }: { progress: number }) {
           <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
         </svg>
       </div>
-    </div>
+    </>
   );
 }
 
