@@ -61,34 +61,16 @@ function parseWeatherNote(weather: string): { condition: string; temp?: string; 
   return { condition: "Mild", temp, icon: "🌤️", gradient: "from-[#00B4A6] to-[#55EFC4]" };
 }
 
-// Floating Weather Badge Component - Weather app inspired
-function WeatherBadge({ weatherNote }: { weatherNote: string }) {
+// Minimal Weather Chip - integrates with meta info chips
+function WeatherChip({ weatherNote }: { weatherNote: string }) {
   const weather = parseWeatherNote(weatherNote);
 
   return (
-    <div className="absolute top-4 right-20 sm:right-24 z-20">
-      <div className={`
-        flex items-center gap-2 px-3 py-2 rounded-2xl
-        bg-gradient-to-br ${weather.gradient}
-        shadow-lg shadow-black/20
-        border border-white/30
-        backdrop-blur-sm
-      `}>
-        {/* Large weather icon */}
-        <span className="text-2xl sm:text-3xl drop-shadow-md filter">{weather.icon}</span>
-
-        {/* Condition and temp */}
-        <div className="flex flex-col leading-none">
-          <span className="text-white font-semibold text-sm sm:text-base drop-shadow-sm">
-            {weather.condition}
-          </span>
-          {weather.temp && (
-            <span className="text-white/90 text-xs font-medium">
-              {weather.temp}
-            </span>
-          )}
-        </div>
-      </div>
+    <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+      <span className="text-sm sm:text-base">{weather.icon}</span>
+      <span className="text-white/90">
+        {weather.temp || weather.condition}
+      </span>
     </div>
   );
 }
@@ -164,8 +146,6 @@ export default function DestinationHero({
           <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse" />
         )}
 
-        {/* Weather Badge - Floating top right (before status badge) */}
-        {weatherNote && <WeatherBadge weatherNote={weatherNote} />}
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end">
@@ -239,6 +219,9 @@ export default function DestinationHero({
                     {budget.currency} {budget.total.toLocaleString()}
                   </div>
                 )}
+
+                {/* Weather - minimal inline chip */}
+                {weatherNote && <WeatherChip weatherNote={weatherNote} />}
               </div>
 
               {/* Highlights - shown as inline badges on larger screens */}

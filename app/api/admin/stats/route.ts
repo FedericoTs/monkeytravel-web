@@ -518,102 +518,92 @@ function getCountryName(code: string): string {
   return COUNTRY_NAMES[code] || code;
 }
 
-// Fetch geo metrics from page_views table
+// Fetch geo metrics from page_views table using proper SQL COUNT queries
+// This avoids the Supabase 1000 row default limit
 async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["geo"]> {
   const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Fetch all page views
-  const { data: pageViews } = await supabase
-    .from("page_views")
-    .select("id, path, country, country_code, city, user_id, session_id, created_at");
+  // Use parallel queries with proper COUNT to avoid 1000 row limit
+  const [
+    totalCountResult,
+    last7DaysResult,
+    last30DaysResult,
+    uniqueVisitorsResult,
+    byCountryResult,
+    byCityResult,
+    topPagesResult,
+  ] = await Promise.all([
+    // Total page views count
+    supabase.from("page_views").select("id", { count: "exact", head: true }),
 
-  if (!pageViews || pageViews.length === 0) {
-    return {
-      totalPageViews: 0,
-      last7Days: 0,
-      last30Days: 0,
-      byCountry: [],
-      byCity: [],
-      topPages: [],
-      uniqueVisitors: 0,
-    };
+    // Last 7 days count
+    supabase
+      .from("page_views")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", day7Ago),
+
+    // Last 30 days count
+    supabase
+      .from("page_views")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", day30Ago),
+
+    // Unique visitors (count distinct session_id)
+    supabase.rpc("count_unique_visitors"),
+
+    // By country - use RPC function for aggregation
+    supabase.rpc("get_page_views_by_country"),
+
+    // By city - use RPC function for aggregation
+    supabase.rpc("get_page_views_by_city"),
+
+    // Top pages - use RPC function for aggregation
+    supabase.rpc("get_top_pages"),
+  ]);
+
+  const totalPageViews = totalCountResult.count || 0;
+  const last7Days = last7DaysResult.count || 0;
+  const last30Days = last30DaysResult.count || 0;
+
+  // Extract unique visitors from RPC result (returns array with {count: number})
+  let uniqueVisitors = 0;
+  if (uniqueVisitorsResult.data && Array.isArray(uniqueVisitorsResult.data) && uniqueVisitorsResult.data.length > 0) {
+    uniqueVisitors = Number(uniqueVisitorsResult.data[0].count) || 0;
   }
 
-  // Calculate time-based metrics
-  const last7DaysViews = pageViews.filter((pv) => new Date(pv.created_at) > day7Ago).length;
-  const last30DaysViews = pageViews.filter((pv) => new Date(pv.created_at) > day30Ago).length;
+  // Process country data from RPC (no fallback - real data only)
+  const byCountry: AdminStats["geo"]["byCountry"] = (byCountryResult.data || [])
+    .slice(0, 10)
+    .map((c: { country_code: string; count: number }) => ({
+      country: getCountryName(c.country_code),
+      countryCode: c.country_code,
+      count: Number(c.count),
+      percentage: totalPageViews > 0 ? Math.round((Number(c.count) / totalPageViews) * 1000) / 10 : 0,
+    }));
 
-  // Count unique visitors (by session_id or user_id)
-  const uniqueVisitors = new Set(
-    pageViews.map((pv) => pv.session_id || pv.user_id || pv.id)
-  ).size;
+  // Process city data from RPC (no fallback - real data only)
+  const byCity: AdminStats["geo"]["byCity"] = (byCityResult.data || [])
+    .slice(0, 10)
+    .map((c: { city: string; country_code: string; count: number }) => ({
+      city: c.city,
+      country: getCountryName(c.country_code),
+      count: Number(c.count),
+    }));
 
-  // Group by country (using ISO code as key, display full name)
-  const countryMap = new Map<string, { country: string; countryCode: string; count: number }>();
-  pageViews.forEach((pv) => {
-    if (pv.country) {
-      const code = pv.country_code || pv.country;
-      const existing = countryMap.get(code);
-      if (existing) {
-        existing.count++;
-      } else {
-        countryMap.set(code, {
-          country: getCountryName(code),  // Convert ISO code to full name
-          countryCode: code,
-          count: 1,
-        });
-      }
-    }
-  });
-
-  const byCountry = Array.from(countryMap.values())
-    .map((c) => ({
-      ...c,
-      percentage: Math.round((c.count / pageViews.length) * 1000) / 10,
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  // Group by city
-  const cityMap = new Map<string, { city: string; country: string; count: number }>();
-  pageViews.forEach((pv) => {
-    if (pv.city) {
-      const countryCode = pv.country_code || pv.country || "";
-      const key = `${pv.city}-${countryCode}`;
-      const existing = cityMap.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        cityMap.set(key, {
-          city: pv.city,
-          country: getCountryName(countryCode),  // Convert to full name
-          count: 1,
-        });
-      }
-    }
-  });
-
-  const byCity = Array.from(cityMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  // Group by path (top pages)
-  const pathMap = new Map<string, number>();
-  pageViews.forEach((pv) => {
-    pathMap.set(pv.path, (pathMap.get(pv.path) || 0) + 1);
-  });
-
-  const topPages = Array.from(pathMap.entries())
-    .map(([path, count]) => ({ path, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  // Process top pages data from RPC (no fallback - real data only)
+  const topPages: AdminStats["geo"]["topPages"] = (topPagesResult.data || [])
+    .slice(0, 10)
+    .map((p: { path: string; count: number }) => ({
+      path: p.path,
+      count: Number(p.count),
+    }));
 
   return {
-    totalPageViews: pageViews.length,
-    last7Days: last7DaysViews,
-    last30Days: last30DaysViews,
+    totalPageViews,
+    last7Days,
+    last30Days,
     byCountry,
     byCity,
     topPages,
