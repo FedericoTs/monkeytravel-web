@@ -356,9 +356,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Token Usage */}
+          {/* Token Usage & Costs */}
           <div>
-            <h3 className="text-sm font-medium text-slate-500 mb-3">Token Usage</h3>
+            <h3 className="text-sm font-medium text-slate-500 mb-3">Usage & Costs</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">Input Tokens</span>
@@ -368,15 +368,27 @@ export default function AdminDashboard() {
                 <span className="text-slate-600">Output Tokens</span>
                 <span className="font-medium">{stats.ai.totalTokens.output.toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-100">
-                <span className="text-slate-600">Est. Cost</span>
-                <span className="font-semibold text-[var(--primary)]">
-                  ${(stats.ai.totalCostCents / 100).toFixed(2)}
-                </span>
-              </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">Conversations</span>
                 <span className="font-medium">{stats.ai.conversationCount}</span>
+              </div>
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Assistant Cost</span>
+                  <span className="text-slate-600">${(stats.ai.totalCostCents / 100).toFixed(3)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">
+                    Generation ({stats.ai.generationCosts?.tripGenerations || 0} trips)
+                  </span>
+                  <span className="text-slate-600">${(stats.ai.generationCosts?.totalUsd || 0).toFixed(3)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-100">
+                  <span className="text-slate-700 font-medium">Total AI Cost</span>
+                  <span className="font-bold text-[var(--primary)] text-base">
+                    ${(stats.ai.totalCostUsd || 0).toFixed(2)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

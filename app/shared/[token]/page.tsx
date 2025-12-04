@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { formatDateRange } from "@/lib/utils";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
 import {
@@ -63,6 +63,8 @@ export default async function SharedTripPage({ params }: PageProps) {
 
   const itinerary = (trip.itinerary as ItineraryDay[]) || [];
   const budget = trip.budget as { total: number; currency: string } | null;
+  const meta = trip.meta as TripMeta | undefined;
+  const packingList = trip.packing_list as string[] | undefined;
 
   // Generate structured data for SEO
   const tripUrl = `https://monkeytravel.app/shared/${token}`;
@@ -99,6 +101,8 @@ export default async function SharedTripPage({ params }: PageProps) {
           budget,
           itinerary,
           sharedAt: trip.shared_at,
+          meta,
+          packingList,
         }}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}
       />

@@ -45,6 +45,14 @@ export interface AdminStats {
     totalTokens: { input: number; output: number };
     totalCostCents: number;
     conversationCount: number;
+    // Generation costs (from api_request_logs)
+    generationCosts: {
+      totalUsd: number;
+      tripGenerations: number;
+      activityRegenerations: number;
+    };
+    // Combined total cost in USD (assistant + generation)
+    totalCostUsd: number;
   };
   // Email Subscribers
   subscribers: {
@@ -104,6 +112,7 @@ export async function GET() {
       aiActionResult,
       aiModelResult,
       aiTokensResult,
+      generationCostsResult,
       topDestinationsResult,
       geoMetricsResult,
     ] = await Promise.all([
@@ -155,7 +164,7 @@ export async function GET() {
           });
           return { data: counts };
         }),
-      // AI tokens total
+      // AI tokens total (from ai_usage table)
       supabase
         .from("ai_usage")
         .select("input_tokens, output_tokens, cost_cents")
@@ -169,6 +178,22 @@ export async function GET() {
             costCents += Number(a.cost_cents) || 0;
           });
           return { data: { inputTokens, outputTokens, costCents } };
+        }),
+      // Generation costs from api_request_logs (trip generation + regeneration)
+      supabase
+        .from("api_request_logs")
+        .select("cost_usd, endpoint")
+        .eq("api_name", "gemini")
+        .then((res) => {
+          let totalCostUsd = 0;
+          let generateCount = 0;
+          let regenerateCount = 0;
+          res.data?.forEach((r) => {
+            totalCostUsd += Number(r.cost_usd) || 0;
+            if (r.endpoint === "/api/ai/generate") generateCount++;
+            if (r.endpoint === "/api/ai/regenerate-activity") regenerateCount++;
+          });
+          return { data: { totalCostUsd, generateCount, regenerateCount } };
         }),
       // Top destinations
       supabase
@@ -238,6 +263,15 @@ export async function GET() {
         },
         totalCostCents: aiTokensResult.data?.costCents || 0,
         conversationCount: aiConversationsResult.count || 0,
+        generationCosts: {
+          totalUsd: generationCostsResult.data?.totalCostUsd || 0,
+          tripGenerations: generationCostsResult.data?.generateCount || 0,
+          activityRegenerations: generationCostsResult.data?.regenerateCount || 0,
+        },
+        // Combined: assistant costs (cents→USD) + generation costs (already USD)
+        totalCostUsd:
+          ((aiTokensResult.data?.costCents || 0) / 100) +
+          (generationCostsResult.data?.totalCostUsd || 0),
       },
       subscribers: {
         total: subscriberMetrics.total || 0,
