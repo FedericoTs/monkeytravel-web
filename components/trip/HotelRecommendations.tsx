@@ -385,6 +385,27 @@ export default function HotelRecommendations({
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }, [startDate, endDate]);
 
+  // Extract the best address from itinerary for geocoding
+  // This solves the ambiguity problem (e.g., "Georgetown" could be DC or TX,
+  // but "710 S Main St, Georgetown, TX 78626" is unambiguous)
+  const bestGeocodingAddress = useMemo(() => {
+    // First, try to get an address from the first activity
+    for (const day of itinerary) {
+      for (const activity of day.activities) {
+        // Prefer full addresses with state/country info
+        if (activity.address && activity.address.length > 20) {
+          return activity.address;
+        }
+        // Fall back to location if available
+        if (activity.location && activity.location.length > 10) {
+          return activity.location;
+        }
+      }
+    }
+    // Last resort: use the destination (trip title)
+    return destination;
+  }, [itinerary, destination]);
+
   // Fetch hotels via geocoding (fallback when no activity coordinates)
   const fetchHotelsViaGeocoding = useCallback(async () => {
     setLoading(true);
@@ -392,9 +413,13 @@ export default function HotelRecommendations({
     setSearchMode("destination");
 
     try {
-      // First, geocode the destination to get coordinates
+      // Use the best available address for geocoding (solves ambiguity)
+      // e.g., "Georgetown, TX 78626" instead of just "Georgetown"
+      const geocodeQuery = bestGeocodingAddress;
+      console.log("[HotelRecommendations] Geocoding with:", geocodeQuery);
+
       const geocodeResponse = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(destination)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(geocodeQuery)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
       );
       const geocodeData = await geocodeResponse.json();
 
@@ -403,6 +428,7 @@ export default function HotelRecommendations({
       }
 
       const location = geocodeData.results[0].geometry.location;
+      console.log("[HotelRecommendations] Geocoded to:", location, geocodeData.results[0].formatted_address);
 
       // Now search for hotels near that location
       const params = new URLSearchParams({
@@ -427,7 +453,7 @@ export default function HotelRecommendations({
     } finally {
       setLoading(false);
     }
-  }, [destination]);
+  }, [bestGeocodingAddress, destination]);
 
   // Fetch hotels using activity centroid
   const fetchHotelsViaGeoCenter = useCallback(async () => {
