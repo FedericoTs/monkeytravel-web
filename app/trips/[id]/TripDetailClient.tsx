@@ -14,6 +14,9 @@ import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
+import TravelConnector from "@/components/trip/TravelConnector";
+import DaySummary from "@/components/trip/DaySummary";
+import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import {
   ensureActivityIds,
   moveActivityInDay,
@@ -382,6 +385,9 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   // Use edited itinerary in edit mode, original otherwise
   const displayItinerary = isEditMode ? editedItinerary : ensureActivityIds(trip.itinerary);
 
+  // Fetch travel distances between activities
+  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary);
+
   const statusColors = {
     planning: "bg-amber-100 text-amber-700",
     confirmed: "bg-green-100 text-green-700",
@@ -596,89 +602,149 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
                   {/* Activities */}
                   {viewMode === "cards" ? (
-                    <div className="grid gap-4">
-                      {day.activities.map((activity, idx) => {
-                        const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
-                        return (
-                          <div
-                            key={`${activity.id || idx}-v${itineraryVersion}`}
-                            className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
-                          >
-                            {isEditMode ? (
-                              <EditableActivityCard
-                                activity={activity}
-                                index={idx}
-                                currency={trip.budget?.currency}
-                                showGallery={true}
-                                isEditMode={true}
-                                onMove={(direction) => handleActivityMove(activity.id!, direction)}
-                                onDelete={() => handleActivityDelete(activity.id!)}
-                                onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                                onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
-                                onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                                canMoveUp={idx > 0}
-                                canMoveDown={idx < day.activities.length - 1}
-                                availableDays={availableDays}
-                                currentDayIndex={dayIndex}
-                                isRegenerating={regeneratingActivityId === activity.id}
-                              />
-                            ) : (
-                              <ActivityCard
-                                activity={activity}
-                                index={idx}
-                                currency={trip.budget?.currency}
-                                showGallery={true}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="grid gap-0">
+                        {day.activities.map((activity, idx) => {
+                          const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                          const nextActivity = day.activities[idx + 1];
+                          const dayTravelData = travelData.get(day.day_number);
+                          const segment = nextActivity && dayTravelData?.segments.find(
+                            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
+                          );
+
+                          return (
+                            <div key={`${activity.id || idx}-v${itineraryVersion}`}>
+                              <div
+                                className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
+                              >
+                                {isEditMode ? (
+                                  <EditableActivityCard
+                                    activity={activity}
+                                    index={idx}
+                                    currency={trip.budget?.currency}
+                                    showGallery={true}
+                                    isEditMode={true}
+                                    onMove={(direction) => handleActivityMove(activity.id!, direction)}
+                                    onDelete={() => handleActivityDelete(activity.id!)}
+                                    onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
+                                    onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
+                                    onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
+                                    canMoveUp={idx > 0}
+                                    canMoveDown={idx < day.activities.length - 1}
+                                    availableDays={availableDays}
+                                    currentDayIndex={dayIndex}
+                                    isRegenerating={regeneratingActivityId === activity.id}
+                                  />
+                                ) : (
+                                  <ActivityCard
+                                    activity={activity}
+                                    index={idx}
+                                    currency={trip.budget?.currency}
+                                    showGallery={true}
+                                  />
+                                )}
+                              </div>
+                              {/* Travel connector to next activity */}
+                              {idx < day.activities.length - 1 && (
+                                <TravelConnector
+                                  distanceMeters={segment?.distanceMeters}
+                                  durationSeconds={segment?.durationSeconds}
+                                  distanceText={segment?.distanceText}
+                                  durationText={segment?.durationText}
+                                  mode={segment?.mode}
+                                  isLoading={travelLoading || dayTravelData?.isLoading}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Day travel summary */}
+                      {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
+                        <DaySummary
+                          dayNumber={day.day_number}
+                          segments={travelData.get(day.day_number)!.segments}
+                          className="mt-4"
+                        />
+                      )}
+                    </>
                   ) : (
                     /* Timeline View */
-                    <div className="relative pl-8 border-l-2 border-slate-200 space-y-6">
-                      {day.activities.map((activity, idx) => (
-                        <div key={idx} className="relative">
-                          {/* Timeline dot */}
-                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+                    <>
+                      <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
+                        {day.activities.map((activity, idx) => {
+                          const nextActivity = day.activities[idx + 1];
+                          const dayTravelData = travelData.get(day.day_number);
+                          const segment = nextActivity && dayTravelData?.segments.find(
+                            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
+                          );
 
-                          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                                  <span className="font-medium">{activity.start_time}</span>
-                                  <span>·</span>
-                                  <span>{activity.duration_minutes} min</span>
-                                </div>
-                                <h4 className="font-semibold text-slate-900">
-                                  {activity.name}
-                                </h4>
-                                <p className="text-sm text-slate-600 mt-1">
-                                  {activity.description}
-                                </p>
-                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  {activity.address || activity.location}
+                          return (
+                            <div key={idx}>
+                              <div className="relative">
+                                {/* Timeline dot */}
+                                <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+
+                                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                                        <span className="font-medium">{activity.start_time}</span>
+                                        <span>·</span>
+                                        <span>{activity.duration_minutes} min</span>
+                                      </div>
+                                      <h4 className="font-semibold text-slate-900">
+                                        {activity.name}
+                                      </h4>
+                                      <p className="text-sm text-slate-600 mt-1">
+                                        {activity.description}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        {activity.address || activity.location}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="font-medium text-slate-900">
+                                        {activity.estimated_cost.amount === 0
+                                          ? "Free"
+                                          : `${activity.estimated_cost.currency || trip.budget?.currency || "USD"} ${activity.estimated_cost.amount}`}
+                                      </div>
+                                      <span className="text-xs text-slate-500 capitalize">
+                                        {activity.type}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <div className="font-medium text-slate-900">
-                                  {activity.estimated_cost.amount === 0
-                                    ? "Free"
-                                    : `${activity.estimated_cost.currency || trip.budget?.currency || "USD"} ${activity.estimated_cost.amount}`}
-                                </div>
-                                <span className="text-xs text-slate-500 capitalize">
-                                  {activity.type}
-                                </span>
-                              </div>
+                              {/* Compact travel connector in timeline */}
+                              {idx < day.activities.length - 1 && (
+                                <TravelConnector
+                                  distanceMeters={segment?.distanceMeters}
+                                  durationSeconds={segment?.durationSeconds}
+                                  distanceText={segment?.distanceText}
+                                  durationText={segment?.durationText}
+                                  mode={segment?.mode}
+                                  isLoading={travelLoading || dayTravelData?.isLoading}
+                                  compact={true}
+                                />
+                              )}
                             </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                          );
+                        })}
+                      </div>
+                      {/* Day travel summary for timeline */}
+                      {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
+                        <DaySummary
+                          dayNumber={day.day_number}
+                          segments={travelData.get(day.day_number)!.segments}
+                          className="mt-4"
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               ))}
