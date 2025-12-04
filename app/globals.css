@@ -582,6 +582,15 @@ h1, h2, h3 {
   display: none;
 }
 
+/* Safe area padding for notch devices (iPhone X+) */
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
 /* Touch-friendly tap targets */
 @media (pointer: coarse) {
   button,

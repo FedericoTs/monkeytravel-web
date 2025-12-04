@@ -39,6 +39,7 @@ export default function ImageCarousel({
   const velocityRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
   // Pinch zoom refs
   const initialPinchDistance = useRef(0);
@@ -60,6 +61,28 @@ export default function ImageCarousel({
     setIsZoomed(false);
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
+  }, [currentIndex]);
+
+  // Auto-scroll thumbnail into view when index changes
+  useEffect(() => {
+    if (thumbnailContainerRef.current) {
+      const container = thumbnailContainerRef.current;
+      const thumbnails = container.querySelectorAll('button');
+      const activeThumbnail = thumbnails[currentIndex];
+
+      if (activeThumbnail) {
+        const containerRect = container.getBoundingClientRect();
+        const thumbnailRect = activeThumbnail.getBoundingClientRect();
+
+        // Calculate scroll position to center the thumbnail
+        const scrollLeft = activeThumbnail.offsetLeft - (containerRect.width / 2) + (thumbnailRect.width / 2);
+
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    }
   }, [currentIndex]);
 
   // Entry animation
@@ -388,60 +411,80 @@ export default function ImageCarousel({
         )}
       </div>
 
-      {/* Thumbnail strip */}
-      <div className="relative z-20 py-3 px-4 sm:py-4">
-        <div
-          className="flex gap-2 overflow-x-auto scrollbar-hide justify-start sm:justify-center"
-          style={{
-            scrollSnapType: "x mandatory",
-          }}
-        >
-          {images.map((image, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden transition-all duration-300 ${
-                idx === currentIndex
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-105"
-                  : "opacity-50 hover:opacity-80 active:opacity-100"
-              }`}
-              style={{ scrollSnapAlign: "center" }}
-              aria-label={`View photo ${idx + 1}`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={image.thumbnailUrl || image.url}
-                alt={`Thumbnail ${idx + 1}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
+      {/* Premium Bottom Navigation */}
+      <div className="relative z-20 pb-safe">
+        {/* iOS-style progress bar - shows position in gallery */}
+        {images.length > 1 && (
+          <div className="flex justify-center pb-3">
+            <div className="relative h-[3px] w-20 rounded-full bg-white/20 overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-300 ease-out"
+                style={{
+                  width: `${((currentIndex + 1) / images.length) * 100}%`,
+                }}
               />
-              {/* Active indicator */}
-              {idx === currentIndex && (
-                <div className="absolute inset-0 border-2 border-white rounded-xl" />
-              )}
-            </button>
-          ))}
+            </div>
+          </div>
+        )}
+
+        {/* Premium Thumbnail Strip */}
+        <div className="mx-3 sm:mx-4 mb-3 sm:mb-4 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 overflow-hidden">
+          <div
+            ref={thumbnailContainerRef}
+            className="flex gap-2 sm:gap-3 p-2.5 sm:p-3 overflow-x-auto scrollbar-hide"
+            style={{
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {images.map((image, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`group relative flex-shrink-0 transition-all duration-300 ease-out ${
+                  idx === currentIndex
+                    ? "scale-110 z-10"
+                    : "scale-100 opacity-60 hover:opacity-90 active:scale-95"
+                }`}
+                style={{ scrollSnapAlign: "center" }}
+                aria-label={`View photo ${idx + 1}`}
+              >
+                {/* Thumbnail container */}
+                <div
+                  className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden transition-all duration-300 ${
+                    idx === currentIndex
+                      ? "ring-2 ring-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                      : "ring-1 ring-white/20"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.thumbnailUrl || image.url}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                  />
+
+                  {/* Gradient overlay for inactive */}
+                  {idx !== currentIndex && (
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-200" />
+                  )}
+
+                  {/* Active glow effect */}
+                  {idx === currentIndex && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent" />
+                  )}
+                </div>
+
+                {/* Active indicator dot */}
+                {idx === currentIndex && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-
-
-      {/* Mobile navigation dots - refined iOS-style indicators */}
-      {images.length > 1 && images.length <= 10 && (
-        <div className="sm:hidden absolute bottom-[88px] left-1/2 -translate-x-1/2 flex items-center gap-[5px] px-2 py-1.5 rounded-full bg-black/20 backdrop-blur-sm">
-          {images.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`rounded-full transition-all duration-200 ease-out ${
-                idx === currentIndex
-                  ? "bg-white h-[5px] w-[14px] shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                  : "bg-white/40 h-[5px] w-[5px] hover:bg-white/60"
-              }`}
-              aria-label={`Go to photo ${idx + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 
