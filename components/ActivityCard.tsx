@@ -83,13 +83,20 @@ function convertPriceLevelToRange(
 }
 
 /**
- * Format a price range for display
+ * Format a single estimated price from a range.
+ * Uses 80% of the way from min to max, rounded UP to nearest 5.
+ * This ensures we lean toward overestimating (safer for budgeting).
  */
-function formatPriceRange(min: number, max: number, currency: string): string {
+function formatEstimatedPrice(min: number, max: number, currency: string): string {
   if (min === 0 && max === 0) return "Free";
-  // For same values, show single price
-  if (min === max) return `${currency} ${min}`;
-  return `${currency} ${min}-${max}`;
+
+  // Use 80% of the way between min and max for a realistic high estimate
+  const estimate = min + 0.8 * (max - min);
+
+  // Round UP to nearest 5 to avoid any underestimation
+  const rounded = Math.ceil(estimate / 5) * 5;
+
+  return `${currency} ${rounded}`;
 }
 
 interface ActivityCardProps {
@@ -364,7 +371,7 @@ export default function ActivityCard({
                     const priceCurrency = activity.estimated_cost?.currency || currency;
                     const range = convertPriceLevelToRange(verifiedPrice.priceLevel, activity.type, priceCurrency);
                     const displayPrice = range
-                      ? formatPriceRange(range.min, range.max, priceCurrency)
+                      ? formatEstimatedPrice(range.min, range.max, priceCurrency)
                       : `${priceCurrency} ${activity.estimated_cost?.amount || 0}`;
                     return (
                       <>
