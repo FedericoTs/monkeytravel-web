@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, Activity, TripMeta } from "@/types";
@@ -382,8 +382,17 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     }
   }, [trip.id, editedItinerary]);
 
-  // Use edited itinerary in edit mode, original otherwise
-  const displayItinerary = isEditMode ? editedItinerary : ensureActivityIds(trip.itinerary);
+  // Memoize ensureActivityIds to prevent generating new UUIDs on every render
+  // This is CRITICAL - without memoization, new IDs are generated each render,
+  // causing itineraryHash to change, triggering useTravelDistances to refetch,
+  // which causes state updates and re-renders = infinite loop
+  const memoizedBaseItinerary = useMemo(
+    () => ensureActivityIds(trip.itinerary),
+    [trip.itinerary]
+  );
+
+  // Use edited itinerary in edit mode, memoized base otherwise
+  const displayItinerary = isEditMode ? editedItinerary : memoizedBaseItinerary;
 
   // Fetch travel distances between activities
   const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary);

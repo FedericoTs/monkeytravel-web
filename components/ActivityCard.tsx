@@ -29,7 +29,12 @@ export default function ActivityCard({
   const [isMobile, setIsMobile] = useState(false);
   const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
-  const fetchedRef = useRef(false);
+
+  // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
+  const fetchedActivityRef = useRef<string>("");
+
+  // Create stable key from activity properties (not id, since we want to fetch for same place)
+  const activityKey = `${activity.name}|${activity.address || activity.location}|${activity.type}`;
 
   // Detect mobile viewport
   useEffect(() => {
@@ -44,12 +49,17 @@ export default function ActivityCard({
   // Fetch verified price from Google Places API
   useEffect(() => {
     // Only fetch for restaurants and attractions (places that typically have price info)
-    if (fetchedRef.current || !["restaurant", "attraction"].includes(activity.type)) {
+    if (!["restaurant", "attraction"].includes(activity.type)) {
+      return;
+    }
+
+    // Skip if we already fetched for this exact activity
+    if (fetchedActivityRef.current === activityKey) {
       return;
     }
 
     const fetchVerifiedPrice = async () => {
-      fetchedRef.current = true;
+      fetchedActivityRef.current = activityKey;
       setPriceLoading(true);
 
       try {
@@ -81,7 +91,7 @@ export default function ActivityCard({
     };
 
     fetchVerifiedPrice();
-  }, [activity.name, activity.address, activity.location, activity.type]);
+  }, [activityKey, activity.name, activity.address, activity.location, activity.type]);
 
   // Handle More button click - different behavior for mobile vs desktop
   const handleMoreClick = () => {
