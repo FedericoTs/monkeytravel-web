@@ -425,17 +425,17 @@ export default function ImageCarousel({
       </div>
 
 
-      {/* Mobile navigation dots */}
+      {/* Mobile navigation dots - refined iOS-style indicators */}
       {images.length > 1 && images.length <= 10 && (
-        <div className="sm:hidden absolute bottom-[88px] left-1/2 -translate-x-1/2 flex gap-1">
+        <div className="sm:hidden absolute bottom-[88px] left-1/2 -translate-x-1/2 flex items-center gap-[5px] px-2 py-1.5 rounded-full bg-black/20 backdrop-blur-sm">
           {images.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
+              className={`rounded-full transition-all duration-200 ease-out ${
                 idx === currentIndex
-                  ? "bg-white w-4"
-                  : "bg-white/30 hover:bg-white/50 w-1.5"
+                  ? "bg-white h-[5px] w-[14px] shadow-[0_0_4px_rgba(255,255,255,0.4)]"
+                  : "bg-white/40 h-[5px] w-[5px] hover:bg-white/60"
               }`}
               aria-label={`Go to photo ${idx + 1}`}
             />
