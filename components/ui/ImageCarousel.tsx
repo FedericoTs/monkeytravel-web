@@ -265,12 +265,17 @@ export default function ImageCarousel({
           </span>
         </button>
 
-        {/* Title */}
+        {/* Title and Attribution */}
         {placeName && (
           <div className="absolute left-1/2 -translate-x-1/2 text-center">
             <h2 className="text-sm sm:text-base font-medium text-white/90 truncate max-w-[200px] sm:max-w-none">
               {placeName}
             </h2>
+            {currentImage.attribution && (
+              <p className="text-[10px] text-white/40 mt-0.5 truncate max-w-[180px] sm:max-w-none">
+                Photo: {currentImage.attribution}
+              </p>
+            )}
           </div>
         )}
 
@@ -371,15 +376,6 @@ export default function ImageCarousel({
           />
         </div>
 
-        {/* Swipe hint - mobile only, shows briefly */}
-        {images.length > 1 && !isZoomed && (
-          <div className="sm:hidden absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 animate-pulse">
-            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-            </svg>
-            <span className="text-xs text-white/70">Swipe to navigate</span>
-          </div>
-        )}
 
         {/* Zoom indicator */}
         {isZoomed && (
@@ -428,28 +424,18 @@ export default function ImageCarousel({
         </div>
       </div>
 
-      {/* Attribution */}
-      {currentImage.attribution && (
-        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2">
-          <div className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/10">
-            <span className="text-xs text-white/50">
-              Photo: {currentImage.attribution}
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Mobile navigation dots */}
       {images.length > 1 && images.length <= 10 && (
-        <div className="sm:hidden absolute bottom-[88px] left-1/2 -translate-x-1/2 flex gap-1.5">
+        <div className="sm:hidden absolute bottom-[88px] left-1/2 -translate-x-1/2 flex gap-1">
           {images.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-all duration-300 ${
                 idx === currentIndex
-                  ? "bg-white w-6"
-                  : "bg-white/30 hover:bg-white/50"
+                  ? "bg-white w-4"
+                  : "bg-white/30 hover:bg-white/50 w-1.5"
               }`}
               aria-label={`Go to photo ${idx + 1}`}
             />
