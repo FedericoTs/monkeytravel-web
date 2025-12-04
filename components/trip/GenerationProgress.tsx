@@ -117,49 +117,91 @@ function FloatingOrbs() {
   );
 }
 
-// Animated plane that travels across (left to right) with jet trail
+// Animated plane that travels across (left to right) with fading vapor trail
 // BULLETPROOF PATTERN: Single width-expanding container with fill and marker as children
-// This eliminates Fragment reconciliation issues and ensures both elements move together
+// Premium "Elegant Contrail" design - slim track, fading trail, vapor puffs
 function TravelingPlane({ progress }: { progress: number }) {
   const clampedProgress = Math.min(Math.max(progress, 0), 95);
 
   return (
-    // Single container that expands with progress - both fill and marker are children
+    // Single container that expands with progress - both trail and airplane are children
     <div
       className="absolute inset-y-0 left-0"
       style={{ width: `${clampedProgress}%` }}
     >
-      {/* Jet Trail Fill - covers entire container */}
+      {/* Fading Vapor Trail - dissipates from left (transparent) to right (solid) */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background: 'linear-gradient(90deg, #FFD93D 0%, #FF6B6B 100%)',
-          boxShadow: '0 0 12px rgba(255, 107, 107, 0.5)',
+          background: `linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 217, 61, 0.2) 20%,
+            rgba(255, 217, 61, 0.4) 40%,
+            rgba(255, 107, 107, 0.6) 70%,
+            rgba(255, 107, 107, 0.9) 90%,
+            #FF6B6B 100%
+          )`,
         }}
       />
 
-      {/* Airplane - positioned at right edge of container, translated to center over the edge */}
+      {/* Airplane - positioned at right edge with vapor puffs */}
       <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10">
-        {/* Glow behind airplane */}
+        {/* Soft glow under airplane */}
         <div
           className="absolute rounded-full -z-10"
           style={{
-            width: '32px',
-            height: '32px',
-            background: 'radial-gradient(circle, rgba(255, 107, 107, 0.6) 0%, transparent 70%)',
+            width: '24px',
+            height: '24px',
+            background: 'radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, transparent 70%)',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
           }}
         />
-        {/* Airplane SVG - pointing right (→) */}
+
+        {/* Vapor puffs behind plane - staggered pulse animation */}
+        <div
+          className="absolute flex items-center"
+          style={{
+            right: '100%',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            marginRight: '2px',
+          }}
+        >
+          <div
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{
+              background: 'rgba(255, 255, 255, 0.8)',
+              animationDelay: '0ms',
+              marginRight: '2px',
+            }}
+          />
+          <div
+            className="w-1 h-1 rounded-full animate-pulse"
+            style={{
+              background: 'rgba(255, 255, 255, 0.5)',
+              animationDelay: '150ms',
+              marginRight: '1px',
+            }}
+          />
+          <div
+            className="w-0.5 h-0.5 rounded-full animate-pulse"
+            style={{
+              background: 'rgba(255, 255, 255, 0.3)',
+              animationDelay: '300ms',
+            }}
+          />
+        </div>
+
+        {/* Airplane SVG - 28x28px pointing right */}
         <svg
           width="28"
           height="28"
           viewBox="0 0 24 24"
           fill="#FF6B6B"
           style={{
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+            filter: 'drop-shadow(0 2px 6px rgba(255, 107, 107, 0.4))',
             transform: 'rotate(90deg)',
           }}
         >
@@ -317,8 +359,8 @@ export default function GenerationProgress({
             </p>
           </div>
 
-          {/* Progress track with plane - airplane flies along the progress bar */}
-          <div className="relative h-3 bg-slate-200/50 rounded-full mb-6" style={{ overflow: 'visible' }}>
+          {/* Progress track - slim elegant line for airplane to fly along */}
+          <div className="relative h-1 bg-slate-200/40 rounded-full mb-8" style={{ overflow: 'visible' }}>
             <TravelingPlane progress={progress} />
           </div>
 
