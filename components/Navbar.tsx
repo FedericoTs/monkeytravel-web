@@ -102,6 +102,15 @@ export default function Navbar() {
                 >
                   My Trips
                 </Link>
+                <Link
+                  href="/profile"
+                  className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                  title="Profile"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </Link>
               </>
             ) : (
               <>
@@ -171,6 +180,16 @@ export default function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     My Trips
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-slate-200 text-[var(--foreground)] font-medium hover:bg-slate-50 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Profile
                   </Link>
                 </>
               ) : (
