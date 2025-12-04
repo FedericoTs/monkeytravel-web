@@ -64,10 +64,17 @@ export default function EditableActivityCard({
   // Create stable key from activity properties (not id, since we want to fetch for same place)
   const activityKey = `${activity.name}|${activity.address || activity.location}|${activity.type}`;
 
+  // Types that typically have price information in Google Places
+  const priceableTypes = [
+    "restaurant", "attraction", "food", "cafe", "bar", "foodie",
+    "market", "shopping", "cultural", "museum", "landmark",
+    "spa", "wellness", "entertainment", "nightlife", "wine bar"
+  ];
+
   // Fetch verified price from Google Places API
   useEffect(() => {
-    // Only fetch for restaurants and attractions (places that typically have price info)
-    if (!["restaurant", "attraction"].includes(activity.type)) {
+    // Only fetch for types that typically have price info
+    if (!priceableTypes.includes(activity.type)) {
       return;
     }
 
@@ -117,14 +124,37 @@ export default function EditableActivityCard({
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
   const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
 
-  const typeColors = {
+  const typeColors: Record<string, { bg: string; text: string; border: string }> = {
+    // Food & Drink
     restaurant: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+    food: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+    cafe: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+    bar: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+    foodie: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+    "wine bar": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+    // Attractions & Culture
     attraction: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+    cultural: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
+    museum: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
+    landmark: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+    // Activities & Nature
     activity: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+    nature: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+    park: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+    // Shopping & Entertainment
+    shopping: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+    market: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+    entertainment: { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200" },
+    nightlife: { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200" },
+    // Wellness
+    spa: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
+    wellness: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
+    // Transport & Other
     transport: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+    event: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200" },
   };
 
-  const colors = typeColors[activity.type] || typeColors.activity;
+  const colors = typeColors[activity.type] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
 
   const handleSaveEdit = () => {
     onUpdate({

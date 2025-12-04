@@ -58,7 +58,12 @@ export interface Activity {
   start_time: string;
   duration_minutes: number;
   name: string;
-  type: "attraction" | "restaurant" | "activity" | "transport";
+  type:
+    | "attraction" | "restaurant" | "activity" | "transport"
+    | "food" | "cafe" | "bar" | "foodie" | "market" | "shopping"
+    | "cultural" | "museum" | "landmark" | "spa" | "wellness"
+    | "entertainment" | "nightlife" | "nature" | "park" | "event"
+    | string;  // Allow custom types from AI generation
   description: string;
   location: string;
   address?: string; // Full street address for map links
