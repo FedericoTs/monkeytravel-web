@@ -655,23 +655,25 @@ export default function HotelRecommendations({
         )}
       </div>
 
-      {/* Loading state */}
+      {/* Loading state - Full-bleed on mobile */}
       {loading && (
-        <div className="flex gap-4 overflow-hidden">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex-shrink-0 w-[320px] sm:w-[360px] bg-white rounded-2xl border border-slate-100 overflow-hidden"
-            >
-              <div className="h-52 bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
-                <div className="h-8 bg-slate-100 rounded-full animate-pulse w-1/3" />
-                <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
+        <div className="-mx-4 sm:mx-0">
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-0">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[320px] sm:w-[360px] bg-white rounded-2xl border border-slate-100 overflow-hidden"
+              >
+                <div className="h-52 bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+                  <div className="h-8 bg-slate-100 rounded-full animate-pulse w-1/3" />
+                  <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -708,21 +710,23 @@ export default function HotelRecommendations({
         </div>
       )}
 
-      {/* Hotels carousel */}
+      {/* Hotels carousel - Full-bleed on mobile */}
       {!loading && !error && hotels.length > 0 && (
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          {hotels.map((hotel, index) => (
-            <div key={hotel.id} className="snap-start">
-              <HotelCard hotel={hotel} index={index} />
-            </div>
-          ))}
+        <div className="-mx-4 sm:mx-0">
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4 sm:px-0"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {hotels.map((hotel, index) => (
+              <div key={hotel.id} className="snap-start">
+                <HotelCard hotel={hotel} index={index} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
