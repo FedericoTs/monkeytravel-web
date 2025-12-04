@@ -23,13 +23,14 @@ function formatDate(dateString: string): string {
 }
 
 /**
- * Activity type emoji mapping
+ * Activity type configuration with colors and labels
+ * Using visual indicators instead of emojis (jsPDF doesn't support Unicode emojis)
  */
-const typeEmoji: Record<string, string> = {
-  attraction: "📍",
-  restaurant: "🍽️",
-  activity: "🎯",
-  transport: "🚗",
+const typeConfig: Record<string, { label: string; color: [number, number, number] }> = {
+  attraction: { label: "See", color: [0, 180, 166] },      // Teal
+  restaurant: { label: "Eat", color: [255, 159, 67] },     // Orange
+  activity: { label: "Do", color: [108, 92, 231] },        // Purple
+  transport: { label: "Go", color: [99, 110, 114] },       // Gray
 };
 
 /**
@@ -71,10 +72,11 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
   doc.setFillColor(...primaryColor);
   doc.rect(0, 0, pageWidth, 60, "F");
 
-  // Logo/Brand
+  // Logo/Brand (text-based, no emoji)
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
-  doc.text("🐒 MonkeyTravel", margin, 15);
+  doc.setFont("helvetica", "bold");
+  doc.text("MonkeyTravel", margin, 15);
 
   // Title
   doc.setFontSize(28);
@@ -162,12 +164,20 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setFont("helvetica", "bold");
       doc.text(activity.start_time, margin + 5, yPosition + 8);
 
-      // Type emoji and name
-      const emoji = typeEmoji[activity.type] || "📍";
+      // Type badge (colored pill with label instead of emoji)
+      const config = typeConfig[activity.type] || { label: "See", color: [99, 110, 114] };
+      doc.setFillColor(...config.color);
+      doc.roundedRect(margin + 26, yPosition + 3, 12, 6, 1, 1, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6);
+      doc.setFont("helvetica", "bold");
+      doc.text(config.label, margin + 27.5, yPosition + 7);
+
+      // Activity name
       doc.setTextColor(...textColor);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(`${emoji} ${activity.name}`, margin + 26, yPosition + 9);
+      doc.text(activity.name, margin + 41, yPosition + 9);
 
       // Duration
       doc.setTextColor(...mutedColor);
@@ -182,11 +192,13 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setFontSize(8);
       doc.text(doc.splitTextToSize(descText, contentWidth - 30), margin + 5, yPosition + 16);
 
-      // Location
+      // Location (small dot indicator instead of emoji)
+      doc.setFillColor(...secondaryColor);
+      doc.circle(margin + 7, yPosition + 25, 1.5, "F");
       doc.setTextColor(...mutedColor);
       doc.setFontSize(7);
       const locationText = activity.address || activity.location;
-      doc.text(`📍 ${locationText.substring(0, 60)}${locationText.length > 60 ? "..." : ""}`, margin + 5, yPosition + 26);
+      doc.text(`${locationText.substring(0, 55)}${locationText.length > 55 ? "..." : ""}`, margin + 11, yPosition + 26);
 
       // Cost
       const costText = activity.estimated_cost.amount === 0
