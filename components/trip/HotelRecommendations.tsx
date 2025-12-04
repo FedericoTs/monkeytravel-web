@@ -715,7 +715,7 @@ export default function HotelRecommendations({
         <div className="-mx-4 sm:mx-0">
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4 sm:px-0"
+            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4 sm:px-0 scroll-pl-4 sm:scroll-pl-0"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
