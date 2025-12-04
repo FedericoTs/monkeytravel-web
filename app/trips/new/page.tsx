@@ -13,6 +13,7 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import GenerationProgress from "@/components/trip/GenerationProgress";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
+import DateRangePicker from "@/components/ui/DateRangePicker";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -138,13 +139,6 @@ export default function NewTripPage() {
   const handleDestinationSelect = (prediction: PlacePrediction) => {
     if (prediction.coordinates) {
       setDestinationCoords(prediction.coordinates);
-    }
-  };
-
-  // Handle vibe suggestion from seasonal context
-  const handleVibeSuggestion = (vibeId: TripVibe) => {
-    if (!selectedVibes.includes(vibeId) && selectedVibes.length < 3) {
-      setSelectedVibes([...selectedVibes, vibeId]);
     }
   };
 
@@ -607,32 +601,15 @@ export default function NewTripPage() {
               <p className="text-slate-600">Select your trip dates (max 14 days)</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors text-base"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate || new Date().toISOString().split("T")[0]}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors text-base"
-                />
-              </div>
-            </div>
+            {/* Premium Date Range Picker */}
+            <DateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              maxDays={14}
+              minDate={new Date().toISOString().split("T")[0]}
+            />
 
             {/* Seasonal Context Card - Auto-displays when dates are set */}
             {destination && startDate && endDate && (
@@ -641,7 +618,6 @@ export default function NewTripPage() {
                 startDate={startDate}
                 endDate={endDate}
                 coordinates={destinationCoords || undefined}
-                onVibeSuggestionClick={handleVibeSuggestion}
                 className="mt-6"
               />
             )}

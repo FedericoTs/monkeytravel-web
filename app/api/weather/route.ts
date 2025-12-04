@@ -1,0 +1,190 @@
+/**
+ * Weather API Route
+ *
+ * Fetches weather data from Open-Meteo API for accurate climate information.
+ * Uses historical data for the same dates from the previous year to provide
+ * realistic weather expectations for trip planning.
+ *
+ * Open-Meteo is free, requires no API key, and provides high-quality data.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+
+interface WeatherData {
+  temperature: {
+    min: number;
+    max: number;
+    avg: number;
+  };
+  precipitation: {
+    totalMm: number;
+    rainyDays: number;
+  };
+  conditions: string;
+  humidity: number;
+  icon: string;
+}
+
+interface OpenMeteoHistoricalResponse {
+  daily: {
+    time: string[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    temperature_2m_mean: number[];
+    precipitation_sum: number[];
+    relative_humidity_2m_mean?: number[];
+    weathercode?: number[];
+  };
+}
+
+// Map WMO weather codes to conditions and icons
+function getWeatherCondition(code: number): { condition: string; icon: string } {
+  if (code === 0) return { condition: "Clear sky", icon: "☀️" };
+  if (code <= 3) return { condition: "Partly cloudy", icon: "⛅" };
+  if (code <= 48) return { condition: "Foggy", icon: "🌫️" };
+  if (code <= 57) return { condition: "Drizzle", icon: "🌦️" };
+  if (code <= 67) return { condition: "Rainy", icon: "🌧️" };
+  if (code <= 77) return { condition: "Snowy", icon: "🌨️" };
+  if (code <= 82) return { condition: "Rain showers", icon: "🌧️" };
+  if (code <= 86) return { condition: "Snow showers", icon: "🌨️" };
+  if (code <= 99) return { condition: "Thunderstorm", icon: "⛈️" };
+  return { condition: "Variable", icon: "🌤️" };
+}
+
+// Calculate date range for historical lookup (same dates, previous year)
+function getHistoricalDateRange(startDate: string, endDate: string): { start: string; end: string } {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Go back one year
+  start.setFullYear(start.getFullYear() - 1);
+  end.setFullYear(end.getFullYear() - 1);
+
+  return {
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const latitude = searchParams.get("latitude");
+    const longitude = searchParams.get("longitude");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
+    if (!latitude || !longitude || !startDate || !endDate) {
+      return NextResponse.json(
+        { error: "Missing required parameters: latitude, longitude, startDate, endDate" },
+        { status: 400 }
+      );
+    }
+
+    // Get historical date range (same dates from previous year)
+    const historicalDates = getHistoricalDateRange(startDate, endDate);
+
+    // Fetch from Open-Meteo Historical API
+    const url = new URL("https://archive-api.open-meteo.com/v1/archive");
+    url.searchParams.set("latitude", latitude);
+    url.searchParams.set("longitude", longitude);
+    url.searchParams.set("start_date", historicalDates.start);
+    url.searchParams.set("end_date", historicalDates.end);
+    url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weathercode");
+    url.searchParams.set("timezone", "auto");
+
+    const response = await fetch(url.toString(), {
+      next: { revalidate: 86400 }, // Cache for 24 hours
+    });
+
+    if (!response.ok) {
+      console.error("[Weather API] Open-Meteo error:", response.status);
+      return NextResponse.json(
+        { error: "Failed to fetch weather data" },
+        { status: 502 }
+      );
+    }
+
+    const data: OpenMeteoHistoricalResponse = await response.json();
+
+    if (!data.daily || !data.daily.time || data.daily.time.length === 0) {
+      return NextResponse.json(
+        { error: "No historical data available for this location and date range" },
+        { status: 404 }
+      );
+    }
+
+    // Calculate aggregates
+    const temps = data.daily.temperature_2m_mean.filter((t) => t !== null);
+    const maxTemps = data.daily.temperature_2m_max.filter((t) => t !== null);
+    const minTemps = data.daily.temperature_2m_min.filter((t) => t !== null);
+    const precipitation = data.daily.precipitation_sum.filter((p) => p !== null);
+    const weatherCodes = data.daily.weathercode || [];
+
+    const avgTemp = temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : 20;
+    const maxTemp = maxTemps.length > 0 ? Math.max(...maxTemps) : avgTemp + 5;
+    const minTemp = minTemps.length > 0 ? Math.min(...minTemps) : avgTemp - 5;
+    const totalPrecip = precipitation.reduce((a, b) => a + b, 0);
+    const rainyDays = precipitation.filter((p) => p > 1).length;
+
+    // Get most common weather condition
+    const weatherCodeCounts = weatherCodes.reduce((acc, code) => {
+      if (code !== null) {
+        acc[code] = (acc[code] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<number, number>);
+
+    const mostCommonCode = Object.entries(weatherCodeCounts).sort(
+      ([, a], [, b]) => b - a
+    )[0];
+    const { condition, icon } = getWeatherCondition(
+      mostCommonCode ? parseInt(mostCommonCode[0]) : 0
+    );
+
+    // Build condition description
+    let conditionDescription = condition;
+    if (rainyDays > data.daily.time.length * 0.5) {
+      conditionDescription = "Frequent rain expected";
+    } else if (rainyDays > data.daily.time.length * 0.3) {
+      conditionDescription = "Occasional rain possible";
+    } else if (avgTemp > 30) {
+      conditionDescription = "Hot and mostly dry";
+    } else if (avgTemp < 5) {
+      conditionDescription = "Cold, possible snow";
+    } else if (avgTemp > 20) {
+      conditionDescription = "Warm and pleasant";
+    } else if (avgTemp > 10) {
+      conditionDescription = "Mild temperatures";
+    } else {
+      conditionDescription = "Cool weather expected";
+    }
+
+    const weatherData: WeatherData = {
+      temperature: {
+        min: Math.round(minTemp),
+        max: Math.round(maxTemp),
+        avg: Math.round(avgTemp),
+      },
+      precipitation: {
+        totalMm: Math.round(totalPrecip),
+        rainyDays,
+      },
+      conditions: conditionDescription,
+      humidity: 60, // Default estimate
+      icon,
+    };
+
+    return NextResponse.json({
+      weather: weatherData,
+      source: "open-meteo",
+      basedOn: `Historical data from ${historicalDates.start} to ${historicalDates.end}`,
+    });
+  } catch (error) {
+    console.error("[Weather API] Error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch weather data" },
+      { status: 500 }
+    );
+  }
+}

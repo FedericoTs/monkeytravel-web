@@ -144,6 +144,8 @@ export async function GET(request: NextRequest) {
     const longitude = parseFloat(searchParams.get('longitude') || '');
     const radius = parseInt(searchParams.get('radius') || '5000'); // Default 5km in meters
     const destination = searchParams.get('destination') || '';
+    const startDate = searchParams.get('startDate') || ''; // YYYY-MM-DD format
+    const endDate = searchParams.get('endDate') || ''; // YYYY-MM-DD format
 
     // Validate required parameters
     if (isNaN(latitude) || isNaN(longitude)) {
@@ -203,6 +205,17 @@ export async function GET(request: NextRequest) {
         const encodedName = encodeURIComponent(place.name);
         const encodedDestination = encodeURIComponent(destination || place.vicinity || '');
 
+        // Build date parameters for booking links
+        // Booking.com: checkin=YYYY-MM-DD&checkout=YYYY-MM-DD
+        // Expedia: startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+        // Hotels.com: startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+        // Google Hotels: q_check_in=YYYY-MM-DD&q_check_out=YYYY-MM-DD
+        const hasValidDates = startDate && endDate;
+        const bookingDateParams = hasValidDates ? `&checkin=${startDate}&checkout=${endDate}` : '';
+        const expediaDateParams = hasValidDates ? `&startDate=${startDate}&endDate=${endDate}` : '';
+        const hotelsDateParams = hasValidDates ? `&startDate=${startDate}&endDate=${endDate}` : '';
+        const googleDateParams = hasValidDates ? `&q_check_in=${startDate}&q_check_out=${endDate}` : '';
+
         return {
           id: place.place_id,
           name: place.name,
@@ -220,10 +233,10 @@ export async function GET(request: NextRequest) {
           isOpen: place.opening_hours?.open_now ?? null,
           placeId: place.place_id,
           bookingLinks: {
-            google: `https://www.google.com/travel/hotels/${encodedDestination}?q=${encodedName}`,
-            booking: `https://www.booking.com/searchresults.html?ss=${encodedName}+${encodedDestination}`,
-            hotels: `https://www.hotels.com/search.do?q=${encodedName}+${encodedDestination}`,
-            expedia: `https://www.expedia.com/Hotel-Search?destination=${encodedName}+${encodedDestination}`,
+            google: `https://www.google.com/travel/hotels/${encodedDestination}?q=${encodedName}${googleDateParams}`,
+            booking: `https://www.booking.com/searchresults.html?ss=${encodedName}+${encodedDestination}${bookingDateParams}`,
+            hotels: `https://www.hotels.com/search.do?q=${encodedName}+${encodedDestination}${hotelsDateParams}`,
+            expedia: `https://www.expedia.com/Hotel-Search?destination=${encodedName}+${encodedDestination}${expediaDateParams}`,
           },
         };
       })

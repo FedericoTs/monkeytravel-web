@@ -436,6 +436,8 @@ export default function HotelRecommendations({
         longitude: location.lng.toString(),
         radius: "10000", // 10km default radius for destination search
         destination,
+        startDate, // Pass trip dates for booking links
+        endDate,
       });
 
       const response = await fetch(`/api/hotels/places?${params}`);
@@ -453,7 +455,7 @@ export default function HotelRecommendations({
     } finally {
       setLoading(false);
     }
-  }, [bestGeocodingAddress, destination]);
+  }, [bestGeocodingAddress, destination, startDate, endDate]);
 
   // Fetch hotels using activity centroid
   const fetchHotelsViaGeoCenter = useCallback(async () => {
@@ -469,6 +471,8 @@ export default function HotelRecommendations({
         longitude: geoCenter.center.lng.toString(),
         radius: Math.ceil(geoCenter.radius * 1000).toString(), // Convert km to meters
         destination,
+        startDate, // Pass trip dates for booking links
+        endDate,
       });
 
       const response = await fetch(`/api/hotels/places?${params}`);
@@ -486,7 +490,7 @@ export default function HotelRecommendations({
     } finally {
       setLoading(false);
     }
-  }, [geoCenter, destination]);
+  }, [geoCenter, destination, startDate, endDate]);
 
   // Fetch hotels - prefer geo center, fallback to destination geocoding
   const fetchHotels = useCallback(async () => {

@@ -117,48 +117,63 @@ function FloatingOrbs() {
   );
 }
 
-// Animated plane that travels across (left to right)
+// Animated plane that travels across (left to right) with jet trail
 function TravelingPlane({ progress }: { progress: number }) {
   // Calculate the position - use percentage of the track width
   const clampedProgress = Math.min(Math.max(progress, 0), 95);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {/* Plane container - uses transform for smooth animation */}
+    <div className="absolute inset-0 pointer-events-none overflow-visible">
+      {/* Jet Trail - THE progress indicator (vapor/contrail effect) */}
+      {/* Extends from left edge to airplane position */}
       <div
-        className="absolute top-1/2 h-0 w-full"
+        className="absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full transition-all duration-300 ease-out"
         style={{
-          transform: `translateY(-50%)`,
+          width: `calc(${clampedProgress}% + 4px)`,
+          background: `linear-gradient(90deg,
+            rgba(255, 217, 61, 0.1) 0%,
+            rgba(255, 217, 61, 0.4) 20%,
+            rgba(255, 217, 61, 0.7) 60%,
+            var(--accent) 85%,
+            var(--primary) 100%
+          )`,
+          boxShadow: '0 0 8px rgba(255, 217, 61, 0.4), 0 0 16px rgba(255, 217, 61, 0.2)',
         }}
       >
+        {/* Shimmer effect on trail */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer rounded-full" />
+      </div>
+
+      {/* Airplane - centered perfectly on track, positioned at progress point */}
+      <div
+        className="absolute top-1/2 transition-all duration-300 ease-out"
+        style={{
+          left: `${clampedProgress}%`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        {/* Glow effect behind plane */}
         <div
-          className="absolute left-0 transition-transform duration-500 ease-out"
-          style={{
-            transform: `translateX(calc(${clampedProgress}% * 1)) translateX(-50%)`,
-            left: `${clampedProgress}%`,
-          }}
+          className="absolute inset-0 bg-[var(--primary)] blur-xl rounded-full scale-[2] opacity-30"
+          style={{ width: '32px', height: '32px', left: '-8px', top: '-8px' }}
+        />
+        {/* Small vapor puffs behind plane */}
+        <div
+          className="absolute right-full top-1/2 -translate-y-1/2 flex items-center gap-0.5 mr-1 opacity-60"
         >
-          <div className="relative flex items-center">
-            {/* Trail effect - behind the plane (to the left), fading away from plane */}
-            <div
-              className="absolute right-full top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-l from-[var(--primary)]/60 to-transparent transition-all duration-500"
-              style={{ width: `${Math.min(clampedProgress * 2, 80)}px` }}
-            />
-            {/* Plane - pointing right (nose facing direction of travel) */}
-            <div className="relative">
-              <svg
-                className="w-8 h-8 text-[var(--primary)] drop-shadow-lg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                style={{ transform: 'rotate(90deg)' }}
-              >
-                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-              </svg>
-              {/* Subtle glow effect */}
-              <div className="absolute inset-0 bg-[var(--primary)]/20 blur-md rounded-full scale-150" />
-            </div>
-          </div>
+          <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+          <div className="w-1 h-1 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+          <div className="w-0.5 h-0.5 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
         </div>
+        {/* The airplane icon */}
+        <svg
+          className="w-7 h-7 text-[var(--primary)] drop-shadow-lg relative z-10"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+          style={{ transform: 'rotate(90deg)' }}
+        >
+          <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+        </svg>
       </div>
     </div>
   );
@@ -311,18 +326,9 @@ export default function GenerationProgress({
             </p>
           </div>
 
-          {/* Progress track with plane */}
-          <div className="relative h-3 bg-slate-100 rounded-full overflow-visible mb-6">
-            {/* Progress fill with gradient */}
-            <div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--accent)] rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            >
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer rounded-full" />
-            </div>
-
-            {/* Traveling plane indicator */}
+          {/* Progress track with plane - neutral track, jet trail shows progress */}
+          <div className="relative h-2 bg-slate-200/60 rounded-full overflow-visible mb-6">
+            {/* No colored fill - only the TravelingPlane's jet trail indicates progress */}
             <TravelingPlane progress={progress} />
           </div>
 
