@@ -123,11 +123,11 @@ function TravelingPlane({ progress }: { progress: number }) {
   const clampedProgress = Math.min(Math.max(progress, 0), 95);
 
   return (
-    <>
+    <div className="absolute inset-0 overflow-visible">
       {/* Jet Trail - THE progress indicator (vapor/contrail effect) */}
       {/* Extends from left edge to airplane position */}
       <div
-        className="absolute top-0 bottom-0 left-0 rounded-full"
+        className="absolute inset-y-0 left-0 rounded-full"
         style={{
           width: `${clampedProgress}%`,
           background: `linear-gradient(90deg,
@@ -145,51 +145,53 @@ function TravelingPlane({ progress }: { progress: number }) {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer rounded-full" />
       </div>
 
-      {/* Airplane - positioned at the end of the trail */}
+      {/* Airplane container - uses width-based positioning (same as trail) */}
       <div
-        className="absolute top-1/2 pointer-events-none"
+        className="absolute inset-y-0 left-0 flex items-center pointer-events-none"
         style={{
-          left: `${clampedProgress}%`,
-          transform: 'translateX(-50%) translateY(-50%)',
-          transition: 'left 0.3s ease-out',
+          width: `${clampedProgress}%`,
+          transition: 'width 0.3s ease-out',
         }}
       >
-        {/* Glow effect behind plane */}
-        <div
-          className="absolute bg-[var(--primary)] blur-lg rounded-full opacity-40"
-          style={{
-            width: '28px',
-            height: '28px',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-        {/* Small vapor puffs behind plane */}
-        <div
-          className="absolute flex items-center gap-0.5 opacity-70"
-          style={{
-            right: '100%',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            marginRight: '2px',
-          }}
-        >
-          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-          <div className="w-1 h-1 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
-          <div className="w-0.5 h-0.5 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+        {/* Airplane positioned at the end of this container using justify-end */}
+        <div className="absolute right-0 flex items-center translate-x-1/2">
+          {/* Glow effect behind plane */}
+          <div
+            className="absolute bg-[var(--primary)] blur-lg rounded-full opacity-40"
+            style={{
+              width: '28px',
+              height: '28px',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+          {/* Small vapor puffs behind plane */}
+          <div
+            className="absolute flex items-center gap-0.5 opacity-70"
+            style={{
+              right: '100%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              marginRight: '2px',
+            }}
+          >
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+            <div className="w-1 h-1 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+            <div className="w-0.5 h-0.5 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+          </div>
+          {/* The airplane icon - pointing right */}
+          <svg
+            className="w-7 h-7 text-[var(--primary)] drop-shadow-lg relative z-10"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style={{ transform: 'rotate(90deg)' }}
+          >
+            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+          </svg>
         </div>
-        {/* The airplane icon - pointing right */}
-        <svg
-          className="w-7 h-7 text-[var(--primary)] drop-shadow-lg relative z-10"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          style={{ transform: 'rotate(90deg)' }}
-        >
-          <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-        </svg>
       </div>
-    </>
+    </div>
   );
 }
 
