@@ -17,13 +17,14 @@ interface CacheEntry<T = unknown> {
 }
 
 // Cache TTLs in milliseconds
+// Optimized: Increased TTLs for user session patterns (users rarely refetch same route)
 export const CACHE_TTL = {
   locations: 24 * 60 * 60 * 1000,     // 24 hours - IATA codes rarely change
   hotelList: 24 * 60 * 60 * 1000,    // 24 hours - hotel lists are stable
-  flights: 5 * 60 * 1000,             // 5 minutes - prices are volatile
-  flightPrice: 2 * 60 * 1000,         // 2 minutes - confirmed prices expire fast
-  hotels: 15 * 60 * 1000,             // 15 minutes - hotel availability changes
-  hotelOffer: 5 * 60 * 1000,          // 5 minutes - specific offer pricing
+  flights: 10 * 60 * 1000,            // 10 minutes (was 5) - users search once per session
+  flightPrice: 3 * 60 * 1000,         // 3 minutes (was 2) - slight buffer for checkout
+  hotels: 30 * 60 * 1000,             // 30 minutes (was 15) - availability more stable than price
+  hotelOffer: 10 * 60 * 1000,         // 10 minutes (was 5) - offers remain valid longer
 } as const;
 
 export type CacheType = keyof typeof CACHE_TTL;

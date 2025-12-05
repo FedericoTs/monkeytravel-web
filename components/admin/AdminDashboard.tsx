@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import UserGrowthChart from "./UserGrowthChart";
-import CostDashboard from "./CostDashboard";
+import CostCommandCenter from "./CostCommandCenter";
 import AccessControl from "./AccessControl";
 
 export default function AdminDashboard() {
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "costs" && <CostDashboard />}
+      {activeTab === "costs" && <CostCommandCenter />}
       {activeTab === "access" && <AccessControl />}
 
       {/* Analytics Tab Content */}

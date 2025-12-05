@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/Toast";
 import { LocaleProvider } from "@/lib/locale";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
+import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -159,11 +160,13 @@ export default function RootLayout({
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
       >
         <LocaleProvider>
-          <ToastProvider>
-            <MaintenanceWrapper>
-              {children}
-            </MaintenanceWrapper>
-          </ToastProvider>
+          <PlaceCacheProvider>
+            <ToastProvider>
+              <MaintenanceWrapper>
+                {children}
+              </MaintenanceWrapper>
+            </ToastProvider>
+          </PlaceCacheProvider>
         </LocaleProvider>
         <Analytics />
         <SpeedInsights />

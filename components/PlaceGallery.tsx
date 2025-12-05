@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ImageCarousel from "./ui/ImageCarousel";
+import { usePlaceCache, generatePlaceCacheKey, CachedPlaceData } from "@/lib/context/PlaceCacheContext";
 /* eslint-disable @next/next/no-img-element */
 
 interface PlacePhoto {
@@ -12,23 +13,8 @@ interface PlacePhoto {
   attribution: string;
 }
 
-interface PlaceData {
-  placeId: string;
-  name: string;
-  address: string;
-  location: { latitude: number; longitude: number };
-  photos: PlacePhoto[];
-  rating?: number;
-  reviewCount?: number;
-  website?: string;
-  googleMapsUrl?: string;
-  priceLevel?: number;
-  priceLevelSymbol?: string;
-  priceLevelLabel?: string;
-  priceRange?: string;
-  openNow?: boolean;
-  openingHours?: string[];
-}
+// Using CachedPlaceData from context, but defining PlaceData for API response
+type PlaceData = Omit<CachedPlaceData, "cachedAt">;
 
 interface PlaceGalleryProps {
   placeName: string;
@@ -52,7 +38,31 @@ export default function PlaceGallery({
   const [error, setError] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
+  // Client-side cache for place data - prevents redundant API calls
+  const { getPlace, setPlace, hasPlace } = usePlaceCache();
+
+  // Ref to prevent double-fetching due to strict mode / re-renders
+  const fetchingRef = useRef(false);
+
   useEffect(() => {
+    if (!placeName) return;
+
+    const cacheKey = generatePlaceCacheKey(placeName, placeAddress);
+
+    // Check client-side cache first
+    if (hasPlace(cacheKey)) {
+      const cached = getPlace(cacheKey);
+      if (cached) {
+        setPlaceData(cached);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Prevent concurrent fetches for same place
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+
     const fetchPlaceData = async () => {
       setLoading(true);
       setError(null);
@@ -73,17 +83,19 @@ export default function PlaceGallery({
 
         const data = await response.json();
         setPlaceData(data);
+
+        // Store in client-side cache for future use
+        setPlace(cacheKey, data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
+        fetchingRef.current = false;
       }
     };
 
-    if (placeName) {
-      fetchPlaceData();
-    }
-  }, [placeName, placeAddress, maxPhotos]);
+    fetchPlaceData();
+  }, [placeName, placeAddress, maxPhotos, getPlace, setPlace, hasPlace]);
 
   if (loading) {
     return (

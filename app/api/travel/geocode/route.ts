@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -126,80 +127,85 @@ export async function POST(request: NextRequest) {
     const apiResults: GeocodeResult[] = [];
     const BATCH_SIZE = 10;
 
-    // Process a single address
+    // Process a single address with deduplication for concurrent requests
     async function geocodeAddress(
       address: string,
       hash: string
     ): Promise<GeocodeResult | null> {
-      try {
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
-        );
+      // Use deduplication to coalesce concurrent requests for the same address
+      const dedupKey = generateKey("geocode", { hash });
 
-        const data = await response.json();
+      return deduplicatedFetch(dedupKey, async () => {
+        try {
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
+          );
 
-        if (data.status === "OK" && data.results[0]) {
-          const result = data.results[0];
-          const location = result.geometry.location;
-          const locationType = result.geometry.location_type;
+          const data = await response.json();
 
-          // Determine confidence based on location type
-          let confidence = 0.5;
-          if (locationType === "ROOFTOP") confidence = 1.0;
-          else if (locationType === "RANGE_INTERPOLATED") confidence = 0.8;
-          else if (locationType === "GEOMETRIC_CENTER") confidence = 0.6;
+          if (data.status === "OK" && data.results[0]) {
+            const result = data.results[0];
+            const location = result.geometry.location;
+            const locationType = result.geometry.location_type;
 
-          // Cache the result (fire and forget)
-          supabase
-            .from("geocode_cache")
-            .insert({
-              address_hash: hash,
-              original_address: address,
-              normalized_address: normalizeAddress(address),
+            // Determine confidence based on location type
+            let confidence = 0.5;
+            if (locationType === "ROOFTOP") confidence = 1.0;
+            else if (locationType === "RANGE_INTERPOLATED") confidence = 0.8;
+            else if (locationType === "GEOMETRIC_CENTER") confidence = 0.6;
+
+            // Cache the result (fire and forget)
+            supabase
+              .from("geocode_cache")
+              .insert({
+                address_hash: hash,
+                original_address: address,
+                normalized_address: normalizeAddress(address),
+                lat: location.lat,
+                lng: location.lng,
+                formatted_address: result.formatted_address,
+                place_id: result.place_id,
+                location_type: locationType,
+                confidence,
+                expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
+              })
+              .then(({ error }) => {
+                if (error) console.error("Cache insert error:", error);
+              });
+
+            // Log API usage for cost tracking (fire and forget)
+            supabase
+              .from("api_request_logs")
+              .insert({
+                api_name: "google_geocoding",
+                endpoint: "/geocode/json",
+                request_params: { address: address.substring(0, 100) },
+                response_status: 200,
+                response_time_ms: 0,
+                cache_hit: false,
+                cost_usd: 0.005, // $5 per 1000 requests
+              })
+              .then(() => {});
+
+            return {
+              address,
               lat: location.lat,
               lng: location.lng,
-              formatted_address: result.formatted_address,
-              place_id: result.place_id,
-              location_type: locationType,
-              confidence,
-              expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
-            })
-            .then(({ error }) => {
-              if (error) console.error("Cache insert error:", error);
-            });
-
-          // Log API usage for cost tracking (fire and forget)
-          supabase
-            .from("api_request_logs")
-            .insert({
-              api_name: "google_geocoding",
-              endpoint: "/geocode/json",
-              request_params: { address: address.substring(0, 100) },
-              response_status: 200,
-              response_time_ms: 0,
-              cache_hit: false,
-              cost_usd: 0.005, // $5 per 1000 requests
-            })
-            .then(() => {});
-
-          return {
-            address,
-            lat: location.lat,
-            lng: location.lng,
-            formattedAddress: result.formatted_address,
-            placeId: result.place_id,
-            locationType,
-            source: "api",
-          };
-        } else if (data.status === "ZERO_RESULTS") {
-          console.warn(`No geocode results for: ${address}`);
-        } else {
-          console.error(`Geocoding error for ${address}:`, data.status, data.error_message);
+              formattedAddress: result.formatted_address,
+              placeId: result.place_id,
+              locationType,
+              source: "api",
+            } as GeocodeResult;
+          } else if (data.status === "ZERO_RESULTS") {
+            console.warn(`No geocode results for: ${address}`);
+          } else {
+            console.error(`Geocoding error for ${address}:`, data.status, data.error_message);
+          }
+        } catch (error) {
+          console.error(`Geocoding request failed for: ${address}`, error);
         }
-      } catch (error) {
-        console.error(`Geocoding request failed for: ${address}`, error);
-      }
-      return null;
+        return null;
+      });
     }
 
     // Process in parallel batches

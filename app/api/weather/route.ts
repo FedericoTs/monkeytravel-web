@@ -6,9 +6,15 @@
  * realistic weather expectations for trip planning.
  *
  * Open-Meteo is free, requires no API key, and provides high-quality data.
+ *
+ * Now routed through API Gateway for:
+ * - Automatic logging and analytics
+ * - Retry with exponential backoff
+ * - Circuit breaker protection
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
 
 interface WeatherData {
   temperature: {
@@ -84,7 +90,7 @@ export async function GET(request: NextRequest) {
     // Get historical date range (same dates from previous year)
     const historicalDates = getHistoricalDateRange(startDate, endDate);
 
-    // Fetch from Open-Meteo Historical API
+    // Fetch from Open-Meteo Historical API via API Gateway
     const url = new URL("https://archive-api.open-meteo.com/v1/archive");
     url.searchParams.set("latitude", latitude);
     url.searchParams.set("longitude", longitude);
@@ -93,9 +99,24 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weathercode");
     url.searchParams.set("timezone", "auto");
 
-    const response = await fetch(url.toString(), {
-      next: { revalidate: 86400 }, // Cache for 24 hours
-    });
+    const { response, data } = await apiGateway.fetch<OpenMeteoHistoricalResponse>(
+      url.toString(),
+      {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+      },
+      {
+        apiName: "open_meteo",
+        endpoint: "/archive",
+        costOverride: 0, // Free API
+        metadata: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          startDate: historicalDates.start,
+          endDate: historicalDates.end,
+        },
+      }
+    );
 
     if (!response.ok) {
       console.error("[Weather API] Open-Meteo error:", response.status);
@@ -104,8 +125,6 @@ export async function GET(request: NextRequest) {
         { status: 502 }
       );
     }
-
-    const data: OpenMeteoHistoricalResponse = await response.json();
 
     if (!data.daily || !data.daily.time || data.daily.time.length === 0) {
       return NextResponse.json(
@@ -181,6 +200,15 @@ export async function GET(request: NextRequest) {
       basedOn: `Historical data from ${historicalDates.start} to ${historicalDates.end}`,
     });
   } catch (error) {
+    // Handle circuit breaker open state
+    if (error instanceof CircuitOpenError) {
+      console.warn("[Weather API] Circuit breaker open:", error.message);
+      return NextResponse.json(
+        { error: "Weather service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+
     console.error("[Weather API] Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch weather data" },

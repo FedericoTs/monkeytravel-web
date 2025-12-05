@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -150,34 +151,44 @@ export async function POST(request: NextRequest) {
 
     console.log("[Places API] Cache MISS for:", query);
 
-    // Use Text Search to find the place
-    const searchResponse = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask":
-            "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.userRatingCount,places.websiteUri,places.googleMapsUri,places.priceLevel,places.priceRange,places.currentOpeningHours",
-        },
-        body: JSON.stringify({
-          textQuery: query,
-          maxResultCount: 1,
-        }),
-      }
-    );
+    // Use Text Search to find the place with request deduplication
+    // This prevents duplicate concurrent API calls for the same query
+    const dedupKey = generateKey("places_search", { query: query.toLowerCase().trim() });
 
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error("Places API error:", errorText);
+    const searchData = await deduplicatedFetch(dedupKey, async () => {
+      const searchResponse = await fetch(
+        "https://places.googleapis.com/v1/places:searchText",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask":
+              "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.userRatingCount,places.websiteUri,places.googleMapsUri,places.priceLevel,places.priceRange,places.currentOpeningHours",
+          },
+          body: JSON.stringify({
+            textQuery: query,
+            maxResultCount: 1,
+          }),
+        }
+      );
+
+      if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        console.error("Places API error:", errorText);
+        throw new Error("Failed to search for place");
+      }
+
+      return searchResponse.json();
+    });
+
+    // Handle dedup errors
+    if (searchData instanceof Error) {
       return NextResponse.json(
-        { error: "Failed to search for place" },
+        { error: searchData.message },
         { status: 500 }
       );
     }
-
-    const searchData = await searchResponse.json();
     const place: PlaceResult | undefined = searchData.places?.[0];
 
     if (!place) {
@@ -278,32 +289,41 @@ export async function GET(request: NextRequest) {
 
     console.log("[Places API] Cache MISS for destination:", destination);
 
-    // Search for the destination (city/landmark)
-    const searchResponse = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask":
-            "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.editorialSummary",
-        },
-        body: JSON.stringify({
-          textQuery: destination,
-          maxResultCount: 1,
-        }),
-      }
-    );
+    // Search for the destination (city/landmark) with request deduplication
+    const dedupKey = generateKey("places_destination", { destination: destination.toLowerCase().trim() });
 
-    if (!searchResponse.ok) {
+    const searchData = await deduplicatedFetch(dedupKey, async () => {
+      const searchResponse = await fetch(
+        "https://places.googleapis.com/v1/places:searchText",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask":
+              "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.editorialSummary",
+          },
+          body: JSON.stringify({
+            textQuery: destination,
+            maxResultCount: 1,
+          }),
+        }
+      );
+
+      if (!searchResponse.ok) {
+        throw new Error("Failed to fetch destination");
+      }
+
+      return searchResponse.json();
+    });
+
+    // Handle dedup errors
+    if (searchData instanceof Error) {
       return NextResponse.json(
-        { error: "Failed to fetch destination" },
+        { error: searchData.message },
         { status: 500 }
       );
     }
-
-    const searchData = await searchResponse.json();
     const place = searchData.places?.[0];
 
     if (!place) {
