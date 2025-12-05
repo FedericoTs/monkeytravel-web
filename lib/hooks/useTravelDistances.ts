@@ -170,7 +170,7 @@ export function useTravelDistances(
         }
       }
 
-      // Step 2: Build coordinate pairs for each day
+      // Step 2: Build pairs for each day - prioritize addresses over coordinates
       const newTravelData = new Map<number, DayTravelData>();
       const allPairs: Array<{
         dayNumber: number;
@@ -178,8 +178,10 @@ export function useTravelDistances(
         toActivityId: string;
         fromActivityName: string;
         toActivityName: string;
-        origin: Coordinates;
-        destination: Coordinates;
+        originAddress?: string;
+        destinationAddress?: string;
+        originCoords?: Coordinates;
+        destinationCoords?: Coordinates;
       }> = [];
 
       for (const day of itinerary) {
@@ -201,39 +203,53 @@ export function useTravelDistances(
           const fromId = fromActivity.id || `${day.day_number}-${i}`;
           const toId = toActivity.id || `${day.day_number}-${i + 1}`;
 
-          // Get coordinates (from activity or geocoded)
+          // Prefer address, fall back to coordinates
+          // Addresses work better with Google Distance Matrix API
+          const fromAddress = fromActivity.address || fromActivity.location;
+          const toAddress = toActivity.address || toActivity.location;
+
           const fromCoords = fromActivity.coordinates?.lat
             ? { lat: fromActivity.coordinates.lat, lng: fromActivity.coordinates.lng }
-            : geocodedCoords.get(fromActivity.address || fromActivity.location);
+            : geocodedCoords.get(fromAddress || "");
 
           const toCoords = toActivity.coordinates?.lat
             ? { lat: toActivity.coordinates.lat, lng: toActivity.coordinates.lng }
-            : geocodedCoords.get(toActivity.address || toActivity.location);
+            : geocodedCoords.get(toAddress || "");
 
-          if (fromCoords && toCoords) {
+          // Need at least address OR coordinates for each point
+          const hasFromLocation = fromAddress || fromCoords;
+          const hasToLocation = toAddress || toCoords;
+
+          if (hasFromLocation && hasToLocation) {
             allPairs.push({
               dayNumber: day.day_number,
               fromActivityId: fromId,
               toActivityId: toId,
               fromActivityName: fromActivity.name,
               toActivityName: toActivity.name,
-              origin: fromCoords,
-              destination: toCoords,
+              originAddress: fromAddress,
+              destinationAddress: toAddress,
+              originCoords: fromCoords,
+              destinationCoords: toCoords,
             });
           }
         }
       }
 
-      // Step 3: Fetch distances for all pairs
+      // Step 3: Fetch distances for all pairs - send addresses AND coordinates
+      // API will use addresses for more accurate Distance Matrix results
       if (allPairs.length > 0) {
         try {
           const distanceResponse = await fetch("/api/travel/distance", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              pairs: allPairs.map((p) => ({
-                origin: p.origin,
-                destination: p.destination,
+              pairs: allPairs.map((p, index) => ({
+                index, // Include index for matching results back
+                originAddress: p.originAddress,
+                destinationAddress: p.destinationAddress,
+                origin: p.originCoords,
+                destination: p.destinationCoords,
               })),
             }),
           });
@@ -242,7 +258,7 @@ export function useTravelDistances(
             const distanceData = await distanceResponse.json();
 
             // Debug: Log API response summary
-            const modes = (distanceData.results as DistanceResult[]).map(r => r.mode);
+            const modes = ((distanceData.results || []) as DistanceResult[]).map(r => r.mode);
             const walkingCount = modes.filter(m => m === "WALKING").length;
             const drivingCount = modes.filter(m => m === "DRIVING").length;
             console.log("[TravelDistances] API Response:", {
@@ -253,32 +269,11 @@ export function useTravelDistances(
               drivingResults: drivingCount,
             });
 
-            // Match results back to pairs by COORDINATES (not index)
-            // This is critical because the API may reorder results or drop failed pairs
-            for (const pair of allPairs) {
-              // Find matching result by coordinate comparison with tolerance
-              const result = (distanceData.results as DistanceResult[]).find(
-                (r) =>
-                  Math.abs(r.origin.lat - pair.origin.lat) < 0.00001 &&
-                  Math.abs(r.origin.lng - pair.origin.lng) < 0.00001 &&
-                  Math.abs(r.destination.lat - pair.destination.lat) < 0.00001 &&
-                  Math.abs(r.destination.lng - pair.destination.lng) < 0.00001
-              );
-
-              if (!result) {
-                // No result found for this pair - detailed debug logging
-                console.warn(
-                  `[TravelDistances] No match for pair: ${pair.fromActivityName} → ${pair.toActivityName}`,
-                  {
-                    pairOrigin: pair.origin,
-                    pairDest: pair.destination,
-                    availableResults: (distanceData.results as DistanceResult[]).map(r => ({
-                      mode: r.mode,
-                      origin: r.origin,
-                      dest: r.destination,
-                    })),
-                  }
-                );
+            // Match results by index (API returns results in same order with index)
+            for (const result of (distanceData.results || []) as (DistanceResult & { index: number })[]) {
+              const pair = allPairs[result.index];
+              if (!pair) {
+                console.warn(`[TravelDistances] No pair found for result index: ${result.index}`);
                 continue;
               }
 
@@ -289,8 +284,8 @@ export function useTravelDistances(
                   toActivityId: pair.toActivityId,
                   fromActivityName: pair.fromActivityName,
                   toActivityName: pair.toActivityName,
-                  origin: pair.origin,
-                  destination: pair.destination,
+                  origin: pair.originCoords || { lat: 0, lng: 0 },
+                  destination: pair.destinationCoords || { lat: 0, lng: 0 },
                   mode: result.mode,
                   distanceMeters: result.distanceMeters,
                   durationSeconds: result.durationSeconds,
@@ -301,6 +296,16 @@ export function useTravelDistances(
                 dayData.segments.push(segment);
                 dayData.totalDistanceMeters += result.distanceMeters;
                 dayData.totalDurationSeconds += result.durationSeconds;
+              }
+            }
+
+            // Log any pairs that didn't get results
+            const resultIndices = new Set((distanceData.results || []).map((r: { index: number }) => r.index));
+            for (let i = 0; i < allPairs.length; i++) {
+              if (!resultIndices.has(i)) {
+                console.warn(
+                  `[TravelDistances] No result for pair ${i}: ${allPairs[i].fromActivityName} → ${allPairs[i].toActivityName}`
+                );
               }
             }
           } else {

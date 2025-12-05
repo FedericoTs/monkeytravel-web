@@ -10,8 +10,11 @@ interface Coordinates {
 }
 
 interface DistancePair {
-  origin: Coordinates;
-  destination: Coordinates;
+  index: number; // Index for matching results back to pairs
+  origin?: Coordinates;
+  destination?: Coordinates;
+  originAddress?: string;
+  destinationAddress?: string;
   mode?: "WALKING" | "DRIVING" | "TRANSIT" | "AUTO";
 }
 
@@ -40,15 +43,22 @@ function roundCoord(n: number): number {
 
 /**
  * Generate route hash for cache key
+ * Prefers addresses for more accurate caching, falls back to coordinates
  */
 function generateRouteHash(
-  originLat: number,
-  originLng: number,
-  destLat: number,
-  destLng: number,
+  originAddress: string | undefined,
+  destAddress: string | undefined,
+  originCoords: Coordinates | undefined,
+  destCoords: Coordinates | undefined,
   mode: string
 ): string {
-  const key = `${roundCoord(originLat)},${roundCoord(originLng)}|${roundCoord(destLat)},${roundCoord(destLng)}|${mode}`;
+  // Prefer addresses for cache key (more semantically accurate)
+  const originKey = originAddress?.toLowerCase().trim() ||
+    (originCoords ? `${roundCoord(originCoords.lat)},${roundCoord(originCoords.lng)}` : "unknown");
+  const destKey = destAddress?.toLowerCase().trim() ||
+    (destCoords ? `${roundCoord(destCoords.lat)},${roundCoord(destCoords.lng)}` : "unknown");
+
+  const key = `${originKey}|${destKey}|${mode}`;
   return crypto.createHash("md5").update(key).digest("hex");
 }
 
@@ -77,14 +87,20 @@ function calculateStraightLineDistance(
 /**
  * Determine optimal travel mode based on distance
  * Walk if under 1km straight-line, otherwise drive
+ * If no coordinates available, defaults to DRIVING for safety
  */
 function determineMode(
-  origin: Coordinates,
-  destination: Coordinates,
+  origin: Coordinates | undefined,
+  destination: Coordinates | undefined,
   preferredMode?: string
 ): "WALKING" | "DRIVING" {
   if (preferredMode && preferredMode !== "AUTO") {
     return preferredMode as "WALKING" | "DRIVING";
+  }
+
+  // If we don't have coordinates, default to driving (safer for long distances)
+  if (!origin || !destination) {
+    return "DRIVING";
   }
 
   const distance = calculateStraightLineDistance(
@@ -127,30 +143,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results: DistanceResult[] = [];
+    const results: (DistanceResult & { index: number })[] = [];
     const uncached: Array<{
-      origin: Coordinates;
-      destination: Coordinates;
+      originAddress?: string;
+      destinationAddress?: string;
+      origin?: Coordinates;
+      destination?: Coordinates;
       mode: "WALKING" | "DRIVING";
       hash: string;
       index: number;
     }> = [];
 
     // Determine modes and generate hashes for all pairs
-    const pairsWithModes = pairs.map((pair, index) => {
+    const pairsWithModes = pairs.map((pair) => {
       const mode = determineMode(pair.origin, pair.destination, pair.mode);
       return {
         ...pair,
         mode,
         hash: generateRouteHash(
-          pair.origin.lat,
-          pair.origin.lng,
-          pair.destination.lat,
-          pair.destination.lng,
+          pair.originAddress,
+          pair.destinationAddress,
+          pair.origin,
+          pair.destination,
           mode
         ),
-        index,
       };
+    });
+
+    // Debug: Log mode breakdown
+    const walkingCount = pairsWithModes.filter(p => p.mode === "WALKING").length;
+    const drivingCount = pairsWithModes.filter(p => p.mode === "DRIVING").length;
+    console.log("[Distance API] Pairs received:", {
+      total: pairs.length,
+      walking: walkingCount,
+      driving: drivingCount,
     });
 
     // Step 1: Check cache for all pairs
@@ -173,8 +199,9 @@ export async function POST(request: NextRequest) {
       const cachedResult = cachedMap.get(pair.hash);
       if (cachedResult) {
         results.push({
-          origin: pair.origin,
-          destination: pair.destination,
+          index: pair.index,
+          origin: pair.origin || { lat: cachedResult.origin_lat, lng: cachedResult.origin_lng },
+          destination: pair.destination || { lat: cachedResult.destination_lat, lng: cachedResult.destination_lng },
           mode: cachedResult.travel_mode as "WALKING" | "DRIVING" | "TRANSIT",
           distanceMeters: cachedResult.distance_meters,
           durationSeconds: cachedResult.duration_seconds,
@@ -194,6 +221,8 @@ export async function POST(request: NextRequest) {
           .then(() => {});
       } else {
         uncached.push({
+          originAddress: pair.originAddress,
+          destinationAddress: pair.destinationAddress,
           origin: pair.origin,
           destination: pair.destination,
           mode: pair.mode,
@@ -202,6 +231,16 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+
+    // Debug: Log cache results
+    console.log("[Distance API] Cache results:", {
+      cacheHits: results.length,
+      uncachedPairs: uncached.length,
+      uncachedByMode: {
+        walking: uncached.filter(p => p.mode === "WALKING").length,
+        driving: uncached.filter(p => p.mode === "DRIVING").length,
+      },
+    });
 
     // Step 3: Fetch uncached from Google Distance Matrix API
     if (uncached.length > 0) {
@@ -216,19 +255,45 @@ export async function POST(request: NextRequest) {
       );
 
       for (const [mode, modePairs] of Object.entries(byMode)) {
-        // Build origins and destinations strings
+        // Build origins and destinations strings - prefer addresses over coordinates
+        // Addresses give more accurate results as Google can resolve them properly
+        // Coordinates may snap to incorrect roads
         const origins = modePairs
-          .map((p) => `${p.origin.lat},${p.origin.lng}`)
+          .map((p) => {
+            if (p.originAddress) {
+              return encodeURIComponent(p.originAddress);
+            }
+            return p.origin ? `${p.origin.lat},${p.origin.lng}` : "";
+          })
+          .filter(Boolean)
           .join("|");
+
         const destinations = modePairs
-          .map((p) => `${p.destination.lat},${p.destination.lng}`)
+          .map((p) => {
+            if (p.destinationAddress) {
+              return encodeURIComponent(p.destinationAddress);
+            }
+            return p.destination ? `${p.destination.lat},${p.destination.lng}` : "";
+          })
+          .filter(Boolean)
           .join("|");
 
         const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origins}&destinations=${destinations}&mode=${mode.toLowerCase()}&key=${GOOGLE_MAPS_API_KEY}`;
 
         try {
+          console.log(`[Distance API] Calling Google API for ${mode}:`, {
+            pairsCount: modePairs.length,
+            origins: modePairs.map(p => p.originAddress || (p.origin ? `${p.origin.lat.toFixed(4)},${p.origin.lng.toFixed(4)}` : "unknown")),
+          });
+
           const response = await fetch(url);
           const data = await response.json();
+
+          console.log(`[Distance API] Google API response for ${mode}:`, {
+            status: data.status,
+            errorMessage: data.error_message,
+            rowsCount: data.rows?.length,
+          });
 
           if (data.status === "OK") {
             // Distance Matrix returns a matrix, but we want diagonal (1-to-1)
@@ -237,9 +302,10 @@ export async function POST(request: NextRequest) {
               const pair = modePairs[i];
 
               if (element?.status === "OK") {
-                const result: DistanceResult = {
-                  origin: pair.origin,
-                  destination: pair.destination,
+                const result: DistanceResult & { index: number } = {
+                  index: pair.index,
+                  origin: pair.origin || { lat: 0, lng: 0 },
+                  destination: pair.destination || { lat: 0, lng: 0 },
                   mode: mode as "WALKING" | "DRIVING",
                   distanceMeters: element.distance.value,
                   durationSeconds: element.duration.value,
@@ -250,28 +316,30 @@ export async function POST(request: NextRequest) {
 
                 results.push(result);
 
-                // Cache the result
-                supabase
-                  .from("distance_cache")
-                  .insert({
-                    route_hash: pair.hash,
-                    origin_lat: pair.origin.lat,
-                    origin_lng: pair.origin.lng,
-                    destination_lat: pair.destination.lat,
-                    destination_lng: pair.destination.lng,
-                    travel_mode: mode,
-                    distance_meters: element.distance.value,
-                    duration_seconds: element.duration.value,
-                    distance_text: element.distance.text,
-                    duration_text: element.duration.text,
-                    status: "OK",
-                    expires_at: new Date(
-                      Date.now() + 7 * 24 * 60 * 60 * 1000
-                    ).toISOString(), // 7 days
-                  })
-                  .then(({ error }) => {
-                    if (error) console.error("Distance cache insert error:", error);
-                  });
+                // Cache the result - use coordinates if available
+                if (pair.origin && pair.destination) {
+                  supabase
+                    .from("distance_cache")
+                    .insert({
+                      route_hash: pair.hash,
+                      origin_lat: pair.origin.lat,
+                      origin_lng: pair.origin.lng,
+                      destination_lat: pair.destination.lat,
+                      destination_lng: pair.destination.lng,
+                      travel_mode: mode,
+                      distance_meters: element.distance.value,
+                      duration_seconds: element.duration.value,
+                      distance_text: element.distance.text,
+                      duration_text: element.duration.text,
+                      status: "OK",
+                      expires_at: new Date(
+                        Date.now() + 7 * 24 * 60 * 60 * 1000
+                      ).toISOString(), // 7 days
+                    })
+                    .then(({ error }) => {
+                      if (error) console.error("Distance cache insert error:", error);
+                    });
+                }
               } else {
                 // Fallback: Calculate straight-line distance when API returns ZERO_RESULTS
                 // This ensures we always have some distance data to display
@@ -279,33 +347,52 @@ export async function POST(request: NextRequest) {
                   `Distance Matrix element status: ${element?.status} for pair ${i}, using fallback`
                 );
 
-                const straightLineDistance = calculateStraightLineDistance(
-                  pair.origin.lat,
-                  pair.origin.lng,
-                  pair.destination.lat,
-                  pair.destination.lng
-                );
+                // Only calculate fallback if we have coordinates
+                if (pair.origin && pair.destination) {
+                  const straightLineDistance = calculateStraightLineDistance(
+                    pair.origin.lat,
+                    pair.origin.lng,
+                    pair.destination.lat,
+                    pair.destination.lng
+                  );
 
-                // Estimate travel distance as 1.3x straight-line (typical road factor)
-                const estimatedDistance = Math.round(straightLineDistance * 1.3);
-                // Estimate duration based on mode (walking: 5km/h, driving: 30km/h avg in cities)
-                const speedKmh = mode === "WALKING" ? 5 : 30;
-                const estimatedDuration = Math.round((estimatedDistance / 1000 / speedKmh) * 3600);
+                  // Estimate travel distance as 1.3x straight-line (typical road factor)
+                  const estimatedDistance = Math.round(straightLineDistance * 1.3);
+                  // Estimate duration based on mode (walking: 5km/h, driving: 30km/h avg in cities)
+                  const speedKmh = mode === "WALKING" ? 5 : 30;
+                  const estimatedDuration = Math.round((estimatedDistance / 1000 / speedKmh) * 3600);
 
-                const result: DistanceResult = {
-                  origin: pair.origin,
-                  destination: pair.destination,
-                  mode: mode as "WALKING" | "DRIVING",
-                  distanceMeters: estimatedDistance,
-                  durationSeconds: estimatedDuration,
-                  distanceText: estimatedDistance < 1000
-                    ? `~${estimatedDistance} m`
-                    : `~${(estimatedDistance / 1000).toFixed(1)} km`,
-                  durationText: `~${Math.round(estimatedDuration / 60)} min`,
-                  source: "api", // Mark as API even though it's estimated
-                };
+                  const result: DistanceResult & { index: number } = {
+                    index: pair.index,
+                    origin: pair.origin,
+                    destination: pair.destination,
+                    mode: mode as "WALKING" | "DRIVING",
+                    distanceMeters: estimatedDistance,
+                    durationSeconds: estimatedDuration,
+                    distanceText: estimatedDistance < 1000
+                      ? `~${estimatedDistance} m`
+                      : `~${(estimatedDistance / 1000).toFixed(1)} km`,
+                    durationText: `~${Math.round(estimatedDuration / 60)} min`,
+                    source: "api", // Mark as API even though it's estimated
+                  };
 
-                results.push(result);
+                  results.push(result);
+                } else {
+                  // No coordinates available, use a default estimate (5km driving)
+                  console.warn(`No coordinates for fallback, using default estimate for pair ${i}`);
+                  const result: DistanceResult & { index: number } = {
+                    index: pair.index,
+                    origin: { lat: 0, lng: 0 },
+                    destination: { lat: 0, lng: 0 },
+                    mode: mode as "WALKING" | "DRIVING",
+                    distanceMeters: mode === "WALKING" ? 500 : 5000,
+                    durationSeconds: mode === "WALKING" ? 360 : 600,
+                    distanceText: mode === "WALKING" ? "~500 m" : "~5 km",
+                    durationText: mode === "WALKING" ? "~6 min" : "~10 min",
+                    source: "api",
+                  };
+                  results.push(result);
+                }
               }
             }
 
@@ -332,26 +419,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sort results to match original order using tolerance-based matching
-    // This is critical because floating-point equality can fail
-    const COORD_TOLERANCE = 0.00001; // ~1.1 meters precision
-    const orderedResults = pairsWithModes.map((pair) => {
-      return results.find(
-        (r) =>
-          Math.abs(r.origin.lat - pair.origin.lat) < COORD_TOLERANCE &&
-          Math.abs(r.origin.lng - pair.origin.lng) < COORD_TOLERANCE &&
-          Math.abs(r.destination.lat - pair.destination.lat) < COORD_TOLERANCE &&
-          Math.abs(r.destination.lng - pair.destination.lng) < COORD_TOLERANCE
-      );
-    }).filter((r): r is DistanceResult => r !== undefined);
+    // Results already have indices - just sort by index for consistency
+    const sortedResults = results.sort((a, b) => a.index - b.index);
+
+    console.log("[Distance API] Final results:", {
+      totalPairs: pairs.length,
+      resultsReturned: sortedResults.length,
+      walkingResults: sortedResults.filter(r => r.mode === "WALKING").length,
+      drivingResults: sortedResults.filter(r => r.mode === "DRIVING").length,
+    });
 
     return NextResponse.json({
-      results: orderedResults,
+      results: sortedResults,
       stats: {
         total: pairs.length,
         cached: results.filter((r) => r.source === "cache").length,
         fetched: results.filter((r) => r.source === "api").length,
-        failed: pairs.length - orderedResults.length,
+        failed: pairs.length - sortedResults.length,
       },
     });
   } catch (error) {
