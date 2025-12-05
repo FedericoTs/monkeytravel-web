@@ -1,11 +1,21 @@
 import type jsPDF from "jspdf";
 import type { PageContext } from "../types";
 import type { Activity } from "@/types";
-import { getActivityTypeConfig, LAYOUT } from "../config";
+import { getActivityTypeConfig, COLORS, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
 
 /**
- * Render a single activity card with optional image
+ * Format duration nicely
+ */
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+}
+
+/**
+ * Render a premium activity card with image
  */
 export function renderActivityCard(
   ctx: PageContext,
@@ -16,115 +26,145 @@ export function renderActivityCard(
   currency: string
 ): number {
   const { doc, config, imageCache } = ctx;
-  const { colors } = config;
 
   const hasActivityImage = hasImage(imageCache, activity.image_url);
-  const cardHeight = hasActivityImage ? LAYOUT.activityCardHeight : LAYOUT.activityCardHeight - 10;
-  const imageHeight = LAYOUT.activityImageHeight;
-  const padding = 4;
+  const cardHeight = LAYOUT.activityCardHeight;
+  const imageWidth = hasActivityImage ? 45 : 0;
+  const contentX = x + (hasActivityImage ? imageWidth + 6 : 0);
+  const contentWidth = width - (hasActivityImage ? imageWidth + 6 : 0);
+  const padding = LAYOUT.cardPadding;
+  const typeConfig = getActivityTypeConfig(activity.type);
 
-  // === CARD BACKGROUND ===
+  // === CARD SHADOW & BACKGROUND ===
+  // Subtle shadow effect
+  doc.setFillColor(230, 230, 230);
+  doc.roundedRect(x + 1, y + 1, width, cardHeight, LAYOUT.cardRadius, LAYOUT.cardRadius, "F");
+
+  // Main card
   doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(...colors.border);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(x, y, width, cardHeight, 2, 2, "FD");
+  doc.roundedRect(x, y, width, cardHeight, LAYOUT.cardRadius, LAYOUT.cardRadius, "F");
 
-  // === ACTIVITY IMAGE ===
-  let contentStartY = y + 2;
-
+  // === ACTIVITY IMAGE OR TYPE GRADIENT ===
   if (hasActivityImage && activity.image_url) {
     const imageData = imageCache[activity.image_url];
     const format = getImageFormat(imageData);
 
     try {
+      // Clip rounded corners
       doc.addImage(
         imageData,
         format,
-        x + 1,
-        y + 1,
-        width - 2,
-        imageHeight,
+        x + 2,
+        y + 2,
+        imageWidth - 4,
+        cardHeight - 4,
         undefined,
         "MEDIUM"
       );
-    } catch {
-      // Fallback: colored placeholder
-      renderImagePlaceholder(doc, x + 1, y + 1, width - 2, imageHeight, activity.type, colors);
-    }
 
-    contentStartY = y + imageHeight + 2;
-  } else {
-    // Small colored strip at top instead of image
-    const typeConfig = getActivityTypeConfig(activity.type);
-    doc.setFillColor(...typeConfig.color);
-    doc.rect(x + 1, y + 1, width - 2, 4, "F");
-    contentStartY = y + 6;
+      // Overlay gradient for text readability at bottom of image
+      doc.setFillColor(...typeConfig.color);
+      doc.rect(x + 2, y + cardHeight - 12, imageWidth - 4, 10, "F");
+
+    } catch {
+      // Fallback to gradient placeholder
+      renderGradientPlaceholder(doc, x + 2, y + 2, imageWidth - 4, cardHeight - 4, typeConfig);
+    }
+  } else if (imageWidth > 0) {
+    renderGradientPlaceholder(doc, x + 2, y + 2, imageWidth - 4, cardHeight - 4, typeConfig);
   }
 
-  // === TIME BADGE (overlaid on image if present) ===
-  const badgeY = hasActivityImage ? y + imageHeight - 8 : y + 2;
-  doc.setFillColor(...colors.accent);
-  doc.roundedRect(x + padding, badgeY, 18, 7, 1, 1, "F");
-  doc.setTextColor(...colors.text);
-  doc.setFontSize(6);
+  // === LEFT ACCENT BAR (if no image) ===
+  if (!hasActivityImage) {
+    doc.setFillColor(...typeConfig.color);
+    doc.rect(x, y, 4, cardHeight, "F");
+  }
+
+  // === TIME BADGE ===
+  const timeX = hasActivityImage ? x + 4 : x + padding + 4;
+  const timeY = hasActivityImage ? y + cardHeight - 10 : y + padding;
+
+  if (hasActivityImage) {
+    // Time badge on image
+    doc.setTextColor(255, 255, 255);
+  } else {
+    doc.setFillColor(...typeConfig.color);
+    doc.roundedRect(timeX - 2, timeY - 4, 22, 8, 2, 2, "F");
+    doc.setTextColor(255, 255, 255);
+  }
+  doc.setFontSize(8);
   doc.setFont(config.fonts.body, "bold");
-  doc.text(activity.start_time, x + padding + 2, badgeY + 5);
+  doc.text(activity.start_time, timeX, timeY);
 
   // === TYPE BADGE ===
-  const typeConfig = getActivityTypeConfig(activity.type);
-  doc.setFillColor(...typeConfig.color);
-  doc.roundedRect(x + padding + 20, badgeY, 14, 7, 1, 1, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(5);
+  const typeBadgeX = hasActivityImage ? x + 24 : timeX + 24;
+  const typeBadgeY = hasActivityImage ? y + cardHeight - 10 : y + padding;
+
+  if (!hasActivityImage) {
+    doc.setFillColor(...typeConfig.bgLight);
+    doc.roundedRect(typeBadgeX - 2, typeBadgeY - 4, 16, 8, 2, 2, "F");
+    doc.setTextColor(...typeConfig.color);
+  } else {
+    doc.setTextColor(255, 255, 255);
+  }
+  doc.setFontSize(6);
   doc.setFont(config.fonts.body, "bold");
-  doc.text(typeConfig.label, x + padding + 22, badgeY + 5);
+  doc.text(typeConfig.label, typeBadgeX, typeBadgeY);
 
   // === ACTIVITY NAME ===
-  doc.setTextColor(...colors.text);
-  doc.setFontSize(9);
+  const nameY = y + padding + 2;
+  doc.setTextColor(...COLORS.text);
+  doc.setFontSize(11);
   doc.setFont(config.fonts.display, "bold");
-  const nameMaxWidth = width - padding * 2 - 20;
-  const nameText = truncateText(activity.name, nameMaxWidth, doc, 9);
-  doc.text(nameText, x + padding, contentStartY + 5);
+  const maxNameWidth = contentWidth - padding * 2 - 25;
+  let activityName = activity.name;
+  while (doc.getTextWidth(activityName) > maxNameWidth && activityName.length > 10) {
+    activityName = activityName.substring(0, activityName.length - 4) + "...";
+  }
+  doc.text(activityName, contentX + padding, nameY + 6);
 
-  // === DURATION ===
-  doc.setTextColor(...colors.muted);
-  doc.setFontSize(6);
+  // === DURATION (top right) ===
+  doc.setTextColor(...COLORS.muted);
+  doc.setFontSize(8);
   doc.setFont(config.fonts.body, "normal");
-  doc.text(
-    `${activity.duration_minutes}m`,
-    x + width - padding - 8,
-    contentStartY + 5
-  );
+  doc.text(formatDuration(activity.duration_minutes), x + width - padding, nameY + 6, { align: "right" });
 
   // === DESCRIPTION ===
-  doc.setFontSize(7);
-  const descMaxWidth = width - padding * 2;
-  const descText = activity.description.length > 80
-    ? activity.description.substring(0, 80) + "..."
-    : activity.description;
-  const descLines = doc.splitTextToSize(descText, descMaxWidth);
-  doc.text(descLines.slice(0, 2), x + padding, contentStartY + 12);
+  doc.setTextColor(...COLORS.muted);
+  doc.setFontSize(8);
+  doc.setFont(config.fonts.body, "normal");
+  const descMaxWidth = contentWidth - padding * 2;
+  let description = activity.description;
+  if (description.length > 100) {
+    description = description.substring(0, 97) + "...";
+  }
+  const descLines = doc.splitTextToSize(description, descMaxWidth);
+  doc.text(descLines.slice(0, 2), contentX + padding, nameY + 16);
 
-  // === FOOTER (Location + Cost) ===
-  const footerY = y + cardHeight - 6;
+  // === FOOTER: LOCATION + COST ===
+  const footerY = y + cardHeight - padding - 2;
 
-  // Location dot
-  doc.setFillColor(...colors.primary);
-  doc.circle(x + padding + 1.5, footerY - 1, 1.5, "F");
+  // Location pin icon (small dot)
+  doc.setFillColor(...COLORS.primary);
+  doc.circle(contentX + padding + 1.5, footerY - 1.5, 1.5, "F");
 
   // Location text
-  doc.setTextColor(...colors.muted);
-  doc.setFontSize(6);
+  doc.setTextColor(...COLORS.subtle);
+  doc.setFontSize(7);
   const location = activity.address || activity.location;
-  const locationText = truncateText(location, width * 0.55, doc, 6);
-  doc.text(locationText, x + padding + 5, footerY);
+  let locationText = location;
+  const maxLocationWidth = contentWidth - padding * 2 - 40;
+  while (doc.getTextWidth(locationText) > maxLocationWidth && locationText.length > 10) {
+    locationText = locationText.substring(0, locationText.length - 4) + "...";
+  }
+  doc.text(locationText, contentX + padding + 5, footerY);
 
-  // Cost
-  const costText = activity.estimated_cost.amount === 0
-    ? "Free"
-    : `${currency} ${activity.estimated_cost.amount}`;
-  doc.setTextColor(...colors.text);
+  // Cost (right side)
+  const cost = activity.estimated_cost.amount;
+  const costText = cost === 0 ? "Free" : `${currency} ${cost}`;
+  const costColor = cost === 0 ? COLORS.secondary : COLORS.text;
+  doc.setTextColor(...costColor);
+  doc.setFontSize(9);
   doc.setFont(config.fonts.body, "bold");
   doc.text(costText, x + width - padding, footerY, { align: "right" });
 
@@ -132,26 +172,23 @@ export function renderActivityCard(
 }
 
 /**
- * Render a colored placeholder for missing images
+ * Render gradient placeholder for missing images
  */
-function renderImagePlaceholder(
+function renderGradientPlaceholder(
   doc: jsPDF,
   x: number,
   y: number,
   width: number,
   height: number,
-  activityType: string,
-  colors: { muted: [number, number, number] }
+  typeConfig: { color: [number, number, number]; label: string }
 ): void {
-  const typeConfig = getActivityTypeConfig(activityType);
-
-  // Gradient-like effect
-  const steps = 5;
+  // Create gradient effect
+  const steps = 8;
   for (let i = 0; i < steps; i++) {
     const ratio = i / steps;
-    const r = Math.round(typeConfig.color[0] * (0.7 + ratio * 0.3));
-    const g = Math.round(typeConfig.color[1] * (0.7 + ratio * 0.3));
-    const b = Math.round(typeConfig.color[2] * (0.7 + ratio * 0.3));
+    const r = Math.min(255, typeConfig.color[0] + 50 * ratio);
+    const g = Math.min(255, typeConfig.color[1] + 50 * ratio);
+    const b = Math.min(255, typeConfig.color[2] + 50 * ratio);
 
     doc.setFillColor(r, g, b);
     doc.rect(x, y + (height / steps) * i, width, height / steps + 1, "F");
@@ -159,37 +196,13 @@ function renderImagePlaceholder(
 
   // Type label centered
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(
-    typeConfig.label.toUpperCase(),
-    x + width / 2,
-    y + height / 2 + 3,
-    { align: "center" }
-  );
+  doc.text(typeConfig.label, x + width / 2, y + height / 2 + 4, { align: "center" });
 }
 
 /**
- * Truncate text to fit within a width
- */
-function truncateText(
-  text: string,
-  maxWidth: number,
-  doc: jsPDF,
-  fontSize: number
-): string {
-  doc.setFontSize(fontSize);
-  let truncated = text;
-
-  while (doc.getTextWidth(truncated) > maxWidth && truncated.length > 3) {
-    truncated = truncated.substring(0, truncated.length - 4) + "...";
-  }
-
-  return truncated;
-}
-
-/**
- * Render a compact activity card (for tight spaces)
+ * Render a compact activity row (for days with many activities)
  */
 export function renderCompactActivityCard(
   ctx: PageContext,
@@ -200,48 +213,57 @@ export function renderCompactActivityCard(
   currency: string
 ): number {
   const { doc, config } = ctx;
-  const { colors } = config;
-  const cardHeight = 24;
-  const padding = 3;
+  const cardHeight = 20;
+  const padding = 4;
+  const typeConfig = getActivityTypeConfig(activity.type);
 
   // Card background
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(...colors.border);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(x, y, width, cardHeight, 2, 2, "FD");
+  doc.setFillColor(...COLORS.cardBg);
+  doc.roundedRect(x, y, width, cardHeight, 2, 2, "F");
 
   // Type color bar
-  const typeConfig = getActivityTypeConfig(activity.type);
   doc.setFillColor(...typeConfig.color);
-  doc.rect(x, y, 3, cardHeight, "F");
+  doc.rect(x, y, 4, cardHeight, "F");
 
   // Time
-  doc.setTextColor(...colors.text);
-  doc.setFontSize(7);
-  doc.setFont(config.fonts.body, "bold");
-  doc.text(activity.start_time, x + 6, y + 7);
-
-  // Name
+  doc.setTextColor(...COLORS.text);
   doc.setFontSize(8);
-  const nameText = activity.name.length > 25
-    ? activity.name.substring(0, 25) + "..."
-    : activity.name;
-  doc.text(nameText, x + 22, y + 7);
+  doc.setFont(config.fonts.body, "bold");
+  doc.text(activity.start_time, x + 8, y + 8);
 
-  // Duration & Cost
-  doc.setTextColor(...colors.muted);
-  doc.setFontSize(6);
+  // Type badge
+  doc.setFillColor(...typeConfig.bgLight);
+  doc.roundedRect(x + 28, y + 3, 14, 6, 1, 1, "F");
+  doc.setTextColor(...typeConfig.color);
+  doc.setFontSize(5);
+  doc.text(typeConfig.label, x + 30, y + 7);
+
+  // Activity name
+  doc.setTextColor(...COLORS.text);
+  doc.setFontSize(9);
+  doc.setFont(config.fonts.display, "bold");
+  let name = activity.name;
+  if (name.length > 30) name = name.substring(0, 27) + "...";
+  doc.text(name, x + 46, y + 8);
+
+  // Duration
+  doc.setTextColor(...COLORS.subtle);
+  doc.setFontSize(7);
   doc.setFont(config.fonts.body, "normal");
-  doc.text(`${activity.duration_minutes}m`, x + 6, y + 14);
-
-  const costText = activity.estimated_cost.amount === 0
-    ? "Free"
-    : `${currency} ${activity.estimated_cost.amount}`;
-  doc.text(costText, x + width - padding, y + 14, { align: "right" });
+  doc.text(formatDuration(activity.duration_minutes), x + 46, y + 15);
 
   // Location
-  const location = (activity.address || activity.location).substring(0, 35);
-  doc.text(location, x + 22, y + 14);
+  const location = (activity.address || activity.location).substring(0, 30);
+  doc.text(location, x + 80, y + 15);
+
+  // Cost
+  const cost = activity.estimated_cost.amount;
+  const costText = cost === 0 ? "Free" : `${currency} ${cost}`;
+  const compactCostColor = cost === 0 ? COLORS.secondary : COLORS.text;
+  doc.setTextColor(...compactCostColor);
+  doc.setFontSize(8);
+  doc.setFont(config.fonts.body, "bold");
+  doc.text(costText, x + width - padding, y + 12, { align: "right" });
 
   return cardHeight;
 }

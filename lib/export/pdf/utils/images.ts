@@ -1,128 +1,209 @@
-import type { ImageCache } from "../types";
+import type { PremiumTripForExport, ImageCache } from "../types";
 
 /**
- * Fetch an image from URL and convert to base64 for PDF embedding
+ * Fetch a single image via our server-side proxy to bypass CORS
  */
-export async function fetchImageAsBase64(url: string): Promise<string | null> {
+export async function fetchImageViaProxy(imageUrl: string): Promise<string | null> {
+  if (!imageUrl) return null;
+
   try {
-    // Add timeout to prevent hanging
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "Accept": "image/*",
-      },
-    });
-
-    clearTimeout(timeoutId);
+    const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(imageUrl)}`;
+    const response = await fetch(proxyUrl);
 
     if (!response.ok) {
-      console.warn(`Failed to fetch image: ${url} - ${response.status}`);
+      console.warn(`Proxy failed for ${imageUrl}:`, response.status);
       return null;
     }
 
-    const blob = await response.blob();
-
-    // Verify it's an image
-    if (!blob.type.startsWith("image/")) {
-      console.warn(`Not an image: ${url} - ${blob.type}`);
-      return null;
+    const data = await response.json();
+    if (data.success && data.dataUrl) {
+      return data.dataUrl;
     }
 
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.onerror = () => {
-        console.warn(`Failed to read image: ${url}`);
-        resolve(null);
-      };
-      reader.readAsDataURL(blob);
-    });
+    return null;
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      console.warn(`Image fetch timeout: ${url}`);
-    } else {
-      console.warn(`Image fetch error: ${url}`, error);
-    }
+    console.warn(`Failed to fetch image via proxy: ${imageUrl}`, error);
     return null;
   }
 }
 
 /**
- * Pre-fetch all images for a trip
- * Uses batching to prevent overwhelming the network
+ * Batch fetch images via server-side proxy
  */
-export async function prefetchTripImages(
-  coverUrl?: string,
-  activities?: Array<{ image_url?: string }>,
-  galleryPhotos?: Array<{ url: string; thumbnailUrl: string }>
-): Promise<ImageCache> {
-  const cache: ImageCache = {};
-  const urls: string[] = [];
+export async function batchFetchImages(urls: string[]): Promise<Record<string, string>> {
+  if (!urls || urls.length === 0) return {};
 
-  // Collect unique URLs
-  if (coverUrl) urls.push(coverUrl);
-
-  activities?.forEach((activity) => {
-    if (activity.image_url && !urls.includes(activity.image_url)) {
-      urls.push(activity.image_url);
-    }
-  });
-
-  galleryPhotos?.forEach((photo) => {
-    if (photo.url && !urls.includes(photo.url)) {
-      urls.push(photo.url);
-    }
-    if (photo.thumbnailUrl && !urls.includes(photo.thumbnailUrl)) {
-      urls.push(photo.thumbnailUrl);
-    }
-  });
-
-  // Fetch in batches to prevent rate limiting
-  const BATCH_SIZE = 5;
-  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
-    const batch = urls.slice(i, i + BATCH_SIZE);
-
-    const results = await Promise.all(
-      batch.map(async (url) => {
-        const base64 = await fetchImageAsBase64(url);
-        return { url, base64 };
-      })
-    );
-
-    results.forEach(({ url, base64 }) => {
-      if (base64) {
-        cache[url] = base64;
-      }
+  try {
+    const response = await fetch("/api/images/proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls }),
     });
 
-    // Small delay between batches
-    if (i + BATCH_SIZE < urls.length) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    if (!response.ok) {
+      console.warn("Batch fetch failed:", response.status);
+      return {};
     }
+
+    const data = await response.json();
+    return data.images || {};
+  } catch (error) {
+    console.warn("Batch fetch error:", error);
+    return {};
+  }
+}
+
+/**
+ * Collect all image URLs from a trip for prefetching
+ */
+export function collectTripImageUrls(trip: PremiumTripForExport): string[] {
+  const urls: string[] = [];
+
+  // Cover image
+  if (trip.coverImageUrl) {
+    urls.push(trip.coverImageUrl);
   }
 
-  return cache;
+  // Gallery photos
+  if (trip.galleryPhotos) {
+    trip.galleryPhotos.forEach((photo) => {
+      if (photo.url) urls.push(photo.url);
+      if (photo.thumbnailUrl && photo.thumbnailUrl !== photo.url) {
+        urls.push(photo.thumbnailUrl);
+      }
+    });
+  }
+
+  // Activity images
+  trip.itinerary.forEach((day) => {
+    day.activities.forEach((activity) => {
+      if (activity.image_url) {
+        urls.push(activity.image_url);
+      }
+    });
+  });
+
+  // Deduplicate
+  return [...new Set(urls)];
 }
 
 /**
- * Get image format from base64 string
+ * Prefetch all trip images with progress callback
  */
-export function getImageFormat(base64: string): "JPEG" | "PNG" | "GIF" | "WEBP" {
-  if (base64.includes("data:image/png")) return "PNG";
-  if (base64.includes("data:image/gif")) return "GIF";
-  if (base64.includes("data:image/webp")) return "WEBP";
-  return "JPEG"; // Default to JPEG
+export async function prefetchTripImages(
+  trip: PremiumTripForExport,
+  onProgress?: (step: string, progress: number) => void
+): Promise<ImageCache> {
+  const imageCache: ImageCache = {};
+  const urls = collectTripImageUrls(trip);
+
+  if (urls.length === 0) {
+    onProgress?.("No images to load", 100);
+    return imageCache;
+  }
+
+  onProgress?.(`Loading ${urls.length} images...`, 10);
+
+  // Batch fetch in chunks of 10
+  const chunkSize = 10;
+  let loaded = 0;
+
+  for (let i = 0; i < urls.length; i += chunkSize) {
+    const chunk = urls.slice(i, i + chunkSize);
+
+    try {
+      const results = await batchFetchImages(chunk);
+
+      // Add to cache
+      Object.entries(results).forEach(([url, dataUrl]) => {
+        if (dataUrl) {
+          imageCache[url] = dataUrl;
+          loaded++;
+        }
+      });
+    } catch (error) {
+      console.warn(`Chunk ${i / chunkSize + 1} failed:`, error);
+    }
+
+    // Update progress
+    const progress = Math.round(10 + (loaded / urls.length) * 80);
+    onProgress?.(`Loaded ${loaded}/${urls.length} images`, Math.min(progress, 90));
+  }
+
+  onProgress?.(`Images ready (${loaded}/${urls.length})`, 95);
+  return imageCache;
 }
 
 /**
- * Check if a cached image exists
+ * Get image format from base64 data URL
  */
-export function hasImage(cache: ImageCache, url?: string): boolean {
-  return !!url && !!cache[url];
+export function getImageFormat(dataUrl: string): "JPEG" | "PNG" | "WEBP" {
+  if (!dataUrl) return "JPEG";
+
+  if (dataUrl.includes("image/png")) return "PNG";
+  if (dataUrl.includes("image/webp")) return "WEBP";
+  return "JPEG";
+}
+
+/**
+ * Check if an image exists in the cache
+ */
+export function hasImage(cache: ImageCache, url?: string | null): boolean {
+  if (!url) return false;
+  return !!cache[url];
+}
+
+/**
+ * Get image from cache with fallback
+ */
+export function getImage(cache: ImageCache, url?: string | null): string | null {
+  if (!url) return null;
+  return cache[url] || null;
+}
+
+/**
+ * Create a beautiful gradient placeholder for missing images
+ * Returns SVG as data URL
+ */
+export function createGradientPlaceholder(
+  width: number,
+  height: number,
+  type: "cover" | "activity" | "gallery" = "activity",
+  activityType?: string
+): string {
+  // Color schemes based on type
+  const schemes: Record<string, { from: string; to: string; accent: string }> = {
+    cover: { from: "#667eea", to: "#764ba2", accent: "#f093fb" },
+    activity: { from: "#11998e", to: "#38ef7d", accent: "#00d9ff" },
+    gallery: { from: "#fc466b", to: "#3f5efb", accent: "#ffd700" },
+    // Activity type specific
+    eat: { from: "#f093fb", to: "#f5576c", accent: "#ffecd2" },
+    see: { from: "#4facfe", to: "#00f2fe", accent: "#43e97b" },
+    do: { from: "#fa709a", to: "#fee140", accent: "#ff9a9e" },
+    go: { from: "#a8edea", to: "#fed6e3", accent: "#5ee7df" },
+    stay: { from: "#667eea", to: "#764ba2", accent: "#f093fb" },
+  };
+
+  const scheme = activityType
+    ? schemes[activityType.toLowerCase()] || schemes.activity
+    : schemes[type];
+
+  // Create SVG with gradient and pattern
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${scheme.from};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${scheme.to};stop-opacity:1" />
+        </linearGradient>
+        <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="10" cy="10" r="1.5" fill="${scheme.accent}" opacity="0.3"/>
+        </pattern>
+      </defs>
+      <rect width="${width}" height="${height}" fill="url(#grad)"/>
+      <rect width="${width}" height="${height}" fill="url(#dots)"/>
+    </svg>
+  `.trim();
+
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }

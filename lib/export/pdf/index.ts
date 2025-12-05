@@ -41,7 +41,7 @@ export type {
 export { PDF_CONFIG, TYPOGRAPHY, LAYOUT, getActivityTypeConfig } from "./config";
 
 // Utilities (for advanced usage)
-export { fetchImageAsBase64, prefetchTripImages, hasImage } from "./utils/images";
+export { fetchImageViaProxy, prefetchTripImages, hasImage, getImageFormat } from "./utils/images";
 
 // Page renderers (for custom PDF composition)
 export { renderCoverPage } from "./pages/cover";

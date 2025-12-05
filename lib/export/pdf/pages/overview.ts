@@ -1,253 +1,284 @@
 import type { PageContext, PremiumTripForExport } from "../types";
-import { TYPOGRAPHY, LAYOUT } from "../config";
+import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 
 /**
  * Format date for display
  */
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
+
+  return `${start.toLocaleDateString("en-US", options)} - ${end.toLocaleDateString("en-US", options)}`;
 }
 
 /**
- * Parse weather note for a simple display
- */
-function parseWeatherDisplay(note?: string): string {
-  if (!note) return "Check forecast";
-
-  // Try to extract temperature
-  const tempMatch = note.match(/(\d+[-]\d+[°]?[CF]?|\d+[°][CF])/);
-  if (tempMatch) return tempMatch[1];
-
-  // Try to extract condition
-  const lower = note.toLowerCase();
-  if (lower.includes("sun")) return "Sunny";
-  if (lower.includes("rain")) return "Rainy";
-  if (lower.includes("cloud")) return "Cloudy";
-  if (lower.includes("warm")) return "Warm";
-  if (lower.includes("cold")) return "Cold";
-  if (lower.includes("mild")) return "Mild";
-
-  return "See notes";
-}
-
-/**
- * Render the overview page with trip stats and highlights
+ * Render the overview page with trip stats, highlights, and tips
  */
 export function renderOverviewPage(
   ctx: PageContext,
   trip: PremiumTripForExport
 ): void {
   const { doc, config } = ctx;
-  const { margin, contentWidth, pageWidth, colors } = config;
+  const { margin, contentWidth, pageWidth, pageHeight } = config;
 
   doc.addPage();
   let y = margin;
 
   // === TOP ACCENT BAR ===
-  doc.setFillColor(...colors.primary);
-  doc.rect(0, 0, pageWidth, 6, "F");
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, pageWidth, 8, "F");
 
-  y += 15;
+  y += 18;
 
   // === SECTION TITLE ===
-  doc.setTextColor(...colors.text);
+  doc.setTextColor(...COLORS.text);
   doc.setFontSize(TYPOGRAPHY.sectionTitle.size);
   doc.setFont(config.fonts.display, "bold");
   doc.text("YOUR JOURNEY AT A GLANCE", margin, y);
 
-  // Decorative underline
-  doc.setDrawColor(...colors.accent);
-  doc.setLineWidth(1);
-  doc.line(margin, y + 3, margin + 50, y + 3);
+  // Title underline
+  doc.setDrawColor(...COLORS.accent);
+  doc.setLineWidth(2.5);
+  doc.line(margin, y + 4, margin + 70, y + 4);
 
-  y += 20;
+  y += 22;
 
   // === STATS GRID (2x2) ===
-  const statBoxWidth = (contentWidth - 10) / 2;
-  const statBoxHeight = 38;
+  const cardWidth = (contentWidth - 8) / 2;
+  const cardHeight = 42;
+  const totalActivities = trip.itinerary.reduce((sum, day) => sum + day.activities.length, 0);
 
-  const totalActivities = trip.itinerary.reduce(
-    (sum, day) => sum + day.activities.length,
-    0
-  );
-
-  const stats = [
-    {
-      label: "DAYS",
-      value: trip.itinerary.length.toString(),
-      subtext: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
-    },
-    {
-      label: "ACTIVITIES",
-      value: totalActivities.toString(),
-      subtext: "Curated experiences",
-    },
-    {
-      label: "BUDGET",
-      value: trip.budget
-        ? `${trip.budget.currency} ${trip.budget.total.toLocaleString()}`
-        : "N/A",
-      subtext: "Estimated total",
-    },
-    {
-      label: "WEATHER",
-      value: parseWeatherDisplay(trip.meta?.weather_note),
-      subtext: trip.meta?.weather_note?.substring(0, 30) || "Plan accordingly",
-    },
-  ];
-
-  stats.forEach((stat, idx) => {
-    const col = idx % 2;
-    const row = Math.floor(idx / 2);
-    const x = margin + col * (statBoxWidth + 10);
-    const boxY = y + row * (statBoxHeight + 8);
-
-    // Card background
-    doc.setFillColor(...colors.cardBg);
-    doc.roundedRect(x, boxY, statBoxWidth, statBoxHeight, 3, 3, "F");
-
-    // Left accent bar
-    const accentColor = idx === 0 ? colors.primary :
-                        idx === 1 ? colors.secondary :
-                        idx === 2 ? colors.accent :
-                        [74, 144, 226] as [number, number, number]; // Blue for weather
-
-    doc.setFillColor(...accentColor);
-    doc.rect(x, boxY, 3, statBoxHeight, "F");
-
-    // Label
-    doc.setTextColor(...colors.muted);
-    doc.setFontSize(7);
-    doc.setFont(config.fonts.body, "bold");
-    doc.text(stat.label, x + 10, boxY + 10);
-
-    // Value
-    doc.setTextColor(...colors.text);
-    doc.setFontSize(16);
-    doc.setFont(config.fonts.display, "bold");
-    const valueText = stat.value.length > 12
-      ? stat.value.substring(0, 12)
-      : stat.value;
-    doc.text(valueText, x + 10, boxY + 24);
-
-    // Subtext
-    doc.setTextColor(...colors.muted);
-    doc.setFontSize(7);
-    doc.setFont(config.fonts.body, "normal");
-    const subText = stat.subtext.length > 25
-      ? stat.subtext.substring(0, 25) + "..."
-      : stat.subtext;
-    doc.text(subText, x + 10, boxY + 33);
+  // Card 1: Days
+  renderStatCard(ctx, margin, y, cardWidth, cardHeight, {
+    label: "DAYS",
+    value: String(trip.itinerary.length),
+    sublabel: formatDateRange(trip.startDate, trip.endDate),
+    accentColor: COLORS.primary,
   });
 
-  y += statBoxHeight * 2 + 25;
+  // Card 2: Activities
+  renderStatCard(ctx, margin + cardWidth + 8, y, cardWidth, cardHeight, {
+    label: "ACTIVITIES",
+    value: String(totalActivities),
+    sublabel: "Curated experiences",
+    accentColor: COLORS.secondary,
+  });
+
+  y += cardHeight + 8;
+
+  // Card 3: Budget
+  renderStatCard(ctx, margin, y, cardWidth, cardHeight, {
+    label: "BUDGET",
+    value: trip.budget ? `${trip.budget.currency} ${trip.budget.total}` : "—",
+    sublabel: "Estimated total",
+    accentColor: COLORS.accent,
+  });
+
+  // Card 4: Weather
+  const weatherNote = trip.meta?.weather_note || "Check local forecast";
+  renderStatCard(ctx, margin + cardWidth + 8, y, cardWidth, cardHeight, {
+    label: "WEATHER",
+    value: weatherNote.length > 20 ? weatherNote.substring(0, 18) + "..." : weatherNote,
+    sublabel: "Plan accordingly",
+    accentColor: COLORS.go,
+  });
+
+  y += cardHeight + 20;
+
+  // === TRIP DESCRIPTION (if available) ===
+  if (trip.description) {
+    doc.setFillColor(...COLORS.cardBg);
+    doc.roundedRect(margin, y, contentWidth, 35, 4, 4, "F");
+
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(10);
+    doc.setFont(config.fonts.body, "italic");
+    const descLines = doc.splitTextToSize(`"${trip.description}"`, contentWidth - 16);
+    doc.text(descLines.slice(0, 3), margin + 8, y + 12);
+
+    y += 45;
+  }
 
   // === HIGHLIGHTS SECTION ===
   if (trip.meta?.highlights && trip.meta.highlights.length > 0) {
-    // Section header
-    doc.setFillColor(...colors.primary);
-    doc.roundedRect(margin, y, contentWidth, 24, 3, 3, "F");
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(14);
     doc.setFont(config.fonts.display, "bold");
-    doc.text("TRIP HIGHLIGHTS", margin + 10, y + 9);
+    doc.text("Trip Highlights", margin, y);
 
-    // Star icon (text representation)
-    doc.setFontSize(9);
-    doc.text("*", margin + 4, y + 8);
+    doc.setDrawColor(...COLORS.secondary);
+    doc.setLineWidth(1.5);
+    doc.line(margin, y + 3, margin + 35, y + 3);
 
-    y += 10;
+    y += 12;
 
-    // Highlight count
-    doc.setFontSize(8);
-    doc.setFont(config.fonts.body, "normal");
-    doc.text(
-      `${trip.meta.highlights.length} curated experiences`,
-      margin + 10,
-      y + 10
-    );
+    // Highlight cards
+    const highlights = trip.meta.highlights.slice(0, 6);
+    highlights.forEach((highlight, idx) => {
+      const highlightY = y + idx * 14;
 
-    y += 22;
+      // Bullet
+      doc.setFillColor(...COLORS.secondary);
+      doc.circle(margin + 4, highlightY + 2, 2.5, "F");
 
-    // Highlights list
-    trip.meta.highlights.slice(0, 5).forEach((highlight, idx) => {
-      // Bullet point
-      doc.setFillColor(...colors.accent);
-      doc.circle(margin + 4, y + 2, 2, "F");
+      // Number inside bullet
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7);
+      doc.setFont(config.fonts.body, "bold");
+      doc.text(String(idx + 1), margin + 2.5, highlightY + 4);
 
       // Highlight text
-      doc.setTextColor(...colors.text);
-      doc.setFontSize(9);
+      doc.setTextColor(...COLORS.text);
+      doc.setFontSize(10);
       doc.setFont(config.fonts.body, "normal");
-
-      const lines = doc.splitTextToSize(highlight, contentWidth - 15);
-      doc.text(lines.slice(0, 2), margin + 12, y + 4);
-
-      y += lines.length * 5 + 6;
+      const truncated = highlight.length > 65 ? highlight.substring(0, 62) + "..." : highlight;
+      doc.text(truncated, margin + 12, highlightY + 4);
     });
+
+    y += highlights.length * 14 + 15;
   }
 
-  y += 10;
-
-  // === PACKING SUGGESTIONS ===
+  // === PACKING ESSENTIALS ===
   if (trip.meta?.packing_suggestions && trip.meta.packing_suggestions.length > 0) {
-    doc.setFillColor(...colors.cardBg);
-    doc.roundedRect(margin, y, contentWidth, 45, 3, 3, "F");
+    // Section header
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(14);
+    doc.setFont(config.fonts.display, "bold");
+    doc.text("Packing Essentials", margin, y);
 
-    // Header
-    doc.setTextColor(...colors.muted);
-    doc.setFontSize(8);
-    doc.setFont(config.fonts.body, "bold");
-    doc.text("PACKING SUGGESTIONS", margin + 10, y + 12);
+    doc.setDrawColor(...COLORS.accent);
+    doc.setLineWidth(1.5);
+    doc.line(margin, y + 3, margin + 40, y + 3);
 
-    // Icon
-    doc.setFillColor(...colors.secondary);
-    doc.circle(margin + 4, y + 10, 2, "F");
+    y += 12;
 
-    // Items
-    doc.setTextColor(...colors.text);
-    doc.setFontSize(8);
-    doc.setFont(config.fonts.body, "normal");
+    // Packing items in a grid
+    const packingItems = trip.meta.packing_suggestions.slice(0, 12);
+    const colWidth = (contentWidth - 8) / 3;
+    const itemsPerCol = Math.ceil(packingItems.length / 3);
 
-    const packingItems = trip.meta.packing_suggestions.slice(0, 6);
-    const packingText = packingItems.join("  |  ");
-    const packingLines = doc.splitTextToSize(packingText, contentWidth - 20);
+    packingItems.forEach((item, idx) => {
+      const col = Math.floor(idx / itemsPerCol);
+      const row = idx % itemsPerCol;
+      const itemX = margin + col * (colWidth + 4);
+      const itemY = y + row * 10;
 
-    doc.text(packingLines.slice(0, 3), margin + 10, y + 24);
+      // Checkbox style
+      doc.setDrawColor(...COLORS.light);
+      doc.setLineWidth(0.5);
+      doc.rect(itemX, itemY - 3, 4, 4);
+
+      // Item text
+      doc.setTextColor(...COLORS.muted);
+      doc.setFontSize(8);
+      doc.setFont(config.fonts.body, "normal");
+      const truncatedItem = item.length > 20 ? item.substring(0, 18) + "..." : item;
+      doc.text(truncatedItem, itemX + 6, itemY);
+    });
+
+    y += itemsPerCol * 10 + 15;
   }
 
-  // === DESTINATION TAGS ===
-  if (trip.meta?.destination_best_for && trip.meta.destination_best_for.length > 0) {
-    y += 55;
+  // === DAY-BY-DAY PREVIEW ===
+  if (y < pageHeight - 100) {
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(14);
+    doc.setFont(config.fonts.display, "bold");
+    doc.text("Day-by-Day Overview", margin, y);
 
-    doc.setTextColor(...colors.muted);
-    doc.setFontSize(7);
-    doc.setFont(config.fonts.body, "bold");
-    doc.text("BEST FOR:", margin, y);
+    doc.setDrawColor(...COLORS.primary);
+    doc.setLineWidth(1.5);
+    doc.line(margin, y + 3, margin + 45, y + 3);
 
-    let tagX = margin + 25;
-    trip.meta.destination_best_for.slice(0, 5).forEach((tag) => {
-      const tagWidth = tag.length * 2.5 + 8;
+    y += 12;
 
-      if (tagX + tagWidth > margin + contentWidth) {
-        tagX = margin + 25;
-        y += 10;
+    // Day pills
+    const pillHeight = 22;
+    const pillsPerRow = 4;
+    const pillWidth = (contentWidth - (pillsPerRow - 1) * 6) / pillsPerRow;
+
+    trip.itinerary.slice(0, 8).forEach((day, idx) => {
+      const row = Math.floor(idx / pillsPerRow);
+      const col = idx % pillsPerRow;
+      const pillX = margin + col * (pillWidth + 6);
+      const pillY = y + row * (pillHeight + 6);
+
+      if (pillY + pillHeight > pageHeight - 30) return;
+
+      // Pill background
+      doc.setFillColor(...COLORS.cardBg);
+      doc.roundedRect(pillX, pillY, pillWidth, pillHeight, 3, 3, "F");
+
+      // Left accent
+      doc.setFillColor(...COLORS.primary);
+      doc.rect(pillX, pillY, 3, pillHeight, "F");
+
+      // Day number
+      doc.setTextColor(...COLORS.primary);
+      doc.setFontSize(10);
+      doc.setFont(config.fonts.display, "bold");
+      doc.text(`Day ${day.day_number}`, pillX + 6, pillY + 8);
+
+      // Theme
+      if (day.theme) {
+        doc.setTextColor(...COLORS.muted);
+        doc.setFontSize(7);
+        doc.setFont(config.fonts.body, "normal");
+        const themeText = day.theme.length > 18 ? day.theme.substring(0, 16) + "..." : day.theme;
+        doc.text(themeText, pillX + 6, pillY + 16);
       }
-
-      doc.setFillColor(...colors.cardBg);
-      doc.roundedRect(tagX, y - 5, tagWidth, 8, 2, 2, "F");
-
-      doc.setTextColor(...colors.text);
-      doc.setFontSize(7);
-      doc.setFont(config.fonts.body, "normal");
-      doc.text(tag, tagX + 4, y);
-
-      tagX += tagWidth + 4;
     });
   }
+
+  // === PAGE NUMBER ===
+  doc.setTextColor(...COLORS.muted);
+  doc.setFontSize(TYPOGRAPHY.pageNumber.size);
+  doc.setFont(config.fonts.body, "normal");
+  doc.text("1 / " + String(trip.itinerary.length + 2), pageWidth - margin, pageHeight - 10, { align: "right" });
+}
+
+/**
+ * Render a stat card
+ */
+function renderStatCard(
+  ctx: PageContext,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  data: {
+    label: string;
+    value: string;
+    sublabel: string;
+    accentColor: [number, number, number];
+  }
+): void {
+  const { doc, config } = ctx;
+
+  // Card background
+  doc.setFillColor(...COLORS.cardBg);
+  doc.roundedRect(x, y, width, height, 4, 4, "F");
+
+  // Left accent bar
+  doc.setFillColor(...data.accentColor);
+  doc.rect(x, y, 4, height, "F");
+
+  // Label
+  doc.setTextColor(...COLORS.muted);
+  doc.setFontSize(9);
+  doc.setFont(config.fonts.body, "bold");
+  doc.text(data.label, x + 10, y + 10);
+
+  // Value
+  doc.setTextColor(...COLORS.text);
+  doc.setFontSize(20);
+  doc.setFont(config.fonts.display, "bold");
+  doc.text(data.value, x + 10, y + 26);
+
+  // Sublabel
+  doc.setTextColor(...COLORS.subtle);
+  doc.setFontSize(8);
+  doc.setFont(config.fonts.body, "normal");
+  doc.text(data.sublabel, x + 10, y + 36);
 }

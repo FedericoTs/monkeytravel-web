@@ -24,19 +24,16 @@ export async function generatePremiumTripPDF(
     compress: true,
   });
 
-  onProgress?.("Fetching images...", 10);
+  onProgress?.("Fetching images...", 5);
 
-  // Collect all activities for image fetching
-  const allActivities = trip.itinerary.flatMap((day) => day.activities);
+  // Pre-fetch all images using the server-side proxy
+  const imageCache: ImageCache = await prefetchTripImages(trip, (step, progress) => {
+    // Map image progress to 5-40% of total progress
+    const mappedProgress = 5 + (progress / 100) * 35;
+    onProgress?.(step, mappedProgress);
+  });
 
-  // Pre-fetch all images
-  const imageCache: ImageCache = await prefetchTripImages(
-    trip.coverImageUrl,
-    allActivities,
-    trip.galleryPhotos
-  );
-
-  onProgress?.("Generating cover page...", 30);
+  onProgress?.("Generating cover page...", 45);
 
   // Create page context
   const ctx: PageContext = {
@@ -49,22 +46,22 @@ export async function generatePremiumTripPDF(
 
   // === RENDER PAGES ===
 
-  // 1. Cover Page
+  // 1. Cover Page (no addPage needed - jsPDF starts with one page)
   renderCoverPage(ctx, trip);
 
-  onProgress?.("Generating overview...", 40);
+  onProgress?.("Generating overview...", 50);
 
   // 2. Overview Page
   renderOverviewPage(ctx, trip);
 
-  onProgress?.("Generating itinerary...", 50);
+  onProgress?.("Generating itinerary...", 55);
 
   // 3. Day Pages
   const totalDays = trip.itinerary.length;
   trip.itinerary.forEach((day, idx) => {
-    const progress = 50 + (idx / totalDays) * 35;
+    const progress = 55 + (idx / totalDays) * 30;
     onProgress?.(`Generating Day ${day.day_number}...`, progress);
-    renderDayPage(ctx, day, trip);
+    renderDayPage(ctx, day, idx, totalDays, trip);
   });
 
   onProgress?.("Generating final page...", 90);
@@ -72,37 +69,10 @@ export async function generatePremiumTripPDF(
   // 4. Final Page
   renderFinalPage(ctx, trip);
 
-  onProgress?.("Adding page numbers...", 95);
-
-  // Add page numbers to all pages except cover
-  addPageNumbers(doc);
-
   onProgress?.("Finalizing PDF...", 100);
 
   // Return as blob
   return doc.output("blob");
-}
-
-/**
- * Add page numbers to all pages except the first (cover)
- */
-function addPageNumbers(doc: jsPDF): void {
-  const totalPages = doc.getNumberOfPages();
-
-  for (let i = 2; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setTextColor(...PDF_CONFIG.colors.muted);
-    doc.setFontSize(8);
-    doc.setFont(PDF_CONFIG.fonts.body, "normal");
-
-    // Page number on bottom right
-    doc.text(
-      `${i - 1} / ${totalPages - 1}`,
-      PDF_CONFIG.pageWidth - PDF_CONFIG.margin,
-      PDF_CONFIG.pageHeight - 8,
-      { align: "right" }
-    );
-  }
 }
 
 /**
@@ -141,13 +111,8 @@ export function estimatePDFSize(trip: PremiumTripForExport): {
   hasImages: boolean;
   estimatedSizeMB: number;
 } {
-  const totalActivities = trip.itinerary.reduce(
-    (sum, day) => sum + day.activities.length,
-    0
-  );
-
-  // Estimate pages: cover + overview + ~1.5 pages per day + final
-  const estimatedPages = 2 + Math.ceil(trip.itinerary.length * 1.5) + 1;
+  // Estimate pages: cover + overview + ~1 page per day + final
+  const estimatedPages = 2 + trip.itinerary.length + 1;
 
   // Check if images are available
   const hasImages = !!(
@@ -158,8 +123,8 @@ export function estimatePDFSize(trip: PremiumTripForExport): {
     )
   );
 
-  // Rough estimate: ~100KB per page without images, ~300KB with images
-  const sizePerPage = hasImages ? 0.3 : 0.1;
+  // Rough estimate: ~100KB per page without images, ~400KB with images
+  const sizePerPage = hasImages ? 0.4 : 0.1;
   const estimatedSizeMB = estimatedPages * sizePerPage;
 
   return {

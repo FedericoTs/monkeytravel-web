@@ -1,5 +1,5 @@
 import type jsPDF from "jspdf";
-import type { ItineraryDay, TripMeta, Activity } from "@/types";
+import type { ItineraryDay, TripMeta } from "@/types";
 
 /**
  * Trip data structure for premium PDF export
@@ -32,7 +32,7 @@ export interface PremiumTripForExport {
 export type RGB = [number, number, number];
 
 /**
- * PDF configuration constants
+ * PDF configuration - matches PDF_CONFIG in config.ts
  */
 export interface PDFConfig {
   // Dimensions (mm)
@@ -48,19 +48,65 @@ export interface PDFConfig {
     secondary: RGB;
     text: RGB;
     muted: RGB;
-    background: RGB;
+    subtle: RGB;
+    light: RGB;
     cardBg: RGB;
+    white: RGB;
     border: RGB;
+    eat: RGB;
+    see: RGB;
+    do: RGB;
+    go: RGB;
+    stay: RGB;
+    coverGradientStart: RGB;
+    coverGradientEnd: RGB;
   };
 
-  // Typography
+  // Fonts
   fonts: {
     display: string;
     body: string;
   };
 
-  // Activity type config
-  activityTypes: Record<string, { label: string; color: RGB }>;
+  // Typography settings
+  typography: {
+    coverTitle: { size: number; lineHeight: number };
+    coverSubtitle: { size: number; lineHeight: number };
+    sectionTitle: { size: number; lineHeight: number };
+    dayHeader: { size: number; lineHeight: number };
+    cardTitle: { size: number; lineHeight: number };
+    cardBody: { size: number; lineHeight: number };
+    cardMeta: { size: number; lineHeight: number };
+    statValue: { size: number; lineHeight: number };
+    statLabel: { size: number; lineHeight: number };
+    badge: { size: number; lineHeight: number };
+    timeBadge: { size: number; lineHeight: number };
+    footer: { size: number; lineHeight: number };
+    pageNumber: { size: number; lineHeight: number };
+  };
+
+  // Layout settings
+  layout: {
+    pageWidth: number;
+    pageHeight: number;
+    margin: number;
+    marginSmall: number;
+    marginLarge: number;
+    contentWidth: number;
+    coverImageHeight: number;
+    coverOverlayStart: number;
+    dayHeaderHeight: number;
+    heroImageHeight: number;
+    activityCardHeight: number;
+    activityImageHeight: number;
+    cardGap: number;
+    cardPadding: number;
+    cardRadius: number;
+    columnGap: number;
+    rowGap: number;
+    timelineDotSize: number;
+    timelineLineWidth: number;
+  };
 }
 
 /**
@@ -86,7 +132,7 @@ export interface PageContext {
  */
 export interface TypographyScale {
   size: number;
-  style: "normal" | "bold" | "italic" | "bolditalic";
+  lineHeight: number;
 }
 
 /**
@@ -95,4 +141,6 @@ export interface TypographyScale {
 export interface ActivityTypeConfig {
   label: string;
   color: RGB;
+  icon: string;
+  bgLight: RGB;
 }

@@ -1,30 +1,95 @@
 import type jsPDF from "jspdf";
 import type { PageContext, PremiumTripForExport } from "../types";
-import { TYPOGRAPHY, LAYOUT } from "../config";
+import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
 
 /**
  * Format date for display
  */
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const startMonth = start.toLocaleDateString("en-US", { month: "short" });
+  const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const year = end.getFullYear();
+
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay} - ${endDay}, ${year}`;
+  }
+  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
 }
 
 /**
- * Render the cover page with full-bleed hero image
+ * Draw a beautiful gradient background when no cover image
+ */
+function drawGradientBackground(doc: jsPDF, width: number, height: number): void {
+  // Create gradient effect with multiple rectangles
+  const steps = 50;
+  const stepHeight = height / steps;
+
+  for (let i = 0; i < steps; i++) {
+    const ratio = i / steps;
+    const r = Math.round(COLORS.coverGradientStart[0] + (COLORS.coverGradientEnd[0] - COLORS.coverGradientStart[0]) * ratio);
+    const g = Math.round(COLORS.coverGradientStart[1] + (COLORS.coverGradientEnd[1] - COLORS.coverGradientStart[1]) * ratio);
+    const b = Math.round(COLORS.coverGradientStart[2] + (COLORS.coverGradientEnd[2] - COLORS.coverGradientStart[2]) * ratio);
+
+    doc.setFillColor(r, g, b);
+    doc.rect(0, i * stepHeight, width, stepHeight + 1, "F");
+  }
+
+  // Add subtle pattern overlay
+  doc.setDrawColor(255, 255, 255);
+  doc.setLineWidth(0.1);
+  for (let i = 0; i < width; i += 15) {
+    for (let j = 0; j < height; j += 15) {
+      doc.setFillColor(255, 255, 255);
+      doc.circle(i, j, 0.5, "F");
+    }
+  }
+}
+
+/**
+ * Draw bottom gradient overlay for text readability
+ */
+function drawBottomOverlay(doc: jsPDF, width: number, height: number, startY: number): void {
+  const overlayHeight = height - startY;
+  const steps = 30;
+  const stepHeight = overlayHeight / steps;
+
+  for (let i = 0; i < steps; i++) {
+    const opacity = (i / steps) * 0.85;
+    const gray = Math.round(255 * (1 - opacity));
+    doc.setFillColor(gray, gray, gray);
+
+    // Create gradient from transparent to dark
+    if (i > 5) {
+      doc.rect(0, startY + i * stepHeight, width, stepHeight + 1, "F");
+    }
+  }
+
+  // Solid dark section at bottom
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(0, height - 85, width, 85, "F");
+}
+
+/**
+ * Render the cover page - Magazine style
  */
 export function renderCoverPage(
   ctx: PageContext,
   trip: PremiumTripForExport
 ): void {
   const { doc, config, imageCache } = ctx;
-  const { pageWidth, pageHeight, margin, contentWidth, colors } = config;
+  const { pageWidth, pageHeight, margin } = config;
 
-  // === FULL BLEED HERO IMAGE ===
-  const coverImageHeight = pageHeight * LAYOUT.coverImageRatio;
+  // Calculate stats
+  const totalActivities = trip.itinerary.reduce((sum, day) => sum + day.activities.length, 0);
+  const days = trip.itinerary.length;
+
+  // === FULL-BLEED BACKGROUND ===
   const hasCoverImage = hasImage(imageCache, trip.coverImageUrl);
 
   if (hasCoverImage && trip.coverImageUrl) {
@@ -32,184 +97,102 @@ export function renderCoverPage(
     const format = getImageFormat(imageData);
 
     try {
+      // Full-bleed image
       doc.addImage(
         imageData,
         format,
         0,
         0,
         pageWidth,
-        coverImageHeight,
+        pageHeight,
         undefined,
         "MEDIUM"
       );
-    } catch (e) {
-      // Fallback to gradient if image fails
-      renderGradientBackground(doc, pageWidth, coverImageHeight, colors.primary);
+    } catch {
+      // Fallback to gradient
+      drawGradientBackground(doc, pageWidth, pageHeight);
     }
   } else {
-    // Gradient fallback
-    renderGradientBackground(doc, pageWidth, coverImageHeight, colors.primary);
+    // Beautiful gradient fallback
+    drawGradientBackground(doc, pageWidth, pageHeight);
   }
 
-  // === GRADIENT OVERLAY (bottom fade) ===
-  renderBottomGradient(doc, pageWidth, pageHeight, LAYOUT.coverGradientStart);
+  // === BOTTOM OVERLAY FOR TEXT ===
+  drawBottomOverlay(doc, pageWidth, pageHeight, LAYOUT.coverOverlayStart);
 
-  // === CONTENT SECTION ===
-  const contentStartY = pageHeight * 0.50;
-
-  // Brand name
+  // === BRAND HEADER ===
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setFont(config.fonts.display, "bold");
-  doc.text("MONKEYTRAVEL", margin, contentStartY);
+  doc.text("MONKEYTRAVEL", margin, margin + 8);
 
-  // Decorative line
-  doc.setDrawColor(255, 217, 61); // Gold accent
-  doc.setLineWidth(0.5);
-  doc.line(margin, contentStartY + 4, margin + 30, contentStartY + 4);
+  // Brand underline accent
+  doc.setDrawColor(...COLORS.accent);
+  doc.setLineWidth(2);
+  doc.line(margin, margin + 12, margin + 40, margin + 12);
 
-  // Trip title
+  // === DESTINATION TITLE - Large and impactful ===
+  const titleY = pageHeight - 75;
+
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(TYPOGRAPHY.coverTitle.size);
   doc.setFont(config.fonts.display, "bold");
-  const titleLines = doc.splitTextToSize(trip.title, contentWidth);
-  doc.text(titleLines.slice(0, 2), margin, contentStartY + 18);
 
-  // Calculate title height
-  const titleHeight = Math.min(titleLines.length, 2) * 10;
+  // Main title
+  const title = trip.title;
+  doc.text(title, margin, titleY);
 
-  // Destination
-  doc.setFontSize(14);
-  doc.setFont(config.fonts.body, "normal");
-  doc.setTextColor(255, 255, 255, 0.9);
-  doc.text(trip.destination, margin, contentStartY + titleHeight + 22);
-
-  // Date range and stats
-  const startDate = formatDate(trip.startDate);
-  const endDate = formatDate(trip.endDate);
-  const totalActivities = trip.itinerary.reduce(
-    (sum, day) => sum + day.activities.length,
-    0
-  );
-  const daysCount = trip.itinerary.length;
-
-  doc.setFontSize(10);
-  doc.setTextColor(255, 255, 255, 0.8);
-  doc.text(
-    `${startDate} - ${endDate}`,
-    margin,
-    contentStartY + titleHeight + 34
-  );
-
-  // Stats pills
-  const statsY = contentStartY + titleHeight + 44;
-  renderStatPill(doc, margin, statsY, `${daysCount} Days`, colors.accent);
-  renderStatPill(doc, margin + 35, statsY, `${totalActivities} Activities`, colors.secondary);
-
-  // === BOTTOM INFO BAR ===
-  const bottomBarY = pageHeight - 28;
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, bottomBarY, pageWidth, 28, "F");
-
-  // Budget (if available)
-  if (trip.budget) {
-    doc.setFillColor(...colors.accent);
-    doc.roundedRect(margin, bottomBarY + 8, 55, 14, 2, 2, "F");
-    doc.setTextColor(...colors.text);
-    doc.setFontSize(10);
-    doc.setFont(config.fonts.body, "bold");
-    doc.text(
-      `${trip.budget.currency} ${trip.budget.total.toLocaleString()}`,
-      margin + 5,
-      bottomBarY + 17
-    );
-  }
-
-  // Weather note
-  if (trip.meta?.weather_note) {
-    doc.setTextColor(...colors.muted);
-    doc.setFontSize(8);
+  // Destination subtitle if different from title
+  if (trip.destination && trip.destination !== trip.title.replace(/ Trip$/, "")) {
+    doc.setFontSize(18);
     doc.setFont(config.fonts.body, "normal");
-    const weatherText = trip.meta.weather_note.length > 60
-      ? trip.meta.weather_note.substring(0, 60) + "..."
-      : trip.meta.weather_note;
-    doc.text(weatherText, pageWidth - margin, bottomBarY + 17, { align: "right" });
+    doc.text(trip.destination, margin, titleY + 12);
   }
 
-  // Brand URL
-  doc.setTextColor(...colors.primary);
-  doc.setFontSize(7);
-  doc.text("monkeytravel.app", pageWidth / 2, bottomBarY + 24, { align: "center" });
-}
+  // === DATE RANGE ===
+  doc.setFontSize(TYPOGRAPHY.coverSubtitle.size);
+  doc.setFont(config.fonts.body, "normal");
+  doc.setTextColor(200, 200, 200);
+  doc.text(formatDateRange(trip.startDate, trip.endDate), margin, titleY + 28);
 
-/**
- * Render gradient background when no cover image
- */
-function renderGradientBackground(
-  doc: jsPDF,
-  width: number,
-  height: number,
-  baseColor: [number, number, number]
-): void {
-  // Create a subtle gradient effect using multiple rectangles
-  const steps = 20;
-  for (let i = 0; i < steps; i++) {
-    const ratio = i / steps;
-    const r = Math.round(baseColor[0] * (1 - ratio * 0.3));
-    const g = Math.round(baseColor[1] * (1 - ratio * 0.3));
-    const b = Math.round(baseColor[2] * (1 - ratio * 0.3));
+  // === STATS PILLS ===
+  const pillY = pageHeight - 30;
+  const pillHeight = 9;
+  const pillRadius = 4;
+  let pillX = margin;
 
-    doc.setFillColor(r, g, b);
-    doc.rect(0, (height / steps) * i, width, height / steps + 1, "F");
+  // Days pill
+  doc.setFillColor(...COLORS.primary);
+  const daysText = `${days} Days`;
+  const daysWidth = doc.getTextWidth(daysText) + 14;
+  doc.roundedRect(pillX, pillY, daysWidth, pillHeight, pillRadius, pillRadius, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont(config.fonts.body, "bold");
+  doc.text(daysText, pillX + 7, pillY + 6);
+  pillX += daysWidth + 6;
+
+  // Activities pill
+  doc.setFillColor(...COLORS.secondary);
+  const activitiesText = `${totalActivities} Activities`;
+  const activitiesWidth = doc.getTextWidth(activitiesText) + 14;
+  doc.roundedRect(pillX, pillY, activitiesWidth, pillHeight, pillRadius, pillRadius, "F");
+  doc.text(activitiesText, pillX + 7, pillY + 6);
+  pillX += activitiesWidth + 6;
+
+  // Budget pill (if available)
+  if (trip.budget?.total) {
+    doc.setFillColor(...COLORS.accent);
+    doc.setTextColor(...COLORS.text);
+    const budgetText = `${trip.budget.currency} ${trip.budget.total}`;
+    const budgetWidth = doc.getTextWidth(budgetText) + 14;
+    doc.roundedRect(pillX, pillY, budgetWidth, pillHeight, pillRadius, pillRadius, "F");
+    doc.text(budgetText, pillX + 7, pillY + 6);
   }
-}
 
-/**
- * Render bottom gradient overlay for text readability
- */
-function renderBottomGradient(
-  doc: jsPDF,
-  width: number,
-  height: number,
-  startRatio: number
-): void {
-  const startY = height * startRatio;
-  const gradientHeight = height - startY;
-  const steps = 40;
-
-  for (let i = 0; i < steps; i++) {
-    const opacity = (i / steps) * 0.85;
-    const y = startY + (gradientHeight / steps) * i;
-
-    // jsPDF doesn't support true opacity, so we blend with black
-    const gray = Math.round(255 * (1 - opacity));
-    doc.setFillColor(gray > 40 ? 40 : 0, gray > 40 ? 40 : 0, gray > 40 ? 45 : 0);
-
-    // Only draw if visible
-    if (opacity > 0.1) {
-      doc.setFillColor(0, 0, 0);
-      doc.rect(0, y, width, gradientHeight / steps + 1, "F");
-    }
-  }
-}
-
-/**
- * Render a stat pill
- */
-function renderStatPill(
-  doc: jsPDF,
-  x: number,
-  y: number,
-  text: string,
-  color: [number, number, number]
-): void {
-  const pillWidth = text.length * 2.5 + 10;
-  const pillHeight = 8;
-
-  doc.setFillColor(...color);
-  doc.roundedRect(x, y, pillWidth, pillHeight, 2, 2, "F");
-
-  doc.setTextColor(45, 52, 54); // Dark text on light pill
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
-  doc.text(text, x + pillWidth / 2, y + 5.5, { align: "center" });
+  // === WEBSITE URL (bottom right) ===
+  doc.setTextColor(...COLORS.accent);
+  doc.setFontSize(9);
+  doc.setFont(config.fonts.body, "normal");
+  doc.text("monkeytravel.app", pageWidth - margin, pageHeight - 12, { align: "right" });
 }
