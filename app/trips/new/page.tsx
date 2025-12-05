@@ -26,18 +26,23 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ),
 });
 
-const INTERESTS = [
-  { id: "culture", label: "Culture & Museums", emoji: "🏛️" },
-  { id: "food", label: "Food & Dining", emoji: "🍽️" },
-  { id: "nature", label: "Nature & Parks", emoji: "🌿" },
-  { id: "adventure", label: "Adventure", emoji: "🎯" },
-  { id: "relaxation", label: "Relaxation", emoji: "🧘" },
-  { id: "nightlife", label: "Nightlife", emoji: "🌙" },
-  { id: "shopping", label: "Shopping", emoji: "🛍️" },
-  { id: "history", label: "History", emoji: "📜" },
-  { id: "art", label: "Art & Design", emoji: "🎨" },
-  { id: "photography", label: "Photography", emoji: "📸" },
-];
+// Vibe to interests mapping - automatically derives interests from selected vibes
+// This ensures the AI receives relevant interest signals based on vibe selection
+const VIBE_TO_INTERESTS: Record<string, string[]> = {
+  adventure: ["adventure", "nature", "photography"],
+  cultural: ["culture", "history", "art"],
+  foodie: ["food"],
+  wellness: ["relaxation"],
+  romantic: ["relaxation", "photography"],
+  urban: ["nightlife", "shopping", "art"],
+  nature: ["nature", "photography", "adventure"],
+  offbeat: ["adventure", "culture"],
+  // Fantasy vibes
+  "time-traveler": ["history", "culture", "art"],
+  "photo-hunter": ["photography", "nature", "art"],
+  "local-life": ["food", "culture"],
+  "night-owl": ["nightlife", "food"],
+};
 
 const BUDGET_TIERS = [
   {
@@ -91,7 +96,6 @@ export default function NewTripPage() {
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
   const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [requirements, setRequirements] = useState("");
   const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
 
@@ -112,12 +116,15 @@ export default function NewTripPage() {
     }
   }, [destination, startDate, destinationCoords]);
 
-  const toggleInterest = (id: string) => {
-    if (selectedInterests.includes(id)) {
-      setSelectedInterests(selectedInterests.filter((i) => i !== id));
-    } else if (selectedInterests.length < 5) {
-      setSelectedInterests([...selectedInterests, id]);
-    }
+  // Derive interests from selected vibes for AI prompt compatibility
+  const deriveInterestsFromVibes = (): string[] => {
+    const interestSet = new Set<string>();
+    selectedVibes.forEach((vibe) => {
+      // TripVibe is a string type, use directly as key
+      const interests = VIBE_TO_INTERESTS[vibe] || [];
+      interests.forEach((interest) => interestSet.add(interest));
+    });
+    return Array.from(interestSet);
   };
 
   const canProceed = () => {
@@ -129,7 +136,7 @@ export default function NewTripPage() {
       case 3:
         return selectedVibes.length > 0; // At least one vibe required
       case 4:
-        return selectedInterests.length > 0;
+        return true; // Budget and pace have defaults, requirements is optional
       default:
         return false;
     }
@@ -147,6 +154,9 @@ export default function NewTripPage() {
     setError(null);
 
     try {
+      // Derive interests from vibes for API compatibility
+      const derivedInterests = deriveInterestsFromVibes();
+
       const params: TripCreationParams = {
         destination,
         startDate,
@@ -155,7 +165,7 @@ export default function NewTripPage() {
         pace,
         vibes: selectedVibes,
         seasonalContext: seasonalContext || undefined,
-        interests: selectedInterests,
+        interests: derivedInterests, // Auto-derived from vibes
         requirements: requirements || undefined,
       };
 
@@ -245,7 +255,7 @@ export default function NewTripPage() {
             spent: 0,
             currency: generatedItinerary.trip_summary.currency,
           },
-          tags: selectedInterests,
+          tags: deriveInterestsFromVibes(), // Auto-derived from vibes
           trip_meta: tripMeta, // Preserve AI-generated metadata
           packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
         })
@@ -649,10 +659,10 @@ export default function NewTripPage() {
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Fine-tune your trip
+                Final details
               </h1>
               <p className="text-slate-600">
-                Set your budget, pace, and specific interests
+                Set your budget, pace, and any special requirements
               </p>
             </div>
 
@@ -703,42 +713,6 @@ export default function NewTripPage() {
                     </div>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            {/* Interests */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-medium text-slate-700">
-                  What interests you?
-                </div>
-                <div className="text-sm text-slate-500">
-                  {selectedInterests.length}/5 selected
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {INTERESTS.map((interest) => {
-                  const isSelected = selectedInterests.includes(interest.id);
-                  const isDisabled = !isSelected && selectedInterests.length >= 5;
-
-                  return (
-                    <button
-                      key={interest.id}
-                      onClick={() => !isDisabled && toggleInterest(interest.id)}
-                      disabled={isDisabled}
-                      className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all ${
-                        isSelected
-                          ? "bg-[var(--primary)] text-white"
-                          : isDisabled
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      }`}
-                    >
-                      <span>{interest.emoji}</span>
-                      <span>{interest.label}</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
