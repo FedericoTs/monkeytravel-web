@@ -74,3 +74,21 @@ export {
   circuitBreakerManager,
   withCircuitBreaker,
 } from "./interceptors";
+
+// API Control (admin toggles)
+export {
+  checkApiAccess,
+  logApiCall,
+  logBlockedCall,
+  getAllApiConfigs,
+  invalidateConfigCache,
+  withApiControl,
+  ApiBlockedError,
+  getApiCostFromConfig,
+} from "./api-control";
+
+export type {
+  ApiConfigEntry,
+  ApiAccessResult,
+  LogApiCallParams,
+} from "./api-control";

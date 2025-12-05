@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
+import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -106,25 +107,34 @@ async function saveToCache(cacheKey: string, cacheType: string, data: unknown): 
 }
 
 /**
- * Log API request for cost tracking
+ * Log API request for cost tracking (supports success and failure)
  */
-async function logApiRequest(endpoint: string, cacheHit: boolean): Promise<void> {
-  try {
-    await supabase.from("api_request_logs").insert({
-      api_name: "google_places",
-      endpoint,
-      response_status: 200,
-      response_time_ms: 0,
-      cache_hit: cacheHit,
-      cost_usd: cacheHit ? 0 : 0.017, // Places Text Search costs ~$17 per 1000
-    });
-  } catch {
-    // Ignore logging errors
-  }
+async function logPlacesApiRequest(
+  endpoint: string,
+  options: {
+    cacheHit?: boolean;
+    status?: number;
+    error?: string;
+    responseTimeMs?: number;
+  } = {}
+): Promise<void> {
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0 } = options;
+
+  await logApiCall({
+    apiName: "google_places_search",
+    endpoint,
+    status,
+    responseTimeMs,
+    cacheHit,
+    costUsd: cacheHit || status >= 400 ? 0 : 0.032, // Places Text Search Pro costs ~$32 per 1000
+    error,
+  });
 }
 
 // Search for a place and get its details including photos
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const { query, maxPhotos = 5 } = await request.json();
 
@@ -132,7 +142,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
     }
 
-    if (!GOOGLE_PLACES_API_KEY) {
+    // Check API access control
+    const access = await checkApiAccess("google_places_search");
+    if (!access.allowed) {
+      await logPlacesApiRequest("/places:searchText", {
+        status: 503,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Places API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
+    if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
+      await logPlacesApiRequest("/places:searchText", {
+        status: 500,
+        error: "API key not configured or blocked",
+      });
       return NextResponse.json(
         { error: "Google Places API key not configured" },
         { status: 500 }
@@ -145,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     if (cachedResult) {
       console.log("[Places API] Cache HIT for:", query);
-      logApiRequest("/places:searchText", true);
+      await logPlacesApiRequest("/places:searchText", { cacheHit: true });
       return NextResponse.json(cachedResult);
     }
 
@@ -245,11 +272,21 @@ export async function POST(request: NextRequest) {
 
     // Save to cache and log API usage
     saveToCache(cacheKey, "search", result);
-    logApiRequest("/places:searchText", false);
+    await logPlacesApiRequest("/places:searchText", {
+      responseTimeMs: Date.now() - startTime,
+    });
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("Places API error:", error);
+
+    // Log the failure
+    await logPlacesApiRequest("/places:searchText", {
+      status: 500,
+      error: error instanceof Error ? error.message : String(error),
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -259,6 +296,7 @@ export async function POST(request: NextRequest) {
 
 // Get destination cover image and info
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   const { searchParams } = new URL(request.url);
   const destination = searchParams.get("destination");
 
@@ -269,21 +307,38 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!GOOGLE_PLACES_API_KEY) {
-    return NextResponse.json(
-      { error: "Google Places API key not configured" },
-      { status: 500 }
-    );
-  }
-
   try {
+    // Check API access control
+    const access = await checkApiAccess("google_places_search");
+    if (!access.allowed) {
+      await logPlacesApiRequest("/places:searchText (destination)", {
+        status: 503,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Places API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
+    if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
+      await logPlacesApiRequest("/places:searchText (destination)", {
+        status: 500,
+        error: "API key not configured or blocked",
+      });
+      return NextResponse.json(
+        { error: "Google Places API key not configured" },
+        { status: 500 }
+      );
+    }
+
     // Check cache first
     const cacheKey = generateCacheKey(destination, "destination");
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
       console.log("[Places API] Cache HIT for destination:", destination);
-      logApiRequest("/places:searchText (destination)", true);
+      await logPlacesApiRequest("/places:searchText (destination)", { cacheHit: true });
       return NextResponse.json(cachedResult);
     }
 
@@ -358,11 +413,21 @@ export async function GET(request: NextRequest) {
 
     // Save to cache and log API usage
     saveToCache(cacheKey, "destination", result);
-    logApiRequest("/places:searchText (destination)", false);
+    await logPlacesApiRequest("/places:searchText (destination)", {
+      responseTimeMs: Date.now() - startTime,
+    });
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("Destination API error:", error);
+
+    // Log the failure
+    await logPlacesApiRequest("/places:searchText (destination)", {
+      status: 500,
+      error: error instanceof Error ? error.message : String(error),
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
