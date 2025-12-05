@@ -80,6 +80,16 @@ export interface AdminStats {
     description: string;
     timestamp: string;
   }[];
+  // User Growth Trend (daily registrations)
+  userTrend: {
+    daily: { date: string; count: number; cumulative: number }[];
+    summary: {
+      totalGrowth: number; // % growth over selected period
+      avgDaily: number;
+      bestDay: { date: string; count: number } | null;
+      currentStreak: number; // consecutive days with signups
+    };
+  };
 }
 
 export async function GET() {
@@ -291,6 +301,7 @@ export async function GET() {
       },
       topDestinations: topDestinationsResult || [],
       recentActivity: await fetchRecentActivity(supabase),
+      userTrend: await fetchUserTrend(supabase),
     };
 
     return NextResponse.json(stats);
@@ -642,5 +653,93 @@ async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>
     byCity,
     topPages,
     uniqueVisitors,
+  };
+}
+
+// Fetch daily user registration trend for the last 90 days
+async function fetchUserTrend(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["userTrend"]> {
+  const { data: users } = await supabase
+    .from("users")
+    .select("created_at")
+    .order("created_at", { ascending: true });
+
+  if (!users || users.length === 0) {
+    return {
+      daily: [],
+      summary: {
+        totalGrowth: 0,
+        avgDaily: 0,
+        bestDay: null,
+        currentStreak: 0,
+      },
+    };
+  }
+
+  // Generate date range for the last 90 days
+  const now = new Date();
+  const day90Ago = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+  // Group users by date
+  const countsByDate = new Map<string, number>();
+  users.forEach((user) => {
+    const date = new Date(user.created_at).toISOString().split("T")[0];
+    countsByDate.set(date, (countsByDate.get(date) || 0) + 1);
+  });
+
+  // Build daily array with cumulative counts
+  const daily: { date: string; count: number; cumulative: number }[] = [];
+  let cumulative = 0;
+
+  // Get all users before our 90-day window for cumulative base
+  const usersBeforeWindow = users.filter(
+    (u) => new Date(u.created_at) < day90Ago
+  ).length;
+  cumulative = usersBeforeWindow;
+
+  // Iterate through each day in the 90-day window
+  for (let d = new Date(day90Ago); d <= now; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split("T")[0];
+    const count = countsByDate.get(dateStr) || 0;
+    cumulative += count;
+    daily.push({ date: dateStr, count, cumulative });
+  }
+
+  // Calculate summary stats
+  const daysWithData = daily.filter((d) => d.count > 0);
+  const totalRegistrations = daily.reduce((sum, d) => sum + d.count, 0);
+  const avgDaily = daily.length > 0 ? Math.round((totalRegistrations / daily.length) * 10) / 10 : 0;
+
+  // Find best day
+  let bestDay: { date: string; count: number } | null = null;
+  if (daysWithData.length > 0) {
+    const best = daysWithData.reduce((max, d) => (d.count > max.count ? d : max), daysWithData[0]);
+    bestDay = { date: best.date, count: best.count };
+  }
+
+  // Calculate growth percentage (compare first week to last week)
+  const firstWeekTotal = daily.slice(0, 7).reduce((sum, d) => sum + d.count, 0);
+  const lastWeekTotal = daily.slice(-7).reduce((sum, d) => sum + d.count, 0);
+  const totalGrowth = firstWeekTotal > 0
+    ? Math.round(((lastWeekTotal - firstWeekTotal) / firstWeekTotal) * 100)
+    : lastWeekTotal > 0 ? 100 : 0;
+
+  // Calculate current streak (consecutive days with signups ending today)
+  let currentStreak = 0;
+  for (let i = daily.length - 1; i >= 0; i--) {
+    if (daily[i].count > 0) {
+      currentStreak++;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    daily,
+    summary: {
+      totalGrowth,
+      avgDaily,
+      bestDay,
+      currentStreak,
+    },
   };
 }

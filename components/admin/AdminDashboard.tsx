@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
+import UserGrowthChart from "./UserGrowthChart";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -133,6 +134,9 @@ export default function AdminDashboard() {
           color="navy"
         />
       </div>
+
+      {/* User Growth Trend Chart */}
+      <UserGrowthChart data={stats.userTrend} />
 
       {/* User & Churn Section */}
       <div className="grid md:grid-cols-2 gap-6">
