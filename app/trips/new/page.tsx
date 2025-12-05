@@ -20,6 +20,7 @@ import StartOverModal from "@/components/trip/StartOverModal";
 import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+import { useCurrency } from "@/lib/locale";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -111,6 +112,9 @@ export default function NewTripPage() {
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
+
+  // Currency conversion hook - converts prices to user's preferred currency
+  const { convert: convertCurrency } = useCurrency();
 
   const TOTAL_STEPS = 4; // Added vibe step
 
@@ -416,7 +420,10 @@ export default function NewTripPage() {
                 {generatedItinerary.days.length} days
               </span>
               <span className="px-2 py-1 bg-slate-100 rounded-lg">
-                {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
+                {convertCurrency(
+                  generatedItinerary.trip_summary.total_estimated_cost,
+                  generatedItinerary.trip_summary.currency
+                ).formatted}
               </span>
             </div>
 
@@ -523,7 +530,10 @@ export default function NewTripPage() {
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="text-sm text-slate-500">Est. Budget</div>
               <div className="font-semibold text-xl text-slate-900">
-                {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
+                {convertCurrency(
+                  generatedItinerary.trip_summary.total_estimated_cost,
+                  generatedItinerary.trip_summary.currency
+                ).formatted}
               </div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
@@ -584,6 +594,15 @@ export default function NewTripPage() {
             </div>
           )}
 
+          {/* Value Proposition Banner - Positioned before schedule to encourage save */}
+          <div className="mb-8 hidden sm:block">
+            <ValuePropositionBanner
+              onSave={handleSaveTrip}
+              isSaving={loading}
+              variant="inline"
+            />
+          </div>
+
           {/* Day by Day with ActivityCards */}
           <div className="space-y-8">
             {generatedItinerary.days.map((day) => (
@@ -603,7 +622,10 @@ export default function NewTripPage() {
                     <div className="ml-auto text-right">
                       <div className="text-sm text-slate-500">Est. Budget</div>
                       <div className="font-semibold text-slate-900">
-                        {generatedItinerary.trip_summary.currency} {day.daily_budget.total}
+                        {convertCurrency(
+                          day.daily_budget.total,
+                          generatedItinerary.trip_summary.currency
+                        ).formatted}
                       </div>
                     </div>
                   )}
@@ -663,15 +685,6 @@ export default function NewTripPage() {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Value Proposition Banner - Desktop Only (mobile has sticky bar) */}
-          <div className="mt-10 hidden sm:block">
-            <ValuePropositionBanner
-              onSave={handleSaveTrip}
-              isSaving={loading}
-              variant="inline"
-            />
           </div>
 
           {/* Simple Regenerate CTA for users who scrolled to the bottom */}

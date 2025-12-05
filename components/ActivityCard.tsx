@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Activity } from "@/types";
 import PlaceGallery from "./PlaceGallery";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
+import { useCurrency } from "@/lib/locale";
 
 interface VerifiedPriceData {
   priceRange?: string;         // Direct range from Google like "EUR 40-50"
@@ -83,20 +84,19 @@ function convertPriceLevelToRange(
 }
 
 /**
- * Format a single estimated price from a range.
+ * Get estimated price from a range.
  * Uses 80% of the way from min to max, rounded UP to nearest 5.
  * This ensures we lean toward overestimating (safer for budgeting).
+ * Returns the numeric value for currency conversion.
  */
-function formatEstimatedPrice(min: number, max: number, currency: string): string {
-  if (min === 0 && max === 0) return "Free";
+function getEstimatedPriceValue(min: number, max: number): number {
+  if (min === 0 && max === 0) return 0;
 
   // Use 80% of the way between min and max for a realistic high estimate
   const estimate = min + 0.8 * (max - min);
 
   // Round UP to nearest 5 to avoid any underestimation
-  const rounded = Math.ceil(estimate / 5) * 5;
-
-  return `${currency} ${rounded}`;
+  return Math.ceil(estimate / 5) * 5;
 }
 
 interface ActivityCardProps {
@@ -117,6 +117,16 @@ export default function ActivityCard({
   const [isMobile, setIsMobile] = useState(false);
   const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
+
+  // Currency conversion hook - converts prices to user's preferred currency
+  const { convert: convertCurrency, preferredCurrency } = useCurrency();
+
+  // Helper to format price with currency conversion
+  const formatPriceWithConversion = (amount: number, fromCurrency: string): string => {
+    if (amount === 0) return "Free";
+    const converted = convertCurrency(amount, fromCurrency);
+    return converted.formatted;
+  };
 
   // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
   const fetchedActivityRef = useRef<string>("");
@@ -366,13 +376,14 @@ export default function ActivityCard({
                     </div>
                   </>
                 ) : verifiedPrice?.priceLevel !== undefined ? (
-                  // Convert price level to estimated range (don't show $$ symbols)
+                  // Convert price level to estimated range with currency conversion
                   (() => {
                     const priceCurrency = activity.estimated_cost?.currency || currency;
                     const range = convertPriceLevelToRange(verifiedPrice.priceLevel, activity.type, priceCurrency);
-                    const displayPrice = range
-                      ? formatEstimatedPrice(range.min, range.max, priceCurrency)
-                      : `${priceCurrency} ${activity.estimated_cost?.amount || 0}`;
+                    const priceValue = range
+                      ? getEstimatedPriceValue(range.min, range.max)
+                      : (activity.estimated_cost?.amount || 0);
+                    const displayPrice = formatPriceWithConversion(priceValue, priceCurrency);
                     return (
                       <>
                         <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
@@ -389,13 +400,14 @@ export default function ActivityCard({
                     );
                   })()
                 ) : (
-                  // Fallback to AI estimate
+                  // Fallback to AI estimate with currency conversion
                   <>
                     <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
                       <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
-                      {activity.estimated_cost.amount === 0
-                        ? "Free"
-                        : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
+                      {formatPriceWithConversion(
+                        activity.estimated_cost.amount,
+                        activity.estimated_cost.currency || currency
+                      )}
                     </div>
                     <div className="text-[10px] text-slate-400 hidden sm:block">AI estimate</div>
                   </>

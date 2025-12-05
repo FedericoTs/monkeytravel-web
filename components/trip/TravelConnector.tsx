@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Footprints, Car, Bus, ArrowDown, Clock, MapPin } from "lucide-react";
+import { useLocale, formatDistance as formatDistanceLocale } from "@/lib/locale";
 
 interface TravelConnectorProps {
   distanceMeters?: number;
@@ -28,6 +29,9 @@ export function TravelConnector({
   compact = false,
   className = "",
 }: TravelConnectorProps) {
+  // Get user's distance unit preference (metric or imperial)
+  const { preferences } = useLocale();
+
   const modeConfig = useMemo(() => {
     switch (mode) {
       case "WALKING":
@@ -105,13 +109,11 @@ export function TravelConnector({
     durationText ||
     (durationSeconds ? `${Math.round(durationSeconds / 60)} min` : "");
 
-  // Format distance if not provided
+  // Format distance using user's preferred unit system (metric or imperial)
   const displayDistance =
     distanceText ||
     (distanceMeters
-      ? distanceMeters < 1000
-        ? `${Math.round(distanceMeters)} m`
-        : `${(distanceMeters / 1000).toFixed(1)} km`
+      ? formatDistanceLocale(distanceMeters, preferences.distanceUnit)
       : "");
 
   // Compact mode for timeline view

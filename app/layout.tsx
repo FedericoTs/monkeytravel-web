@@ -3,6 +3,7 @@ import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/Toast";
+import { LocaleProvider } from "@/lib/locale";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -156,9 +157,11 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <LocaleProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </LocaleProvider>
         <Analytics />
         <SpeedInsights />
       </body>

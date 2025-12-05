@@ -8,6 +8,7 @@ import {
   getSeasonalVibeSuggestions,
   SeasonalVibeSuggestion,
 } from "@/lib/seasonal";
+import { useLocale, formatTemperatureRange } from "@/lib/locale";
 
 interface WeatherData {
   temperature: {
@@ -44,6 +45,9 @@ export default function SeasonalContextCard({
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [weatherLoading, setWeatherLoading] = useState(false);
+
+  // Get user's temperature preference (Celsius or Fahrenheit)
+  const { preferences } = useLocale();
 
   // Fetch weather data from API
   useEffect(() => {
@@ -217,7 +221,7 @@ export default function SeasonalContextCard({
               <>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-lg font-bold text-slate-800">
-                    {weatherData.temperature.min}°C – {weatherData.temperature.max}°C
+                    {formatTemperatureRange(weatherData.temperature.min, weatherData.temperature.max, preferences.temperatureUnit)}
                   </span>
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5">{weatherData.conditions}</div>
@@ -233,7 +237,7 @@ export default function SeasonalContextCard({
             ) : (
               <>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  {seasonalContext.avgTemp.min}°C - {seasonalContext.avgTemp.max}°C
+                  {formatTemperatureRange(seasonalContext.avgTemp.min, seasonalContext.avgTemp.max, preferences.temperatureUnit)}
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">{seasonalContext.weather}</div>
               </>
