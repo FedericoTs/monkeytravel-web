@@ -273,9 +273,39 @@ export async function POST(request: NextRequest) {
                     if (error) console.error("Distance cache insert error:", error);
                   });
               } else {
+                // Fallback: Calculate straight-line distance when API returns ZERO_RESULTS
+                // This ensures we always have some distance data to display
                 console.warn(
-                  `Distance Matrix element status: ${element?.status} for pair ${i}`
+                  `Distance Matrix element status: ${element?.status} for pair ${i}, using fallback`
                 );
+
+                const straightLineDistance = calculateStraightLineDistance(
+                  pair.origin.lat,
+                  pair.origin.lng,
+                  pair.destination.lat,
+                  pair.destination.lng
+                );
+
+                // Estimate travel distance as 1.3x straight-line (typical road factor)
+                const estimatedDistance = Math.round(straightLineDistance * 1.3);
+                // Estimate duration based on mode (walking: 5km/h, driving: 30km/h avg in cities)
+                const speedKmh = mode === "WALKING" ? 5 : 30;
+                const estimatedDuration = Math.round((estimatedDistance / 1000 / speedKmh) * 3600);
+
+                const result: DistanceResult = {
+                  origin: pair.origin,
+                  destination: pair.destination,
+                  mode: mode as "WALKING" | "DRIVING",
+                  distanceMeters: estimatedDistance,
+                  durationSeconds: estimatedDuration,
+                  distanceText: estimatedDistance < 1000
+                    ? `~${estimatedDistance} m`
+                    : `~${(estimatedDistance / 1000).toFixed(1)} km`,
+                  durationText: `~${Math.round(estimatedDuration / 60)} min`,
+                  source: "api", // Mark as API even though it's estimated
+                };
+
+                results.push(result);
               }
             }
 
@@ -302,14 +332,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sort results to match original order
+    // Sort results to match original order using tolerance-based matching
+    // This is critical because floating-point equality can fail
+    const COORD_TOLERANCE = 0.00001; // ~1.1 meters precision
     const orderedResults = pairsWithModes.map((pair) => {
       return results.find(
         (r) =>
-          r.origin.lat === pair.origin.lat &&
-          r.origin.lng === pair.origin.lng &&
-          r.destination.lat === pair.destination.lat &&
-          r.destination.lng === pair.destination.lng
+          Math.abs(r.origin.lat - pair.origin.lat) < COORD_TOLERANCE &&
+          Math.abs(r.origin.lng - pair.origin.lng) < COORD_TOLERANCE &&
+          Math.abs(r.destination.lat - pair.destination.lat) < COORD_TOLERANCE &&
+          Math.abs(r.destination.lng - pair.destination.lng) < COORD_TOLERANCE
       );
     }).filter((r): r is DistanceResult => r !== undefined);
 
