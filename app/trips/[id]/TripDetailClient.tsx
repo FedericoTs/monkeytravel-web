@@ -16,6 +16,15 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
+import {
+  CountdownHero,
+  PreTripChecklist,
+  LiveJourneyHeader,
+  LiveActivityCard,
+  ActivityRatingModal,
+} from "@/components/timeline";
+import { useChecklist } from "@/lib/hooks/useChecklist";
+import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import {
   ensureActivityIds,
@@ -91,6 +100,63 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   // Extract destination from title (e.g., "Rome Trip" -> "Rome")
   const destination = trip.title.replace(/ Trip$/, "");
+
+  // Trip phase detection for Timeline feature
+  const tripStartDate = useMemo(() => new Date(trip.startDate), [trip.startDate]);
+  const tripEndDate = useMemo(() => new Date(trip.endDate), [trip.endDate]);
+  const now = new Date();
+
+  // Pre-trip: Trip is confirmed and start date is in the future
+  const isPreTripPhase = trip.status === "confirmed" && tripStartDate > now;
+
+  // Active trip: Between start and end dates
+  const isActiveTripPhase = trip.status === "active" ||
+    (tripStartDate <= now && now <= tripEndDate);
+
+  // Calculate trip days and total activities for countdown
+  const tripDaysCount = trip.itinerary.length;
+  const totalActivities = editedItinerary.reduce((acc, day) => acc + day.activities.length, 0);
+
+  // Pre-trip checklist (only load when in pre-trip phase)
+  const checklist = useChecklist(trip.id);
+
+  // Activity timeline for live journey mode
+  const activityTimeline = useActivityTimeline(trip.id);
+
+  // Rating modal state
+  const [ratingModalActivity, setRatingModalActivity] = useState<{
+    id: string;
+    name: string;
+    dayNumber: number;
+    image_url?: string;
+  } | null>(null);
+
+  // Calculate current day number for active trip phase
+  const currentDayNumber = useMemo(() => {
+    if (!isActiveTripPhase) return 1;
+    const daysDiff = Math.floor(
+      (now.getTime() - tripStartDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return Math.min(Math.max(1, daysDiff + 1), tripDaysCount);
+  }, [isActiveTripPhase, now, tripStartDate, tripDaysCount]);
+
+  // Get current day's activities
+  const currentDayActivities = useMemo(() => {
+    const dayData = editedItinerary.find((d) => d.day_number === currentDayNumber);
+    return dayData?.activities || [];
+  }, [editedItinerary, currentDayNumber]);
+
+  // Get all activities grouped by day for progress calculation
+  const allActivitiesByDay = useMemo(() => {
+    return editedItinerary.map((day) => day.activities);
+  }, [editedItinerary]);
+
+  // Calculate day progress for LiveJourneyHeader
+  const dayProgress = activityTimeline.getDayProgress(allActivitiesByDay, currentDayNumber);
+
+  // Get current and next activity
+  const currentActivity = activityTimeline.getCurrentActivity(currentDayActivities);
+  const nextActivity = activityTimeline.getNextActivity(currentDayActivities);
 
   // Available days for "move to day" feature
   const availableDays = editedItinerary.map((day) => day.day_number);
@@ -440,6 +506,124 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Pre-Trip Phase - Countdown Hero and Checklist */}
+        {isPreTripPhase && (
+          <div className="space-y-4 mb-6">
+            <CountdownHero
+              destination={destination}
+              startDate={tripStartDate}
+              tripDays={tripDaysCount}
+              activitiesCount={totalActivities}
+            />
+            <PreTripChecklist
+              items={checklist.items}
+              onToggle={checklist.toggleItem}
+              onAdd={checklist.addItem}
+              onDelete={checklist.deleteItem}
+              isLoading={checklist.isLoading}
+            />
+          </div>
+        )}
+
+        {/* Active Trip Phase - Live Journey Mode */}
+        {isActiveTripPhase && (
+          <div className="space-y-4 mb-6">
+            {/* Live Journey Header */}
+            <LiveJourneyHeader
+              tripTitle={trip.title}
+              currentDay={currentDayNumber}
+              totalDays={tripDaysCount}
+              dayProgress={dayProgress}
+              currentActivity={currentActivity && currentActivity.id ? {
+                id: currentActivity.id,
+                name: currentActivity.name,
+                start_time: currentActivity.start_time,
+                location: currentActivity.address || currentActivity.location,
+                status: activityTimeline.getActivityStatus(currentActivity.id),
+              } : undefined}
+              nextActivity={nextActivity && nextActivity.id ? {
+                id: nextActivity.id,
+                name: nextActivity.name,
+                start_time: nextActivity.start_time,
+                location: nextActivity.address || nextActivity.location,
+                status: "upcoming",
+              } : undefined}
+              destination={destination}
+            />
+
+            {/* Today's Activities as Live Cards */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">
+                Today&apos;s Activities
+              </h3>
+              {currentDayActivities
+                .filter((activity) => activity.id)
+                .map((activity) => (
+                <LiveActivityCard
+                  key={activity.id}
+                  activity={{
+                    id: activity.id!,
+                    name: activity.name,
+                    description: activity.description,
+                    start_time: activity.start_time,
+                    duration_minutes: activity.duration_minutes,
+                    address: activity.address,
+                    location: activity.location,
+                    type: activity.type,
+                    image_url: activity.image_url,
+                    estimated_cost: activity.estimated_cost,
+                  }}
+                  status={activityTimeline.getActivityStatus(activity.id!)}
+                  rating={activityTimeline.getActivityRating(activity.id!)}
+                  onComplete={() => {
+                    activityTimeline.completeActivity(activity.id!, currentDayNumber);
+                    // Show rating modal after completion
+                    setRatingModalActivity({
+                      id: activity.id!,
+                      name: activity.name,
+                      dayNumber: currentDayNumber,
+                      image_url: activity.image_url,
+                    });
+                  }}
+                  onSkip={() => {
+                    activityTimeline.skipActivity(activity.id!, currentDayNumber);
+                  }}
+                  onAddPhoto={() => {
+                    // TODO: Implement photo capture
+                    console.log("Add photo for activity:", activity.id);
+                  }}
+                  onAddNote={() => {
+                    // TODO: Implement note modal
+                    console.log("Add note for activity:", activity.id);
+                  }}
+                  onRate={(rating) => {
+                    activityTimeline.rateActivity(activity.id!, currentDayNumber, rating);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Rating Modal */}
+        <ActivityRatingModal
+          isOpen={!!ratingModalActivity}
+          onClose={() => setRatingModalActivity(null)}
+          activityName={ratingModalActivity?.name || ""}
+          activityImage={ratingModalActivity?.image_url}
+          onSubmit={async (data) => {
+            if (ratingModalActivity) {
+              await activityTimeline.rateActivity(
+                ratingModalActivity.id,
+                ratingModalActivity.dayNumber,
+                data.rating,
+                data.notes,
+                data.quickTags
+              );
+            }
+          }}
+        />
+
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back button */}

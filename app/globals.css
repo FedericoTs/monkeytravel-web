@@ -619,3 +619,57 @@ h1, h2, h3 {
     line-height: 1.7;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Trip Timeline Feature - Status colors and utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Timeline status colors */
+  --timeline-upcoming: #94A3B8;     /* slate-400 */
+  --timeline-in-progress: #3B82F6;  /* blue-500 */
+  --timeline-completed: #10B981;    /* emerald-500 */
+  --timeline-skipped: #F97316;      /* orange-500 */
+
+  /* Progress indicators */
+  --timeline-track: #E2E8F0;        /* slate-200 */
+  --timeline-fill: var(--primary);
+
+  /* Rating */
+  --star-empty: #E2E8F0;
+  --star-filled: var(--accent);
+}
+
+/* Slide to complete track gradient */
+.slide-track {
+  background: linear-gradient(
+    90deg,
+    var(--primary) 0%,
+    var(--primary) var(--slide-progress, 0%),
+    #E2E8F0 var(--slide-progress, 0%),
+    #E2E8F0 100%
+  );
+}
+
+/* Timeline card glass effect */
+.timeline-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Countdown box animation */
+@keyframes flip-down {
+  0% {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-flip-down {
+  animation: flip-down 0.3s ease-out;
+}
