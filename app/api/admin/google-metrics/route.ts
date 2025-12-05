@@ -31,18 +31,26 @@ interface TimeSeriesResponse {
   nextPageToken?: string;
 }
 
-// API cost estimates per request (USD) - Google Maps pricing
-// Note: These are BEFORE the $200/month free credit
-// Actual costs will be lower due to free tier
+// API cost estimates per request (USD) - Google Maps pricing as of March 2025
+// Source: https://developers.google.com/maps/billing-and-pricing/pricing
+// IMPORTANT: These are ESTIMATES. Use BigQuery billing export for ACTUAL costs.
 const API_COSTS: Record<string, number> = {
-  "geocoding-backend.googleapis.com": 0.005,    // Geocoding API ~$5/1000
-  "places-backend.googleapis.com": 0.017,       // Places API ~$17/1000 (Text Search)
-  "routes.googleapis.com": 0.005,               // Distance Matrix ~$5/1000
-  "maps-backend.googleapis.com": 0.007,         // Static Maps ~$7/1000
+  "geocoding-backend.googleapis.com": 0.005,    // Geocoding API: $5/1000 (10K free/month)
+  "places-backend.googleapis.com": 0.032,       // Places Text Search Pro: $32/1000 (5K free/month)
+  "routes.googleapis.com": 0.005,               // Routes Essentials: $5/1000 (10K free/month)
+  "maps-backend.googleapis.com": 0.002,         // Static Maps: $2/1000
+  "distancematrix-backend.googleapis.com": 0.005, // Distance Matrix: $5/1000 (10K free/month)
 };
 
-// Google provides $200/month free credit for Maps APIs
-const MONTHLY_FREE_CREDIT = 200;
+// Free usage caps per API (monthly) - March 2025 pricing model
+// Note: This replaced the old $200/month blanket credit
+const FREE_CAPS: Record<string, number> = {
+  "geocoding-backend.googleapis.com": 10000,
+  "places-backend.googleapis.com": 5000,       // Text Search Pro
+  "routes.googleapis.com": 10000,
+  "maps-backend.googleapis.com": 0,            // No free tier for static maps
+  "distancematrix-backend.googleapis.com": 10000,
+};
 
 // Google Maps service identifiers
 const MAPS_SERVICES = [
@@ -391,20 +399,32 @@ export async function GET() {
       ? Math.round((discrepancy / loggedTotal) * 100)
       : (googleTotal > 0 ? 100 : 0);
 
-    // Calculate cost summary with free tier
-    const grossCost = requestCounts.reduce((sum, r) => sum + r.estimatedCost, 0);
-    const netCost = Math.max(0, grossCost - MONTHLY_FREE_CREDIT);
+    // Calculate cost summary with per-API free tiers (March 2025 pricing)
+    let grossCost = 0;
+    let freeValue = 0;
+    let netCost = 0;
+
+    for (const r of requestCounts) {
+      const freeCap = FREE_CAPS[r.service] || 0;
+      const costPerRequest = API_COSTS[r.service] || 0.01;
+      const billableRequests = Math.max(0, r.last30Days - freeCap);
+      const freeRequests = Math.min(r.last30Days, freeCap);
+
+      grossCost += r.last30Days * costPerRequest;
+      freeValue += freeRequests * costPerRequest;
+      netCost += billableRequests * costPerRequest;
+    }
 
     return NextResponse.json<GoogleMetrics>({
       configured: true,
       projectId,
       costSummary: {
         grossCost: Math.round(grossCost * 100) / 100,
-        freeCredit: MONTHLY_FREE_CREDIT,
+        freeCredit: Math.round(freeValue * 100) / 100,
         netCost: Math.round(netCost * 100) / 100,
-        note: grossCost <= MONTHLY_FREE_CREDIT
-          ? "All usage covered by Google's $200/month free credit"
-          : `Estimated charge after $${MONTHLY_FREE_CREDIT} free credit`,
+        note: netCost === 0
+          ? "All usage covered by free tier caps"
+          : `Estimated after per-API free tiers (estimates only - check Google Console for actual billing)`,
       },
       requestCounts: requestCounts.filter(r => r.total > 0),
       dailyUsage,

@@ -202,13 +202,13 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   <p className="text-xs text-slate-400 mt-1">Before free tier</p>
                 </div>
 
-                {/* Free Credit */}
+                {/* Free Tier Value */}
                 <div className="bg-white/60 rounded-xl p-4 border border-green-100">
-                  <p className="text-xs font-medium text-slate-500 uppercase">Free Credit</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase">Free Tier Value</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
                     -${metrics.costSummary.freeCredit.toFixed(2)}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">Google&apos;s monthly credit</p>
+                  <p className="text-xs text-slate-400 mt-1">Per-API free caps</p>
                 </div>
 
                 {/* Net Cost */}
@@ -252,11 +252,15 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                 </div>
               </div>
 
-              <p className="text-xs text-green-700 mt-4 bg-white/50 rounded-lg px-3 py-2">
-                <strong>Note:</strong> Google provides a $200/month free credit for Maps Platform APIs.
-                The gross cost shown is calculated from request counts × standard pricing.
-                Your actual Google bill will reflect the net cost after the free credit is applied.
-              </p>
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <p className="text-xs text-amber-800">
+                  <strong>⚠️ Estimates Only:</strong> Costs are calculated from Cloud Monitoring request counts ×
+                  standard Google Maps pricing. Free tiers are per-API caps (not a blanket $200 credit).
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  For <strong>actual billing data</strong>, configure BigQuery billing export in the Billing tab.
+                </p>
+              </div>
             </div>
           )}
 
