@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import type { ItineraryDay } from "@/types";
-import { downloadPDF } from "@/lib/export/pdf";
+import type { ItineraryDay, TripMeta } from "@/types";
+import { downloadPDF, downloadPremiumPDF, type PremiumTripForExport } from "@/lib/export/pdf";
 import { downloadICS } from "@/lib/export/calendar";
 
 interface ExportMenuProps {
@@ -14,11 +14,17 @@ interface ExportMenuProps {
     budget?: { total: number; currency: string } | null;
     itinerary: ItineraryDay[];
   };
+  // Optional props for premium PDF
+  destination?: string;
+  meta?: TripMeta;
+  coverImageUrl?: string;
+  galleryPhotos?: { url: string; thumbnailUrl: string }[];
 }
 
-export default function ExportMenu({ trip }: ExportMenuProps) {
+export default function ExportMenu({ trip, destination, meta, coverImageUrl, galleryPhotos }: ExportMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState<"pdf" | "ics" | null>(null);
+  const [isExporting, setIsExporting] = useState<"pdf" | "premium-pdf" | "ics" | null>(null);
+  const [exportProgress, setExportProgress] = useState<{ step: string; progress: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -43,6 +49,37 @@ export default function ExportMenu({ trip }: ExportMenuProps) {
       console.error("Error exporting PDF:", error);
     } finally {
       setIsExporting(null);
+      setIsOpen(false);
+    }
+  };
+
+  const handleExportPremiumPDF = async () => {
+    setIsExporting("premium-pdf");
+    setExportProgress({ step: "Starting...", progress: 0 });
+
+    try {
+      // Build the premium trip data
+      const premiumTrip: PremiumTripForExport = {
+        title: trip.title,
+        description: trip.description,
+        destination: destination || trip.title.replace(/ Trip$/, ""),
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        budget: trip.budget,
+        itinerary: trip.itinerary,
+        meta: meta,
+        coverImageUrl: coverImageUrl,
+        galleryPhotos: galleryPhotos,
+      };
+
+      await downloadPremiumPDF(premiumTrip, (step, progress) => {
+        setExportProgress({ step, progress });
+      });
+    } catch (error) {
+      console.error("Error exporting premium PDF:", error);
+    } finally {
+      setIsExporting(null);
+      setExportProgress(null);
       setIsOpen(false);
     }
   };
@@ -97,13 +134,55 @@ export default function ExportMenu({ trip }: ExportMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-20">
+        <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-20">
           <div className="px-3 py-2 border-b border-slate-100">
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
               Download
             </span>
           </div>
 
+          {/* Premium PDF - Main Option */}
+          <button
+            onClick={handleExportPremiumPDF}
+            disabled={isExporting === "premium-pdf"}
+            className="w-full flex items-center gap-3 px-3 py-3 text-left text-sm text-slate-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-colors disabled:opacity-50 border-b border-slate-100"
+          >
+            {isExporting === "premium-pdf" ? (
+              <div className="flex items-center gap-3 w-full">
+                <svg className="w-5 h-5 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <div className="flex-1">
+                  <div className="font-medium text-amber-700">{exportProgress?.step || "Generating..."}</div>
+                  <div className="w-full bg-amber-100 rounded-full h-1.5 mt-1">
+                    <div
+                      className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: `${exportProgress?.progress || 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+                    <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" stroke="white" strokeWidth="1.5" fill="none" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold flex items-center gap-2">
+                    Premium Travel Guide
+                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">NEW</span>
+                  </div>
+                  <div className="text-xs text-slate-500">Magazine-style with photos</div>
+                </div>
+              </>
+            )}
+          </button>
+
+          {/* Basic PDF */}
           <button
             onClick={handleExportPDF}
             disabled={isExporting === "pdf"}
@@ -115,14 +194,14 @@ export default function ExportMenu({ trip }: ExportMenuProps) {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                 <path d="M14 2v6h6M9 13h6M9 17h6" stroke="white" strokeWidth="1.5" fill="none" />
               </svg>
             )}
             <div>
-              <div className="font-medium">Download PDF</div>
-              <div className="text-xs text-slate-500">Print-ready itinerary</div>
+              <div className="font-medium">Basic PDF</div>
+              <div className="text-xs text-slate-500">Simple text itinerary</div>
             </div>
           </button>
 

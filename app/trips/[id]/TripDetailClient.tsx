@@ -513,6 +513,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                   budget: trip.budget,
                   itinerary: displayItinerary,
                 }}
+                destination={destination}
+                meta={trip.meta}
               />
             )}
 

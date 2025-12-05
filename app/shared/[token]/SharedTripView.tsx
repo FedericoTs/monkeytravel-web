@@ -180,6 +180,8 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                 budget: trip.budget,
                 itinerary: displayItinerary,
               }}
+              destination={destination}
+              meta={trip.meta}
             />
           </div>
         </div>

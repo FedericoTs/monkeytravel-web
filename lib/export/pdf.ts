@@ -253,7 +253,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
 }
 
 /**
- * Download PDF file
+ * Download PDF file (basic version)
  */
 export async function downloadPDF(trip: TripForExport): Promise<void> {
   const blob = await generateTripPDF(trip);
@@ -267,3 +267,44 @@ export async function downloadPDF(trip: TripForExport): Promise<void> {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+// ============================================================================
+// PREMIUM PDF EXPORTS
+// ============================================================================
+// The premium PDF module provides magazine-style PDFs with images, beautiful
+// typography, and professional layouts.
+//
+// Usage:
+// ```typescript
+// import { downloadPremiumPDF, PremiumTripForExport } from "@/lib/export/pdf";
+//
+// const tripData: PremiumTripForExport = {
+//   title: "Barcelona Adventure",
+//   destination: "Barcelona, Spain",
+//   startDate: "2025-03-15",
+//   endDate: "2025-03-22",
+//   coverImageUrl: "https://...",
+//   itinerary: [...],
+//   meta: { highlights: [...], weather_note: "..." },
+// };
+//
+// await downloadPremiumPDF(tripData, (step, progress) => {
+//   console.log(`${step}: ${progress}%`);
+// });
+// ```
+// ============================================================================
+
+export {
+  // Main functions
+  generatePremiumTripPDF,
+  downloadPremiumPDF,
+  estimatePDFSize,
+  // Types
+  type PremiumTripForExport,
+  type PDFConfig,
+  type ImageCache,
+  // Config
+  PDF_CONFIG,
+  TYPOGRAPHY,
+  LAYOUT,
+} from "./pdf/index";
