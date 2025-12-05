@@ -3,8 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import UserGrowthChart from "./UserGrowthChart";
+import CostDashboard from "./CostDashboard";
+import AccessControl from "./AccessControl";
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState<"analytics" | "costs" | "access">("analytics");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,44 +67,98 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header with refresh */}
-      <div className="flex items-center justify-between">
+      {/* Header with Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            Platform Analytics
+            Admin Dashboard
           </h1>
           <p className="text-slate-500 mt-1">
-            Monitor MonkeyTravel performance and user engagement
+            Analytics, costs, and access control
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {lastUpdated && (
-            <span className="text-xs text-slate-400">
-              Updated {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
+
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
           <button
-            onClick={fetchStats}
-            disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 transition disabled:opacity-50"
+            onClick={() => setActiveTab("analytics")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              activeTab === "analytics"
+                ? "bg-white text-[var(--primary)] shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
           >
-            <svg
-              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            Refresh
+            Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab("costs")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              activeTab === "costs"
+                ? "bg-white text-red-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Costs
+          </button>
+          <button
+            onClick={() => setActiveTab("access")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              activeTab === "access"
+                ? "bg-white text-amber-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Access
           </button>
         </div>
       </div>
+
+      {/* Tab Content */}
+      {activeTab === "costs" && <CostDashboard />}
+      {activeTab === "access" && <AccessControl />}
+
+      {/* Analytics Tab Content */}
+      {activeTab === "analytics" && (
+        <>
+          {/* Sub-header with refresh */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {lastUpdated && (
+                <span className="text-xs text-slate-400">
+                  Updated {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={fetchStats}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 transition disabled:opacity-50"
+            >
+              <svg
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Refresh
+            </button>
+          </div>
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -602,6 +659,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
