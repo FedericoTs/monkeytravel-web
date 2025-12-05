@@ -15,6 +15,11 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { buildSeasonalContext } from "@/lib/seasonal";
+// New UX enhancement components
+import StartOverModal from "@/components/trip/StartOverModal";
+import RegenerateButton from "@/components/trip/RegenerateButton";
+import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
+import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -99,6 +104,14 @@ export default function NewTripPage() {
   const [requirements, setRequirements] = useState("");
   const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
 
+  // UX enhancement state
+  const [showStartOverModal, setShowStartOverModal] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showDraftRecovery, setShowDraftRecovery] = useState(false);
+
+  // LocalStorage draft persistence
+  const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
+
   const TOTAL_STEPS = 4; // Added vibe step
 
   // Build seasonal context when destination and dates are set
@@ -115,6 +128,81 @@ export default function NewTripPage() {
       setSeasonalContext(null);
     }
   }, [destination, startDate, destinationCoords]);
+
+  // Check for unsaved draft on mount
+  useEffect(() => {
+    if (hasDraft && draft && !generatedItinerary) {
+      setShowDraftRecovery(true);
+    }
+  }, [hasDraft, draft, generatedItinerary]);
+
+  // Auto-save draft when itinerary is generated
+  useEffect(() => {
+    if (generatedItinerary) {
+      saveDraft({
+        generatedItinerary,
+        destination,
+        startDate,
+        endDate,
+        pace,
+        vibes: selectedVibes,
+        budgetTier,
+      });
+    }
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, saveDraft]);
+
+  // Handle draft restoration
+  const handleRestoreDraft = () => {
+    if (draft) {
+      setDestination(draft.destination);
+      setStartDate(draft.startDate);
+      setEndDate(draft.endDate);
+      setPace(draft.pace as "relaxed" | "moderate" | "active");
+      setSelectedVibes(draft.vibes as TripVibe[]);
+      setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+      setGeneratedItinerary(draft.generatedItinerary);
+      setShowDraftRecovery(false);
+    }
+  };
+
+  // Handle draft discard
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setShowDraftRecovery(false);
+  };
+
+  // Regenerate itinerary with same preferences
+  const handleRegenerate = async () => {
+    if (isRegenerating || generating) return;
+
+    setIsRegenerating(true);
+    setGeneratedItinerary(null); // Clear current to show progress
+
+    // Small delay for visual feedback
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Re-trigger generation
+    await handleGenerate();
+    setIsRegenerating(false);
+  };
+
+  // Handle start over - confirmed discard
+  const handleStartOver = () => {
+    clearDraft();
+    setGeneratedItinerary(null);
+    setShowStartOverModal(false);
+    setStep(1);
+    // Reset form
+    setDestination("");
+    setDestinationCoords(null);
+    setStartDate("");
+    setEndDate("");
+    setBudgetTier("balanced");
+    setPace("moderate");
+    setSelectedVibes([]);
+    setRequirements("");
+    setSeasonalContext(null);
+  };
 
   // Derive interests from selected vibes for AI prompt compatibility
   const deriveInterestsFromVibes = (): string[] => {
@@ -264,6 +352,8 @@ export default function NewTripPage() {
 
       if (tripError) throw tripError;
 
+      // Clear draft on successful save
+      clearDraft();
       router.push(`/trips/${trip.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
@@ -276,8 +366,21 @@ export default function NewTripPage() {
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
 
+    // Calculate total activities for modal
+    const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white pb-24 sm:pb-8">
+        {/* Start Over Modal */}
+        <StartOverModal
+          isOpen={showStartOverModal}
+          onClose={() => setShowStartOverModal(false)}
+          onConfirm={handleStartOver}
+          destination={fullDestination}
+          tripDays={generatedItinerary.days.length}
+          activitiesCount={totalActivities}
+        />
+
         {/* Hero with Cover Image */}
         <DestinationHero
           destination={fullDestination}
@@ -293,27 +396,107 @@ export default function NewTripPage() {
           showBackButton={false}
         />
 
-        {/* Sticky Save Button */}
-        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
+        {/* Enhanced Sticky Header - Desktop */}
+        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 hidden sm:block">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link href="/trips" className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
+            {/* Start Over Button */}
+            <button
+              onClick={() => setShowStartOverModal(true)}
+              className="flex items-center gap-2 text-slate-600 hover:text-amber-600 transition-colors px-3 py-2 rounded-lg hover:bg-amber-50"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Discard
-            </Link>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-500 hidden sm:block">
-                {generatedItinerary.days.length} days · {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
+              Start Over
+            </button>
+
+            {/* Trip Summary */}
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span className="px-2 py-1 bg-slate-100 rounded-lg">
+                {generatedItinerary.days.length} days
               </span>
+              <span className="px-2 py-1 bg-slate-100 rounded-lg">
+                {generatedItinerary.trip_summary.currency} {generatedItinerary.trip_summary.total_estimated_cost}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <RegenerateButton
+                onRegenerate={handleRegenerate}
+                isRegenerating={isRegenerating || generating}
+                variant="compact"
+              />
               <button
                 onClick={handleSaveTrip}
                 disabled={loading}
-                className="bg-[var(--primary)] text-white px-6 py-2.5 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--primary)]/25"
+                className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
               >
-                {loading ? "Saving..." : "Save Trip"}
+                {loading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Save Trip
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Sticky Bottom Bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 sm:hidden safe-area-inset-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="flex items-center gap-2">
+            {/* Start Over - Mobile */}
+            <button
+              onClick={() => setShowStartOverModal(true)}
+              className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors flex-shrink-0"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Regenerate - Mobile */}
+            <RegenerateButton
+              onRegenerate={handleRegenerate}
+              isRegenerating={isRegenerating || generating}
+              variant="icon-only"
+              className="flex-shrink-0"
+            />
+
+            {/* Save - Mobile (Full Width) */}
+            <button
+              onClick={handleSaveTrip}
+              disabled={loading}
+              className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Save Trip
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -482,18 +665,28 @@ export default function NewTripPage() {
             </div>
           </div>
 
-          {/* Bottom Save CTA */}
-          <div className="mt-10 text-center">
-            <button
-              onClick={handleSaveTrip}
-              disabled={loading}
-              className="bg-[var(--primary)] text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 shadow-xl shadow-[var(--primary)]/25"
-            >
-              {loading ? "Saving Your Trip..." : "Save This Trip"}
-            </button>
-            <p className="text-sm text-slate-500 mt-3">
-              Your trip will be saved to your account and accessible anytime
-            </p>
+          {/* Value Proposition Banner - Desktop Only (mobile has sticky bar) */}
+          <div className="mt-10 hidden sm:block">
+            <ValuePropositionBanner
+              onSave={handleSaveTrip}
+              isSaving={loading}
+              variant="inline"
+            />
+          </div>
+
+          {/* Simple Regenerate CTA for users who scrolled to the bottom */}
+          <div className="mt-8 flex flex-col items-center gap-4 pb-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Not quite right?
+            </div>
+            <RegenerateButton
+              onRegenerate={handleRegenerate}
+              isRegenerating={isRegenerating || generating}
+              variant="default"
+            />
           </div>
         </main>
       </div>
