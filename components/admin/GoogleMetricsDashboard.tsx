@@ -182,6 +182,84 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
       {/* Usage View */}
       {activeView === "usage" && metrics?.configured && (
         <div className="space-y-6">
+          {/* Cost Summary with Free Tier - NEW */}
+          {metrics.costSummary && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-sm font-semibold text-green-800">Monthly Cost Summary</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Gross Cost */}
+                <div className="bg-white/60 rounded-xl p-4 border border-green-100">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Gross Cost</p>
+                  <p className="text-2xl font-bold text-slate-700 mt-1">
+                    ${metrics.costSummary.grossCost.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Before free tier</p>
+                </div>
+
+                {/* Free Credit */}
+                <div className="bg-white/60 rounded-xl p-4 border border-green-100">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Free Credit</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">
+                    -${metrics.costSummary.freeCredit.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Google&apos;s monthly credit</p>
+                </div>
+
+                {/* Net Cost */}
+                <div className="bg-white/60 rounded-xl p-4 border border-green-100">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Est. Net Cost</p>
+                  <p className={`text-2xl font-bold mt-1 ${
+                    metrics.costSummary.netCost === 0 ? "text-green-600" : "text-amber-600"
+                  }`}>
+                    ${metrics.costSummary.netCost.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">After free tier</p>
+                </div>
+
+                {/* Status */}
+                <div className={`rounded-xl p-4 border flex flex-col justify-center ${
+                  metrics.costSummary.netCost === 0
+                    ? "bg-green-100 border-green-200"
+                    : "bg-amber-50 border-amber-200"
+                }`}>
+                  {metrics.costSummary.netCost === 0 ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm font-semibold text-green-800">Fully Covered</span>
+                      </div>
+                      <p className="text-xs text-green-700 mt-1">{metrics.costSummary.note}</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-amber-800">Over Free Tier</span>
+                      </div>
+                      <p className="text-xs text-amber-700 mt-1">{metrics.costSummary.note}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs text-green-700 mt-4 bg-white/50 rounded-lg px-3 py-2">
+                <strong>Note:</strong> Google provides a $200/month free credit for Maps Platform APIs.
+                The gross cost shown is calculated from request counts × standard pricing.
+                Your actual Google bill will reflect the net cost after the free credit is applied.
+              </p>
+            </div>
+          )}
+
           {/* Request Counts by Service */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
             <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">

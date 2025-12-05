@@ -32,12 +32,17 @@ interface TimeSeriesResponse {
 }
 
 // API cost estimates per request (USD) - Google Maps pricing
+// Note: These are BEFORE the $200/month free credit
+// Actual costs will be lower due to free tier
 const API_COSTS: Record<string, number> = {
   "geocoding-backend.googleapis.com": 0.005,    // Geocoding API ~$5/1000
   "places-backend.googleapis.com": 0.017,       // Places API ~$17/1000 (Text Search)
   "routes.googleapis.com": 0.005,               // Distance Matrix ~$5/1000
   "maps-backend.googleapis.com": 0.007,         // Static Maps ~$7/1000
 };
+
+// Google provides $200/month free credit for Maps APIs
+const MONTHLY_FREE_CREDIT = 200;
 
 // Google Maps service identifiers
 const MAPS_SERVICES = [
@@ -52,6 +57,14 @@ export interface GoogleMetrics {
   configured: boolean;
   error?: string;
   projectId?: string;
+
+  // Cost summary
+  costSummary?: {
+    grossCost: number;        // Total before free tier
+    freeCredit: number;       // $200 monthly free credit
+    netCost: number;          // Actual estimated charge
+    note: string;             // Explanation
+  };
 
   // Real request counts from Google
   requestCounts: {
@@ -378,9 +391,21 @@ export async function GET() {
       ? Math.round((discrepancy / loggedTotal) * 100)
       : (googleTotal > 0 ? 100 : 0);
 
+    // Calculate cost summary with free tier
+    const grossCost = requestCounts.reduce((sum, r) => sum + r.estimatedCost, 0);
+    const netCost = Math.max(0, grossCost - MONTHLY_FREE_CREDIT);
+
     return NextResponse.json<GoogleMetrics>({
       configured: true,
       projectId,
+      costSummary: {
+        grossCost: Math.round(grossCost * 100) / 100,
+        freeCredit: MONTHLY_FREE_CREDIT,
+        netCost: Math.round(netCost * 100) / 100,
+        note: grossCost <= MONTHLY_FREE_CREDIT
+          ? "All usage covered by Google's $200/month free credit"
+          : `Estimated charge after $${MONTHLY_FREE_CREDIT} free credit`,
+      },
       requestCounts: requestCounts.filter(r => r.total > 0),
       dailyUsage,
       comparison: {
