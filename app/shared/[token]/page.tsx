@@ -104,6 +104,7 @@ export default async function SharedTripPage({ params }: PageProps) {
           meta,
           packingList,
         }}
+        shareToken={token}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}
       />
     </>

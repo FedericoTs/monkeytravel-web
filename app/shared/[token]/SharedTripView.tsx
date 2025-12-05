@@ -13,6 +13,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
+import DuplicateTripCTA from "@/components/trip/DuplicateTripCTA";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 
@@ -41,10 +42,11 @@ interface SharedTripViewProps {
     meta?: TripMeta;
     packingList?: string[];
   };
+  shareToken: string;
   dateRange: string;
 }
 
-export default function SharedTripView({ trip, dateRange }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange }: SharedTripViewProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -100,22 +102,6 @@ export default function SharedTripView({ trip, dateRange }: SharedTripViewProps)
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-        {/* CTA Banner */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 rounded-xl text-white">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="font-semibold text-lg">Plan Your Own Trip</h3>
-              <p className="text-white/80 text-sm">Create personalized AI-powered itineraries with MonkeyTravel</p>
-            </div>
-            <Link
-              href="/"
-              className="px-6 py-2.5 bg-white text-[var(--primary)] font-medium rounded-lg hover:bg-white/90 transition-colors flex-shrink-0"
-            >
-              Get Started Free
-            </Link>
-          </div>
-        </div>
-
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back to home */}
@@ -412,7 +398,7 @@ export default function SharedTripView({ trip, dateRange }: SharedTripViewProps)
           </div>
         </div>
 
-        {/* Shared Notice */}
+        {/* Shared Notice - Updated messaging for duplication */}
         <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
           <div className="flex gap-4">
             <div className="flex-shrink-0">
@@ -424,17 +410,21 @@ export default function SharedTripView({ trip, dateRange }: SharedTripViewProps)
             </div>
             <div>
               <h4 className="font-semibold text-purple-900 mb-1">
-                Shared Itinerary
+                Love this itinerary?
               </h4>
               <p className="text-sm text-purple-800">
-                This itinerary was shared via MonkeyTravel. Want to create your own personalized trip?{" "}
-                <Link href="/" className="underline font-medium hover:text-purple-900">
-                  Get started for free
-                </Link>
+                Save it to your account and make it your own. Edit times, swap activities,
+                add notes, and share with your travel companions.
               </p>
             </div>
           </div>
         </div>
+
+        {/* Floating Duplicate CTA - Sticky at bottom for easy access */}
+        <DuplicateTripCTA
+          shareToken={shareToken}
+          tripTitle={trip.title}
+        />
       </main>
 
       {/* Footer */}
