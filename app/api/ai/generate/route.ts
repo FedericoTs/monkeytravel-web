@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateItinerary, validateTripParams } from "@/lib/gemini";
 import { isAdmin } from "@/lib/admin";
-import type { TripCreationParams } from "@/types";
+import type { TripCreationParams, UserProfilePreferences } from "@/types";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -18,6 +18,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Fetch user's profile preferences to include in trip generation
+    let profilePreferences: UserProfilePreferences = {};
+    try {
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("preferences")
+        .eq("id", user.id)
+        .single();
+
+      if (userProfile?.preferences) {
+        const prefs = userProfile.preferences as Record<string, unknown>;
+        profilePreferences = {
+          dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
+          travelStyles: prefs.travelStyles as string[] | undefined,
+          accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
+        };
+      }
+    } catch (err) {
+      // Log but don't fail if profile fetch fails
+      console.warn("Could not fetch user preferences:", err);
+    }
+
     // Parse request body
     const body = await request.json();
     const params: TripCreationParams = {
@@ -30,6 +52,8 @@ export async function POST(request: NextRequest) {
       seasonalContext: body.seasonalContext,
       interests: body.interests || [],
       requirements: body.requirements,
+      // Include profile preferences (automatically fetched from user profile)
+      profilePreferences,
     };
 
     // Validate input

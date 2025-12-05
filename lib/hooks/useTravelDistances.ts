@@ -241,12 +241,25 @@ export function useTravelDistances(
           if (distanceResponse.ok) {
             const distanceData = await distanceResponse.json();
 
-            // Match results back to pairs and days
-            for (let i = 0; i < distanceData.results.length; i++) {
-              const result = distanceData.results[i] as DistanceResult;
-              const pair = allPairs[i];
+            // Match results back to pairs by COORDINATES (not index)
+            // This is critical because the API may reorder results or drop failed pairs
+            for (const pair of allPairs) {
+              // Find matching result by coordinate comparison with tolerance
+              const result = (distanceData.results as DistanceResult[]).find(
+                (r) =>
+                  Math.abs(r.origin.lat - pair.origin.lat) < 0.00001 &&
+                  Math.abs(r.origin.lng - pair.origin.lng) < 0.00001 &&
+                  Math.abs(r.destination.lat - pair.destination.lat) < 0.00001 &&
+                  Math.abs(r.destination.lng - pair.destination.lng) < 0.00001
+              );
 
-              if (!pair) continue;
+              if (!result) {
+                // No result found for this pair - skip but log
+                console.warn(
+                  `No distance result found for pair: ${pair.fromActivityName} → ${pair.toActivityName}`
+                );
+                continue;
+              }
 
               const dayData = newTravelData.get(pair.dayNumber);
               if (dayData) {

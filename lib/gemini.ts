@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay } from "@/types";
+import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
 import { generateActivityId } from "./utils/activity-id";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -76,6 +76,78 @@ const SYSTEM_PROMPT = `You are MonkeyTravel AI, an expert travel planner with de
 
 Always respond with valid JSON matching the exact schema provided. Do not include any text before or after the JSON.`;
 
+/**
+ * Build profile preferences section for the prompt
+ * Includes dietary restrictions, travel styles, and accessibility needs
+ */
+function buildProfilePreferencesSection(profilePreferences?: UserProfilePreferences): string {
+  if (!profilePreferences) return "";
+
+  const sections: string[] = [];
+
+  // Dietary preferences - CRITICAL for food recommendations
+  if (profilePreferences.dietaryPreferences && profilePreferences.dietaryPreferences.length > 0) {
+    const dietLabels: Record<string, string> = {
+      "vegetarian": "Vegetarian (no meat)",
+      "vegan": "Vegan (no animal products)",
+      "halal": "Halal (Islamic dietary laws)",
+      "kosher": "Kosher (Jewish dietary laws)",
+      "gluten-free": "Gluten-Free",
+      "no-restrictions": "No dietary restrictions",
+    };
+    const formatted = profilePreferences.dietaryPreferences
+      .filter(d => d !== "no-restrictions")
+      .map(d => dietLabels[d] || d)
+      .join(", ");
+    if (formatted) {
+      sections.push(`- Dietary Requirements: ${formatted}
+  IMPORTANT: ALL restaurant suggestions MUST accommodate these dietary needs. Prioritize restaurants known for these options.`);
+    }
+  }
+
+  // Accessibility needs - affects venue selection
+  if (profilePreferences.accessibilityNeeds && profilePreferences.accessibilityNeeds.length > 0) {
+    const accessLabels: Record<string, string> = {
+      "wheelchair": "Wheelchair accessible",
+      "limited-mobility": "Limited mobility (avoid stairs, long walks)",
+      "visual": "Visual impairment accommodations",
+      "hearing": "Hearing impairment accommodations",
+      "sensory": "Sensory-friendly environments",
+    };
+    const formatted = profilePreferences.accessibilityNeeds
+      .map(a => accessLabels[a] || a)
+      .join(", ");
+    sections.push(`- Accessibility Needs: ${formatted}
+  IMPORTANT: All suggested venues MUST be accessible. Avoid locations with stairs, uneven terrain, or limited accessibility.`);
+  }
+
+  // Travel styles - influences overall itinerary style
+  if (profilePreferences.travelStyles && profilePreferences.travelStyles.length > 0) {
+    const styleLabels: Record<string, string> = {
+      "adventure": "Adventure-seeker",
+      "relaxation": "Relaxation-focused",
+      "cultural": "Cultural immersion",
+      "foodie": "Food enthusiast",
+      "romantic": "Romantic experiences",
+      "budget": "Budget-conscious",
+      "luxury": "Luxury experiences",
+      "solo": "Solo traveler",
+      "family": "Family-friendly",
+    };
+    const formatted = profilePreferences.travelStyles
+      .map(s => styleLabels[s] || s)
+      .join(", ");
+    sections.push(`- Travel Style Preferences: ${formatted}`);
+  }
+
+  if (sections.length === 0) return "";
+
+  return `
+## Profile Preferences (from user profile)
+${sections.join("\n")}
+`;
+}
+
 function buildUserPrompt(params: TripCreationParams): string {
   const duration =
     Math.ceil(
@@ -139,6 +211,7 @@ Consider these seasonal factors when selecting activities and timing. Include se
 ${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
+${buildProfilePreferencesSection(params.profilePreferences)}
 
 ## Required Output
 

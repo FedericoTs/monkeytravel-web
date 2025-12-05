@@ -170,6 +170,13 @@ export interface VibeOption {
   category: "practical" | "fantasy";
 }
 
+// User profile preferences that affect trip generation
+export interface UserProfilePreferences {
+  dietaryPreferences?: string[];  // e.g., ["vegetarian", "halal", "gluten-free"]
+  travelStyles?: string[];        // e.g., ["adventure", "luxury", "solo"]
+  accessibilityNeeds?: string[];  // e.g., ["wheelchair", "limited-mobility", "visual", "hearing"]
+}
+
 // Trip creation params
 export interface TripCreationParams {
   destination: string;
@@ -181,6 +188,8 @@ export interface TripCreationParams {
   seasonalContext?: SeasonalContext;
   interests: string[];
   requirements?: string;
+  // Profile-based preferences (fetched automatically from user profile)
+  profilePreferences?: UserProfilePreferences;
 }
 
 // AI Assistant structured response types

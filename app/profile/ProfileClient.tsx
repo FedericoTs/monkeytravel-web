@@ -570,6 +570,44 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
                   })}
                 </div>
               </div>
+
+              {/* Accessibility Needs */}
+              <div className="mt-6 space-y-3">
+                <label className="block text-sm font-medium text-slate-600">Accessibility Needs</label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Help us recommend accessible venues and activities
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "wheelchair", label: "Wheelchair Accessible" },
+                    { id: "limited-mobility", label: "Limited Mobility" },
+                    { id: "visual", label: "Visual Impairment" },
+                    { id: "hearing", label: "Hearing Impairment" },
+                    { id: "sensory", label: "Sensory-Friendly" },
+                  ].map((accessibility) => {
+                    const currentNeeds = (profile.preferences?.accessibilityNeeds as string[] | undefined) || [];
+                    const isSelected = currentNeeds.includes(accessibility.id);
+                    return (
+                      <button
+                        key={accessibility.id}
+                        onClick={() => {
+                          const newNeeds = isSelected
+                            ? currentNeeds.filter((n) => n !== accessibility.id)
+                            : [...currentNeeds, accessibility.id];
+                          updateField("preferences", { ...profile.preferences, accessibilityNeeds: newNeeds });
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
+                          isSelected
+                            ? "border-emerald-500 bg-emerald-500 text-white"
+                            : "border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600"
+                        }`}
+                      >
+                        {accessibility.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </ProfileSection>
 
