@@ -1,6 +1,7 @@
 "use client";
 
 import type { TripMeta, ItineraryDay } from "@/types";
+import { useCurrency } from "@/lib/locale";
 
 interface TripInfoCardsProps {
   meta: TripMeta;
@@ -62,6 +63,15 @@ export default function TripInfoCards({
   startDate,
   endDate,
 }: TripInfoCardsProps) {
+  // Currency conversion hook - converts to user's preferred currency
+  const { convert: convertCurrency } = useCurrency();
+
+  // Format budget with currency conversion
+  const formatBudget = (amount: number, fromCurrency: string): string => {
+    const converted = convertCurrency(amount, fromCurrency);
+    return converted.formatted;
+  };
+
   // Calculate stats
   const totalActivities = itinerary.reduce((acc, day) => acc + day.activities.length, 0);
   const tripDays = itinerary.length;
@@ -148,7 +158,7 @@ export default function TripInfoCards({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Est. Budget</span>
                   <span className="text-lg font-semibold text-emerald-700">
-                    {budget.currency} {budget.total.toLocaleString()}
+                    {formatBudget(budget.total, budget.currency)}
                   </span>
                 </div>
               </div>

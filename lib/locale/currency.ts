@@ -282,3 +282,100 @@ export function parseCurrencyString(str: string): { amount: number; currency: Cu
 
   return null;
 }
+
+/**
+ * Parse a price range string like "EUR 40-50" or "40-50 EUR" to extract the max value and currency.
+ * User requirement: Ranges should be converted to single value using max (e.g., "1-10 EUR" → 10)
+ *
+ * Supported formats:
+ * - "EUR 40-50" (currency code prefix with range)
+ * - "40-50 EUR" (range with currency code suffix)
+ * - "$40-50" or "€40-50" (symbol prefix with range)
+ * - "EUR 50" or "50 EUR" (single value with currency)
+ * - "€50" or "$50" (symbol prefix single value)
+ */
+export function parsePriceRange(str: string): { amount: number; currency: CurrencyCode } | null {
+  if (!str || typeof str !== "string") return null;
+
+  const cleaned = str.trim();
+
+  // Map symbol to currency code
+  const symbolToCurrency: Record<string, CurrencyCode> = {
+    "$": "USD",
+    "€": "EUR",
+    "£": "GBP",
+    "¥": "JPY",
+    "₹": "INR",
+    "฿": "THB",
+    "₫": "VND",
+    "₩": "KRW",
+    "₪": "ILS",
+    "₱": "PHP",
+    "₺": "TRY",
+  };
+
+  // Pattern 1: Currency code prefix with range - "EUR 40-50" or "EUR 40–50"
+  const codeRangeMatch = cleaned.match(/^([A-Z]{3})\s+(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)$/);
+  if (codeRangeMatch) {
+    const [, currency, , maxStr] = codeRangeMatch;
+    const max = parseFloat(maxStr.replace(",", "."));
+    if (!isNaN(max)) {
+      return { amount: max, currency };
+    }
+  }
+
+  // Pattern 2: Range with currency code suffix - "40-50 EUR"
+  const rangeSuffixMatch = cleaned.match(/^(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s+([A-Z]{3})$/);
+  if (rangeSuffixMatch) {
+    const [, , maxStr, currency] = rangeSuffixMatch;
+    const max = parseFloat(maxStr.replace(",", "."));
+    if (!isNaN(max)) {
+      return { amount: max, currency };
+    }
+  }
+
+  // Pattern 3: Symbol prefix with range - "$40-50" or "€40-50"
+  const symbolRangeMatch = cleaned.match(/^([€$£¥₹฿₫₩₪₱₺])(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)$/);
+  if (symbolRangeMatch) {
+    const [, symbol, , maxStr] = symbolRangeMatch;
+    const max = parseFloat(maxStr.replace(",", "."));
+    const currency = symbolToCurrency[symbol] || "USD";
+    if (!isNaN(max)) {
+      return { amount: max, currency };
+    }
+  }
+
+  // Pattern 4: Currency code prefix single value - "EUR 50"
+  const codeSingleMatch = cleaned.match(/^([A-Z]{3})\s+(\d+(?:[.,]\d+)?)$/);
+  if (codeSingleMatch) {
+    const [, currency, amountStr] = codeSingleMatch;
+    const amount = parseFloat(amountStr.replace(",", "."));
+    if (!isNaN(amount)) {
+      return { amount, currency };
+    }
+  }
+
+  // Pattern 5: Single value with currency code suffix - "50 EUR"
+  const singleSuffixMatch = cleaned.match(/^(\d+(?:[.,]\d+)?)\s+([A-Z]{3})$/);
+  if (singleSuffixMatch) {
+    const [, amountStr, currency] = singleSuffixMatch;
+    const amount = parseFloat(amountStr.replace(",", "."));
+    if (!isNaN(amount)) {
+      return { amount, currency };
+    }
+  }
+
+  // Pattern 6: Symbol prefix single value - "€50" or "$50"
+  const symbolSingleMatch = cleaned.match(/^([€$£¥₹฿₫₩₪₱₺])(\d+(?:[.,]\d+)?)$/);
+  if (symbolSingleMatch) {
+    const [, symbol, amountStr] = symbolSingleMatch;
+    const amount = parseFloat(amountStr.replace(",", "."));
+    const currency = symbolToCurrency[symbol] || "USD";
+    if (!isNaN(amount)) {
+      return { amount, currency };
+    }
+  }
+
+  // Fallback: try parseCurrencyString for other formats
+  return parseCurrencyString(cleaned);
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrency } from "@/lib/locale";
 /* eslint-disable @next/next/no-img-element */
 
 interface DestinationData {
@@ -94,6 +95,15 @@ export default function DestinationHero({
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Currency conversion hook - converts to user's preferred currency
+  const { convert: convertCurrency } = useCurrency();
+
+  // Format budget with currency conversion
+  const formatBudget = (amount: number, fromCurrency: string): string => {
+    const converted = convertCurrency(amount, fromCurrency);
+    return converted.formatted;
+  };
 
   useEffect(() => {
     const fetchDestination = async () => {
@@ -216,7 +226,7 @@ export default function DestinationHero({
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {budget.currency} {budget.total.toLocaleString()}
+                    {formatBudget(budget.total, budget.currency)}
                   </div>
                 )}
 

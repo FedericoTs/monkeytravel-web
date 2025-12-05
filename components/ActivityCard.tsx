@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Activity } from "@/types";
 import PlaceGallery from "./PlaceGallery";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
-import { useCurrency } from "@/lib/locale";
+import { useCurrency, parsePriceRange } from "@/lib/locale";
 
 interface VerifiedPriceData {
   priceRange?: string;         // Direct range from Google like "EUR 40-50"
@@ -364,17 +364,40 @@ export default function ActivityCard({
                   <div className="h-6 w-16 bg-slate-100 rounded animate-pulse" />
                 ) : verifiedPrice?.priceRange ? (
                   // Show verified Google price range when available (e.g., "EUR 40-50")
-                  <>
-                    <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                      {verifiedPrice.priceRange}
-                    </div>
-                    <div className="text-[10px] text-green-600 hidden sm:flex items-center gap-1 justify-end">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      Google verified
-                    </div>
-                  </>
+                  // Parse range and convert to user's preferred currency (uses max value)
+                  (() => {
+                    const parsed = parsePriceRange(verifiedPrice.priceRange);
+                    if (parsed) {
+                      const displayPrice = formatPriceWithConversion(parsed.amount, parsed.currency);
+                      return (
+                        <>
+                          <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
+                            {displayPrice}
+                          </div>
+                          <div className="text-[10px] text-green-600 hidden sm:flex items-center gap-1 justify-end">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Google verified
+                          </div>
+                        </>
+                      );
+                    }
+                    // Fallback if parsing fails - display raw
+                    return (
+                      <>
+                        <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
+                          {verifiedPrice.priceRange}
+                        </div>
+                        <div className="text-[10px] text-green-600 hidden sm:flex items-center gap-1 justify-end">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Google verified
+                        </div>
+                      </>
+                    );
+                  })()
                 ) : verifiedPrice?.priceLevel !== undefined ? (
                   // Convert price level to estimated range with currency conversion
                   (() => {

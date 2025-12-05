@@ -16,6 +16,7 @@ import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import DuplicateTripCTA from "@/components/trip/DuplicateTripCTA";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { useCurrency } from "@/lib/locale";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -50,6 +51,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
+
+  // Currency conversion hook - converts to user's preferred currency
+  const { convert: convertCurrency } = useCurrency();
+
+  // Format price with currency conversion
+  const formatPrice = (amount: number, fromCurrency: string): string => {
+    if (amount === 0) return "Free";
+    const converted = convertCurrency(amount, fromCurrency);
+    return converted.formatted;
+  };
 
   // Extract destination from title (e.g., "Rome Trip" -> "Rome")
   const destination = trip.title.replace(/ Trip$/, "");
@@ -227,7 +238,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                       <div className="ml-auto text-right">
                         <div className="text-sm text-slate-500">Est. Budget</div>
                         <div className="font-semibold text-slate-900">
-                          {trip.budget?.currency || "USD"} {day.daily_budget.total}
+                          {formatPrice(day.daily_budget.total, trip.budget?.currency || "USD")}
                         </div>
                       </div>
                     )}
@@ -317,9 +328,10 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
-                                        {activity.estimated_cost.amount === 0
-                                          ? "Free"
-                                          : `${activity.estimated_cost.currency || trip.budget?.currency || "USD"} ${activity.estimated_cost.amount}`}
+                                        {formatPrice(
+                                          activity.estimated_cost.amount,
+                                          activity.estimated_cost.currency || trip.budget?.currency || "USD"
+                                        )}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
                                         {activity.type}
