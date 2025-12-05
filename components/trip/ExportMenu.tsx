@@ -141,48 +141,9 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
             </span>
           </div>
 
-          {/* Premium PDF - Main Option */}
-          <button
-            onClick={handleExportPremiumPDF}
-            disabled={isExporting === "premium-pdf"}
-            className="w-full flex items-center gap-3 px-3 py-3 text-left text-sm text-slate-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-colors disabled:opacity-50 border-b border-slate-100"
-          >
-            {isExporting === "premium-pdf" ? (
-              <div className="flex items-center gap-3 w-full">
-                <svg className="w-5 h-5 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <div className="flex-1">
-                  <div className="font-medium text-amber-700">{exportProgress?.step || "Generating..."}</div>
-                  <div className="w-full bg-amber-100 rounded-full h-1.5 mt-1">
-                    <div
-                      className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
-                      style={{ width: `${exportProgress?.progress || 0}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
-                    <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" stroke="white" strokeWidth="1.5" fill="none" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold flex items-center gap-2">
-                    Premium Travel Guide
-                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">NEW</span>
-                  </div>
-                  <div className="text-xs text-slate-500">Magazine-style with photos</div>
-                </div>
-              </>
-            )}
-          </button>
+          {/* Premium PDF - Hidden for now, code preserved for future improvements */}
 
-          {/* Basic PDF */}
+          {/* PDF */}
           <button
             onClick={handleExportPDF}
             disabled={isExporting === "pdf"}
@@ -200,8 +161,8 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
               </svg>
             )}
             <div>
-              <div className="font-medium">Basic PDF</div>
-              <div className="text-xs text-slate-500">Simple text itinerary</div>
+              <div className="font-medium">PDF Itinerary</div>
+              <div className="text-xs text-slate-500">Download as PDF file</div>
             </div>
           </button>
 
