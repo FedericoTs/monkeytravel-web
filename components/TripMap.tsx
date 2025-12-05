@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -70,6 +70,19 @@ const DAY_COLORS = [
   "#FDCB6E", // Day 8 - Yellow
 ];
 
+/**
+ * Generate a stable hash for days to detect real changes
+ */
+function getDaysHash(days: ItineraryDay[]): string {
+  return days
+    .map((day) =>
+      day.activities
+        .map((a) => `${a.id || a.name}:${a.address || a.location}:${a.coordinates?.lat || ""}`)
+        .join("|")
+    )
+    .join("||");
+}
+
 export default function TripMap({
   days,
   destination,
@@ -85,64 +98,131 @@ export default function TripMap({
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
+  // Prevent duplicate fetches
+  const fetchedHashRef = useRef<string>("");
+  const isFetchingRef = useRef(false);
+
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  // Geocode activities to get their coordinates
+  // Stable hash to detect real changes
+  const daysHash = useMemo(() => getDaysHash(days), [days]);
+
+  // Use SERVER-SIDE CACHED geocoding instead of client-side Google Maps Geocoder
+  // This saves ~$0.005 per request by using Supabase cache
   useEffect(() => {
-    if (!isLoaded || !window.google) return;
+    if (!isLoaded) return;
 
     const geocodeActivities = async () => {
-      setIsGeocoding(true);
-      const geocoder = new google.maps.Geocoder();
-      const mappedActivities: MapActivity[] = [];
+      // Prevent duplicate fetches
+      if (isFetchingRef.current) return;
+      if (fetchedHashRef.current === daysHash) return;
 
+      isFetchingRef.current = true;
+      setIsGeocoding(true);
+
+      const mappedActivities: MapActivity[] = [];
+      const addressesToGeocode: string[] = [];
+      const addressToActivityMap: Map<string, { day: ItineraryDay; activity: Activity }[]> = new Map();
+
+      // Step 1: Collect activities, prioritize existing coordinates
       for (const day of days) {
         for (const activity of day.activities) {
-          const searchQuery = `${activity.name} ${activity.address || activity.location} ${destination}`;
+          // If activity already has coordinates, use them directly (no API call needed!)
+          if (activity.coordinates?.lat && activity.coordinates?.lng) {
+            mappedActivities.push({
+              ...activity,
+              dayNumber: day.day_number,
+              resolvedLocation: {
+                lat: activity.coordinates.lat,
+                lng: activity.coordinates.lng,
+              },
+            });
+            continue;
+          }
 
-          try {
-            const result = await new Promise<google.maps.GeocoderResult[]>(
-              (resolve, reject) => {
-                geocoder.geocode({ address: searchQuery }, (results, status) => {
-                  if (status === "OK" && results) {
-                    resolve(results);
-                  } else {
-                    reject(new Error(status));
-                  }
-                });
-              }
-            );
+          // Build address for geocoding
+          const address = activity.address || activity.location;
+          if (address) {
+            const fullAddress = `${address}, ${destination}`;
 
-            if (result[0]) {
-              mappedActivities.push({
-                ...activity,
-                dayNumber: day.day_number,
-                resolvedLocation: {
-                  lat: result[0].geometry.location.lat(),
-                  lng: result[0].geometry.location.lng(),
-                },
-              });
+            // Group activities by address to avoid duplicate geocoding
+            if (!addressToActivityMap.has(fullAddress)) {
+              addressToActivityMap.set(fullAddress, []);
+              addressesToGeocode.push(fullAddress);
             }
-          } catch {
-            // If geocoding fails, still add activity without location
+            addressToActivityMap.get(fullAddress)!.push({ day, activity });
+          } else {
+            // No coordinates and no address - add without location
             mappedActivities.push({
               ...activity,
               dayNumber: day.day_number,
             });
           }
+        }
+      }
 
-          // Small delay to avoid rate limiting
-          await new Promise((r) => setTimeout(r, 100));
+      // Step 2: Batch geocode via server-side cached API (NOT client-side!)
+      if (addressesToGeocode.length > 0) {
+        try {
+          const response = await fetch("/api/travel/geocode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ addresses: addressesToGeocode }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const geocodedMap = new Map<string, { lat: number; lng: number }>();
+
+            for (const result of data.results || []) {
+              geocodedMap.set(result.address, { lat: result.lat, lng: result.lng });
+            }
+
+            // Map geocoded results back to activities
+            for (const [address, activityList] of addressToActivityMap) {
+              const coords = geocodedMap.get(address);
+              for (const { day, activity } of activityList) {
+                mappedActivities.push({
+                  ...activity,
+                  dayNumber: day.day_number,
+                  resolvedLocation: coords,
+                });
+              }
+            }
+          } else {
+            // API failed - add activities without locations
+            for (const [, activityList] of addressToActivityMap) {
+              for (const { day, activity } of activityList) {
+                mappedActivities.push({
+                  ...activity,
+                  dayNumber: day.day_number,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error("[TripMap] Geocoding error:", error);
+          // On error, add activities without locations
+          for (const [, activityList] of addressToActivityMap) {
+            for (const { day, activity } of activityList) {
+              mappedActivities.push({
+                ...activity,
+                dayNumber: day.day_number,
+              });
+            }
+          }
         }
       }
 
       setActivities(mappedActivities);
       setIsGeocoding(false);
+      fetchedHashRef.current = daysHash;
+      isFetchingRef.current = false;
 
-      // Center map on first activity or destination
+      // Center map on first activity with location
       const firstWithLocation = mappedActivities.find((a) => a.resolvedLocation);
       if (firstWithLocation?.resolvedLocation) {
         setMapCenter(firstWithLocation.resolvedLocation);
@@ -150,7 +230,7 @@ export default function TripMap({
     };
 
     geocodeActivities();
-  }, [isLoaded, days, destination]);
+  }, [isLoaded, daysHash, destination, days]);
 
   // Fit bounds when activities change
   useEffect(() => {

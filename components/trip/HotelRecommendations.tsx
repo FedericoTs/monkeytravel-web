@@ -407,6 +407,7 @@ export default function HotelRecommendations({
   }, [itinerary, destination]);
 
   // Fetch hotels via geocoding (fallback when no activity coordinates)
+  // Uses SERVER-SIDE CACHED geocoding to avoid direct Google API costs
   const fetchHotelsViaGeocoding = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -418,17 +419,24 @@ export default function HotelRecommendations({
       const geocodeQuery = bestGeocodingAddress;
       console.log("[HotelRecommendations] Geocoding with:", geocodeQuery);
 
-      const geocodeResponse = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(geocodeQuery)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-      );
+      // Use server-side cached geocoding API instead of direct Google API call
+      // This saves ~$0.005 per request via Supabase cache
+      const geocodeResponse = await fetch("/api/travel/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addresses: [geocodeQuery] }),
+      });
       const geocodeData = await geocodeResponse.json();
 
-      if (geocodeData.status !== "OK" || !geocodeData.results?.[0]) {
+      if (!geocodeResponse.ok || !geocodeData.results?.[0]) {
         throw new Error("Could not find destination coordinates");
       }
 
-      const location = geocodeData.results[0].geometry.location;
-      console.log("[HotelRecommendations] Geocoded to:", location, geocodeData.results[0].formatted_address);
+      const location = {
+        lat: geocodeData.results[0].lat,
+        lng: geocodeData.results[0].lng,
+      };
+      console.log("[HotelRecommendations] Geocoded to:", location, geocodeData.results[0].formattedAddress);
 
       // Now search for hotels near that location
       const params = new URLSearchParams({
