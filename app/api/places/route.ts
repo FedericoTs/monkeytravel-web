@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
+
+// Cache duration: 30 days for place details (they rarely change)
+const CACHE_DURATION_DAYS = 30;
 
 interface PlacePhoto {
   name: string;
@@ -30,6 +35,86 @@ interface PlaceResult {
   };
 }
 
+/**
+ * Generate cache key hash for a query
+ */
+function generateCacheKey(query: string, type: string): string {
+  const normalized = query.toLowerCase().trim();
+  return crypto.createHash("md5").update(`${type}:${normalized}`).digest("hex");
+}
+
+/**
+ * Check cache for existing place data
+ */
+async function getFromCache(cacheKey: string): Promise<unknown | null> {
+  try {
+    const { data, error } = await supabase
+      .from("google_places_cache")
+      .select("*")
+      .eq("place_id", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (error || !data) return null;
+
+    // Update hit count asynchronously
+    supabase
+      .from("google_places_cache")
+      .update({
+        hit_count: (data.hit_count || 0) + 1,
+        last_accessed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .then(() => {});
+
+    return data.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Store result in cache
+ */
+async function saveToCache(cacheKey: string, cacheType: string, data: unknown): Promise<void> {
+  try {
+    const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
+
+    await supabase.from("google_places_cache").upsert(
+      {
+        place_id: cacheKey,
+        cache_type: cacheType,
+        data,
+        cached_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+        hit_count: 0,
+        last_accessed_at: new Date().toISOString(),
+      },
+      { onConflict: "place_id" }
+    );
+  } catch (error) {
+    console.error("[Places Cache] Save error:", error);
+  }
+}
+
+/**
+ * Log API request for cost tracking
+ */
+async function logApiRequest(endpoint: string, cacheHit: boolean): Promise<void> {
+  try {
+    await supabase.from("api_request_logs").insert({
+      api_name: "google_places",
+      endpoint,
+      response_status: 200,
+      response_time_ms: 0,
+      cache_hit: cacheHit,
+      cost_usd: cacheHit ? 0 : 0.017, // Places Text Search costs ~$17 per 1000
+    });
+  } catch {
+    // Ignore logging errors
+  }
+}
+
 // Search for a place and get its details including photos
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +130,18 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Check cache first
+    const cacheKey = generateCacheKey(query, "search");
+    const cachedResult = await getFromCache(cacheKey);
+
+    if (cachedResult) {
+      console.log("[Places API] Cache HIT for:", query);
+      logApiRequest("/places:searchText", true);
+      return NextResponse.json(cachedResult);
+    }
+
+    console.log("[Places API] Cache MISS for:", query);
 
     // Use Text Search to find the place
     const searchResponse = await fetch(
@@ -110,7 +207,7 @@ export async function POST(request: NextRequest) {
       priceRangeText = `${currency} ${start}-${end}`;
     }
 
-    return NextResponse.json({
+    const result = {
       placeId: place.id,
       name: place.displayName?.text,
       address: place.formattedAddress,
@@ -126,7 +223,13 @@ export async function POST(request: NextRequest) {
       priceRange: priceRangeText,
       openNow: place.currentOpeningHours?.openNow,
       openingHours: place.currentOpeningHours?.weekdayDescriptions,
-    });
+    };
+
+    // Save to cache and log API usage
+    saveToCache(cacheKey, "search", result);
+    logApiRequest("/places:searchText", false);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Places API error:", error);
     return NextResponse.json(
@@ -156,6 +259,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Check cache first
+    const cacheKey = generateCacheKey(destination, "destination");
+    const cachedResult = await getFromCache(cacheKey);
+
+    if (cachedResult) {
+      console.log("[Places API] Cache HIT for destination:", destination);
+      logApiRequest("/places:searchText (destination)", true);
+      return NextResponse.json(cachedResult);
+    }
+
+    console.log("[Places API] Cache MISS for destination:", destination);
+
     // Search for the destination (city/landmark)
     const searchResponse = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
@@ -204,7 +319,7 @@ export async function GET(request: NextRequest) {
         thumbnailUrl: `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=150&maxWidthPx=200&key=${GOOGLE_PLACES_API_KEY}`,
       })) || [];
 
-    return NextResponse.json({
+    const result = {
       placeId: place.id,
       name: place.displayName?.text,
       address: place.formattedAddress,
@@ -212,7 +327,13 @@ export async function GET(request: NextRequest) {
       coverImageUrl,
       galleryPhotos,
       description: place.editorialSummary?.text,
-    });
+    };
+
+    // Save to cache and log API usage
+    saveToCache(cacheKey, "destination", result);
+    logApiRequest("/places:searchText (destination)", false);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Destination API error:", error);
     return NextResponse.json(

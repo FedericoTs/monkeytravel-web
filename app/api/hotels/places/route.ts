@@ -8,9 +8,17 @@
  *
  * Note: Google Places doesn't provide pricing for lodging, but gives
  * ratings, photos, and location data for display purposes.
+ *
+ * CACHING: Uses Supabase google_places_cache to reduce API costs.
+ * Cache duration: 7 days (hotels change more frequently than destinations)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
+
+// Cache duration: 7 days for hotel searches (shorter than places as availability changes)
+const CACHE_DURATION_DAYS = 7;
 
 // Types for Google Places response
 interface PlacePhoto {
@@ -125,6 +133,90 @@ export interface HotelPlaceResult {
   };
 }
 
+/**
+ * Generate cache key hash for hotel search
+ * Normalizes coordinates to 3 decimal places (within ~111m accuracy)
+ */
+function generateCacheKey(lat: number, lng: number, radius: number): string {
+  // Round coordinates to 3 decimal places (~111m precision)
+  const normalizedLat = lat.toFixed(3);
+  const normalizedLng = lng.toFixed(3);
+  const key = `hotels:${normalizedLat},${normalizedLng}:${radius}`;
+  return crypto.createHash("md5").update(key).digest("hex");
+}
+
+/**
+ * Check cache for existing hotel search data
+ */
+async function getFromCache(cacheKey: string): Promise<unknown | null> {
+  try {
+    const { data, error } = await supabase
+      .from("google_places_cache")
+      .select("*")
+      .eq("place_id", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (error || !data) return null;
+
+    // Update hit count asynchronously (fire and forget)
+    supabase
+      .from("google_places_cache")
+      .update({
+        hit_count: (data.hit_count || 0) + 1,
+        last_accessed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .then(() => {});
+
+    return data.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Store result in cache
+ */
+async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
+  try {
+    const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
+
+    await supabase.from("google_places_cache").upsert(
+      {
+        place_id: cacheKey,
+        cache_type: "hotels_nearby",
+        data,
+        cached_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+        hit_count: 0,
+        last_accessed_at: new Date().toISOString(),
+      },
+      { onConflict: "place_id" }
+    );
+  } catch (error) {
+    console.error("[Hotels Cache] Save error:", error);
+  }
+}
+
+/**
+ * Log API request for cost tracking
+ */
+async function logApiRequest(cacheHit: boolean): Promise<void> {
+  try {
+    await supabase.from("api_request_logs").insert({
+      api_name: "google_places",
+      endpoint: "/place/nearbysearch/json (hotels)",
+      response_status: 200,
+      response_time_ms: 0,
+      cache_hit: cacheHit,
+      cost_usd: cacheHit ? 0 : 0.032, // Nearby Search costs ~$32 per 1000
+    });
+  } catch {
+    // Ignore logging errors
+  }
+}
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
@@ -157,6 +249,51 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check cache first
+    const cacheKey = generateCacheKey(latitude, longitude, radius);
+    const cachedResult = await getFromCache(cacheKey);
+
+    if (cachedResult) {
+      console.log("[Hotels API] Cache HIT for:", latitude.toFixed(3), longitude.toFixed(3));
+      logApiRequest(true);
+
+      // Cached data contains the full response, but we need to update booking links with dates
+      const cachedData = cachedResult as { hotels: HotelPlaceResult[]; meta: unknown };
+
+      // Update booking links with current dates if provided
+      if ((startDate && endDate) && cachedData.hotels) {
+        cachedData.hotels = cachedData.hotels.map((hotel: HotelPlaceResult) => {
+          const encodedName = encodeURIComponent(hotel.name);
+          const encodedDestination = encodeURIComponent(destination || hotel.address || '');
+          const bookingDateParams = `&checkin=${startDate}&checkout=${endDate}`;
+          const expediaDateParams = `&startDate=${startDate}&endDate=${endDate}`;
+          const hotelsDateParams = `&startDate=${startDate}&endDate=${endDate}`;
+          const googleDateParams = `&q_check_in=${startDate}&q_check_out=${endDate}`;
+
+          return {
+            ...hotel,
+            bookingLinks: {
+              google: `https://www.google.com/travel/hotels/${encodedDestination}?q=${encodedName}${googleDateParams}`,
+              booking: `https://www.booking.com/searchresults.html?ss=${encodedName}+${encodedDestination}${bookingDateParams}`,
+              hotels: `https://www.hotels.com/search.do?q=${encodedName}+${encodedDestination}${hotelsDateParams}`,
+              expedia: `https://www.expedia.com/Hotel-Search?destination=${encodedName}+${encodedDestination}${expediaDateParams}`,
+            },
+          };
+        });
+      }
+
+      return NextResponse.json({
+        ...cachedData,
+        meta: {
+          ...(cachedData.meta as object),
+          responseTime: Date.now() - startTime,
+          cached: true,
+        },
+      });
+    }
+
+    console.log("[Hotels API] Cache MISS for:", latitude.toFixed(3), longitude.toFixed(3));
 
     // Build Google Places Nearby Search URL
     const placesUrl = new URL(
@@ -248,7 +385,7 @@ export async function GET(request: NextRequest) {
         return a.distance - b.distance;
       });
 
-    return NextResponse.json({
+    const result = {
       hotels,
       meta: {
         count: hotels.length,
@@ -256,7 +393,13 @@ export async function GET(request: NextRequest) {
         radius,
         responseTime: Date.now() - startTime,
       },
-    });
+    };
+
+    // Save to cache and log API usage (fire and forget)
+    saveToCache(cacheKey, result);
+    logApiRequest(false);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[Google Places Hotels] Error:', error);
 
