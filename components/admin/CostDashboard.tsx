@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { CostAnalytics } from "@/app/api/admin/costs/route";
+import GoogleMetricsDashboard from "./GoogleMetricsDashboard";
 
 export default function CostDashboard() {
   const [data, setData] = useState<CostAnalytics | null>(null);
@@ -291,6 +292,9 @@ export default function CostDashboard() {
           <span>Today</span>
         </div>
       </div>
+
+      {/* Google Cloud Real Metrics */}
+      <GoogleMetricsDashboard />
     </div>
   );
 }
