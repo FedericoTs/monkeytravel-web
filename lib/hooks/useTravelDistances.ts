@@ -241,6 +241,18 @@ export function useTravelDistances(
           if (distanceResponse.ok) {
             const distanceData = await distanceResponse.json();
 
+            // Debug: Log API response summary
+            const modes = (distanceData.results as DistanceResult[]).map(r => r.mode);
+            const walkingCount = modes.filter(m => m === "WALKING").length;
+            const drivingCount = modes.filter(m => m === "DRIVING").length;
+            console.log("[TravelDistances] API Response:", {
+              totalPairs: allPairs.length,
+              totalResults: distanceData.results?.length,
+              stats: distanceData.stats,
+              walkingResults: walkingCount,
+              drivingResults: drivingCount,
+            });
+
             // Match results back to pairs by COORDINATES (not index)
             // This is critical because the API may reorder results or drop failed pairs
             for (const pair of allPairs) {
@@ -254,9 +266,18 @@ export function useTravelDistances(
               );
 
               if (!result) {
-                // No result found for this pair - skip but log
+                // No result found for this pair - detailed debug logging
                 console.warn(
-                  `No distance result found for pair: ${pair.fromActivityName} → ${pair.toActivityName}`
+                  `[TravelDistances] No match for pair: ${pair.fromActivityName} → ${pair.toActivityName}`,
+                  {
+                    pairOrigin: pair.origin,
+                    pairDest: pair.destination,
+                    availableResults: (distanceData.results as DistanceResult[]).map(r => ({
+                      mode: r.mode,
+                      origin: r.origin,
+                      dest: r.destination,
+                    })),
+                  }
                 );
                 continue;
               }
