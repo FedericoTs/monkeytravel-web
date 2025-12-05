@@ -121,10 +121,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 3: Fetch uncached addresses from Google Geocoding API
+    // Step 3: Fetch uncached addresses from Google Geocoding API in parallel
+    // Using batches of 10 to respect rate limits while maximizing throughput
     const apiResults: GeocodeResult[] = [];
+    const BATCH_SIZE = 10;
 
-    for (const { address, hash } of uncachedAddresses) {
+    // Process a single address
+    async function geocodeAddress(
+      address: string,
+      hash: string
+    ): Promise<GeocodeResult | null> {
       try {
         const response = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
@@ -143,8 +149,8 @@ export async function POST(request: NextRequest) {
           else if (locationType === "RANGE_INTERPOLATED") confidence = 0.8;
           else if (locationType === "GEOMETRIC_CENTER") confidence = 0.6;
 
-          // Cache the result
-          const { error: insertError } = await supabase
+          // Cache the result (fire and forget)
+          supabase
             .from("geocode_cache")
             .insert({
               address_hash: hash,
@@ -157,26 +163,12 @@ export async function POST(request: NextRequest) {
               location_type: locationType,
               confidence,
               expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
+            })
+            .then(({ error }) => {
+              if (error) console.error("Cache insert error:", error);
             });
 
-          if (insertError) {
-            console.error("Cache insert error:", insertError);
-          }
-
-          const geocodeResult: GeocodeResult = {
-            address,
-            lat: location.lat,
-            lng: location.lng,
-            formattedAddress: result.formatted_address,
-            placeId: result.place_id,
-            locationType,
-            source: "api",
-          };
-
-          apiResults.push(geocodeResult);
-          results.push(geocodeResult);
-
-          // Log API usage for cost tracking
+          // Log API usage for cost tracking (fire and forget)
           supabase
             .from("api_request_logs")
             .insert({
@@ -189,6 +181,16 @@ export async function POST(request: NextRequest) {
               cost_usd: 0.005, // $5 per 1000 requests
             })
             .then(() => {});
+
+          return {
+            address,
+            lat: location.lat,
+            lng: location.lng,
+            formattedAddress: result.formatted_address,
+            placeId: result.place_id,
+            locationType,
+            source: "api",
+          };
         } else if (data.status === "ZERO_RESULTS") {
           console.warn(`No geocode results for: ${address}`);
         } else {
@@ -196,6 +198,25 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         console.error(`Geocoding request failed for: ${address}`, error);
+      }
+      return null;
+    }
+
+    // Process in parallel batches
+    for (let i = 0; i < uncachedAddresses.length; i += BATCH_SIZE) {
+      const batch = uncachedAddresses.slice(i, i + BATCH_SIZE);
+      console.log(`[Geocode] Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(uncachedAddresses.length / BATCH_SIZE)} (${batch.length} addresses)`);
+
+      const batchResults = await Promise.all(
+        batch.map(({ address, hash }) => geocodeAddress(address, hash))
+      );
+
+      // Filter out nulls and add to results
+      for (const result of batchResults) {
+        if (result) {
+          apiResults.push(result);
+          results.push(result);
+        }
       }
     }
 

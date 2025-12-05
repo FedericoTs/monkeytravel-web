@@ -5,13 +5,77 @@
  *
  * Uses Google Places Autocomplete (New) API to provide destination suggestions.
  * Filters to cities for travel destination selection.
+ * Includes in-memory caching to reduce API costs.
  *
  * @see https://developers.google.com/maps/documentation/places/web-service/place-autocomplete
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
+
+// In-memory cache for autocomplete (short-lived, per instance)
+// Autocomplete suggestions are relatively stable for common city names
+const autocompleteCache = new Map<string, { data: unknown; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Generate cache key for autocomplete input
+ */
+function getCacheKey(input: string): string {
+  const normalized = input.toLowerCase().trim();
+  return crypto.createHash("md5").update(`autocomplete:${normalized}`).digest("hex");
+}
+
+/**
+ * Get from in-memory cache
+ */
+function getFromCache(key: string): unknown | null {
+  const cached = autocompleteCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
+  }
+  if (cached) {
+    autocompleteCache.delete(key); // Cleanup expired
+  }
+  return null;
+}
+
+/**
+ * Save to in-memory cache
+ */
+function saveToCache(key: string, data: unknown): void {
+  // Limit cache size to prevent memory issues
+  if (autocompleteCache.size > 500) {
+    // Remove oldest entries
+    const entries = Array.from(autocompleteCache.entries());
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+    for (let i = 0; i < 100; i++) {
+      autocompleteCache.delete(entries[i][0]);
+    }
+  }
+  autocompleteCache.set(key, { data, timestamp: Date.now() });
+}
+
+/**
+ * Log API request for cost tracking
+ */
+async function logApiRequest(cacheHit: boolean): Promise<void> {
+  try {
+    await supabase.from("api_request_logs").insert({
+      api_name: "google_places",
+      endpoint: "/places:autocomplete",
+      response_status: 200,
+      response_time_ms: 0,
+      cache_hit: cacheHit,
+      cost_usd: cacheHit ? 0 : 0.00283, // Autocomplete costs ~$2.83 per 1000 (Session-based)
+    });
+  } catch {
+    // Ignore logging errors
+  }
+}
 
 // Country code to flag emoji mapping
 const countryFlags: Record<string, string> = {
@@ -116,6 +180,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check cache first (for inputs >= 3 chars to allow common prefixes to cache)
+    const cacheKey = getCacheKey(input);
+    if (input.length >= 3) {
+      const cached = getFromCache(cacheKey);
+      if (cached) {
+        console.log("[Autocomplete] Cache HIT for:", input);
+        logApiRequest(true);
+        return NextResponse.json(cached);
+      }
+    }
+
+    console.log("[Autocomplete] Cache MISS for:", input);
+
     // Call Google Places Autocomplete (New) API
     const response = await fetch(
       "https://places.googleapis.com/v1/places:autocomplete",
@@ -174,7 +251,17 @@ export async function POST(request: NextRequest) {
         };
       });
 
-    return NextResponse.json({ predictions });
+    const result = { predictions };
+
+    // Save to cache (only for inputs >= 3 chars)
+    if (input.length >= 3) {
+      saveToCache(cacheKey, result);
+    }
+
+    // Log API usage
+    logApiRequest(false);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Places Autocomplete error:", error);
     return NextResponse.json(

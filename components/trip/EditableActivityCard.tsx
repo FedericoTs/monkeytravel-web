@@ -159,53 +159,51 @@ export default function EditableActivityCard({
     "spa", "wellness", "entertainment", "nightlife", "wine bar"
   ];
 
-  // Fetch verified price from Google Places API
+  // DISABLED: Price verification via Google Places API
+  // This was causing $0.032 per activity card = massive costs
+  // Each page view with 15 activities = $0.48
+  // TODO: Re-enable with proper caching (localStorage + server cache) or lazy-load on "More" click
+  //
+  // useEffect(() => {
+  //   if (!priceableTypes.includes(activity.type)) return;
+  //   if (fetchedActivityRef.current === activityKey) return;
+  //
+  //   const fetchVerifiedPrice = async () => {
+  //     fetchedActivityRef.current = activityKey;
+  //     setPriceLoading(true);
+  //     try {
+  //       const response = await fetch("/api/places", {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           query: `${activity.name} ${activity.address || activity.location}`,
+  //           maxPhotos: 1,
+  //         }),
+  //       });
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         if (data.priceRange || data.priceLevel !== undefined || data.priceLevelSymbol) {
+  //           setVerifiedPrice({
+  //             priceRange: data.priceRange,
+  //             priceLevel: data.priceLevel,
+  //             priceLevelSymbol: data.priceLevelSymbol,
+  //             priceLevelLabel: data.priceLevelLabel,
+  //           });
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch verified price:", error);
+  //     } finally {
+  //       setPriceLoading(false);
+  //     }
+  //   };
+  //   fetchVerifiedPrice();
+  // }, [activityKey, activity.name, activity.address, activity.location, activity.type]);
+
+  // Always show AI estimate instead - no API call needed
   useEffect(() => {
-    // Only fetch for types that typically have price info
-    if (!priceableTypes.includes(activity.type)) {
-      return;
-    }
-
-    // Skip if we already fetched for this exact activity
-    if (fetchedActivityRef.current === activityKey) {
-      return;
-    }
-
-    const fetchVerifiedPrice = async () => {
-      fetchedActivityRef.current = activityKey;
-      setPriceLoading(true);
-
-      try {
-        const response = await fetch("/api/places", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: `${activity.name} ${activity.address || activity.location}`,
-            maxPhotos: 1,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Store if we have any price info (range, level, or symbol)
-          if (data.priceRange || data.priceLevel !== undefined || data.priceLevelSymbol) {
-            setVerifiedPrice({
-              priceRange: data.priceRange,
-              priceLevel: data.priceLevel,
-              priceLevelSymbol: data.priceLevelSymbol,
-              priceLevelLabel: data.priceLevelLabel,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch verified price:", error);
-      } finally {
-        setPriceLoading(false);
-      }
-    };
-
-    fetchVerifiedPrice();
-  }, [activityKey, activity.name, activity.address, activity.location, activity.type]);
+    setPriceLoading(false);
+  }, []);
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(

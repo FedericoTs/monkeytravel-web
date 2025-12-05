@@ -372,8 +372,8 @@ export async function POST(request: NextRequest) {
                       duration_text: element.duration.text,
                       status: "OK",
                       expires_at: new Date(
-                        Date.now() + 7 * 24 * 60 * 60 * 1000
-                      ).toISOString(), // 7 days
+                        Date.now() + 30 * 24 * 60 * 60 * 1000
+                      ).toISOString(), // 30 days - distances between points rarely change
                     })
                     .then(({ error }) => {
                       if (error) console.error("Distance cache insert error:", error);

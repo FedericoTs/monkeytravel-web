@@ -80,11 +80,12 @@ async function saveToCache(cacheKey: string, cacheType: string, data: unknown): 
   try {
     const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    await supabase.from("google_places_cache").upsert(
+    const { error } = await supabase.from("google_places_cache").upsert(
       {
         place_id: cacheKey,
         cache_type: cacheType,
         data,
+        request_hash: cacheKey, // Required field - use cacheKey as hash
         cached_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         hit_count: 0,
@@ -92,8 +93,14 @@ async function saveToCache(cacheKey: string, cacheType: string, data: unknown): 
       },
       { onConflict: "place_id" }
     );
+
+    if (error) {
+      console.error("[Places Cache] Save error:", error.message, error.details);
+    } else {
+      console.log("[Places Cache] Saved:", cacheKey.substring(0, 16) + "...");
+    }
   } catch (error) {
-    console.error("[Places Cache] Save error:", error);
+    console.error("[Places Cache] Save exception:", error);
   }
 }
 
