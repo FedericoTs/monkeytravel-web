@@ -14,18 +14,53 @@ export default function GoogleMetricsDashboard() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+
+      const defaultBilling = {
+        configured: false,
+        summary: { totalCostUsd: 0, todayCostUsd: 0, last7DaysCostUsd: 0, last30DaysCostUsd: 0, currentMonthCostUsd: 0, previousMonthCostUsd: 0 },
+        byService: [],
+        dailyCosts: [],
+        cumulativeCosts: [],
+        bySkU: [],
+      };
+
       const [metricsRes, billingRes] = await Promise.all([
-        fetch("/api/admin/google-metrics"),
-        fetch("/api/admin/google-billing"),
+        fetch("/api/admin/google-metrics").catch(() => null),
+        fetch("/api/admin/google-billing").catch(() => null),
       ]);
 
-      if (metricsRes.ok) {
-        setMetrics(await metricsRes.json());
+      // Handle metrics response
+      if (metricsRes?.ok) {
+        const data = await metricsRes.json();
+        setMetrics(data);
+      } else if (metricsRes) {
+        // Non-OK response - try to get error message
+        try {
+          const errorData = await metricsRes.json();
+          setMetrics({ configured: false, error: errorData.error || `HTTP ${metricsRes.status}`, requestCounts: [], dailyUsage: [] });
+        } catch {
+          setMetrics({ configured: false, error: `HTTP ${metricsRes.status}`, requestCounts: [], dailyUsage: [] });
+        }
+      } else {
+        // Network error
+        setMetrics({ configured: false, error: "Network error - could not reach API", requestCounts: [], dailyUsage: [] });
       }
-      if (billingRes.ok) {
-        setBilling(await billingRes.json());
+
+      // Handle billing response
+      if (billingRes?.ok) {
+        const data = await billingRes.json();
+        setBilling(data);
+      } else if (billingRes) {
+        try {
+          const errorData = await billingRes.json();
+          setBilling({ ...defaultBilling, error: errorData.error || `HTTP ${billingRes.status}` });
+        } catch {
+          setBilling({ ...defaultBilling, error: `HTTP ${billingRes.status}` });
+        }
+      } else {
+        setBilling({ ...defaultBilling, error: "Network error - could not reach API" });
       }
-      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch data");
     } finally {
@@ -154,6 +189,26 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-slate-500">Loading Google Cloud metrics...</span>
+          </div>
+        </div>
+      )}
+
+      {/* API Error Display */}
+      {!loading && (metrics?.error || billing?.error) && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="font-semibold text-red-800">API Error</h4>
+              {metrics?.error && (
+                <p className="text-sm text-red-700 mt-1">Metrics: {metrics.error}</p>
+              )}
+              {billing?.error && (
+                <p className="text-sm text-red-700 mt-1">Billing: {billing.error}</p>
+              )}
+            </div>
           </div>
         </div>
       )}
