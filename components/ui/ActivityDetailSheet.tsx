@@ -122,13 +122,41 @@ export default function ActivityDetailSheet({
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
-          <div className="w-12 h-1.5 rounded-full bg-slate-300" />
-        </div>
+        {/* Hero Image - shown when image_url is available */}
+        {activity.image_url && (
+          <div className="relative h-40 w-full overflow-hidden flex-shrink-0">
+            <img
+              src={activity.image_url}
+              alt={activity.name}
+              className="w-full h-full object-cover"
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            {/* Close button on image */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center transition-colors hover:bg-black/60"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            {/* Drag handle on image */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2">
+              <div className="w-12 h-1.5 rounded-full bg-white/60" />
+            </div>
+          </div>
+        )}
+
+        {/* Drag Handle - only shown when no image */}
+        {!activity.image_url && (
+          <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+            <div className="w-12 h-1.5 rounded-full bg-slate-300" />
+          </div>
+        )}
 
         {/* Header */}
-        <div className="px-5 pb-4 border-b border-slate-100 flex-shrink-0">
+        <div className={`px-5 pb-4 border-b border-slate-100 flex-shrink-0 ${activity.image_url ? 'pt-3' : ''}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -147,14 +175,17 @@ export default function ActivityDetailSheet({
                 {activity.name}
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center flex-shrink-0 transition-colors"
-            >
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Close button - only shown when no image (image has its own close button) */}
+            {!activity.image_url && (
+              <button
+                onClick={onClose}
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center flex-shrink-0 transition-colors"
+              >
+                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 

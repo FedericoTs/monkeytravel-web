@@ -273,7 +273,42 @@ export default function NewTripPage() {
         throw new Error(data.error || "Generation failed");
       }
 
-      setGeneratedItinerary(data.itinerary);
+      // Fetch activity images in parallel (using FREE Pexels API)
+      const itinerary = data.itinerary;
+      try {
+        // Collect all activities
+        const allActivities = itinerary.days.flatMap((day: { activities: { name: string; type: string }[] }) =>
+          day.activities.map((a: { name: string; type: string }) => ({ name: a.name, type: a.type }))
+        );
+
+        // Batch fetch images
+        const imageResponse = await fetch("/api/images/activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activities: allActivities,
+            destination: itinerary.destination.name,
+          }),
+        });
+
+        if (imageResponse.ok) {
+          const { images } = await imageResponse.json();
+
+          // Inject image_url into each activity
+          for (const day of itinerary.days) {
+            for (const activity of day.activities) {
+              if (images[activity.name]) {
+                activity.image_url = images[activity.name];
+              }
+            }
+          }
+        }
+      } catch (imageError) {
+        console.error("Failed to fetch activity images:", imageError);
+        // Continue without images - not critical
+      }
+
+      setGeneratedItinerary(itinerary);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

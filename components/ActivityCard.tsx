@@ -267,6 +267,28 @@ export default function ActivityCard({
         expanded ? "shadow-lg border-slate-300" : "shadow-sm border-slate-200 hover:shadow-md"
       }`}
     >
+      {/* Activity Image Thumbnail - shown when image_url is available */}
+      {activity.image_url && (
+        <div className="relative h-32 sm:h-40 w-full overflow-hidden rounded-t-xl">
+          <img
+            src={activity.image_url}
+            alt={activity.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          {/* Gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          {/* Type badge overlay */}
+          <div className="absolute bottom-2 left-2">
+            <span
+              className={`text-xs px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 ${colors.text} border ${colors.border}`}
+            >
+              {activity.type}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="p-3 sm:p-4">
         <div className="flex gap-3 sm:gap-4">
