@@ -14,7 +14,7 @@ export default function CostCommandCenter() {
   const [data, setData] = useState<EnhancedCostAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Default OFF to save CPU
 
   const fetchData = useCallback(async () => {
     try {
@@ -91,10 +91,12 @@ export default function CostCommandCenter() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--success)]/10 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
-            <span className="text-[var(--success)] text-xs font-medium">LIVE</span>
-          </div>
+          {autoRefresh && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--success)]/10 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
+              <span className="text-[var(--success)] text-xs font-medium">LIVE</span>
+            </div>
+          )}
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition ${

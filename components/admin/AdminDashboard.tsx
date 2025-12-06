@@ -35,9 +35,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchStats();
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchStats, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // Auto-refresh disabled to save CPU - use manual refresh button
   }, [fetchStats]);
 
   if (loading && !stats) {
