@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateItinerary, validateTripParams } from "@/lib/gemini";
 import { isAdmin } from "@/lib/admin";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import crypto from "crypto";
 
@@ -191,6 +192,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    // Check API access control first
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      await logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/generate",
+        status: 503,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: `BLOCKED: ${access.message}`,
+        metadata: { user_id: user.id },
+      });
+      return NextResponse.json(
+        { error: access.message || "AI generation is currently disabled" },
+        { status: 503 }
+      );
+    }
+
     // Check rate limits (10 generations per day for regular users, unlimited for admins)
     const userIsAdmin = isAdmin(user.email);
 
@@ -239,11 +259,15 @@ export async function POST(request: NextRequest) {
 
     const generationTime = Date.now() - startTime;
 
-    // Log the request
-    await supabase.from("api_request_logs").insert({
-      api_name: "gemini",
+    // Log the request using centralized gateway
+    await logApiCall({
+      apiName: "gemini",
       endpoint: "/api/ai/generate",
-      request_params: {
+      status: 200,
+      responseTimeMs: generationTime,
+      cacheHit,
+      costUsd: cacheHit ? 0 : 0.003, // Only charge for AI calls, not cache hits
+      metadata: {
         user_id: user.id,
         destination: params.destination,
         vibes: params.vibes,
@@ -255,10 +279,6 @@ export async function POST(request: NextRequest) {
           ) + 1,
         is_admin: userIsAdmin,
       },
-      response_status: 200,
-      response_time_ms: generationTime,
-      cache_hit: cacheHit,
-      cost_usd: cacheHit ? 0 : 0.003, // Only charge for AI calls, not cache hits
     });
 
     return NextResponse.json({
@@ -273,19 +293,15 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Generation error:", error);
 
-    // Log error
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    await supabase.from("api_request_logs").insert({
-      api_name: "gemini",
+    // Log error using centralized gateway
+    await logApiCall({
+      apiName: "gemini",
       endpoint: "/api/ai/generate",
-      request_params: { user_id: user?.id },
-      response_status: 500,
-      response_time_ms: Date.now() - startTime,
-      error_message: error instanceof Error ? error.message : "Unknown error",
+      status: 500,
+      responseTimeMs: Date.now() - startTime,
+      cacheHit: false,
+      costUsd: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
 
     return NextResponse.json(

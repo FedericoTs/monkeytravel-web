@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -60,21 +60,25 @@ function saveToCache(key: string, data: unknown): void {
 }
 
 /**
- * Log API request for cost tracking
+ * Log API request for cost tracking using centralized gateway
  */
-async function logApiRequest(cacheHit: boolean): Promise<void> {
-  try {
-    await supabase.from("api_request_logs").insert({
-      api_name: "google_places",
-      endpoint: "/places:autocomplete",
-      response_status: 200,
-      response_time_ms: 0,
-      cache_hit: cacheHit,
-      cost_usd: cacheHit ? 0 : 0.00283, // Autocomplete costs ~$2.83 per 1000 (Session-based)
-    });
-  } catch {
-    // Ignore logging errors
-  }
+async function logAutocompleteApiRequest(options: {
+  cacheHit?: boolean;
+  status?: number;
+  error?: string;
+  responseTimeMs?: number;
+}): Promise<void> {
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0 } = options;
+
+  await logApiCall({
+    apiName: "google_places_autocomplete",
+    endpoint: "/places:autocomplete",
+    status,
+    responseTimeMs,
+    cacheHit,
+    costUsd: cacheHit || status >= 400 ? 0 : 0.00283, // Autocomplete costs ~$2.83 per 1000
+    error,
+  });
 }
 
 // Country code to flag emoji mapping
@@ -166,14 +170,33 @@ export interface PlacePrediction {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    // Check API access control first
+    const access = await checkApiAccess("google_places_autocomplete");
+    if (!access.allowed) {
+      await logAutocompleteApiRequest({
+        status: 503,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Places Autocomplete API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
     const { input, sessionToken } = await request.json();
 
     if (!input || input.length < 2) {
       return NextResponse.json({ predictions: [] });
     }
 
-    if (!GOOGLE_PLACES_API_KEY) {
+    if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
+      await logAutocompleteApiRequest({
+        status: 500,
+        error: "API key not configured or blocked",
+      });
       return NextResponse.json(
         { error: "Google Places API key not configured" },
         { status: 500 }
@@ -186,7 +209,7 @@ export async function POST(request: NextRequest) {
       const cached = getFromCache(cacheKey);
       if (cached) {
         console.log("[Autocomplete] Cache HIT for:", input);
-        logApiRequest(true);
+        logAutocompleteApiRequest({ cacheHit: true });
         return NextResponse.json(cached);
       }
     }
@@ -262,7 +285,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log API usage
-    logApiRequest(false);
+    logAutocompleteApiRequest({ responseTimeMs: Date.now() - startTime });
 
     return NextResponse.json(result);
   } catch (error) {

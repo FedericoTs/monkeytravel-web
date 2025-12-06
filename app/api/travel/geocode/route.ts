@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -43,7 +44,27 @@ function hashAddress(addr: string): string {
  * POST /api/travel/geocode
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    // Check API access control first
+    const access = await checkApiAccess("google_geocoding");
+    if (!access.allowed) {
+      await logApiCall({
+        apiName: "google_geocoding",
+        endpoint: "/geocode/json",
+        status: 503,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Geocoding API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
     const { addresses }: GeocodeRequest = await request.json();
 
     if (!addresses?.length) {
@@ -60,7 +81,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!GOOGLE_MAPS_API_KEY) {
+    if (!GOOGLE_MAPS_API_KEY || !access.shouldPassKey) {
+      await logApiCall({
+        apiName: "google_geocoding",
+        endpoint: "/geocode/json",
+        status: 500,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: "API key not configured or blocked",
+      });
       return NextResponse.json(
         { error: "Google Maps API key not configured" },
         { status: 500 }
@@ -173,19 +203,16 @@ export async function POST(request: NextRequest) {
                 if (error) console.error("Cache insert error:", error);
               });
 
-            // Log API usage for cost tracking (fire and forget)
-            supabase
-              .from("api_request_logs")
-              .insert({
-                api_name: "google_geocoding",
-                endpoint: "/geocode/json",
-                request_params: { address: address.substring(0, 100) },
-                response_status: 200,
-                response_time_ms: 0,
-                cache_hit: false,
-                cost_usd: 0.005, // $5 per 1000 requests
-              })
-              .then(() => {});
+            // Log API usage for cost tracking using centralized gateway
+            logApiCall({
+              apiName: "google_geocoding",
+              endpoint: "/geocode/json",
+              status: 200,
+              responseTimeMs: 0,
+              cacheHit: false,
+              costUsd: 0.005, // $5 per 1000 requests
+              metadata: { address: address.substring(0, 100) },
+            });
 
             return {
               address,

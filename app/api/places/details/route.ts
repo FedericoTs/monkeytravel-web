@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -88,24 +89,29 @@ async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
 }
 
 /**
- * Log API request for cost tracking
+ * Log API request for cost tracking using centralized gateway
  */
-async function logApiRequest(cacheHit: boolean): Promise<void> {
-  try {
-    await supabase.from("api_request_logs").insert({
-      api_name: "google_places",
-      endpoint: "/places/{placeId}",
-      response_status: 200,
-      response_time_ms: 0,
-      cache_hit: cacheHit,
-      cost_usd: cacheHit ? 0 : 0.017, // Place Details costs ~$17 per 1000
-    });
-  } catch {
-    // Ignore logging errors
-  }
+async function logDetailsApiRequest(options: {
+  cacheHit?: boolean;
+  status?: number;
+  error?: string;
+  responseTimeMs?: number;
+}): Promise<void> {
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0 } = options;
+
+  await logApiCall({
+    apiName: "google_places_details",
+    endpoint: "/places/{placeId}",
+    status,
+    responseTimeMs,
+    cacheHit,
+    costUsd: cacheHit || status >= 400 ? 0 : 0.017, // Place Details costs ~$17 per 1000
+    error,
+  });
 }
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   const { searchParams } = new URL(request.url);
   const placeId = searchParams.get("placeId");
 
@@ -116,20 +122,36 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!GOOGLE_PLACES_API_KEY) {
-    return NextResponse.json(
-      { error: "Google Places API key not configured" },
-      { status: 500 }
-    );
-  }
-
   try {
+    // Check API access control first
+    const access = await checkApiAccess("google_places_details");
+    if (!access.allowed) {
+      await logDetailsApiRequest({
+        status: 503,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Place Details API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
+    if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
+      await logDetailsApiRequest({
+        status: 500,
+        error: "API key not configured or blocked",
+      });
+      return NextResponse.json(
+        { error: "Google Places API key not configured" },
+        { status: 500 }
+      );
+    }
     // Check cache first
     const cacheKey = generateCacheKey(placeId);
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
-      logApiRequest(true);
+      logDetailsApiRequest({ cacheHit: true });
       return NextResponse.json(cachedResult);
     }
 
@@ -181,7 +203,7 @@ export async function GET(request: NextRequest) {
 
     // Save to cache and log API usage
     saveToCache(cacheKey, result);
-    logApiRequest(false);
+    logDetailsApiRequest({ responseTimeMs: Date.now() - startTime });
 
     return NextResponse.json(result);
   } catch (error) {

@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 // Cache duration: 7 days for hotel searches (shorter than places as availability changes)
 const CACHE_DURATION_DAYS = 7;
@@ -105,7 +106,7 @@ function formatDistance(km: number): string {
 
 // Build Google Places photo URL
 function getPhotoUrl(photoReference: string, maxWidth: number = 400): string {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${apiKey}`;
 }
 
@@ -200,33 +201,54 @@ async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
 }
 
 /**
- * Log API request for cost tracking
+ * Log API request for cost tracking using centralized gateway
  */
-async function logApiRequest(cacheHit: boolean): Promise<void> {
-  try {
-    await supabase.from("api_request_logs").insert({
-      api_name: "google_places",
-      endpoint: "/place/nearbysearch/json (hotels)",
-      response_status: 200,
-      response_time_ms: 0,
-      cache_hit: cacheHit,
-      cost_usd: cacheHit ? 0 : 0.032, // Nearby Search costs ~$32 per 1000
-    });
-  } catch {
-    // Ignore logging errors
-  }
+async function logHotelApiRequest(options: {
+  cacheHit?: boolean;
+  status?: number;
+  error?: string;
+  responseTimeMs?: number;
+}): Promise<void> {
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0 } = options;
+
+  await logApiCall({
+    apiName: "google_places_nearby",
+    endpoint: "/place/nearbysearch/json (hotels)",
+    status,
+    responseTimeMs,
+    cacheHit,
+    costUsd: cacheHit || status >= 400 ? 0 : 0.032,
+    error,
+  });
 }
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    if (!apiKey) {
+    // Check API access control first
+    const access = await checkApiAccess("google_places_nearby");
+    if (!access.allowed) {
+      await logHotelApiRequest({
+        status: 503,
+        error: `BLOCKED: ${access.message}`,
+      });
       return NextResponse.json(
-        { error: 'Google Maps API key not configured' },
+        { error: access.message || "Hotel search API is currently disabled" },
         { status: 503 }
+      );
+    }
+
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+    if (!apiKey || !access.shouldPassKey) {
+      await logHotelApiRequest({
+        status: 500,
+        error: "API key not configured or blocked",
+      });
+      return NextResponse.json(
+        { error: 'Google Places API key not configured' },
+        { status: 500 }
       );
     }
 
@@ -256,7 +278,7 @@ export async function GET(request: NextRequest) {
 
     if (cachedResult) {
       console.log("[Hotels API] Cache HIT for:", latitude.toFixed(3), longitude.toFixed(3));
-      logApiRequest(true);
+      await logHotelApiRequest({ cacheHit: true });
 
       // Cached data contains the full response, but we need to update booking links with dates
       const cachedData = cachedResult as { hotels: HotelPlaceResult[]; meta: unknown };
@@ -395,13 +417,20 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Save to cache and log API usage (fire and forget)
+    // Save to cache and log API usage
     saveToCache(cacheKey, result);
-    logApiRequest(false);
+    await logHotelApiRequest({ responseTimeMs: Date.now() - startTime });
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Google Places Hotels] Error:', error);
+
+    // Log the failure
+    await logHotelApiRequest({
+      status: 500,
+      error: error instanceof Error ? error.message : String(error),
+      responseTimeMs: Date.now() - startTime,
+    });
 
     return NextResponse.json(
       {

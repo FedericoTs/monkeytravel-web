@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -119,7 +120,27 @@ function determineMode(
  * POST /api/travel/distance
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    // Check API access control first
+    const access = await checkApiAccess("google_distance_matrix");
+    if (!access.allowed) {
+      await logApiCall({
+        apiName: "google_distance_matrix",
+        endpoint: "/distancematrix/json",
+        status: 503,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: `BLOCKED: ${access.message}`,
+      });
+      return NextResponse.json(
+        { error: access.message || "Distance Matrix API is currently disabled" },
+        { status: 503 }
+      );
+    }
+
     const { pairs }: DistanceRequest = await request.json();
 
     if (!pairs?.length) {
@@ -136,7 +157,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!GOOGLE_MAPS_API_KEY) {
+    if (!GOOGLE_MAPS_API_KEY || !access.shouldPassKey) {
+      await logApiCall({
+        apiName: "google_distance_matrix",
+        endpoint: "/distancematrix/json",
+        status: 500,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: "API key not configured or blocked",
+      });
       return NextResponse.json(
         { error: "Google Maps API key not configured" },
         { status: 500 }
@@ -435,20 +465,17 @@ export async function POST(request: NextRequest) {
               }
             }
 
-            // Log API usage for cost tracking
+            // Log API usage for cost tracking using centralized gateway
             const elements = validPairs.length;
-            supabase
-              .from("api_request_logs")
-              .insert({
-                api_name: "google_distance_matrix",
-                endpoint: "/distancematrix/json",
-                request_params: { mode, pairs: validPairs.length },
-                response_status: 200,
-                response_time_ms: 0,
-                cache_hit: false,
-                cost_usd: elements * 0.005, // $5 per 1000 elements
-              })
-              .then(() => {});
+            logApiCall({
+              apiName: "google_distance_matrix",
+              endpoint: "/distancematrix/json",
+              status: 200,
+              responseTimeMs: 0,
+              cacheHit: false,
+              costUsd: elements * 0.005, // $5 per 1000 elements
+              metadata: { mode, pairs: validPairs.length },
+            });
           } else {
             console.error("Distance Matrix API error:", data.status, data.error_message);
             // Add fallback results for all pairs when API fails
