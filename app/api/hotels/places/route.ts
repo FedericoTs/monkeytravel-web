@@ -10,7 +10,7 @@
  * ratings, photos, and location data for display purposes.
  *
  * CACHING: Uses Supabase google_places_cache to reduce API costs.
- * Cache duration: 7 days (hotels change more frequently than destinations)
+ * Cache duration: 30 days (hotel listings are stable; prices handled by booking links)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -18,8 +18,8 @@ import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
-// Cache duration: 7 days for hotel searches (shorter than places as availability changes)
-const CACHE_DURATION_DAYS = 7;
+// Cache duration: 30 days for hotel searches (listings are stable; real prices via booking links)
+const CACHE_DURATION_DAYS = 30;
 
 // Types for Google Places response
 interface PlacePhoto {

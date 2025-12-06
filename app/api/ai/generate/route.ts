@@ -76,11 +76,11 @@ async function cacheItinerary(
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
 
-  // Cache for 7 days
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  // Cache for 14 days (extended from 7)
+  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
   try {
-    await supabase.from("destination_activity_cache").upsert(
+    const { error } = await supabase.from("destination_activity_cache").upsert(
       {
         destination_hash: destinationHash,
         destination_name: destination,
@@ -98,9 +98,14 @@ async function cacheItinerary(
       },
       { onConflict: "destination_hash,vibes,budget_tier" }
     );
-    console.log(`[AI Generate] Cached itinerary for ${destination}`);
+
+    if (error) {
+      console.error(`[AI Generate] Cache write error for ${destination}:`, error.message, error.details);
+    } else {
+      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier})`);
+    }
   } catch (err) {
-    console.warn("[AI Generate] Cache write failed:", err);
+    console.error("[AI Generate] Cache write exception:", err);
   }
 }
 
