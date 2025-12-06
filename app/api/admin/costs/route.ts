@@ -303,9 +303,11 @@ export async function GET() {
       ? (cacheHitsFromLogs / allLogs.length) * 100
       : 0;
 
-    // Estimate savings
+    // Estimate savings - use ONLY cache table hits (not logs) to avoid double-counting
+    // Cache table hit_count = how many times cached data was served (actual savings)
+    // Log cache_hit = whether the API call used cache (already reflected in cost_usd=0)
     const avgApiCost = 0.01;
-    const estimatedSavingsUsd = (totalCacheHits + cacheHitsFromLogs) * avgApiCost;
+    const estimatedSavingsUsd = totalCacheHits * avgApiCost;
 
     // Get circuit breaker status
     const circuitBreakerStats = circuitBreakerManager.getAllStats();
@@ -528,8 +530,8 @@ export async function GET() {
       },
       cache: {
         hitRate: Math.round(hitRate * 10) / 10,
-        totalHits: cacheHitsFromLogs + totalCacheHits,
-        totalMisses: cacheMissesFromLogs,
+        totalHits: totalCacheHits, // From cache tables only (actual cache usage)
+        totalMisses: cacheMissesFromLogs, // From API logs (actual API calls)
         estimatedSavingsUsd: Math.round(estimatedSavingsUsd * 100) / 100,
         byType: {
           geocode: { entries: geocodeCache.length, hits: geocodeHits },

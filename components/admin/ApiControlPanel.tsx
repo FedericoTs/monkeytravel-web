@@ -92,16 +92,24 @@ export default function ApiControlPanel() {
         throw new Error(data.error || "Failed to update");
       }
 
-      // Update local state
-      setConfigs((prev) =>
-        prev.map((c) =>
-          c.api_name === apiName ? { ...c, ...updates } : c
-        )
-      );
+      // Use server-returned config to update state (not optimistic)
+      // This ensures UI always reflects actual database state
+      if (data.config) {
+        setConfigs((prev) =>
+          prev.map((c) =>
+            c.api_name === apiName ? { ...c, ...data.config } : c
+          )
+        );
+      } else {
+        // Fallback: refetch all configs to ensure consistency
+        await fetchConfigs();
+      }
 
       showToast(data.message || "Updated successfully", "success");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Update failed", "error");
+      // On error, refetch to ensure UI matches server state
+      await fetchConfigs();
     } finally {
       setUpdating(null);
     }

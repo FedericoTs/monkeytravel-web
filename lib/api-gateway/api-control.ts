@@ -29,10 +29,17 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-// In-memory cache for API config (5 second TTL to reduce DB calls)
-let configCache: Map<string, ApiConfigEntry> = new Map();
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5000;
+/**
+ * IMPORTANT: No in-memory caching for API config
+ *
+ * In Vercel's serverless environment, each request may hit a different
+ * function instance. In-memory caching would cause stale reads when an
+ * admin toggles an API off - other instances would continue serving the
+ * old (enabled) state until their cache expires.
+ *
+ * For reliable API control, we ALWAYS fetch fresh config from the database.
+ * The minor latency (~5-10ms) is worth the reliability.
+ */
 
 export interface ApiConfigEntry {
   apiName: string;
@@ -79,16 +86,41 @@ export class ApiBlockedError extends Error {
 }
 
 /**
- * Load all API configurations from database
+ * Fetch API configuration for a specific API from database
+ * Always fetches fresh data for reliable access control
  */
-async function loadApiConfigs(): Promise<void> {
-  const now = Date.now();
+async function fetchApiConfig(apiName: string): Promise<ApiConfigEntry | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("api_config")
+      .select("api_name, display_name, enabled, block_mode, category, cost_per_request")
+      .eq("api_name", apiName)
+      .single();
 
-  // Return cached if still valid
-  if (configCache.size > 0 && now - cacheTimestamp < CACHE_TTL_MS) {
-    return;
+    if (error || !data) {
+      // Not found - API may not be configured yet
+      return null;
+    }
+
+    return {
+      apiName: data.api_name,
+      displayName: data.display_name,
+      enabled: data.enabled,
+      blockMode: data.block_mode,
+      category: data.category,
+      costPerRequest: Number(data.cost_per_request) || 0,
+    };
+  } catch (err) {
+    console.error("[ApiControl] Error fetching config for", apiName, ":", err);
+    return null;
   }
+}
 
+/**
+ * Fetch all API configurations from database (for admin dashboard)
+ */
+async function fetchAllApiConfigs(): Promise<ApiConfigEntry[]> {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -96,36 +128,33 @@ async function loadApiConfigs(): Promise<void> {
       .select("api_name, display_name, enabled, block_mode, category, cost_per_request");
 
     if (error) {
-      console.error("[ApiControl] Failed to load config:", error);
-      return;
+      console.error("[ApiControl] Failed to load all configs:", error);
+      return [];
     }
 
-    // Update cache
-    configCache = new Map();
-    for (const row of data || []) {
-      configCache.set(row.api_name, {
-        apiName: row.api_name,
-        displayName: row.display_name,
-        enabled: row.enabled,
-        blockMode: row.block_mode,
-        category: row.category,
-        costPerRequest: Number(row.cost_per_request) || 0,
-      });
-    }
-    cacheTimestamp = now;
+    return (data || []).map((row) => ({
+      apiName: row.api_name,
+      displayName: row.display_name,
+      enabled: row.enabled,
+      blockMode: row.block_mode,
+      category: row.category,
+      costPerRequest: Number(row.cost_per_request) || 0,
+    }));
   } catch (err) {
-    console.error("[ApiControl] Error loading config:", err);
+    console.error("[ApiControl] Error loading all configs:", err);
+    return [];
   }
 }
 
 /**
  * Check if an API is allowed to be called
  * Call this BEFORE making any external API request
+ *
+ * IMPORTANT: Always fetches fresh from database - no caching
+ * This ensures admin toggle changes take effect immediately
  */
 export async function checkApiAccess(apiName: string): Promise<ApiAccessResult> {
-  await loadApiConfigs();
-
-  const config = configCache.get(apiName);
+  const config = await fetchApiConfig(apiName);
 
   // Unknown API - allow by default (fail-open for new APIs)
   if (!config) {
@@ -178,8 +207,7 @@ export async function checkApiAccess(apiName: string): Promise<ApiAccessResult> 
  * Get the cost per request for an API
  */
 export async function getApiCostFromConfig(apiName: string): Promise<number> {
-  await loadApiConfigs();
-  const config = configCache.get(apiName);
+  const config = await fetchApiConfig(apiName);
   return config?.costPerRequest ?? 0;
 }
 
@@ -248,16 +276,18 @@ export async function logBlockedCall(
  * Get all API configurations (for admin dashboard)
  */
 export async function getAllApiConfigs(): Promise<ApiConfigEntry[]> {
-  await loadApiConfigs();
-  return Array.from(configCache.values());
+  return fetchAllApiConfigs();
 }
 
 /**
  * Force refresh the config cache
+ * @deprecated No longer needed - we always fetch fresh from database
+ * Kept for backwards compatibility with existing callers
  */
 export function invalidateConfigCache(): void {
-  configCache = new Map();
-  cacheTimestamp = 0;
+  // No-op: cache has been removed for reliability
+  // This function is kept for backwards compatibility
+  console.log("[ApiControl] invalidateConfigCache called (no-op - caching removed)");
 }
 
 /**
