@@ -6,7 +6,7 @@ const PEXELS_API_URL = "https://api.pexels.com/v1/search";
 // Cache for destination images (in-memory, per-instance)
 // In production, you'd use Redis or similar
 const imageCache = new Map<string, { url: string; timestamp: number }>();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 hours (extended for cost efficiency)
 
 // Curated high-quality destination images as fallbacks
 // These are stable Pexels URLs that won't change
@@ -202,8 +202,9 @@ export async function GET(request: NextRequest) {
   const cacheKey = normalizeDestination(destination);
 
   // Cache-Control headers for CDN caching at Vercel Edge (reduces server requests by 50%+)
+  // Extended to 48h for better cost efficiency - destination images rarely change
   const cacheHeaders = {
-    "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200", // 24h CDN, 12h stale
+    "Cache-Control": "public, s-maxage=172800, stale-while-revalidate=86400", // 48h CDN, 24h stale
   };
 
   // Check cache first

@@ -15,8 +15,9 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
-// Cache duration: 90 days for place details (coordinates rarely change)
-const CACHE_DURATION_DAYS = 90;
+// Cache duration: 180 days for place details (coordinates rarely change)
+// Extended from 90 to 180 days for better cost efficiency
+const CACHE_DURATION_DAYS = 180;
 
 /**
  * Generate cache key for place ID
