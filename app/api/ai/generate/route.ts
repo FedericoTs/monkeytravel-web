@@ -96,7 +96,7 @@ async function cacheItinerary(
         hit_count: 0,
         last_accessed_at: new Date().toISOString(),
       },
-      { onConflict: "destination_hash,vibes,budget_tier" }
+      { onConflict: "unique_destination_cache" }
     );
 
     if (error) {
@@ -258,8 +258,8 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Generate] Cache MISS for ${params.destination}, generating fresh...`);
       itinerary = await generateItinerary(params);
 
-      // Cache the result for future users (async, don't wait)
-      cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
+      // Cache the result for future users (must await to complete before serverless function terminates)
+      await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
     }
 
     const generationTime = Date.now() - startTime;
