@@ -29,6 +29,10 @@ interface DestinationHeroProps {
   showBackButton?: boolean;
   onBack?: () => void;
   children?: React.ReactNode;
+  /** Pre-fetched cover image URL from saved trip - skips Places API call */
+  coverImageUrl?: string | null;
+  /** Callback to persist cover image after first fetch (optional) */
+  onCoverImageFetched?: (imageUrl: string) => void;
 }
 
 // Weather parsing - extracts condition and optional temperature
@@ -91,6 +95,8 @@ export default function DestinationHero({
   showBackButton = true,
   onBack,
   children,
+  coverImageUrl,
+  onCoverImageFetched,
 }: DestinationHeroProps) {
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -106,6 +112,20 @@ export default function DestinationHero({
   };
 
   useEffect(() => {
+    // If we already have a saved cover image, use it directly - NO API call
+    if (coverImageUrl) {
+      setDestinationData({
+        placeId: "",
+        name: destination,
+        address: "",
+        location: { latitude: 0, longitude: 0 },
+        coverImageUrl,
+        galleryPhotos: [],
+      });
+      setLoading(false);
+      return;
+    }
+
     const fetchDestination = async () => {
       setLoading(true);
       try {
@@ -115,6 +135,10 @@ export default function DestinationHero({
         if (response.ok) {
           const data = await response.json();
           setDestinationData(data);
+          // Callback to save the fetched image URL for future use
+          if (data.coverImageUrl && onCoverImageFetched) {
+            onCoverImageFetched(data.coverImageUrl);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch destination:", error);
@@ -126,7 +150,7 @@ export default function DestinationHero({
     if (destination) {
       fetchDestination();
     }
-  }, [destination]);
+  }, [destination, coverImageUrl, onCoverImageFetched]);
 
   return (
     <div className="relative">

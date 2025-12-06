@@ -51,6 +51,7 @@ export default async function TripDetailPage({
         itinerary,
         meta: tripMeta,
         packingList,
+        coverImageUrl: trip.cover_image_url,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date)}
     />

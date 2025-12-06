@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, Activity, TripMeta } from "@/types";
@@ -65,6 +65,8 @@ interface TripDetailClientProps {
     itinerary: ItineraryDay[];
     meta?: TripMeta;
     packingList?: string[];
+    /** Pre-saved cover image URL - eliminates Places API call on load */
+    coverImageUrl?: string | null;
   };
   dateRange: string;
 }
@@ -97,6 +99,63 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   // Track if there are unsaved changes (compare against saved state, not prop)
   const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(savedItinerary);
+
+  // Auto-backfill coordinates for legacy trips missing them
+  // This runs once on mount and persists coordinates to the database
+  const backfillAttemptedRef = useRef(false);
+  useEffect(() => {
+    // Only run once per trip load
+    if (backfillAttemptedRef.current) return;
+
+    // Check if any activities are missing coordinates
+    const hasMissingCoords = trip.itinerary.some((day) =>
+      day.activities.some(
+        (activity) => !activity.coordinates?.lat || !activity.coordinates?.lng
+      )
+    );
+
+    if (!hasMissingCoords) return;
+
+    backfillAttemptedRef.current = true;
+
+    // Fire-and-forget backfill request (runs in background)
+    fetch(`/api/trips/${trip.id}/backfill-coordinates`, {
+      method: "POST",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.updated > 0) {
+          console.log(`[TripDetail] Backfilled ${data.updated} activity coordinates`);
+          // Note: We don't update state here to avoid re-render loops.
+          // The TripMap component will geocode addresses on its own for this session.
+          // Next page load will have the persisted coordinates.
+        }
+      })
+      .catch((err) => {
+        console.warn("[TripDetail] Coordinate backfill failed:", err);
+      });
+  }, [trip.id, trip.itinerary]);
+
+  // Callback to persist cover image when fetched for the first time
+  // This ensures subsequent visits don't require a Places API call
+  const handleCoverImageFetched = useCallback(
+    async (imageUrl: string) => {
+      // Only save if trip doesn't already have a cover image
+      if (trip.coverImageUrl) return;
+
+      try {
+        await fetch(`/api/trips/${trip.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cover_image_url: imageUrl }),
+        });
+        console.log("[TripDetail] Saved cover image for future visits");
+      } catch (err) {
+        console.warn("[TripDetail] Failed to save cover image:", err);
+      }
+    },
+    [trip.id, trip.coverImageUrl]
+  );
 
   // Extract destination from title (e.g., "Rome Trip" -> "Rome")
   const destination = trip.title.replace(/ Trip$/, "");
@@ -492,6 +551,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         tags={trip.tags}
         showBackButton={true}
         onBack={() => window.history.back()}
+        coverImageUrl={trip.coverImageUrl}
+        onCoverImageFetched={handleCoverImageFetched}
       >
         {/* Status Badge - Floating */}
         <div className="absolute top-4 right-4">

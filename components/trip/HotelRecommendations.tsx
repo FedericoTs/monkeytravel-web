@@ -370,7 +370,32 @@ export default function HotelRecommendations({
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [searchMode, setSearchMode] = useState<"geo" | "destination">("geo");
+  const [isVisible, setIsVisible] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Lazy loading: Only fetch hotels when section scrolls into view
+  // This saves ~$0.032+ per trip page load
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Only need to trigger once
+        }
+      },
+      {
+        rootMargin: "200px", // Start loading 200px before visible
+        threshold: 0,
+      }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   // Calculate activity center from itinerary
   const geoCenter = useMemo<GeoCenter | null>(() => {
@@ -510,12 +535,12 @@ export default function HotelRecommendations({
     }
   }, [geoCenter, fetchHotelsViaGeoCenter, fetchHotelsViaGeocoding]);
 
-  // Auto-fetch on mount
+  // Auto-fetch when section becomes visible (lazy loading)
   useEffect(() => {
-    if (!hasLoaded && !loading && destination) {
+    if (isVisible && !hasLoaded && !loading && destination) {
       fetchHotels();
     }
-  }, [hasLoaded, loading, destination, fetchHotels]);
+  }, [isVisible, hasLoaded, loading, destination, fetchHotels]);
 
   // Scroll handlers
   const scrollLeft = () => {
@@ -536,7 +561,7 @@ export default function HotelRecommendations({
   }
 
   return (
-    <section className="mb-10">
+    <section ref={sectionRef} className="mb-10">
       {/* Section Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

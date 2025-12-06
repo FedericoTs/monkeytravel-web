@@ -106,6 +106,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       "status",
       "tags",
       "budget",
+      "cover_image_url",
     ];
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
