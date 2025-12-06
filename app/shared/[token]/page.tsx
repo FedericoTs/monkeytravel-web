@@ -63,8 +63,12 @@ export default async function SharedTripPage({ params }: PageProps) {
 
   const itinerary = (trip.itinerary as ItineraryDay[]) || [];
   const budget = trip.budget as { total: number; currency: string } | null;
-  const meta = trip.meta as TripMeta | undefined;
-  const packingList = trip.packing_list as string[] | undefined;
+  const tripMeta = (trip.trip_meta as TripMeta) || {};
+  const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
+
+  // Extract cached travel distances from trip_meta (calculated locally, no API cost)
+  const cachedTravelDistances = tripMeta.travel_distances;
+  const cachedTravelHash = tripMeta.travel_distances_hash;
 
   // Generate structured data for SEO
   const tripUrl = `https://monkeytravel.app/shared/${token}`;
@@ -101,8 +105,10 @@ export default async function SharedTripPage({ params }: PageProps) {
           budget,
           itinerary,
           sharedAt: trip.shared_at,
-          meta,
+          meta: tripMeta,
           packingList,
+          cachedTravelDistances,
+          cachedTravelHash,
         }}
         shareToken={token}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}

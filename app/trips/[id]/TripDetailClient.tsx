@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { ItineraryDay, Activity, TripMeta } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
@@ -67,6 +67,10 @@ interface TripDetailClientProps {
     packingList?: string[];
     /** Pre-saved cover image URL - eliminates Places API call on load */
     coverImageUrl?: string | null;
+    /** Cached travel distances from trip_meta - eliminates recalculation */
+    cachedTravelDistances?: CachedDayTravelData[];
+    /** Hash of itinerary when travel distances were calculated */
+    cachedTravelHash?: string;
   };
   dateRange: string;
 }
@@ -520,7 +524,13 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const displayItinerary = isEditMode ? editedItinerary : memoizedBaseItinerary;
 
   // Fetch travel distances between activities
-  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary);
+  // Uses local Haversine calculation - NO external API calls!
+  // Cached results from trip_meta are used if available and hash matches
+  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary, {
+    tripId: trip.id,
+    cachedTravelData: trip.cachedTravelDistances,
+    cachedHash: trip.cachedTravelHash,
+  });
 
   const statusColors = {
     planning: "bg-amber-100 text-amber-700",

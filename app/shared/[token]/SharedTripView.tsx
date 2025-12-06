@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import type { ItineraryDay, TripMeta } from "@/types";
+import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import ExportMenu from "@/components/trip/ExportMenu";
@@ -42,6 +42,10 @@ interface SharedTripViewProps {
     sharedAt?: string;
     meta?: TripMeta;
     packingList?: string[];
+    /** Cached travel distances from trip_meta - eliminates recalculation */
+    cachedTravelDistances?: CachedDayTravelData[];
+    /** Hash of itinerary when travel distances were calculated */
+    cachedTravelHash?: string;
   };
   shareToken: string;
   dateRange: string;
@@ -72,7 +76,12 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
   );
 
   // Fetch travel distances between activities
-  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary);
+  // Uses local Haversine calculation - NO external API calls!
+  // For shared trips, we use cached data from trip_meta if available (no tripId to save new calculations)
+  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary, {
+    cachedTravelData: trip.cachedTravelDistances,
+    cachedHash: trip.cachedTravelHash,
+  });
 
   // Calculate nights
   const nights = useMemo(() => {

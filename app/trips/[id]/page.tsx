@@ -37,6 +37,10 @@ export default async function TripDetailPage({
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
 
+  // Extract cached travel distances from trip_meta (calculated locally, no API cost)
+  const cachedTravelDistances = tripMeta.travel_distances;
+  const cachedTravelHash = tripMeta.travel_distances_hash;
+
   return (
     <TripDetailClient
       trip={{
@@ -52,6 +56,8 @@ export default async function TripDetailPage({
         meta: tripMeta,
         packingList,
         coverImageUrl: trip.cover_image_url,
+        cachedTravelDistances,
+        cachedTravelHash,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date)}
     />
