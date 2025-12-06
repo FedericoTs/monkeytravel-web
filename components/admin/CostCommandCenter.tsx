@@ -12,12 +12,13 @@ import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
 
 export default function CostCommandCenter() {
   const [data, setData] = useState<EnhancedCostAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start false - no auto-load
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false); // Default OFF to save CPU
 
   const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await fetch("/api/admin/costs");
       if (!response.ok) throw new Error("Failed to fetch cost data");
       const result = await response.json();
@@ -30,12 +31,11 @@ export default function CostCommandCenter() {
     }
   }, []);
 
+  // No auto-fetch on mount - only manual refresh to save costs
   useEffect(() => {
-    fetchData();
-    const interval = autoRefresh ? setInterval(fetchData, 30000) : null;
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    if (!autoRefresh) return;
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, [fetchData, autoRefresh]);
 
   if (loading && !data) {
@@ -73,7 +73,41 @@ export default function CostCommandCenter() {
     );
   }
 
-  if (!data) return null;
+  // Show prompt to load data manually
+  if (!data) {
+    return (
+      <div className="min-h-[400px] bg-white rounded-2xl border border-[var(--primary)]/10 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Cost Analytics</h3>
+          <p className="text-[var(--foreground-muted)] mb-6 max-w-xs">Click the button below to load cost data. Data is not auto-loaded to minimize API usage.</p>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Load Cost Data
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
