@@ -26,6 +26,12 @@ interface TripMapProps {
   className?: string;
   selectedDay?: number | null;
   onActivityClick?: (activity: Activity, dayNumber: number) => void;
+  /**
+   * When true, NO geocoding API calls will be made.
+   * Only activities with existing coordinates will show markers.
+   * Used for saved trips to ensure zero external API costs.
+   */
+  disableApiCalls?: boolean;
 }
 
 const mapContainerStyle = {
@@ -89,6 +95,7 @@ export default function TripMap({
   className = "",
   selectedDay,
   onActivityClick,
+  disableApiCalls = false,
 }: TripMapProps) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
@@ -115,7 +122,7 @@ export default function TripMap({
   useEffect(() => {
     if (!isLoaded) return;
 
-    const geocodeActivities = async () => {
+    const processActivities = async () => {
       // Prevent duplicate fetches
       if (isFetchingRef.current) return;
       if (fetchedHashRef.current === daysHash) return;
@@ -143,7 +150,18 @@ export default function TripMap({
             continue;
           }
 
-          // Build address for geocoding
+          // CRITICAL: If API calls are disabled, skip activities without coordinates
+          // They simply won't show on the map - NO API cost
+          if (disableApiCalls) {
+            // Add activity without location (won't show marker)
+            mappedActivities.push({
+              ...activity,
+              dayNumber: day.day_number,
+            });
+            continue;
+          }
+
+          // Build address for geocoding (only if API calls are allowed)
           const address = activity.address || activity.location;
           if (address) {
             const fullAddress = `${address}, ${destination}`;
@@ -165,7 +183,8 @@ export default function TripMap({
       }
 
       // Step 2: Batch geocode via server-side cached API (NOT client-side!)
-      if (addressesToGeocode.length > 0) {
+      // ONLY if API calls are enabled
+      if (addressesToGeocode.length > 0 && !disableApiCalls) {
         try {
           const response = await fetch("/api/travel/geocode", {
             method: "POST",
@@ -229,8 +248,8 @@ export default function TripMap({
       }
     };
 
-    geocodeActivities();
-  }, [isLoaded, daysHash, destination, days]);
+    processActivities();
+  }, [isLoaded, daysHash, destination, days, disableApiCalls]);
 
   // Fit bounds when activities change
   useEffect(() => {

@@ -3,8 +3,12 @@ import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, Us
 import { generateActivityId } from "./utils/activity-id";
 
 // Threshold for incremental generation (days)
-export const INCREMENTAL_GENERATION_THRESHOLD = 5;
-export const INITIAL_DAYS_TO_GENERATE = 3;
+// NOTE: Incremental generation is disabled (threshold set to 99) because:
+// 1. The frontend never implemented the handler for loading remaining days
+// 2. Users were only getting 3 days for 7+ day trips
+// 3. Full generation with increased token limit is more reliable
+export const INCREMENTAL_GENERATION_THRESHOLD = 99; // Effectively disabled
+export const INITIAL_DAYS_TO_GENERATE = 14; // Max trip length
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -15,13 +19,16 @@ export const MODELS = {
   premium: "gemini-2.5-flash-preview-05-20",
 } as const;
 
-// Optimized system prompt - reduced from ~2400 to ~1200 chars (50% reduction = ~$4000/year savings)
+// System prompt for trip generation
 const SYSTEM_PROMPT = `You are MonkeyTravel AI, creating personalized travel itineraries.
 
 ## CRITICAL Rules
 1. **Real Places Only**: All locations MUST be real and verifiable on Google Maps. Never invent places.
-2. **Full Addresses**: Include complete street addresses for every activity.
-3. **GPS Coordinates**: Include accurate latitude/longitude for EVERY activity. This is MANDATORY.
+2. **Full Addresses**: Include complete street addresses for every activity (e.g., "123 Main Street, City, Country").
+3. **GPS Coordinates MANDATORY**: You MUST include accurate latitude/longitude for EVERY activity.
+   - Format: "coordinates": {"lat": 48.8584, "lng": 2.2945}
+   - Coordinates must be real and match the address. Without coordinates, the trip cannot be displayed on a map.
+   - If you don't know exact coordinates, use approximate coordinates for the neighborhood.
 4. **Websites**: Only include official_website if 100% certain. Use null otherwise.
 5. **Budget**: Budget <$100/day, Balanced $100-250/day, Premium $250+/day.
 6. **Geographic Efficiency**: Group nearby activities, minimize backtracking.
@@ -120,6 +127,117 @@ ${sections.join("\n")}
 interface BuildPromptOptions {
   maxDays?: number; // Limit days to generate (for incremental generation)
   isPartial?: boolean; // Indicates this is a partial generation
+}
+
+/**
+ * Known destination coordinates for fallback when Gemini doesn't provide coordinates
+ * These are approximate city center coordinates
+ */
+const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  "paris": { lat: 48.8566, lng: 2.3522 },
+  "rome": { lat: 41.9028, lng: 12.4964 },
+  "tokyo": { lat: 35.6762, lng: 139.6503 },
+  "london": { lat: 51.5074, lng: -0.1278 },
+  "new york": { lat: 40.7128, lng: -74.0060 },
+  "barcelona": { lat: 41.3851, lng: 2.1734 },
+  "amsterdam": { lat: 52.3676, lng: 4.9041 },
+  "berlin": { lat: 52.5200, lng: 13.4050 },
+  "lisbon": { lat: 38.7223, lng: -9.1393 },
+  "prague": { lat: 50.0755, lng: 14.4378 },
+  "vienna": { lat: 48.2082, lng: 16.3738 },
+  "budapest": { lat: 47.4979, lng: 19.0402 },
+  "sydney": { lat: -33.8688, lng: 151.2093 },
+  "dubai": { lat: 25.2048, lng: 55.2708 },
+  "singapore": { lat: 1.3521, lng: 103.8198 },
+  "bangkok": { lat: 13.7563, lng: 100.5018 },
+  "bali": { lat: -8.3405, lng: 115.0920 },
+  "milan": { lat: 45.4642, lng: 9.1900 },
+  "florence": { lat: 43.7696, lng: 11.2558 },
+  "venice": { lat: 45.4408, lng: 12.3155 },
+  "athens": { lat: 37.9838, lng: 23.7275 },
+  "madrid": { lat: 40.4168, lng: -3.7038 },
+  "seville": { lat: 37.3891, lng: -5.9845 },
+  "porto": { lat: 41.1579, lng: -8.6291 },
+  "marrakech": { lat: 31.6295, lng: -7.9811 },
+  "cairo": { lat: 30.0444, lng: 31.2357 },
+  "cape town": { lat: -33.9249, lng: 18.4241 },
+  "los angeles": { lat: 34.0522, lng: -118.2437 },
+  "san francisco": { lat: 37.7749, lng: -122.4194 },
+  "miami": { lat: 25.7617, lng: -80.1918 },
+  "chicago": { lat: 41.8781, lng: -87.6298 },
+  "toronto": { lat: 43.6532, lng: -79.3832 },
+  "mexico city": { lat: 19.4326, lng: -99.1332 },
+  "buenos aires": { lat: -34.6037, lng: -58.3816 },
+  "rio de janeiro": { lat: -22.9068, lng: -43.1729 },
+};
+
+/**
+ * Validate and fix coordinates for all activities in the itinerary
+ * If coordinates are missing, uses destination-based fallback with small random offset
+ */
+function validateAndFixCoordinates(days: ItineraryDay[], destination: string): ItineraryDay[] {
+  // Try to find destination coordinates
+  const destLower = destination.toLowerCase();
+  let destCoords = DESTINATION_COORDINATES[destLower];
+
+  // Try partial match (e.g., "Paris, France" -> "paris")
+  if (!destCoords) {
+    const firstWord = destLower.split(/[,\s]+/)[0];
+    destCoords = DESTINATION_COORDINATES[firstWord];
+  }
+
+  // Default fallback (center of Europe if nothing matches)
+  if (!destCoords) {
+    destCoords = { lat: 48.0, lng: 10.0 };
+    console.warn(`[Gemini] No known coordinates for destination: ${destination}, using default`);
+  }
+
+  let missingCount = 0;
+  let fixedCount = 0;
+
+  const fixedDays = days.map(day => ({
+    ...day,
+    activities: day.activities.map((activity, idx) => {
+      // Check if coordinates are valid
+      const hasValidCoords =
+        activity.coordinates &&
+        typeof activity.coordinates.lat === "number" &&
+        typeof activity.coordinates.lng === "number" &&
+        !isNaN(activity.coordinates.lat) &&
+        !isNaN(activity.coordinates.lng) &&
+        activity.coordinates.lat !== 0 &&
+        activity.coordinates.lng !== 0;
+
+      if (hasValidCoords) {
+        return activity;
+      }
+
+      // Coordinates are missing or invalid - apply fallback
+      missingCount++;
+
+      // Generate a small random offset (within ~1-2km of city center)
+      // This spreads out activities on the map rather than stacking them
+      const offsetLat = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
+      const offsetLng = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
+
+      const fixedActivity = {
+        ...activity,
+        coordinates: {
+          lat: destCoords.lat + offsetLat,
+          lng: destCoords.lng + offsetLng,
+        },
+      };
+      fixedCount++;
+
+      return fixedActivity;
+    }),
+  }));
+
+  if (fixedCount > 0) {
+    console.log(`[Gemini] Fixed ${fixedCount} activities with missing coordinates for ${destination}`);
+  }
+
+  return fixedDays;
 }
 
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
@@ -262,7 +380,8 @@ Rules:
 3. Include 3-5 activities per day based on ${params.pace} pace
 4. Use REAL place names that exist on Google Maps
 5. For official_website, use null if unsure (do not make up URLs)
-6. Activities should flow logically through each day`;
+6. Activities should flow logically through each day
+7. EVERY activity MUST have valid coordinates (lat/lng) - this is critical for map display`;
 }
 
 /**
@@ -306,7 +425,7 @@ export async function generateItinerary(
       temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 4000, // Optimized: avg response 3500 tokens, saves ~20% AI cost
+      maxOutputTokens: 8192, // Increased to support trips up to 14 days (~750 tokens/day)
       responseMimeType: "application/json",
     },
   });
@@ -344,6 +463,9 @@ export async function generateItinerary(
       if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
         throw new Error("Invalid itinerary structure");
       }
+
+      // Validate and fix coordinates for all activities
+      itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
 
       return itinerary;
     } catch (parseError) {
@@ -694,7 +816,7 @@ export async function generateMoreDays(
       temperature: retryCount > 0 ? 0.7 : 1.0,
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 4000,
+      maxOutputTokens: 8192, // Increased to support longer trips
       responseMimeType: "application/json",
     },
   });

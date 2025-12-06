@@ -23,6 +23,12 @@ interface PlaceGalleryProps {
   maxPhotos?: number;
   showRating?: boolean;
   compact?: boolean;
+  /**
+   * When true, NO API calls will be made.
+   * Used for saved trips to ensure zero external API costs.
+   * The gallery will not be displayed.
+   */
+  disableApiCalls?: boolean;
 }
 
 export default function PlaceGallery({
@@ -32,7 +38,13 @@ export default function PlaceGallery({
   maxPhotos = 4,
   showRating = true,
   compact = false,
+  disableApiCalls = false,
 }: PlaceGalleryProps) {
+  // CRITICAL: If API calls are disabled, don't render the gallery at all.
+  // This ensures saved trips NEVER incur external API costs for place photos.
+  if (disableApiCalls) {
+    return null;
+  }
   const [placeData, setPlaceData] = useState<PlaceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

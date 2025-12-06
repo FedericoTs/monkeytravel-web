@@ -33,6 +33,12 @@ interface DestinationHeroProps {
   coverImageUrl?: string | null;
   /** Callback to persist cover image after first fetch (optional) */
   onCoverImageFetched?: (imageUrl: string) => void;
+  /**
+   * When true, NO API calls will be made.
+   * Used for saved trips to ensure zero external API costs.
+   * Falls back to gradient background if no coverImageUrl provided.
+   */
+  disableApiCalls?: boolean;
 }
 
 // Weather parsing - extracts condition and optional temperature
@@ -97,6 +103,7 @@ export default function DestinationHero({
   children,
   coverImageUrl,
   onCoverImageFetched,
+  disableApiCalls = false,
 }: DestinationHeroProps) {
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,6 +133,14 @@ export default function DestinationHero({
       return;
     }
 
+    // CRITICAL: If API calls are disabled, use gradient fallback - NO API call
+    // This ensures saved trips NEVER incur external API costs
+    if (disableApiCalls) {
+      setDestinationData(null); // Will show gradient fallback
+      setLoading(false);
+      return;
+    }
+
     const fetchDestination = async () => {
       setLoading(true);
       try {
@@ -150,7 +165,7 @@ export default function DestinationHero({
     if (destination) {
       fetchDestination();
     }
-  }, [destination, coverImageUrl, onCoverImageFetched]);
+  }, [destination, coverImageUrl, onCoverImageFetched, disableApiCalls]);
 
   return (
     <div className="relative">

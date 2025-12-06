@@ -114,6 +114,11 @@ interface EditableActivityCardProps {
   availableDays: number[];
   currentDayIndex: number;
   isRegenerating?: boolean;
+  /**
+   * When true, NO API calls will be made.
+   * Used for saved trips to ensure zero external API costs.
+   */
+  disableApiCalls?: boolean;
 }
 
 export default function EditableActivityCard({
@@ -132,6 +137,7 @@ export default function EditableActivityCard({
   availableDays,
   currentDayIndex,
   isRegenerating = false,
+  disableApiCalls = false,
 }: EditableActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -749,14 +755,15 @@ export default function EditableActivityCard({
       {/* Expanded Content */}
       {expanded && !isEditing && (
         <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
-          {/* Photo Gallery */}
-          {showGallery && (
+          {/* Photo Gallery - Only shown if API calls are enabled */}
+          {showGallery && !disableApiCalls && (
             <div className="mb-4 overflow-hidden max-w-full">
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}
                 maxPhotos={5}
                 showRating={true}
+                disableApiCalls={disableApiCalls}
               />
             </div>
           )}

@@ -112,6 +112,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
         highlights={trip.meta?.highlights}
         tags={trip.tags}
         showBackButton={false}
+        disableApiCalls={true}
       >
         {/* Shared Badge - Floating */}
         <div className="absolute top-4 right-4">
@@ -203,16 +204,18 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
               destination={destination}
               selectedDay={selectedDay}
               className="h-[400px]"
+              disableApiCalls={true}
             />
           </div>
         )}
 
-        {/* Hotel Recommendations */}
+        {/* Hotel Recommendations - DISABLED for shared trips - No external API costs */}
         <HotelRecommendations
           destination={destination}
           itinerary={displayItinerary}
           startDate={trip.startDate}
           endDate={trip.endDate}
+          disableApiCalls={true}
         />
 
         {/* Day Filter Slider - Mobile optimized */}
@@ -273,6 +276,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                 index={idx}
                                 currency={trip.budget?.currency}
                                 showGallery={true}
+                                disableApiCalls={true}
                               />
                               {/* Travel connector to next activity */}
                               {idx < day.activities.length - 1 && (

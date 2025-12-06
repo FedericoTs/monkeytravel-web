@@ -104,6 +104,11 @@ interface ActivityCardProps {
   index: number;
   currency?: string;
   showGallery?: boolean;
+  /**
+   * When true, NO API calls will be made.
+   * Used for saved trips to ensure zero external API costs.
+   */
+  disableApiCalls?: boolean;
 }
 
 export default function ActivityCard({
@@ -111,6 +116,7 @@ export default function ActivityCard({
   index,
   currency = "USD",
   showGallery = true,
+  disableApiCalls = false,
 }: ActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
@@ -510,14 +516,15 @@ export default function ActivityCard({
       {/* Expanded Content - Desktop only */}
       {expanded && !isMobile && (
         <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
-          {/* Photo Gallery */}
-          {showGallery && (
+          {/* Photo Gallery - Only shown if API calls are enabled */}
+          {showGallery && !disableApiCalls && (
             <div className="mb-4 overflow-hidden max-w-full">
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}
                 maxPhotos={5}
                 showRating={true}
+                disableApiCalls={disableApiCalls}
               />
             </div>
           )}
@@ -550,6 +557,7 @@ export default function ActivityCard({
         currency={currency}
         isOpen={showMobileSheet}
         onClose={() => setShowMobileSheet(false)}
+        disableApiCalls={disableApiCalls}
       />
     </div>
   );

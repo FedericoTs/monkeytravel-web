@@ -47,6 +47,12 @@ interface HotelRecommendationsProps {
   itinerary: ItineraryDay[];
   startDate: string;
   endDate: string;
+  /**
+   * When true, NO API calls will be made.
+   * Used for saved trips to ensure zero external API costs.
+   * The entire hotel section will be hidden.
+   */
+  disableApiCalls?: boolean;
 }
 
 // Star rating component with half-star support
@@ -364,7 +370,13 @@ export default function HotelRecommendations({
   itinerary,
   startDate,
   endDate,
+  disableApiCalls = false,
 }: HotelRecommendationsProps) {
+  // CRITICAL: If API calls are disabled, don't render the component at all.
+  // This ensures saved trips NEVER incur external API costs for hotels.
+  if (disableApiCalls) {
+    return null;
+  }
   const [hotels, setHotels] = useState<HotelResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
