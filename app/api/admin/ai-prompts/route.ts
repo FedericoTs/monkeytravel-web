@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { clearPromptCache } from "@/lib/prompts";
 
 export interface AiPrompt {
   id: string;
@@ -167,6 +168,9 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`[AiPrompts] Updated ${data.name} (v${data.version}) by ${user.email}`);
 
+    // Clear prompt cache so new version takes effect immediately
+    clearPromptCache();
+
     return NextResponse.json({
       success: true,
       prompt: data,
@@ -223,6 +227,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Failed to revert" }, { status: 500 });
       }
 
+      // Clear cache so change takes effect
+      clearPromptCache();
+
       return NextResponse.json({
         success: true,
         message: `${data.display_name} will now use the default hardcoded prompt`,
@@ -245,6 +252,9 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: "Failed to activate" }, { status: 500 });
       }
+
+      // Clear cache so change takes effect
+      clearPromptCache();
 
       return NextResponse.json({
         success: true,
