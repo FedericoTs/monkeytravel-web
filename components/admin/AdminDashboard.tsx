@@ -35,77 +35,52 @@ export default function AdminDashboard() {
 
   // No auto-fetch on mount - only manual refresh to save costs
 
-  if (loading && !stats) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-500">Loading dashboard...</p>
+  // Analytics tab empty state component
+  const AnalyticsEmptyState = () => (
+    <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-        <p className="text-red-600 font-medium">Error: {error}</p>
+        <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Analytics Data</h3>
+        <p className="text-slate-500 mb-6 max-w-xs">Click the button below to load analytics. Data is not auto-loaded to minimize API costs.</p>
         <button
           onClick={fetchStats}
-          className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+          disabled={loading}
+          className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
         >
-          Retry
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Load Analytics
+            </>
+          )}
         </button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Show prompt to load data manually
-  if (!stats) {
-    return (
-      <div className="space-y-8">
-        {/* Header with Tabs - always visible */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">Admin Dashboard</h1>
-            <p className="text-slate-500 mt-1">Analytics, costs, and access control</p>
-          </div>
-        </div>
-
-        {/* Empty state prompt */}
-        <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Admin Analytics</h3>
-            <p className="text-slate-500 mb-6 max-w-xs">Click the button below to load dashboard data. Data is not auto-loaded to minimize API usage.</p>
-            <button
-              onClick={fetchStats}
-              disabled={loading}
-              className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Load Dashboard Data
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Analytics error state
+  const AnalyticsErrorState = () => (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+      <p className="text-red-600 font-medium">Error: {error}</p>
+      <button
+        onClick={fetchStats}
+        className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+      >
+        Retry
+      </button>
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -230,7 +205,25 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-      {/* Key Metrics Grid */}
+          {/* Show empty state when no data loaded yet */}
+          {!stats && !error && !loading && <AnalyticsEmptyState />}
+
+          {/* Show error state */}
+          {error && <AnalyticsErrorState />}
+
+          {/* Show loading spinner when loading */}
+          {loading && !stats && (
+            <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-[var(--primary)]/20 border-t-[var(--primary)] rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-slate-500">Loading analytics...</p>
+              </div>
+            </div>
+          )}
+
+      {/* Key Metrics Grid - only show when stats loaded */}
+      {stats && (
+        <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           title="Total Users"
@@ -729,6 +722,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+        </>
+      )}
         </>
       )}
     </div>
