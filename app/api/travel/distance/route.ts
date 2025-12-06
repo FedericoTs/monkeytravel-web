@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { estimateTravelTime, calculateHaversineDistance, determineOptimalMode } from "@/lib/utils/travel-estimation";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -64,30 +65,8 @@ function generateRouteHash(
 }
 
 /**
- * Calculate straight-line distance using Haversine formula
- */
-function calculateStraightLineDistance(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371000; // Earth's radius in meters
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-/**
  * Determine optimal travel mode based on distance
- * Walk if under 1km straight-line, otherwise drive
+ * Uses the utility function which has better threshold (1.2km for ~15-20 min walk)
  * If no coordinates available, defaults to DRIVING for safety
  */
 function determineMode(
@@ -104,15 +83,8 @@ function determineMode(
     return "DRIVING";
   }
 
-  const distance = calculateStraightLineDistance(
-    origin.lat,
-    origin.lng,
-    destination.lat,
-    destination.lng
-  );
-
-  // Walk if under 1km straight-line distance (roughly 1.3km walking path)
-  return distance < 1000 ? "WALKING" : "DRIVING";
+  // Use the utility function for consistent mode determination
+  return determineOptimalMode(origin, destination);
 }
 
 /**
@@ -125,20 +97,10 @@ export async function POST(request: NextRequest) {
   try {
     // Check API access control first
     const access = await checkApiAccess("google_distance_matrix");
-    if (!access.allowed) {
-      await logApiCall({
-        apiName: "google_distance_matrix",
-        endpoint: "/distancematrix/json",
-        status: 503,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
-      });
-      return NextResponse.json(
-        { error: access.message || "Distance Matrix API is currently disabled" },
-        { status: 503 }
-      );
+    const useLocalEstimation = !access.allowed || !GOOGLE_MAPS_API_KEY;
+
+    if (useLocalEstimation) {
+      console.log("[Distance API] Using local coordinate-based estimation (API disabled or no key)");
     }
 
     const { pairs }: DistanceRequest = await request.json();
@@ -157,20 +119,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!GOOGLE_MAPS_API_KEY || !access.shouldPassKey) {
+    // If using local estimation (API disabled), calculate all results locally
+    if (useLocalEstimation) {
+      const results: (DistanceResult & { index: number })[] = [];
+
+      for (const pair of pairs) {
+        // Need coordinates for local estimation
+        if (pair.origin?.lat && pair.origin?.lng && pair.destination?.lat && pair.destination?.lng) {
+          const estimate = estimateTravelTime(
+            pair.origin,
+            pair.destination,
+            pair.mode as "WALKING" | "DRIVING" | "AUTO" | undefined
+          );
+
+          results.push({
+            index: pair.index,
+            origin: pair.origin,
+            destination: pair.destination,
+            mode: estimate.mode,
+            distanceMeters: estimate.distanceMeters,
+            durationSeconds: estimate.durationSeconds,
+            distanceText: `~${estimate.distanceText}`,
+            durationText: `~${estimate.durationText}`,
+            source: "api", // Mark as "api" for compatibility, but it's estimated
+          });
+        } else {
+          // No coordinates, use default fallback
+          const mode = pair.mode === "WALKING" ? "WALKING" : "DRIVING";
+          results.push({
+            index: pair.index,
+            origin: pair.origin || { lat: 0, lng: 0 },
+            destination: pair.destination || { lat: 0, lng: 0 },
+            mode,
+            distanceMeters: mode === "WALKING" ? 500 : 5000,
+            durationSeconds: mode === "WALKING" ? 360 : 600,
+            distanceText: mode === "WALKING" ? "~500 m" : "~5 km",
+            durationText: mode === "WALKING" ? "~6 min" : "~10 min",
+            source: "api",
+          });
+        }
+      }
+
+      // Log as estimated (no cost)
       await logApiCall({
         apiName: "google_distance_matrix",
-        endpoint: "/distancematrix/json",
-        status: 500,
+        endpoint: "/distancematrix/json (local estimation)",
+        status: 200,
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
         costUsd: 0,
-        error: "API key not configured or blocked",
+        metadata: { estimated: true, pairs: pairs.length },
       });
-      return NextResponse.json(
-        { error: "Google Maps API key not configured" },
-        { status: 500 }
-      );
+
+      return NextResponse.json({
+        results: results.sort((a, b) => a.index - b.index),
+        stats: {
+          total: pairs.length,
+          cached: 0,
+          fetched: 0,
+          estimated: results.length,
+        },
+      });
     }
 
     const results: (DistanceResult & { index: number })[] = [];
@@ -410,38 +419,29 @@ export async function POST(request: NextRequest) {
                     });
                 }
               } else {
-                // Fallback: Calculate straight-line distance when API returns ZERO_RESULTS
+                // Fallback: Use coordinate-based estimation when API returns ZERO_RESULTS
                 // This ensures we always have some distance data to display
                 console.warn(
-                  `Distance Matrix element status: ${element?.status} for pair ${i}, using fallback`
+                  `Distance Matrix element status: ${element?.status} for pair ${i}, using coordinate estimation`
                 );
 
                 // Only calculate fallback if we have coordinates
                 if (pair.origin && pair.destination) {
-                  const straightLineDistance = calculateStraightLineDistance(
-                    pair.origin.lat,
-                    pair.origin.lng,
-                    pair.destination.lat,
-                    pair.destination.lng
+                  const estimate = estimateTravelTime(
+                    pair.origin,
+                    pair.destination,
+                    mode as "WALKING" | "DRIVING"
                   );
-
-                  // Estimate travel distance as 1.3x straight-line (typical road factor)
-                  const estimatedDistance = Math.round(straightLineDistance * 1.3);
-                  // Estimate duration based on mode (walking: 5km/h, driving: 30km/h avg in cities)
-                  const speedKmh = mode === "WALKING" ? 5 : 30;
-                  const estimatedDuration = Math.round((estimatedDistance / 1000 / speedKmh) * 3600);
 
                   const result: DistanceResult & { index: number } = {
                     index: pair.index,
                     origin: pair.origin,
                     destination: pair.destination,
-                    mode: mode as "WALKING" | "DRIVING",
-                    distanceMeters: estimatedDistance,
-                    durationSeconds: estimatedDuration,
-                    distanceText: estimatedDistance < 1000
-                      ? `~${estimatedDistance} m`
-                      : `~${(estimatedDistance / 1000).toFixed(1)} km`,
-                    durationText: `~${Math.round(estimatedDuration / 60)} min`,
+                    mode: estimate.mode,
+                    distanceMeters: estimate.distanceMeters,
+                    durationSeconds: estimate.durationSeconds,
+                    distanceText: `~${estimate.distanceText}`,
+                    durationText: `~${estimate.durationText}`,
                     source: "api", // Mark as API even though it's estimated
                   };
 
@@ -478,26 +478,24 @@ export async function POST(request: NextRequest) {
             });
           } else {
             console.error("Distance Matrix API error:", data.status, data.error_message);
-            // Add fallback results for all pairs when API fails
+            // Add fallback results for all pairs when API fails using coordinate estimation
             for (const pair of validPairs) {
               if (pair.origin && pair.destination) {
-                const straightLineDistance = calculateStraightLineDistance(
-                  pair.origin.lat, pair.origin.lng,
-                  pair.destination.lat, pair.destination.lng
+                const estimate = estimateTravelTime(
+                  pair.origin,
+                  pair.destination,
+                  mode as "WALKING" | "DRIVING"
                 );
-                const estimatedDistance = Math.round(straightLineDistance * 1.3);
-                const speedKmh = mode === "WALKING" ? 5 : 30;
-                const estimatedDuration = Math.round((estimatedDistance / 1000 / speedKmh) * 3600);
 
                 results.push({
                   index: pair.index,
                   origin: pair.origin,
                   destination: pair.destination,
-                  mode: mode as "WALKING" | "DRIVING",
-                  distanceMeters: estimatedDistance,
-                  durationSeconds: estimatedDuration,
-                  distanceText: estimatedDistance < 1000 ? `~${estimatedDistance} m` : `~${(estimatedDistance / 1000).toFixed(1)} km`,
-                  durationText: `~${Math.round(estimatedDuration / 60)} min`,
+                  mode: estimate.mode,
+                  distanceMeters: estimate.distanceMeters,
+                  durationSeconds: estimate.durationSeconds,
+                  distanceText: `~${estimate.distanceText}`,
+                  durationText: `~${estimate.durationText}`,
                   source: "api",
                 });
               } else {
@@ -517,19 +515,39 @@ export async function POST(request: NextRequest) {
           }
         } catch (error) {
           console.error(`Distance Matrix request failed for mode: ${mode}`, error);
-          // Add fallback results when request fails completely
+          // Add fallback results when request fails completely using coordinate estimation
           for (const pair of validPairs) {
-            results.push({
-              index: pair.index,
-              origin: pair.origin || { lat: 0, lng: 0 },
-              destination: pair.destination || { lat: 0, lng: 0 },
-              mode: mode as "WALKING" | "DRIVING",
-              distanceMeters: mode === "WALKING" ? 500 : 5000,
-              durationSeconds: mode === "WALKING" ? 360 : 600,
-              distanceText: mode === "WALKING" ? "~500 m" : "~5 km",
-              durationText: mode === "WALKING" ? "~6 min" : "~10 min",
-              source: "api",
-            });
+            if (pair.origin && pair.destination) {
+              const estimate = estimateTravelTime(
+                pair.origin,
+                pair.destination,
+                mode as "WALKING" | "DRIVING"
+              );
+
+              results.push({
+                index: pair.index,
+                origin: pair.origin,
+                destination: pair.destination,
+                mode: estimate.mode,
+                distanceMeters: estimate.distanceMeters,
+                durationSeconds: estimate.durationSeconds,
+                distanceText: `~${estimate.distanceText}`,
+                durationText: `~${estimate.durationText}`,
+                source: "api",
+              });
+            } else {
+              results.push({
+                index: pair.index,
+                origin: { lat: 0, lng: 0 },
+                destination: { lat: 0, lng: 0 },
+                mode: mode as "WALKING" | "DRIVING",
+                distanceMeters: mode === "WALKING" ? 500 : 5000,
+                durationSeconds: mode === "WALKING" ? 360 : 600,
+                distanceText: mode === "WALKING" ? "~500 m" : "~5 km",
+                durationText: mode === "WALKING" ? "~6 min" : "~10 min",
+                source: "api",
+              });
+            }
           }
         }
       }
