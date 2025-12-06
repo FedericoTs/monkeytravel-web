@@ -23,7 +23,7 @@ export const CACHE_TTL = {
   hotelList: 24 * 60 * 60 * 1000,    // 24 hours - hotel lists are stable
   flights: 10 * 60 * 1000,            // 10 minutes (was 5) - users search once per session
   flightPrice: 3 * 60 * 1000,         // 3 minutes (was 2) - slight buffer for checkout
-  hotels: 30 * 60 * 1000,             // 30 minutes (was 15) - availability more stable than price
+  hotels: 2 * 60 * 60 * 1000,         // 2 hours - user booking patterns are slower, prices stable
   hotelOffer: 10 * 60 * 1000,         // 10 minutes (was 5) - offers remain valid longer
 } as const;
 

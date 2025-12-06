@@ -10,6 +10,10 @@
       "maxDuration": 30,
       "memory": 512
     },
+    "app/api/ai/generate-more-days/route.ts": {
+      "maxDuration": 60,
+      "memory": 512
+    },
     "app/api/hotels/*/route.ts": {
       "maxDuration": 15,
       "memory": 256

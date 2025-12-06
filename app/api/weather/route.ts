@@ -11,10 +11,17 @@
  * - Automatic logging and analytics
  * - Retry with exponential backoff
  * - Circuit breaker protection
+ *
+ * CACHING: Uses Supabase cache for 7-day TTL since historical weather doesn't change
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
+
+// Cache TTL: 7 days (historical weather data doesn't change)
+const WEATHER_CACHE_DAYS = 7;
 
 interface WeatherData {
   temperature: {
@@ -72,6 +79,71 @@ function getHistoricalDateRange(startDate: string, endDate: string): { start: st
   };
 }
 
+/**
+ * Generate cache key for weather data
+ * Rounds coordinates to 2 decimal places (~1km accuracy) to improve cache hits
+ */
+function getWeatherCacheKey(lat: string, lng: string, startDate: string, endDate: string): string {
+  const roundedLat = parseFloat(lat).toFixed(2);
+  const roundedLng = parseFloat(lng).toFixed(2);
+  const key = `weather:${roundedLat},${roundedLng}:${startDate}:${endDate}`;
+  return crypto.createHash("md5").update(key).digest("hex");
+}
+
+/**
+ * Get cached weather data from Supabase
+ */
+async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
+  try {
+    const { data, error } = await supabase
+      .from("geocode_cache") // Reuse geocode_cache table for weather data
+      .select("*")
+      .eq("address", `weather:${cacheKey}`)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (error || !data) return null;
+
+    // Update hit count (fire and forget)
+    supabase
+      .from("geocode_cache")
+      .update({
+        hit_count: (data.hit_count || 0) + 1,
+        last_accessed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .then(() => {});
+
+    return data.coordinates as unknown as WeatherData;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cache weather data in Supabase
+ */
+async function cacheWeather(cacheKey: string, weatherData: WeatherData, metadata: object): Promise<void> {
+  try {
+    const expiresAt = new Date(Date.now() + WEATHER_CACHE_DAYS * 24 * 60 * 60 * 1000);
+
+    await supabase.from("geocode_cache").upsert(
+      {
+        address: `weather:${cacheKey}`,
+        coordinates: weatherData as unknown as { lat: number; lng: number },
+        metadata,
+        cached_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+        hit_count: 0,
+        last_accessed_at: new Date().toISOString(),
+      },
+      { onConflict: "address" }
+    );
+  } catch (error) {
+    console.error("[Weather Cache] Save error:", error);
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -86,6 +158,22 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check cache first (7-day TTL for historical weather data)
+    const cacheKey = getWeatherCacheKey(latitude, longitude, startDate, endDate);
+    const cachedWeather = await getCachedWeather(cacheKey);
+
+    if (cachedWeather) {
+      console.log(`[Weather API] Cache HIT for ${latitude},${longitude}`);
+      return NextResponse.json({
+        weather: cachedWeather,
+        source: "open-meteo",
+        cached: true,
+        basedOn: `Cached historical data`,
+      });
+    }
+
+    console.log(`[Weather API] Cache MISS for ${latitude},${longitude}`);
 
     // Get historical date range (same dates from previous year)
     const historicalDates = getHistoricalDateRange(startDate, endDate);
@@ -194,9 +282,19 @@ export async function GET(request: NextRequest) {
       icon,
     };
 
+    // Cache the result for future requests (7-day TTL)
+    await cacheWeather(cacheKey, weatherData, {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      startDate,
+      endDate,
+      historicalDates,
+    });
+
     return NextResponse.json({
       weather: weatherData,
       source: "open-meteo",
+      cached: false,
       basedOn: `Historical data from ${historicalDates.start} to ${historicalDates.end}`,
     });
   } catch (error) {

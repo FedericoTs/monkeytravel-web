@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generateItinerary, validateTripParams } from "@/lib/gemini";
+import {
+  generateItinerary,
+  validateTripParams,
+  shouldUseIncrementalGeneration,
+  INITIAL_DAYS_TO_GENERATE,
+  INCREMENTAL_GENERATION_THRESHOLD,
+} from "@/lib/gemini";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
@@ -240,6 +246,16 @@ export async function POST(request: NextRequest) {
     // This can reduce AI costs by 40-60% for popular destinations
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
+    let isPartialGeneration = false;
+
+    // Calculate total trip duration
+    const totalDays = Math.ceil(
+      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+
+    // Determine if we should use incremental generation for long trips
+    const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
 
     const cachedItinerary = await getCachedItinerary(
       supabase,
@@ -256,13 +272,29 @@ export async function POST(request: NextRequest) {
     } else {
       // Cache miss - generate fresh itinerary
       console.log(`[AI Generate] Cache MISS for ${params.destination}, generating fresh...`);
-      itinerary = await generateItinerary(params);
 
-      // Cache the result for future users (must await to complete before serverless function terminates)
-      await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
+      if (useIncremental) {
+        // For long trips (>5 days), only generate the first 3 days initially
+        console.log(`[AI Generate] Using incremental generation: first ${INITIAL_DAYS_TO_GENERATE} of ${totalDays} days`);
+        itinerary = await generateItinerary(params, {
+          maxDays: INITIAL_DAYS_TO_GENERATE,
+          isPartial: true,
+        });
+        isPartialGeneration = true;
+      } else {
+        // For short trips, generate the full itinerary
+        itinerary = await generateItinerary(params);
+      }
+
+      // Only cache full itineraries (not partial ones)
+      if (!isPartialGeneration) {
+        await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
+      }
     }
 
     const generationTime = Date.now() - startTime;
+    const generatedDays = itinerary.days.length;
+    const hasMoreDays = generatedDays < totalDays;
 
     // Log the request using centralized gateway
     await logApiCall({
@@ -271,17 +303,14 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: generationTime,
       cacheHit,
-      costUsd: cacheHit ? 0 : 0.003, // Only charge for AI calls, not cache hits
+      costUsd: cacheHit ? 0 : isPartialGeneration ? 0.002 : 0.003, // Partial generation costs less
       metadata: {
         user_id: user.id,
         destination: params.destination,
         vibes: params.vibes,
-        duration:
-          Math.ceil(
-            (new Date(params.endDate).getTime() -
-              new Date(params.startDate).getTime()) /
-              (1000 * 60 * 60 * 24)
-          ) + 1,
+        duration: totalDays,
+        generated_days: generatedDays,
+        is_partial: isPartialGeneration,
         is_admin: userIsAdmin,
       },
     });
@@ -293,6 +322,13 @@ export async function POST(request: NextRequest) {
         generationTimeMs: generationTime,
         model: cacheHit ? "cache" : "gemini-2.0-flash",
         cached: cacheHit,
+        // Incremental generation metadata
+        isPartial: isPartialGeneration,
+        generatedDays,
+        totalDays,
+        hasMoreDays,
+        nextStartDay: hasMoreDays ? generatedDays + 1 : null,
+        remainingDays: hasMoreDays ? totalDays - generatedDays : 0,
       },
     });
   } catch (error) {
