@@ -4,10 +4,9 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
+import type { ItineraryDay, TripMeta } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
-import ExportMenu from "@/components/trip/ExportMenu";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
@@ -17,9 +16,20 @@ import SaveTripModal from "@/components/ui/SaveTripModal";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
-import { Copy, Check, Sparkles } from "lucide-react";
+import {
+  Sparkles,
+  Copy,
+  Map,
+  MapPinOff,
+  LayoutGrid,
+  List,
+  Users,
+  Clock,
+  Wallet,
+  Check
+} from "lucide-react";
 
-// Dynamic import for TripMap to avoid SSR issues with Google Maps
+// Dynamic import for TripMap
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
@@ -29,36 +39,45 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ),
 });
 
-interface SharedTripViewProps {
-  trip: {
+// Mood tag configuration
+const MOOD_OPTIONS: Record<string, { label: string; emoji: string }> = {
+  romantic: { label: "Romantic", emoji: "💕" },
+  adventure: { label: "Adventure", emoji: "🏔️" },
+  cultural: { label: "Cultural", emoji: "🏛️" },
+  relaxation: { label: "Relaxation", emoji: "🌴" },
+  foodie: { label: "Foodie", emoji: "🍝" },
+  family: { label: "Family", emoji: "👨‍👩‍👧‍👦" },
+};
+
+interface TemplatePreviewClientProps {
+  template: {
     id: string;
     title: string;
-    description?: string;
-    status: string;
-    startDate: string;
-    endDate: string;
-    tags?: string[];
-    budget: { total: number; currency: string } | null;
+    description: string;
+    fullDescription?: string;
+    destination: string;
+    country: string;
+    countryCode: string;
+    coverImageUrl?: string;
+    durationDays: number;
+    budgetTier: string;
+    moodTags: string[];
+    tags: string[];
+    copyCount: number;
     itinerary: ItineraryDay[];
-    sharedAt?: string;
     meta?: TripMeta;
-    packingList?: string[];
-    /** Cached travel distances from trip_meta - eliminates recalculation */
-    cachedTravelDistances?: CachedDayTravelData[];
-    /** Hash of itinerary when travel distances were calculated */
-    cachedTravelHash?: string;
+    budget?: { total: number; currency: string };
+    packingList: string[];
   };
-  shareToken: string;
-  dateRange: string;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange }: SharedTripViewProps) {
+export default function TemplatePreviewClient({ template }: TemplatePreviewClientProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
 
-  // Currency conversion hook - converts to user's preferred currency
+  // Currency conversion hook
   const { convert: convertCurrency } = useCurrency();
 
   // Format price with currency conversion
@@ -68,29 +87,14 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
     return converted.formatted;
   };
 
-  // Extract destination from title (e.g., "Rome Trip" -> "Rome")
-  const destination = trip.title.replace(/ Trip$/, "");
-
-  // Memoize ensureActivityIds to prevent generating new UUIDs on every render
+  // Memoize ensureActivityIds
   const displayItinerary = useMemo(
-    () => ensureActivityIds(trip.itinerary),
-    [trip.itinerary]
+    () => ensureActivityIds(template.itinerary),
+    [template.itinerary]
   );
 
-  // Fetch travel distances between activities
-  // Uses local Haversine calculation - NO external API calls!
-  // For shared trips, we use cached data from trip_meta if available (no tripId to save new calculations)
-  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary, {
-    cachedTravelData: trip.cachedTravelDistances,
-    cachedHash: trip.cachedTravelHash,
-  });
-
-  // Calculate nights
-  const nights = useMemo(() => {
-    const start = new Date(trip.startDate);
-    const end = new Date(trip.endDate);
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  }, [trip.startDate, trip.endDate]);
+  // Fetch travel distances (local calculation, no API)
+  const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary);
 
   // Calculate total activities
   const activitiesCount = useMemo(
@@ -98,75 +102,127 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
     [displayItinerary]
   );
 
+  const budgetLabel =
+    template.budgetTier === "budget"
+      ? "Budget-Friendly"
+      : template.budgetTier === "luxury"
+      ? "Luxury"
+      : "Moderate";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero with Cover Image - Enhanced with weather and stats */}
+      {/* Hero */}
       <DestinationHero
-        destination={destination}
-        title={trip.title}
-        subtitle={trip.description}
-        dateRange={dateRange}
-        budget={trip.budget || undefined}
-        days={trip.itinerary.length}
-        nights={nights}
+        destination={template.destination}
+        title={template.title}
+        subtitle={template.fullDescription || template.description}
+        budget={template.budget || undefined}
+        days={template.durationDays}
+        nights={template.durationDays - 1}
         activitiesCount={activitiesCount}
-        weatherNote={trip.meta?.weather_note}
-        highlights={trip.meta?.highlights}
-        tags={trip.tags}
+        weatherNote={template.meta?.weather_note}
+        highlights={template.meta?.highlights}
+        tags={template.tags}
         showBackButton={false}
         disableApiCalls={true}
+        coverImageUrl={template.coverImageUrl}
       >
-        {/* Shared Badge - Floating */}
+        {/* Template Badge */}
         <div className="absolute top-4 right-4">
-          <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
-            Shared Trip
+          <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4" />
+            Curated Escape
           </span>
         </div>
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Template Info Bar */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Duration */}
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-slate-400" />
+              <span className="font-medium text-slate-700">{template.durationDays} days</span>
+            </div>
+
+            {/* Budget Tier */}
+            <div className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-slate-400" />
+              <span className="font-medium text-slate-700">{budgetLabel}</span>
+            </div>
+
+            {/* Copy Count */}
+            {template.copyCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-slate-400" />
+                <span className="font-medium text-slate-700">
+                  {template.copyCount} travelers used this
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Mood Tags */}
+          <div className="flex flex-wrap gap-2">
+            {template.moodTags.map((mood) => {
+              const option = MOOD_OPTIONS[mood];
+              return (
+                <span
+                  key={mood}
+                  className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700"
+                >
+                  {option?.emoji} {option?.label || mood}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
-          {/* Left side - Back to home */}
+          {/* Left side - Back */}
           <div className="flex items-center gap-2">
             <Link
-              href="/"
+              href="/trips"
               className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">MonkeyTravel</span>
+              <span className="hidden sm:inline">Back to Trips</span>
             </Link>
           </div>
 
           {/* Right side - Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* View Mode Toggle - Hidden on mobile */}
+            {/* View Mode Toggle */}
             <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode("cards")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
                   viewMode === "cards"
                     ? "bg-white text-slate-900 shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
+                <LayoutGrid className="w-4 h-4" />
                 Cards
               </button>
               <button
                 onClick={() => setViewMode("timeline")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
                   viewMode === "timeline"
                     ? "bg-white text-slate-900 shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
+                <List className="w-4 h-4" />
                 Timeline
               </button>
             </div>
 
-            {/* Map Toggle - Icon only on mobile */}
+            {/* Map Toggle */}
             <button
               onClick={() => setShowMap(!showMap)}
               className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -176,25 +232,9 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
               }`}
               title={showMap ? "Hide Map" : "Show Map"}
             >
-              <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
+              {showMap ? <MapPinOff className="w-5 h-5 sm:w-4 sm:h-4" /> : <Map className="w-5 h-5 sm:w-4 sm:h-4" />}
               <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
             </button>
-
-            {/* Export Menu */}
-            <ExportMenu
-              trip={{
-                title: trip.title,
-                description: trip.description,
-                startDate: trip.startDate,
-                endDate: trip.endDate,
-                budget: trip.budget,
-                itinerary: displayItinerary,
-              }}
-              destination={destination}
-              meta={trip.meta}
-            />
           </div>
         </div>
 
@@ -203,7 +243,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
           <div className="mb-8">
             <TripMap
               days={displayItinerary}
-              destination={destination}
+              destination={template.destination}
               selectedDay={selectedDay}
               className="h-[400px]"
               disableApiCalls={true}
@@ -211,16 +251,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
           </div>
         )}
 
-        {/* Hotel Recommendations - DISABLED for shared trips - No external API costs */}
+        {/* Hotel Recommendations - Disabled for preview */}
         <HotelRecommendations
-          destination={destination}
+          destination={template.destination}
           itinerary={displayItinerary}
-          startDate={trip.startDate}
-          endDate={trip.endDate}
+          startDate=""
+          endDate=""
           disableApiCalls={true}
         />
 
-        {/* Day Filter Slider - Mobile optimized */}
+        {/* Day Filter Slider */}
         <DaySlider
           days={displayItinerary}
           selectedDay={selectedDay}
@@ -243,7 +283,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                       </div>
                       <div>
                         <h2 className="font-bold text-xl text-slate-900">
-                          Day {day.day_number}
+                          {day.title || `Day ${day.day_number}`}
                         </h2>
                         {day.theme && (
                           <p className="text-slate-500 text-sm">{day.theme}</p>
@@ -254,7 +294,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                       <div className="ml-auto text-right">
                         <div className="text-sm text-slate-500">Est. Budget</div>
                         <div className="font-semibold text-slate-900">
-                          {formatPrice(day.daily_budget.total, trip.budget?.currency || "USD")}
+                          {formatPrice(day.daily_budget.total, template.budget?.currency || "EUR")}
                         </div>
                       </div>
                     )}
@@ -276,11 +316,11 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                               <ActivityCard
                                 activity={activity}
                                 index={idx}
-                                currency={trip.budget?.currency}
+                                currency={template.budget?.currency}
                                 showGallery={true}
                                 disableAutoFetch={true}
                               />
-                              {/* Travel connector to next activity */}
+                              {/* Travel connector */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
                                   distanceMeters={segment?.distanceMeters}
@@ -347,7 +387,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                       <div className="font-medium text-slate-900">
                                         {formatPrice(
                                           activity.estimated_cost.amount,
-                                          activity.estimated_cost.currency || trip.budget?.currency || "USD"
+                                          activity.estimated_cost.currency || template.budget?.currency || "EUR"
                                         )}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
@@ -357,7 +397,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                   </div>
                                 </div>
                               </div>
-                              {/* Compact travel connector in timeline */}
+                              {/* Compact travel connector */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
                                   distanceMeters={segment?.distanceMeters}
@@ -373,7 +413,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                           );
                         })}
                       </div>
-                      {/* Day travel summary for timeline */}
+                      {/* Day travel summary */}
                       {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
                         <DaySummary
                           dayNumber={day.day_number}
@@ -391,93 +431,94 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
             <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
-            <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
+            <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Available</h3>
+            <p className="text-slate-600">This template doesn't have any activities yet.</p>
           </div>
         )}
 
-        {/* Journey Essentials - Premium Packing List */}
-        {trip.packingList && trip.packingList.length > 0 && (
+        {/* Packing List */}
+        {template.packingList && template.packingList.length > 0 && (
           <TripPackingEssentials
-            items={trip.packingList}
-            destination={destination}
+            items={template.packingList}
+            destination={template.destination}
           />
         )}
 
-        {/* AI Disclaimer */}
-        <div className="mt-12 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+        {/* Info Notice */}
+        <div className="mt-12 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
           <div className="flex gap-4">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-blue-600" />
               </div>
             </div>
             <div>
-              <h4 className="font-semibold text-amber-900 mb-1">
-                AI-Generated Itinerary with Verified Data
+              <h4 className="font-semibold text-blue-900 mb-1">
+                Curated by Travel Experts
               </h4>
-              <p className="text-sm text-amber-800">
-                This itinerary was created by AI and enriched with real-time data from Google Places.
-                Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
-                and availability before your trip. Click "More" on any activity to see verified details and photos.
+              <p className="text-sm text-blue-800">
+                This itinerary has been carefully crafted with the best experiences,
+                restaurants, and hidden gems. Save it to your account to customize
+                dates, swap activities, and make it your own.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Shared Notice - Updated messaging for duplication */}
-        <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
+        {/* Floating Save CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 safe-area-pb">
+          <div className="max-w-xl mx-auto">
+            {/* Main CTA Card */}
+            <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 rounded-xl shadow-xl p-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Value Proposition */}
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                    <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                    <span className="text-white/80 text-sm font-medium">
+                      Love this itinerary?
+                    </span>
+                  </div>
+                  <p className="text-white text-xs opacity-80">
+                    Save it to your account and set your travel dates
+                  </p>
+                </div>
+
+                {/* CTA Button */}
+                <button
+                  onClick={() => setShowSaveModal(true)}
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-base bg-white text-[var(--primary)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98] transition-all min-w-[180px]"
+                >
+                  <Copy className="w-5 h-5" />
+                  <span>Save to My Trips</span>
+                </button>
               </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-purple-900 mb-1">
-                Love this itinerary?
-              </h4>
-              <p className="text-sm text-purple-800">
-                Save it to your account and make it your own. Edit times, swap activities,
-                add notes, and share with your travel companions.
-              </p>
+
+            {/* Trust badges */}
+            <div className="flex items-center justify-center gap-4 mt-3 text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                Free forever
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                Fully editable
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                Share with friends
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Floating Save CTA - Sticky at bottom for easy access */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100">
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={() => setShowSaveModal(true)}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-            >
-              <Sparkles className="w-5 h-5" />
-              Save to My Trips
-            </button>
-            <p className="text-center text-xs text-slate-500 mt-2">
-              Save this itinerary and customize it for your dates
-            </p>
-          </div>
-        </div>
-
-        {/* Save Trip Modal */}
-        <SaveTripModal
-          isOpen={showSaveModal}
-          onClose={() => setShowSaveModal(false)}
-          shareToken={shareToken}
-          tripTitle={trip.title}
-          tripDestination={destination}
-          durationDays={nights + 1}
-        />
+        {/* Spacer for fixed CTA */}
+        <div className="h-36 sm:h-32" />
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-50 border-t border-slate-200 mt-16">
+      <footer className="bg-slate-50 border-t border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2">
@@ -494,14 +535,25 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
               AI-powered travel planning made simple
             </p>
             <Link
-              href="/"
+              href="/trips/new"
               className="text-sm text-[var(--primary)] hover:underline font-medium"
             >
-              Create Your Trip
+              Create Your Own Trip
             </Link>
           </div>
         </div>
       </footer>
+
+      {/* Save Trip Modal */}
+      <SaveTripModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        templateId={template.id}
+        tripTitle={template.title}
+        tripDestination={template.destination}
+        tripCountryCode={template.countryCode}
+        durationDays={template.durationDays}
+      />
     </div>
   );
 }
