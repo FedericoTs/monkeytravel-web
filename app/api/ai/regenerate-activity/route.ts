@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { regenerateSingleActivity } from "@/lib/gemini";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type { ItineraryDay } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -78,19 +80,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check rate limits (10 regenerations per trip per hour)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await supabase
-      .from("api_request_logs")
-      .select("*", { count: "exact", head: true })
-      .eq("api_name", "gemini")
-      .eq("endpoint", "/api/ai/regenerate-activity")
-      .gte("timestamp", oneHourAgo)
-      .eq("request_params->>trip_id", tripId);
-
-    if ((count || 0) >= 10) {
+    // Check API access control
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      await logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/regenerate-activity",
+        status: 503,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0,
+        error: `BLOCKED: ${access.message}`,
+        metadata: { user_id: user.id, trip_id: tripId },
+      });
       return NextResponse.json(
-        { error: "Rate limit reached. You can regenerate up to 10 activities per hour per trip." },
+        { error: access.message || "AI regeneration is currently disabled" },
+        { status: 503 }
+      );
+    }
+
+    // Check usage limits (tier-based monthly limits)
+    const usageCheck = await checkUsageLimit(user.id, "aiRegenerations", user.email);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.message || "Monthly activity regeneration limit reached.",
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        },
         { status: 429 }
       );
     }
@@ -113,21 +130,31 @@ export async function POST(request: NextRequest) {
 
     const generationTime = Date.now() - startTime;
 
-    // Log the request
-    await supabase.from("api_request_logs").insert({
-      api_name: "gemini",
+    // Log the request using centralized gateway
+    await logApiCall({
+      apiName: "gemini",
       endpoint: "/api/ai/regenerate-activity",
-      request_params: {
+      status: 200,
+      responseTimeMs: generationTime,
+      cacheHit: false,
+      costUsd: 0.001,
+      metadata: {
         user_id: user.id,
         trip_id: tripId,
         activity_id: activityId,
         destination,
       },
-      response_status: 200,
-      response_time_ms: generationTime,
-      cache_hit: false,
-      cost_usd: 0.001, // Lower cost for single activity
     });
+
+    // Increment usage counter
+    await incrementUsage(user.id, "aiRegenerations", 1);
+
+    // Update usage info for response
+    const updatedUsage = {
+      ...usageCheck,
+      used: usageCheck.used + 1,
+      remaining: Math.max(0, usageCheck.remaining - 1),
+    };
 
     return NextResponse.json({
       success: true,
@@ -136,23 +163,20 @@ export async function POST(request: NextRequest) {
         generationTimeMs: generationTime,
         model: "gemini-2.0-flash",
       },
+      usage: updatedUsage,
     });
   } catch (error) {
     console.error("Activity regeneration error:", error);
 
-    // Log error
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    await supabase.from("api_request_logs").insert({
-      api_name: "gemini",
+    // Log error using centralized gateway
+    await logApiCall({
+      apiName: "gemini",
       endpoint: "/api/ai/regenerate-activity",
-      request_params: { user_id: user?.id },
-      response_status: 500,
-      response_time_ms: Date.now() - startTime,
-      error_message: error instanceof Error ? error.message : "Unknown error",
+      status: 500,
+      responseTimeMs: Date.now() - startTime,
+      cacheHit: false,
+      costUsd: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
 
     return NextResponse.json(

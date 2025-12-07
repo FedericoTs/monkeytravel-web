@@ -24,11 +24,21 @@ interface PlaceGalleryProps {
   showRating?: boolean;
   compact?: boolean;
   /**
-   * When true, NO API calls will be made.
-   * Used for saved trips to ensure zero external API costs.
-   * The gallery will not be displayed.
+   * When true, photos will NOT be fetched automatically on mount.
+   * Used for saved trips to prevent automatic API costs.
+   * Photos can still be fetched via user interaction (e.g., clicking "More").
    */
-  disableApiCalls?: boolean;
+  disableAutoFetch?: boolean;
+  /**
+   * Callback fired when the first photo URL is available (from cache or API).
+   * Use this to persist the photo URL to the activity for future cache hits.
+   */
+  onFirstPhotoFetched?: (photoUrl: string) => void;
+  /**
+   * If provided, skip fetching if we already have a cached image.
+   * This prevents unnecessary API calls when activity already has an image.
+   */
+  existingImageUrl?: string;
 }
 
 export default function PlaceGallery({
@@ -38,26 +48,46 @@ export default function PlaceGallery({
   maxPhotos = 4,
   showRating = true,
   compact = false,
-  disableApiCalls = false,
+  disableAutoFetch = false,
+  onFirstPhotoFetched,
+  existingImageUrl,
 }: PlaceGalleryProps) {
-  // CRITICAL: If API calls are disabled, don't render the gallery at all.
-  // This ensures saved trips NEVER incur external API costs for place photos.
-  if (disableApiCalls) {
-    return null;
-  }
   const [placeData, setPlaceData] = useState<PlaceData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!disableAutoFetch);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [userTriggeredFetch, setUserTriggeredFetch] = useState(false);
 
   // Client-side cache for place data - prevents redundant API calls
   const { getPlace, setPlace, hasPlace } = usePlaceCache();
 
   // Ref to prevent double-fetching due to strict mode / re-renders
   const fetchingRef = useRef(false);
+  // Ref to track if we've already fired the callback
+  const callbackFiredRef = useRef(false);
+
+  // Fire callback when first photo is available
+  useEffect(() => {
+    if (
+      placeData?.photos?.length &&
+      placeData.photos[0]?.url &&
+      onFirstPhotoFetched &&
+      !callbackFiredRef.current &&
+      !existingImageUrl // Only fire if no existing image
+    ) {
+      callbackFiredRef.current = true;
+      onFirstPhotoFetched(placeData.photos[0].url);
+    }
+  }, [placeData, onFirstPhotoFetched, existingImageUrl]);
 
   useEffect(() => {
     if (!placeName) return;
+
+    // If auto-fetch is disabled and user hasn't triggered fetch, don't fetch
+    if (disableAutoFetch && !userTriggeredFetch) {
+      setLoading(false);
+      return;
+    }
 
     const cacheKey = generatePlaceCacheKey(placeName, placeAddress);
 
@@ -107,7 +137,15 @@ export default function PlaceGallery({
     };
 
     fetchPlaceData();
-  }, [placeName, placeAddress, maxPhotos, getPlace, setPlace, hasPlace]);
+  }, [placeName, placeAddress, maxPhotos, getPlace, setPlace, hasPlace, disableAutoFetch, userTriggeredFetch]);
+
+  // Handler for user to manually trigger fetch (used when disableAutoFetch=true)
+  const handleLoadPhotos = () => {
+    if (!userTriggeredFetch && !placeData) {
+      setUserTriggeredFetch(true);
+      setLoading(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -120,6 +158,23 @@ export default function PlaceGallery({
             />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Show "Load Photos" button when auto-fetch is disabled and no photos loaded
+  if (disableAutoFetch && !userTriggeredFetch && !placeData) {
+    return (
+      <div className={`${className}`}>
+        <button
+          onClick={handleLoadPhotos}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Load Google Photos
+        </button>
       </div>
     );
   }

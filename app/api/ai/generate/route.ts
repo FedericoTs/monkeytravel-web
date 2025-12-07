@@ -9,6 +9,7 @@ import {
 } from "@/lib/gemini";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import crypto from "crypto";
 
@@ -222,24 +223,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check rate limits (10 generations per day for regular users, unlimited for admins)
+    // Check usage limits (tier-based limits, admins bypass)
     const userIsAdmin = isAdmin(user.email);
+    const usageCheck = await checkUsageLimit(user.id, "aiGenerations", user.email);
 
-    if (!userIsAdmin) {
-      const today = new Date().toISOString().split("T")[0];
-      const { count } = await supabase
-        .from("api_request_logs")
-        .select("*", { count: "exact", head: true })
-        .eq("api_name", "gemini")
-        .gte("timestamp", `${today}T00:00:00Z`)
-        .eq("request_params->>user_id", user.id);
-
-      if ((count || 0) >= 10) {
-        return NextResponse.json(
-          { error: "Daily generation limit reached. Try again tomorrow." },
-          { status: 429 }
-        );
-      }
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.message || "Monthly trip generation limit reached.",
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        },
+        { status: 429 }
+      );
     }
 
     // Check cross-user cache first for same destination + vibes + budget
@@ -315,6 +311,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Increment usage counter (only for non-cache hits)
+    // Cache hits don't cost money, so they don't count against the limit
+    let updatedUsage = usageCheck;
+    if (!cacheHit) {
+      await incrementUsage(user.id, "aiGenerations", 1);
+      // Update the usage info for the response
+      updatedUsage = {
+        ...usageCheck,
+        used: usageCheck.used + 1,
+        remaining: Math.max(0, usageCheck.remaining - 1),
+      };
+    }
+
     return NextResponse.json({
       success: true,
       itinerary,
@@ -330,6 +339,8 @@ export async function POST(request: NextRequest) {
         nextStartDay: hasMoreDays ? generatedDays + 1 : null,
         remainingDays: hasMoreDays ? totalDays - generatedDays : 0,
       },
+      // Usage information for the client
+      usage: updatedUsage,
     });
   } catch (error) {
     console.error("Generation error:", error);

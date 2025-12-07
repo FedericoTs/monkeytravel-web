@@ -115,10 +115,16 @@ interface EditableActivityCardProps {
   currentDayIndex: number;
   isRegenerating?: boolean;
   /**
-   * When true, NO API calls will be made.
-   * Used for saved trips to ensure zero external API costs.
+   * When true, photos will NOT be fetched automatically.
+   * User can still trigger fetch via "Load Photos" button.
+   * Used for saved trips to prevent automatic API costs.
    */
-  disableApiCalls?: boolean;
+  disableAutoFetch?: boolean;
+  /**
+   * Callback fired when a Places API photo is captured.
+   * Use this to persist the photo URL to the activity.
+   */
+  onPhotoCapture?: (activityId: string, photoUrl: string) => void;
 }
 
 export default function EditableActivityCard({
@@ -137,7 +143,8 @@ export default function EditableActivityCard({
   availableDays,
   currentDayIndex,
   isRegenerating = false,
-  disableApiCalls = false,
+  disableAutoFetch = false,
+  onPhotoCapture,
 }: EditableActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -151,6 +158,13 @@ export default function EditableActivityCard({
   });
   const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
+
+  // Handle photo capture from PlaceGallery
+  const handlePhotoCapture = (photoUrl: string) => {
+    if (activity.id && onPhotoCapture) {
+      onPhotoCapture(activity.id, photoUrl);
+    }
+  };
 
   // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
   const fetchedActivityRef = useRef<string>("");
@@ -755,15 +769,17 @@ export default function EditableActivityCard({
       {/* Expanded Content */}
       {expanded && !isEditing && (
         <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
-          {/* Photo Gallery - Only shown if API calls are enabled */}
-          {showGallery && !disableApiCalls && (
+          {/* Photo Gallery */}
+          {showGallery && (
             <div className="mb-4 overflow-hidden max-w-full">
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}
                 maxPhotos={5}
                 showRating={true}
-                disableApiCalls={disableApiCalls}
+                disableAutoFetch={disableAutoFetch}
+                onFirstPhotoFetched={handlePhotoCapture}
+                existingImageUrl={activity.image_url}
               />
             </div>
           )}

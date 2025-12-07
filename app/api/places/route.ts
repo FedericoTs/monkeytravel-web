@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -136,6 +138,10 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Check authentication (optional - for usage tracking)
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+
     const { query, maxPhotos = 5 } = await request.json();
 
     if (!query) {
@@ -153,6 +159,22 @@ export async function POST(request: NextRequest) {
         { error: access.message || "Places API is currently disabled" },
         { status: 503 }
       );
+    }
+
+    // Check usage limits for authenticated users
+    let usageCheck = null;
+    if (user) {
+      usageCheck = await checkUsageLimit(user.id, "placesSearch", user.email);
+      if (!usageCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: usageCheck.message || "Daily place search limit reached.",
+            usage: usageCheck,
+            upgradeUrl: "/pricing",
+          },
+          { status: 429 }
+        );
+      }
     }
 
     if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
@@ -276,6 +298,11 @@ export async function POST(request: NextRequest) {
       responseTimeMs: Date.now() - startTime,
     });
 
+    // Increment usage counter for authenticated users (only on API calls, not cache hits)
+    if (user) {
+      await incrementUsage(user.id, "placesSearch", 1);
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error("Places API error:", error);
@@ -308,6 +335,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Check authentication (optional - for usage tracking)
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+
     // Check API access control
     const access = await checkApiAccess("google_places_search");
     if (!access.allowed) {
@@ -319,6 +350,21 @@ export async function GET(request: NextRequest) {
         { error: access.message || "Places API is currently disabled" },
         { status: 503 }
       );
+    }
+
+    // Check usage limits for authenticated users
+    if (user) {
+      const usageCheck = await checkUsageLimit(user.id, "placesSearch", user.email);
+      if (!usageCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: usageCheck.message || "Daily place search limit reached.",
+            usage: usageCheck,
+            upgradeUrl: "/pricing",
+          },
+          { status: 429 }
+        );
+      }
     }
 
     if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
@@ -416,6 +462,11 @@ export async function GET(request: NextRequest) {
     await logPlacesApiRequest("/places:searchText (destination)", {
       responseTimeMs: Date.now() - startTime,
     });
+
+    // Increment usage counter for authenticated users (only on API calls, not cache hits)
+    if (user) {
+      await incrementUsage(user.id, "placesSearch", 1);
+    }
 
     return NextResponse.json(result);
   } catch (error) {

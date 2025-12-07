@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
-import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import type { ItineraryDay } from "@/types";
 
 /**
@@ -79,24 +79,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limiting (same as main generate endpoint - 10/day for non-admins)
-    const userIsAdmin = isAdmin(user.email);
-    if (!userIsAdmin) {
-      const today = new Date().toISOString().split("T")[0];
-      const { count } = await supabase
-        .from("api_request_logs")
-        .select("*", { count: "exact", head: true })
-        .eq("api_name", "gemini")
-        .gte("timestamp", `${today}T00:00:00Z`)
-        .eq("request_params->>user_id", user.id);
-
-      // More lenient limit for continuation (since it's for existing trips)
-      if ((count || 0) >= 20) {
-        return NextResponse.json(
-          { error: "Daily generation limit reached. Try again tomorrow." },
-          { status: 429 }
-        );
-      }
+    // Check usage limits (tier-based monthly limits)
+    // Note: generate-more-days counts toward the same aiGenerations limit
+    // as it's part of the trip generation flow
+    const usageCheck = await checkUsageLimit(user.id, "aiGenerations", user.email);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.message || "Monthly trip generation limit reached.",
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        },
+        { status: 429 }
+      );
     }
 
     // Generate additional days
@@ -132,9 +127,19 @@ export async function POST(request: NextRequest) {
         destination,
         start_from_day: startFromDay,
         days_generated: newDays.length,
-        is_admin: userIsAdmin,
+        tier: usageCheck.tier,
       },
     });
+
+    // Increment usage counter (continuation counts as a generation)
+    await incrementUsage(user.id, "aiGenerations", 1);
+
+    // Update usage info for response
+    const updatedUsage = {
+      ...usageCheck,
+      used: usageCheck.used + 1,
+      remaining: Math.max(0, usageCheck.remaining - 1),
+    };
 
     // If tripId is provided, update the trip in the database
     if (tripId) {
@@ -188,6 +193,7 @@ export async function POST(request: NextRequest) {
         nextStartDay,
         remainingDays,
       },
+      usage: updatedUsage,
     });
   } catch (error) {
     console.error("Generate more days error:", error);

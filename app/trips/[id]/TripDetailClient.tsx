@@ -202,6 +202,30 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     []
   );
 
+  // Handle photo capture from PlaceGallery - persists to database
+  const handlePhotoCapture = useCallback(
+    async (activityId: string, photoUrl: string) => {
+      // Update local state immediately for instant UI feedback
+      setEditedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
+      setSavedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
+
+      // Persist to database in background (don't await, fire-and-forget)
+      fetch(`/api/trips/${trip.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itinerary: updateActivity(editedItinerary, activityId, { image_url: photoUrl }),
+        }),
+      }).catch((error) => {
+        console.error("[Photo Capture] Failed to persist photo:", error);
+        // Don't show error to user - photo is still displayed from local state
+      });
+
+      console.log(`[Photo Capture] Captured Places photo for activity ${activityId}`);
+    },
+    [trip.id, editedItinerary]
+  );
+
   const handleActivityRegenerate = useCallback(
     async (activityId: string, dayIndex: number) => {
       setRegeneratingActivityId(activityId);
@@ -855,7 +879,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                                     availableDays={availableDays}
                                     currentDayIndex={dayIndex}
                                     isRegenerating={regeneratingActivityId === activity.id}
-                                    disableApiCalls={true}
+                                    disableAutoFetch={true}
+                                    onPhotoCapture={handlePhotoCapture}
                                   />
                                 ) : (
                                   <ActivityCard
@@ -863,7 +888,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                                     index={idx}
                                     currency={trip.budget?.currency}
                                     showGallery={true}
-                                    disableApiCalls={true}
+                                    disableAutoFetch={true}
+                                    onPhotoCapture={handlePhotoCapture}
                                   />
                                 )}
                               </div>

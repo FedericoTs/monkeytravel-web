@@ -11,10 +11,16 @@ interface ActivityDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * When true, NO API calls will be made.
-   * Used for saved trips to ensure zero external API costs.
+   * When true, photos will NOT be fetched automatically.
+   * User can still trigger fetch via "Load Photos" button.
+   * Used for saved trips to prevent automatic API costs.
    */
-  disableApiCalls?: boolean;
+  disableAutoFetch?: boolean;
+  /**
+   * Callback fired when a Places API photo is captured.
+   * Use this to persist the photo URL to the activity.
+   */
+  onPhotoCapture?: (photoUrl: string) => void;
 }
 
 export default function ActivityDetailSheet({
@@ -22,7 +28,8 @@ export default function ActivityDetailSheet({
   currency = "USD",
   isOpen,
   onClose,
-  disableApiCalls = false,
+  disableAutoFetch = false,
+  onPhotoCapture,
 }: ActivityDetailSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -257,19 +264,19 @@ export default function ActivityDetailSheet({
               </div>
             </div>
 
-            {/* Photo Gallery - Only shown if API calls are enabled */}
-            {!disableApiCalls && (
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Photos</h3>
-                <PlaceGallery
-                  placeName={activity.name}
-                  placeAddress={activity.address || activity.location}
-                  maxPhotos={6}
-                  showRating={true}
-                  disableApiCalls={disableApiCalls}
-                />
-              </div>
-            )}
+            {/* Photo Gallery */}
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Photos</h3>
+              <PlaceGallery
+                placeName={activity.name}
+                placeAddress={activity.address || activity.location}
+                maxPhotos={6}
+                showRating={true}
+                disableAutoFetch={disableAutoFetch}
+                onFirstPhotoFetched={onPhotoCapture}
+                existingImageUrl={activity.image_url}
+              />
+            </div>
 
             {/* Tips */}
             {activity.tips && activity.tips.length > 0 && (

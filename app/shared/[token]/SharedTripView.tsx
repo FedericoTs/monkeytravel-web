@@ -276,7 +276,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                 index={idx}
                                 currency={trip.budget?.currency}
                                 showGallery={true}
-                                disableApiCalls={true}
+                                disableAutoFetch={true}
                               />
                               {/* Travel connector to next activity */}
                               {idx < day.activities.length - 1 && (

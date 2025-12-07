@@ -6,7 +6,9 @@ import {
   selectModel,
   estimateCost,
 } from "@/lib/ai/config";
-import { checkRateLimit, recordUsage } from "@/lib/ai/usage";
+import { recordUsage } from "@/lib/ai/usage";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type {
   ItineraryDay,
   Activity,
@@ -406,11 +408,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check rate limit
-    const rateLimitCheck = await checkRateLimit(user.id, "free");
-    if (!rateLimitCheck.allowed) {
+    // Check API access control
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      await logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/assistant",
+        status: 503,
+        responseTimeMs: Date.now() - Date.now(),
+        cacheHit: false,
+        costUsd: 0,
+        error: `BLOCKED: ${access.message}`,
+        metadata: { user_id: user.id, trip_id: tripId },
+      });
       return NextResponse.json(
-        { error: rateLimitCheck.message || "Rate limit exceeded" },
+        { error: access.message || "AI assistant is currently disabled" },
+        { status: 503 }
+      );
+    }
+
+    // Check usage limits (daily limit for assistant messages)
+    const usageCheck = await checkUsageLimit(user.id, "aiAssistantMessages", user.email);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.message || "Daily AI assistant message limit reached.",
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        },
         { status: 429 }
       );
     }
@@ -754,7 +779,7 @@ Respond with valid JSON only.`;
     const outputTokens = Math.ceil(responseText.length / 4);
     const costCents = estimateCost(modelConfig, inputTokens, outputTokens);
 
-    // Record usage
+    // Record usage in existing system
     await recordUsage({
       userId: user.id,
       tripId,
@@ -764,6 +789,9 @@ Respond with valid JSON only.`;
       outputTokens,
       costCents,
     });
+
+    // Increment usage counter in new tier-based system
+    await incrementUsage(user.id, "aiAssistantMessages", 1);
 
     // Save messages
     const userMessage: AssistantMessage = {
@@ -793,6 +821,13 @@ Respond with valid JSON only.`;
       })
       .eq("id", conversation.id);
 
+    // Update usage info for response
+    const updatedUsage = {
+      ...usageCheck,
+      used: usageCheck.used + 1,
+      remaining: Math.max(0, usageCheck.remaining - 1),
+    };
+
     // CRITICAL: Always return modifiedItinerary if it was actually modified
     const responsePayload = {
       message: assistantMessage,
@@ -805,7 +840,10 @@ Respond with valid JSON only.`;
         inputTokens,
         outputTokens,
         costCents,
-        remainingRequests: rateLimitCheck.stats.remainingRequests - 1,
+        tier: updatedUsage.tier,
+        remaining: updatedUsage.remaining,
+        limit: updatedUsage.limit,
+        resetAt: updatedUsage.resetAt,
       },
       // Debug info
       debug: {

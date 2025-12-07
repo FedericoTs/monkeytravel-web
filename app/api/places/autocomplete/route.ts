@@ -12,7 +12,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { createClient } from "@/lib/supabase/server";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -173,6 +175,10 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Check authentication (optional - for usage tracking)
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
     // Check API access control first
     const access = await checkApiAccess("google_places_autocomplete");
     if (!access.allowed) {
@@ -184,6 +190,22 @@ export async function POST(request: NextRequest) {
         { error: access.message || "Places Autocomplete API is currently disabled" },
         { status: 503 }
       );
+    }
+
+    // Check usage limits for authenticated users
+    let usageCheck = null;
+    if (user) {
+      usageCheck = await checkUsageLimit(user.id, "placesAutocomplete", user.email);
+      if (!usageCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: usageCheck.message || "Daily autocomplete limit reached.",
+            usage: usageCheck,
+            upgradeUrl: "/pricing",
+          },
+          { status: 429 }
+        );
+      }
     }
 
     const { input, sessionToken } = await request.json();
@@ -286,6 +308,11 @@ export async function POST(request: NextRequest) {
 
     // Log API usage
     logAutocompleteApiRequest({ responseTimeMs: Date.now() - startTime });
+
+    // Increment usage counter for authenticated users (only on API calls, not cache hits)
+    if (user) {
+      await incrementUsage(user.id, "placesAutocomplete", 1);
+    }
 
     return NextResponse.json(result);
   } catch (error) {

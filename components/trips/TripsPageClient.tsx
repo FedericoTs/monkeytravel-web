@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/utils";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import CuratedEscapes from "@/components/templates/CuratedEscapes";
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
 const DESTINATION_GRADIENTS: Record<string, { from: string; to: string; accent: string }> = {
@@ -435,6 +436,9 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
             </div>
           </div>
         )}
+
+        {/* Curated Escapes Section - Pre-made templates */}
+        <CuratedEscapes />
 
         {/* Page Header with Search */}
         <div className="flex flex-col gap-4 mb-6 sm:mb-8">

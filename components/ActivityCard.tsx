@@ -105,10 +105,16 @@ interface ActivityCardProps {
   currency?: string;
   showGallery?: boolean;
   /**
-   * When true, NO API calls will be made.
-   * Used for saved trips to ensure zero external API costs.
+   * When true, photos will NOT be fetched automatically.
+   * User can still trigger fetch via "Load Photos" button.
+   * Used for saved trips to prevent automatic API costs.
    */
-  disableApiCalls?: boolean;
+  disableAutoFetch?: boolean;
+  /**
+   * Callback fired when a Places API photo is captured.
+   * Use this to persist the photo URL to the activity.
+   */
+  onPhotoCapture?: (activityId: string, photoUrl: string) => void;
 }
 
 export default function ActivityCard({
@@ -116,7 +122,8 @@ export default function ActivityCard({
   index,
   currency = "USD",
   showGallery = true,
-  disableApiCalls = false,
+  disableAutoFetch = false,
+  onPhotoCapture,
 }: ActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
@@ -132,6 +139,13 @@ export default function ActivityCard({
     if (amount === 0) return "Free";
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
+  };
+
+  // Handle photo capture from PlaceGallery
+  const handlePhotoCapture = (photoUrl: string) => {
+    if (activity.id && onPhotoCapture) {
+      onPhotoCapture(activity.id, photoUrl);
+    }
   };
 
   // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
@@ -538,15 +552,17 @@ export default function ActivityCard({
       {/* Expanded Content - Desktop only */}
       {expanded && !isMobile && (
         <div className="border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
-          {/* Photo Gallery - Only shown if API calls are enabled */}
-          {showGallery && !disableApiCalls && (
+          {/* Photo Gallery */}
+          {showGallery && (
             <div className="mb-4 overflow-hidden max-w-full">
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}
                 maxPhotos={5}
                 showRating={true}
-                disableApiCalls={disableApiCalls}
+                disableAutoFetch={disableAutoFetch}
+                onFirstPhotoFetched={handlePhotoCapture}
+                existingImageUrl={activity.image_url}
               />
             </div>
           )}
@@ -579,7 +595,8 @@ export default function ActivityCard({
         currency={currency}
         isOpen={showMobileSheet}
         onClose={() => setShowMobileSheet(false)}
-        disableApiCalls={disableApiCalls}
+        disableAutoFetch={disableAutoFetch}
+        onPhotoCapture={handlePhotoCapture}
       />
     </div>
   );
