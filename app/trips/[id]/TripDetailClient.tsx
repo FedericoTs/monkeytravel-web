@@ -42,6 +42,9 @@ import {
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 
+// Ongoing trip view with gamification
+import OngoingTripView from "@/components/trip/OngoingTripView";
+
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
@@ -572,84 +575,19 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           </div>
         )}
 
-        {/* Active Trip Phase - Live Journey Mode */}
+        {/* Active Trip Phase - Ongoing Trip View with Gamification */}
         {isActiveTripPhase && (
-          <div className="space-y-4 mb-6">
-            {/* Live Journey Header */}
-            <LiveJourneyHeader
-              tripTitle={trip.title}
-              currentDay={currentDayNumber}
-              totalDays={tripDaysCount}
-              dayProgress={dayProgress}
-              currentActivity={currentActivity && currentActivity.id ? {
-                id: currentActivity.id,
-                name: currentActivity.name,
-                start_time: currentActivity.start_time,
-                location: currentActivity.address || currentActivity.location,
-                status: activityTimeline.getActivityStatus(currentActivity.id),
-              } : undefined}
-              nextActivity={nextActivity && nextActivity.id ? {
-                id: nextActivity.id,
-                name: nextActivity.name,
-                start_time: nextActivity.start_time,
-                location: nextActivity.address || nextActivity.location,
-                status: "upcoming",
-              } : undefined}
-              destination={destination}
-            />
-
-            {/* Today's Activities as Live Cards */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">
-                Today&apos;s Activities
-              </h3>
-              {currentDayActivities
-                .filter((activity) => activity.id)
-                .map((activity) => (
-                <LiveActivityCard
-                  key={activity.id}
-                  activity={{
-                    id: activity.id!,
-                    name: activity.name,
-                    description: activity.description,
-                    start_time: activity.start_time,
-                    duration_minutes: activity.duration_minutes,
-                    address: activity.address,
-                    location: activity.location,
-                    type: activity.type,
-                    image_url: activity.image_url,
-                    estimated_cost: activity.estimated_cost,
-                  }}
-                  status={activityTimeline.getActivityStatus(activity.id!)}
-                  rating={activityTimeline.getActivityRating(activity.id!)}
-                  onComplete={() => {
-                    activityTimeline.completeActivity(activity.id!, currentDayNumber);
-                    // Show rating modal after completion
-                    setRatingModalActivity({
-                      id: activity.id!,
-                      name: activity.name,
-                      dayNumber: currentDayNumber,
-                      image_url: activity.image_url,
-                    });
-                  }}
-                  onSkip={() => {
-                    activityTimeline.skipActivity(activity.id!, currentDayNumber);
-                  }}
-                  onAddPhoto={() => {
-                    // TODO: Implement photo capture
-                    console.log("Add photo for activity:", activity.id);
-                  }}
-                  onAddNote={() => {
-                    // TODO: Implement note modal
-                    console.log("Add note for activity:", activity.id);
-                  }}
-                  onRate={(rating) => {
-                    activityTimeline.rateActivity(activity.id!, currentDayNumber, rating);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <OngoingTripView
+            tripId={trip.id}
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            itinerary={editedItinerary}
+            meta={trip.meta}
+            budget={trip.budget}
+            cachedTravelDistances={trip.cachedTravelDistances}
+            cachedTravelHash={trip.cachedTravelHash}
+          />
         )}
 
         {/* Activity Rating Modal */}
@@ -671,6 +609,9 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           }}
         />
 
+        {/* Planning/Confirmed Phase - Full Itinerary View */}
+        {!isActiveTripPhase && (
+          <>
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back button */}
@@ -1063,6 +1004,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
               </div>
             </div>
           </div>
+        )}
+          </>
         )}
       </main>
 

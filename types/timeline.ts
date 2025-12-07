@@ -373,3 +373,222 @@ export interface TripStatsProps {
     notes?: string;
   };
 }
+
+// ============================================================================
+// GAMIFICATION / XP SYSTEM
+// ============================================================================
+
+/**
+ * XP values for different activity types
+ * Higher XP for activities that represent core travel experiences
+ */
+export const ACTIVITY_XP: Record<string, number> = {
+  // Cultural & Landmarks - Core travel experiences (+15 XP)
+  cultural: 15,
+  museum: 15,
+  landmark: 15,
+  attraction: 15,
+
+  // Food & Entertainment - Memorable experiences (+12 XP)
+  food: 12,
+  restaurant: 12,
+  foodie: 12,
+  entertainment: 12,
+  nightlife: 12,
+  event: 12,
+
+  // Nature & Wellness (+12 XP)
+  nature: 12,
+  park: 12,
+  spa: 10,
+  wellness: 10,
+
+  // Shopping & Cafes (+8 XP)
+  shopping: 8,
+  market: 8,
+  cafe: 8,
+  bar: 8,
+
+  // Logistics (+5 XP)
+  transport: 5,
+  activity: 10, // Generic fallback
+};
+
+/**
+ * Streak multipliers for consecutive completions
+ */
+export const STREAK_MULTIPLIERS: Record<number, number> = {
+  0: 1,
+  1: 1,
+  2: 1,
+  3: 1.25,  // 25% bonus after 3-streak
+  4: 1.5,   // 50% bonus after 4-streak
+  5: 1.75,  // 75% bonus after 5-streak
+  6: 2,     // 2x bonus after 6+ streak
+};
+
+/**
+ * Achievement definitions
+ */
+export type AchievementId =
+  | "early_bird"      // Complete first activity before 9am
+  | "night_owl"       // Complete activity after 9pm
+  | "foodie"          // Complete 3+ food activities
+  | "culture_vulture" // Complete 5+ cultural/museum activities
+  | "day_master"      // Complete all activities in a day
+  | "streak_3"        // Achieve 3-activity streak
+  | "streak_5"        // Achieve 5-activity streak
+  | "perfectionist"   // Complete trip with 0 skips
+  | "explorer"        // Visit 10+ unique locations
+  | "speed_runner"    // Complete 3 activities within 3 hours
+  | "first_steps"     // Complete first activity of the trip
+  | "halfway_there"   // Complete 50% of trip activities
+  | "finish_line";    // Complete all trip activities
+
+export interface Achievement {
+  id: AchievementId;
+  name: string;
+  description: string;
+  icon: string;
+  xpBonus: number;
+  rarity: "common" | "rare" | "epic" | "legendary";
+}
+
+export const ACHIEVEMENTS: Record<AchievementId, Achievement> = {
+  first_steps: {
+    id: "first_steps",
+    name: "First Steps",
+    description: "Complete your first activity",
+    icon: "👣",
+    xpBonus: 25,
+    rarity: "common",
+  },
+  early_bird: {
+    id: "early_bird",
+    name: "Early Bird",
+    description: "Complete an activity before 9:00 AM",
+    icon: "🌅",
+    xpBonus: 30,
+    rarity: "common",
+  },
+  night_owl: {
+    id: "night_owl",
+    name: "Night Owl",
+    description: "Complete an activity after 9:00 PM",
+    icon: "🦉",
+    xpBonus: 30,
+    rarity: "common",
+  },
+  foodie: {
+    id: "foodie",
+    name: "Foodie",
+    description: "Complete 3 food-related activities",
+    icon: "🍽️",
+    xpBonus: 50,
+    rarity: "rare",
+  },
+  culture_vulture: {
+    id: "culture_vulture",
+    name: "Culture Vulture",
+    description: "Complete 5 cultural or museum activities",
+    icon: "🏛️",
+    xpBonus: 75,
+    rarity: "rare",
+  },
+  day_master: {
+    id: "day_master",
+    name: "Day Master",
+    description: "Complete all activities in a single day",
+    icon: "⭐",
+    xpBonus: 50,
+    rarity: "rare",
+  },
+  streak_3: {
+    id: "streak_3",
+    name: "On a Roll",
+    description: "Complete 3 activities in a row",
+    icon: "🔥",
+    xpBonus: 25,
+    rarity: "common",
+  },
+  streak_5: {
+    id: "streak_5",
+    name: "Unstoppable",
+    description: "Complete 5 activities in a row",
+    icon: "⚡",
+    xpBonus: 75,
+    rarity: "rare",
+  },
+  speed_runner: {
+    id: "speed_runner",
+    name: "Speed Runner",
+    description: "Complete 3 activities within 3 hours",
+    icon: "🏃",
+    xpBonus: 40,
+    rarity: "rare",
+  },
+  explorer: {
+    id: "explorer",
+    name: "Explorer",
+    description: "Visit 10 unique locations",
+    icon: "🧭",
+    xpBonus: 100,
+    rarity: "epic",
+  },
+  halfway_there: {
+    id: "halfway_there",
+    name: "Halfway There",
+    description: "Complete 50% of your trip activities",
+    icon: "🎯",
+    xpBonus: 50,
+    rarity: "rare",
+  },
+  perfectionist: {
+    id: "perfectionist",
+    name: "Perfectionist",
+    description: "Complete entire trip without skipping",
+    icon: "💎",
+    xpBonus: 200,
+    rarity: "legendary",
+  },
+  finish_line: {
+    id: "finish_line",
+    name: "Finish Line",
+    description: "Complete all trip activities",
+    icon: "🏆",
+    xpBonus: 150,
+    rarity: "epic",
+  },
+};
+
+/**
+ * User's gamification progress for a trip
+ */
+export interface TripGamification {
+  tripId: string;
+  totalXp: number;
+  currentStreak: number;
+  longestStreak: number;
+  unlockedAchievements: AchievementId[];
+  achievementUnlockedAt: Record<AchievementId, string>; // ISO timestamps
+
+  // Activity type counts for achievement tracking
+  activityTypeCounts: Record<string, number>;
+  completedActivityIds: string[];
+  skippedCount: number;
+
+  // Timestamps
+  lastActivityCompletedAt?: string;
+  updatedAt: string;
+}
+
+/**
+ * XP gain event for animations
+ */
+export interface XpGainEvent {
+  baseXp: number;
+  streakMultiplier: number;
+  totalXp: number;
+  newStreak: number;
+  newAchievements: AchievementId[];
+}
