@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Zap, Trophy, Star } from "lucide-react";
+import { Zap, Trophy } from "lucide-react";
 import type { AchievementId, XpGainEvent } from "@/types/timeline";
 import { ACHIEVEMENTS, STREAK_MULTIPLIERS } from "@/types/timeline";
 
@@ -58,7 +58,23 @@ export default function XPProgressBar({
 }: XPProgressBarProps) {
   const [showXpAnimation, setShowXpAnimation] = useState(false);
   const [animatedXp, setAnimatedXp] = useState(totalXp);
+  const [showDayComplete, setShowDayComplete] = useState(false);
   const levelInfo = getCurrentLevel(animatedXp);
+
+  // Calculate day progress percentage
+  const dayProgressPercent = todayProgress.total > 0
+    ? (todayProgress.completed / todayProgress.total) * 100
+    : 0;
+  const isDayComplete = todayProgress.completed === todayProgress.total && todayProgress.total > 0;
+
+  // Show day complete celebration when all activities done
+  useEffect(() => {
+    if (isDayComplete && todayProgress.completed > 0) {
+      setShowDayComplete(true);
+      const timer = setTimeout(() => setShowDayComplete(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isDayComplete, todayProgress.completed]);
 
   // Animate XP changes
   useEffect(() => {
@@ -93,7 +109,29 @@ export default function XPProgressBar({
   const hasActiveStreak = currentStreak >= 3;
 
   return (
-    <div className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm ${className}`}>
+    <div className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative overflow-hidden ${className}`}>
+      {/* Day Complete Celebration Overlay */}
+      <AnimatePresence>
+        {showDayComplete && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-amber-400/30 to-yellow-400/20 z-10 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Floating bananas animation */}
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.5 }}
+            >
+              <span className="text-6xl">🍌🧺</span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Level & XP Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -128,73 +166,136 @@ export default function XPProgressBar({
           </div>
         </div>
 
-        {/* Streak Counter */}
+        {/* Banana Streak Counter 🍌 */}
         <div className="flex items-center gap-2">
           {currentStreak > 0 && (
             <motion.div
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${
                 hasActiveStreak
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white"
-                  : "bg-orange-100 text-orange-700"
+                  ? "bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900"
+                  : "bg-yellow-100 text-yellow-800"
               }`}
               animate={hasActiveStreak ? { scale: [1, 1.05, 1] } : {}}
               transition={{ repeat: Infinity, duration: 2 }}
             >
-              <Flame className="w-4 h-4" />
+              <span className="text-lg">🍌</span>
               <span className="font-bold">{currentStreak}</span>
               {hasActiveStreak && (
-                <span className="text-xs opacity-90">×{streakMultiplier}</span>
+                <span className="text-xs opacity-80 font-medium">×{streakMultiplier}</span>
               )}
             </motion.div>
           )}
         </div>
       </div>
 
-      {/* XP Progress Bar */}
-      <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden mb-3">
-        <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${levelInfo.progress}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        />
-        {/* Shimmer effect on XP gain */}
-        <AnimatePresence>
-          {showXpAnimation && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            />
-          )}
-        </AnimatePresence>
-      </div>
+      {/* Combined Progress Bar - Day Progress (main) + XP hint */}
+      <div className="relative mb-3">
+        {/* Day Progress Label */}
+        <div className="flex items-center justify-between text-xs mb-1.5">
+          <span className="text-slate-600 font-medium">Today&apos;s Progress</span>
+          <span className={`font-bold ${isDayComplete ? "text-emerald-600" : "text-slate-700"}`}>
+            {todayProgress.completed}/{todayProgress.total} activities
+            {isDayComplete && " ✓"}
+          </span>
+        </div>
 
-      {/* Today's Progress */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-4">
-          {/* Activities completed today */}
-          <div className="flex items-center gap-1.5 text-slate-600">
-            <Star className="w-4 h-4 text-[var(--accent)]" />
-            <span>
-              <span className="font-medium text-slate-900">{todayProgress.completed}</span>
-              /{todayProgress.total} today
-            </span>
-          </div>
+        {/* Progress Bar */}
+        <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
+          {/* Day Progress (main fill) */}
+          <motion.div
+            className={`absolute inset-y-0 left-0 rounded-full ${
+              isDayComplete
+                ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
+                : "bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]"
+            }`}
+            initial={{ width: 0 }}
+            animate={{ width: `${dayProgressPercent}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
 
-          {/* Next level hint */}
-          {levelInfo.nextLevel.level !== levelInfo.currentLevel.level && (
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Zap className="w-4 h-4" />
-              <span>
-                {levelInfo.xpForNextLevel - levelInfo.xpInCurrentLevel} XP to{" "}
-                <span className="font-medium">{levelInfo.nextLevel.name}</span>
-              </span>
+          {/* XP Progress overlay (subtle indicator) */}
+          <motion.div
+            className="absolute inset-y-0 left-0 bg-white/30 rounded-full"
+            style={{ width: `${Math.min(levelInfo.progress, dayProgressPercent)}%` }}
+          />
+
+          {/* Segment markers */}
+          {todayProgress.total > 1 && todayProgress.total <= 10 && (
+            <div className="absolute inset-0 flex">
+              {Array.from({ length: todayProgress.total - 1 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 border-r border-white/40"
+                />
+              ))}
+              <div className="flex-1" />
             </div>
           )}
+
+          {/* Shimmer effect on completion */}
+          <AnimatePresence>
+            {showXpAnimation && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Banana icon at progress point */}
+          {dayProgressPercent > 0 && dayProgressPercent < 100 && (
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-lg"
+              style={{ left: `${dayProgressPercent}%` }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              🍌
+            </motion.div>
+          )}
+
+          {/* Banana basket at end when complete */}
+          {isDayComplete && (
+            <motion.div
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-lg"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200 }}
+            >
+              🧺
+            </motion.div>
+          )}
         </div>
+      </div>
+
+      {/* XP to Next Level */}
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <Zap className="w-4 h-4" />
+          {levelInfo.nextLevel.level !== levelInfo.currentLevel.level ? (
+            <span>
+              {levelInfo.xpForNextLevel - levelInfo.xpInCurrentLevel} XP to{" "}
+              <span className="font-medium text-slate-700">{levelInfo.nextLevel.name}</span>
+            </span>
+          ) : (
+            <span className="font-medium text-emerald-600">Max Level!</span>
+          )}
+        </div>
+
+        {/* Day complete badge */}
+        {isDayComplete && (
+          <motion.div
+            className="flex items-center gap-1 text-emerald-600 font-medium"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <span>Day Complete!</span>
+            <span className="text-lg">🎉</span>
+          </motion.div>
+        )}
       </div>
 
       {/* XP Gain Animation Popup */}
@@ -230,8 +331,9 @@ interface AchievementToastProps {
 export function AchievementToast({ achievementId, onDismiss }: AchievementToastProps) {
   const achievement = ACHIEVEMENTS[achievementId];
 
+  // Auto-dismiss after 5 seconds
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 4000);
+    const timer = setTimeout(onDismiss, 5000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
 
@@ -241,6 +343,9 @@ export function AchievementToast({ achievementId, onDismiss }: AchievementToastP
     epic: "from-purple-500 to-purple-600",
     legendary: "from-amber-500 to-orange-500",
   };
+
+  // Special icon for Day Master - banana basket
+  const displayIcon = achievementId === "day_master" ? "🍌🧺" : achievement.icon;
 
   return (
     <motion.div
@@ -258,7 +363,7 @@ export function AchievementToast({ achievementId, onDismiss }: AchievementToastP
           animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
           transition={{ duration: 0.5 }}
         >
-          {achievement.icon}
+          {displayIcon}
         </motion.div>
 
         <div>
@@ -272,6 +377,14 @@ export function AchievementToast({ achievementId, onDismiss }: AchievementToastP
           <div className="text-sm opacity-90">{achievement.description}</div>
           <div className="text-xs mt-1 font-medium">+{achievement.xpBonus} XP</div>
         </div>
+
+        {/* Close button */}
+        <button
+          onClick={onDismiss}
+          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <span className="text-white text-sm">×</span>
+        </button>
       </div>
     </motion.div>
   );
