@@ -119,14 +119,34 @@ export default function XPProgressBar({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Floating bananas animation */}
+            {/* Floating bananas animation - bunch of bananas */}
             <motion.div
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center gap-1"
               initial={{ scale: 0 }}
               animate={{ scale: [0, 1.2, 1] }}
               transition={{ duration: 0.5 }}
             >
-              <span className="text-6xl">🍌🧺</span>
+              <motion.span
+                className="text-5xl"
+                animate={{ rotate: [-15, 0, -15] }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                🍌
+              </motion.span>
+              <motion.span
+                className="text-6xl"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                🍌
+              </motion.span>
+              <motion.span
+                className="text-5xl"
+                animate={{ rotate: [15, 0, 15] }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                🍌
+              </motion.span>
             </motion.div>
           </motion.div>
         )}
@@ -257,15 +277,15 @@ export default function XPProgressBar({
             </motion.div>
           )}
 
-          {/* Banana basket at end when complete */}
+          {/* Bunch of bananas at end when complete */}
           {isDayComplete && (
             <motion.div
-              className="absolute right-1 top-1/2 -translate-y-1/2 text-lg"
+              className="absolute right-1 top-1/2 -translate-y-1/2 flex"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200 }}
             >
-              🧺
+              <span className="text-sm">🍌🍌🍌</span>
             </motion.div>
           )}
         </div>
@@ -344,8 +364,8 @@ export function AchievementToast({ achievementId, onDismiss }: AchievementToastP
     legendary: "from-amber-500 to-orange-500",
   };
 
-  // Special icon for Day Master - banana basket
-  const displayIcon = achievementId === "day_master" ? "🍌🧺" : achievement.icon;
+  // Special icon for Day Master - bunch of bananas
+  const displayIcon = achievementId === "day_master" ? "🍌🍌🍌" : achievement.icon;
 
   return (
     <motion.div
