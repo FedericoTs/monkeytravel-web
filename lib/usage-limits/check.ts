@@ -12,6 +12,7 @@ import {
   type UsagePeriodType,
   type UsageCheckResult,
   type UserUsageStats,
+  type TierLimits,
   LIMIT_TYPE_TO_COLUMN,
   LIMIT_TYPE_TO_PERIOD,
 } from "./types";
@@ -21,6 +22,53 @@ import {
   LIMIT_DISPLAY_NAMES,
   isUnlimited,
 } from "./config";
+
+/**
+ * Custom limits for a user (from test_accounts)
+ */
+interface CustomLimitsResult {
+  hasCustomLimits: boolean;
+  limits: Partial<TierLimits> | null;
+}
+
+/**
+ * Get custom limits for a test account
+ */
+async function getTestAccountCustomLimits(userId: string): Promise<CustomLimitsResult> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("test_accounts")
+      .select("custom_limits, is_active, expires_at")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) {
+      return { hasCustomLimits: false, limits: null };
+    }
+
+    // Check if account is active
+    if (!data.is_active) {
+      return { hasCustomLimits: false, limits: null };
+    }
+
+    // Check if account has expired
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      return { hasCustomLimits: false, limits: null };
+    }
+
+    // Return custom limits if they exist
+    if (data.custom_limits) {
+      return { hasCustomLimits: true, limits: data.custom_limits as Partial<TierLimits> };
+    }
+
+    // Test account without custom limits - they get premium tier by default
+    return { hasCustomLimits: true, limits: null };
+  } catch {
+    return { hasCustomLimits: false, limits: null };
+  }
+}
 
 /**
  * Get the current period key for a given period type
@@ -146,11 +194,65 @@ export async function checkUsageLimit(
   userEmail?: string | null
 ): Promise<UsageCheckResult> {
   try {
-    // Get user's tier
-    const tier = await getUserTier(userId, userEmail);
-    const limit = TIER_LIMITS[tier][limitType];
     const periodType = LIMIT_TYPE_TO_PERIOD[limitType];
     const resetAt = getPeriodResetAt(periodType);
+
+    // Check for test account with custom limits
+    const testAccountLimits = await getTestAccountCustomLimits(userId);
+
+    if (testAccountLimits.hasCustomLimits) {
+      // Test account found
+      if (testAccountLimits.limits && testAccountLimits.limits[limitType] !== undefined) {
+        // Use custom limit for this specific type
+        const customLimit = testAccountLimits.limits[limitType] as number;
+
+        // Unlimited check
+        if (isUnlimited(customLimit)) {
+          return {
+            allowed: true,
+            remaining: -1,
+            limit: -1,
+            used: 0,
+            resetAt,
+            tier: "premium", // Test accounts show as premium
+            periodType,
+          };
+        }
+
+        // Get current usage
+        const used = await getCurrentUsage(userId, limitType);
+        const remaining = Math.max(0, customLimit - used);
+        const allowed = used < customLimit;
+
+        return {
+          allowed,
+          remaining,
+          limit: customLimit,
+          used,
+          resetAt,
+          tier: "premium",
+          periodType,
+          message: allowed
+            ? undefined
+            : `You've reached your ${LIMIT_DISPLAY_NAMES[limitType]} limit for this ${periodType === "monthly" ? "month" : "day"}.`,
+        };
+      } else {
+        // Test account without specific custom limits - give unlimited access
+        return {
+          allowed: true,
+          remaining: -1,
+          limit: -1,
+          used: 0,
+          resetAt,
+          tier: "premium",
+          periodType,
+        };
+      }
+    }
+
+    // Not a test account - use normal tier-based limits
+    const tier = await getUserTier(userId, userEmail);
+    const limit = TIER_LIMITS[tier][limitType];
 
     // Unlimited check
     if (isUnlimited(limit)) {

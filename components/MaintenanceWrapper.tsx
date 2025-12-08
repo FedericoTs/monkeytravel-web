@@ -17,6 +17,31 @@ interface MaintenanceWrapperProps {
   children: React.ReactNode;
 }
 
+/**
+ * Check if a user is an active test account
+ */
+async function isTestAccount(supabase: ReturnType<typeof createClient>, email: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("test_accounts")
+      .select("id, is_active, expires_at")
+      .eq("email", email.toLowerCase())
+      .single();
+
+    if (error || !data) return false;
+
+    // Check if account is active
+    if (!data.is_active) return false;
+
+    // Check if account has expired
+    if (data.expires_at && new Date(data.expires_at) < new Date()) return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
   const pathname = usePathname();
   const [isBlocked, setIsBlocked] = useState(false);
@@ -63,7 +88,14 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
         return;
       }
 
-      // User is not admin and not in allowed list - block access
+      // Check if user is an active test account
+      if (user.email && await isTestAccount(supabase, user.email)) {
+        setIsBlocked(false);
+        setChecking(false);
+        return;
+      }
+
+      // User is not admin, not in allowed list, and not a test account - block access
       setIsBlocked(true);
       setChecking(false);
     } catch (error) {
