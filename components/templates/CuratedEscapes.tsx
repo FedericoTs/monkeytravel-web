@@ -90,15 +90,15 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
       onClick={handleClick}
       draggable={false}
       className="
-        group bg-white rounded-2xl border border-slate-200 overflow-hidden
+        group bg-white rounded-2xl border border-slate-200/80 overflow-hidden
         hover:shadow-xl transition-all duration-300 hover:border-slate-300
-        hover:-translate-y-1 block flex-shrink-0
-        w-[280px] md:w-[320px]
+        hover:-translate-y-1 block flex-shrink-0 active:scale-[0.98]
+        w-[260px] md:w-[300px]
       "
     >
-      {/* Cover Image */}
+      {/* Cover Image - consistent aspect ratio */}
       <div
-        className="h-40 md:h-44 relative overflow-hidden"
+        className="aspect-[4/3] relative overflow-hidden"
         style={{
           background:
             !template.coverImageUrl || imageError
@@ -122,16 +122,12 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        {/* Duration badge */}
-        <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-slate-700 shadow-sm">
+        {/* Top badges */}
+        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+          <span className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 shadow-sm">
             {template.durationDays} days
           </span>
-        </div>
-
-        {/* Budget badge */}
-        <div className="absolute top-3 right-3">
-          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-amber-600 shadow-sm">
+          <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400/95 backdrop-blur-sm text-amber-900 shadow-sm">
             {budgetLabel}
           </span>
         </div>
@@ -139,48 +135,53 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
         {/* Destination + Country */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">{getFlagEmoji(template.countryCode)}</span>
-            <span className="text-white/80 text-xs">{template.country}</span>
+            <span className="text-lg drop-shadow-md">{getFlagEmoji(template.countryCode)}</span>
+            <span className="text-white/90 text-xs font-medium tracking-wide uppercase">{template.country}</span>
           </div>
-          <h3 className="text-lg md:text-xl font-bold text-white drop-shadow-lg line-clamp-1">
+          <h3 className="text-lg md:text-xl font-bold text-white drop-shadow-lg leading-tight line-clamp-1">
             {template.destination}
           </h3>
         </div>
       </div>
 
-      {/* Info */}
+      {/* Info - compact */}
       <div className="p-4">
         {/* Description */}
-        <p className="text-slate-600 text-sm line-clamp-2 mb-3">
+        <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-3">
           {template.description}
         </p>
 
-        {/* Mood tags */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {template.moodTags.slice(0, 3).map((mood) => {
+        {/* Mood tags - max 2 shown */}
+        <div className="flex gap-2 mb-3">
+          {template.moodTags.slice(0, 2).map((mood) => {
             const option = MOOD_OPTIONS[mood];
             return (
               <span
                 key={mood}
-                className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600"
               >
                 {option?.emoji} {option?.label || mood}
               </span>
             );
           })}
+          {template.moodTags.length > 2 && (
+            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-400">
+              +{template.moodTags.length - 2}
+            </span>
+          )}
         </div>
 
         {/* CTA */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
+          <span className="text-xs text-slate-400 flex items-center gap-1.5">
             {template.copyCount > 0 && (
               <>
-                <Users className="w-3.5 h-3.5" />
-                {template.copyCount} travelers
+                <Users className="w-4 h-4" />
+                {template.copyCount} used
               </>
             )}
           </span>
-          <span className="text-[var(--primary)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+          <span className="text-[var(--primary)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
             Explore
             <ChevronRight className="w-4 h-4" />
           </span>
@@ -190,7 +191,7 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
   );
 }
 
-// "See All" card
+// "See All" card - matches carousel card height
 function SeeAllCard({ preventClick }: { preventClick: boolean }) {
   const handleClick = (e: React.MouseEvent) => {
     if (preventClick) {
@@ -204,14 +205,14 @@ function SeeAllCard({ preventClick }: { preventClick: boolean }) {
       onClick={handleClick}
       draggable={false}
       className="
-        group flex-shrink-0 w-[200px] md:w-[240px]
+        group flex-shrink-0 w-[200px] md:w-[220px]
         bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80
         rounded-2xl overflow-hidden relative
         flex flex-col items-center justify-center
         hover:shadow-xl transition-all duration-300
         hover:scale-[1.02] active:scale-[0.98]
-        min-h-[320px] md:min-h-[360px]
       "
+      style={{ aspectRatio: '3/4' }}
     >
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden opacity-20">
@@ -221,39 +222,39 @@ function SeeAllCard({ preventClick }: { preventClick: boolean }) {
 
       <div className="relative z-10 flex flex-col items-center text-center px-4">
         {/* Icon */}
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <MapPin className="w-8 h-8 md:w-10 md:h-10 text-white" />
+        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <MapPin className="w-7 h-7 md:w-8 md:h-8 text-white" />
         </div>
 
         {/* Text */}
-        <h3 className="text-white font-bold text-lg md:text-xl mb-2">
+        <h3 className="text-white font-bold text-base md:text-lg mb-1">
           Explore All
         </h3>
-        <p className="text-white/80 text-sm mb-4">
-          Discover more curated itineraries
+        <p className="text-white/70 text-xs mb-4">
+          More curated trips
         </p>
 
         {/* Arrow */}
         <div className="flex items-center gap-2 text-[var(--accent)] font-semibold text-sm group-hover:gap-3 transition-all">
           <span>Browse</span>
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-4 h-4" />
         </div>
       </div>
     </Link>
   );
 }
 
-// Loading skeleton
+// Loading skeleton - matches card design
 function SkeletonCard() {
   return (
-    <div className="flex-shrink-0 w-[280px] md:w-[320px] bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
-      <div className="h-40 md:h-44 bg-slate-200" />
+    <div className="flex-shrink-0 w-[260px] md:w-[300px] bg-white rounded-2xl border border-slate-200/80 overflow-hidden animate-pulse">
+      <div className="aspect-[4/3] bg-slate-200" />
       <div className="p-4 space-y-3">
-        <div className="h-3 bg-slate-200 rounded w-3/4" />
-        <div className="h-3 bg-slate-200 rounded w-1/2" />
+        <div className="h-3 bg-slate-200 rounded w-full" />
+        <div className="h-3 bg-slate-200 rounded w-2/3" />
         <div className="flex gap-2">
-          <div className="h-5 w-14 bg-slate-200 rounded-full" />
-          <div className="h-5 w-14 bg-slate-200 rounded-full" />
+          <div className="h-6 w-16 bg-slate-100 rounded-lg" />
+          <div className="h-6 w-16 bg-slate-100 rounded-lg" />
         </div>
       </div>
     </div>
@@ -446,7 +447,7 @@ export default function CuratedEscapes() {
   }
 
   return (
-    <section className="mb-10">
+    <section className="mb-6">
       {/* Section Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
@@ -558,20 +559,24 @@ export default function CuratedEscapes() {
             </div>
           </div>
 
-          {/* Scroll indicator dots - Mobile only */}
-          <div className="flex justify-center gap-1.5 mt-3 md:hidden">
-            {[...templates, { id: 'see-all' }].map((_, index) => (
-              <button
-                key={index}
-                onClick={() => scrollToIndex(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === activeIndex
-                    ? "w-6 h-2 bg-[var(--primary)]"
-                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
+          {/* Scroll Progress Indicator - Mobile only */}
+          <div className="mt-2 md:hidden px-4">
+            {/* Progress track */}
+            <div className="relative h-0.5 bg-slate-200/60 rounded-full overflow-hidden">
+              {/* Active progress */}
+              <div
+                className="absolute left-0 top-0 h-full bg-[var(--primary)]/70 rounded-full transition-all duration-300 ease-out"
+                style={{
+                  width: `${((activeIndex + 1) / (templates.length + 1)) * 100}%`,
+                }}
               />
-            ))}
+            </div>
+            {/* Subtle count indicator */}
+            <div className="flex justify-center mt-1.5">
+              <span className="text-[10px] text-slate-400 font-medium tabular-nums">
+                {activeIndex + 1} / {templates.length + 1}
+              </span>
+            </div>
           </div>
         </>
       )}

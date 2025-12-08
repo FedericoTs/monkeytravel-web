@@ -12,53 +12,31 @@ with sync_playwright() as p:
     )
     page = context.new_page()
 
-    # Test landing page carousel
-    print("Testing landing page...")
-    page.goto('http://localhost:3000')
+    # Test deployment preview URL
+    print("Testing deployment preview...")
+    page.goto('https://travel-app-cv2yeupql-federicosciuca-gmailcoms-projects.vercel.app', timeout=60000)
     page.wait_for_load_state('networkidle')
-    page.wait_for_timeout(2000)  # Wait for animations
+    page.wait_for_timeout(3000)  # Wait for animations
 
     # Scroll to Curated Escapes section
     page.evaluate('''
-        const section = document.querySelector('section:has(.text-xl.font-bold)');
-        if (section) section.scrollIntoView({ behavior: 'instant', block: 'start' });
-    ''')
-    page.wait_for_timeout(1000)
-
-    # Take screenshot of the carousel section
-    page.screenshot(path='/tmp/mobile-carousel-landing.png', full_page=False)
-    print("Screenshot saved: /tmp/mobile-carousel-landing.png")
-
-    # Test templates page
-    print("Testing templates page...")
-    page.goto('http://localhost:3000/templates')
-    page.wait_for_load_state('networkidle')
-    page.wait_for_timeout(2000)
-
-    page.screenshot(path='/tmp/mobile-templates-page.png', full_page=True)
-    print("Screenshot saved: /tmp/mobile-templates-page.png")
-
-    # Get the current carousel indicator styles
-    indicator_info = page.evaluate('''
-        () => {
-            const dots = document.querySelectorAll('.flex.justify-center.gap-1\\.5 button');
-            if (dots.length > 0) {
-                const dot = dots[0];
-                const styles = window.getComputedStyle(dot);
-                return {
-                    count: dots.length,
-                    width: styles.width,
-                    height: styles.height,
-                    margin: styles.margin,
-                    padding: styles.padding,
-                    parentHeight: dot.parentElement.offsetHeight,
-                    containerClasses: dot.parentElement.className
-                };
+        const headers = document.querySelectorAll('h2');
+        for (const h of headers) {
+            if (h.textContent.includes('Curated Escapes')) {
+                h.scrollIntoView({ behavior: 'instant', block: 'start' });
+                break;
             }
-            return null;
         }
     ''')
-    print(f"Indicator info: {indicator_info}")
+    page.wait_for_timeout(1500)
+
+    # Take screenshot of the carousel section
+    page.screenshot(path='/tmp/mobile-carousel-preview.png', full_page=False)
+    print("Screenshot saved: /tmp/mobile-carousel-preview.png")
+
+    # Also take a full page screenshot
+    page.screenshot(path='/tmp/mobile-full-preview.png', full_page=True)
+    print("Full page screenshot saved: /tmp/mobile-full-preview.png")
 
     browser.close()
     print("Done!")
