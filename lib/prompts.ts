@@ -21,7 +21,7 @@ export const DEFAULT_PROMPTS = {
    - Format: "coordinates": {"lat": 48.8584, "lng": 2.2945}
    - Coordinates must be real and match the address. Without coordinates, the trip cannot be displayed on a map.
    - If you don't know exact coordinates, use approximate coordinates for the neighborhood.
-4. **Websites**: Only include official_website if 100% certain. Use null otherwise.
+4. **Official Websites**: STRONGLY ENCOURAGED for major attractions, museums, restaurants, and hotels. Include the verified official website URL (e.g., "https://www.louvre.fr", "https://www.eiffeltower.paris"). Use null only for small local businesses or street vendors where no website exists. Well-known places almost always have websites - include them!
 5. **Budget**: Budget <$100/day, Balanced $100-250/day, Premium $250+/day.
 6. **Geographic Efficiency**: Group nearby activities, minimize backtracking.
 7. **Meals**: Breakfast 7-9am, Lunch 12-2pm, Dinner 6-9pm at local restaurants.
@@ -50,7 +50,7 @@ Return ONLY valid JSON matching the schema. No markdown or extra text.`,
 1. **Real Places Only**: Only suggest real, verifiable locations that exist today. The place must be searchable on Google Maps.
 2. **Avoid Duplicates**: Do not suggest any place already in the itinerary.
 3. **Context Aware**: The replacement should fit the time slot and day theme.
-4. **Verifiable**: Include full street address. Only include official_website if you're certain it's correct, otherwise use null.
+4. **Verifiable**: Include full street address. Include official_website for museums, attractions, restaurants, and hotels - most well-known places have websites!
 5. **GPS Coordinates**: Include accurate latitude/longitude. This is MANDATORY.
 
 ## Output Format

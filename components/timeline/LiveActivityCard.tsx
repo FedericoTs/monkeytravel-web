@@ -15,6 +15,7 @@ interface ActivityData {
   location?: string;
   type: string;
   image_url?: string;
+  official_website?: string;
   estimated_cost?: {
     amount: number;
     currency: string;
@@ -358,26 +359,49 @@ export default function LiveActivityCard({
           </div>
         )}
 
-        {/* Navigate button (for all statuses) */}
-        {(activity.address || activity.location) && (
-          <div className="px-4 pb-4">
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activity.address || activity.location || "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                flex items-center justify-center gap-2
-                w-full px-4 py-2.5 rounded-xl
-                border border-slate-200 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5
-                text-slate-700 hover:text-[var(--primary)] text-sm font-medium
-                transition-colors
-              "
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              Navigate
-            </a>
+        {/* Action buttons: Website & Navigate */}
+        {(activity.address || activity.location || activity.official_website) && (
+          <div className="px-4 pb-4 flex gap-2">
+            {/* Website button */}
+            {activity.official_website && (
+              <a
+                href={activity.official_website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="
+                  flex items-center justify-center gap-2
+                  flex-1 px-4 py-2.5 rounded-xl
+                  bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20
+                  text-[var(--primary)] text-sm font-medium
+                  transition-colors
+                "
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Website
+              </a>
+            )}
+            {/* Navigate button */}
+            {(activity.address || activity.location) && (
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activity.address || activity.location || "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`
+                  flex items-center justify-center gap-2
+                  ${activity.official_website ? 'flex-1' : 'w-full'} px-4 py-2.5 rounded-xl
+                  border border-slate-200 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5
+                  text-slate-700 hover:text-[var(--primary)] text-sm font-medium
+                  transition-colors
+                `}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Navigate
+              </a>
+            )}
           </div>
         )}
       </div>

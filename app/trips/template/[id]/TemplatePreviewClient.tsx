@@ -13,6 +13,7 @@ import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import SaveTripModal from "@/components/ui/SaveTripModal";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
@@ -123,7 +124,8 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
         weatherNote={template.meta?.weather_note}
         highlights={template.meta?.highlights}
         tags={template.tags}
-        showBackButton={false}
+        showBackButton={true}
+        onBack={() => window.history.back()}
         disableApiCalls={true}
         coverImageUrl={template.coverImageUrl}
       >
@@ -554,6 +556,9 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
         tripCountryCode={template.countryCode}
         durationDays={template.durationDays}
       />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activePage="trips" />
     </div>
   );
 }

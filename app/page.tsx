@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import PhoneMockup from '@/components/PhoneMockup';
 import EmailSubscribe from '@/components/EmailSubscribe';
 import Footer from '@/components/Footer';
+import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import Link from 'next/link';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 
@@ -457,6 +458,15 @@ export default function Home() {
                 </svg>
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            CURATED ESCAPES - Template Trips Showcase
+            ================================================================ */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CuratedEscapes />
           </div>
         </section>
 

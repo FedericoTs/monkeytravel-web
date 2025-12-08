@@ -172,7 +172,7 @@ export default function TermsOfService() {
               </p>
               <ul className="text-[var(--foreground-muted)] space-y-2">
                 <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a></li>
-                <li><strong>Website:</strong> <a href="/#support" className="text-[var(--primary)] hover:underline">Contact Form</a></li>
+                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary)] hover:underline">monkeytravel.app</a></li>
               </ul>
             </section>
           </div>

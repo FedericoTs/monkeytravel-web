@@ -315,7 +315,7 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
             "lat": 48.8584,
             "lng": 2.2945
           },
-          "official_website": null,
+          "official_website": "https://www.example-museum.com",
           "estimated_cost": {
             "amount": 25,
             "currency": "USD",
@@ -350,7 +350,7 @@ Rules:
 2. All dates must be in YYYY-MM-DD format starting from ${params.startDate}
 3. Include 3-5 activities per day based on ${params.pace} pace
 4. Use REAL place names that exist on Google Maps
-5. For official_website, use null if unsure (do not make up URLs)
+5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
 6. Activities should flow logically through each day
 7. EVERY activity MUST have valid coordinates (lat/lng) - this is critical for map display`;
 }

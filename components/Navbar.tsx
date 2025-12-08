@@ -10,6 +10,7 @@ import type { User } from '@supabase/supabase-js';
 const navLinks = [
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How It Works' },
+  { href: '/templates', label: 'Curated Escapes' },
   { href: '#support', label: 'Support' },
 ];
 

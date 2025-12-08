@@ -14,6 +14,7 @@ import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import SaveTripModal from "@/components/ui/SaveTripModal";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
@@ -113,7 +114,8 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
         weatherNote={trip.meta?.weather_note}
         highlights={trip.meta?.highlights}
         tags={trip.tags}
-        showBackButton={false}
+        showBackButton={true}
+        onBack={() => window.history.back()}
         disableApiCalls={true}
       >
         {/* Shared Badge - Floating */}
@@ -127,16 +129,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
-          {/* Left side - Back to home */}
+          {/* Left side - Back to trips */}
           <div className="flex items-center gap-2">
             <Link
-              href="/"
+              href="/trips"
               className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">MonkeyTravel</span>
+              <span className="hidden sm:inline">Back to My Trips</span>
             </Link>
           </div>
 
@@ -502,6 +504,9 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activePage="trips" />
     </div>
   );
 }
