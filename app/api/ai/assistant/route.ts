@@ -39,6 +39,7 @@ interface AssistantRequest {
   message: string;
   conversationId?: string;
   itinerary?: ItineraryDay[]; // Current itinerary for modifications
+  previewMode?: boolean; // If true, return pending changes instead of auto-applying
 }
 
 interface TripContext {
@@ -410,11 +411,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AssistantRequest = await request.json();
-    const { tripId, message, conversationId, itinerary: clientItinerary } = body;
+    const { tripId, message, conversationId, itinerary: clientItinerary, previewMode = false } = body;
 
     console.log(`[AI Assistant] Message: "${message}"`);
     console.log(`[AI Assistant] Trip ID: ${tripId}`);
     console.log(`[AI Assistant] Client itinerary provided: ${!!clientItinerary}`);
+    console.log(`[AI Assistant] Preview mode: ${previewMode}`);
 
     if (!tripId || !message) {
       return NextResponse.json(
@@ -547,25 +549,32 @@ export async function POST(request: NextRequest) {
             newActivity,
             dayNumber: found.dayIndex + 1,
             reason: `Replaced based on your preference`,
-            autoApplied: true,
+            autoApplied: !previewMode, // Only auto-applied if not in preview mode
           };
 
-          // Save to database
-          console.log(`[AI Assistant] Saving modified itinerary to database...`);
-          const { error: updateError } = await supabase
-            .from("trips")
-            .update({
-              itinerary: modifiedItinerary,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", tripId);
-
-          if (updateError) {
-            console.error("[AI Assistant] Database update failed:", updateError);
-            replacementError = "Failed to save changes to database";
+          // In preview mode, don't save - just prepare the pending change
+          if (previewMode) {
+            console.log(`[AI Assistant] Preview mode: Preparing pending change for user confirmation`);
+            // Keep itineraryWasModified false since we haven't actually saved
             itineraryWasModified = false;
           } else {
-            console.log(`[AI Assistant] Successfully replaced "${found.activity.name}" with "${newActivity.name}"`);
+            // Save to database (auto-apply mode)
+            console.log(`[AI Assistant] Saving modified itinerary to database...`);
+            const { error: updateError } = await supabase
+              .from("trips")
+              .update({
+                itinerary: modifiedItinerary,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", tripId);
+
+            if (updateError) {
+              console.error("[AI Assistant] Database update failed:", updateError);
+              replacementError = "Failed to save changes to database";
+              itineraryWasModified = false;
+            } else {
+              console.log(`[AI Assistant] Successfully replaced "${found.activity.name}" with "${newActivity.name}"`);
+            }
           }
         } catch (err) {
           console.error("[AI Assistant] Failed to generate replacement activity:", err);
@@ -665,24 +674,32 @@ export async function POST(request: NextRequest) {
             activity: newActivity,
             dayNumber: targetDayNumber,
             reason: `Added based on your request`,
+            autoApplied: !previewMode, // Only auto-applied if not in preview mode
           } as AssistantCard;
 
-          // Save to database
-          console.log(`[AI Assistant] Saving modified itinerary with new activity to database...`);
-          const { error: updateError } = await supabase
-            .from("trips")
-            .update({
-              itinerary: modifiedItinerary,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", tripId);
-
-          if (updateError) {
-            console.error("[AI Assistant] Database update failed:", updateError);
-            replacementError = "Failed to save changes to database";
+          // In preview mode, don't save - just prepare the pending change
+          if (previewMode) {
+            console.log(`[AI Assistant] Preview mode: Preparing pending add for user confirmation`);
+            // Keep itineraryWasModified false since we haven't actually saved
             itineraryWasModified = false;
           } else {
-            console.log(`[AI Assistant] Successfully added "${newActivity.name}" to Day ${targetDayNumber}`);
+            // Save to database (auto-apply mode)
+            console.log(`[AI Assistant] Saving modified itinerary with new activity to database...`);
+            const { error: updateError } = await supabase
+              .from("trips")
+              .update({
+                itinerary: modifiedItinerary,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", tripId);
+
+            if (updateError) {
+              console.error("[AI Assistant] Database update failed:", updateError);
+              replacementError = "Failed to save changes to database";
+              itineraryWasModified = false;
+            } else {
+              console.log(`[AI Assistant] Successfully added "${newActivity.name}" to Day ${targetDayNumber}`);
+            }
           }
         }
       } catch (err) {
@@ -845,6 +862,30 @@ Respond with valid JSON only.`;
       remaining: Math.max(0, usageCheck.remaining - 1),
     };
 
+    // Build pending change object for preview mode
+    let pendingChange = null;
+    if (previewMode && actionTaken && !replacementError) {
+      if (actionTaken.type === "replace_activity") {
+        const rc = replacementCard as { oldActivity: { id: string; name: string; type: string }; newActivity: Activity };
+        // Find the full old activity from itinerary
+        const found = findActivityByName(itinerary, actionIntent.activityName || "");
+        pendingChange = {
+          type: "replace" as const,
+          oldActivity: found?.activity || { id: rc.oldActivity.id, name: rc.oldActivity.name, type: rc.oldActivity.type },
+          newActivity: actionTaken.newActivity,
+          dayNumber: actionTaken.dayNumber,
+          reason: "Suggested based on your preference",
+        };
+      } else if (actionTaken.type === "add_activity") {
+        pendingChange = {
+          type: "add" as const,
+          newActivity: actionTaken.newActivity,
+          dayNumber: actionTaken.dayNumber,
+          reason: "Suggested based on your request",
+        };
+      }
+    }
+
     // CRITICAL: Always return modifiedItinerary if it was actually modified
     const responsePayload = {
       message: assistantMessage,
@@ -853,6 +894,10 @@ Respond with valid JSON only.`;
       complexity: classification.complexity,
       // Return modified itinerary if we actually made changes
       modifiedItinerary: itineraryWasModified ? modifiedItinerary : undefined,
+      // Return previous itinerary for undo functionality (when auto-applied)
+      previousItinerary: itineraryWasModified ? itinerary : undefined,
+      // Return pending change for confirm-first flow
+      pendingChange,
       usage: {
         inputTokens,
         outputTokens,
@@ -868,6 +913,7 @@ Respond with valid JSON only.`;
         activityName: actionIntent.activityName,
         itineraryWasModified,
         replacementError,
+        previewMode,
       },
     };
 

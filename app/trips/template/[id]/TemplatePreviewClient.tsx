@@ -476,8 +476,8 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           </div>
         </div>
 
-        {/* Floating Save CTA */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 safe-area-pb">
+        {/* Floating Save CTA - positioned above mobile nav */}
+        <div className="fixed bottom-20 sm:bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 sm:safe-area-pb">
           <div className="max-w-xl mx-auto">
             {/* Main CTA Card */}
             <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 rounded-xl shadow-xl p-4">
@@ -524,8 +524,8 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           </div>
         </div>
 
-        {/* Spacer for fixed CTA */}
-        <div className="h-36 sm:h-32" />
+        {/* Spacer for fixed CTA + mobile nav */}
+        <div className="h-56 sm:h-32" />
       </main>
 
       {/* Footer */}
