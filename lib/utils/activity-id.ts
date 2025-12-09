@@ -1,6 +1,107 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Activity, ItineraryDay } from "@/types";
 
+// ============================================================
+// Travel Time Calculation (Haversine-based, no API calls)
+// ============================================================
+
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Calculate straight-line distance using Haversine formula
+ * @returns Distance in meters
+ */
+function calculateHaversineDistance(
+  origin: Coordinates,
+  destination: Coordinates
+): number {
+  const R = 6371000; // Earth's radius in meters
+  const lat1Rad = (origin.lat * Math.PI) / 180;
+  const lat2Rad = (destination.lat * Math.PI) / 180;
+  const deltaLat = ((destination.lat - origin.lat) * Math.PI) / 180;
+  const deltaLng = ((destination.lng - origin.lng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1Rad) *
+      Math.cos(lat2Rad) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+/**
+ * Estimate actual road distance from straight-line distance
+ * Applies distance-based factors for urban navigation
+ */
+function estimateRoadDistance(straightLineMeters: number): number {
+  let factor: number;
+  if (straightLineMeters < 500) factor = 1.2;
+  else if (straightLineMeters < 2000) factor = 1.3;
+  else if (straightLineMeters < 5000) factor = 1.35;
+  else factor = 1.4;
+  return Math.round(straightLineMeters * factor);
+}
+
+/**
+ * Get average travel speed based on mode and distance
+ * @returns Speed in km/h
+ */
+function getAverageSpeed(mode: "WALKING" | "DRIVING", distanceMeters: number): number {
+  if (mode === "WALKING") return 4.8; // km/h - comfortable walking pace
+  // Driving speeds vary by distance (urban traffic)
+  if (distanceMeters < 2000) return 18;
+  if (distanceMeters < 5000) return 22;
+  if (distanceMeters < 10000) return 28;
+  return 35;
+}
+
+/**
+ * Calculate travel time between two activities in minutes
+ * Uses local Haversine calculation - no API calls
+ * @returns Travel time in minutes, or null if coordinates missing
+ */
+export function calculateTravelMinutes(
+  fromActivity: Activity,
+  toActivity: Activity
+): number | null {
+  const origin = fromActivity.coordinates;
+  const destination = toActivity.coordinates;
+
+  if (!origin || !destination) return null;
+
+  const straightLineDistance = calculateHaversineDistance(origin, destination);
+  const mode = straightLineDistance < 1200 ? "WALKING" : "DRIVING";
+
+  // Apply distance factor for actual road distance
+  const travelDistance = mode === "WALKING"
+    ? Math.round(straightLineDistance * 1.15)
+    : estimateRoadDistance(straightLineDistance);
+
+  // Calculate base travel time
+  const avgSpeedKmh = getAverageSpeed(mode, travelDistance);
+  const avgSpeedMs = (avgSpeedKmh * 1000) / 3600;
+  const baseDurationSeconds = Math.round(travelDistance / avgSpeedMs);
+
+  // Add buffer for crossings/traffic/transitions
+  const bufferSeconds =
+    mode === "WALKING"
+      ? Math.round(travelDistance / 200) * 15
+      : Math.round(travelDistance / 500) * 30;
+
+  const totalDurationSeconds = baseDurationSeconds + bufferSeconds;
+
+  // Convert to minutes, round up to nearest 5 minutes for scheduling
+  const minutes = Math.ceil(totalDurationSeconds / 60 / 5) * 5;
+
+  return minutes;
+}
+
 /**
  * Generate a unique activity ID using UUID v4
  */
@@ -272,9 +373,13 @@ export function reorderActivities(
 }
 
 /**
- * Recalculate activity times for a day based on their order
+ * Recalculate activity times for a day based on their order and travel distances
+ * Uses smart scheduling: actual travel time (Haversine) + small buffer
+ * Falls back to 30-min buffer if coordinates are missing
+ *
  * First activity keeps its time (or defaults to 09:00)
- * Subsequent activities are scheduled with 30min buffer after previous ends
+ * Subsequent activities are scheduled based on:
+ *   prevEnd + travelTime + transitionBuffer (5 min)
  */
 export function recalculateActivityTimes(
   itinerary: ItineraryDay[],
@@ -289,7 +394,8 @@ export function recalculateActivityTimes(
     return itinerary;
   }
 
-  const BUFFER_MINUTES = 30; // Time between activities for travel/rest
+  const DEFAULT_BUFFER_MINUTES = 30; // Fallback when coordinates missing
+  const TRANSITION_BUFFER_MINUTES = 5; // Extra time for settling in
 
   const updatedActivities = day.activities.map((activity, index) => {
     if (index === 0) {
@@ -311,8 +417,14 @@ export function recalculateActivityTimes(
     const [hours, minutes] = prevStart.split(":").map(Number);
     const startMinutes = hours * 60 + minutes;
 
-    // Add duration + buffer
-    let nextMinutes = startMinutes + prevDuration + BUFFER_MINUTES;
+    // Calculate travel time using Haversine (or fallback)
+    const travelMinutes = calculateTravelMinutes(prevActivity, activity);
+    const gapMinutes = travelMinutes !== null
+      ? travelMinutes + TRANSITION_BUFFER_MINUTES
+      : DEFAULT_BUFFER_MINUTES;
+
+    // Calculate next activity start time
+    let nextMinutes = startMinutes + prevDuration + gapMinutes;
 
     // Cap at 23:00 to avoid going past midnight
     if (nextMinutes >= 23 * 60) {
