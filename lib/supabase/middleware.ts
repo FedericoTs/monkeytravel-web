@@ -89,12 +89,17 @@ export async function updateSession(request: NextRequest) {
   trackPageView(request, user?.id);
 
   // Protected routes - redirect to login if not authenticated
+  // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   const protectedPaths = ["/trips"];
+  const excludedFromProtection = ["/trips/new"];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
+  const isExcluded = excludedFromProtection.some((path) =>
+    request.nextUrl.pathname === path
+  );
 
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !isExcluded && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);

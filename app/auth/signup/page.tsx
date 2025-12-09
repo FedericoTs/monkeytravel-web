@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
+import { getTrialEndDate } from "@/lib/trial";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,10 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL from query params (for gradual engagement flow)
+  const redirectUrl = searchParams.get("redirect") || "/trips";
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
@@ -25,7 +30,7 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/trips`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
       },
     });
 
@@ -72,6 +77,9 @@ export default function SignupPage() {
         email: email,
         display_name: displayName || email.split("@")[0],
         preferences: {},
+        onboarding_completed: false,
+        trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial
+        is_pro: false,
         privacy_settings: {
           showLocation: false,
           showRealName: true,
@@ -108,9 +116,10 @@ export default function SignupPage() {
       setUserId(data.user.id);
     }
 
-    // If email confirmation is disabled, redirect to trips
+    // If email confirmation is disabled, redirect new users to onboarding
     if (data.session) {
-      router.push("/trips");
+      const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(redirectUrl)}&auth_event=signup_email`;
+      router.push(onboardingUrl);
       router.refresh();
     }
   };

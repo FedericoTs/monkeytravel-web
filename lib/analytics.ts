@@ -175,6 +175,93 @@ export function trackTemplateCopied(params: {
 }
 
 // ============================================================================
+// ONBOARDING FUNNEL EVENTS
+// ============================================================================
+
+/**
+ * Track onboarding step viewed
+ */
+export function trackOnboardingStepViewed(params: {
+  step: number;
+  stepName: string;
+}): void {
+  trackEvent("onboarding_step_viewed", {
+    step_number: params.step,
+    step_name: params.stepName,
+  });
+}
+
+/**
+ * Track onboarding step completed
+ */
+export function trackOnboardingStepCompleted(params: {
+  step: number;
+  stepName: string;
+  selections?: string[];
+}): void {
+  trackEvent("onboarding_step_completed", {
+    step_number: params.step,
+    step_name: params.stepName,
+    selections_count: params.selections?.length || 0,
+    selections: params.selections?.join(",") || "",
+  });
+}
+
+/**
+ * Track onboarding completed
+ */
+export function trackOnboardingCompleted(params: {
+  totalSteps: number;
+  skipped: boolean;
+  preferences: {
+    travelStyles: string[];
+    dietaryPreferences: string[];
+    accessibilityNeeds: string[];
+  };
+}): void {
+  trackEvent("onboarding_completed", {
+    total_steps: params.totalSteps,
+    was_skipped: params.skipped,
+    travel_styles_count: params.preferences.travelStyles.length,
+    dietary_count: params.preferences.dietaryPreferences.length,
+    accessibility_count: params.preferences.accessibilityNeeds.length,
+  });
+}
+
+/**
+ * Track onboarding skipped
+ */
+export function trackOnboardingSkipped(params: {
+  atStep: number;
+}): void {
+  trackEvent("onboarding_skipped", {
+    skipped_at_step: params.atStep,
+  });
+}
+
+/**
+ * Track early access code redemption
+ */
+export function trackEarlyAccessRedeemed(params: {
+  codeId: string;
+}): void {
+  trackEvent("early_access_redeemed", {
+    code_id: params.codeId,
+  });
+}
+
+/**
+ * Track trial started
+ */
+export function trackTrialStarted(params: {
+  trialDays: number;
+}): void {
+  trackEvent("trial_started", {
+    trial_duration_days: params.trialDays,
+  });
+}
+
+// ============================================================================
 // ENGAGEMENT EVENTS - User behavior tracking
 // ============================================================================
 

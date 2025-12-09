@@ -19,6 +19,9 @@ import { buildSeasonalContext } from "@/lib/seasonal";
 import StartOverModal from "@/components/trip/StartOverModal";
 import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
+import AuthPromptModal from "@/components/ui/AuthPromptModal";
+import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
+import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
 
@@ -94,6 +97,20 @@ export default function NewTripPage() {
   const [error, setError] = useState<string | null>(null);
   const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
 
+  // Auth state for gradual engagement
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Early access gate
+  const {
+    showModal: showEarlyAccessModal,
+    setShowModal: setShowEarlyAccessModal,
+    redeemCode,
+    error: earlyAccessError,
+    refresh: refreshEarlyAccess,
+  } = useEarlyAccess();
+  const [pendingGeneration, setPendingGeneration] = useState(false);
+
   // Form state
   const [destination, setDestination] = useState("");
   const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -117,6 +134,33 @@ export default function NewTripPage() {
   const { convert: convertCurrency } = useCurrency();
 
   const TOTAL_STEPS = 4; // Added vibe step
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, []);
+
+  // Handle pending generation after signup (when draft is restored)
+  useEffect(() => {
+    // Only run if authenticated and we have a pending generation flag
+    if (isAuthenticated && localStorage.getItem("pendingTripGeneration") === "true") {
+      // Check if we have the required form state (from draft restoration)
+      if (destination && startDate && endDate && selectedVibes.length > 0 && !generating && !generatedItinerary) {
+        localStorage.removeItem("pendingTripGeneration");
+        // Small delay to ensure UI is ready
+        const timer = setTimeout(() => {
+          handleGenerate();
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, destination, startDate, endDate, selectedVibes, generating, generatedItinerary]);
 
   // Scroll to top when step changes to prevent "already scrolled" issue
   useEffect(() => {
@@ -254,6 +298,24 @@ export default function NewTripPage() {
   };
 
   const handleGenerate = async () => {
+    // Check authentication first - show modal if not logged in
+    if (!isAuthenticated) {
+      // Save current form state to draft before prompting
+      if (destination && startDate && endDate) {
+        saveDraft({
+          generatedItinerary: null as unknown as GeneratedItinerary,
+          destination,
+          startDate,
+          endDate,
+          pace,
+          vibes: selectedVibes,
+          budgetTier,
+        });
+      }
+      setShowAuthModal(true);
+      return;
+    }
+
     setGenerating(true);
     setError(null);
 
@@ -282,6 +344,13 @@ export default function NewTripPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check for early access gate
+        if (data.code === "NO_ACCESS" || data.code === "LIMIT_REACHED") {
+          setPendingGeneration(true);
+          setShowEarlyAccessModal(true);
+          setGenerating(false);
+          return;
+        }
         throw new Error(data.error || "Generation failed");
       }
 
@@ -766,11 +835,41 @@ export default function NewTripPage() {
   // Wizard form
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+      {/* Auth Prompt Modal - for gradual engagement */}
+      <AuthPromptModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        destination={destination}
+      />
+
+      {/* Early Access Modal - for gated AI features */}
+      <EarlyAccessModal
+        isOpen={showEarlyAccessModal}
+        onClose={() => {
+          setShowEarlyAccessModal(false);
+          setPendingGeneration(false);
+        }}
+        onRedeemCode={async (code) => {
+          const success = await redeemCode(code);
+          if (success) {
+            // Refresh status and retry generation
+            await refreshEarlyAccess();
+            if (pendingGeneration) {
+              setPendingGeneration(false);
+              // Small delay to ensure state is updated
+              setTimeout(() => handleGenerate(), 100);
+            }
+          }
+          return success;
+        }}
+        error={earlyAccessError}
+      />
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
-            href="/trips"
+            href={isAuthenticated ? "/trips" : "/"}
             className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 px-2 py-1.5 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

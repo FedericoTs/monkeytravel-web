@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getTrialEndDate } from "@/lib/trial";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -35,6 +36,9 @@ export async function GET(request: Request) {
           display_name: displayName,
           avatar_url: data.user.user_metadata?.avatar_url || null,
           preferences: {},
+          onboarding_completed: false,
+          trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial
+          is_pro: false,
           privacy_settings: {
             showLocation: false,
             showRealName: true,
@@ -55,11 +59,15 @@ export async function GET(request: Request) {
             marketingNotifications: false,
           },
         });
+
+        // Redirect new users to onboarding with their intended destination
+        const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
+        return NextResponse.redirect(`${origin}${onboardingUrl}`);
       }
 
-      // Add analytics tracking parameter for client-side tracking
+      // Returning users go directly to their destination
       const separator = next.includes("?") ? "&" : "?";
-      const trackingParam = isNewUser ? "auth_event=signup_google" : "auth_event=login_google";
+      const trackingParam = "auth_event=login_google";
       return NextResponse.redirect(`${origin}${next}${separator}${trackingParam}`);
     }
   }

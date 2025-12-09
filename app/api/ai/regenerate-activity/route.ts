@@ -4,6 +4,7 @@ import { regenerateSingleActivity } from "@/lib/gemini";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -18,6 +19,19 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check early access (during early access period)
+    const earlyAccess = await checkEarlyAccess(user.id, "regeneration", user.email);
+    if (!earlyAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: "Early access required",
+          code: earlyAccess.error,
+          message: earlyAccess.message,
+        },
+        { status: 403 }
+      );
     }
 
     // Parse request body
@@ -148,6 +162,8 @@ export async function POST(request: NextRequest) {
 
     // Increment usage counter
     await incrementUsage(user.id, "aiRegenerations", 1);
+    // Also increment early access usage
+    await incrementEarlyAccessUsage(user.id, "regeneration");
 
     // Update usage info for response
     const updatedUsage = {

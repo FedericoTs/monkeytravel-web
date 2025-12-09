@@ -8,9 +8,10 @@ import AccessControl from "./AccessControl";
 import ApiControlPanel from "./ApiControlPanel";
 import PromptEditor from "./PromptEditor";
 import TestAccountsManager from "./TestAccountsManager";
+import AccessCodesManager from "./AccessCodesManager";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"analytics" | "costs" | "apis" | "prompts" | "access" | "testers">("analytics");
+  const [activeTab, setActiveTab] = useState<"analytics" | "costs" | "apis" | "prompts" | "access" | "testers" | "codes">("analytics");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false); // Start false - no auto-load
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +177,19 @@ export default function AdminDashboard() {
             </svg>
             Testers
           </button>
+          <button
+            onClick={() => setActiveTab("codes")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              activeTab === "codes"
+                ? "bg-white text-emerald-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            Codes
+          </button>
         </div>
       </div>
 
@@ -185,6 +199,7 @@ export default function AdminDashboard() {
       {activeTab === "prompts" && <PromptEditor />}
       {activeTab === "access" && <AccessControl />}
       {activeTab === "testers" && <TestAccountsManager />}
+      {activeTab === "codes" && <AccessCodesManager />}
 
       {/* Analytics Tab Content */}
       {activeTab === "analytics" && (

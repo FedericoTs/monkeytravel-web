@@ -8,33 +8,59 @@
 
 ## Executive Summary
 
-Based on comprehensive research (28% retention improvement with gradual engagement, 82% improvement with personalized onboarding), we're implementing a 5-phase onboarding optimization:
+Based on comprehensive research (28% retention improvement with gradual engagement, 82% improvement with personalized onboarding), we're implementing a 6-phase onboarding optimization:
 
 1. **Gradual Engagement** - Let users experience value before requiring signup
 2. **Streamlined Signup** - SSO-first, minimal friction
-3. **Onboarding Survey** - 3-screen preference collection post-signup
-4. **Reverse Trial Infrastructure** - Prepare for future paywall
-5. **Metrics Tracking** - GA4 funnel tracking
+3. **Onboarding Survey** - 4-screen preference collection post-signup
+4. **Early Access Gate** - Replace hard maintenance wall with premium AI access system
+5. **Reverse Trial Infrastructure** - Prepare for future paywall
+6. **Metrics Tracking** - GA4 funnel tracking
+
+**Key Change:** Maintenance mode no longer blocks the entire app. Users complete full onboarding, then hit a premium "Early Access" gate only when attempting AI/API actions.
 
 ---
 
 ## Current State Analysis
 
-### Existing Flow (Before)
+### Existing Flow (Before - BROKEN)
 ```
-Landing Page → "Get Started" → Signup Required → Trip Creation
-                                    ↑
-                            Value not yet experienced
+Landing Page → MAINTENANCE WALL (blocks everything)
+                      ↑
+              User bounces immediately
+              No value experienced
+              No data captured
 ```
 
 ### Target Flow (After)
 ```
-Landing Page → "Plan Your Trip" → Trip Preview (no signup) → "Save Trip" → Signup Modal
-                                        ↑                           ↑
-                                  Value experienced           Signup with context
-                                        ↓
-                              Onboarding Survey (3 screens) → Personalized Dashboard
+Landing Page → Browse Templates → View Shared Trips → Signup Modal
+                    ↓ (view-only mode)                      ↓
+              Experience value                    Onboarding Survey (4 screens)
+                                                            ↓
+                                                  Dashboard (view-only)
+                                                            ↓
+                                              [Try AI Feature] → Early Access Gate
+                                                            ↓
+                                              ┌─────────────────────────────────┐
+                                              │  🚀 AI Features - Early Access  │
+                                              │                                 │
+                                              │  Enter tester code: [______]   │
+                                              │          [Unlock Access]        │
+                                              │                                 │
+                                              │  ─────────── or ───────────    │
+                                              │                                 │
+                                              │  [Join Waitlist for Next Wave] │
+                                              └─────────────────────────────────┘
 ```
+
+### Access Levels
+
+| User State | Can Do | Cannot Do |
+|------------|--------|-----------|
+| Anonymous | Browse templates, view shared trips | Create trips, signup |
+| Registered (no code) | All above + save favorites, set preferences | AI generation, AI assistant, regenerate |
+| Tester (with code) | Full access within code limits | Exceed code limits |
 
 ---
 
@@ -241,7 +267,256 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed_at TIMESTAMPTZ;
 
 ---
 
-## Phase 4: Reverse Trial Infrastructure
+## Phase 4: Early Access Gate (Replaces Maintenance Mode)
+
+### Goal
+Replace the hard maintenance wall with a premium "Early Access" gating system that:
+1. Allows users to complete full onboarding (view-only mode)
+2. Gates only AI/API features behind tester codes
+3. Captures waitlist signups for non-testers
+4. Provides admins control via tester code generation
+
+### Why This Is Better
+| Old (Maintenance Wall) | New (Early Access Gate) |
+|------------------------|------------------------|
+| Blocks everything | Allows browsing, signup, onboarding |
+| User bounces immediately | User experiences value first |
+| No data captured | Captures email, preferences, waitlist |
+| Binary: on/off | Granular: per-user limits |
+| Generic error page | Premium, branded experience |
+
+### User Experience Flow
+
+**Trigger Points** (when Early Access popup appears):
+- `/trips/new` - "Plan Your Trip" button (AI generation)
+- AI Assistant - send message
+- Regenerate activity button
+- Any API route that calls AI (Gemini, etc.)
+
+**Popup Design (Premium Feel)**
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│     ✨ AI Features • Early Access                       │
+│                                                         │
+│  Our AI trip planning is currently available to        │
+│  early testers. We're rolling out access in waves      │
+│  to ensure the best experience.                        │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  🔑  Have a tester code?                        │   │
+│  │                                                  │   │
+│  │  [________________________] [Unlock Access]     │   │
+│  │                                                  │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  ───────────────── or ─────────────────                │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  📬  Join the Waitlist                          │   │
+│  │                                                  │   │
+│  │  Be first to know when we open the next wave    │   │
+│  │  of early access invites.                       │   │
+│  │                                                  │   │
+│  │  [        Join Waitlist        ]                │   │
+│  │                                                  │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  ──────────────────────────────────────────────────    │
+│  🔒 Your preferences are saved                         │
+│  🎯 You'll get personalized recommendations            │
+│  ⚡ Early testers get 14-day Pro access                │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Implementation Steps
+
+- [ ] **4.1** Create `tester_codes` table in Supabase
+- [ ] **4.2** Create `user_tester_access` table for tracking usage
+- [ ] **4.3** Update Admin Dashboard: "Testers" tab → "Access Codes" with code generator
+- [ ] **4.4** Create `EarlyAccessModal` component
+- [ ] **4.5** Create `useEarlyAccess` hook for checking access
+- [ ] **4.6** Add access check middleware to AI API routes
+- [ ] **4.7** Create waitlist join flow (uses existing email_subscribers)
+- [ ] **4.8** Disable hard maintenance mode wall
+
+### Database Schema
+
+```sql
+-- Tester codes generated by admins
+CREATE TABLE tester_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT UNIQUE NOT NULL,  -- e.g., "EARLY2024", "BETAUSER", alphanumeric
+  display_name TEXT,          -- e.g., "Beta Tester Wave 1"
+
+  -- Limits (null = unlimited)
+  ai_generations_limit INTEGER,      -- Max trip generations
+  ai_regenerations_limit INTEGER,    -- Max activity regenerations
+  ai_assistant_limit INTEGER,        -- Max AI assistant messages
+
+  -- Validity
+  max_uses INTEGER,                  -- null = unlimited uses
+  current_uses INTEGER DEFAULT 0,
+  expires_at TIMESTAMPTZ,            -- null = never expires
+  is_active BOOLEAN DEFAULT true,
+
+  -- Metadata
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  notes TEXT                         -- Admin notes
+);
+
+-- Track which users have redeemed codes
+CREATE TABLE user_tester_access (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  code_id UUID REFERENCES tester_codes(id),
+  code_used TEXT NOT NULL,           -- Store actual code for reference
+
+  -- Current usage (copied from code limits at redemption)
+  ai_generations_limit INTEGER,
+  ai_generations_used INTEGER DEFAULT 0,
+  ai_regenerations_limit INTEGER,
+  ai_regenerations_used INTEGER DEFAULT 0,
+  ai_assistant_limit INTEGER,
+  ai_assistant_used INTEGER DEFAULT 0,
+
+  -- Timestamps
+  redeemed_at TIMESTAMPTZ DEFAULT now(),
+  expires_at TIMESTAMPTZ,            -- Copied from code
+
+  UNIQUE(user_id)  -- One code per user
+);
+
+-- Index for fast lookups
+CREATE INDEX idx_tester_codes_code ON tester_codes(code) WHERE is_active = true;
+CREATE INDEX idx_user_tester_access_user ON user_tester_access(user_id);
+```
+
+### Admin Dashboard: Access Codes Tab
+
+Replace current test account generation with:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Access Codes                                    [+ New Code] │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │ BETA2024          Wave 1 Beta Testers                  │ │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │ │
+│  │ Uses: 12/50  │  Expires: Dec 31, 2024  │  ✅ Active    │ │
+│  │ Limits: 10 gens • 50 regens • 100 msgs               │ │
+│  │                                          [Edit] [Copy] │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │ INFLUENCER         Influencer Program                  │ │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │ │
+│  │ Uses: 3/∞   │  Expires: Never        │  ✅ Active    │ │
+│  │ Limits: Unlimited                                     │ │
+│  │                                          [Edit] [Copy] │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Code Generator Modal
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Create Access Code                                    [X]  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Code *                                                      │
+│  [BETA2024___________] (auto-generated, editable)           │
+│                                                              │
+│  Display Name                                                │
+│  [Wave 1 Beta Testers_]                                     │
+│                                                              │
+│  ─────────────── Usage Limits ───────────────               │
+│                                                              │
+│  Max Uses           [50_____] (blank = unlimited)           │
+│  Expires            [Dec 31, 2024] (blank = never)          │
+│                                                              │
+│  ─────────────── AI Limits Per User ───────────────         │
+│                                                              │
+│  Trip Generations   [10_____] (blank = unlimited)           │
+│  Activity Regens    [50_____] (blank = unlimited)           │
+│  AI Assistant Msgs  [100____] (blank = unlimited)           │
+│                                                              │
+│  Notes                                                       │
+│  [________________________________]                         │
+│                                                              │
+│                              [Cancel]  [Create Code]        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### API Route Middleware
+
+```typescript
+// lib/middleware/early-access.ts
+export async function checkEarlyAccess(
+  userId: string,
+  action: 'generation' | 'regeneration' | 'assistant'
+): Promise<{ allowed: boolean; remaining?: number; error?: string }> {
+  // 1. Check if user has redeemed a code
+  const access = await getUserTesterAccess(userId);
+
+  if (!access) {
+    return { allowed: false, error: 'NO_ACCESS' };
+  }
+
+  // 2. Check expiration
+  if (access.expires_at && new Date(access.expires_at) < new Date()) {
+    return { allowed: false, error: 'CODE_EXPIRED' };
+  }
+
+  // 3. Check limits
+  const limitField = `ai_${action}s_limit`;
+  const usedField = `ai_${action}s_used`;
+
+  if (access[limitField] !== null && access[usedField] >= access[limitField]) {
+    return { allowed: false, error: 'LIMIT_REACHED', remaining: 0 };
+  }
+
+  return {
+    allowed: true,
+    remaining: access[limitField] ? access[limitField] - access[usedField] : null
+  };
+}
+```
+
+### Files to Create/Modify
+
+**New Files:**
+- `components/ui/EarlyAccessModal.tsx` - Premium gate popup
+- `lib/hooks/useEarlyAccess.ts` - Access checking hook
+- `lib/middleware/early-access.ts` - API route middleware
+- `app/api/early-access/redeem/route.ts` - Code redemption endpoint
+- `app/api/early-access/status/route.ts` - Check user's access status
+- `app/admin/access-codes/page.tsx` - Admin code management
+
+**Modify:**
+- `app/api/ai/generate/route.ts` - Add access check
+- `app/api/ai/assistant/route.ts` - Add access check
+- `app/api/ai/regenerate-activity/route.ts` - Add access check
+- `components/MaintenanceMode.tsx` - Convert to EarlyAccessGate
+- `app/admin/page.tsx` - Add Access Codes tab
+
+### UX Considerations (Nielsen's Heuristics)
+
+1. **Visibility of System Status**: Show remaining uses in UI
+2. **User Control**: Clear path to join waitlist
+3. **Error Prevention**: Validate code format before submit
+4. **Recognition over Recall**: Show code status prominently
+5. **Help & Documentation**: Explain what early access includes
+6. **Aesthetic Design**: Premium feel, not error page
+
+---
+
+## Phase 5: Reverse Trial Infrastructure
 
 ### Goal
 Prepare infrastructure for future paywall using reverse trial model.

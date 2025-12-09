@@ -9,6 +9,7 @@ import {
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type {
   ItineraryDay,
   Activity,
@@ -393,6 +394,19 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check early access (during early access period)
+    const earlyAccess = await checkEarlyAccess(user.id, "assistant", user.email);
+    if (!earlyAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: "Early access required",
+          code: earlyAccess.error,
+          message: earlyAccess.message,
+        },
+        { status: 403 }
+      );
     }
 
     const body: AssistantRequest = await request.json();
@@ -793,6 +807,8 @@ Respond with valid JSON only.`;
 
     // Increment usage counter in new tier-based system
     await incrementUsage(user.id, "aiAssistantMessages", 1);
+    // Also increment early access usage
+    await incrementEarlyAccessUsage(user.id, "assistant");
 
     // Save messages
     const userMessage: AssistantMessage = {

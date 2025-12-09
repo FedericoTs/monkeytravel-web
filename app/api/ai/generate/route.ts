@@ -10,6 +10,7 @@ import {
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import crypto from "crypto";
 
@@ -158,6 +159,19 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check early access (during early access period)
+    const earlyAccess = await checkEarlyAccess(user.id, "generation", user.email);
+    if (!earlyAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: "Early access required",
+          code: earlyAccess.error,
+          message: earlyAccess.message,
+        },
+        { status: 403 }
+      );
     }
 
     // Fetch user's profile preferences to include in trip generation
@@ -332,6 +346,8 @@ export async function POST(request: NextRequest) {
     let updatedUsage = usageCheck;
     if (!cacheHit) {
       await incrementUsage(user.id, "aiGenerations", 1);
+      // Also increment early access usage
+      await incrementEarlyAccessUsage(user.id, "generation");
       // Update the usage info for the response
       updatedUsage = {
         ...usageCheck,
