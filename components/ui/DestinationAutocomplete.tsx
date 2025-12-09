@@ -4,9 +4,12 @@
  * DestinationAutocomplete Component
  *
  * Premium autocomplete input for travel destinations.
- * Uses Google Places Autocomplete (New) API.
+ * Uses local database first for popular destinations (FREE),
+ * falls back to Google Places API only when needed.
  *
  * Features:
+ * - Local-first search (190+ popular destinations, $0 cost)
+ * - Falls back to Google Places API for specific searches
  * - Debounced search (250ms)
  * - Keyboard navigation (↑↓ Enter Esc)
  * - Country flags and structured display
@@ -30,6 +33,7 @@ export interface PlacePrediction {
     latitude: number;
     longitude: number;
   };
+  source?: "local" | "google"; // Track where result came from
 }
 
 interface DestinationAutocompleteProps {
@@ -54,6 +58,8 @@ export default function DestinationAutocomplete({
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [sessionToken] = useState(() => crypto.randomUUID());
+  const [searchSource, setSearchSource] = useState<"local" | "google">("local");
+  const [showSearchMore, setShowSearchMore] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,32 +67,73 @@ export default function DestinationAutocomplete({
 
   const debouncedValue = useDebounce(value, 250);
 
-  // Fetch predictions when debounced value changes
+  // Search local destinations first, then optionally fall back to Google
+  const searchLocal = useCallback(async (input: string): Promise<PlacePrediction[]> => {
+    try {
+      const response = await fetch("/api/destinations/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input, limit: 8 }),
+      });
+      const data = await response.json();
+      return (data.predictions || []).map((p: PlacePrediction) => ({
+        ...p,
+        source: "local" as const,
+      }));
+    } catch (error) {
+      console.error("Local search error:", error);
+      return [];
+    }
+  }, []);
+
+  const searchGoogle = useCallback(async (input: string): Promise<PlacePrediction[]> => {
+    try {
+      const response = await fetch("/api/places/autocomplete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input, sessionToken }),
+      });
+      const data = await response.json();
+      return (data.predictions || []).map((p: PlacePrediction) => ({
+        ...p,
+        source: "google" as const,
+      }));
+    } catch (error) {
+      console.error("Google Places search error:", error);
+      return [];
+    }
+  }, [sessionToken]);
+
+  // Fetch predictions when debounced value changes - LOCAL FIRST
   useEffect(() => {
     const fetchPredictions = async () => {
       if (!debouncedValue || debouncedValue.length < 2) {
         setPredictions([]);
         setIsOpen(false);
+        setShowSearchMore(false);
         return;
       }
 
       setIsLoading(true);
 
       try {
-        const response = await fetch("/api/places/autocomplete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            input: debouncedValue,
-            sessionToken,
-          }),
-        });
+        // Always try local first (FREE)
+        const localResults = await searchLocal(debouncedValue);
 
-        const data = await response.json();
-
-        if (data.predictions) {
-          setPredictions(data.predictions);
-          setIsOpen(data.predictions.length > 0);
+        if (localResults.length > 0) {
+          // Found local results - use them
+          setPredictions(localResults);
+          setSearchSource("local");
+          setShowSearchMore(true); // Allow user to search Google if needed
+          setIsOpen(true);
+          setHighlightedIndex(-1);
+        } else {
+          // No local results - fall back to Google Places API
+          const googleResults = await searchGoogle(debouncedValue);
+          setPredictions(googleResults);
+          setSearchSource("google");
+          setShowSearchMore(false);
+          setIsOpen(googleResults.length > 0);
           setHighlightedIndex(-1);
         }
       } catch (error) {
@@ -98,17 +145,50 @@ export default function DestinationAutocomplete({
     };
 
     fetchPredictions();
-  }, [debouncedValue, sessionToken]);
+  }, [debouncedValue, searchLocal, searchGoogle]);
 
-  // Handle selection - fetch coordinates and pass to callback
+  // Handle "Search more" to use Google Places API
+  const handleSearchMore = useCallback(async () => {
+    if (!value || value.length < 2) return;
+
+    setIsLoading(true);
+    try {
+      const googleResults = await searchGoogle(value);
+      setPredictions(googleResults);
+      setSearchSource("google");
+      setShowSearchMore(false);
+    } catch (error) {
+      console.error("Google search error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [value, searchGoogle]);
+
+  // Handle selection - use local coordinates or fetch from Places API
   const handleSelect = useCallback(
     async (prediction: PlacePrediction) => {
       onChange(prediction.fullText);
       setIsOpen(false);
       setPredictions([]);
+      setShowSearchMore(false);
       inputRef.current?.blur();
 
-      // Fetch coordinates for accurate weather/seasonal calculations
+      // If local result already has coordinates, use them directly (NO API CALL!)
+      if (prediction.source === "local" && prediction.coordinates) {
+        console.log("[Autocomplete] Using local coordinates - $0 cost");
+        onSelect?.(prediction);
+        return;
+      }
+
+      // For Google results or local without coords, fetch details
+      // Skip if placeId starts with "local_" (shouldn't happen, but safeguard)
+      if (prediction.placeId.startsWith("local_")) {
+        console.log("[Autocomplete] Local result without coords, using as-is");
+        onSelect?.(prediction);
+        return;
+      }
+
+      // Fetch coordinates from Google Places Details API
       try {
         const response = await fetch(
           `/api/places/details?placeId=${encodeURIComponent(prediction.placeId)}`
@@ -327,29 +407,49 @@ export default function DestinationAutocomplete({
             ))}
           </div>
 
-          {/* Powered by Google Attribution */}
+          {/* Footer with Search More option or Google Attribution */}
           <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              <span>Powered by Google</span>
-            </div>
+            {searchSource === "local" && showSearchMore ? (
+              <button
+                type="button"
+                onClick={handleSearchMore}
+                className="w-full flex items-center justify-center gap-2 py-1.5 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>Search more destinations</span>
+              </button>
+            ) : searchSource === "google" ? (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                <span>Powered by Google</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Popular destinations</span>
+              </div>
+            )}
           </div>
         </div>
       )}
