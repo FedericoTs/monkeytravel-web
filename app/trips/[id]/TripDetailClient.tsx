@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { Undo2, Redo2 } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
@@ -24,6 +25,7 @@ import {
   ActivityRatingModal,
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
+import { trackActivityRegenerated } from "@/lib/analytics";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import {
@@ -34,7 +36,28 @@ import {
   updateActivity,
   replaceActivity,
   generateActivityId,
+  addActivity,
+  calculateNextTimeSlot,
+  determineTimeSlot,
+  reorderActivities,
 } from "@/lib/utils/activity-id";
+import AddActivityButton from "@/components/trip/AddActivityButton";
+import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 // Amadeus booking components - kept for future use
 // import FlightSearch from "@/components/booking/FlightSearch";
 // import HotelSearch from "@/components/booking/HotelSearch";
@@ -68,6 +91,7 @@ interface TripDetailClientProps {
     itinerary: ItineraryDay[];
     meta?: TripMeta;
     packingList?: string[];
+    packingChecked?: string[];
     /** Pre-saved cover image URL - eliminates Places API call on load */
     coverImageUrl?: string | null;
     /** Cached travel distances from trip_meta - eliminates recalculation */
@@ -106,6 +130,16 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   // Track if there are unsaved changes (compare against saved state, not prop)
   const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(savedItinerary);
+
+  // Undo/Redo history for edit mode
+  interface HistoryEntry {
+    itinerary: ItineraryDay[];
+    action: string;
+    timestamp: number;
+  }
+  const MAX_HISTORY = 20;
+  const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
+  const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
 
   // REMOVED: Auto-backfill coordinates for legacy trips
   // Saved trips should NEVER call any external API.
@@ -179,30 +213,153 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   // Available days for "move to day" feature
   const availableDays = editedItinerary.map((day) => day.day_number);
 
-  // Edit handlers
+  // Drag-and-drop sensors for reordering activities
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before starting drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // Long press delay for touch devices
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Undo/Redo callbacks
+  const pushUndo = useCallback((action: string) => {
+    setUndoStack(prev => [...prev.slice(-MAX_HISTORY + 1), {
+      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
+      action,
+      timestamp: Date.now()
+    }]);
+    setRedoStack([]); // Clear redo stack on new action
+  }, [editedItinerary]);
+
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    const last = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, {
+      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
+      action: `Redo: ${last.action}`,
+      timestamp: Date.now()
+    }]);
+    setEditedItinerary(last.itinerary);
+    setUndoStack(prev => prev.slice(0, -1));
+  }, [undoStack, editedItinerary]);
+
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const last = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, {
+      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
+      action: `Undo: ${last.action}`,
+      timestamp: Date.now()
+    }]);
+    setEditedItinerary(last.itinerary);
+    setRedoStack(prev => prev.slice(0, -1));
+  }, [redoStack, editedItinerary]);
+
+  // Clear undo/redo stacks when entering/exiting edit mode
+  const clearHistory = useCallback(() => {
+    setUndoStack([]);
+    setRedoStack([]);
+  }, []);
+
+  // Edit handlers (with undo support)
   const handleActivityMove = useCallback(
     (activityId: string, direction: "up" | "down") => {
+      pushUndo(`Move activity ${direction}`);
       setEditedItinerary((prev) => moveActivityInDay(prev, activityId, direction));
     },
-    []
+    [pushUndo]
   );
 
   const handleActivityMoveToDay = useCallback(
     (activityId: string, targetDayIndex: number) => {
+      pushUndo(`Move activity to day ${targetDayIndex + 1}`);
       setEditedItinerary((prev) => moveActivityToDay(prev, activityId, targetDayIndex));
     },
-    []
+    [pushUndo]
   );
 
   const handleActivityDelete = useCallback((activityId: string) => {
+    pushUndo("Delete activity");
     setEditedItinerary((prev) => deleteActivity(prev, activityId));
-  }, []);
+  }, [pushUndo]);
 
   const handleActivityUpdate = useCallback(
     (activityId: string, updates: Partial<Activity>) => {
+      pushUndo("Update activity");
       setEditedItinerary((prev) => updateActivity(prev, activityId, updates));
     },
-    []
+    [pushUndo]
+  );
+
+  // Handle adding a new activity to a day
+  const handleAddActivity = useCallback(
+    (dayIndex: number, partialActivity: Partial<Activity>) => {
+      const day = editedItinerary[dayIndex];
+      if (!day) return;
+
+      const nextTime = calculateNextTimeSlot(day);
+      pushUndo("Add activity");
+
+      const newActivity: Activity = {
+        id: generateActivityId(),
+        name: partialActivity.name || "New Activity",
+        type: partialActivity.type || "activity",
+        description: partialActivity.description || "",
+        location: destination,
+        address: partialActivity.address || "",
+        coordinates: partialActivity.coordinates,
+        start_time: nextTime,
+        duration_minutes: partialActivity.duration_minutes || 90,
+        time_slot: determineTimeSlot(nextTime),
+        estimated_cost: partialActivity.estimated_cost || {
+          amount: 0,
+          currency: trip.budget?.currency || "USD",
+          tier: "moderate",
+        },
+        tips: [],
+        booking_required: false,
+        image_url: partialActivity.image_url,
+      };
+
+      setEditedItinerary((prev) => addActivity(prev, dayIndex, newActivity));
+    },
+    [editedItinerary, destination, trip.budget?.currency, pushUndo]
+  );
+
+  // Handle drag-and-drop reordering of activities within a day
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent, dayIndex: number) => {
+      const { active, over } = event;
+
+      if (!over || active.id === over.id) {
+        return;
+      }
+
+      const day = editedItinerary[dayIndex];
+      if (!day) return;
+
+      // Find indices by activity ID
+      const oldIndex = day.activities.findIndex((a) => a.id === active.id);
+      const newIndex = day.activities.findIndex((a) => a.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+        return;
+      }
+
+      pushUndo("Reorder activities");
+      setEditedItinerary((prev) => reorderActivities(prev, dayIndex, oldIndex, newIndex));
+    },
+    [editedItinerary, pushUndo]
   );
 
   // Handle photo capture from PlaceGallery - persists to database
@@ -231,6 +388,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   const handleActivityRegenerate = useCallback(
     async (activityId: string, dayIndex: number) => {
+      pushUndo("Regenerate activity");
       setRegeneratingActivityId(activityId);
       try {
         const response = await fetch("/api/ai/regenerate-activity", {
@@ -257,6 +415,11 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
               id: activityId,
             })
           );
+          // Track activity regeneration for retention analytics
+          trackActivityRegenerated({
+            tripId: trip.id,
+            activityType: data.activity.type || "unknown",
+          });
         }
       } catch (error) {
         console.error("Error regenerating activity:", error);
@@ -265,7 +428,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         setRegeneratingActivityId(null);
       }
     },
-    [trip.id, destination, editedItinerary]
+    [trip.id, destination, editedItinerary, pushUndo]
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -306,13 +469,68 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(false);
     setSaveError(null);
-  }, [savedItinerary]);
+    clearHistory(); // Clear undo/redo stacks
+  }, [savedItinerary, clearHistory]);
 
   const handleEnterEditMode = useCallback(() => {
     // Start editing from the last saved state
     setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(true);
-  }, [savedItinerary]);
+    clearHistory(); // Start fresh undo/redo stacks
+  }, [savedItinerary, clearHistory]);
+
+  // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isEditMode) return;
+
+      // Don't intercept when user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      const cmd = e.metaKey || e.ctrlKey;
+
+      // Cmd+Z = Undo
+      if (cmd && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      // Cmd+Shift+Z = Redo
+      if (cmd && e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        redo();
+      }
+      // Cmd+S = Save
+      if (cmd && e.key === 's') {
+        e.preventDefault();
+        if (hasChanges && !isSaving) {
+          handleSaveChanges();
+        }
+      }
+      // Escape = Exit edit mode (only if no changes)
+      if (e.key === 'Escape' && !hasChanges) {
+        setIsEditMode(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEditMode, hasChanges, isSaving, undo, redo, handleSaveChanges]);
+
+  // Warn user about unsaved changes when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
 
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
@@ -789,41 +1007,84 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                   {/* Activities */}
                   {viewMode === "cards" ? (
                     <>
-                      <div className="grid gap-0">
-                        {day.activities.map((activity, idx) => {
-                          const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
-                          const nextActivity = day.activities[idx + 1];
-                          const dayTravelData = travelData.get(day.day_number);
-                          const segment = nextActivity && dayTravelData?.segments.find(
-                            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                          );
+                      {isEditMode ? (
+                        /* Edit Mode with Drag-and-Drop */
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleDragEnd(event, dayIndex)}
+                        >
+                          <SortableContext
+                            items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="grid gap-0 pl-6">
+                              {day.activities.map((activity, idx) => {
+                                const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                                const nextActivity = day.activities[idx + 1];
+                                const dayTravelData = travelData.get(day.day_number);
+                                const segment = nextActivity && dayTravelData?.segments.find(
+                                  (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
+                                );
 
-                          return (
-                            <div key={`${activity.id || idx}-v${itineraryVersion}`}>
-                              <div
-                                className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
-                              >
-                                {isEditMode ? (
-                                  <EditableActivityCard
-                                    activity={activity}
-                                    index={idx}
-                                    currency={trip.budget?.currency}
-                                    showGallery={true}
-                                    isEditMode={true}
-                                    onMove={(direction) => handleActivityMove(activity.id!, direction)}
-                                    onDelete={() => handleActivityDelete(activity.id!)}
-                                    onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                                    onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
-                                    onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                                    canMoveUp={idx > 0}
-                                    canMoveDown={idx < day.activities.length - 1}
-                                    availableDays={availableDays}
-                                    currentDayIndex={dayIndex}
-                                    isRegenerating={regeneratingActivityId === activity.id}
-                                    disableAutoFetch={true}
-                                    onPhotoCapture={handlePhotoCapture}
-                                  />
-                                ) : (
+                                return (
+                                  <div key={`${activity.id || idx}-v${itineraryVersion}`}>
+                                    <div
+                                      className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
+                                    >
+                                      <SortableActivityCard
+                                        activity={activity}
+                                        index={idx}
+                                        currency={trip.budget?.currency}
+                                        showGallery={true}
+                                        isEditMode={true}
+                                        onMove={(direction) => handleActivityMove(activity.id!, direction)}
+                                        onDelete={() => handleActivityDelete(activity.id!)}
+                                        onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
+                                        onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
+                                        onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
+                                        canMoveUp={idx > 0}
+                                        canMoveDown={idx < day.activities.length - 1}
+                                        availableDays={availableDays}
+                                        currentDayIndex={dayIndex}
+                                        isRegenerating={regeneratingActivityId === activity.id}
+                                        disableAutoFetch={true}
+                                        onPhotoCapture={handlePhotoCapture}
+                                      />
+                                    </div>
+                                    {/* Travel connector to next activity */}
+                                    {idx < day.activities.length - 1 && (
+                                      <TravelConnector
+                                        distanceMeters={segment?.distanceMeters}
+                                        durationSeconds={segment?.durationSeconds}
+                                        distanceText={segment?.distanceText}
+                                        durationText={segment?.durationText}
+                                        mode={segment?.mode}
+                                        isLoading={travelLoading || dayTravelData?.isLoading}
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      ) : (
+                        /* View Mode - No Drag-and-Drop */
+                        <div className="grid gap-0">
+                          {day.activities.map((activity, idx) => {
+                            const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                            const nextActivity = day.activities[idx + 1];
+                            const dayTravelData = travelData.get(day.day_number);
+                            const segment = nextActivity && dayTravelData?.segments.find(
+                              (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
+                            );
+
+                            return (
+                              <div key={`${activity.id || idx}-v${itineraryVersion}`}>
+                                <div
+                                  className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
+                                >
                                   <ActivityCard
                                     activity={activity}
                                     index={idx}
@@ -832,23 +1093,32 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                                     disableAutoFetch={true}
                                     onPhotoCapture={handlePhotoCapture}
                                   />
+                                </div>
+                                {/* Travel connector to next activity */}
+                                {idx < day.activities.length - 1 && (
+                                  <TravelConnector
+                                    distanceMeters={segment?.distanceMeters}
+                                    durationSeconds={segment?.durationSeconds}
+                                    distanceText={segment?.distanceText}
+                                    durationText={segment?.durationText}
+                                    mode={segment?.mode}
+                                    isLoading={travelLoading || dayTravelData?.isLoading}
+                                  />
                                 )}
                               </div>
-                              {/* Travel connector to next activity */}
-                              {idx < day.activities.length - 1 && (
-                                <TravelConnector
-                                  distanceMeters={segment?.distanceMeters}
-                                  durationSeconds={segment?.durationSeconds}
-                                  distanceText={segment?.distanceText}
-                                  durationText={segment?.durationText}
-                                  mode={segment?.mode}
-                                  isLoading={travelLoading || dayTravelData?.isLoading}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {/* Add Activity Button - Edit Mode Only */}
+                      {isEditMode && (
+                        <AddActivityButton
+                          dayIndex={dayIndex}
+                          destination={destination}
+                          onAdd={(partialActivity) => handleAddActivity(dayIndex, partialActivity)}
+                          className="mt-4 ml-6"
+                        />
+                      )}
                       {/* Day travel summary */}
                       {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
                         <DaySummary
@@ -954,6 +1224,8 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           <TripPackingEssentials
             items={trip.packingList}
             destination={destination}
+            tripId={trip.id}
+            initialChecked={trip.packingChecked}
           />
         )}
 
@@ -1015,6 +1287,25 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
+                {/* Undo/Redo buttons */}
+                <div className="flex items-center gap-1 mr-2">
+                  <button
+                    onClick={undo}
+                    disabled={undoStack.length === 0}
+                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    title="Undo (Cmd+Z)"
+                  >
+                    <Undo2 className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <button
+                    onClick={redo}
+                    disabled={redoStack.length === 0}
+                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    title="Redo (Cmd+Shift+Z)"
+                  >
+                    <Redo2 className="w-4 h-4 text-slate-600" />
+                  </button>
+                </div>
                 {hasChanges && (
                   <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
                     Unsaved changes

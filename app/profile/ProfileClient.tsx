@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
 import { createClient } from "@/lib/supabase/client";
 
 // Types
@@ -211,6 +212,8 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -314,6 +317,38 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
+  };
+
+  // Delete account
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/profile/delete", {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete account");
+      }
+
+      // Sign out and redirect to landing page
+      const supabase = createClient();
+      await supabase.auth.signOut();
+
+      // Clear any local storage
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
+      router.push("/?deleted=true");
+      router.refresh();
+    } catch (error) {
+      console.error("Delete account error:", error);
+      setIsDeleting(false);
+      // Keep modal open to show error state
+      alert(error instanceof Error ? error.message : "Failed to delete account. Please try again.");
+    }
   };
 
   // Format member since date
@@ -608,122 +643,59 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
                   })}
                 </div>
               </div>
+
+              {/* Activity Schedule */}
+              <div className="mt-6 space-y-3">
+                <label className="block text-sm font-medium text-slate-600">Activity Schedule</label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Set your preferred hours for daily activities - AI will schedule around your routine
+                </p>
+                <div className="flex items-center gap-4 bg-slate-50 rounded-xl p-4">
+                  <div className="flex-1">
+                    <label className="block text-xs text-slate-500 mb-1">Wake up time</label>
+                    <select
+                      value={profile.notification_settings.quietHoursEnd || 8}
+                      onChange={(e) =>
+                        updateSettings("notification_settings", { quietHoursEnd: parseInt(e.target.value) })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
+                    >
+                      {Array.from({ length: 12 }, (_, i) => i + 5).map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour === 12 ? "12:00 PM" : hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className="text-slate-400 text-sm mt-4">to</span>
+                  <div className="flex-1">
+                    <label className="block text-xs text-slate-500 mb-1">Wind down time</label>
+                    <select
+                      value={profile.notification_settings.quietHoursStart || 22}
+                      onChange={(e) =>
+                        updateSettings("notification_settings", { quietHoursStart: parseInt(e.target.value) })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
+                    >
+                      {Array.from({ length: 12 }, (_, i) => i + 17).map((hour) => (
+                        <option key={hour} value={hour > 23 ? hour - 24 : hour}>
+                          {hour === 24 ? "12:00 AM" : hour > 24 ? `${hour - 24}:00 AM` : hour === 12 ? "12:00 PM" : hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400 italic">
+                  First activity will start around your wake time, last activity ends before wind down
+                </p>
+              </div>
             </div>
           </ProfileSection>
 
-          {/* Notifications */}
-          <ProfileSection
-            title="Notifications"
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            }
-          >
-            <div className="pt-2 divide-y divide-slate-100">
-              <Toggle
-                label="Email Notifications"
-                description="Receive updates via email"
-                checked={profile.notification_settings.emailNotifications}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { emailNotifications: checked })
-                }
-              />
-              <Toggle
-                label="Push Notifications"
-                description="Get alerts on your device"
-                checked={profile.notification_settings.pushNotifications}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { pushNotifications: checked })
-                }
-              />
-              <Toggle
-                label="Trip Reminders"
-                description="Upcoming trip alerts and check-in reminders"
-                checked={profile.notification_settings.tripReminders}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { tripReminders: checked })
-                }
-              />
-              <Toggle
-                label="Deal Alerts"
-                description="Price drops and special offers"
-                checked={profile.notification_settings.dealAlerts}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { dealAlerts: checked })
-                }
-              />
-              <Toggle
-                label="Social Updates"
-                description="When someone follows you or comments"
-                checked={profile.notification_settings.socialNotifications}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { socialNotifications: checked })
-                }
-              />
-              <Toggle
-                label="Marketing & Tips"
-                description="Travel inspiration and product updates"
-                checked={profile.notification_settings.marketingNotifications}
-                onChange={(checked) =>
-                  updateSettings("notification_settings", { marketingNotifications: checked })
-                }
-              />
-            </div>
-          </ProfileSection>
-
-          {/* Privacy */}
-          <ProfileSection
-            title="Privacy"
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            }
-          >
-            <div className="pt-2 divide-y divide-slate-100">
-              <Toggle
-                label="Private Profile"
-                description="Only you can see your profile and trips"
-                checked={profile.privacy_settings.privateProfile}
-                onChange={(checked) =>
-                  updateSettings("privacy_settings", { privateProfile: checked })
-                }
-              />
-              <Toggle
-                label="Show Real Name"
-                description="Display your name publicly instead of username"
-                checked={profile.privacy_settings.showRealName}
-                onChange={(checked) =>
-                  updateSettings("privacy_settings", { showRealName: checked })
-                }
-              />
-              <Toggle
-                label="Show Trip History"
-                description="Let others see your past trips"
-                checked={profile.privacy_settings.showTripHistory}
-                onChange={(checked) =>
-                  updateSettings("privacy_settings", { showTripHistory: checked })
-                }
-              />
-              <Toggle
-                label="Activity Status"
-                description="Show when you're online"
-                checked={profile.privacy_settings.showActivityStatus}
-                onChange={(checked) =>
-                  updateSettings("privacy_settings", { showActivityStatus: checked })
-                }
-              />
-              <Toggle
-                label="Location Tracking"
-                description="Enable location-based features and recommendations"
-                checked={profile.privacy_settings.allowLocationTracking}
-                onChange={(checked) =>
-                  updateSettings("privacy_settings", { allowLocationTracking: checked })
-                }
-              />
-            </div>
-          </ProfileSection>
+          {/* NOTE: Notifications and Privacy sections hidden per CRIT-002.
+              These features require backend infrastructure (email service, push notifications,
+              social features) that don't exist yet. Settings data is still stored in DB.
+              Re-enable when backend is implemented. See docs/CRIT-002-SETTINGS-INTEGRATION-PLAN.md */}
 
           {/* Account */}
           <ProfileSection
@@ -755,7 +727,10 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
               {/* Danger Zone */}
               <div className="mt-6 pt-4 border-t border-slate-200">
                 <h4 className="text-sm font-medium text-red-600 mb-3">Danger Zone</h4>
-                <button className="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-colors group">
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-colors group"
+                >
                   <div className="flex items-center gap-3">
                     <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -823,6 +798,14 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
           </div>
         </div>
       )}
+
+      {/* Delete Account Confirmation Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccount}
+        isDeleting={isDeleting}
+      />
 
       <MobileBottomNav activePage="profile" />
     </div>

@@ -381,6 +381,7 @@ IMPORTANT: The "location" field must be in the same neighborhood as the other ac
 }
 
 export async function POST(request: NextRequest) {
+  const requestStartTime = Date.now();
   console.log("[AI Assistant] POST request received");
 
   try {
@@ -415,7 +416,7 @@ export async function POST(request: NextRequest) {
         apiName: "gemini",
         endpoint: "/api/ai/assistant",
         status: 503,
-        responseTimeMs: Date.now() - Date.now(),
+        responseTimeMs: Date.now() - requestStartTime,
         cacheHit: false,
         costUsd: 0,
         error: `BLOCKED: ${access.message}`,

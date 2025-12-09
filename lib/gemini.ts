@@ -95,6 +95,41 @@ ${sections.join("\n")}
 `;
 }
 
+/**
+ * Build scheduling preferences section for the prompt
+ * Uses the user's quiet hours settings to inform activity timing
+ * Quiet hours are inverted: if user rests 22:00-08:00, they're active 08:00-22:00
+ */
+function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePreferences): string {
+  if (!profilePreferences) return "";
+
+  const { activeHoursStart, activeHoursEnd } = profilePreferences;
+
+  // Only include if both values are set and reasonable
+  if (activeHoursStart === undefined || activeHoursEnd === undefined) return "";
+  if (activeHoursStart < 0 || activeHoursStart > 23) return "";
+  if (activeHoursEnd < 0 || activeHoursEnd > 23) return "";
+
+  // Format hours nicely (e.g., 8 -> "8:00 AM", 22 -> "10:00 PM")
+  const formatHour = (h: number) => {
+    const hour12 = h % 12 || 12;
+    const ampm = h < 12 ? "AM" : "PM";
+    return `${hour12}:00 ${ampm}`;
+  };
+
+  const startFormatted = formatHour(activeHoursStart);
+  const endFormatted = formatHour(activeHoursEnd);
+
+  return `
+## Activity Scheduling Preferences
+- User prefers activities between ${startFormatted} and ${endFormatted}
+- IMPORTANT: Schedule the first activity of each day no earlier than ${startFormatted}
+- IMPORTANT: Ensure all activities end by ${endFormatted} (avoid late-night activities)
+- For restaurants: prefer lunch around 12:00-14:00, dinner no later than ${activeHoursEnd - 2}:00
+- Allow adequate time for transit between activities
+`;
+}
+
 interface BuildPromptOptions {
   maxDays?: number; // Limit days to generate (for incremental generation)
   isPartial?: boolean; // Indicates this is a partial generation
@@ -282,7 +317,7 @@ Consider these seasonal factors when selecting activities and timing. Include se
 ${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
-${buildProfilePreferencesSection(params.profilePreferences)}
+${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
 ## Required Output
 

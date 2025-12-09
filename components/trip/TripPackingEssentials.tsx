@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface TripPackingEssentialsProps {
   items: string[];
   destination: string;
   className?: string;
+  tripId?: string;              // Required for persistence
+  initialChecked?: string[];    // Pre-loaded checked items from trip_meta
 }
 
 // Category configuration with icons and styling
@@ -107,9 +110,68 @@ export default function TripPackingEssentials({
   items,
   destination,
   className = "",
+  tripId,
+  initialChecked = [],
 }: TripPackingEssentialsProps) {
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set(initialChecked));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["clothing", "documents"]));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced save to database
+  const saveToDatabase = useCallback(async (newChecked: Set<string>) => {
+    if (!tripId) return; // Can't save without tripId
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const supabase = createClient();
+
+      // Get current trip_meta to preserve other fields
+      const { data: trip, error: fetchError } = await supabase
+        .from("trips")
+        .select("trip_meta")
+        .eq("id", tripId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Merge packing_checked into existing trip_meta
+      const currentMeta = (trip?.trip_meta || {}) as Record<string, unknown>;
+      const updatedMeta = {
+        ...currentMeta,
+        packing_checked: Array.from(newChecked),
+      };
+
+      // Update the trip
+      const { error: updateError } = await supabase
+        .from("trips")
+        .update({
+          trip_meta: updatedMeta,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", tripId);
+
+      if (updateError) throw updateError;
+
+    } catch (error) {
+      console.error("Failed to save packing progress:", error);
+      setSaveError("Failed to save");
+      // Clear error after 3 seconds
+      setTimeout(() => setSaveError(null), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [tripId]);
+
+  // Sync initial checked items when they change (e.g., page reload)
+  useEffect(() => {
+    if (initialChecked.length > 0) {
+      setCheckedItems(new Set(initialChecked));
+    }
+  }, [initialChecked]);
 
   // Group items by category
   const categorizedItems = useMemo(() => {
@@ -145,7 +207,24 @@ export default function TripPackingEssentials({
       newChecked.add(item);
     }
     setCheckedItems(newChecked);
+
+    // Debounce save to prevent too many API calls
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToDatabase(newChecked);
+    }, 500); // 500ms debounce
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -378,15 +457,47 @@ export default function TripPackingEssentials({
           );
         })}
 
-        {/* Footer with tips */}
+        {/* Footer with save status */}
         <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-50/50 border-t border-slate-100">
-          <div className="flex items-center gap-3 text-sm text-slate-500">
-            <svg className="w-4 h-4 text-[var(--accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <p>
-              Tap items to mark them as packed. Your progress is saved locally.
-            </p>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <div className="flex items-center gap-3 text-slate-500">
+              <svg className="w-4 h-4 text-[var(--accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <p>
+                Tap items to mark them as packed.
+              </p>
+            </div>
+            {/* Save status indicator */}
+            {tripId && (
+              <div className="flex items-center gap-2">
+                {isSaving && (
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Saving...
+                  </span>
+                )}
+                {saveError && (
+                  <span className="flex items-center gap-1.5 text-red-500">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    {saveError}
+                  </span>
+                )}
+                {!isSaving && !saveError && checkedItems.size > 0 && (
+                  <span className="flex items-center gap-1.5 text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Saved
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ShareModal from "./ShareModal";
+import { trackTripShared } from "@/lib/analytics";
 
 interface ShareButtonProps {
   tripId: string;
@@ -53,6 +54,8 @@ export default function ShareButton({ tripId, tripTitle }: ShareButtonProps) {
         setIsShared(true);
         setShareUrl(data.shareUrl);
         setIsModalOpen(true);
+        // Track share event for retention analytics
+        trackTripShared({ tripId, shareMethod: "link" });
       }
     } catch (error) {
       console.error("Error creating share link:", error);

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta } from "@/types";
+import { trackTemplateBrowsed } from "@/lib/analytics";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
@@ -77,6 +78,14 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
+
+  // Track template view for discovery analytics
+  useEffect(() => {
+    trackTemplateBrowsed({
+      templateId: template.id,
+      templateName: template.title,
+    });
+  }, [template.id, template.title]);
 
   // Currency conversion hook
   const { convert: convertCurrency } = useCurrency();

@@ -10,11 +10,11 @@ import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data'
    APP SCREENSHOTS CONFIGURATION
    ============================================================================ */
 const APP_SCREENSHOTS = {
-  hero: undefined as string | undefined,
+  hero: '/screenshots/trip-barcelona-hero.png' as string | undefined,
   preview: {
-    left: undefined as string | undefined,
-    center: undefined as string | undefined,
-    right: undefined as string | undefined,
+    left: '/screenshots/trip-lisbon-hero.png' as string | undefined,
+    center: '/screenshots/trip-barcelona-itinerary.png' as string | undefined,
+    right: '/screenshots/trip-porto-hero.png' as string | undefined,
   },
 };
 

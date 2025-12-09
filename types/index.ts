@@ -150,6 +150,7 @@ export interface TripMeta {
   };
   destination_best_for?: string[]; // Tags like "Culture", "Food", "Architecture"
   packing_suggestions?: string[];  // Suggested packing items
+  packing_checked?: string[];      // Items user has marked as packed
   // Cached travel distances to avoid API calls on repeat visits
   travel_distances?: CachedDayTravelData[];
   travel_distances_hash?: string;  // Hash of itinerary used to validate cache
@@ -197,6 +198,9 @@ export interface UserProfilePreferences {
   dietaryPreferences?: string[];  // e.g., ["vegetarian", "halal", "gluten-free"]
   travelStyles?: string[];        // e.g., ["adventure", "luxury", "solo"]
   accessibilityNeeds?: string[];  // e.g., ["wheelchair", "limited-mobility", "visual", "hearing"]
+  // Scheduling preferences (from quiet hours settings)
+  activeHoursStart?: number;      // Hour when user prefers to start activities (e.g., 8 = 8:00 AM)
+  activeHoursEnd?: number;        // Hour when user prefers to end activities (e.g., 22 = 10:00 PM)
 }
 
 // Trip creation params

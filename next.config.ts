@@ -74,11 +74,13 @@ const sentryConfig = {
   org: "monkeytravelapp-u6",
   project: "javascript-nextjs",
 
+  // Auth token for source maps upload (from environment)
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
   // Only upload source maps in production builds
   silent: !process.env.CI,
 
   // Upload source maps for better error stack traces
-  // Requires SENTRY_AUTH_TOKEN environment variable
   widenClientFileUpload: true,
 
   // Disable Sentry telemetry

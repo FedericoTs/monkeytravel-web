@@ -36,6 +36,7 @@ export default async function TripDetailPage({
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
+  const packingChecked = tripMeta.packing_checked || [];
 
   // Extract cached travel distances from trip_meta (calculated locally, no API cost)
   const cachedTravelDistances = tripMeta.travel_distances;
@@ -55,6 +56,7 @@ export default async function TripDetailPage({
         itinerary,
         meta: tripMeta,
         packingList,
+        packingChecked,
         coverImageUrl: trip.cover_image_url,
         cachedTravelDistances,
         cachedTravelHash,

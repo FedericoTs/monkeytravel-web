@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     try {
       const { data: userProfile } = await supabase
         .from("users")
-        .select("preferences")
+        .select("preferences, notification_settings")
         .eq("id", user.id)
         .single();
 
@@ -176,6 +176,22 @@ export async function POST(request: NextRequest) {
           travelStyles: prefs.travelStyles as string[] | undefined,
           accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
         };
+      }
+
+      // Convert quiet hours to active hours for activity scheduling
+      // Quiet hours are when user rests, so active hours are the inverse
+      if (userProfile?.notification_settings) {
+        const notifSettings = userProfile.notification_settings as Record<string, unknown>;
+        const quietStart = notifSettings.quietHoursStart as number | undefined;
+        const quietEnd = notifSettings.quietHoursEnd as number | undefined;
+
+        // quietHoursStart = when user starts resting (e.g., 22 = 10 PM)
+        // quietHoursEnd = when user wakes up (e.g., 8 = 8 AM)
+        // Active hours are inverted: activeStart = quietEnd, activeEnd = quietStart
+        if (quietStart !== undefined && quietEnd !== undefined) {
+          profilePreferences.activeHoursStart = quietEnd;   // Wake up time
+          profilePreferences.activeHoursEnd = quietStart;   // Rest time
+        }
       }
     } catch (err) {
       // Log but don't fail if profile fetch fails

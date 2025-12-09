@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
+import { trackAIAssistantMessage } from "@/lib/analytics";
 
 interface Message {
   role: "user" | "assistant";
@@ -135,6 +136,12 @@ export default function AIAssistant({
         setUsageInfo({
           remainingRequests: data.usage.remainingRequests,
           model: data.model,
+        });
+
+        // Track AI assistant usage for engagement analytics
+        trackAIAssistantMessage({
+          tripId,
+          messageLength: content.trim().length,
         });
 
         // Debug logging

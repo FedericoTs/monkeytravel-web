@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
+import { trackShareLinkClicked } from "@/lib/analytics";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import ExportMenu from "@/components/trip/ExportMenu";
@@ -58,6 +59,14 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
+
+  // Track share link view for viral loop analytics
+  useEffect(() => {
+    trackShareLinkClicked({
+      tripId: trip.id,
+      referrer: typeof document !== "undefined" ? document.referrer : undefined,
+    });
+  }, [trip.id]);
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();

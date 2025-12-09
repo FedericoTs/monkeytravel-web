@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
+import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -182,6 +183,23 @@ export default function SaveTripModal({
 
       // Get the new trip ID
       const newTripId = templateId ? data.trip.id : data.tripId;
+
+      // Track analytics event
+      if (templateId) {
+        trackTemplateCopied({
+          templateId,
+          templateName: tripTitle,
+          destination: tripDestination,
+        });
+      }
+      // Track trip creation (both template copies and shared trip duplicates)
+      trackTripCreated({
+        tripId: newTripId,
+        destination: tripDestination,
+        duration: durationDays,
+        budgetTier: "balanced", // Default since we don't have this info here
+        isFromTemplate: !!templateId,
+      });
 
       // Callback or redirect
       if (onSuccess) {
