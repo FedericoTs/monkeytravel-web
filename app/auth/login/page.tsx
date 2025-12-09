@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { trackLogin, setUserId } from "@/lib/analytics";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -32,6 +33,12 @@ function LoginForm() {
       setError(error.message);
       setLoading(false);
     } else {
+      // Track successful login
+      trackLogin("email");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
       router.push(redirect);
       router.refresh();
     }

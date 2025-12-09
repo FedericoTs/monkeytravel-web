@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/utils";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import CuratedEscapes from "@/components/templates/CuratedEscapes";
+import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
 const DESTINATION_GRADIENTS: Record<string, { from: string; to: string; accent: string }> = {
@@ -343,6 +344,11 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white overflow-x-hidden">
+      {/* OAuth event tracking (handles auth_event query param) */}
+      <Suspense fallback={null}>
+        <AuthEventTracker />
+      </Suspense>
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">

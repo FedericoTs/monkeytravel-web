@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Security headers for production
 const securityHeaders = [
@@ -67,4 +68,31 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry configuration options
+const sentryConfig = {
+  // Organization and project for source maps
+  org: "monkeytravelapp-u6",
+  project: "javascript-nextjs",
+
+  // Only upload source maps in production builds
+  silent: !process.env.CI,
+
+  // Upload source maps for better error stack traces
+  // Requires SENTRY_AUTH_TOKEN environment variable
+  widenClientFileUpload: true,
+
+  // Disable Sentry telemetry
+  telemetry: false,
+
+  // Automatically tree-shake Sentry logger statements
+  disableLogger: true,
+
+  // Hide source maps from clients (security)
+  hideSourceMaps: true,
+
+  // Tunneling (disabled - use default Sentry endpoints)
+  tunnelRoute: undefined,
+};
+
+// Export with Sentry wrapper
+export default withSentryConfig(nextConfig, sentryConfig);

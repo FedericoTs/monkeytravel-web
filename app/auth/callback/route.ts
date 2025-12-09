@@ -18,7 +18,10 @@ export async function GET(request: Request) {
         .eq("id", data.user.id)
         .single();
 
-      if (!existingProfile) {
+      // Track whether this is a new user (signup) or returning user (login)
+      const isNewUser = !existingProfile;
+
+      if (isNewUser) {
         // Create profile for OAuth user
         const displayName =
           data.user.user_metadata?.full_name ||
@@ -54,7 +57,10 @@ export async function GET(request: Request) {
         });
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // Add analytics tracking parameter for client-side tracking
+      const separator = next.includes("?") ? "&" : "?";
+      const trackingParam = isNewUser ? "auth_event=signup_google" : "auth_event=login_google";
+      return NextResponse.redirect(`${origin}${next}${separator}${trackingParam}`);
     }
   }
 

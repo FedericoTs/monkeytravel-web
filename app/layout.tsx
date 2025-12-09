@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { ToastProvider } from "@/components/ui/Toast";
 import { LocaleProvider } from "@/lib/locale";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
@@ -170,6 +171,10 @@ export default function RootLayout({
         </LocaleProvider>
         <Analytics />
         <SpeedInsights />
+        {/* Google Analytics 4 - only load if measurement ID is configured */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );

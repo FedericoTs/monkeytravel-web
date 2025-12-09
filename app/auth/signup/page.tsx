@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { trackSignup, setUserId } from "@/lib/analytics";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -100,6 +101,12 @@ export default function SignupPage() {
 
     setSuccess(true);
     setLoading(false);
+
+    // Track successful signup
+    trackSignup("email");
+    if (data.user) {
+      setUserId(data.user.id);
+    }
 
     // If email confirmation is disabled, redirect to trips
     if (data.session) {
