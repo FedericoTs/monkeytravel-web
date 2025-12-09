@@ -7,6 +7,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
 import { getTrialEndDate } from "@/lib/trial";
+import {
+  getLocalOnboardingPreferences,
+  clearLocalOnboardingPreferences,
+  hasLocalOnboardingPreferences,
+} from "@/hooks/useOnboardingPreferences";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -16,21 +21,34 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [hasOnboardingPrefs, setHasOnboardingPrefs] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Get redirect URL from query params (for gradual engagement flow)
-  const redirectUrl = searchParams.get("redirect") || "/trips";
+  // Get redirect URL and check if coming from onboarding
+  const redirectUrl = searchParams.get("redirect") || "/trips/new";
+  const fromOnboarding = searchParams.get("from") === "onboarding";
+
+  // Check for localStorage preferences on mount
+  useEffect(() => {
+    setHasOnboardingPrefs(hasLocalOnboardingPreferences());
+  }, []);
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     setError(null);
 
+    // Pass onboarding status to callback
+    const callbackParams = new URLSearchParams({
+      next: redirectUrl,
+      ...(hasOnboardingPrefs && { from_onboarding: "true" }),
+    });
+
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
+        redirectTo: `${window.location.origin}/auth/callback?${callbackParams.toString()}`,
       },
     });
 
@@ -72,13 +90,16 @@ export default function SignupPage() {
 
     // If we have a user, create their profile
     if (data.user) {
-      const { error: profileError } = await supabase.from("users").upsert({
+      // Check for localStorage onboarding preferences
+      const localPrefs = getLocalOnboardingPreferences();
+      const hasCompletedOnboarding = localPrefs?.completedAt !== null;
+
+      // Build profile data based on whether onboarding was completed
+      const profileData: Record<string, unknown> = {
         id: data.user.id,
         email: email,
         display_name: displayName || email.split("@")[0],
-        preferences: {},
-        onboarding_completed: false,
-        trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial
+        trial_ends_at: getTrialEndDate().toISOString(), // Keep trial for existing users compatibility
         is_pro: false,
         privacy_settings: {
           showLocation: false,
@@ -89,7 +110,33 @@ export default function SignupPage() {
           allowLocationTracking: false,
           disableFriendRequests: false,
         },
-        notification_settings: {
+      };
+
+      if (localPrefs && hasCompletedOnboarding) {
+        // User completed onboarding BEFORE signup - use their preferences
+        profileData.preferences = {
+          travelStyles: localPrefs.travelStyles,
+          dietaryPreferences: localPrefs.dietaryPreferences,
+          accessibilityNeeds: localPrefs.accessibilityNeeds,
+        };
+        profileData.notification_settings = {
+          dealAlerts: true,
+          tripReminders: true,
+          pushNotifications: true,
+          emailNotifications: true,
+          socialNotifications: true,
+          marketingNotifications: false,
+          // Store as quiet hours (inverse of active hours)
+          quietHoursStart: localPrefs.activeHoursEnd,
+          quietHoursEnd: localPrefs.activeHoursStart,
+        };
+        profileData.onboarding_completed = true;
+        // Grant 1 free trip for new users who completed onboarding
+        profileData.free_trips_remaining = 1;
+      } else {
+        // No onboarding done - use defaults
+        profileData.preferences = {};
+        profileData.notification_settings = {
           dealAlerts: true,
           quietHoursEnd: 8,
           tripReminders: true,
@@ -98,12 +145,24 @@ export default function SignupPage() {
           emailNotifications: true,
           socialNotifications: true,
           marketingNotifications: false,
-        },
-      });
+        };
+        profileData.onboarding_completed = false;
+        // No free trips if onboarding not completed
+        profileData.free_trips_remaining = 0;
+      }
+
+      const { error: profileError } = await supabase
+        .from("users")
+        .upsert(profileData);
 
       if (profileError) {
         console.error("Profile creation error:", profileError);
         // Don't block signup if profile creation fails
+      }
+
+      // Clear localStorage preferences after successful profile creation
+      if (hasCompletedOnboarding) {
+        clearLocalOnboardingPreferences();
       }
     }
 
@@ -116,10 +175,19 @@ export default function SignupPage() {
       setUserId(data.user.id);
     }
 
-    // If email confirmation is disabled, redirect new users to onboarding
+    // If email confirmation is disabled, redirect appropriately
     if (data.session) {
-      const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(redirectUrl)}&auth_event=signup_email`;
-      router.push(onboardingUrl);
+      const localPrefs = getLocalOnboardingPreferences();
+      const hasCompletedOnboarding = localPrefs?.completedAt !== null || fromOnboarding;
+
+      if (hasCompletedOnboarding) {
+        // Onboarding already done - go directly to trip creation
+        router.push(redirectUrl);
+      } else {
+        // No onboarding - redirect to onboarding first
+        const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(redirectUrl)}&auth_event=signup_email`;
+        router.push(onboardingUrl);
+      }
       router.refresh();
     }
   };
@@ -203,11 +271,27 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Create your account
+              {hasOnboardingPrefs ? "Almost there!" : "Create your account"}
             </h1>
             <p className="text-slate-600 mb-6">
-              Start planning AI-powered trips today
+              {hasOnboardingPrefs
+                ? "Your preferences are saved. Create an account to start planning!"
+                : "Start planning AI-powered trips today"}
             </p>
+
+            {/* Show preferences saved badge if from onboarding */}
+            {hasOnboardingPrefs && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-6">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm font-medium text-emerald-800">
+                    Your travel preferences are ready to use
+                  </span>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
@@ -364,6 +448,15 @@ export default function SignupPage() {
                 )}
               </button>
             </form>
+
+            {/* Free trip benefit reminder */}
+            {hasOnboardingPrefs && (
+              <div className="mt-4 text-center">
+                <p className="text-xs text-slate-500">
+                  You'll get <strong className="text-emerald-600">1 free personalized trip</strong> when you sign up!
+                </p>
+              </div>
+            )}
 
             <div className="mt-6 text-center">
               <p className="text-slate-600">

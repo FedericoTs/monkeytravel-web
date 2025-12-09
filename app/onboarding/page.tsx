@@ -4,12 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import Link from "next/link";
 import {
   trackOnboardingStepViewed,
   trackOnboardingStepCompleted,
   trackOnboardingCompleted,
   trackOnboardingSkipped,
 } from "@/lib/analytics";
+import {
+  useOnboardingPreferences,
+  type LocalOnboardingPreferences,
+} from "@/hooks/useOnboardingPreferences";
 
 // Step components
 import TravelStyleStep from "@/components/onboarding/TravelStyleStep";
@@ -37,31 +42,57 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/trips";
+  const redirectUrl = searchParams.get("redirect") || "/trips/new";
+
+  // Use localStorage hook for anonymous persistence
+  const {
+    preferences: localPrefs,
+    isLoaded,
+    savePreferences,
+    completeOnboarding,
+    getPreferencesForDatabase,
+  } = useOnboardingPreferences();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Local state synced with localStorage
   const [preferences, setPreferences] = useState<OnboardingPreferences>({
     travelStyles: [],
     dietaryPreferences: [],
     accessibilityNeeds: [],
-    activeHoursStart: 8,  // 8 AM
-    activeHoursEnd: 22,   // 10 PM
+    activeHoursStart: 8,
+    activeHoursEnd: 22,
   });
 
   const hasTrackedStep = useRef<Set<number>>(new Set());
 
-  // Check if user is authenticated
+  // Check auth status (but don't redirect - allow anonymous)
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-      }
+      setIsAuthenticated(!!user);
+      setUserId(user?.id || null);
     };
     checkAuth();
-  }, [router]);
+  }, []);
+
+  // Restore progress from localStorage when loaded
+  useEffect(() => {
+    if (isLoaded) {
+      setPreferences({
+        travelStyles: localPrefs.travelStyles,
+        dietaryPreferences: localPrefs.dietaryPreferences,
+        accessibilityNeeds: localPrefs.accessibilityNeeds,
+        activeHoursStart: localPrefs.activeHoursStart,
+        activeHoursEnd: localPrefs.activeHoursEnd,
+      });
+      setStep(localPrefs.currentStep);
+    }
+  }, [isLoaded, localPrefs]);
 
   // Track step viewed
   useEffect(() => {
@@ -72,7 +103,12 @@ export default function OnboardingPage() {
   }, [step]);
 
   const updatePreferences = (key: keyof OnboardingPreferences, value: OnboardingPreferences[typeof key]) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences(prev => {
+      const updated = { ...prev, [key]: value };
+      // Also save to localStorage for persistence
+      savePreferences({ [key]: value });
+      return updated;
+    });
   };
 
   const getSelectionsForStep = (stepNum: number): string[] => {
@@ -98,13 +134,18 @@ export default function OnboardingPage() {
         stepName: STEP_NAMES[step],
         selections: getSelectionsForStep(step),
       });
-      setStep(step + 1);
+      const nextStep = step + 1;
+      setStep(nextStep);
+      // Save progress to localStorage
+      savePreferences({ currentStep: nextStep });
     }
   };
 
   const handleBack = () => {
     if (step > 1) {
-      setStep(step - 1);
+      const prevStep = step - 1;
+      setStep(prevStep);
+      savePreferences({ currentStep: prevStep });
     }
   };
 
@@ -137,45 +178,36 @@ export default function OnboardingPage() {
       },
     });
 
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+    // Mark as completed in localStorage
+    completeOnboarding();
 
-      if (!user) {
-        router.push("/auth/login");
-        return;
+    // Check if user is authenticated
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      // AUTHENTICATED: Save directly to database
+      try {
+        const dbPrefs = getPreferencesForDatabase();
+        await supabase
+          .from("users")
+          .update({
+            preferences: dbPrefs.preferences,
+            notification_settings: dbPrefs.notification_settings,
+            onboarding_completed: true,
+          })
+          .eq("id", user.id);
+
+        // Redirect to intended destination
+        router.push(redirectUrl);
+      } catch (error) {
+        console.error("Error saving preferences:", error);
+        router.push(redirectUrl);
       }
-
-      // Update user profile with preferences
-      await supabase
-        .from("users")
-        .update({
-          preferences: {
-            travelStyles: preferences.travelStyles,
-            dietaryPreferences: preferences.dietaryPreferences,
-            accessibilityNeeds: preferences.accessibilityNeeds,
-          },
-          notification_settings: {
-            dealAlerts: true,
-            tripReminders: true,
-            pushNotifications: true,
-            emailNotifications: true,
-            socialNotifications: true,
-            marketingNotifications: false,
-            // Store as quiet hours (inverse of active hours)
-            quietHoursStart: preferences.activeHoursEnd,
-            quietHoursEnd: preferences.activeHoursStart,
-          },
-          onboarding_completed: true,
-        })
-        .eq("id", user.id);
-
-      // Redirect to intended destination
-      router.push(redirectUrl);
-    } catch (error) {
-      console.error("Error saving preferences:", error);
-      // Still redirect on error - preferences can be set later
-      router.push(redirectUrl);
+    } else {
+      // NOT AUTHENTICATED: Redirect to signup
+      // LocalStorage preferences will be consumed during signup
+      router.push(`/auth/signup?redirect=${encodeURIComponent(redirectUrl)}&from=onboarding`);
     }
   };
 
@@ -216,11 +248,20 @@ export default function OnboardingPage() {
     }
   };
 
+  // Show loading while checking localStorage
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
       {/* Header */}
       <header className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo.png"
             alt="MonkeyTravel"
@@ -229,14 +270,32 @@ export default function OnboardingPage() {
             className="rounded-lg"
           />
           <span className="font-bold text-xl text-[var(--primary)]">MonkeyTravel</span>
-        </div>
+        </Link>
         <button
           onClick={handleSkip}
-          className="text-slate-500 hover:text-slate-700 text-sm font-medium"
+          className="text-slate-500 hover:text-slate-700 text-sm font-medium group relative"
         >
           Skip for now
+          {/* Tooltip explaining importance */}
+          <span className="absolute right-0 top-full mt-2 w-48 p-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            Your preferences help us create personalized, tailored itineraries just for you!
+          </span>
         </button>
       </header>
+
+      {/* Personalization value banner */}
+      <div className="px-4">
+        <div className="max-w-md mx-auto bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <p className="text-sm text-amber-800">
+              <strong>Personalize your experience:</strong> These preferences help our AI create itineraries perfectly tailored to your travel style.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Progress */}
       <div className="px-4 py-2">
@@ -284,15 +343,27 @@ export default function OnboardingPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Saving...
+                {isAuthenticated ? "Saving..." : "Continuing..."}
               </>
             ) : step === TOTAL_STEPS ? (
-              "Get Started"
+              isAuthenticated ? "Save & Continue" : "Create Account"
             ) : (
               "Continue"
             )}
           </button>
         </div>
+
+        {/* Already have account? */}
+        {!isAuthenticated && (
+          <div className="max-w-md mx-auto text-center mt-4">
+            <p className="text-sm text-slate-500">
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-[var(--primary)] font-medium hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

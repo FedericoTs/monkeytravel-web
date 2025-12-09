@@ -10,7 +10,7 @@ import {
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
+import { checkEarlyAccess, incrementEarlyAccessUsage, decrementFreeTrips } from "@/lib/early-access";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import crypto from "crypto";
 
@@ -346,8 +346,17 @@ export async function POST(request: NextRequest) {
     let updatedUsage = usageCheck;
     if (!cacheHit) {
       await incrementUsage(user.id, "aiGenerations", 1);
-      // Also increment early access usage
-      await incrementEarlyAccessUsage(user.id, "generation");
+
+      // Decrement the appropriate counter based on access type
+      if (earlyAccess.accessType === "free_trip") {
+        // User used their free trip - decrement free_trips_remaining
+        await decrementFreeTrips(user.id);
+      } else if (earlyAccess.accessType === "tester") {
+        // User has a tester code - increment early access usage
+        await incrementEarlyAccessUsage(user.id, "generation");
+      }
+      // Admin users don't have their usage tracked
+
       // Update the usage info for the response
       updatedUsage = {
         ...usageCheck,

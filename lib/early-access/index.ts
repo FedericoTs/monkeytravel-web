@@ -13,8 +13,9 @@ export type EarlyAccessAction = "generation" | "regeneration" | "assistant";
 export interface EarlyAccessStatus {
   hasAccess: boolean;
   isAdmin: boolean;
-  accessType: "admin" | "tester" | "none";
+  accessType: "admin" | "tester" | "free_trip" | "none";
   codeUsed?: string;
+  freeTripsRemaining?: number;
   limits?: {
     generations: { limit: number | null; used: number };
     regenerations: { limit: number | null; used: number };
@@ -29,6 +30,8 @@ export interface EarlyAccessCheckResult {
   remaining: number | null; // null = unlimited
   error?: "NO_ACCESS" | "CODE_EXPIRED" | "LIMIT_REACHED";
   message?: string;
+  accessType?: "admin" | "tester" | "free_trip"; // How access was granted
+  freeTripsRemaining?: number; // For free trip users
 }
 
 export interface RedeemCodeResult {
@@ -107,20 +110,40 @@ export async function getEarlyAccessStatus(
 
 /**
  * Check if a user can perform an AI action
+ * Priority: Admin > Free trips > Tester code
  */
 export async function checkEarlyAccess(
   userId: string,
   action: EarlyAccessAction,
   userEmail?: string | null
 ): Promise<EarlyAccessCheckResult> {
-  // Admin bypass
+  // Admin bypass - unlimited access
   if (userEmail && isAdmin(userEmail)) {
-    return { allowed: true, remaining: null };
+    return { allowed: true, remaining: null, accessType: "admin" };
   }
 
   const supabase = await createClient();
 
-  // Get user's access
+  // For generation action, check free_trips_remaining first
+  // This allows new users who completed onboarding to use their free trip
+  if (action === "generation") {
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("free_trips_remaining")
+      .eq("id", userId)
+      .single();
+
+    if (userProfile && userProfile.free_trips_remaining > 0) {
+      return {
+        allowed: true,
+        remaining: userProfile.free_trips_remaining,
+        accessType: "free_trip",
+        freeTripsRemaining: userProfile.free_trips_remaining,
+      };
+    }
+  }
+
+  // Check if user has redeemed a tester code
   const { data: access, error } = await supabase
     .from("user_tester_access")
     .select("*")
@@ -155,7 +178,7 @@ export async function checkEarlyAccess(
 
   // Unlimited if limit is null
   if (limit === null) {
-    return { allowed: true, remaining: null };
+    return { allowed: true, remaining: null, accessType: "tester" };
   }
 
   // Check if limit reached
@@ -171,6 +194,7 @@ export async function checkEarlyAccess(
   return {
     allowed: true,
     remaining: limit - used,
+    accessType: "tester",
   };
 }
 
@@ -340,4 +364,35 @@ export async function validateCode(
   }
 
   return { valid: true };
+}
+
+/**
+ * Decrement free_trips_remaining for a user after using their free trip
+ * Returns the new count after decrement
+ */
+export async function decrementFreeTrips(userId: string): Promise<number> {
+  const supabase = await createClient();
+
+  // Get current count
+  const { data: userProfile } = await supabase
+    .from("users")
+    .select("free_trips_remaining")
+    .eq("id", userId)
+    .single();
+
+  if (!userProfile || userProfile.free_trips_remaining <= 0) {
+    return 0;
+  }
+
+  const newCount = Math.max(0, userProfile.free_trips_remaining - 1);
+
+  // Update the count
+  await supabase
+    .from("users")
+    .update({ free_trips_remaining: newCount })
+    .eq("id", userId);
+
+  console.log(`[EarlyAccess] Decremented free trips for user ${userId}: ${userProfile.free_trips_remaining} -> ${newCount}`);
+
+  return newCount;
 }

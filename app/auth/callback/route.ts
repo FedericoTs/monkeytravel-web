@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/trips";
+  const fromOnboarding = searchParams.get("from_onboarding") === "true";
 
   if (code) {
     const supabase = await createClient();
@@ -30,14 +31,20 @@ export async function GET(request: Request) {
           data.user.email?.split("@")[0] ||
           "User";
 
+        // Check if user already completed onboarding before signup
+        // If from_onboarding=true, they completed anonymous onboarding first
+        const onboardingCompleted = fromOnboarding;
+        const freeTripsRemaining = fromOnboarding ? 1 : 0;
+
         await supabase.from("users").upsert({
           id: data.user.id,
           email: data.user.email,
           display_name: displayName,
           avatar_url: data.user.user_metadata?.avatar_url || null,
-          preferences: {},
-          onboarding_completed: false,
-          trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial
+          preferences: {}, // Will be filled by complete-profile page if from onboarding
+          onboarding_completed: onboardingCompleted,
+          free_trips_remaining: freeTripsRemaining,
+          trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial for existing feature
           is_pro: false,
           privacy_settings: {
             showLocation: false,
@@ -60,9 +67,16 @@ export async function GET(request: Request) {
           },
         });
 
-        // Redirect new users to onboarding with their intended destination
-        const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
-        return NextResponse.redirect(`${origin}${onboardingUrl}`);
+        if (fromOnboarding) {
+          // User completed onboarding before signup - redirect to complete-profile
+          // to transfer localStorage preferences to database
+          const completeProfileUrl = `/auth/complete-profile?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
+          return NextResponse.redirect(`${origin}${completeProfileUrl}`);
+        } else {
+          // New user without onboarding - redirect to onboarding first
+          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
+          return NextResponse.redirect(`${origin}${onboardingUrl}`);
+        }
       }
 
       // Returning users go directly to their destination
