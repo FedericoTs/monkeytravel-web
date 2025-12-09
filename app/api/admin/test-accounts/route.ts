@@ -70,7 +70,19 @@ export async function GET() {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { data, error } = await supabase
+    // Use admin client to bypass RLS (we've already verified admin access above)
+    let adminClient;
+    try {
+      adminClient = createAdminClient();
+    } catch (error) {
+      console.error("Failed to create admin client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error: Missing SUPABASE_SERVICE_ROLE_KEY" },
+        { status: 500 }
+      );
+    }
+
+    const { data, error } = await adminClient
       .from("test_accounts")
       .select("*")
       .order("created_at", { ascending: false });
@@ -78,7 +90,7 @@ export async function GET() {
     if (error) {
       console.error("Error fetching test accounts:", error);
       return NextResponse.json(
-        { error: "Failed to fetch test accounts" },
+        { error: "Failed to fetch test accounts: " + error.message },
         { status: 500 }
       );
     }
