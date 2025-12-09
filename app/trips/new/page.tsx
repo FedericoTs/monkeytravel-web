@@ -118,6 +118,18 @@ export default function NewTripPage() {
 
   const TOTAL_STEPS = 4; // Added vibe step
 
+  // Scroll to top when step changes to prevent "already scrolled" issue
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step]);
+
+  // Scroll to top when itinerary is generated
+  useEffect(() => {
+    if (generatedItinerary) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [generatedItinerary]);
+
   // Build seasonal context when destination and dates are set
   // Uses latitude for accurate hemisphere detection (fixes Southern Hemisphere bug)
   useEffect(() => {
