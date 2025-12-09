@@ -117,7 +117,16 @@ export async function POST(request: NextRequest) {
     const password = generatePassword(12);
 
     // Create admin client for user creation
-    const adminClient = createAdminClient();
+    let adminClient;
+    try {
+      adminClient = createAdminClient();
+    } catch (error) {
+      console.error("Failed to create admin client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error: Missing SUPABASE_SERVICE_ROLE_KEY environment variable. Please add it to your Vercel environment." },
+        { status: 500 }
+      );
+    }
 
     // Create the Supabase auth user
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
@@ -218,7 +227,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Missing account ID" }, { status: 400 });
     }
 
-    const adminClient = createAdminClient();
+    let adminClient;
+    try {
+      adminClient = createAdminClient();
+    } catch (error) {
+      console.error("Failed to create admin client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error: Missing SUPABASE_SERVICE_ROLE_KEY" },
+        { status: 500 }
+      );
+    }
     const updates: Record<string, unknown> = {};
 
     if (typeof is_active === "boolean") {
@@ -286,7 +304,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Missing account ID" }, { status: 400 });
     }
 
-    const adminClient = createAdminClient();
+    let adminClient;
+    try {
+      adminClient = createAdminClient();
+    } catch (error) {
+      console.error("Failed to create admin client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error: Missing SUPABASE_SERVICE_ROLE_KEY" },
+        { status: 500 }
+      );
+    }
 
     // Get the test account first to get the user_id
     const { data: account, error: fetchError } = await adminClient

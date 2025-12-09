@@ -88,70 +88,97 @@ function getFlagEmoji(countryCode: string): string {
   return String.fromCodePoint(...codePoints);
 }
 
-// Featured Template Card - Hero style
+// Featured Template Card - Mobile-first Hero style
 function FeaturedCard({ template }: { template: TemplateTrip }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const gradient = getGradient(template.destination);
 
+  const budgetLabel =
+    template.budgetTier === "budget"
+      ? "€"
+      : template.budgetTier === "moderate"
+      ? "€€"
+      : "€€€";
+
   return (
     <Link
       href={`/trips/template/${template.id}`}
-      className="group relative block rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9]"
+      className="group relative block rounded-2xl overflow-hidden active:scale-[0.99] transition-transform"
     >
-      {/* Background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(135deg, ${gradient.from} 0%, ${gradient.to} 100%)`,
-        }}
-      />
-      {template.coverImageUrl && (
-        <img
-          src={template.coverImageUrl}
-          alt={template.destination}
-          onLoad={() => setImageLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+      {/* Responsive container - taller on mobile, wider on desktop */}
+      <div className="relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]">
+        {/* Background gradient fallback */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, ${gradient.from} 0%, ${gradient.to} 100%)`,
+          }}
         />
-      )}
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+        {/* Cover image */}
+        {template.coverImageUrl && (
+          <img
+            src={template.coverImageUrl}
+            alt={template.destination}
+            onLoad={() => setImageLoaded(true)}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${
+              imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        )}
 
-      {/* Content */}
-      <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-        <div className="max-w-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-[var(--primary-dark)]">
-              Featured
+        {/* Gradient overlays for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent hidden md:block" />
+
+        {/* Top badges - always visible */}
+        <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--accent)] text-[var(--primary-dark)] shadow-lg">
+              ⭐ Featured
             </span>
-            <span className="text-white/80 text-sm flex items-center gap-1.5">
+            <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 shadow-sm flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               {template.durationDays} days
             </span>
           </div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">{getFlagEmoji(template.countryCode)}</span>
-            <span className="text-white/70 text-sm">{template.country}</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
-            {template.destination}
-          </h2>
-          <p className="text-white/80 text-sm md:text-base line-clamp-2 mb-4 max-w-md">
-            {template.description}
-          </p>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[var(--primary)] font-semibold rounded-lg text-sm group-hover:bg-[var(--accent)] group-hover:text-[var(--primary-dark)] transition-colors">
-              Explore Itinerary
-              <ChevronRight className="w-4 h-4" />
-            </span>
-            {template.copyCount > 0 && (
-              <span className="text-white/60 text-xs flex items-center gap-1">
-                <Users className="w-3.5 h-3.5" />
-                {template.copyCount} travelers
+          <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400/95 backdrop-blur-sm text-amber-900 shadow-sm">
+            {budgetLabel}
+          </span>
+        </div>
+
+        {/* Bottom content */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
+          <div className="max-w-xl">
+            {/* Country & Flag */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl md:text-2xl drop-shadow-md">{getFlagEmoji(template.countryCode)}</span>
+              <span className="text-white/90 text-xs sm:text-sm font-medium tracking-wide uppercase">{template.country}</span>
+            </div>
+
+            {/* Destination title */}
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg leading-tight">
+              {template.destination}
+            </h2>
+
+            {/* Description - hidden on very small screens */}
+            <p className="text-white/80 text-sm md:text-base line-clamp-2 mb-4 max-w-md hidden sm:block">
+              {template.description}
+            </p>
+
+            {/* CTA */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[var(--primary)] font-semibold rounded-xl text-sm group-hover:bg-[var(--accent)] group-hover:text-[var(--primary-dark)] transition-colors shadow-lg">
+                Explore Itinerary
+                <ChevronRight className="w-4 h-4" />
               </span>
-            )}
+              {template.copyCount > 0 && (
+                <span className="text-white/70 text-xs flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                  <Users className="w-3.5 h-3.5" />
+                  {template.copyCount} travelers
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -545,8 +572,8 @@ export default function TemplatesPageClient() {
         {/* Loading state */}
         {loading && (
           <>
-            {/* Featured skeleton */}
-            <div className="mb-6 rounded-2xl bg-slate-200 animate-pulse aspect-[16/9] md:aspect-[21/9]" />
+            {/* Featured skeleton - matches new aspect ratios */}
+            <div className="mb-6 rounded-2xl bg-slate-200 animate-pulse aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]" />
             {/* Grid skeleton - matches 2-column mobile layout */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
