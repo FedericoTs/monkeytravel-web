@@ -18,8 +18,11 @@ import {
   Compass,
   Globe,
   Plane,
+  SlidersHorizontal,
+  Check,
 } from "lucide-react";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import BottomSheet from "@/components/ui/BottomSheet";
 
 interface TemplateTrip {
   id: string;
@@ -355,7 +358,12 @@ export default function TemplatesPageClient() {
   const [selectedDuration, setSelectedDuration] = useState(0);
   const [selectedBudget, setSelectedBudget] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const moodScrollRef = useRef<HTMLDivElement>(null);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  // Temporary filter states (for sheet before applying)
+  const [tempMood, setTempMood] = useState("all");
+  const [tempDuration, setTempDuration] = useState(0);
+  const [tempBudget, setTempBudget] = useState("");
 
   // Fetch all templates
   useEffect(() => {
@@ -426,11 +434,43 @@ export default function TemplatesPageClient() {
   const hasActiveFilters =
     searchQuery || selectedMood !== "all" || selectedDuration > 0 || selectedBudget;
 
+  // Count active filters (excluding search)
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedMood !== "all") count++;
+    if (selectedDuration > 0) count++;
+    if (selectedBudget) count++;
+    return count;
+  }, [selectedMood, selectedDuration, selectedBudget]);
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedMood("all");
     setSelectedDuration(0);
     setSelectedBudget("");
+  };
+
+  // Open filter sheet with current values
+  const openFilterSheet = () => {
+    setTempMood(selectedMood);
+    setTempDuration(selectedDuration);
+    setTempBudget(selectedBudget);
+    setIsFilterSheetOpen(true);
+  };
+
+  // Apply filters from sheet
+  const applyFilters = () => {
+    setSelectedMood(tempMood);
+    setSelectedDuration(tempDuration);
+    setSelectedBudget(tempBudget);
+    setIsFilterSheetOpen(false);
+  };
+
+  // Reset filters in sheet
+  const resetTempFilters = () => {
+    setTempMood("all");
+    setTempDuration(0);
+    setTempBudget("");
   };
 
   return (
@@ -453,18 +493,21 @@ export default function TemplatesPageClient() {
               <h1 className="text-lg font-bold text-slate-900">Curated Escapes</h1>
             </div>
 
-            <Link
-              href="/trips/new"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
-            >
-              <Plane className="w-4 h-4" />
-              <span className="hidden sm:inline">Create Trip</span>
-            </Link>
+            {/* Empty placeholder for layout balance on mobile, show Create Trip on desktop */}
+            <div className="w-5 sm:w-auto">
+              <Link
+                href="/trips/new"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+              >
+                <Plane className="w-4 h-4" />
+                Create Trip
+              </Link>
+            </div>
           </div>
 
-          {/* Search bar */}
-          <div className="py-3">
-            <div className="relative max-w-xl">
+          {/* Search bar with filter button */}
+          <div className="py-3 flex gap-2">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
@@ -488,84 +531,90 @@ export default function TemplatesPageClient() {
                 </button>
               )}
             </div>
+
+            {/* Filter button - mobile/tablet only */}
+            <button
+              onClick={openFilterSheet}
+              className={`lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                activeFilterCount > 0
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {activeFilterCount > 0 && (
+                <span className="min-w-[1.25rem] h-5 flex items-center justify-center rounded-full bg-white/20 text-xs font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Desktop filter pills - only show on large screens */}
+          <div className="hidden lg:block pb-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {MOOD_OPTIONS.map((mood) => (
+                <button
+                  key={mood.id}
+                  onClick={() => setSelectedMood(mood.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedMood === mood.id
+                      ? "bg-[var(--primary)] text-white shadow-md"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {mood.emoji} {mood.label}
+                </button>
+              ))}
+
+              <div className="w-px h-6 bg-slate-200 mx-1" />
+
+              {DURATION_FILTERS.map((dur) => (
+                <button
+                  key={dur.value}
+                  onClick={() => setSelectedDuration(dur.value)}
+                  className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedDuration === dur.value
+                      ? "bg-slate-800 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {dur.label}
+                </button>
+              ))}
+
+              <div className="w-px h-6 bg-slate-200 mx-1" />
+
+              {BUDGET_FILTERS.map((bud) => (
+                <button
+                  key={bud.value}
+                  onClick={() => setSelectedBudget(bud.value)}
+                  className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedBudget === bud.value
+                      ? "bg-amber-500 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {bud.icon}
+                </button>
+              ))}
+
+              {hasActiveFilters && (
+                <>
+                  <div className="w-px h-6 bg-slate-200 mx-1" />
+                  <button
+                    onClick={clearFilters}
+                    className="px-3 py-2 rounded-full text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
-
-      {/* Mood Filter Pills - Horizontal scroll */}
-      <div className="bg-white border-b border-slate-200 sticky top-[105px] z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            ref={moodScrollRef}
-            className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide"
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            {MOOD_OPTIONS.map((mood) => (
-              <button
-                key={mood.id}
-                onClick={() => setSelectedMood(mood.id)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedMood === mood.id
-                    ? "bg-[var(--primary)] text-white shadow-md"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {mood.emoji} {mood.label}
-              </button>
-            ))}
-
-            {/* Divider */}
-            <div className="w-px h-6 bg-slate-200 flex-shrink-0 mx-1" />
-
-            {/* Duration filters */}
-            {DURATION_FILTERS.map((dur) => (
-              <button
-                key={dur.value}
-                onClick={() => setSelectedDuration(dur.value)}
-                className={`flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedDuration === dur.value
-                    ? "bg-slate-800 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {dur.label}
-              </button>
-            ))}
-
-            {/* Divider */}
-            <div className="w-px h-6 bg-slate-200 flex-shrink-0 mx-1" />
-
-            {/* Budget filters */}
-            {BUDGET_FILTERS.map((bud) => (
-              <button
-                key={bud.value}
-                onClick={() => setSelectedBudget(bud.value)}
-                className={`flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedBudget === bud.value
-                    ? "bg-amber-500 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {bud.icon}
-              </button>
-            ))}
-
-            {/* Clear filters */}
-            {hasActiveFilters && (
-              <>
-                <div className="w-px h-6 bg-slate-200 flex-shrink-0 mx-1" />
-                <button
-                  onClick={clearFilters}
-                  className="flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Clear
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -659,6 +708,108 @@ export default function TemplatesPageClient() {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav activePage="trips" />
+
+      {/* Filter Bottom Sheet - Mobile/Tablet only */}
+      <BottomSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        title="Filters"
+      >
+        <div className="px-4 pb-6">
+          {/* Mood Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+              Travel Style
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {MOOD_OPTIONS.map((mood) => (
+                <button
+                  key={mood.id}
+                  onClick={() => setTempMood(mood.id)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    tempMood === mood.id
+                      ? "bg-[var(--primary)] text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
+                  }`}
+                >
+                  <span className="text-lg">{mood.emoji}</span>
+                  <span>{mood.label}</span>
+                  {tempMood === mood.id && (
+                    <Check className="w-4 h-4 ml-auto" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-slate-500" />
+              Trip Duration
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {DURATION_FILTERS.map((dur) => (
+                <button
+                  key={dur.value}
+                  onClick={() => setTempDuration(dur.value)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    tempDuration === dur.value
+                      ? "bg-slate-800 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
+                  }`}
+                >
+                  {dur.label}
+                  {tempDuration === dur.value && (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget Section */}
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-slate-500" />
+              Budget Level
+            </h3>
+            <div className="flex gap-2">
+              {BUDGET_FILTERS.map((bud) => (
+                <button
+                  key={bud.value}
+                  onClick={() => setTempBudget(bud.value)}
+                  className={`flex-1 flex flex-col items-center gap-1 px-4 py-4 rounded-xl text-sm font-medium transition-all ${
+                    tempBudget === bud.value
+                      ? "bg-amber-500 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
+                  }`}
+                >
+                  <span className="text-lg font-bold">{bud.icon}</span>
+                  <span className="text-xs opacity-80">{bud.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-slate-100">
+            <button
+              onClick={resetTempFilters}
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+            >
+              Reset All
+            </button>
+            <button
+              onClick={applyFilters}
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 transition-colors shadow-lg"
+            >
+              Show Results
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
