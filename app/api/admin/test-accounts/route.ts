@@ -159,22 +159,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the users table profile
+    // Wait a moment for the database trigger to create the users row
+    // The trigger `on_auth_user_created` auto-creates the users profile
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Update the users table profile (trigger already created it)
     const { error: profileError } = await adminClient
       .from("users")
-      .insert({
-        id: authData.user.id,
-        email: email,
+      .update({
         display_name: `Test User ${nanoid(4)}`,
         subscription_tier: custom_limits ? "premium" : "free", // Premium if custom limits
-      });
+      })
+      .eq("id", authData.user.id);
 
     if (profileError) {
-      console.error("Error creating user profile:", profileError);
+      console.error("Error updating user profile:", profileError);
       // Clean up: delete the auth user
       await adminClient.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
-        { error: "Failed to create user profile" },
+        { error: "Failed to update user profile: " + profileError.message },
         { status: 500 }
       );
     }
