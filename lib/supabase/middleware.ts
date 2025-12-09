@@ -138,5 +138,40 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Enforce onboarding completion for authenticated users
+  // Skip for: onboarding page itself, auth routes, API routes, admin, static pages, trip creation (gradual engagement)
+  const onboardingExemptPaths = [
+    "/onboarding",
+    "/auth/",
+    "/api/",
+    "/admin",
+    "/privacy",
+    "/terms",
+    "/",
+    "/shared/",
+    "/trips/new",  // Allow gradual engagement - users fill form before full signup
+    "/templates",  // Allow browsing templates
+  ];
+  const requiresOnboarding = !onboardingExemptPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path) || request.nextUrl.pathname === path
+  );
+
+  if (user && requiresOnboarding) {
+    // Check if user has completed onboarding
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .single();
+
+    // If user exists and hasn't completed onboarding, redirect to onboarding
+    if (userProfile && userProfile.onboarding_completed === false) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      url.searchParams.set("redirect", request.nextUrl.pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }
