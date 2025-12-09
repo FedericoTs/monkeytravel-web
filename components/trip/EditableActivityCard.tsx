@@ -104,13 +104,10 @@ interface EditableActivityCardProps {
   currency?: string;
   showGallery?: boolean;
   isEditMode: boolean;
-  onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
   onUpdate: (updates: Partial<Activity>) => void;
   onMoveToDay: (dayIndex: number) => void;
   onRegenerate: () => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
   availableDays: number[];
   currentDayIndex: number;
   isRegenerating?: boolean;
@@ -133,13 +130,10 @@ export default function EditableActivityCard({
   currency = "USD",
   showGallery = true,
   isEditMode,
-  onMove,
   onDelete,
   onUpdate,
   onMoveToDay,
   onRegenerate,
-  canMoveUp,
-  canMoveDown,
   availableDays,
   currentDayIndex,
   isRegenerating = false,
@@ -323,38 +317,6 @@ export default function EditableActivityCard({
       {/* Edit Mode Actions Bar - Top of card */}
       {isEditMode && !isEditing && (
         <div className="absolute -top-2 -right-2 flex items-center gap-1 z-10">
-          {/* Move Up */}
-          <button
-            onClick={() => onMove("up")}
-            disabled={!canMoveUp}
-            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all ${
-              canMoveUp
-                ? "bg-white hover:bg-slate-50 text-slate-700"
-                : "bg-slate-100 text-slate-300 cursor-not-allowed"
-            }`}
-            title="Move up"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </button>
-
-          {/* Move Down */}
-          <button
-            onClick={() => onMove("down")}
-            disabled={!canMoveDown}
-            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all ${
-              canMoveDown
-                ? "bg-white hover:bg-slate-50 text-slate-700"
-                : "bg-slate-100 text-slate-300 cursor-not-allowed"
-            }`}
-            title="Move down"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
           {/* Move to Day */}
           <div className="relative">
             <button

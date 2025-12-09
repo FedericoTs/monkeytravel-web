@@ -12,13 +12,10 @@ interface SortableActivityCardProps {
   currency?: string;
   showGallery?: boolean;
   isEditMode: boolean;
-  onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
   onUpdate: (updates: Partial<Activity>) => void;
   onMoveToDay: (dayIndex: number) => void;
   onRegenerate: () => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
   availableDays: number[];
   currentDayIndex: number;
   isRegenerating?: boolean;

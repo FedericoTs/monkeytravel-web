@@ -30,6 +30,7 @@ import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import {
   ensureActivityIds,
+  findActivityById,
   moveActivityInDay,
   moveActivityToDay,
   deleteActivity,
@@ -40,6 +41,7 @@ import {
   calculateNextTimeSlot,
   determineTimeSlot,
   reorderActivities,
+  recalculateActivityTimes,
 } from "@/lib/utils/activity-id";
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
@@ -275,7 +277,15 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const handleActivityMove = useCallback(
     (activityId: string, direction: "up" | "down") => {
       pushUndo(`Move activity ${direction}`);
-      setEditedItinerary((prev) => moveActivityInDay(prev, activityId, direction));
+      setEditedItinerary((prev) => {
+        // Find which day the activity is in
+        const location = findActivityById(prev, activityId);
+        if (!location) return prev;
+
+        // Move the activity and recalculate times
+        const moved = moveActivityInDay(prev, activityId, direction);
+        return recalculateActivityTimes(moved, location.dayIndex);
+      });
     },
     [pushUndo]
   );
@@ -283,7 +293,17 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const handleActivityMoveToDay = useCallback(
     (activityId: string, targetDayIndex: number) => {
       pushUndo(`Move activity to day ${targetDayIndex + 1}`);
-      setEditedItinerary((prev) => moveActivityToDay(prev, activityId, targetDayIndex));
+      setEditedItinerary((prev) => {
+        // Find the source day
+        const location = findActivityById(prev, activityId);
+        if (!location) return prev;
+
+        // Move the activity
+        const moved = moveActivityToDay(prev, activityId, targetDayIndex);
+        // Recalculate times for both source and target days
+        const withSourceTimes = recalculateActivityTimes(moved, location.dayIndex);
+        return recalculateActivityTimes(withSourceTimes, targetDayIndex);
+      });
     },
     [pushUndo]
   );
@@ -357,7 +377,11 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
       }
 
       pushUndo("Reorder activities");
-      setEditedItinerary((prev) => reorderActivities(prev, dayIndex, oldIndex, newIndex));
+      // Reorder activities and recalculate times based on new order
+      setEditedItinerary((prev) => {
+        const reordered = reorderActivities(prev, dayIndex, oldIndex, newIndex);
+        return recalculateActivityTimes(reordered, dayIndex);
+      });
     },
     [editedItinerary, pushUndo]
   );
@@ -1038,13 +1062,10 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                                         currency={trip.budget?.currency}
                                         showGallery={true}
                                         isEditMode={true}
-                                        onMove={(direction) => handleActivityMove(activity.id!, direction)}
                                         onDelete={() => handleActivityDelete(activity.id!)}
                                         onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
                                         onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
                                         onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                                        canMoveUp={idx > 0}
-                                        canMoveDown={idx < day.activities.length - 1}
                                         availableDays={availableDays}
                                         currentDayIndex={dayIndex}
                                         isRegenerating={regeneratingActivityId === activity.id}

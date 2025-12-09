@@ -270,3 +270,67 @@ export function reorderActivities(
     i === dayIndex ? { ...d, activities } : d
   );
 }
+
+/**
+ * Recalculate activity times for a day based on their order
+ * First activity keeps its time (or defaults to 09:00)
+ * Subsequent activities are scheduled with 30min buffer after previous ends
+ */
+export function recalculateActivityTimes(
+  itinerary: ItineraryDay[],
+  dayIndex: number
+): ItineraryDay[] {
+  if (dayIndex < 0 || dayIndex >= itinerary.length) {
+    return itinerary;
+  }
+
+  const day = itinerary[dayIndex];
+  if (!day.activities || day.activities.length === 0) {
+    return itinerary;
+  }
+
+  const BUFFER_MINUTES = 30; // Time between activities for travel/rest
+
+  const updatedActivities = day.activities.map((activity, index) => {
+    if (index === 0) {
+      // Keep first activity's time or default to 09:00
+      const time = activity.start_time || "09:00";
+      return {
+        ...activity,
+        start_time: time,
+        time_slot: determineTimeSlot(time),
+      };
+    }
+
+    // Calculate start time based on previous activity
+    const prevActivity = day.activities[index - 1];
+    const prevStart = prevActivity.start_time || "09:00";
+    const prevDuration = prevActivity.duration_minutes || 90;
+
+    // Parse previous start time
+    const [hours, minutes] = prevStart.split(":").map(Number);
+    const startMinutes = hours * 60 + minutes;
+
+    // Add duration + buffer
+    let nextMinutes = startMinutes + prevDuration + BUFFER_MINUTES;
+
+    // Cap at 23:00 to avoid going past midnight
+    if (nextMinutes >= 23 * 60) {
+      nextMinutes = 23 * 60;
+    }
+
+    const nextHours = Math.floor(nextMinutes / 60);
+    const nextMins = nextMinutes % 60;
+    const newTime = `${nextHours.toString().padStart(2, "0")}:${nextMins.toString().padStart(2, "0")}`;
+
+    return {
+      ...activity,
+      start_time: newTime,
+      time_slot: determineTimeSlot(newTime),
+    };
+  });
+
+  return itinerary.map((d, i) =>
+    i === dayIndex ? { ...d, activities: updatedActivities } : d
+  );
+}
