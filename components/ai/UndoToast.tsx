@@ -97,7 +97,7 @@ export default function UndoToast({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-[100]"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6 left-1/2 -translate-x-1/2 z-[100]"
         >
           <div className="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[300px] max-w-[90vw]">
             {/* Success icon with gradient */}

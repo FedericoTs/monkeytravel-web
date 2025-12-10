@@ -643,7 +643,7 @@ export default function AIAssistantEnhanced({
         )}
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200 bg-white">
+        <form onSubmit={handleSubmit} className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-slate-200 bg-white">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea

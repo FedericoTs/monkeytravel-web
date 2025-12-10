@@ -103,7 +103,7 @@ export default function Home() {
                 {/* Primary CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
                   <Link
-                    href="/onboarding"
+                    href="/trips/new"
                     className="group relative px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 flex items-center justify-center gap-2"
                   >
                     <span>Start Planning — It's Free</span>
@@ -449,7 +449,7 @@ export default function Home() {
             {/* CTA */}
             <div className="text-center mt-16">
               <Link
-                href="/onboarding"
+                href="/trips/new"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg"
               >
                 Try It Free Now
@@ -532,7 +532,7 @@ export default function Home() {
                 </ul>
 
                 <Link
-                  href="/onboarding"
+                  href="/trips/new"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
                 >
                   Start Planning Free
@@ -642,7 +642,7 @@ export default function Home() {
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                   <Link
-                    href="/onboarding"
+                    href="/trips/new"
                     className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2"
                   >
                     <span>Start Planning Free</span>

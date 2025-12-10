@@ -122,7 +122,7 @@ export default function Navbar() {
                   Sign in
                 </Link>
                 <Link
-                  href="/onboarding"
+                  href="/trips/new"
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
                 >
                   Start Planning
@@ -203,7 +203,7 @@ export default function Navbar() {
                     Sign in
                   </Link>
                   <Link
-                    href="/onboarding"
+                    href="/trips/new"
                     className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >

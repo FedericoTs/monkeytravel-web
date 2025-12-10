@@ -65,7 +65,7 @@ export default function PreviewChangeCard({
               className="space-y-3"
             >
               {/* Old Activity (fading) */}
-              <div className="relative">
+              <div className="relative pt-5 sm:pt-0 sm:pl-8">
                 <motion.div
                   initial={{ opacity: 1, scale: 1 }}
                   animate={{ opacity: 0.5, scale: 0.98 }}
@@ -85,7 +85,7 @@ export default function PreviewChangeCard({
                     <MiniActivityCard activity={oldActivity} />
                   </div>
                 </motion.div>
-                <div className="absolute -left-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">
+                <div className="absolute left-0 sm:-left-2 top-0 sm:top-1/2 sm:-translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">
                   BEFORE
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function PreviewChangeCard({
               </div>
 
               {/* New Activity (highlighted) */}
-              <div className="relative">
+              <div className="relative pt-5 sm:pt-0 sm:pl-8">
                 <motion.div
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -114,7 +114,7 @@ export default function PreviewChangeCard({
                 >
                   <MiniActivityCard activity={newActivity} isNew />
                 </motion.div>
-                <div className="absolute -left-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600 font-medium">
+                <div className="absolute left-0 sm:-left-2 top-0 sm:top-1/2 sm:-translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600 font-medium">
                   AFTER
                 </div>
               </div>
