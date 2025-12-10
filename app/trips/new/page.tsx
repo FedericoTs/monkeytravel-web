@@ -21,6 +21,8 @@ import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
 import AuthPromptModal from "@/components/ui/AuthPromptModal";
 import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
+import OnboardingModal from "@/components/ui/OnboardingModal";
+import { hasLocalOnboardingPreferences } from "@/hooks/useOnboardingPreferences";
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
@@ -100,6 +102,7 @@ export default function NewTripPage() {
   // Auth state for gradual engagement
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   // Early access gate
   const {
@@ -312,6 +315,16 @@ export default function NewTripPage() {
           budgetTier,
         });
       }
+
+      // Check if onboarding has been completed
+      // If not, show onboarding modal first → then auth modal
+      const hasOnboardingPrefs = hasLocalOnboardingPreferences();
+      if (!hasOnboardingPrefs) {
+        setShowOnboardingModal(true);
+        return;
+      }
+
+      // Onboarding done, show auth modal
       setShowAuthModal(true);
       return;
     }
@@ -835,7 +848,19 @@ export default function NewTripPage() {
   // Wizard form
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Auth Prompt Modal - for gradual engagement */}
+      {/* Onboarding Modal - collect preferences before signup */}
+      <OnboardingModal
+        isOpen={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+        destination={destination}
+        onComplete={() => {
+          // Onboarding complete, now show auth modal
+          setShowOnboardingModal(false);
+          setShowAuthModal(true);
+        }}
+      />
+
+      {/* Auth Prompt Modal - for gradual engagement (after onboarding) */}
       <AuthPromptModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
