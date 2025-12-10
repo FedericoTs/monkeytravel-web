@@ -54,14 +54,135 @@ interface TripContext {
   activityCount: number;
 }
 
+// Parse duration from text (returns minutes)
+function parseDuration(text: string): number | null {
+  const lowerText = text.toLowerCase();
+
+  // Match patterns like "2 hours", "90 minutes", "1.5 hours", "1h30m"
+  const hourMatch = lowerText.match(/(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)/);
+  const minuteMatch = lowerText.match(/(\d+)\s*(?:minutes?|mins?|m)/);
+  const hourMinMatch = lowerText.match(/(\d+)\s*h\s*(\d+)\s*m/);
+
+  if (hourMinMatch) {
+    return parseInt(hourMinMatch[1]) * 60 + parseInt(hourMinMatch[2]);
+  }
+
+  let totalMinutes = 0;
+  if (hourMatch) {
+    totalMinutes += parseFloat(hourMatch[1]) * 60;
+  }
+  if (minuteMatch && !hourMatch) {
+    totalMinutes += parseInt(minuteMatch[1]);
+  } else if (minuteMatch && hourMatch) {
+    totalMinutes += parseInt(minuteMatch[1]);
+  }
+
+  return totalMinutes > 0 ? Math.round(totalMinutes) : null;
+}
+
 // Detect if user wants to replace/add an activity
 function detectActionIntent(message: string): {
-  type: "replace" | "add" | "remove" | "none";
+  type: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "none";
   activityName?: string;
   dayNumber?: number;
   preference?: string;
+  newDuration?: number; // in minutes
+  targetTimeSlot?: "morning" | "afternoon" | "evening";
 } {
   const lowerMsg = message.toLowerCase();
+
+  // Duration adjustment patterns - check first as they're specific
+  const durationPatterns = [
+    /(?:make|change|set|adjust)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
+    /(?:extend|lengthen)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))?/i,
+    /(?:shorten|reduce)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))?/i,
+    /["']?([^"']+?)["']?\s+(?:should\s+be|needs?\s+to\s+be)\s+(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
+    /(?:change|set|adjust)\s+(?:the\s+)?duration\s+(?:of\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
+    /(?:spend|allocate)\s+(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))\s+(?:at|for|on)\s+(?:the\s+)?["']?([^"']+?)["']?/i,
+  ];
+
+  for (const pattern of durationPatterns) {
+    const match = message.match(pattern);
+    if (match) {
+      // Handle different capture group orders
+      let activityName: string;
+      let durationText: string;
+
+      if (pattern.source.startsWith("(?:spend|allocate)")) {
+        durationText = match[1];
+        activityName = match[2];
+      } else {
+        activityName = match[1];
+        durationText = match[2] || "";
+      }
+
+      const duration = parseDuration(durationText || message);
+
+      // For extend/shorten without specific duration, we'll handle it differently
+      if (lowerMsg.includes("extend") || lowerMsg.includes("lengthen")) {
+        console.log(`[AI Assistant] Detected EXTEND duration for: "${activityName}"`);
+        return {
+          type: "adjust_duration",
+          activityName: activityName.trim(),
+          newDuration: duration || -1, // -1 means "extend by default amount"
+          preference: "extend",
+        };
+      }
+      if (lowerMsg.includes("shorten") || lowerMsg.includes("reduce")) {
+        console.log(`[AI Assistant] Detected SHORTEN duration for: "${activityName}"`);
+        return {
+          type: "adjust_duration",
+          activityName: activityName.trim(),
+          newDuration: duration || -2, // -2 means "shorten by default amount"
+          preference: "shorten",
+        };
+      }
+
+      if (duration) {
+        console.log(`[AI Assistant] Detected ADJUST_DURATION for: "${activityName}" to ${duration} minutes`);
+        return {
+          type: "adjust_duration",
+          activityName: activityName.trim(),
+          newDuration: duration,
+        };
+      }
+    }
+  }
+
+  // Reorder/Optimize patterns
+  const reorderPatterns = [
+    /(?:optimize|reorganize|reorder)\s+(?:my\s+)?(?:day\s+)?(\d+)?(?:\s+schedule)?/i,
+    /(?:minimize|reduce)\s+(?:travel|walking|transit)\s+time/i,
+    /(?:rearrange|shuffle|resequence)\s+(?:the\s+)?activities/i,
+    /(?:make|create)\s+(?:a\s+)?(?:more\s+)?efficient\s+(?:schedule|route|order)/i,
+    /(?:move|shift)\s+(?:the\s+)?["']?([^"']+?)["']?\s+to\s+(?:the\s+)?(morning|afternoon|evening)/i,
+    /(?:better|optimal|efficient)\s+(?:order|sequence|route)/i,
+  ];
+
+  for (const pattern of reorderPatterns) {
+    const match = message.match(pattern);
+    if (match) {
+      // Check if it's a "move X to morning/afternoon/evening" request
+      if (pattern.source.includes("move|shift")) {
+        console.log(`[AI Assistant] Detected MOVE activity: "${match[1]}" to ${match[2]}`);
+        return {
+          type: "reorder",
+          activityName: match[1]?.trim(),
+          targetTimeSlot: match[2]?.toLowerCase() as "morning" | "afternoon" | "evening",
+          dayNumber: undefined,
+          preference: message,
+        };
+      }
+
+      const dayNum = match[1] ? parseInt(match[1]) : undefined;
+      console.log(`[AI Assistant] Detected REORDER/OPTIMIZE for day: ${dayNum || "all"}`);
+      return {
+        type: "reorder",
+        dayNumber: dayNum,
+        preference: message,
+      };
+    }
+  }
 
   // Replace patterns - more flexible matching
   const replacePatterns = [
@@ -710,6 +831,292 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Handle duration adjustment
+    if (actionIntent.type === "adjust_duration" && actionIntent.activityName) {
+      console.log(`[AI Assistant] Attempting to adjust duration for: "${actionIntent.activityName}"`);
+
+      const found = findActivityByName(itinerary, actionIntent.activityName);
+
+      if (found) {
+        const oldDuration = found.activity.duration_minutes || 60;
+        let newDuration: number;
+
+        if (actionIntent.newDuration === -1) {
+          // Extend by 30 minutes (default)
+          newDuration = oldDuration + 30;
+          console.log(`[AI Assistant] Extending ${found.activity.name} from ${oldDuration} to ${newDuration} minutes`);
+        } else if (actionIntent.newDuration === -2) {
+          // Shorten by 30 minutes (minimum 30 minutes)
+          newDuration = Math.max(30, oldDuration - 30);
+          console.log(`[AI Assistant] Shortening ${found.activity.name} from ${oldDuration} to ${newDuration} minutes`);
+        } else {
+          newDuration = actionIntent.newDuration!;
+          console.log(`[AI Assistant] Setting ${found.activity.name} duration to ${newDuration} minutes`);
+        }
+
+        // Update the activity duration
+        modifiedItinerary[found.dayIndex].activities[found.activityIndex].duration_minutes = newDuration;
+
+        // Adjust subsequent activities' start times on the same day
+        const dayActivities = modifiedItinerary[found.dayIndex].activities;
+        for (let i = found.activityIndex + 1; i < dayActivities.length; i++) {
+          const prevActivity = dayActivities[i - 1];
+          const [prevHours, prevMins] = prevActivity.start_time.split(":").map(Number);
+          const prevEnd = prevHours * 60 + prevMins + (prevActivity.duration_minutes || 60);
+          const newHours = Math.floor(prevEnd / 60);
+          const newMins = prevEnd % 60;
+          dayActivities[i].start_time = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
+        }
+
+        itineraryWasModified = true;
+
+        actionTaken = {
+          type: "adjust_duration",
+          applied: true,
+          activityId: found.activity.id,
+          dayNumber: found.dayIndex + 1,
+        };
+
+        replacementCard = {
+          type: "duration_adjusted",
+          activity: {
+            id: found.activity.id || "",
+            name: found.activity.name,
+            type: found.activity.type,
+          },
+          oldDuration,
+          newDuration,
+          dayNumber: found.dayIndex + 1,
+          reason: `Duration adjusted from ${Math.floor(oldDuration / 60)}h${oldDuration % 60 > 0 ? ` ${oldDuration % 60}m` : ""} to ${Math.floor(newDuration / 60)}h${newDuration % 60 > 0 ? ` ${newDuration % 60}m` : ""}`,
+          autoApplied: !previewMode,
+        } as AssistantCard;
+
+        if (previewMode) {
+          console.log(`[AI Assistant] Preview mode: Preparing pending duration change`);
+          itineraryWasModified = false;
+        } else {
+          const { error: updateError } = await supabase
+            .from("trips")
+            .update({
+              itinerary: modifiedItinerary,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", tripId);
+
+          if (updateError) {
+            console.error("[AI Assistant] Database update failed:", updateError);
+            replacementError = "Failed to save changes to database";
+            itineraryWasModified = false;
+          } else {
+            console.log(`[AI Assistant] Successfully adjusted duration for "${found.activity.name}"`);
+          }
+        }
+      } else {
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
+      }
+    }
+
+    // Handle schedule optimization/reordering
+    if (actionIntent.type === "reorder") {
+      console.log(`[AI Assistant] Attempting to reorder/optimize schedule`);
+
+      try {
+        // Determine which day to optimize (default to day 1 or use specified day)
+        const targetDayNumber = actionIntent.dayNumber || 1;
+        const targetDayIndex = Math.min(targetDayNumber - 1, modifiedItinerary.length - 1);
+        const targetDay = modifiedItinerary[targetDayIndex];
+
+        if (!targetDay || targetDay.activities.length < 2) {
+          replacementError = targetDay?.activities.length < 2
+            ? `Day ${targetDayNumber} has only ${targetDay?.activities.length || 0} activities - nothing to reorder`
+            : `Day ${targetDayNumber} not found in your itinerary`;
+        } else {
+          // If moving a specific activity to a time slot
+          if (actionIntent.activityName && actionIntent.targetTimeSlot) {
+            const found = findActivityByName([targetDay], actionIntent.activityName);
+            if (found) {
+              const activity = targetDay.activities.splice(found.activityIndex, 1)[0];
+
+              // Determine new position based on target time slot
+              let insertIndex = 0;
+              let newStartTime = "09:00";
+
+              if (actionIntent.targetTimeSlot === "morning") {
+                insertIndex = 0;
+                newStartTime = "09:00";
+                activity.time_slot = "morning";
+              } else if (actionIntent.targetTimeSlot === "afternoon") {
+                // Find first afternoon activity or insert in middle
+                insertIndex = targetDay.activities.findIndex(a =>
+                  a.time_slot === "afternoon" || a.time_slot === "evening"
+                );
+                if (insertIndex === -1) insertIndex = Math.floor(targetDay.activities.length / 2);
+                newStartTime = "13:00";
+                activity.time_slot = "afternoon";
+              } else {
+                // Evening - insert at end
+                insertIndex = targetDay.activities.length;
+                newStartTime = "18:00";
+                activity.time_slot = "evening";
+              }
+
+              activity.start_time = newStartTime;
+              targetDay.activities.splice(insertIndex, 0, activity);
+
+              // Recalculate all start times based on new order
+              let currentTime = 9 * 60; // Start at 9:00 AM
+              for (const act of targetDay.activities) {
+                const hours = Math.floor(currentTime / 60);
+                const mins = currentTime % 60;
+                act.start_time = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+
+                // Update time slot based on actual time
+                if (hours < 12) act.time_slot = "morning";
+                else if (hours < 17) act.time_slot = "afternoon";
+                else act.time_slot = "evening";
+
+                currentTime += (act.duration_minutes || 60) + 30; // Add 30 min buffer between activities
+              }
+
+              itineraryWasModified = true;
+              modifiedItinerary[targetDayIndex] = targetDay;
+
+              actionTaken = {
+                type: "reorder",
+                applied: true,
+                dayNumber: targetDayNumber,
+              };
+
+              replacementCard = {
+                type: "schedule_reordered",
+                dayNumber: targetDayNumber,
+                reason: `Moved "${activity.name}" to ${actionIntent.targetTimeSlot}`,
+                activities: targetDay.activities.map(a => ({
+                  id: a.id || "",
+                  name: a.name,
+                  time: a.start_time,
+                  timeSlot: a.time_slot,
+                })),
+                autoApplied: !previewMode,
+              } as AssistantCard;
+            } else {
+              replacementError = `Could not find activity "${actionIntent.activityName}" on Day ${targetDayNumber}`;
+            }
+          } else {
+            // Full day optimization - use AI to suggest optimal order
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+            const activitiesInfo = targetDay.activities.map((a, i) => ({
+              index: i,
+              name: a.name,
+              type: a.type,
+              location: a.location || a.address || "unknown",
+              duration: a.duration_minutes || 60,
+              currentTime: a.start_time,
+            }));
+
+            const optimizePrompt = `You are optimizing a day's travel itinerary for ${tripContext.destination}.
+
+Current activities on Day ${targetDayNumber}:
+${activitiesInfo.map(a => `${a.index}. ${a.name} (${a.type}) at ${a.location} - ${a.duration}min`).join("\n")}
+
+Suggest the optimal order for these activities considering:
+1. Geographic proximity (minimize travel between locations)
+2. Typical opening hours (museums morning, restaurants lunch/dinner, nightlife evening)
+3. Activity type flow (don't have two heavy meals back-to-back)
+
+Return ONLY a JSON array with the optimal order of activity indices:
+{"optimalOrder": [0, 2, 1, 3], "reason": "Brief explanation of why this order is better"}`;
+
+            const result = await model.generateContent(optimizePrompt);
+            const text = result.response.text();
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+            if (jsonMatch) {
+              const optimization = JSON.parse(jsonMatch[0]) as { optimalOrder: number[]; reason: string };
+
+              // Reorder activities based on AI suggestion
+              const reorderedActivities = optimization.optimalOrder
+                .filter(idx => idx < targetDay.activities.length)
+                .map(idx => targetDay.activities[idx]);
+
+              // If some activities weren't included, add them at the end
+              const includedIndices = new Set(optimization.optimalOrder);
+              for (let i = 0; i < targetDay.activities.length; i++) {
+                if (!includedIndices.has(i)) {
+                  reorderedActivities.push(targetDay.activities[i]);
+                }
+              }
+
+              // Recalculate start times
+              let currentTime = 9 * 60;
+              for (const act of reorderedActivities) {
+                const hours = Math.floor(currentTime / 60);
+                const mins = currentTime % 60;
+                act.start_time = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+
+                if (hours < 12) act.time_slot = "morning";
+                else if (hours < 17) act.time_slot = "afternoon";
+                else act.time_slot = "evening";
+
+                currentTime += (act.duration_minutes || 60) + 30;
+              }
+
+              modifiedItinerary[targetDayIndex].activities = reorderedActivities;
+              itineraryWasModified = true;
+
+              actionTaken = {
+                type: "reorder",
+                applied: true,
+                dayNumber: targetDayNumber,
+              };
+
+              replacementCard = {
+                type: "schedule_optimized",
+                dayNumber: targetDayNumber,
+                reason: optimization.reason || "Optimized for efficient travel and activity flow",
+                activities: reorderedActivities.map(a => ({
+                  id: a.id || "",
+                  name: a.name,
+                  time: a.start_time,
+                  timeSlot: a.time_slot,
+                })),
+                autoApplied: !previewMode,
+              } as AssistantCard;
+            } else {
+              replacementError = "Failed to generate optimized schedule";
+            }
+          }
+
+          if (itineraryWasModified && previewMode) {
+            console.log(`[AI Assistant] Preview mode: Preparing pending reorder`);
+            itineraryWasModified = false;
+          } else if (itineraryWasModified && !previewMode) {
+            const { error: updateError } = await supabase
+              .from("trips")
+              .update({
+                itinerary: modifiedItinerary,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", tripId);
+
+            if (updateError) {
+              console.error("[AI Assistant] Database update failed:", updateError);
+              replacementError = "Failed to save changes to database";
+              itineraryWasModified = false;
+            } else {
+              console.log(`[AI Assistant] Successfully optimized Day ${targetDayNumber} schedule`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[AI Assistant] Failed to optimize schedule:", err);
+        replacementError = `Failed to optimize schedule: ${err instanceof Error ? err.message : "Unknown error"}`;
+        actionTaken = undefined;
+        replacementCard = undefined;
+      }
+    }
+
     // Load conversation
     let conversation: { id: string; messages: AssistantMessage[] };
 
@@ -867,11 +1274,18 @@ Respond with valid JSON only.`;
     if (previewMode && actionTaken && !replacementError) {
       if (actionTaken.type === "replace_activity") {
         const rc = replacementCard as { oldActivity: { id: string; name: string; type: string }; newActivity: Activity };
-        // Find the full old activity from itinerary
-        const found = findActivityByName(itinerary, actionIntent.activityName || "");
+        // IMPORTANT: Use the oldActivity from replacementCard which was set during the replace logic
+        // Do NOT re-search with findActivityByName() as fuzzy matching could find a different activity
+        // The replacementCard.oldActivity was captured at line 542-548 using the correct found.activity
+
+        // Get the full activity data from the itinerary using the exact ID we already found
+        const oldActivityFull = itinerary
+          .flatMap(day => day.activities)
+          .find(a => a.id === rc.oldActivity.id) || rc.oldActivity;
+
         pendingChange = {
           type: "replace" as const,
-          oldActivity: found?.activity || { id: rc.oldActivity.id, name: rc.oldActivity.name, type: rc.oldActivity.type },
+          oldActivity: oldActivityFull,
           newActivity: actionTaken.newActivity,
           dayNumber: actionTaken.dayNumber,
           reason: "Suggested based on your preference",
@@ -882,6 +1296,24 @@ Respond with valid JSON only.`;
           newActivity: actionTaken.newActivity,
           dayNumber: actionTaken.dayNumber,
           reason: "Suggested based on your request",
+        };
+      } else if (actionTaken.type === "adjust_duration") {
+        const dc = replacementCard as { activity: { id: string; name: string; type: string }; oldDuration: number; newDuration: number; dayNumber: number };
+        pendingChange = {
+          type: "adjust_duration" as const,
+          activity: dc.activity,
+          oldDuration: dc.oldDuration,
+          newDuration: dc.newDuration,
+          dayNumber: dc.dayNumber,
+          reason: `Duration change: ${Math.floor(dc.oldDuration / 60)}h${dc.oldDuration % 60 > 0 ? dc.oldDuration % 60 + "m" : ""} → ${Math.floor(dc.newDuration / 60)}h${dc.newDuration % 60 > 0 ? dc.newDuration % 60 + "m" : ""}`,
+        };
+      } else if (actionTaken.type === "reorder") {
+        const rc = replacementCard as { dayNumber: number; reason: string; activities: { id: string; name: string; time: string; timeSlot: string }[] };
+        pendingChange = {
+          type: "reorder" as const,
+          dayNumber: rc.dayNumber,
+          activities: rc.activities,
+          reason: rc.reason || "Optimized schedule for better flow",
         };
       }
     }

@@ -6,8 +6,11 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { isAdmin } from '@/lib/admin';
 import type { User } from '@supabase/supabase-js';
+import ReferralModal from '@/components/referral/ReferralModal';
+import { Gift } from 'lucide-react';
 
 const navLinks = [
+  { href: '/explore', label: 'Explore' },
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How It Works' },
   { href: '/templates', label: 'Curated Escapes' },
@@ -19,6 +22,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,6 +101,13 @@ export default function Navbar() {
                     Admin
                   </Link>
                 )}
+                <button
+                  onClick={() => setReferralModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
+                >
+                  <Gift className="w-4 h-4" />
+                  Invite Friends
+                </button>
                 <Link
                   href="/trips"
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
@@ -175,6 +186,16 @@ export default function Navbar() {
                       Admin Dashboard
                     </Link>
                   )}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setReferralModalOpen(true);
+                    }}
+                    className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
+                  >
+                    <Gift className="w-5 h-5" />
+                    Invite Friends
+                  </button>
                   <Link
                     href="/trips"
                     className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
@@ -215,6 +236,12 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* Referral Modal */}
+      <ReferralModal
+        isOpen={referralModalOpen}
+        onClose={() => setReferralModalOpen(false)}
+      />
     </nav>
   );
 }

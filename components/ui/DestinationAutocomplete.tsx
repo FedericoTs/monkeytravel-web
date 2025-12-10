@@ -5,12 +5,14 @@
  *
  * Premium autocomplete input for travel destinations.
  * Uses local database first for popular destinations (FREE),
- * falls back to Google Places API only when needed.
+ * falls back to Google Places API only when absolutely necessary.
  *
  * Features:
+ * - Popular destinations shown on focus (0 API calls)
  * - Local-first search (190+ popular destinations, $0 cost)
- * - Falls back to Google Places API for specific searches
- * - Debounced search (250ms)
+ * - Client-side caching to avoid repeat searches
+ * - Minimum 3 characters to trigger search (reduces API calls)
+ * - Debounced search (300ms)
  * - Keyboard navigation (↑↓ Enter Esc)
  * - Country flags and structured display
  * - Smooth animations
@@ -20,6 +22,88 @@
 
 import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+
+// Helper to normalize destination names for deduplication
+function normalizeForDedup(mainText: string, secondaryText: string): string {
+  return `${mainText.toLowerCase().trim()}|${secondaryText.toLowerCase().trim()}`;
+}
+
+// Deduplicate predictions by normalized name, preferring local results
+function deduplicatePredictions(predictions: PlacePrediction[]): PlacePrediction[] {
+  const seen = new Map<string, PlacePrediction>();
+  for (const pred of predictions) {
+    const key = normalizeForDedup(pred.mainText, pred.secondaryText);
+    const existing = seen.get(key);
+    // Prefer local/popular over google (has coordinates, no API cost)
+    if (!existing || (existing.source === "google" && pred.source !== "google")) {
+      seen.set(key, pred);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+// Fallback popular destinations (used while loading from API)
+const FALLBACK_POPULAR: PlacePrediction[] = [
+  { placeId: "popular_paris", mainText: "Paris", secondaryText: "France", fullText: "Paris, France", countryCode: "FR", flag: "🇫🇷", types: ["(cities)"], coordinates: { latitude: 48.8566, longitude: 2.3522 }, source: "local" },
+  { placeId: "popular_tokyo", mainText: "Tokyo", secondaryText: "Japan", fullText: "Tokyo, Japan", countryCode: "JP", flag: "🇯🇵", types: ["(cities)"], coordinates: { latitude: 35.6762, longitude: 139.6503 }, source: "local" },
+  { placeId: "popular_nyc", mainText: "New York City", secondaryText: "United States", fullText: "New York City, United States", countryCode: "US", flag: "🇺🇸", types: ["(cities)"], coordinates: { latitude: 40.7128, longitude: -74.0060 }, source: "local" },
+  { placeId: "popular_london", mainText: "London", secondaryText: "United Kingdom", fullText: "London, United Kingdom", countryCode: "GB", flag: "🇬🇧", types: ["(cities)"], coordinates: { latitude: 51.5074, longitude: -0.1278 }, source: "local" },
+];
+
+// Module-level cache for popular destinations from API
+let popularDestinationsCache: PlacePrediction[] | null = null;
+let popularFetchPromise: Promise<PlacePrediction[]> | null = null;
+
+async function fetchPopularDestinations(): Promise<PlacePrediction[]> {
+  // Return cached if available
+  if (popularDestinationsCache) {
+    return popularDestinationsCache;
+  }
+
+  // Return existing promise if already fetching
+  if (popularFetchPromise) {
+    return popularFetchPromise;
+  }
+
+  // Start fetch
+  popularFetchPromise = fetch("/api/destinations/popular?limit=8")
+    .then(res => res.json())
+    .then(data => {
+      const predictions = (data.predictions || []) as PlacePrediction[];
+      popularDestinationsCache = predictions.length > 0 ? predictions : FALLBACK_POPULAR;
+      return popularDestinationsCache;
+    })
+    .catch(err => {
+      console.error("Failed to fetch popular destinations:", err);
+      return FALLBACK_POPULAR;
+    })
+    .finally(() => {
+      popularFetchPromise = null;
+    });
+
+  return popularFetchPromise;
+}
+
+// Client-side search cache (5 minute TTL)
+const searchCache = new Map<string, { results: PlacePrediction[]; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCachedResults(query: string): PlacePrediction[] | null {
+  const cached = searchCache.get(query.toLowerCase());
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.results;
+  }
+  return null;
+}
+
+function setCachedResults(query: string, results: PlacePrediction[]) {
+  // Limit cache size to prevent memory issues
+  if (searchCache.size > 100) {
+    const oldestKey = searchCache.keys().next().value;
+    if (oldestKey) searchCache.delete(oldestKey);
+  }
+  searchCache.set(query.toLowerCase(), { results, timestamp: Date.now() });
+}
 
 export interface PlacePrediction {
   placeId: string;
@@ -54,18 +138,26 @@ export default function DestinationAutocomplete({
   autoFocus = false,
 }: DestinationAutocompleteProps) {
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<PlacePrediction[]>(FALLBACK_POPULAR);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [sessionToken] = useState(() => crypto.randomUUID());
-  const [searchSource, setSearchSource] = useState<"local" | "google">("local");
-  const [showSearchMore, setShowSearchMore] = useState(false);
+  const [searchSource, setSearchSource] = useState<"local" | "google" | "popular">("local");
+  const [showPopular, setShowPopular] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const isSelectingRef = useRef(false); // Prevent double-click selection
 
-  const debouncedValue = useDebounce(value, 250);
+  // Increased debounce to 300ms to reduce API calls
+  const debouncedValue = useDebounce(value, 300);
+
+  // Fetch popular destinations on mount (from database)
+  useEffect(() => {
+    fetchPopularDestinations().then(setPopularDestinations);
+  }, []);
 
   // Search local destinations first, then optionally fall back to Google
   const searchLocal = useCallback(async (input: string): Promise<PlacePrediction[]> => {
@@ -104,13 +196,32 @@ export default function DestinationAutocomplete({
     }
   }, [sessionToken]);
 
-  // Fetch predictions when debounced value changes - LOCAL FIRST
+  // Fetch predictions when debounced value changes - LOCAL FIRST, with caching
   useEffect(() => {
     const fetchPredictions = async () => {
-      if (!debouncedValue || debouncedValue.length < 2) {
-        setPredictions([]);
-        setIsOpen(false);
-        setShowSearchMore(false);
+      // Show popular destinations when input is empty or very short
+      if (!debouncedValue || debouncedValue.length < 3) {
+        if (showPopular && debouncedValue.length < 3) {
+          // Show popular destinations (from database, no Google API call)
+          setPredictions(popularDestinations);
+          setSearchSource("popular");
+          setIsOpen(true);
+          setHighlightedIndex(-1);
+        } else {
+          setPredictions([]);
+          setIsOpen(false);
+        }
+        return;
+      }
+
+      // Check client-side cache first
+      const cachedResults = getCachedResults(debouncedValue);
+      if (cachedResults) {
+        console.log("[Autocomplete] Using cached results for:", debouncedValue);
+        setPredictions(cachedResults);
+        setSearchSource("local");
+        setIsOpen(cachedResults.length > 0);
+        setHighlightedIndex(-1);
         return;
       }
 
@@ -121,19 +232,28 @@ export default function DestinationAutocomplete({
         const localResults = await searchLocal(debouncedValue);
 
         if (localResults.length > 0) {
-          // Found local results - use them
+          // Found local results - use them and cache
           setPredictions(localResults);
           setSearchSource("local");
-          setShowSearchMore(true); // Allow user to search Google if needed
+          setCachedResults(debouncedValue, localResults);
           setIsOpen(true);
           setHighlightedIndex(-1);
         } else {
-          // No local results - fall back to Google Places API
-          const googleResults = await searchGoogle(debouncedValue);
-          setPredictions(googleResults);
-          setSearchSource("google");
-          setShowSearchMore(false);
-          setIsOpen(googleResults.length > 0);
+          // No local results - try Google only for longer queries (4+ chars)
+          // This significantly reduces Google API calls
+          if (debouncedValue.length >= 4) {
+            const googleResults = await searchGoogle(debouncedValue);
+            setPredictions(googleResults);
+            setSearchSource("google");
+            if (googleResults.length > 0) {
+              setCachedResults(debouncedValue, googleResults);
+            }
+            setIsOpen(googleResults.length > 0);
+          } else {
+            // For 3-char queries with no local results, show "no results"
+            setPredictions([]);
+            setIsOpen(false);
+          }
           setHighlightedIndex(-1);
         }
       } catch (error) {
@@ -145,51 +265,45 @@ export default function DestinationAutocomplete({
     };
 
     fetchPredictions();
-  }, [debouncedValue, searchLocal, searchGoogle]);
+  }, [debouncedValue, searchLocal, searchGoogle, showPopular, popularDestinations]);
 
-  // Handle "Search more" to use Google Places API
-  const handleSearchMore = useCallback(async () => {
-    if (!value || value.length < 2) return;
-
-    setIsLoading(true);
-    try {
-      const googleResults = await searchGoogle(value);
-      setPredictions(googleResults);
-      setSearchSource("google");
-      setShowSearchMore(false);
-    } catch (error) {
-      console.error("Google search error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [value, searchGoogle]);
 
   // Handle selection - use local coordinates or fetch from Places API
   const handleSelect = useCallback(
     async (prediction: PlacePrediction) => {
+      // Prevent double-click/rapid selection
+      if (isSelectingRef.current) {
+        console.log("[Autocomplete] Selection already in progress, ignoring");
+        return;
+      }
+      isSelectingRef.current = true;
+
+      // Immediately close dropdown and update input
       onChange(prediction.fullText);
       setIsOpen(false);
       setPredictions([]);
-      setShowSearchMore(false);
+      setShowPopular(false);
       inputRef.current?.blur();
 
-      // If local result already has coordinates, use them directly (NO API CALL!)
-      if (prediction.source === "local" && prediction.coordinates) {
-        console.log("[Autocomplete] Using local coordinates - $0 cost");
-        onSelect?.(prediction);
-        return;
-      }
-
-      // For Google results or local without coords, fetch details
-      // Skip if placeId starts with "local_" (shouldn't happen, but safeguard)
-      if (prediction.placeId.startsWith("local_")) {
-        console.log("[Autocomplete] Local result without coords, using as-is");
-        onSelect?.(prediction);
-        return;
-      }
-
-      // Fetch coordinates from Google Places Details API
       try {
+        // If popular or local result already has coordinates, use them directly (NO API CALL!)
+        if ((prediction.source === "local" || prediction.placeId.startsWith("popular_")) && prediction.coordinates) {
+          console.log("[Autocomplete] Using local/popular coordinates - $0 cost");
+          onSelect?.(prediction);
+          setTimeout(() => { isSelectingRef.current = false; }, 300);
+          return;
+        }
+
+        // For Google results or local without coords, fetch details
+        // Skip if placeId starts with "local_" or "popular_" (shouldn't happen, but safeguard)
+        if (prediction.placeId.startsWith("local_") || prediction.placeId.startsWith("popular_")) {
+          console.log("[Autocomplete] Local/popular result without coords, using as-is");
+          onSelect?.(prediction);
+          setTimeout(() => { isSelectingRef.current = false; }, 300);
+          return;
+        }
+
+        // Fetch coordinates from Google Places Details API
         const response = await fetch(
           `/api/places/details?placeId=${encodeURIComponent(prediction.placeId)}`
         );
@@ -201,6 +315,24 @@ export default function DestinationAutocomplete({
             coordinates: details.location,
           };
           onSelect?.(enrichedPrediction);
+
+          // Auto-save Google-sourced destination to local database (non-blocking)
+          if (prediction.source === "google" && details.location) {
+            fetch("/api/destinations/upsert", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: prediction.mainText,
+                country: prediction.secondaryText,
+                latitude: details.location.latitude,
+                longitude: details.location.longitude,
+                placeId: prediction.placeId,
+                countryCode: prediction.countryCode,
+              }),
+            }).catch((err) => {
+              console.warn("[Autocomplete] Failed to save destination:", err);
+            });
+          }
         } else {
           // Fallback: pass prediction without coordinates
           onSelect?.(prediction);
@@ -209,6 +341,11 @@ export default function DestinationAutocomplete({
         console.error("Failed to fetch place details:", error);
         // Fallback: pass prediction without coordinates
         onSelect?.(prediction);
+      } finally {
+        // Reset selection lock after a short delay to prevent accidental re-selection
+        setTimeout(() => {
+          isSelectingRef.current = false;
+        }, 300);
       }
     },
     [onChange, onSelect]
@@ -282,8 +419,11 @@ export default function DestinationAutocomplete({
   // Clear input
   const handleClear = () => {
     onChange("");
-    setPredictions([]);
-    setIsOpen(false);
+    // Show popular destinations after clearing
+    setPredictions(popularDestinations);
+    setSearchSource("popular");
+    setShowPopular(true);
+    setIsOpen(true);
     inputRef.current?.focus();
   };
 
@@ -320,7 +460,15 @@ export default function DestinationAutocomplete({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (predictions.length > 0) setIsOpen(true);
+            // Show popular destinations when focusing on empty input
+            if (!value || value.length < 3) {
+              setShowPopular(true);
+              setPredictions(popularDestinations);
+              setSearchSource("popular");
+              setIsOpen(true);
+            } else if (predictions.length > 0) {
+              setIsOpen(true);
+            }
           }}
           placeholder={placeholder}
           autoFocus={autoFocus}
@@ -407,19 +555,18 @@ export default function DestinationAutocomplete({
             ))}
           </div>
 
-          {/* Footer with Search More option or Google Attribution */}
+          {/* Footer with source attribution */}
           <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50">
-            {searchSource === "local" && showSearchMore ? (
-              <button
-                type="button"
-                onClick={handleSearchMore}
-                className="w-full flex items-center justify-center gap-2 py-1.5 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span>Search more destinations</span>
-              </button>
+            {searchSource === "popular" ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                  <span>Popular destinations</span>
+                </div>
+                <span className="text-[10px] text-slate-400">Type 3+ chars to search</span>
+              </div>
             ) : searchSource === "google" ? (
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
@@ -447,7 +594,7 @@ export default function DestinationAutocomplete({
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Popular destinations</span>
+                <span>From our curated list</span>
               </div>
             )}
           </div>
@@ -455,7 +602,7 @@ export default function DestinationAutocomplete({
       )}
 
       {/* No Results State */}
-      {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 2 && (
+      {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
                      shadow-xl shadow-slate-200/50 overflow-hidden p-6 text-center

@@ -86,6 +86,63 @@ function getCountryFlag(countryCode: string | null): string {
 }
 
 /**
+ * Common destination aliases and abbreviations
+ * These help users find destinations using common shorthand
+ */
+const DESTINATION_ALIASES: Record<string, string[]> = {
+  // US Cities
+  "nyc": ["New York City", "New York"],
+  "ny": ["New York City", "New York"],
+  "la": ["Los Angeles"],
+  "sf": ["San Francisco"],
+  "vegas": ["Las Vegas"],
+  "lv": ["Las Vegas"],
+  "dc": ["Washington"],
+  "chi": ["Chicago"],
+  "nola": ["New Orleans"],
+  "atl": ["Atlanta"],
+  "philly": ["Philadelphia"],
+  "sd": ["San Diego"],
+
+  // International
+  "uk": ["London", "United Kingdom"],
+  "uae": ["Dubai", "United Arab Emirates"],
+  "hk": ["Hong Kong"],
+  "sg": ["Singapore"],
+  "bkk": ["Bangkok"],
+  "cdmx": ["Mexico City"],
+  "bcn": ["Barcelona"],
+  "ams": ["Amsterdam"],
+  "rio": ["Rio de Janeiro"],
+  "ba": ["Buenos Aires"],
+  "ist": ["Istanbul"],
+
+  // Country shortcuts
+  "usa": ["United States", "New York City", "Los Angeles"],
+  "japan": ["Tokyo", "Kyoto", "Osaka"],
+  "france": ["Paris", "Nice", "Lyon"],
+  "italy": ["Rome", "Florence", "Venice", "Milan"],
+  "spain": ["Barcelona", "Madrid", "Seville"],
+  "thailand": ["Bangkok", "Phuket", "Chiang Mai"],
+  "australia": ["Sydney", "Melbourne", "Brisbane"],
+  "mexico": ["Mexico City", "Cancun", "Tulum"],
+};
+
+/**
+ * Expand search term with aliases
+ */
+function expandSearchWithAliases(input: string): string[] {
+  const normalized = input.toLowerCase().trim();
+  const aliases = DESTINATION_ALIASES[normalized];
+
+  if (aliases) {
+    return [normalized, ...aliases.map(a => a.toLowerCase())];
+  }
+
+  return [normalized];
+}
+
+/**
  * Escape special characters for PostgREST ilike queries
  * PostgREST uses commas, dots, parentheses as operators
  */
@@ -122,16 +179,22 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
     const searchTerm = input.toLowerCase().trim();
-    const escapedTerm = escapeForPostgrest(searchTerm);
+
+    // Expand search term with aliases (e.g., "nyc" -> ["nyc", "new york city", "new york"])
+    const searchTerms = expandSearchWithAliases(searchTerm);
+
+    // Build OR conditions for all search terms
+    const orConditions = searchTerms.map(term => {
+      const escapedTerm = escapeForPostgrest(term);
+      return `name.ilike.%${escapedTerm}%,country.ilike.%${escapedTerm}%,city.ilike.%${escapedTerm}%`;
+    }).join(",");
 
     // Use trigram similarity for fuzzy matching
     // This query searches name and country with similarity scoring
     const { data: destinations, error } = await supabase
       .from("destinations")
       .select("id, name, country, city, latitude, longitude, tags, rating")
-      .or(
-        `name.ilike.%${escapedTerm}%,country.ilike.%${escapedTerm}%,city.ilike.%${escapedTerm}%`
-      )
+      .or(orConditions)
       .order("rating", { ascending: false })
       .limit(limit);
 

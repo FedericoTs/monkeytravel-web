@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { TrendingUp, Globe } from "lucide-react";
 
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   shareUrl: string;
   tripTitle: string;
+  tripId: string;
   isShared: boolean;
+  isInTrending?: boolean;
   onStopSharing: () => void;
+  onTrendingChange?: (isTrending: boolean) => void;
   isLoading: boolean;
 }
 
@@ -17,20 +21,48 @@ export default function ShareModal({
   onClose,
   shareUrl,
   tripTitle,
+  tripId,
   isShared,
+  isInTrending = false,
   onStopSharing,
+  onTrendingChange,
   isLoading,
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
+  const [trendingLoading, setTrendingLoading] = useState(false);
 
-  // Reset copied state when modal opens
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setCopied(false);
       setShowStopConfirm(false);
+      setTrendingEnabled(isInTrending);
     }
-  }, [isOpen]);
+  }, [isOpen, isInTrending]);
+
+  // Handle trending toggle
+  const handleTrendingToggle = async () => {
+    if (trendingLoading) return;
+
+    setTrendingLoading(true);
+    try {
+      const method = trendingEnabled ? "DELETE" : "POST";
+      const response = await fetch(`/api/trips/${tripId}/submit-trending`, {
+        method,
+      });
+
+      if (response.ok) {
+        setTrendingEnabled(!trendingEnabled);
+        onTrendingChange?.(!trendingEnabled);
+      }
+    } catch (error) {
+      console.error("Failed to update trending status:", error);
+    } finally {
+      setTrendingLoading(false);
+    }
+  };
 
   // Handle escape key
   useEffect(() => {
@@ -186,6 +218,61 @@ export default function ShareModal({
               </button>
             </div>
           </div>
+
+          {/* Submit to Trending */}
+          {isShared && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                    {trendingEnabled ? (
+                      <Globe className="w-5 h-5 text-white" />
+                    ) : (
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {trendingEnabled ? "Listed on Explore" : "Submit to Explore"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {trendingEnabled
+                        ? "Your trip is visible in the public gallery"
+                        : "Let others discover your itinerary"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleTrendingToggle}
+                  disabled={trendingLoading}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${
+                    trendingEnabled
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                      : "bg-slate-200"
+                  } ${trendingLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <span
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      trendingEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+              {trendingEnabled && (
+                <div className="mt-3 pt-3 border-t border-amber-100">
+                  <a
+                    href="/explore"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    View in Explore gallery →
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Stop Sharing */}
           {isShared && (

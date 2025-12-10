@@ -27,6 +27,7 @@ function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [hasOnboardingPrefs, setHasOnboardingPrefs] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,19 +35,31 @@ function SignupForm() {
   const redirectUrl = searchParams.get("redirect") || "/trips/new";
   const fromOnboarding = searchParams.get("from") === "onboarding";
 
-  // Check for localStorage preferences on mount
+  // Check for localStorage preferences and referral code on mount
   useEffect(() => {
     setHasOnboardingPrefs(hasLocalOnboardingPreferences());
-  }, []);
+
+    // Get referral code from URL or localStorage
+    const urlRef = searchParams.get("ref");
+    const storedRef = localStorage.getItem("referral_code");
+    const code = urlRef || storedRef;
+
+    if (code) {
+      setReferralCode(code);
+      // Store in localStorage for persistence across page reloads
+      localStorage.setItem("referral_code", code);
+    }
+  }, [searchParams]);
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     setError(null);
 
-    // Pass onboarding status to callback
+    // Pass onboarding status and referral code to callback
     const callbackParams = new URLSearchParams({
       next: redirectUrl,
       ...(hasOnboardingPrefs && { from_onboarding: "true" }),
+      ...(referralCode && { ref: referralCode }),
     });
 
     const supabase = createClient();
@@ -117,6 +130,8 @@ function SignupForm() {
           allowLocationTracking: false,
           disableFriendRequests: false,
         },
+        // Add referral code if present
+        ...(referralCode && { referred_by_code: referralCode }),
       };
 
       if (localPrefs && hasCompletedOnboarding) {
@@ -286,8 +301,29 @@ function SignupForm() {
                 : "Start planning AI-powered trips today"}
             </p>
 
+            {/* Show referral banner if coming from referral link */}
+            {referralCode && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800">
+                      You've been invited!
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      Get 1 FREE AI trip when you sign up and create your first trip
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Show preferences saved badge if from onboarding */}
-            {hasOnboardingPrefs && (
+            {hasOnboardingPrefs && !referralCode && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-6">
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

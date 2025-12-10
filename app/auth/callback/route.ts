@@ -10,6 +10,7 @@ export async function GET(request: Request) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/trips";
   const fromOnboarding = searchParams.get("from_onboarding") === "true";
+  const referralCode = searchParams.get("ref");
 
   const supabase = await createClient();
 
@@ -107,6 +108,8 @@ export async function GET(request: Request) {
             socialNotifications: true,
             marketingNotifications: false,
           },
+          // Add referral code if present
+          ...(referralCode && { referred_by_code: referralCode }),
         });
 
         if (fromOnboarding) {

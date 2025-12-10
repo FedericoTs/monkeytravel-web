@@ -708,8 +708,10 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         console.log("[TripDetailClient] Updating state with new itinerary...");
         const freshCopy = [...processedItinerary];
         setEditedItinerary(freshCopy);
-        // Also update saved state since this is fresh data from database
-        setSavedItinerary(JSON.parse(JSON.stringify(freshCopy)));
+        // DO NOT update savedItinerary here - this is called after AI changes are applied
+        // We want hasChanges to be true so the user can click "Save Changes" to confirm
+        // The AI has already saved to the database, but the user expects to "save" their changes
+        // Keeping savedItinerary unchanged means hasChanges will be true and Save button enabled
         setIsEditMode(true);
         setItineraryVersion((v) => {
           const newVersion = v + 1;
