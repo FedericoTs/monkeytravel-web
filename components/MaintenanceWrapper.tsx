@@ -18,22 +18,22 @@ interface MaintenanceWrapperProps {
 }
 
 /**
- * Check if a user is an active test account
+ * Check if a user has valid tester access (redeemed an early access code)
  */
-async function isTestAccount(supabase: ReturnType<typeof createClient>, email: string): Promise<boolean> {
+async function hasValidTesterAccess(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<boolean> {
   try {
     const { data, error } = await supabase
-      .from("test_accounts")
-      .select("id, is_active, expires_at")
-      .eq("email", email.toLowerCase())
+      .from("user_tester_access")
+      .select("id, expires_at")
+      .eq("user_id", userId)
       .single();
 
     if (error || !data) return false;
 
-    // Check if account is active
-    if (!data.is_active) return false;
-
-    // Check if account has expired
+    // Check if access has expired
     if (data.expires_at && new Date(data.expires_at) < new Date()) return false;
 
     return true;
@@ -88,14 +88,14 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
         return;
       }
 
-      // Check if user is an active test account
-      if (user.email && await isTestAccount(supabase, user.email)) {
+      // Check if user has redeemed an early access code
+      if (await hasValidTesterAccess(supabase, user.id)) {
         setIsBlocked(false);
         setChecking(false);
         return;
       }
 
-      // User is not admin, not in allowed list, and not a test account - block access
+      // User is not admin, not in allowed list, and has no early access - block
       setIsBlocked(true);
       setChecking(false);
     } catch (error) {

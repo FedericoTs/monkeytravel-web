@@ -85,6 +85,18 @@ function getCountryFlag(countryCode: string | null): string {
   return countryFlags[countryCode.toUpperCase()] || "🌍";
 }
 
+/**
+ * Escape special characters for PostgREST ilike queries
+ * PostgREST uses commas, dots, parentheses as operators
+ */
+function escapeForPostgrest(input: string): string {
+  // Remove or escape characters that break PostgREST queries
+  return input
+    .replace(/[%_]/g, "\\$&") // Escape SQL wildcards
+    .replace(/[,.()\[\]{}]/g, "") // Remove PostgREST operators
+    .replace(/'/g, "''"); // Escape single quotes
+}
+
 export interface LocalDestinationPrediction {
   placeId: string; // "local_" + destination id
   mainText: string;
@@ -110,6 +122,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
     const searchTerm = input.toLowerCase().trim();
+    const escapedTerm = escapeForPostgrest(searchTerm);
 
     // Use trigram similarity for fuzzy matching
     // This query searches name and country with similarity scoring
@@ -117,7 +130,7 @@ export async function POST(request: NextRequest) {
       .from("destinations")
       .select("id, name, country, city, latitude, longitude, tags, rating")
       .or(
-        `name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`
+        `name.ilike.%${escapedTerm}%,country.ilike.%${escapedTerm}%,city.ilike.%${escapedTerm}%`
       )
       .order("rating", { ascending: false })
       .limit(limit);

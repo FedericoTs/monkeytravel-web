@@ -24,7 +24,7 @@ import {
 } from "./config";
 
 /**
- * Custom limits for a user (from test_accounts)
+ * Custom limits for a user (from early access code redemption)
  */
 interface CustomLimitsResult {
   hasCustomLimits: boolean;
@@ -32,15 +32,15 @@ interface CustomLimitsResult {
 }
 
 /**
- * Get custom limits for a test account
+ * Get custom limits for a user who redeemed an early access code
  */
-async function getTestAccountCustomLimits(userId: string): Promise<CustomLimitsResult> {
+async function getEarlyAccessLimits(userId: string): Promise<CustomLimitsResult> {
   try {
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from("test_accounts")
-      .select("custom_limits, is_active, expires_at")
+      .from("user_tester_access")
+      .select("ai_generations_limit, ai_regenerations_limit, ai_assistant_limit, expires_at")
       .eq("user_id", userId)
       .single();
 
@@ -48,22 +48,30 @@ async function getTestAccountCustomLimits(userId: string): Promise<CustomLimitsR
       return { hasCustomLimits: false, limits: null };
     }
 
-    // Check if account is active
-    if (!data.is_active) {
-      return { hasCustomLimits: false, limits: null };
-    }
-
-    // Check if account has expired
+    // Check if access has expired
     if (data.expires_at && new Date(data.expires_at) < new Date()) {
       return { hasCustomLimits: false, limits: null };
     }
 
-    // Return custom limits if they exist
-    if (data.custom_limits) {
-      return { hasCustomLimits: true, limits: data.custom_limits as Partial<TierLimits> };
+    // Build limits object from the explicit columns
+    const limits: Partial<TierLimits> = {};
+
+    if (data.ai_generations_limit !== null) {
+      limits.aiGenerations = data.ai_generations_limit;
+    }
+    if (data.ai_regenerations_limit !== null) {
+      limits.aiRegenerations = data.ai_regenerations_limit;
+    }
+    if (data.ai_assistant_limit !== null) {
+      limits.aiAssistantMessages = data.ai_assistant_limit;
     }
 
-    // Test account without custom limits - they get premium tier by default
+    // If any limits are set, return them
+    if (Object.keys(limits).length > 0) {
+      return { hasCustomLimits: true, limits };
+    }
+
+    // Early access user without specific limits - they get premium tier by default
     return { hasCustomLimits: true, limits: null };
   } catch {
     return { hasCustomLimits: false, limits: null };
@@ -197,14 +205,14 @@ export async function checkUsageLimit(
     const periodType = LIMIT_TYPE_TO_PERIOD[limitType];
     const resetAt = getPeriodResetAt(periodType);
 
-    // Check for test account with custom limits
-    const testAccountLimits = await getTestAccountCustomLimits(userId);
+    // Check for early access user with custom limits
+    const earlyAccessLimits = await getEarlyAccessLimits(userId);
 
-    if (testAccountLimits.hasCustomLimits) {
-      // Test account found
-      if (testAccountLimits.limits && testAccountLimits.limits[limitType] !== undefined) {
+    if (earlyAccessLimits.hasCustomLimits) {
+      // Early access user found
+      if (earlyAccessLimits.limits && earlyAccessLimits.limits[limitType] !== undefined) {
         // Use custom limit for this specific type
-        const customLimit = testAccountLimits.limits[limitType] as number;
+        const customLimit = earlyAccessLimits.limits[limitType] as number;
 
         // Unlimited check
         if (isUnlimited(customLimit)) {
@@ -214,7 +222,7 @@ export async function checkUsageLimit(
             limit: -1,
             used: 0,
             resetAt,
-            tier: "premium", // Test accounts show as premium
+            tier: "premium", // Early access users show as premium
             periodType,
           };
         }
@@ -237,7 +245,7 @@ export async function checkUsageLimit(
             : `You've reached your ${LIMIT_DISPLAY_NAMES[limitType]} limit for this ${periodType === "monthly" ? "month" : "day"}.`,
         };
       } else {
-        // Test account without specific custom limits - give unlimited access
+        // Early access user without specific custom limits - give unlimited access
         return {
           allowed: true,
           remaining: -1,
@@ -250,7 +258,7 @@ export async function checkUsageLimit(
       }
     }
 
-    // Not a test account - use normal tier-based limits
+    // No early access - use normal tier-based limits
     const tier = await getUserTier(userId, userEmail);
     const limit = TIER_LIMITS[tier][limitType];
 

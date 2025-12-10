@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
+ * Escape special characters for PostgREST ilike queries
+ */
+function escapeForPostgrest(input: string): string {
+  return input
+    .replace(/[%_]/g, "\\$&")
+    .replace(/[,.()\[\]{}]/g, "")
+    .replace(/'/g, "''");
+}
+
+/**
  * GET /api/templates
  *
  * Fetch template trips with optional filters
@@ -79,8 +89,9 @@ export async function GET(request: NextRequest) {
 
     // Apply destination search (case-insensitive partial match)
     if (destination) {
+      const escapedDest = escapeForPostgrest(destination.toLowerCase().trim());
       query = query.or(
-        `template_destination.ilike.%${destination}%,template_country.ilike.%${destination}%`
+        `template_destination.ilike.%${escapedDest}%,template_country.ilike.%${escapedDest}%`
       );
     }
 

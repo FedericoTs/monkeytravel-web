@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -12,12 +12,17 @@ import {
   clearLocalOnboardingPreferences,
   hasLocalOnboardingPreferences,
 } from "@/hooks/useOnboardingPreferences";
+import {
+  humanizeAuthError,
+  validateSignupForm,
+  type AuthError,
+} from "@/lib/auth-errors";
 
-export default function SignupPage() {
+function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthError | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -45,15 +50,15 @@ export default function SignupPage() {
     });
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?${callbackParams.toString()}`,
       },
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(humanizeAuthError(authError.message));
       setGoogleLoading(false);
     }
   };
@@ -63,8 +68,10 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    // Client-side validation first
+    const validationError = validateSignupForm(email, password, displayName);
+    if (validationError) {
+      setError(validationError);
       setLoading(false);
       return;
     }
@@ -83,7 +90,7 @@ export default function SignupPage() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      setError(humanizeAuthError(signUpError.message));
       setLoading(false);
       return;
     }
@@ -295,7 +302,10 @@ export default function SignupPage() {
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                {error}
+                <p className="font-medium">{error.message}</p>
+                {error.suggestion && (
+                  <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
+                )}
               </div>
             )}
 
@@ -365,13 +375,14 @@ export default function SignupPage() {
                   htmlFor="displayName"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Display Name
+                  Display Name <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <input
                   id="displayName"
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={50}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
                   placeholder="Your name"
                 />
@@ -380,7 +391,9 @@ export default function SignupPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-slate-700 mb-1"
+                  className={`block text-sm font-medium mb-1 ${
+                    error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
+                  }`}
                 >
                   Email
                 </label>
@@ -388,9 +401,16 @@ export default function SignupPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error?.field === 'email') setError(null);
+                  }}
                   required
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
+                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+                    error?.field === 'email'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+                  }`}
                   placeholder="you@example.com"
                 />
               </div>
@@ -398,7 +418,9 @@ export default function SignupPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-slate-700 mb-1"
+                  className={`block text-sm font-medium mb-1 ${
+                    error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
+                  }`}
                 >
                   Password
                 </label>
@@ -406,12 +428,20 @@ export default function SignupPage() {
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error?.field === 'password') setError(null);
+                  }}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
+                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+                    error?.field === 'password'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+                  }`}
                   placeholder="At least 6 characters"
                 />
+                <p className="text-xs text-slate-500 mt-1">Must be at least 6 characters</p>
               </div>
 
               <button
@@ -473,5 +503,19 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+          <div className="animate-spin h-8 w-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -6,11 +6,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { trackLogin, setUserId } from "@/lib/analytics";
+import {
+  humanizeAuthError,
+  validateLoginForm,
+  type AuthError,
+} from "@/lib/auth-errors";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthError | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
@@ -23,14 +28,22 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
+    // Client-side validation first
+    const validationError = validateLoginForm(email, password);
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(humanizeAuthError(authError.message));
       setLoading(false);
     } else {
       // Track successful login
@@ -49,15 +62,15 @@ function LoginForm() {
     setError(null);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=${redirect}`,
       },
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(humanizeAuthError(authError.message));
       setGoogleLoading(false);
     }
   };
@@ -93,7 +106,10 @@ function LoginForm() {
 
             {(error || errorParam) && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                {error || errorParam}
+                <p className="font-medium">{error?.message || errorParam}</p>
+                {error?.suggestion && (
+                  <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
+                )}
               </div>
             )}
 
@@ -161,7 +177,9 @@ function LoginForm() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-slate-700 mb-1"
+                  className={`block text-sm font-medium mb-1 ${
+                    error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
+                  }`}
                 >
                   Email
                 </label>
@@ -169,27 +187,51 @@ function LoginForm() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error?.field === 'email') setError(null);
+                  }}
                   required
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
+                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+                    error?.field === 'email'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+                  }`}
                   placeholder="you@example.com"
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label
+                    htmlFor="password"
+                    className={`block text-sm font-medium ${
+                      error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
+                    }`}
+                  >
+                    Password
+                  </label>
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-sm text-[var(--primary)] hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <input
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error?.field === 'password') setError(null);
+                  }}
                   required
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
+                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+                    error?.field === 'password'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+                  }`}
                   placeholder="Your password"
                 />
               </div>
