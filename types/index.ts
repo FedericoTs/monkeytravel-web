@@ -226,7 +226,8 @@ export type AssistantCardType =
   | "tip"                  // Quick tip or info
   | "comparison"           // Comparing multiple options
   | "confirmation"         // Action completed confirmation
-  | "error";               // Error message
+  | "error"                // Error message
+  | "duration_adjusted";   // Duration was adjusted
 
 export interface AssistantActivityCard {
   type: "activity_suggestion" | "activity_added";
@@ -278,19 +279,34 @@ export interface AssistantErrorCard {
   message: string;
 }
 
+export interface AssistantDurationCard {
+  type: "duration_adjusted";
+  activity: {
+    id: string;
+    name: string;
+    type: Activity["type"];
+  };
+  oldDuration: number;
+  newDuration: number;
+  dayNumber: number;
+  reason?: string;
+  autoApplied?: boolean;
+}
+
 export type AssistantCard =
   | AssistantActivityCard
   | AssistantReplacementCard
   | AssistantTipCard
   | AssistantComparisonCard
   | AssistantConfirmationCard
-  | AssistantErrorCard;
+  | AssistantErrorCard
+  | AssistantDurationCard;
 
 export interface StructuredAssistantResponse {
   summary: string;           // Brief text summary (1-2 sentences max)
   cards?: AssistantCard[];   // Optional structured cards
   action?: {
-    type: "replace_activity" | "add_activity" | "remove_activity" | "reorder";
+    type: "replace_activity" | "add_activity" | "remove_activity" | "reorder" | "adjust_duration";
     applied: boolean;        // Whether the action was auto-applied
     activityId?: string;     // For replace/remove actions
     dayNumber?: number;
