@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
+import { BetaCodeInput } from "@/components/beta";
 import { createClient } from "@/lib/supabase/client";
 
 // Types
@@ -54,9 +55,16 @@ interface TripStats {
   upcomingTrips: number;
 }
 
+interface BetaAccessInfo {
+  hasBetaAccess: boolean;
+  codeUsed?: string;
+  activatedAt?: string;
+}
+
 interface ProfileClientProps {
   profile: UserProfile;
   stats: TripStats;
+  betaAccess: BetaAccessInfo;
 }
 
 // Section component for expandable sections
@@ -206,9 +214,10 @@ function EditableField({
   );
 }
 
-export default function ProfileClient({ profile: initialProfile, stats }: ProfileClientProps) {
+export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess }: ProfileClientProps) {
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
+  const [betaAccess, setBetaAccess] = useState(initialBetaAccess);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
@@ -696,6 +705,83 @@ export default function ProfileClient({ profile: initialProfile, stats }: Profil
               These features require backend infrastructure (email service, push notifications,
               social features) that don't exist yet. Settings data is still stored in DB.
               Re-enable when backend is implemented. See docs/CRIT-002-SETTINGS-INTEGRATION-PLAN.md */}
+
+          {/* Beta Access */}
+          <ProfileSection
+            title="Beta Access"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            }
+          >
+            <div className="pt-4">
+              {betaAccess.hasBetaAccess ? (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-emerald-800">Beta Access Active</h4>
+                      <p className="text-sm text-emerald-700">
+                        {betaAccess.codeUsed && `Code: ${betaAccess.codeUsed}`}
+                        {betaAccess.activatedAt && (
+                          <span className="ml-2 text-emerald-600">
+                            (Activated {new Date(betaAccess.activatedAt).toLocaleDateString()})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    {[
+                      { label: "AI Generations", value: "Unlimited" },
+                      { label: "Regenerations", value: "Unlimited" },
+                      { label: "AI Assistant", value: "Unlimited" },
+                      { label: "Priority Support", value: "Active" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-emerald-700">
+                          <strong>{item.label}:</strong> {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600">
+                    Enter a beta tester code to unlock unlimited AI features and priority support.
+                  </p>
+                  <BetaCodeInput
+                    variant="compact"
+                    showBenefits={false}
+                    onSuccess={() => {
+                      setBetaAccess({
+                        hasBetaAccess: true,
+                        codeUsed: "Just activated",
+                        activatedAt: new Date().toISOString(),
+                      });
+                      router.refresh();
+                    }}
+                  />
+                  <p className="text-xs text-slate-500">
+                    Don't have a code? Join our{" "}
+                    <Link href="/welcome" className="text-[var(--primary)] hover:underline">
+                      beta waitlist
+                    </Link>{" "}
+                    to get priority access.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ProfileSection>
 
           {/* Account */}
           <ProfileSection

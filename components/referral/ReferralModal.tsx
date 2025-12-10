@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Twitter, Mail, Users, Sparkles } from "lucide-react";
 
 interface ReferralStats {
@@ -20,6 +21,12 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Only render portal after component mounts (client-side)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const referralUrl = code ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${code}` : "";
 
@@ -93,10 +100,11 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // Don't render on server or if not open
+  if (!mounted || !isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -290,4 +298,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
       </div>
     </div>
   );
+
+  // Use portal to render at document body level, outside all parent stacking contexts
+  return createPortal(modalContent, document.body);
 }

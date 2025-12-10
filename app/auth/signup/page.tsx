@@ -121,6 +121,7 @@ function SignupForm() {
         display_name: displayName || email.split("@")[0],
         trial_ends_at: getTrialEndDate().toISOString(), // Keep trial for existing users compatibility
         is_pro: false,
+        welcome_completed: false, // New users need to see welcome page
         privacy_settings: {
           showLocation: false,
           showRealName: true,
@@ -197,19 +198,10 @@ function SignupForm() {
       setUserId(data.user.id);
     }
 
-    // If email confirmation is disabled, redirect appropriately
+    // If email confirmation is disabled, redirect to welcome page
+    // Welcome page will then redirect to onboarding if needed
     if (data.session) {
-      const localPrefs = getLocalOnboardingPreferences();
-      const hasCompletedOnboarding = localPrefs?.completedAt !== null || fromOnboarding;
-
-      if (hasCompletedOnboarding) {
-        // Onboarding already done - go directly to trip creation
-        router.push(redirectUrl);
-      } else {
-        // No onboarding - redirect to onboarding first
-        const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(redirectUrl)}&auth_event=signup_email`;
-        router.push(onboardingUrl);
-      }
+      router.push("/welcome?auth_event=signup_email");
       router.refresh();
     }
   };

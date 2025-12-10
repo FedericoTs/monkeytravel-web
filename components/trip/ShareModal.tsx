@@ -258,19 +258,6 @@ export default function ShareModal({
                   />
                 </button>
               </div>
-              {trendingEnabled && (
-                <div className="mt-3 pt-3 border-t border-amber-100">
-                  <a
-                    href="/explore"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                    View in Explore gallery →
-                  </a>
-                </div>
-              )}
             </div>
           )}
 

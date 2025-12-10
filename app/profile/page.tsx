@@ -47,6 +47,13 @@ export default async function ProfilePage() {
     .select("id, start_date, end_date, status, itinerary")
     .eq("user_id", user.id);
 
+  // Fetch beta access status
+  const { data: betaAccess } = await supabase
+    .from("user_tester_access")
+    .select("code_used, created_at")
+    .eq("user_id", user.id)
+    .single();
+
   // Calculate stats
   const tripStats = {
     totalTrips: trips?.length || 0,
@@ -106,5 +113,18 @@ export default async function ProfilePage() {
     last_sign_in_at: profile?.last_sign_in_at || null,
   };
 
-  return <ProfileClient profile={userProfile} stats={tripStats} />;
+  // Beta access info
+  const betaAccessInfo = betaAccess
+    ? {
+        hasBetaAccess: true,
+        codeUsed: betaAccess.code_used,
+        activatedAt: betaAccess.created_at,
+      }
+    : {
+        hasBetaAccess: false,
+        codeUsed: undefined,
+        activatedAt: undefined,
+      };
+
+  return <ProfileClient profile={userProfile} stats={tripStats} betaAccess={betaAccessInfo} />;
 }

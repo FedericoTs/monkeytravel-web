@@ -10,11 +10,10 @@ import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 
 const navLinks = [
-  { href: '/explore', label: 'Explore' },
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How It Works' },
-  { href: '/templates', label: 'Curated Escapes' },
-  { href: '#support', label: 'Support' },
+  { href: '/explore', label: 'Explore' },
+  { href: '/templates', label: 'Templates' },
 ];
 
 export default function Navbar() {

@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import ExploreClient from "./ExploreClient";
 
 export const metadata: Metadata = {
-  title: "Explore Trips | MonkeyTravel",
-  description: "Discover amazing AI-generated travel itineraries from travelers around the world. Get inspired for your next adventure.",
+  title: "Explore Trending Trips | MonkeyTravel",
+  description: "Discover inspiring travel itineraries shared by the MonkeyTravel community. Browse trending destinations, copy trips, and start planning your next adventure.",
   openGraph: {
-    title: "Explore Trips | MonkeyTravel",
-    description: "Discover amazing AI-generated travel itineraries from travelers around the world.",
+    title: "Explore Trending Trips | MonkeyTravel",
+    description: "Discover inspiring travel itineraries shared by the MonkeyTravel community.",
     type: "website",
   },
 };

@@ -25,25 +25,31 @@ export async function GET(request: Request) {
       // Check if user profile exists
       const { data: existingProfile } = await supabase
         .from("users")
-        .select("id, onboarding_completed")
+        .select("id, onboarding_completed, welcome_completed")
         .eq("id", data.user.id)
         .single();
 
       // Email confirmation for new signup - profile was already created during signup
-      // Just redirect them appropriately based on onboarding status
+      // Just redirect them appropriately based on welcome/onboarding status
       if (existingProfile) {
+        // Check welcome status first (new flow)
+        if (!existingProfile.welcome_completed) {
+          // New user needs to see welcome page first
+          return NextResponse.redirect(`${origin}/welcome?auth_event=email_confirmed`);
+        }
+
         if (existingProfile.onboarding_completed) {
-          // Onboarding complete - go to trips
+          // Welcome and onboarding complete - go to trips
           return NextResponse.redirect(`${origin}${next}?auth_event=email_confirmed`);
         } else {
-          // Needs onboarding
+          // Welcome done but needs onboarding
           const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=email_confirmed`;
           return NextResponse.redirect(`${origin}${onboardingUrl}`);
         }
       }
 
-      // Fallback: profile doesn't exist yet (edge case) - just redirect to next
-      return NextResponse.redirect(`${origin}${next}?auth_event=email_confirmed`);
+      // Fallback: profile doesn't exist yet (edge case) - go to welcome
+      return NextResponse.redirect(`${origin}/welcome?auth_event=email_confirmed`);
     }
 
     // Token verification failed
@@ -87,6 +93,7 @@ export async function GET(request: Request) {
           preferences: {}, // Will be filled by complete-profile page if from onboarding
           onboarding_completed: onboardingCompleted,
           free_trips_remaining: freeTripsRemaining,
+          welcome_completed: false, // New users need to see welcome page
           trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial for existing feature
           is_pro: false,
           privacy_settings: {
@@ -112,15 +119,16 @@ export async function GET(request: Request) {
           ...(referralCode && { referred_by_code: referralCode }),
         });
 
+        // NEW: All new users go to /welcome first to enter beta code or join waitlist
+        // The welcome page will then redirect to onboarding if needed
         if (fromOnboarding) {
-          // User completed onboarding before signup - redirect to complete-profile
-          // to transfer localStorage preferences to database
-          const completeProfileUrl = `/auth/complete-profile?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
+          // User completed onboarding before signup - redirect to complete-profile first
+          // to transfer localStorage preferences, then welcome
+          const completeProfileUrl = `/auth/complete-profile?redirect=/welcome&auth_event=signup_google`;
           return NextResponse.redirect(`${origin}${completeProfileUrl}`);
         } else {
-          // New user without onboarding - redirect to onboarding first
-          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=signup_google`;
-          return NextResponse.redirect(`${origin}${onboardingUrl}`);
+          // New user - redirect to welcome page
+          return NextResponse.redirect(`${origin}/welcome?auth_event=signup_google`);
         }
       }
 

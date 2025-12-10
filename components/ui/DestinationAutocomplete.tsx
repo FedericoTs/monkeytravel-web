@@ -142,8 +142,7 @@ export default function DestinationAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [sessionToken] = useState(() => crypto.randomUUID());
-  const [searchSource, setSearchSource] = useState<"local" | "google" | "popular">("local");
+  const [searchSource, setSearchSource] = useState<"local" | "popular">("local");
   const [showPopular, setShowPopular] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -178,23 +177,8 @@ export default function DestinationAutocomplete({
     }
   }, []);
 
-  const searchGoogle = useCallback(async (input: string): Promise<PlacePrediction[]> => {
-    try {
-      const response = await fetch("/api/places/autocomplete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input, sessionToken }),
-      });
-      const data = await response.json();
-      return (data.predictions || []).map((p: PlacePrediction) => ({
-        ...p,
-        source: "google" as const,
-      }));
-    } catch (error) {
-      console.error("Google Places search error:", error);
-      return [];
-    }
-  }, [sessionToken]);
+  // Google Places API removed - we now use local-only search to minimize costs
+  // If a destination isn't in our database, users can still type it manually
 
   // Fetch predictions when debounced value changes - LOCAL FIRST, with caching
   useEffect(() => {
@@ -228,7 +212,7 @@ export default function DestinationAutocomplete({
       setIsLoading(true);
 
       try {
-        // Always try local first (FREE)
+        // LOCAL ONLY - no Google API calls to minimize costs
         const localResults = await searchLocal(debouncedValue);
 
         if (localResults.length > 0) {
@@ -239,21 +223,11 @@ export default function DestinationAutocomplete({
           setIsOpen(true);
           setHighlightedIndex(-1);
         } else {
-          // No local results - try Google only for longer queries (4+ chars)
-          // This significantly reduces Google API calls
-          if (debouncedValue.length >= 4) {
-            const googleResults = await searchGoogle(debouncedValue);
-            setPredictions(googleResults);
-            setSearchSource("google");
-            if (googleResults.length > 0) {
-              setCachedResults(debouncedValue, googleResults);
-            }
-            setIsOpen(googleResults.length > 0);
-          } else {
-            // For 3-char queries with no local results, show "no results"
-            setPredictions([]);
-            setIsOpen(false);
-          }
+          // No local results - show empty state with helpful message
+          // User can still manually type any destination
+          setPredictions([]);
+          setSearchSource("local");
+          setIsOpen(true); // Keep open to show "no results" message
           setHighlightedIndex(-1);
         }
       } catch (error) {
@@ -265,12 +239,12 @@ export default function DestinationAutocomplete({
     };
 
     fetchPredictions();
-  }, [debouncedValue, searchLocal, searchGoogle, showPopular, popularDestinations]);
+  }, [debouncedValue, searchLocal, showPopular, popularDestinations]);
 
 
-  // Handle selection - use local coordinates or fetch from Places API
+  // Handle selection - use local coordinates directly (no API calls)
   const handleSelect = useCallback(
-    async (prediction: PlacePrediction) => {
+    (prediction: PlacePrediction) => {
       // Prevent double-click/rapid selection
       if (isSelectingRef.current) {
         console.log("[Autocomplete] Selection already in progress, ignoring");
@@ -285,68 +259,14 @@ export default function DestinationAutocomplete({
       setShowPopular(false);
       inputRef.current?.blur();
 
-      try {
-        // If popular or local result already has coordinates, use them directly (NO API CALL!)
-        if ((prediction.source === "local" || prediction.placeId.startsWith("popular_")) && prediction.coordinates) {
-          console.log("[Autocomplete] Using local/popular coordinates - $0 cost");
-          onSelect?.(prediction);
-          setTimeout(() => { isSelectingRef.current = false; }, 300);
-          return;
-        }
+      // All our results are local with coordinates - no API calls needed
+      console.log("[Autocomplete] Using local coordinates - $0 cost");
+      onSelect?.(prediction);
 
-        // For Google results or local without coords, fetch details
-        // Skip if placeId starts with "local_" or "popular_" (shouldn't happen, but safeguard)
-        if (prediction.placeId.startsWith("local_") || prediction.placeId.startsWith("popular_")) {
-          console.log("[Autocomplete] Local/popular result without coords, using as-is");
-          onSelect?.(prediction);
-          setTimeout(() => { isSelectingRef.current = false; }, 300);
-          return;
-        }
-
-        // Fetch coordinates from Google Places Details API
-        const response = await fetch(
-          `/api/places/details?placeId=${encodeURIComponent(prediction.placeId)}`
-        );
-
-        if (response.ok) {
-          const details = await response.json();
-          const enrichedPrediction: PlacePrediction = {
-            ...prediction,
-            coordinates: details.location,
-          };
-          onSelect?.(enrichedPrediction);
-
-          // Auto-save Google-sourced destination to local database (non-blocking)
-          if (prediction.source === "google" && details.location) {
-            fetch("/api/destinations/upsert", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: prediction.mainText,
-                country: prediction.secondaryText,
-                latitude: details.location.latitude,
-                longitude: details.location.longitude,
-                placeId: prediction.placeId,
-                countryCode: prediction.countryCode,
-              }),
-            }).catch((err) => {
-              console.warn("[Autocomplete] Failed to save destination:", err);
-            });
-          }
-        } else {
-          // Fallback: pass prediction without coordinates
-          onSelect?.(prediction);
-        }
-      } catch (error) {
-        console.error("Failed to fetch place details:", error);
-        // Fallback: pass prediction without coordinates
-        onSelect?.(prediction);
-      } finally {
-        // Reset selection lock after a short delay to prevent accidental re-selection
-        setTimeout(() => {
-          isSelectingRef.current = false;
-        }, 300);
-      }
+      // Reset selection lock after a short delay
+      setTimeout(() => {
+        isSelectingRef.current = false;
+      }, 300);
     },
     [onChange, onSelect]
   );
@@ -567,28 +487,6 @@ export default function DestinationAutocomplete({
                 </div>
                 <span className="text-[10px] text-slate-400">Type 3+ chars to search</span>
               </div>
-            ) : searchSource === "google" ? (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                <span>Powered by Google</span>
-              </div>
             ) : (
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -605,12 +503,12 @@ export default function DestinationAutocomplete({
       {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
-                     shadow-xl shadow-slate-200/50 overflow-hidden p-6 text-center
+                     shadow-xl shadow-slate-200/50 overflow-hidden p-5 text-center
                      animate-in fade-in slide-in-from-top-2 duration-150"
         >
           <div className="text-slate-400 mb-2">
             <svg
-              className="w-10 h-10 mx-auto opacity-50"
+              className="w-8 h-8 mx-auto opacity-50"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -623,8 +521,10 @@ export default function DestinationAutocomplete({
               />
             </svg>
           </div>
-          <p className="text-slate-500 font-medium">No destinations found</p>
-          <p className="text-sm text-slate-400 mt-1">Try a different search term</p>
+          <p className="text-slate-600 font-medium">Not in our list yet</p>
+          <p className="text-sm text-slate-400 mt-1">
+            Type the full destination name and press Enter
+          </p>
         </div>
       )}
     </div>
