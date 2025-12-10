@@ -129,6 +129,7 @@ export default function NewTripPage() {
   const [showStartOverModal, setShowStartOverModal] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showDraftRecovery, setShowDraftRecovery] = useState(false);
+  const [draftAutoRestored, setDraftAutoRestored] = useState(false);
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
@@ -150,20 +151,20 @@ export default function NewTripPage() {
 
   // Handle pending generation after signup (when draft is restored)
   useEffect(() => {
-    // Only run if authenticated and we have a pending generation flag
-    if (isAuthenticated && localStorage.getItem("pendingTripGeneration") === "true") {
+    // Only run if authenticated AND draft has been auto-restored
+    if (isAuthenticated && draftAutoRestored && localStorage.getItem("pendingTripGeneration") === "true") {
       // Check if we have the required form state (from draft restoration)
       if (destination && startDate && endDate && selectedVibes.length > 0 && !generating && !generatedItinerary) {
         localStorage.removeItem("pendingTripGeneration");
-        // Small delay to ensure UI is ready
+        // Small delay to ensure UI is ready and React state has propagated
         const timer = setTimeout(() => {
           handleGenerate();
-        }, 300);
+        }, 500);
         return () => clearTimeout(timer);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, destination, startDate, endDate, selectedVibes, generating, generatedItinerary]);
+  }, [isAuthenticated, draftAutoRestored, destination, startDate, endDate, selectedVibes, generating, generatedItinerary]);
 
   // Scroll to top when step changes to prevent "already scrolled" issue
   useEffect(() => {
@@ -192,12 +193,31 @@ export default function NewTripPage() {
     }
   }, [destination, startDate, destinationCoords]);
 
-  // Check for unsaved draft on mount
+  // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth
   useEffect(() => {
-    if (hasDraft && draft && !generatedItinerary) {
-      setShowDraftRecovery(true);
+    if (hasDraft && draft && !generatedItinerary && !draftAutoRestored) {
+      // Check if we're coming back from auth with pending generation
+      const hasPendingGeneration = localStorage.getItem("pendingTripGeneration") === "true";
+
+      if (hasPendingGeneration) {
+        // Auto-restore the draft silently (no banner) for seamless post-auth experience
+        // The draft contains form state (destination, dates, vibes, budget) but NOT generated itinerary
+        setDestination(draft.destination);
+        setStartDate(draft.startDate);
+        setEndDate(draft.endDate);
+        setPace(draft.pace as "relaxed" | "moderate" | "active");
+        setSelectedVibes(draft.vibes as TripVibe[]);
+        setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+        // Note: draft.generatedItinerary is null when saved before auth
+        // Don't restore coordinates - they'll be re-fetched if needed
+        setDraftAutoRestored(true);
+        // Don't show the banner since we're auto-restoring
+      } else {
+        // Normal draft recovery - show banner to let user choose
+        setShowDraftRecovery(true);
+      }
     }
-  }, [hasDraft, draft, generatedItinerary]);
+  }, [hasDraft, draft, generatedItinerary, draftAutoRestored]);
 
   // Auto-save draft when itinerary is generated
   useEffect(() => {

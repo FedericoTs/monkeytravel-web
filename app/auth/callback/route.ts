@@ -1,15 +1,57 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { getTrialEndDate } from "@/lib/trial";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const token_hash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/trips";
   const fromOnboarding = searchParams.get("from_onboarding") === "true";
 
+  const supabase = await createClient();
+
+  // Handle email confirmation/magic link tokens (PKCE flow)
+  if (token_hash && type) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type,
+    });
+
+    if (!error && data.user) {
+      // Check if user profile exists
+      const { data: existingProfile } = await supabase
+        .from("users")
+        .select("id, onboarding_completed")
+        .eq("id", data.user.id)
+        .single();
+
+      // Email confirmation for new signup - profile was already created during signup
+      // Just redirect them appropriately based on onboarding status
+      if (existingProfile) {
+        if (existingProfile.onboarding_completed) {
+          // Onboarding complete - go to trips
+          return NextResponse.redirect(`${origin}${next}?auth_event=email_confirmed`);
+        } else {
+          // Needs onboarding
+          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=email_confirmed`;
+          return NextResponse.redirect(`${origin}${onboardingUrl}`);
+        }
+      }
+
+      // Fallback: profile doesn't exist yet (edge case) - just redirect to next
+      return NextResponse.redirect(`${origin}${next}?auth_event=email_confirmed`);
+    }
+
+    // Token verification failed
+    console.error("[Auth Callback] Token verification failed:", error?.message);
+    return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error?.message || "Email confirmation failed")}`);
+  }
+
+  // Handle OAuth code exchange
   if (code) {
-    const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.user) {
