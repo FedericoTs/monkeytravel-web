@@ -149,6 +149,7 @@ export default function DestinationAutocomplete({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const isSelectingRef = useRef(false); // Prevent double-click selection
+  const justSelectedRef = useRef(false); // Prevent search after selection
 
   // Increased debounce to 300ms to reduce API calls
   const debouncedValue = useDebounce(value, 300);
@@ -183,6 +184,12 @@ export default function DestinationAutocomplete({
   // Fetch predictions when debounced value changes - LOCAL FIRST, with caching
   useEffect(() => {
     const fetchPredictions = async () => {
+      // Skip searching if we just made a selection (prevents dropdown re-appearing)
+      if (justSelectedRef.current) {
+        console.log("[Autocomplete] Skipping search - just selected");
+        return;
+      }
+
       // Show popular destinations when input is empty or very short
       if (!debouncedValue || debouncedValue.length < 3) {
         if (showPopular && debouncedValue.length < 3) {
@@ -251,6 +258,7 @@ export default function DestinationAutocomplete({
         return;
       }
       isSelectingRef.current = true;
+      justSelectedRef.current = true; // Prevent useEffect from re-searching
 
       // Immediately close dropdown and update input
       onChange(prediction.fullText);
@@ -263,10 +271,15 @@ export default function DestinationAutocomplete({
       console.log("[Autocomplete] Using local coordinates - $0 cost");
       onSelect?.(prediction);
 
-      // Reset selection lock after a short delay
+      // Reset selection locks after a short delay
       setTimeout(() => {
         isSelectingRef.current = false;
       }, 300);
+
+      // Reset justSelected after debounce period passes (prevents re-search)
+      setTimeout(() => {
+        justSelectedRef.current = false;
+      }, 500);
     },
     [onChange, onSelect]
   );
