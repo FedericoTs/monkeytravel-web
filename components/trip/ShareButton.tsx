@@ -117,6 +117,7 @@ export default function ShareButton({ tripId, tripTitle }: ShareButtonProps) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           shareUrl={shareUrl || ""}
+          tripId={tripId}
           tripTitle={tripTitle}
           isShared={isShared}
           onStopSharing={handleStopSharing}

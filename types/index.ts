@@ -293,6 +293,32 @@ export interface AssistantDurationCard {
   autoApplied?: boolean;
 }
 
+export interface AssistantScheduleReorderedCard {
+  type: "schedule_reordered";
+  dayNumber: number;
+  reason: string;
+  activities: {
+    id: string;
+    name: string;
+    time: string;
+    timeSlot: "morning" | "afternoon" | "evening";
+  }[];
+  autoApplied?: boolean;
+}
+
+export interface AssistantScheduleOptimizedCard {
+  type: "schedule_optimized";
+  dayNumber: number;
+  reason: string;
+  activities: {
+    id: string;
+    name: string;
+    time: string;
+    timeSlot: "morning" | "afternoon" | "evening";
+  }[];
+  autoApplied?: boolean;
+}
+
 export type AssistantCard =
   | AssistantActivityCard
   | AssistantReplacementCard
@@ -300,7 +326,9 @@ export type AssistantCard =
   | AssistantComparisonCard
   | AssistantConfirmationCard
   | AssistantErrorCard
-  | AssistantDurationCard;
+  | AssistantDurationCard
+  | AssistantScheduleReorderedCard
+  | AssistantScheduleOptimizedCard;
 
 export interface StructuredAssistantResponse {
   summary: string;           // Brief text summary (1-2 sentences max)
