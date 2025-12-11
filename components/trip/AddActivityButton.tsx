@@ -349,9 +349,10 @@ export default function AddActivityButton({
                           </>
                         )}
                       </div>
-                      {result.description && (
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-1">
-                          {result.description}
+                      {result.address && (
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          {result.address}
                         </p>
                       )}
                     </div>
