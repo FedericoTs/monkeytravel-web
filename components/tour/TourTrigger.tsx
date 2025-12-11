@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 
@@ -13,16 +14,20 @@ const ProductTour = dynamic(() => import("./ProductTour"), {
 const TOUR_COMPLETED_KEY = "monkeytravel_tour_completed";
 
 interface TourTriggerProps {
-  variant?: "button" | "link" | "text";
+  variant?: "button" | "link" | "text" | "primary-cta";
   className?: string;
   children?: React.ReactNode;
+  /** If true, skip tour if already completed and go directly to auth */
+  skipToAuthIfCompleted?: boolean;
 }
 
 export default function TourTrigger({
   variant = "button",
   className = "",
   children,
+  skipToAuthIfCompleted = false,
 }: TourTriggerProps) {
+  const router = useRouter();
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState(true); // Default true to avoid flash
 
@@ -34,6 +39,11 @@ export default function TourTrigger({
   }, []);
 
   const handleOpenTour = () => {
+    // If skipToAuthIfCompleted is true and tour was already seen, go straight to auth
+    if (skipToAuthIfCompleted && hasSeenTour) {
+      router.push("/auth/signup");
+      return;
+    }
     setIsTourOpen(true);
   };
 
@@ -76,6 +86,16 @@ export default function TourTrigger({
       hover:text-[var(--primary)]
       underline underline-offset-2
       transition-colors cursor-pointer
+    `,
+    "primary-cta": `
+      group relative px-8 py-4
+      bg-[var(--accent)] text-[var(--primary-dark)]
+      font-bold rounded-xl
+      hover:bg-[var(--accent-light)]
+      transition-all
+      shadow-lg shadow-[var(--accent)]/30
+      flex items-center justify-center gap-2
+      cursor-pointer
     `,
   };
 

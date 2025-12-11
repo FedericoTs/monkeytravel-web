@@ -113,36 +113,23 @@ export default async function Home() {
                 </p>
 
                 {/* Primary CTAs */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-4">
-                  <Link
-                    href="/trips/new"
-                    className="group relative px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 flex items-center justify-center gap-2"
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                  {/* Plan My Trip - triggers tour first, then auth */}
+                  <TourTrigger
+                    variant="primary-cta"
+                    skipToAuthIfCompleted={true}
                   >
                     <span>Plan My Trip Free</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </Link>
+                  </TourTrigger>
                   <Link
                     href="/auth/login"
                     className="px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all flex items-center justify-center gap-2"
                   >
                     <span>Sign In</span>
                   </Link>
-                </div>
-
-                {/* Tour Trigger - See How It Works */}
-                <div className="flex justify-center lg:justify-start mb-8">
-                  <TourTrigger
-                    variant="link"
-                    className="text-[var(--foreground-muted)] hover:text-[var(--primary)]"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-medium">See How It Works</span>
-                  </TourTrigger>
                 </div>
 
                 {/* Trust Signals */}
@@ -473,15 +460,16 @@ export default async function Home() {
 
             {/* CTA */}
             <div className="text-center mt-16">
-              <Link
-                href="/trips/new"
+              <TourTrigger
+                variant="button"
+                skipToAuthIfCompleted={true}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg"
               >
                 Try It Free Now
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
+              </TourTrigger>
             </div>
           </div>
         </section>
@@ -554,15 +542,16 @@ export default async function Home() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/trips/new"
+                <TourTrigger
+                  variant="button"
+                  skipToAuthIfCompleted={true}
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
                 >
                   Plan My First Trip
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </Link>
+                </TourTrigger>
               </div>
             </div>
           </div>
@@ -666,15 +655,16 @@ export default async function Home() {
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                  <Link
-                    href="/trips/new"
+                  <TourTrigger
+                    variant="button"
+                    skipToAuthIfCompleted={true}
                     className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2"
                   >
                     <span>Plan My Trip Now</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </Link>
+                  </TourTrigger>
                   <Link
                     href="/auth/login"
                     className="px-8 py-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center"

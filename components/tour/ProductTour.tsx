@@ -112,11 +112,11 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
     onClose();
   }, [completeTour, onClose]);
 
-  // Handle start planning (goes to trips/new)
+  // Handle start planning (goes to auth/signup - user must authenticate first)
   const handleStartPlanning = useCallback(() => {
     completeTour();
     onClose();
-    router.push("/trips/new");
+    router.push("/auth/signup");
   }, [completeTour, onClose, router]);
 
   // Handle sign in
