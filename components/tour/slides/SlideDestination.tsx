@@ -20,10 +20,10 @@ export default function SlideDestination() {
             delay={0.2}
             showSpotlight
             spotlightPosition={{
-              top: "6%",
+              top: "10%",
               left: "4%",
               width: "92%",
-              height: "20%",
+              height: "18%",
             }}
           />
         </div>

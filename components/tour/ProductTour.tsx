@@ -19,6 +19,23 @@ import SlideMap from "./slides/SlideMap";
 import SlideTemplates from "./slides/SlideTemplates";
 import SlideCTA from "./slides/SlideCTA";
 
+// Phone mockup screenshots to preload for instant display
+const PHONE_SCREENSHOTS = [
+  "/screenshots/trip-barcelona-hero.png",
+  "/screenshots/trip-barcelona-itinerary.png",
+  "/screenshots/templates.png",
+  "/screenshots/trip-lisbon-hero.png",
+  "/screenshots/trip-porto-hero.png",
+];
+
+// Preload all phone mockup screenshots on mount
+const preloadScreenshots = () => {
+  PHONE_SCREENSHOTS.forEach((src) => {
+    const img = new window.Image();
+    img.src = src;
+  });
+};
+
 // Regular slides without props
 const CONTENT_SLIDES = [
   { id: "destination", Component: SlideDestination },
@@ -56,6 +73,13 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Preload all phone mockup screenshots when tour opens
+  useEffect(() => {
+    if (isOpen) {
+      preloadScreenshots();
+    }
+  }, [isOpen]);
 
   // Prevent body scroll when tour is open
   useEffect(() => {
