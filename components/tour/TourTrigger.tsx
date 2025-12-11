@@ -14,7 +14,7 @@ const ProductTour = dynamic(() => import("./ProductTour"), {
 const TOUR_COMPLETED_KEY = "monkeytravel_tour_completed";
 
 interface TourTriggerProps {
-  variant?: "button" | "link" | "text" | "primary-cta";
+  variant?: "button" | "link" | "text" | "primary-cta" | "custom";
   className?: string;
   children?: React.ReactNode;
   /** If true, skip tour if already completed and go directly to auth */
@@ -106,6 +106,8 @@ export default function TourTrigger({
       flex items-center justify-center gap-2
       cursor-pointer
     `,
+    // Custom variant: no default styles, use className for everything
+    custom: "",
   };
 
   return (
@@ -118,7 +120,7 @@ export default function TourTrigger({
       >
         {children || defaultContent}
 
-        {/* "New" badge for users who haven't seen the tour */}
+        {/* "New" badge for users who haven't seen the tour - only for default button variant */}
         {isReady && hasSeenTour === false && variant === "button" && (
           <motion.span
             initial={{ scale: 0 }}

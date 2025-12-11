@@ -131,7 +131,7 @@ export default function Navbar() {
                   Sign in
                 </Link>
                 <TourTrigger
-                  variant="button"
+                  variant="custom"
                   skipToAuthIfCompleted={true}
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
                 >
@@ -224,7 +224,7 @@ export default function Navbar() {
                   </Link>
                   <div onClick={() => setMobileMenuOpen(false)}>
                     <TourTrigger
-                      variant="button"
+                      variant="custom"
                       skipToAuthIfCompleted={true}
                       className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
                     >
