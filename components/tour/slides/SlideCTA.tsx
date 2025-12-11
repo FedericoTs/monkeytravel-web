@@ -18,7 +18,7 @@ interface SlideCTAProps {
 
 export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
   return (
-    <div className="relative w-full h-full flex items-center justify-center px-4 md:px-8">
+    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
         {/* Phone Cascade */}
         <div className="relative flex items-end justify-center gap-[-20px] mb-8 md:mb-12">

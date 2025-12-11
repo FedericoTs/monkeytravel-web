@@ -107,11 +107,12 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
     }
   };
 
-  // Handle skip/close
+  // Handle skip - goes directly to signup (skipping the tour)
   const handleSkip = useCallback(() => {
     completeTour();
     onClose();
-  }, [completeTour, onClose]);
+    router.push("/auth/signup");
+  }, [completeTour, onClose, router]);
 
   // Handle start planning (goes to auth/signup - user must authenticate first)
   const handleStartPlanning = useCallback(() => {
@@ -193,7 +194,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="absolute inset-0 pt-16 pb-24 md:pt-20 md:pb-28"
+                className="absolute inset-0 pt-16 pb-24 md:pt-20 md:pb-28 overflow-y-auto overflow-x-hidden"
               >
 {(() => {
                   // Last slide is CTA

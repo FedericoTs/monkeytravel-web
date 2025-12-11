@@ -8,7 +8,7 @@ const ITINERARY_SCREENSHOT = "/screenshots/trip-barcelona-itinerary.png";
 
 export default function SlideItinerary() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center px-4 md:px-8">
+    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         {/* Text Content - Left on desktop */}
         <motion.div

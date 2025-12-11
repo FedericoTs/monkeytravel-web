@@ -9,7 +9,7 @@ const WIZARD_SCREENSHOT = "/screenshots/trip-barcelona-hero.png";
 
 export default function SlideDestination() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center px-4 md:px-8">
+    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         {/* Phone Mockup - Shows first on mobile */}
         <div className="order-1 lg:order-2 flex justify-center">
