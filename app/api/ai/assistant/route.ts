@@ -418,7 +418,21 @@ function extractGeographicContext(activities: Activity[]): {
   };
 }
 
-// Generate a new activity using AI with geographic awareness
+// Typical operating hours by activity type
+const TYPICAL_OPERATING_HOURS: Record<string, { open: string; close: string; bestTimes: string }> = {
+  attraction: { open: "09:00", close: "18:00", bestTimes: "Morning (09:00-12:00) or early afternoon (13:00-16:00)" },
+  museum: { open: "10:00", close: "18:00", bestTimes: "Morning (10:00-13:00) or early afternoon (14:00-17:00)" },
+  restaurant: { open: "12:00", close: "23:00", bestTimes: "Lunch (12:00-14:00) or Dinner (19:00-21:30)" },
+  cafe: { open: "08:00", close: "19:00", bestTimes: "Morning (08:00-11:00) or afternoon break (15:00-17:00)" },
+  activity: { open: "09:00", close: "20:00", bestTimes: "Depends on activity, generally daylight hours" },
+  nature: { open: "06:00", close: "20:00", bestTimes: "Morning (07:00-11:00) or late afternoon (16:00-19:00)" },
+  shopping: { open: "10:00", close: "20:00", bestTimes: "Afternoon (14:00-18:00)" },
+  nightlife: { open: "20:00", close: "03:00", bestTimes: "Evening/Night (21:00-02:00)" },
+  entertainment: { open: "10:00", close: "23:00", bestTimes: "Afternoon or evening (14:00-22:00)" },
+  transport: { open: "00:00", close: "23:59", bestTimes: "Any time" },
+};
+
+// Generate a new activity using AI with geographic and schedule awareness
 async function generateNewActivity(
   genAI: GoogleGenerativeAI,
   destination: string,
@@ -426,15 +440,60 @@ async function generateNewActivity(
   existingActivity: Activity | null,
   dayNumber: number,
   timeSlot: "morning" | "afternoon" | "evening" = "afternoon",
-  sameDayActivities: Activity[] = [] // NEW: Other activities on the same day for geographic context
+  sameDayActivities: Activity[] = [], // Other activities on the same day for geographic context
+  suggestedStartTime?: string // Optional: caller-suggested start time (AI can override if unreasonable)
 ): Promise<Activity> {
   console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
-  console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.location || a.address || 'no location'})`).join(", ")}`);
+  console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
+  console.log(`[AI Assistant] Suggested start time: ${suggestedStartTime || "not specified"}`);
 
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   // Extract geographic context from other activities on the same day
   const geoContext = extractGeographicContext(sameDayActivities);
+
+  // Build full schedule context with times
+  const scheduleContext = sameDayActivities.length > 0
+    ? `\nCURRENT SCHEDULE for Day ${dayNumber} (you MUST find an appropriate gap):
+${sameDayActivities
+  .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""))
+  .map(a => {
+    const endTime = a.start_time && a.duration_minutes
+      ? (() => {
+          const [h, m] = a.start_time.split(":").map(Number);
+          const endMins = h * 60 + m + a.duration_minutes;
+          return `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
+        })()
+      : "TBD";
+    return `  ${a.start_time || "TBD"} - ${endTime}: ${a.name} (${a.type}) - ${a.location || a.address || "location unspecified"}`;
+  }).join("\n")}
+\nFree time slots to consider:
+${(() => {
+  // Calculate free slots
+  const sorted = [...sameDayActivities].sort((a, b) => (a.start_time || "99:99").localeCompare(b.start_time || "99:99"));
+  const freeSlots: string[] = [];
+  let lastEnd = 9 * 60; // Day starts at 9:00
+
+  for (const act of sorted) {
+    if (!act.start_time) continue;
+    const [h, m] = act.start_time.split(":").map(Number);
+    const startMins = h * 60 + m;
+    if (startMins > lastEnd + 30) { // At least 30 min gap
+      const gapStart = `${String(Math.floor(lastEnd / 60)).padStart(2, "0")}:${String(lastEnd % 60).padStart(2, "0")}`;
+      const gapEnd = `${String(Math.floor(startMins / 60)).padStart(2, "0")}:${String(startMins % 60).padStart(2, "0")}`;
+      freeSlots.push(`  ${gapStart} - ${gapEnd} (${startMins - lastEnd} min available)`);
+    }
+    lastEnd = startMins + (act.duration_minutes || 60);
+  }
+  // Add evening slot if day ends before 22:00
+  if (lastEnd < 22 * 60) {
+    const gapStart = `${String(Math.floor(lastEnd / 60)).padStart(2, "0")}:${String(lastEnd % 60).padStart(2, "0")}`;
+    freeSlots.push(`  ${gapStart} - 22:00 (${22 * 60 - lastEnd} min available)`);
+  }
+  return freeSlots.length > 0 ? freeSlots.join("\n") : "  No obvious gaps - consider adjusting existing activities";
+})()}
+`
+    : "";
 
   // Build geographic constraint section
   let geographicConstraint = "";
@@ -455,35 +514,50 @@ The goal is to keep Day ${dayNumber} activities clustered together for efficient
 `;
   }
 
-  // Build list of same-day activities for context
-  const sameDayContext = sameDayActivities.length > 0
-    ? `\nOther activities planned for Day ${dayNumber}:\n${sameDayActivities.map(a =>
-        `- ${a.name} (${a.type}) at ${a.start_time || "TBD"} - Location: ${a.location || a.address || "unspecified"}`
-      ).join("\n")}\n`
-    : "";
+  // Build operating hours guidance
+  const operatingHoursGuide = `
+OPERATING HOURS GUIDANCE (CRITICAL - you MUST respect these):
+${Object.entries(TYPICAL_OPERATING_HOURS).map(([type, hours]) =>
+  `- ${type}: typically open ${hours.open}-${hours.close}. Best times: ${hours.bestTimes}`
+).join("\n")}
+
+NEVER schedule:
+- Museums/attractions after 18:00 (they close!)
+- Restaurants outside 12:00-14:30 (lunch) or 19:00-22:00 (dinner)
+- Outdoor activities after dark
+- Any activity at unrealistic hours (e.g., museum at 23:00 is WRONG)
+`;
 
   const prompt = `Generate a travel activity for ${destination}.
-${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type}) - was located in: ${existingActivity.location || existingActivity.address || "unspecified"}` : "New activity"}
+${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type}) at ${existingActivity.start_time || "TBD"} - was located in: ${existingActivity.location || existingActivity.address || "unspecified"}` : "New activity to ADD to the schedule"}
 User preference: ${preference}
-Time slot: ${timeSlot}
+Preferred time slot: ${timeSlot}
+${suggestedStartTime ? `Caller suggested: ${suggestedStartTime} - BUT you should IGNORE this if it's unrealistic for the activity type!` : ""}
 Day: ${dayNumber}
-${sameDayContext}
+${scheduleContext}
+${operatingHoursGuide}
 ${geographicConstraint}
+
 Return ONLY valid JSON for the activity:
 {
   "name": "Activity Name",
-  "type": "attraction|restaurant|activity|transport",
+  "type": "attraction|restaurant|activity|museum|cafe|nature|shopping|nightlife|entertainment|transport",
   "description": "2-3 sentence engaging description",
   "location": "Neighborhood/Area name - MUST be in the same area as other Day ${dayNumber} activities",
   "address": "Specific street address if known",
-  "start_time": "HH:MM",
+  "start_time": "HH:MM - MUST be a realistic time when this type of venue would be OPEN and fits in the schedule gaps",
   "duration_minutes": 60-180,
   "estimated_cost": { "amount": number, "currency": "EUR", "tier": "budget|moderate|expensive" },
   "tips": ["1 helpful tip"],
   "booking_required": true/false
 }
 
-IMPORTANT: The "location" field must be in the same neighborhood as the other activities on this day.`;
+CRITICAL TIMING RULES:
+1. The "start_time" MUST be during the venue's typical operating hours
+2. Museums/attractions should be scheduled between 09:00-17:00
+3. Restaurants should be scheduled at lunch (12:00-14:00) or dinner (19:00-21:30)
+4. Find a gap in the existing schedule - don't overlap with other activities
+5. If the user's suggested time is unrealistic (like a museum at 23:00), pick a SENSIBLE time instead`;
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
@@ -497,9 +571,40 @@ IMPORTANT: The "location" field must be in the same neighborhood as the other ac
 
   const activity = JSON.parse(jsonMatch[0]) as Activity;
   activity.id = generateActivityId();
-  activity.time_slot = timeSlot;
 
-  console.log(`[AI Assistant] Generated activity: "${activity.name}" in location: "${activity.location}"`);
+  // Validate and fix the time if AI returned something unreasonable
+  const [hours] = (activity.start_time || "12:00").split(":").map(Number);
+  const activityType = activity.type?.toLowerCase() || "activity";
+  const typeHours = TYPICAL_OPERATING_HOURS[activityType] || TYPICAL_OPERATING_HOURS.activity;
+  const [openH] = typeHours.open.split(":").map(Number);
+  const [closeH] = typeHours.close.split(":").map(Number);
+
+  // Check if time is within operating hours
+  const isNightlife = activityType === "nightlife";
+  const isValidTime = isNightlife
+    ? (hours >= 20 || hours <= 3) // Nightlife: 20:00-03:00
+    : (hours >= openH && hours < closeH); // Normal: within open-close
+
+  if (!isValidTime) {
+    console.log(`[AI Assistant] Time ${activity.start_time} is outside operating hours for ${activityType}. Adjusting...`);
+    // Pick a sensible default based on time slot
+    if (timeSlot === "morning") {
+      activity.start_time = activityType === "restaurant" || activityType === "cafe" ? "09:00" : "10:00";
+    } else if (timeSlot === "afternoon") {
+      activity.start_time = activityType === "restaurant" ? "13:00" : "14:00";
+    } else {
+      activity.start_time = activityType === "restaurant" ? "19:30" : activityType === "nightlife" ? "21:00" : "17:00";
+    }
+    console.log(`[AI Assistant] Adjusted to ${activity.start_time}`);
+  }
+
+  // Set time slot based on actual start time
+  const finalHours = parseInt(activity.start_time?.split(":")[0] || "12");
+  if (finalHours < 12) activity.time_slot = "morning";
+  else if (finalHours < 17) activity.time_slot = "afternoon";
+  else activity.time_slot = "evening";
+
+  console.log(`[AI Assistant] Generated activity: "${activity.name}" at ${activity.start_time} in location: "${activity.location}"`);
   return activity;
 }
 
@@ -756,13 +861,17 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          console.log(`[AI Assistant] Adding to Day ${targetDayNumber}, slot: ${targetTimeSlot}, time: ${startTime}`);
+          console.log(`[AI Assistant] Adding to Day ${targetDayNumber}, slot: ${targetTimeSlot}, suggested time: ${startTime}`);
 
-          // Get existing activities on this day for geographic context
+          // Get existing activities on this day for geographic and schedule context
           const existingDayActivities = targetDay.activities;
-          console.log(`[AI Assistant] Existing activities on Day ${targetDayNumber} for geographic context: ${existingDayActivities.map(a => a.name).join(", ")}`);
+          console.log(`[AI Assistant] Existing activities on Day ${targetDayNumber}: ${existingDayActivities.map(a => `${a.name} at ${a.start_time}`).join(", ")}`);
 
-          // Generate the new activity with geographic awareness
+          // Generate the new activity with full schedule awareness
+          // The AI will pick an appropriate time based on:
+          // 1. The activity type's typical operating hours
+          // 2. The gaps in the existing schedule
+          // 3. The suggested time slot preference
           const newActivity = await generateNewActivity(
             genAI,
             tripContext.destination,
@@ -770,10 +879,12 @@ export async function POST(request: NextRequest) {
             null,
             targetDayNumber,
             targetTimeSlot,
-            existingDayActivities // Pass existing activities for geographic clustering
+            existingDayActivities, // Pass existing activities for geographic clustering
+            startTime // Pass as a SUGGESTION - AI can override if unrealistic
           );
 
-          newActivity.start_time = startTime;
+          // DO NOT override the AI's chosen time - it has considered operating hours
+          console.log(`[AI Assistant] AI chose time: ${newActivity.start_time} for ${newActivity.name} (${newActivity.type})`);
 
           // Add to the day's activities and sort by time
           modifiedItinerary[targetDayIndex].activities.push(newActivity);
