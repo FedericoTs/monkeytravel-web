@@ -31,25 +31,29 @@ export async function GET(request: Request) {
 
       // Email confirmation for new signup - profile was already created during signup
       // Just redirect them appropriately based on welcome/onboarding status
+      // IMPORTANT: Preserve the original redirect URL so user returns to their intended destination
+      const finalRedirect = next !== "/trips" ? next : "/trips/new"; // Prefer trips/new for new users
+
       if (existingProfile) {
         // Check welcome status first (new flow)
         if (!existingProfile.welcome_completed) {
-          // New user needs to see welcome page first
-          return NextResponse.redirect(`${origin}/welcome?auth_event=email_confirmed`);
+          // New user needs to see welcome page first - preserve intended destination
+          return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`);
         }
 
         if (existingProfile.onboarding_completed) {
-          // Welcome and onboarding complete - go to trips
-          return NextResponse.redirect(`${origin}${next}?auth_event=email_confirmed`);
+          // Welcome and onboarding complete - go to intended destination
+          const separator = finalRedirect.includes("?") ? "&" : "?";
+          return NextResponse.redirect(`${origin}${finalRedirect}${separator}auth_event=email_confirmed`);
         } else {
-          // Welcome done but needs onboarding
-          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(next)}&auth_event=email_confirmed`;
+          // Welcome done but needs onboarding - preserve destination for after onboarding
+          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`;
           return NextResponse.redirect(`${origin}${onboardingUrl}`);
         }
       }
 
-      // Fallback: profile doesn't exist yet (edge case) - go to welcome
-      return NextResponse.redirect(`${origin}/welcome?auth_event=email_confirmed`);
+      // Fallback: profile doesn't exist yet (edge case) - go to welcome with destination
+      return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`);
     }
 
     // Token verification failed
@@ -121,14 +125,17 @@ export async function GET(request: Request) {
 
         // NEW: All new users go to /welcome first to enter beta code or join waitlist
         // The welcome page will then redirect to onboarding if needed
+        // IMPORTANT: Preserve the original redirect URL so user returns to their intended destination
+        const finalRedirect = next !== "/trips" ? next : "/trips/new"; // Prefer trips/new for new users
+
         if (fromOnboarding) {
           // User completed onboarding before signup - redirect to complete-profile first
           // to transfer localStorage preferences, then welcome
-          const completeProfileUrl = `/auth/complete-profile?redirect=/welcome&auth_event=signup_google`;
+          const completeProfileUrl = `/auth/complete-profile?redirect=/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`;
           return NextResponse.redirect(`${origin}${completeProfileUrl}`);
         } else {
-          // New user - redirect to welcome page
-          return NextResponse.redirect(`${origin}/welcome?auth_event=signup_google`);
+          // New user - redirect to welcome page with original destination preserved
+          return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`);
         }
       }
 

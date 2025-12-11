@@ -15,6 +15,7 @@ interface WelcomeClientProps {
   betaCodeUsed?: string;
   hasCompletedOnboarding: boolean;
   freeTripsRemaining: number;
+  intendedDestination: string;
 }
 
 export default function WelcomeClient({
@@ -25,6 +26,7 @@ export default function WelcomeClient({
   betaCodeUsed,
   hasCompletedOnboarding,
   freeTripsRemaining,
+  intendedDestination,
 }: WelcomeClientProps) {
   const router = useRouter();
   const [hasBetaAccess, setHasBetaAccess] = useState(initialHasBetaAccess);
@@ -50,11 +52,11 @@ export default function WelcomeClient({
     // Mark welcome as completed
     await markWelcomeCompleted();
 
-    // Determine where to go next
+    // Determine where to go next - preserve the intended destination
     if (skipOnboarding || hasCompletedOnboarding) {
-      router.push("/trips/new");
+      router.push(intendedDestination);
     } else {
-      router.push("/onboarding?redirect=/trips/new");
+      router.push(`/onboarding?redirect=${encodeURIComponent(intendedDestination)}`);
     }
   };
 
@@ -62,10 +64,11 @@ export default function WelcomeClient({
     setIsCompleting(true);
     await markWelcomeCompleted();
 
+    // Preserve the intended destination
     if (hasCompletedOnboarding) {
-      router.push("/trips/new");
+      router.push(intendedDestination);
     } else {
-      router.push("/onboarding?redirect=/trips/new");
+      router.push(`/onboarding?redirect=${encodeURIComponent(intendedDestination)}`);
     }
   };
 

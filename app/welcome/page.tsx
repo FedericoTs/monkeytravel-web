@@ -8,14 +8,22 @@ export const metadata: Metadata = {
   description: "Get started with your AI-powered travel planning journey",
 };
 
-export default async function WelcomePage() {
+interface WelcomePageProps {
+  searchParams: Promise<{ next?: string; auth_event?: string }>;
+}
+
+export default async function WelcomePage({ searchParams }: WelcomePageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const params = await searchParams;
 
   // Must be authenticated to see welcome page
   if (!user) {
     redirect("/auth/login?redirect=/welcome");
   }
+
+  // Get the intended destination (default to /trips/new for new users)
+  const intendedDestination = params.next || "/trips/new";
 
   // Check if user already completed welcome
   const { data: profile } = await supabase
@@ -27,9 +35,9 @@ export default async function WelcomePage() {
   // If welcome already completed, redirect to appropriate destination
   if (profile?.welcome_completed) {
     if (!profile.onboarding_completed) {
-      redirect("/onboarding");
+      redirect(`/onboarding?redirect=${encodeURIComponent(intendedDestination)}`);
     }
-    redirect("/trips");
+    redirect(intendedDestination);
   }
 
   // Check if user already has beta access
@@ -48,6 +56,7 @@ export default async function WelcomePage() {
       betaCodeUsed={betaAccess?.code_used}
       hasCompletedOnboarding={profile?.onboarding_completed || false}
       freeTripsRemaining={profile?.free_trips_remaining || 0}
+      intendedDestination={intendedDestination}
     />
   );
 }

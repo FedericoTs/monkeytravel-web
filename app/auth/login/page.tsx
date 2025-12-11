@@ -51,6 +51,27 @@ function LoginForm() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+
+        // Check if user needs to complete welcome flow first
+        const { data: profile } = await supabase
+          .from("users")
+          .select("welcome_completed, onboarding_completed")
+          .eq("id", user.id)
+          .single();
+
+        // New users need to see welcome page first (to enter beta code / join waitlist)
+        if (profile && !profile.welcome_completed) {
+          router.push("/welcome");
+          router.refresh();
+          return;
+        }
+
+        // Users who completed welcome but not onboarding
+        if (profile && !profile.onboarding_completed) {
+          router.push(`/onboarding?redirect=${encodeURIComponent(redirect)}`);
+          router.refresh();
+          return;
+        }
       }
       router.push(redirect);
       router.refresh();
