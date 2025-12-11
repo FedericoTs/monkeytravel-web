@@ -87,11 +87,12 @@ export default function SlideMap() {
 // Animated map pins overlay
 function MapPins() {
   // Approximate positions for pins on the map portion of the screenshot
+  // Map area in trip-barcelona-hero.png is roughly 30-80% vertically
   const pins = [
-    { top: "25%", left: "35%" },
-    { top: "30%", left: "55%" },
-    { top: "38%", left: "45%" },
-    { top: "33%", left: "65%" },
+    { top: "42%", left: "25%" },
+    { top: "50%", left: "55%" },
+    { top: "58%", left: "40%" },
+    { top: "52%", left: "70%" },
   ];
 
   return (
@@ -166,7 +167,7 @@ function MapPins() {
         preserveAspectRatio="none"
       >
         <motion.path
-          d="M 35 25 Q 45 28 45 38 Q 55 30 55 30 Q 60 32 65 33"
+          d="M 25 42 Q 32 50 40 58 Q 47 54 55 50 Q 62 51 70 52"
           fill="none"
           stroke="var(--primary)"
           strokeWidth="0.8"

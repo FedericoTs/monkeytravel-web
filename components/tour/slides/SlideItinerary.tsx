@@ -78,12 +78,12 @@ export default function SlideItinerary() {
             {/* Animated highlight overlays on the phone */}
             <ActivityHighlight
               delay={1.0}
-              position={{ top: "14%", left: "6%", width: "88%", height: "22%" }}
+              position={{ top: "7%", left: "4%", width: "92%", height: "38%" }}
               label="Activity cards"
             />
             <ActivityHighlight
               delay={1.5}
-              position={{ top: "38%", left: "20%", width: "60%", height: "6%" }}
+              position={{ top: "47%", left: "22%", width: "56%", height: "5%" }}
               label="Walking time"
               small
             />
