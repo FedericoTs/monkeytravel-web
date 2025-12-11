@@ -29,18 +29,27 @@ export default function TourTrigger({
 }: TourTriggerProps) {
   const router = useRouter();
   const [isTourOpen, setIsTourOpen] = useState(false);
-  const [hasSeenTour, setHasSeenTour] = useState(true); // Default true to avoid flash
+  const [hasSeenTour, setHasSeenTour] = useState<boolean | null>(null); // null = not yet checked
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const completed = localStorage.getItem(TOUR_COMPLETED_KEY) === "true";
       setHasSeenTour(completed);
+      setIsReady(true);
     }
   }, []);
 
   const handleOpenTour = () => {
+    // Wait for localStorage check to complete
+    if (!isReady) {
+      // If not ready yet, show tour (safe default)
+      setIsTourOpen(true);
+      return;
+    }
+
     // If skipToAuthIfCompleted is true and tour was already seen, go straight to auth
-    if (skipToAuthIfCompleted && hasSeenTour) {
+    if (skipToAuthIfCompleted && hasSeenTour === true) {
       router.push("/auth/signup");
       return;
     }
@@ -110,7 +119,7 @@ export default function TourTrigger({
         {children || defaultContent}
 
         {/* "New" badge for users who haven't seen the tour */}
-        {!hasSeenTour && variant === "button" && (
+        {isReady && hasSeenTour === false && variant === "button" && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
