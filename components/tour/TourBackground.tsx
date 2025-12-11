@@ -59,62 +59,60 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
-      {/* Brand gradient base - visible while image loads */}
+      {/* Warm gradient base - matches app theme, visible while image loads */}
       <div
         className="absolute inset-0"
         style={{
           background: `
             linear-gradient(
               135deg,
-              #1a1a2e 0%,
-              #16213e 25%,
-              #0f3460 50%,
-              #1a1a2e 75%,
-              #16213e 100%
+              var(--background-warm, #FFF5EB) 0%,
+              var(--background, #FFFAF5) 50%,
+              var(--background-warm, #FFF5EB) 100%
             )
           `,
         }}
       />
 
-      {/* Animated brand color orbs */}
+      {/* Subtle animated brand color orbs - visible before image loads */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
           animate={{
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full opacity-30"
-          style={{
-            background: "radial-gradient(circle, rgba(255, 107, 107, 0.4) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
-        <motion.div
-          animate={{
-            x: [0, -20, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.15, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full opacity-25"
-          style={{
-            background: "radial-gradient(circle, rgba(0, 180, 166, 0.4) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
-        <motion.div
-          animate={{
-            x: [0, 15, 0],
+            x: [0, 20, 0],
             y: [0, -15, 0],
             scale: [1, 1.05, 1],
           }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full opacity-20"
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(255, 217, 61, 0.35) 0%, transparent 70%)",
-            filter: "blur(40px)",
+            background: "radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 60%)",
+            filter: "blur(80px)",
+          }}
+        />
+        <motion.div
+          animate={{
+            x: [0, -15, 0],
+            y: [0, 20, 0],
+            scale: [1, 1.08, 1],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(0, 180, 166, 0.12) 0%, transparent 60%)",
+            filter: "blur(80px)",
+          }}
+        />
+        <motion.div
+          animate={{
+            x: [0, 10, 0],
+            y: [0, -10, 0],
+            scale: [1, 1.03, 1],
+          }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(255, 217, 61, 0.15) 0%, transparent 60%)",
+            filter: "blur(60px)",
           }}
         />
       </div>

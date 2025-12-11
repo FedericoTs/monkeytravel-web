@@ -59,6 +59,11 @@ const nextConfig: NextConfig = {
         hostname: 'maps.googleapis.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        pathname: '/photos/**',
+      },
     ],
   },
 
