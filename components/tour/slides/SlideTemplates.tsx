@@ -115,9 +115,9 @@ export default function SlideTemplates() {
 // Animated template card highlights
 function TemplateHighlights() {
   const cards = [
-    { top: "12%", left: "4%", width: "92%", height: "38%", delay: 1.0 },
-    { top: "54%", left: "4%", width: "44%", height: "28%", delay: 1.3 },
-    { top: "54%", left: "52%", width: "44%", height: "28%", delay: 1.6 },
+    { top: "14%", left: "4%", width: "92%", height: "35%", delay: 1.0 },
+    { top: "55%", left: "4%", width: "44%", height: "27%", delay: 1.3 },
+    { top: "55%", left: "52%", width: "44%", height: "27%", delay: 1.6 },
   ];
 
   return (

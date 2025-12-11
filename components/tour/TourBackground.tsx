@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useReducedMotion } from "./hooks/useReducedMotion";
@@ -69,6 +69,14 @@ const DESTINATION_IMAGES: DestinationImage[] = [
     animation: "diagonalBR",
   },
 ];
+
+// Preload all images on mount for seamless transitions
+const preloadImages = () => {
+  DESTINATION_IMAGES.forEach((dest) => {
+    const img = new window.Image();
+    img.src = dest.url;
+  });
+};
 
 // Slide to image index mapping - ensures no repeats
 const SLIDE_TO_IMAGE: Record<number, number[]> = {
@@ -140,9 +148,15 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
   const prefersReducedMotion = useReducedMotion();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const previousImageRef = useRef<DestinationImage | null>(null);
 
   const imageIndices = SLIDE_TO_IMAGE[slideIndex] || [0];
   const isMontageSLide = imageIndices.length > 1;
+
+  // Preload all images on mount
+  useEffect(() => {
+    preloadImages();
+  }, []);
 
   // Montage rotation for final slide - cycle through different destinations
   useEffect(() => {
@@ -160,7 +174,10 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
 
   const currentDestination = useMemo(() => {
     const idx = imageIndices[currentImageIndex];
-    return DESTINATION_IMAGES[idx];
+    const dest = DESTINATION_IMAGES[idx];
+    // Track previous destination for seamless crossfade
+    previousImageRef.current = dest;
+    return dest;
   }, [imageIndices, currentImageIndex]);
 
   const kenBurnsConfig = useMemo(() => {
@@ -220,14 +237,14 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
         />
       </div>
 
-      {/* Background Image with Ken Burns Effect */}
-      <AnimatePresence mode="wait">
+      {/* Background Image with Ken Burns Effect - mode="sync" for seamless crossfade */}
+      <AnimatePresence mode="sync">
         <motion.div
           key={`${slideIndex}-${currentDestination.id}`}
-          variants={crossfadeVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
           className="absolute inset-0"
         >
           {/* Ken Burns container - slightly larger to allow panning */}
@@ -249,10 +266,8 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
               src={currentDestination.url}
               alt={`${currentDestination.name} destination`}
               fill
-              priority={slideIndex <= 1}
-              className={`object-cover transition-opacity duration-1000 ${
-                isCurrentImageLoaded ? "opacity-100" : "opacity-0"
-              }`}
+              priority
+              className="object-cover"
               onLoad={() => handleImageLoad(currentDestination.id)}
               sizes="100vw"
               quality={90}
