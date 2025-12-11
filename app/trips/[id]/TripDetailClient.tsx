@@ -28,6 +28,7 @@ import { useChecklist } from "@/lib/hooks/useChecklist";
 import { trackActivityRegenerated } from "@/lib/analytics";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIds,
   findActivityById,
@@ -321,6 +322,19 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
     [pushUndo]
   );
 
+  // Get destination coordinates from existing trip activities (memoized)
+  const destinationCoords = useMemo((): Coordinates | undefined => {
+    // Try to find coordinates from any existing activity in the itinerary
+    for (const day of editedItinerary) {
+      for (const activity of day.activities) {
+        if (activity.coordinates?.lat && activity.coordinates?.lng) {
+          return activity.coordinates;
+        }
+      }
+    }
+    return undefined;
+  }, [editedItinerary]);
+
   // Handle adding a new activity to a day
   const handleAddActivity = useCallback(
     (dayIndex: number, partialActivity: Partial<Activity>) => {
@@ -330,6 +344,17 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
       const nextTime = calculateNextTimeSlot(day);
       pushUndo("Add activity");
 
+      // Generate coordinates if not provided
+      // Priority: 1) Use provided coordinates, 2) Generate from existing activities
+      let activityCoords = partialActivity.coordinates;
+      if (!activityCoords?.lat || !activityCoords?.lng) {
+        // Generate coordinates based on existing activities on this day or destination
+        activityCoords = getCoordinatesForNewActivity(day.activities, destinationCoords);
+        if (activityCoords) {
+          console.log(`[TripDetail] Generated coordinates for new activity: ${activityCoords.lat.toFixed(5)}, ${activityCoords.lng.toFixed(5)}`);
+        }
+      }
+
       const newActivity: Activity = {
         id: generateActivityId(),
         name: partialActivity.name || "New Activity",
@@ -337,7 +362,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
         description: partialActivity.description || "",
         location: destination,
         address: partialActivity.address || "",
-        coordinates: partialActivity.coordinates,
+        coordinates: activityCoords,
         start_time: nextTime,
         duration_minutes: partialActivity.duration_minutes || 90,
         time_slot: determineTimeSlot(nextTime),
@@ -353,7 +378,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
       setEditedItinerary((prev) => addActivity(prev, dayIndex, newActivity));
     },
-    [editedItinerary, destination, trip.budget?.currency, pushUndo]
+    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords]
   );
 
   // Handle drag-and-drop reordering of activities within a day

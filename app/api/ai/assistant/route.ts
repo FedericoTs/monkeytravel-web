@@ -17,6 +17,11 @@ import type {
   StructuredAssistantResponse,
 } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import {
+  generateNearbyCoordinates,
+  calculateCentroid,
+  type Coordinates,
+} from "@/lib/utils/geo";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -441,7 +446,8 @@ async function generateNewActivity(
   dayNumber: number,
   timeSlot: "morning" | "afternoon" | "evening" = "afternoon",
   sameDayActivities: Activity[] = [], // Other activities on the same day for geographic context
-  suggestedStartTime?: string // Optional: caller-suggested start time (AI can override if unreasonable)
+  suggestedStartTime?: string, // Optional: caller-suggested start time (AI can override if unreasonable)
+  destinationCoords?: Coordinates // Destination center coordinates for fallback
 ): Promise<Activity> {
   console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
   console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
@@ -572,6 +578,25 @@ CRITICAL TIMING RULES:
   const activity = JSON.parse(jsonMatch[0]) as Activity;
   activity.id = generateActivityId();
 
+  // Generate coordinates for the new activity
+  // Priority: 1) Use existing activities centroid, 2) Use destination center
+  const existingCoords = sameDayActivities
+    .filter(a => a.coordinates?.lat && a.coordinates?.lng)
+    .map(a => a.coordinates as Coordinates);
+
+  if (existingCoords.length > 0) {
+    // Generate coordinates near the centroid of existing activities
+    const centroid = calculateCentroid(existingCoords);
+    if (centroid) {
+      activity.coordinates = generateNearbyCoordinates(centroid, 0.4); // 400m radius
+      console.log(`[AI Assistant] Generated coordinates near activity cluster: ${activity.coordinates.lat.toFixed(5)}, ${activity.coordinates.lng.toFixed(5)}`);
+    }
+  } else if (destinationCoords) {
+    // Fall back to destination center with larger offset
+    activity.coordinates = generateNearbyCoordinates(destinationCoords, 1.5); // 1.5km radius
+    console.log(`[AI Assistant] Generated coordinates near destination center: ${activity.coordinates.lat.toFixed(5)}, ${activity.coordinates.lng.toFixed(5)}`);
+  }
+
   // Validate and fix the time if AI returned something unreasonable
   const [hours] = (activity.start_time || "12:00").split(":").map(Number);
   const activityType = activity.type?.toLowerCase() || "activity";
@@ -699,6 +724,26 @@ export async function POST(request: NextRequest) {
     const itinerary = (clientItinerary || trip.itinerary || []) as ItineraryDay[];
     console.log(`[AI Assistant] Itinerary has ${itinerary.length} days`);
 
+    // Fetch destination coordinates from database for generating activity coordinates
+    const destinationName = trip.title.replace(/ Trip$/, "");
+    let destinationCoords: Coordinates | undefined;
+
+    const { data: destData } = await supabase
+      .from("destinations")
+      .select("latitude, longitude")
+      .or(`name.ilike.%${destinationName}%,city.ilike.%${destinationName}%`)
+      .not("latitude", "is", null)
+      .not("longitude", "is", null)
+      .limit(1)
+      .single();
+
+    if (destData?.latitude && destData?.longitude) {
+      destinationCoords = { lat: destData.latitude, lng: destData.longitude };
+      console.log(`[AI Assistant] Destination coordinates: ${destinationCoords.lat}, ${destinationCoords.lng}`);
+    } else {
+      console.log(`[AI Assistant] No coordinates found for destination: ${destinationName}`);
+    }
+
     const tripContext: TripContext = {
       id: trip.id,
       title: trip.title,
@@ -746,7 +791,9 @@ export async function POST(request: NextRequest) {
             found.activity,
             found.dayIndex + 1,
             found.activity.time_slot,
-            sameDayActivities // Pass other activities for geographic clustering
+            sameDayActivities, // Pass other activities for geographic clustering
+            undefined, // suggestedStartTime - use original
+            destinationCoords // Destination center for coordinate fallback
           );
 
           // Preserve time from original
@@ -880,7 +927,8 @@ export async function POST(request: NextRequest) {
             targetDayNumber,
             targetTimeSlot,
             existingDayActivities, // Pass existing activities for geographic clustering
-            startTime // Pass as a SUGGESTION - AI can override if unrealistic
+            startTime, // Pass as a SUGGESTION - AI can override if unrealistic
+            destinationCoords // Destination center for coordinate fallback
           );
 
           // DO NOT override the AI's chosen time - it has considered operating hours
