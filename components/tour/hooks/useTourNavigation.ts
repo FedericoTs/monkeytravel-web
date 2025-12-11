@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 const TOTAL_SLIDES = 5;
 const AUTO_ADVANCE_DELAY = 8000; // 8 seconds per slide
@@ -18,15 +18,17 @@ interface UseTourNavigationReturn {
   completeTour: () => void;
   hasCompletedTour: boolean;
   resetAutoAdvance: () => void;
+  resetToStart: () => void;
 }
 
 export function useTourNavigation(
-  autoAdvance: boolean = true
+  autoAdvance: boolean = true,
+  isOpen: boolean = true // Only auto-advance when tour is visible
 ): UseTourNavigationReturn {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const [hasCompletedTour, setHasCompletedTour] = useState(false);
-  const [autoAdvanceTimer, setAutoAdvanceTimer] = useState<NodeJS.Timeout | null>(null);
+  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if tour was previously completed
   useEffect(() => {
@@ -36,29 +38,52 @@ export function useTourNavigation(
     }
   }, []);
 
-  // Auto-advance timer
+  // Reset to slide 0 when tour opens
   useEffect(() => {
-    if (!autoAdvance || currentSlide >= TOTAL_SLIDES - 1) {
+    if (isOpen) {
+      setCurrentSlide(0);
+      setDirection(0);
+    }
+  }, [isOpen]);
+
+  // Auto-advance timer - ONLY runs when isOpen is true
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+
+    // Only start timer if tour is open and auto-advance is enabled
+    if (!isOpen || !autoAdvance || currentSlide >= TOTAL_SLIDES - 1) {
       return;
     }
 
-    const timer = setTimeout(() => {
-      nextSlide();
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setDirection(1);
+      setCurrentSlide((prev) => Math.min(prev + 1, TOTAL_SLIDES - 1));
     }, AUTO_ADVANCE_DELAY);
 
-    setAutoAdvanceTimer(timer);
-
     return () => {
-      if (timer) clearTimeout(timer);
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSlide, autoAdvance]);
+  }, [currentSlide, autoAdvance, isOpen]);
 
   const resetAutoAdvance = useCallback(() => {
-    if (autoAdvanceTimer) {
-      clearTimeout(autoAdvanceTimer);
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
     }
-  }, [autoAdvanceTimer]);
+  }, []);
+
+  const resetToStart = useCallback(() => {
+    resetAutoAdvance();
+    setCurrentSlide(0);
+    setDirection(0);
+  }, [resetAutoAdvance]);
 
   const goToSlide = useCallback((index: number) => {
     resetAutoAdvance();
@@ -101,6 +126,7 @@ export function useTourNavigation(
     completeTour,
     hasCompletedTour,
     resetAutoAdvance,
+    resetToStart,
   };
 }
 

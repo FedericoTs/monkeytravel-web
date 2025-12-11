@@ -14,13 +14,25 @@ const ProductTour = dynamic(() => import("./ProductTour"), {
 
 const TOUR_COMPLETED_KEY = "monkeytravel_tour_completed";
 
-// All tour screenshots - preload on component mount for instant display
-const TOUR_SCREENSHOTS = [
+// All tour images - preload on component mount for instant display
+const TOUR_PHONE_SCREENSHOTS = [
   "/screenshots/trip-barcelona-hero.png",
   "/screenshots/trip-barcelona-itinerary.png",
   "/screenshots/templates.png",
   "/screenshots/trip-lisbon-hero.png",
   "/screenshots/trip-porto-hero.png",
+];
+
+// Tour background images (local for reliability)
+const TOUR_BACKGROUNDS = [
+  "/images/tour-backgrounds/maldives.jpg",
+  "/images/tour-backgrounds/bali.jpg",
+  "/images/tour-backgrounds/london.jpg",
+  "/images/tour-backgrounds/caribbean.jpg",
+  "/images/tour-backgrounds/mexico.jpg",
+  "/images/tour-backgrounds/jungle.jpg",
+  "/images/tour-backgrounds/beach-aerial.jpg",
+  "/images/tour-backgrounds/santorini.jpg",
 ];
 
 interface TourTriggerProps {
@@ -144,9 +156,19 @@ export default function TourTrigger({
 
       <ProductTour isOpen={isTourOpen} onClose={handleCloseTour} />
 
-      {/* Hidden preloader - renders Next.js optimized images off-screen on mount */}
-      <div className="sr-only" aria-hidden="true">
-        {TOUR_SCREENSHOTS.map((src) => (
+      {/* Hidden preloader - uses visibility:hidden (not sr-only clip) for reliable loading */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          visibility: 'hidden',
+        }}
+      >
+        {/* Phone screenshots */}
+        {TOUR_PHONE_SCREENSHOTS.map((src) => (
           <Image
             key={src}
             src={src}
@@ -154,7 +176,17 @@ export default function TourTrigger({
             width={320}
             height={693}
             priority
-            className="absolute opacity-0 pointer-events-none"
+          />
+        ))}
+        {/* Background images */}
+        {TOUR_BACKGROUNDS.map((src) => (
+          <Image
+            key={src}
+            src={src}
+            alt=""
+            width={1920}
+            height={1080}
+            priority
           />
         ))}
       </div>

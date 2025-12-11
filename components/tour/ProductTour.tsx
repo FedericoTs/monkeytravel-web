@@ -67,7 +67,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
     prevSlide,
     completeTour,
     resetAutoAdvance,
-  } = useTourNavigation(true);
+  } = useTourNavigation(true, isOpen); // Pass isOpen to only auto-advance when visible
 
   // Mount check for portal
   useEffect(() => {
@@ -297,7 +297,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             />
           </div>
 
-          {/* MonkeyTravel Logo - Top left - Clean minimal style */}
+          {/* MonkeyTravel Logo - Top left - Clean minimal style (matches Navbar) */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -308,14 +308,12 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
               <Image
                 src="/images/logo.png"
                 alt="MonkeyTravel"
-                width={32}
-                height={32}
-                className="w-8 h-8 drop-shadow-lg"
+                width={36}
+                height={36}
+                priority
+                className="w-9 h-9 object-contain drop-shadow-lg"
               />
-              <span
-                className="text-white text-base font-semibold tracking-tight hidden sm:inline drop-shadow-md"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
+              <span className="text-white text-lg font-bold tracking-tight hidden sm:inline drop-shadow-md">
                 MonkeyTravel
               </span>
             </div>

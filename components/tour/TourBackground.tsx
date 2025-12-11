@@ -14,57 +14,58 @@ interface DestinationImage {
   animation: "panLeft" | "panRight" | "panUp" | "panDown" | "zoomIn" | "zoomOut" | "diagonalTL" | "diagonalBR";
 }
 
+// Local tour background images (stored in /public for reliability)
 const DESTINATION_IMAGES: DestinationImage[] = [
   // Slide 1: Dream Destination - Maldives aerial paradise
   {
     id: "maldives",
-    url: "https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/maldives.jpg",
     name: "Maldives",
     animation: "panRight",
   },
   // Slide 2: AI Itinerary - Bali rice terraces
   {
     id: "bali",
-    url: "https://images.pexels.com/photos/2166559/pexels-photo-2166559.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/bali.jpg",
     name: "Bali",
     animation: "panUp",
   },
   // Slide 3: Map - London skyline
   {
     id: "london",
-    url: "https://images.pexels.com/photos/672532/pexels-photo-672532.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/london.jpg",
     name: "London",
     animation: "panLeft",
   },
   // Slide 4: Templates - Caribbean beach sunset
   {
     id: "caribbean",
-    url: "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/caribbean.jpg",
     name: "Caribbean",
     animation: "zoomIn",
   },
   // Slide 5 montage images - Mexico, Jungle, Beach aerial, Santorini
   {
     id: "mexico",
-    url: "https://images.pexels.com/photos/3225529/pexels-photo-3225529.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/mexico.jpg",
     name: "Mexico Cenote",
     animation: "diagonalTL",
   },
   {
     id: "jungle",
-    url: "https://images.pexels.com/photos/2166711/pexels-photo-2166711.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/jungle.jpg",
     name: "Jungle Waterfall",
     animation: "panDown",
   },
   {
     id: "beach-aerial",
-    url: "https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/beach-aerial.jpg",
     name: "Beach Aerial",
     animation: "zoomOut",
   },
   {
     id: "santorini",
-    url: "https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    url: "/images/tour-backgrounds/santorini.jpg",
     name: "Santorini",
     animation: "diagonalBR",
   },
@@ -270,7 +271,7 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
               className="object-cover"
               onLoad={() => handleImageLoad(currentDestination.id)}
               sizes="100vw"
-              quality={90}
+              quality={85}
             />
           </motion.div>
         </motion.div>
