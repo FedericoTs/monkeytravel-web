@@ -8,6 +8,7 @@ import { isAdmin } from '@/lib/admin';
 import type { User } from '@supabase/supabase-js';
 import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
+import { TourTrigger } from '@/components/tour';
 
 const navLinks = [
   { href: '#features', label: 'Features' },
@@ -129,12 +130,13 @@ export default function Navbar() {
                 >
                   Sign in
                 </Link>
-                <Link
-                  href="/trips/new"
+                <TourTrigger
+                  variant="button"
+                  skipToAuthIfCompleted={true}
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
                 >
                   Start Planning
-                </Link>
+                </TourTrigger>
               </>
             )}
           </div>
@@ -220,13 +222,15 @@ export default function Navbar() {
                   >
                     Sign in
                   </Link>
-                  <Link
-                    href="/trips/new"
-                    className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Start Planning
-                  </Link>
+                  <div onClick={() => setMobileMenuOpen(false)}>
+                    <TourTrigger
+                      variant="button"
+                      skipToAuthIfCompleted={true}
+                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
+                    >
+                      Start Planning
+                    </TourTrigger>
+                  </div>
                 </>
               )}
             </div>
