@@ -59,6 +59,66 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
+      {/* Brand gradient base - visible while image loads */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            linear-gradient(
+              135deg,
+              #1a1a2e 0%,
+              #16213e 25%,
+              #0f3460 50%,
+              #1a1a2e 75%,
+              #16213e 100%
+            )
+          `,
+        }}
+      />
+
+      {/* Animated brand color orbs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full opacity-30"
+          style={{
+            background: "radial-gradient(circle, rgba(255, 107, 107, 0.4) 0%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
+        <motion.div
+          animate={{
+            x: [0, -20, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full opacity-25"
+          style={{
+            background: "radial-gradient(circle, rgba(0, 180, 166, 0.4) 0%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
+        <motion.div
+          animate={{
+            x: [0, 15, 0],
+            y: [0, -15, 0],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full opacity-20"
+          style={{
+            background: "radial-gradient(circle, rgba(255, 217, 61, 0.35) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+      </div>
+
       {/* Background Image with Ken Burns */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -80,7 +140,7 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
               alt="Destination background"
               fill
               priority={slideIndex === 0}
-              className={`object-cover transition-opacity duration-500 ${
+              className={`object-cover transition-opacity duration-700 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
@@ -91,53 +151,58 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
         </motion.div>
       </AnimatePresence>
 
-      {/* Cinematic Gradient Overlay */}
+      {/* Cinematic Gradient Overlay - lighter to show more image */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
             linear-gradient(
               180deg,
-              rgba(0, 0, 0, 0.5) 0%,
-              rgba(0, 0, 0, 0.2) 30%,
+              rgba(0, 0, 0, 0.4) 0%,
+              rgba(0, 0, 0, 0.15) 30%,
               rgba(0, 0, 0, 0.1) 50%,
-              rgba(0, 0, 0, 0.3) 80%,
-              rgba(0, 0, 0, 0.6) 100%
+              rgba(0, 0, 0, 0.2) 80%,
+              rgba(0, 0, 0, 0.5) 100%
             )
           `,
         }}
       />
 
-      {/* Warm color tint overlay */}
+      {/* Brand color tint overlay */}
       <div
         className="absolute inset-0 pointer-events-none mix-blend-soft-light"
         style={{
           background: `
             radial-gradient(
               ellipse at 30% 20%,
-              rgba(255, 107, 107, 0.15) 0%,
+              rgba(255, 107, 107, 0.2) 0%,
               transparent 50%
             ),
             radial-gradient(
               ellipse at 70% 80%,
-              rgba(255, 217, 61, 0.1) 0%,
+              rgba(255, 217, 61, 0.15) 0%,
               transparent 50%
+            ),
+            radial-gradient(
+              ellipse at 50% 50%,
+              rgba(0, 180, 166, 0.1) 0%,
+              transparent 60%
             )
           `,
         }}
       />
 
-      {/* Vignette effect */}
+      {/* Vignette effect - softer */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          boxShadow: "inset 0 0 150px rgba(0, 0, 0, 0.4)",
+          boxShadow: "inset 0 0 120px rgba(0, 0, 0, 0.3)",
         }}
       />
 
       {/* Subtle noise texture for premium feel */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
