@@ -11,13 +11,12 @@ const MOOD_CHIPS = [
   { label: "Adventure", emoji: "🏔️" },
   { label: "Cultural", emoji: "🏛️" },
   { label: "Foodie", emoji: "🍝" },
-  { label: "Relaxation", emoji: "🌴" },
 ];
 
 export default function SlideTemplates() {
   return (
-    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+    <div className="relative w-full h-full flex items-center justify-center px-3 md:px-8">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 lg:gap-16 items-center">
         {/* Text Content */}
         <motion.div
           variants={textContainerVariants}
@@ -28,48 +27,45 @@ export default function SlideTemplates() {
           {/* Slide indicator */}
           <motion.div
             variants={textItemVariants}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-md border border-white/15 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 mb-3 md:mb-6"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/50" />
-            <span className="text-sm text-white/90 font-medium tracking-wide" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>Step 4 of 4</span>
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
+            <span className="text-xs md:text-sm text-white/80 font-medium">Step 4 of 4</span>
           </motion.div>
 
           {/* Headline */}
           <motion.h2
             variants={textItemVariants}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight"
+            className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
-            Start with
-            <br />
+            Start with{" "}
             <span className="text-[var(--accent)]">Inspiration</span>
           </motion.h2>
 
           {/* Description */}
           <motion.p
             variants={textItemVariants}
-            className="text-lg md:text-xl text-white/80 mb-6 max-w-md mx-auto lg:mx-0"
+            className="text-sm md:text-lg text-white/70 mb-3 md:mb-6 max-w-md mx-auto lg:mx-0"
           >
-            Not sure where to go? Browse curated trip templates by mood, destination, and budget.
+            Browse curated trip templates by mood and budget.
           </motion.p>
 
           {/* Mood chips */}
           <motion.div
             variants={textItemVariants}
-            className="flex flex-wrap gap-2.5 justify-center lg:justify-start mb-8"
+            className="flex flex-wrap gap-1.5 md:gap-2.5 justify-center lg:justify-start mb-4 md:mb-8"
           >
             {MOOD_CHIPS.map((chip, index) => (
               <motion.span
                 key={chip.label}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{
                   ...GENTLE_SPRING,
-                  delay: 0.8 + index * 0.1,
+                  delay: 0.6 + index * 0.08,
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--navy)]/30 backdrop-blur-md rounded-full border border-white/15 text-white/90 text-sm font-medium transition-all duration-300 hover:bg-[var(--accent)]/30 hover:border-[var(--accent)]/40"
-                style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}
-                whileHover={{ scale: 1.05 }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 md:px-4 md:py-2 bg-black/15 backdrop-blur-sm rounded-full border border-white/10 text-white/80 text-xs md:text-sm font-medium"
               >
                 <span>{chip.emoji}</span>
                 <span>{chip.label}</span>
@@ -78,11 +74,11 @@ export default function SlideTemplates() {
           </motion.div>
 
           {/* Feature highlights */}
-          <div className="space-y-3">
+          <div className="hidden sm:flex flex-col gap-2 md:gap-3">
             {[
               { icon: "✨", text: "Expert-curated trips" },
               { icon: "🎨", text: "Filter by mood & style" },
-              { icon: "📋", text: "Copy & customize instantly" },
+              { icon: "📋", text: "Copy & customize" },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -90,10 +86,10 @@ export default function SlideTemplates() {
                 custom={index}
                 initial="hidden"
                 animate="visible"
-                className="flex items-center gap-3.5 bg-[var(--navy)]/35 backdrop-blur-md rounded-2xl px-5 py-3.5 border border-white/10 max-w-sm mx-auto lg:mx-0 hover:bg-[var(--navy)]/50 hover:border-[var(--accent)]/30 transition-all duration-300"
+                className="flex items-center gap-3 bg-black/15 backdrop-blur-sm rounded-xl px-4 py-2.5 md:px-5 md:py-3.5 border border-white/5 max-w-sm mx-auto lg:mx-0"
               >
-                <span className="text-2xl drop-shadow-sm">{feature.icon}</span>
-                <span className="text-white/90 font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{feature.text}</span>
+                <span className="text-lg md:text-2xl">{feature.icon}</span>
+                <span className="text-white/80 text-sm md:text-base font-medium">{feature.text}</span>
               </motion.div>
             ))}
           </div>
@@ -118,11 +114,10 @@ export default function SlideTemplates() {
 
 // Animated template card highlights
 function TemplateHighlights() {
-  // templates.png: Featured Paris card ~14-52%, Tokyo/Barcelona cards ~57-88%
   const cards = [
-    { top: "14%", left: "4%", width: "92%", height: "38%", delay: 1.0 },   // Featured Paris card
-    { top: "57%", left: "4%", width: "44%", height: "30%", delay: 1.3 },   // Tokyo card (left)
-    { top: "57%", left: "52%", width: "44%", height: "30%", delay: 1.6 },  // Barcelona card (right)
+    { top: "12%", left: "4%", width: "92%", height: "38%", delay: 1.0 },
+    { top: "54%", left: "4%", width: "44%", height: "28%", delay: 1.3 },
+    { top: "54%", left: "52%", width: "44%", height: "28%", delay: 1.6 },
   ];
 
   return (
@@ -142,13 +137,13 @@ function TemplateHighlights() {
             repeatDelay: 3,
             times: [0, 0.1, 0.9, 1],
           }}
-          className="absolute z-10 pointer-events-none rounded-xl border-2 border-white/60"
+          className="absolute z-10 pointer-events-none rounded-lg md:rounded-xl border border-white/50 md:border-2 md:border-white/60"
           style={{
             top: card.top,
             left: card.left,
             width: card.width,
             height: card.height,
-            boxShadow: "0 0 15px 2px rgba(255, 255, 255, 0.3)",
+            boxShadow: "0 0 10px 1px rgba(255, 255, 255, 0.2)",
           }}
         />
       ))}

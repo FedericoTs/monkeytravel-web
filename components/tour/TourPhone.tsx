@@ -8,7 +8,7 @@ import { useReducedMotion } from "./hooks/useReducedMotion";
 interface TourPhoneProps {
   screenImage: string;
   variant?: "center" | "left" | "right";
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   delay?: number;
   showSpotlight?: boolean;
@@ -17,9 +17,10 @@ interface TourPhoneProps {
 }
 
 const SIZE_CLASSES = {
-  sm: "w-[180px] md:w-[220px]",
-  md: "w-[220px] md:w-[280px]",
-  lg: "w-[260px] md:w-[320px]",
+  xs: "w-[140px] md:w-[200px]",  // Compact mobile
+  sm: "w-[160px] md:w-[220px]",
+  md: "w-[180px] md:w-[260px]",
+  lg: "w-[200px] md:w-[300px]",  // Slightly smaller for no-scroll mobile
 };
 
 export default function TourPhone({
@@ -208,7 +209,7 @@ export function CascadePhone({ screenImage, index, className = "" }: CascadePhon
         damping: 15,
         delay: 0.3 + index * 0.15,
       }}
-      className={`relative ${isCenter ? "w-[200px] md:w-[260px]" : "w-[160px] md:w-[200px]"} ${className}`}
+      className={`relative ${isCenter ? "w-[140px] md:w-[220px]" : "w-[110px] md:w-[170px]"} ${className}`}
       style={{ zIndex }}
     >
       {/* Shadow */}

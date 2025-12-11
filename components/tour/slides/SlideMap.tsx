@@ -2,14 +2,14 @@
 
 import { motion } from "framer-motion";
 import TourPhone from "../TourPhone";
-import { textContainerVariants, textItemVariants, featureCardVariants, pinVariants, BOUNCY_SPRING } from "../animations";
+import { textContainerVariants, textItemVariants, featureCardVariants, pinVariants } from "../animations";
 
 const HERO_SCREENSHOT = "/screenshots/trip-barcelona-hero.png";
 
 export default function SlideMap() {
   return (
-    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+    <div className="relative w-full h-full flex items-center justify-center px-3 md:px-8">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 lg:gap-16 items-center">
         {/* Phone Mockup with Map */}
         <div className="order-1 lg:order-2 flex justify-center relative">
           <TourPhone
@@ -33,33 +33,32 @@ export default function SlideMap() {
           {/* Slide indicator */}
           <motion.div
             variants={textItemVariants}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-md border border-white/15 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 mb-3 md:mb-6"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)] shadow-sm shadow-[var(--primary)]/50" />
-            <span className="text-sm text-white/90 font-medium tracking-wide" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>Step 3 of 4</span>
+            <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+            <span className="text-xs md:text-sm text-white/80 font-medium">Step 3 of 4</span>
           </motion.div>
 
           {/* Headline */}
           <motion.h2
             variants={textItemVariants}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight"
+            className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
-            Navigate Your
-            <br />
+            Navigate Your{" "}
             <span className="text-[var(--primary)]">Adventure</span>
           </motion.h2>
 
           {/* Description */}
           <motion.p
             variants={textItemVariants}
-            className="text-lg md:text-xl text-white/80 mb-8 max-w-md mx-auto lg:mx-0"
+            className="text-sm md:text-lg text-white/70 mb-4 md:mb-8 max-w-md mx-auto lg:mx-0"
           >
-            See all your stops on an interactive map. Navigate with one tap, verify locations, and never get lost.
+            See all your stops on an interactive map. Never get lost.
           </motion.p>
 
           {/* Feature highlights */}
-          <div className="space-y-3">
+          <div className="hidden sm:flex flex-col gap-2 md:gap-3">
             {[
               { icon: "🗺️", text: "Interactive map view" },
               { icon: "📍", text: "One-tap Google Maps" },
@@ -71,12 +70,19 @@ export default function SlideMap() {
                 custom={index}
                 initial="hidden"
                 animate="visible"
-                className="flex items-center gap-3.5 bg-[var(--navy)]/35 backdrop-blur-md rounded-2xl px-5 py-3.5 border border-white/10 max-w-sm mx-auto lg:mx-0 hover:bg-[var(--navy)]/50 hover:border-[var(--primary)]/30 transition-all duration-300"
+                className="flex items-center gap-3 bg-black/15 backdrop-blur-sm rounded-xl px-4 py-2.5 md:px-5 md:py-3.5 border border-white/5 max-w-sm mx-auto lg:mx-0"
               >
-                <span className="text-2xl drop-shadow-sm">{feature.icon}</span>
-                <span className="text-white/90 font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{feature.text}</span>
+                <span className="text-lg md:text-2xl">{feature.icon}</span>
+                <span className="text-white/80 text-sm md:text-base font-medium">{feature.text}</span>
               </motion.div>
             ))}
+          </div>
+
+          {/* Mobile-only compact features */}
+          <div className="flex sm:hidden justify-center gap-4 text-white/60 text-xs">
+            <span>🗺️ Map view</span>
+            <span>📍 Navigate</span>
+            <span>✅ Verified</span>
           </div>
         </motion.div>
       </div>
@@ -86,12 +92,12 @@ export default function SlideMap() {
 
 // Animated map pins overlay
 function MapPins() {
-  // Map area in trip-barcelona-hero.png spans roughly 33-88% vertically
+  // Map area in trip-barcelona-hero.png spans ~28-85% vertically
   const pins = [
-    { top: "45%", left: "20%" },
-    { top: "55%", left: "50%" },
-    { top: "65%", left: "35%" },
-    { top: "58%", left: "70%" },
+    { top: "38%", left: "25%" },
+    { top: "48%", left: "55%" },
+    { top: "58%", left: "40%" },
+    { top: "52%", left: "72%" },
   ];
 
   return (
@@ -108,13 +114,13 @@ function MapPins() {
         >
           {/* Pin shadow */}
           <div
-            className="absolute w-4 h-2 bg-black/30 rounded-full blur-sm -bottom-1 left-1/2 -translate-x-1/2"
+            className="absolute w-2 md:w-3 h-1 md:h-1.5 bg-black/30 rounded-full blur-sm -bottom-0.5 md:-bottom-1 left-1/2 -translate-x-1/2"
           />
 
           {/* Pin */}
           <motion.div
             animate={{
-              y: [0, -4, 0],
+              y: [0, -2, 0],
             }}
             transition={{
               duration: 1.5,
@@ -124,18 +130,18 @@ function MapPins() {
             }}
             className="relative"
           >
-            {/* Pin body */}
-            <div className="w-6 h-6 bg-[var(--primary)] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-              <span className="text-white text-xs font-bold">{index + 1}</span>
+            {/* Pin body - smaller on mobile */}
+            <div className="w-4 h-4 md:w-5 md:h-5 bg-[var(--primary)] rounded-full flex items-center justify-center shadow-lg border md:border-2 border-white">
+              <span className="text-white text-[8px] md:text-[10px] font-bold">{index + 1}</span>
             </div>
 
-            {/* Pin tail */}
+            {/* Pin tail - smaller on mobile */}
             <div
               className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
               style={{
-                borderLeft: "5px solid transparent",
-                borderRight: "5px solid transparent",
-                borderTop: "8px solid var(--primary)",
+                borderLeft: "3px solid transparent",
+                borderRight: "3px solid transparent",
+                borderTop: "5px solid var(--primary)",
                 marginTop: "-2px",
               }}
             />
@@ -145,7 +151,7 @@ function MapPins() {
           <motion.div
             initial={{ scale: 0.5, opacity: 0.5 }}
             animate={{
-              scale: [0.5, 2, 2],
+              scale: [0.5, 1.6, 1.6],
               opacity: [0.5, 0.2, 0],
             }}
             transition={{
@@ -154,7 +160,7 @@ function MapPins() {
               repeatDelay: index * 0.3,
               ease: "easeOut",
             }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--primary)]"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 rounded-full bg-[var(--primary)]"
           />
         </motion.div>
       ))}
@@ -166,14 +172,14 @@ function MapPins() {
         preserveAspectRatio="none"
       >
         <motion.path
-          d="M 20 45 Q 28 55 35 65 Q 42 58 50 55 Q 60 56 70 58"
+          d="M 25 38 Q 32 45 40 58 Q 48 52 55 48 Q 63 50 72 52"
           fill="none"
           stroke="var(--primary)"
-          strokeWidth="0.8"
+          strokeWidth="0.6"
           strokeLinecap="round"
-          strokeDasharray="3 2"
+          strokeDasharray="2 1.5"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.6 }}
+          animate={{ pathLength: 1, opacity: 0.5 }}
           transition={{
             pathLength: { duration: 2, delay: 1.5, ease: "easeInOut" },
             opacity: { duration: 0.5, delay: 1 },

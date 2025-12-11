@@ -194,7 +194,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="absolute inset-0 pt-16 pb-24 md:pt-20 md:pb-28 overflow-y-auto overflow-x-hidden"
+                className="absolute inset-0 pt-14 pb-16 md:pt-20 md:pb-24 overflow-y-auto overflow-x-hidden"
               >
 {(() => {
                   // Last slide is CTA
@@ -264,8 +264,8 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </div>
           </motion.div>
 
-          {/* Progress & Skip - Fixed at bottom */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 md:px-8 md:pb-8 safe-area-bottom">
+          {/* Progress & Skip - Fixed at bottom - iOS compact style */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 md:px-8 md:pb-6 safe-area-bottom">
             <TourProgress
               currentSlide={currentSlide}
               totalSlides={TOTAL_SLIDES}
@@ -274,26 +274,24 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             />
           </div>
 
-          {/* MonkeyTravel Logo - Top left */}
+          {/* MonkeyTravel Logo - Top left - Clean minimal style */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, ease: PREMIUM_EASE }}
+            transition={{ delay: 0.3, ease: PREMIUM_EASE }}
             className="fixed top-4 left-4 md:top-6 md:left-6 z-50"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm p-1 border border-white/20">
-                <Image
-                  src="/images/logo.png"
-                  alt="MonkeyTravel"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-contain"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/images/logo.png"
+                alt="MonkeyTravel"
+                width={32}
+                height={32}
+                className="w-8 h-8 drop-shadow-lg"
+              />
               <span
-                className="text-white text-lg hidden sm:inline"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif", fontWeight: 600 }}
+                className="text-white text-base font-semibold tracking-tight hidden sm:inline drop-shadow-md"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
               >
                 MonkeyTravel
               </span>
@@ -325,25 +323,25 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </svg>
           </motion.button>
 
-          {/* Mobile swipe hint (first slide only) */}
+          {/* Mobile swipe hint (first slide only) - iOS compact */}
           {currentSlide === 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ delay: 2 }}
-              className="lg:hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-40"
+              transition={{ delay: 1.5 }}
+              className="lg:hidden fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40"
             >
               <motion.div
-                animate={{ x: [-10, 10, -10] }}
-                transition={{ duration: 1.5, repeat: 3, ease: "easeInOut" }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-sm border border-white/10"
+                animate={{ x: [-8, 8, -8] }}
+                transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md"
               >
-                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="text-white/80 text-sm font-medium">Swipe to explore</span>
-                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-white/60 text-xs font-medium">Swipe</span>
+                <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>

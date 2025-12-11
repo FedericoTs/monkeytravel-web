@@ -261,61 +261,42 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
         </motion.div>
       </AnimatePresence>
 
-      {/* Cinematic overlay - much lighter to show more of the beautiful images */}
+      {/* iOS-style soft overlay - gentle gradient for readability without heaviness */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
             linear-gradient(
               180deg,
-              rgba(0, 0, 0, 0.25) 0%,
-              rgba(0, 0, 0, 0.05) 25%,
-              rgba(0, 0, 0, 0.0) 50%,
-              rgba(0, 0, 0, 0.1) 75%,
-              rgba(0, 0, 0, 0.35) 100%
+              rgba(0, 0, 0, 0.15) 0%,
+              rgba(0, 0, 0, 0.02) 30%,
+              transparent 50%,
+              rgba(0, 0, 0, 0.05) 70%,
+              rgba(0, 0, 0, 0.25) 100%
             )
           `,
         }}
       />
 
-      {/* Subtle radial gradient for depth */}
+      {/* Soft blur layer for premium feel - applied to edges only */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
             radial-gradient(
-              ellipse 80% 60% at 50% 50%,
-              transparent 0%,
-              rgba(0, 0, 0, 0.15) 100%
+              ellipse 120% 100% at 50% 50%,
+              transparent 40%,
+              rgba(0, 0, 0, 0.08) 100%
             )
           `,
         }}
       />
 
-      {/* Brand color accent overlay - very subtle */}
-      <div
-        className="absolute inset-0 pointer-events-none mix-blend-soft-light opacity-40"
-        style={{
-          background: `
-            radial-gradient(
-              ellipse at 20% 30%,
-              rgba(255, 107, 107, 0.3) 0%,
-              transparent 40%
-            ),
-            radial-gradient(
-              ellipse at 80% 70%,
-              rgba(255, 217, 61, 0.2) 0%,
-              transparent 40%
-            )
-          `,
-        }}
-      />
-
-      {/* Vignette - softer */}
+      {/* Subtle vignette - softer iOS style */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          boxShadow: "inset 0 0 150px rgba(0, 0, 0, 0.2)",
+          boxShadow: "inset 0 0 100px rgba(0, 0, 0, 0.1)",
         }}
       />
 

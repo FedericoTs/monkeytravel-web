@@ -8,8 +8,8 @@ const ITINERARY_SCREENSHOT = "/screenshots/trip-barcelona-itinerary.png";
 
 export default function SlideItinerary() {
   return (
-    <div className="relative w-full min-h-full flex items-center justify-center px-4 md:px-8 py-4">
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+    <div className="relative w-full h-full flex items-center justify-center px-3 md:px-8">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 lg:gap-16 items-center">
         {/* Text Content - Left on desktop */}
         <motion.div
           variants={textContainerVariants}
@@ -20,37 +20,36 @@ export default function SlideItinerary() {
           {/* Slide indicator */}
           <motion.div
             variants={textItemVariants}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-md border border-white/15 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 mb-3 md:mb-6"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--secondary)] shadow-sm shadow-[var(--secondary)]/50" />
-            <span className="text-sm text-white/90 font-medium tracking-wide" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>Step 2 of 4</span>
+            <span className="w-2 h-2 rounded-full bg-[var(--secondary)]" />
+            <span className="text-xs md:text-sm text-white/80 font-medium">Step 2 of 4</span>
           </motion.div>
 
           {/* Headline */}
           <motion.h2
             variants={textItemVariants}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight"
+            className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
-            AI Magic in
-            <br />
+            AI Magic in{" "}
             <span className="text-[var(--secondary)]">30 Seconds</span>
           </motion.h2>
 
           {/* Description */}
           <motion.p
             variants={textItemVariants}
-            className="text-lg md:text-xl text-white/80 mb-8 max-w-md mx-auto lg:mx-0"
+            className="text-sm md:text-lg text-white/70 mb-4 md:mb-8 max-w-md mx-auto lg:mx-0"
           >
-            Get a complete day-by-day itinerary with perfect timing, walking routes, and local favorites.
+            Get a complete day-by-day itinerary with perfect timing.
           </motion.p>
 
           {/* Feature highlights */}
-          <div className="space-y-3">
+          <div className="hidden sm:flex flex-col gap-2 md:gap-3">
             {[
-              { icon: "📅", text: "Day-by-day schedule", color: "bg-[var(--primary)]/25" },
-              { icon: "🚶", text: "Walking times included", color: "bg-[var(--secondary)]/25" },
-              { icon: "💰", text: "Budget estimates", color: "bg-[var(--accent)]/25" },
+              { icon: "📅", text: "Day-by-day schedule" },
+              { icon: "🚶", text: "Walking times included" },
+              { icon: "💰", text: "Budget estimates" },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -58,12 +57,19 @@ export default function SlideItinerary() {
                 custom={index}
                 initial="hidden"
                 animate="visible"
-                className={`flex items-center gap-3.5 ${feature.color} backdrop-blur-md rounded-2xl px-5 py-3.5 border border-white/10 max-w-sm mx-auto lg:mx-0 hover:border-white/20 transition-all duration-300`}
+                className="flex items-center gap-3 bg-black/15 backdrop-blur-sm rounded-xl px-4 py-2.5 md:px-5 md:py-3.5 border border-white/5 max-w-sm mx-auto lg:mx-0"
               >
-                <span className="text-2xl drop-shadow-sm">{feature.icon}</span>
-                <span className="text-white/90 font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{feature.text}</span>
+                <span className="text-lg md:text-2xl">{feature.icon}</span>
+                <span className="text-white/80 text-sm md:text-base font-medium">{feature.text}</span>
               </motion.div>
             ))}
+          </div>
+
+          {/* Mobile-only compact features */}
+          <div className="flex sm:hidden justify-center gap-4 text-white/60 text-xs">
+            <span>📅 Scheduled</span>
+            <span>🚶 Timed</span>
+            <span>💰 Budget</span>
           </div>
         </motion.div>
 
@@ -78,12 +84,12 @@ export default function SlideItinerary() {
             {/* Animated highlight overlays on the phone */}
             <ActivityHighlight
               delay={1.0}
-              position={{ top: "12%", left: "4%", width: "92%", height: "30%" }}
+              position={{ top: "14%", left: "4%", width: "92%", height: "32%" }}
               label="Activity cards"
             />
             <ActivityHighlight
               delay={1.5}
-              position={{ top: "43%", left: "22%", width: "56%", height: "4%" }}
+              position={{ top: "47%", left: "22%", width: "56%", height: "4%" }}
               label="Walking time"
               small
             />
@@ -125,20 +131,20 @@ function ActivityHighlight({ delay, position, label, small = false }: ActivityHi
         height: position.height,
       }}
     >
-      {/* Highlight border */}
+      {/* Highlight border - thinner on mobile */}
       <div
-        className={`absolute inset-0 border-2 border-[var(--accent)] ${small ? "rounded-lg" : "rounded-2xl"}`}
+        className={`absolute inset-0 border border-[var(--accent)] md:border-2 ${small ? "rounded-md md:rounded-lg" : "rounded-xl md:rounded-2xl"}`}
         style={{
-          boxShadow: "0 0 20px 4px rgba(255, 217, 61, 0.4)",
+          boxShadow: "0 0 12px 2px rgba(255, 217, 61, 0.3)",
         }}
       />
 
-      {/* Label */}
+      {/* Label - hidden on mobile to reduce visual clutter */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: delay + 0.2 }}
-        className={`absolute ${small ? "-top-6" : "-top-8"} left-1/2 -translate-x-1/2 whitespace-nowrap`}
+        className={`hidden md:block absolute ${small ? "-top-6" : "-top-8"} left-1/2 -translate-x-1/2 whitespace-nowrap`}
       >
         <span className="bg-[var(--accent)] text-[var(--primary-dark)] text-xs font-bold px-2 py-1 rounded-full shadow-lg">
           {label}
