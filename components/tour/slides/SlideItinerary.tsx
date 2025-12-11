@@ -20,10 +20,10 @@ export default function SlideItinerary() {
           {/* Slide indicator */}
           <motion.div
             variants={textItemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-md border border-white/15 mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[var(--secondary)]" />
-            <span className="text-sm text-white/80 font-medium">Step 2 of 4</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--secondary)] shadow-sm shadow-[var(--secondary)]/50" />
+            <span className="text-sm text-white/90 font-medium tracking-wide" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>Step 2 of 4</span>
           </motion.div>
 
           {/* Headline */}
@@ -46,11 +46,11 @@ export default function SlideItinerary() {
           </motion.p>
 
           {/* Feature highlights */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[
-              { icon: "📅", text: "Day-by-day schedule", color: "bg-[var(--primary)]/20" },
-              { icon: "🚶", text: "Walking times included", color: "bg-[var(--secondary)]/20" },
-              { icon: "💰", text: "Budget estimates", color: "bg-[var(--accent)]/20" },
+              { icon: "📅", text: "Day-by-day schedule", color: "bg-[var(--primary)]/25" },
+              { icon: "🚶", text: "Walking times included", color: "bg-[var(--secondary)]/25" },
+              { icon: "💰", text: "Budget estimates", color: "bg-[var(--accent)]/25" },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -58,10 +58,10 @@ export default function SlideItinerary() {
                 custom={index}
                 initial="hidden"
                 animate="visible"
-                className={`flex items-center gap-3 ${feature.color} backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 max-w-xs mx-auto lg:mx-0`}
+                className={`flex items-center gap-3.5 ${feature.color} backdrop-blur-md rounded-2xl px-5 py-3.5 border border-white/10 max-w-sm mx-auto lg:mx-0 hover:border-white/20 transition-all duration-300`}
               >
-                <span className="text-2xl">{feature.icon}</span>
-                <span className="text-white font-medium">{feature.text}</span>
+                <span className="text-2xl drop-shadow-sm">{feature.icon}</span>
+                <span className="text-white/90 font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{feature.text}</span>
               </motion.div>
             ))}
           </div>

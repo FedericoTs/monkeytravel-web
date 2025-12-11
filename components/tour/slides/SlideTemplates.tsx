@@ -28,10 +28,10 @@ export default function SlideTemplates() {
           {/* Slide indicator */}
           <motion.div
             variants={textItemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-md border border-white/15 mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-            <span className="text-sm text-white/80 font-medium">Step 4 of 4</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/50" />
+            <span className="text-sm text-white/90 font-medium tracking-wide" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>Step 4 of 4</span>
           </motion.div>
 
           {/* Headline */}
@@ -56,7 +56,7 @@ export default function SlideTemplates() {
           {/* Mood chips */}
           <motion.div
             variants={textItemVariants}
-            className="flex flex-wrap gap-2 justify-center lg:justify-start mb-8"
+            className="flex flex-wrap gap-2.5 justify-center lg:justify-start mb-8"
           >
             {MOOD_CHIPS.map((chip, index) => (
               <motion.span
@@ -67,8 +67,9 @@ export default function SlideTemplates() {
                   ...GENTLE_SPRING,
                   delay: 0.8 + index * 0.1,
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/20 text-white text-sm font-medium"
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.3)" }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--navy)]/30 backdrop-blur-md rounded-full border border-white/15 text-white/90 text-sm font-medium transition-all duration-300 hover:bg-[var(--accent)]/30 hover:border-[var(--accent)]/40"
+                style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}
+                whileHover={{ scale: 1.05 }}
               >
                 <span>{chip.emoji}</span>
                 <span>{chip.label}</span>
@@ -77,7 +78,7 @@ export default function SlideTemplates() {
           </motion.div>
 
           {/* Feature highlights */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[
               { icon: "✨", text: "Expert-curated trips" },
               { icon: "🎨", text: "Filter by mood & style" },
@@ -89,10 +90,10 @@ export default function SlideTemplates() {
                 custom={index}
                 initial="hidden"
                 animate="visible"
-                className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 max-w-xs mx-auto lg:mx-0"
+                className="flex items-center gap-3.5 bg-[var(--navy)]/35 backdrop-blur-md rounded-2xl px-5 py-3.5 border border-white/10 max-w-sm mx-auto lg:mx-0 hover:bg-[var(--navy)]/50 hover:border-[var(--accent)]/30 transition-all duration-300"
               >
-                <span className="text-2xl">{feature.icon}</span>
-                <span className="text-white font-medium">{feature.text}</span>
+                <span className="text-2xl drop-shadow-sm">{feature.icon}</span>
+                <span className="text-white/90 font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{feature.text}</span>
               </motion.div>
             ))}
           </div>

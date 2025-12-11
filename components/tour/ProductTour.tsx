@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import TourBackground from "./TourBackground";
 import TourProgress from "./TourProgress";
@@ -212,20 +213,24 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </AnimatePresence>
 
             {/* Navigation arrows (desktop) */}
-            <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-4 right-4 justify-between pointer-events-none z-40">
+            <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-6 right-6 justify-between pointer-events-none z-40">
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
                   prevSlide();
                 }}
                 disabled={currentSlide === 0}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, x: -3 }}
                 whileTap={{ scale: 0.95 }}
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center
-                  bg-white/10 backdrop-blur-sm border border-white/20
-                  text-white transition-all pointer-events-auto
-                  ${currentSlide === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-white/20"}
+                  w-14 h-14 rounded-full flex items-center justify-center
+                  bg-[var(--navy)]/40 backdrop-blur-md
+                  border border-white/15
+                  text-white/80 transition-all duration-300 pointer-events-auto
+                  ${currentSlide === 0
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-[var(--primary)]/30 hover:border-[var(--primary)]/40 hover:text-white hover:shadow-lg hover:shadow-[var(--primary)]/20"
+                  }
                 `}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,12 +244,15 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                     e.stopPropagation();
                     nextSlide();
                   }}
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.1, x: 3 }}
                   whileTap={{ scale: 0.95 }}
                   className="
-                    w-12 h-12 rounded-full flex items-center justify-center
-                    bg-white/10 backdrop-blur-sm border border-white/20
-                    text-white hover:bg-white/20 transition-all pointer-events-auto
+                    w-14 h-14 rounded-full flex items-center justify-center
+                    bg-[var(--navy)]/40 backdrop-blur-md
+                    border border-white/15
+                    text-white/80 transition-all duration-300 pointer-events-auto
+                    hover:bg-[var(--accent)]/40 hover:border-[var(--accent)]/50
+                    hover:text-white hover:shadow-lg hover:shadow-[var(--accent)]/20
                   "
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,9 +280,20 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             transition={{ delay: 0.5, ease: PREMIUM_EASE }}
             className="fixed top-4 left-4 md:top-6 md:left-6 z-50"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🐒</span>
-              <span className="text-white font-semibold text-lg hidden sm:inline">
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm p-1 border border-white/20">
+                <Image
+                  src="/images/logo.png"
+                  alt="MonkeyTravel"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span
+                className="text-white text-lg hidden sm:inline"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif", fontWeight: 600 }}
+              >
                 MonkeyTravel
               </span>
             </div>
@@ -289,12 +308,14 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             className="
               fixed top-4 right-4 md:top-6 md:right-6 z-50
               w-10 h-10 rounded-full
-              bg-white/10 backdrop-blur-sm border border-white/20
-              text-white hover:bg-white/20
+              bg-[var(--navy)]/40 backdrop-blur-md
+              border border-white/15
+              text-white/80 hover:text-white
+              hover:bg-[var(--primary)]/30 hover:border-[var(--primary)]/40
               flex items-center justify-center
-              transition-colors
+              transition-all duration-300
             "
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Close tour"
           >
@@ -310,18 +331,18 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ delay: 2 }}
-              className="lg:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-40"
+              className="lg:hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-40"
             >
               <motion.div
                 animate={{ x: [-10, 10, -10] }}
                 transition={{ duration: 1.5, repeat: 3, ease: "easeInOut" }}
-                className="flex items-center gap-2 text-white/60 text-sm"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--navy)]/40 backdrop-blur-sm border border-white/10"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span>Swipe to explore</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-white/80 text-sm font-medium">Swipe to explore</span>
+                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>

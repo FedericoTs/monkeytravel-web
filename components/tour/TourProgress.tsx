@@ -21,7 +21,7 @@ export default function TourProgress({
   return (
     <div className={`flex items-center justify-between ${className}`}>
       {/* Progress Dots */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {Array.from({ length: totalSlides }).map((_, index) => (
           <motion.button
             key={index}
@@ -30,13 +30,13 @@ export default function TourProgress({
             animate={currentSlide === index ? "active" : "inactive"}
             onClick={() => onDotClick(index)}
             className={`
-              w-2.5 h-2.5 rounded-full transition-colors cursor-pointer
+              rounded-full transition-all duration-300 cursor-pointer
               ${currentSlide === index
-                ? "bg-white"
-                : "bg-white/40 hover:bg-white/60"
+                ? "w-8 h-3 bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30"
+                : "w-3 h-3 bg-white/30 hover:bg-white/50"
               }
             `}
-            whileHover={{ scale: 1.2 }}
+            whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -50,14 +50,17 @@ export default function TourProgress({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5, ease: PREMIUM_EASE }}
         className="
-          flex items-center gap-2 px-4 py-2
-          text-white/80 hover:text-white
+          flex items-center gap-2 px-5 py-2.5
+          text-white/70 hover:text-white
           text-sm font-medium
-          transition-colors
+          transition-all duration-300
           rounded-full
-          hover:bg-white/10
+          bg-[var(--navy)]/30 backdrop-blur-sm
+          border border-white/10
+          hover:bg-[var(--navy)]/50 hover:border-white/20
         "
-        whileHover={{ x: 5 }}
+        style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}
+        whileHover={{ x: 3 }}
         whileTap={{ scale: 0.95 }}
       >
         <span>Skip Tour</span>

@@ -116,26 +116,20 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
           {/* Trust indicators */}
           <motion.div
             variants={textItemVariants}
-            className="mt-8 flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm"
+            className="mt-8 flex flex-wrap items-center justify-center gap-4 md:gap-6"
           >
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>No credit card required</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Free AI trip included</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Cancel anytime</span>
-            </div>
+            {[
+              "No credit card required",
+              "Free AI trip included",
+              "Cancel anytime"
+            ].map((text, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--navy)]/30 backdrop-blur-sm border border-white/10">
+                <svg className="w-4 h-4 text-[var(--secondary)]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-white/80 text-sm font-medium" style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}>{text}</span>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
       </div>
