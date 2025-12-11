@@ -22,6 +22,12 @@ export async function GET(request: Request) {
     });
 
     if (!error && data.user) {
+      // SPECIAL CASE: Password recovery - redirect to reset password page
+      // The user is now authenticated with a session, so they can set a new password
+      if (type === "recovery") {
+        return NextResponse.redirect(`${origin}/auth/reset-password`);
+      }
+
       // Check if user profile exists
       const { data: existingProfile } = await supabase
         .from("users")
@@ -58,7 +64,17 @@ export async function GET(request: Request) {
 
     // Token verification failed
     console.error("[Auth Callback] Token verification failed:", error?.message);
-    return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error?.message || "Email confirmation failed")}`);
+
+    // Provide more specific error messages
+    const errorMessage = type === "recovery"
+      ? "Password reset link is invalid or expired. Please request a new one."
+      : error?.message || "Email confirmation failed";
+
+    const redirectPath = type === "recovery"
+      ? `/auth/forgot-password?error=${encodeURIComponent(errorMessage)}`
+      : `/auth/login?error=${encodeURIComponent(errorMessage)}`;
+
+    return NextResponse.redirect(`${origin}${redirectPath}`);
   }
 
   // Handle OAuth code exchange
