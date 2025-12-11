@@ -310,9 +310,12 @@ export default function EditableActivityCard({
 
   return (
     <div
-      className={`bg-white rounded-xl border transition-all duration-300 relative ${
+      className={`bg-white border transition-all duration-300 relative ${
         expanded ? "shadow-lg border-slate-300" : "shadow-sm border-slate-200 hover:shadow-md"
-      } ${isEditMode ? "ring-2 ring-[var(--primary)]/20" : ""}`}
+      } ${isEditMode
+          ? "rounded-r-xl rounded-l-none border-l-0" // Integrate with drag handle
+          : "rounded-xl"
+      }`}
     >
       {/* Edit Mode Actions Bar - Top of card */}
       {isEditMode && !isEditing && (

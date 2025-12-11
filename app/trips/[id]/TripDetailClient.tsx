@@ -217,16 +217,17 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const availableDays = editedItinerary.map((day) => day.day_number);
 
   // Drag-and-drop sensors for reordering activities
+  // Optimized for premium iOS-like touch experience
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Require 8px movement before starting drag
+        distance: 5, // Reduced for more responsive feel
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // Long press delay for touch devices
-        tolerance: 5,
+        delay: 150, // Quick but intentional press (iOS-like)
+        tolerance: 8, // Allow slight movement during press
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1060,16 +1061,34 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                     <>
                       {isEditMode ? (
                         /* Edit Mode with Drag-and-Drop */
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={(event) => handleDragEnd(event, dayIndex)}
-                        >
-                          <SortableContext
-                            items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}
-                            strategy={verticalListSortingStrategy}
+                        <>
+                          {/* Edit mode reorder hint - only show on first day */}
+                          {dayIndex === 0 && (
+                            <div className="mb-4 px-1">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-lg border border-slate-200/60">
+                                <div className="w-6 h-6 rounded bg-slate-200/80 flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                  </svg>
+                                </div>
+                                <span className="text-sm text-slate-600">
+                                  <span className="font-medium">Reorder activities</span>
+                                  <span className="text-slate-400 hidden sm:inline"> — drag the handle on the left to rearrange</span>
+                                  <span className="text-slate-400 sm:hidden"> — hold & drag</span>
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEnd(event, dayIndex)}
                           >
-                            <div className="grid gap-0 pl-6">
+                            <SortableContext
+                              items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              <div className="grid gap-0">
                               {day.activities.map((activity, idx) => {
                                 const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
                                 const nextActivity = day.activities[idx + 1];
@@ -1117,6 +1136,7 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                             </div>
                           </SortableContext>
                         </DndContext>
+                        </>
                       ) : (
                         /* View Mode - No Drag-and-Drop */
                         <div className="grid gap-0">
