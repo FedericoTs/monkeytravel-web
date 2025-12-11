@@ -194,7 +194,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="absolute inset-0 pt-14 pb-16 md:pt-20 md:pb-24 overflow-y-auto overflow-x-hidden"
+                className="absolute inset-0 pt-12 pb-10 md:pt-16 md:pb-20 overflow-y-auto overflow-x-hidden"
               >
 {(() => {
                   // Last slide is CTA
@@ -264,13 +264,12 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </div>
           </motion.div>
 
-          {/* Progress & Skip - Fixed at bottom - iOS compact style */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 md:px-8 md:pb-6 safe-area-bottom">
+          {/* Progress Dots - Fixed at bottom - iOS ultra-compact */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-3 md:px-8 md:pb-5 safe-area-bottom">
             <TourProgress
               currentSlide={currentSlide}
               totalSlides={TOTAL_SLIDES}
               onDotClick={goToSlide}
-              onSkip={handleSkip}
             />
           </div>
 
@@ -298,28 +297,30 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </div>
           </motion.div>
 
-          {/* Close button - Top right */}
+          {/* Skip button - Top right */}
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, ease: PREMIUM_EASE }}
             onClick={handleSkip}
             className="
               fixed top-4 right-4 md:top-6 md:right-6 z-50
-              w-10 h-10 rounded-full
-              bg-[var(--navy)]/40 backdrop-blur-md
-              border border-white/15
-              text-white/80 hover:text-white
-              hover:bg-[var(--primary)]/30 hover:border-[var(--primary)]/40
-              flex items-center justify-center
-              transition-all duration-300
+              flex items-center gap-1
+              text-white/60 hover:text-white/90
+              text-xs md:text-sm font-medium
+              transition-all duration-200
+              px-2.5 py-1.5 md:px-3 md:py-2
+              rounded-full
+              hover:bg-white/10
             "
-            whileHover={{ scale: 1.1, rotate: 90 }}
+            style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="Close tour"
+            aria-label="Skip tour"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <span>Skip</span>
+            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </motion.button>
 
@@ -330,18 +331,18 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ delay: 1.5 }}
-              className="lg:hidden fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40"
+              className="lg:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
             >
               <motion.div
-                animate={{ x: [-8, 8, -8] }}
+                animate={{ x: [-6, 6, -6] }}
                 transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/20 backdrop-blur-md"
               >
-                <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2.5 h-2.5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="text-white/60 text-xs font-medium">Swipe</span>
-                <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-white/50 text-[10px] font-medium">Swipe</span>
+                <svg className="w-2.5 h-2.5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>
