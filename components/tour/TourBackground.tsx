@@ -1,30 +1,134 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { kenBurnsVariants, crossfadeVariants, SMOOTH_EASE } from "./animations";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 
-// Curated high-quality background images (from your Pexels collection)
-const BACKGROUND_IMAGES: Record<string, string> = {
-  barcelona: "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  tokyo: "https://images.pexels.com/photos/2614818/pexels-photo-2614818.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  santorini: "https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  paris: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  lisbon: "https://images.pexels.com/photos/1534560/pexels-photo-1534560.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  porto: "https://images.pexels.com/photos/2549018/pexels-photo-2549018.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  aerial: "https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
-  clouds: "https://images.pexels.com/photos/1906658/pexels-photo-1906658.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+// Stunning destination images - each slide gets a unique image, no repeats
+interface DestinationImage {
+  id: string;
+  url: string;
+  name: string;
+  // Ken Burns animation direction
+  animation: "panLeft" | "panRight" | "panUp" | "panDown" | "zoomIn" | "zoomOut" | "diagonalTL" | "diagonalBR";
+}
+
+const DESTINATION_IMAGES: DestinationImage[] = [
+  // Slide 1: Dream Destination - Maldives aerial paradise
+  {
+    id: "maldives",
+    url: "https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Maldives",
+    animation: "panRight",
+  },
+  // Slide 2: AI Itinerary - Bali rice terraces
+  {
+    id: "bali",
+    url: "https://images.pexels.com/photos/2166559/pexels-photo-2166559.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Bali",
+    animation: "panUp",
+  },
+  // Slide 3: Map - London skyline
+  {
+    id: "london",
+    url: "https://images.pexels.com/photos/672532/pexels-photo-672532.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "London",
+    animation: "panLeft",
+  },
+  // Slide 4: Templates - Caribbean beach sunset
+  {
+    id: "caribbean",
+    url: "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Caribbean",
+    animation: "zoomIn",
+  },
+  // Slide 5 montage images - Mexico, Jungle, Beach aerial, Santorini
+  {
+    id: "mexico",
+    url: "https://images.pexels.com/photos/3225529/pexels-photo-3225529.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Mexico Cenote",
+    animation: "diagonalTL",
+  },
+  {
+    id: "jungle",
+    url: "https://images.pexels.com/photos/2166711/pexels-photo-2166711.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Jungle Waterfall",
+    animation: "panDown",
+  },
+  {
+    id: "beach-aerial",
+    url: "https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Beach Aerial",
+    animation: "zoomOut",
+  },
+  {
+    id: "santorini",
+    url: "https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop",
+    name: "Santorini",
+    animation: "diagonalBR",
+  },
+];
+
+// Slide to image index mapping - ensures no repeats
+const SLIDE_TO_IMAGE: Record<number, number[]> = {
+  0: [0],           // Slide 1: Maldives
+  1: [1],           // Slide 2: Bali
+  2: [2],           // Slide 3: London
+  3: [3],           // Slide 4: Caribbean
+  4: [4, 5, 6, 7],  // Slide 5: Montage (Mexico, Jungle, Beach, Santorini)
 };
 
-// Slide to background mapping
-const SLIDE_BACKGROUNDS: Record<number, string[]> = {
-  0: ["barcelona"], // Slide 1: Dream destination
-  1: ["barcelona"], // Slide 2: AI itinerary
-  2: ["aerial"], // Slide 3: Map view
-  3: ["clouds"], // Slide 4: Templates
-  4: ["barcelona", "tokyo", "santorini", "paris"], // Slide 5: Montage
+// Ken Burns animation config
+const KENBURNS_DURATION = 12;
+const KENBURNS_SCALE = 1.15;
+
+interface KenBurnsConfig {
+  initialScale: number;
+  animateScale: number;
+  initialX: string;
+  animateX: string;
+  initialY: string;
+  animateY: string;
+}
+
+const getKenBurnsConfig = (direction: DestinationImage["animation"]): KenBurnsConfig => {
+  const s = KENBURNS_SCALE; // default scale
+  const configs: Record<string, KenBurnsConfig> = {
+    panLeft: { initialScale: s, animateScale: s, initialX: "5%", animateX: "-5%", initialY: "0%", animateY: "0%" },
+    panRight: { initialScale: s, animateScale: s, initialX: "-5%", animateX: "5%", initialY: "0%", animateY: "0%" },
+    panUp: { initialScale: s, animateScale: s, initialX: "0%", animateX: "0%", initialY: "5%", animateY: "-5%" },
+    panDown: { initialScale: s, animateScale: s, initialX: "0%", animateX: "0%", initialY: "-5%", animateY: "5%" },
+    zoomIn: { initialScale: 1.0, animateScale: 1.2, initialX: "0%", animateX: "0%", initialY: "0%", animateY: "0%" },
+    zoomOut: { initialScale: 1.25, animateScale: 1.05, initialX: "0%", animateX: "0%", initialY: "0%", animateY: "0%" },
+    diagonalTL: { initialScale: s, animateScale: s, initialX: "5%", animateX: "-3%", initialY: "5%", animateY: "-3%" },
+    diagonalBR: { initialScale: s, animateScale: s, initialX: "-5%", animateX: "3%", initialY: "-5%", animateY: "3%" },
+  };
+  return configs[direction] || configs.zoomIn;
+};
+
+// Crossfade variants with dynamic cuts
+const crossfadeVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 1.05,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 1.2,
+      ease: [0.25, 0.1, 0.25, 1.0] as [number, number, number, number],
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.98,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.1, 0.25, 1.0] as [number, number, number, number],
+    },
+  },
 };
 
 interface TourBackgroundProps {
@@ -35,12 +139,12 @@ interface TourBackgroundProps {
 export default function TourBackground({ slideIndex, className = "" }: TourBackgroundProps) {
   const prefersReducedMotion = useReducedMotion();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
-  const backgroundKeys = SLIDE_BACKGROUNDS[slideIndex] || ["barcelona"];
-  const isMontageSLide = backgroundKeys.length > 1;
+  const imageIndices = SLIDE_TO_IMAGE[slideIndex] || [0];
+  const isMontageSLide = imageIndices.length > 1;
 
-  // Montage rotation for final slide
+  // Montage rotation for final slide - cycle through different destinations
   useEffect(() => {
     if (!isMontageSLide) {
       setCurrentImageIndex(0);
@@ -48,18 +152,30 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
     }
 
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundKeys.length);
-    }, 4000); // Change every 4 seconds
+      setCurrentImageIndex((prev) => (prev + 1) % imageIndices.length);
+    }, 3500); // Slightly faster for dynamic feel
 
     return () => clearInterval(interval);
-  }, [isMontageSLide, backgroundKeys.length]);
+  }, [isMontageSLide, imageIndices.length]);
 
-  const currentKey = backgroundKeys[currentImageIndex];
-  const imageUrl = BACKGROUND_IMAGES[currentKey];
+  const currentDestination = useMemo(() => {
+    const idx = imageIndices[currentImageIndex];
+    return DESTINATION_IMAGES[idx];
+  }, [imageIndices, currentImageIndex]);
+
+  const kenBurnsConfig = useMemo(() => {
+    return getKenBurnsConfig(currentDestination.animation);
+  }, [currentDestination.animation]);
+
+  const handleImageLoad = (id: string) => {
+    setLoadedImages((prev) => new Set(prev).add(id));
+  };
+
+  const isCurrentImageLoaded = loadedImages.has(currentDestination.id);
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
-      {/* Warm gradient base - matches app theme, visible while image loads */}
+      {/* Warm gradient base - visible while images load */}
       <div
         className="absolute inset-0"
         style={{
@@ -74,137 +190,157 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
         }}
       />
 
-      {/* Subtle animated brand color orbs - visible before image loads */}
+      {/* Subtle animated brand color orbs */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            x: [0, 20, 0],
-            y: [0, -15, 0],
-            scale: [1, 1.05, 1],
+          animate={prefersReducedMotion ? {} : {
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/4 -left-1/4 w-2/3 h-2/3 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 60%)",
-            filter: "blur(80px)",
+            background: "radial-gradient(circle, rgba(255, 107, 107, 0.08) 0%, transparent 60%)",
+            filter: "blur(100px)",
           }}
         />
         <motion.div
-          animate={{
-            x: [0, -15, 0],
-            y: [0, 20, 0],
-            scale: [1, 1.08, 1],
+          animate={prefersReducedMotion ? {} : {
+            x: [0, -25, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.15, 1],
           }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(0, 180, 166, 0.12) 0%, transparent 60%)",
-            filter: "blur(80px)",
-          }}
-        />
-        <motion.div
-          animate={{
-            x: [0, 10, 0],
-            y: [0, -10, 0],
-            scale: [1, 1.03, 1],
-          }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(255, 217, 61, 0.15) 0%, transparent 60%)",
-            filter: "blur(60px)",
+            background: "radial-gradient(circle, rgba(0, 180, 166, 0.06) 0%, transparent 60%)",
+            filter: "blur(100px)",
           }}
         />
       </div>
 
-      {/* Background Image with Ken Burns */}
+      {/* Background Image with Ken Burns Effect */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${slideIndex}-${currentKey}`}
+          key={`${slideIndex}-${currentDestination.id}`}
           variants={crossfadeVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
           className="absolute inset-0"
         >
+          {/* Ken Burns container - slightly larger to allow panning */}
           <motion.div
-            variants={prefersReducedMotion ? undefined : kenBurnsVariants}
-            initial="initial"
-            animate="animate"
-            className="absolute inset-0 w-[120%] h-[120%] -left-[10%] -top-[10%]"
+            initial={prefersReducedMotion ? { scale: 1 } : {
+              scale: kenBurnsConfig.initialScale,
+              x: kenBurnsConfig.initialX,
+              y: kenBurnsConfig.initialY,
+            }}
+            animate={prefersReducedMotion ? { scale: 1 } : {
+              scale: kenBurnsConfig.animateScale,
+              x: kenBurnsConfig.animateX,
+              y: kenBurnsConfig.animateY,
+            }}
+            transition={{ duration: KENBURNS_DURATION, ease: "linear" }}
+            className="absolute inset-[-15%] w-[130%] h-[130%]"
           >
             <Image
-              src={imageUrl}
-              alt="Destination background"
+              src={currentDestination.url}
+              alt={`${currentDestination.name} destination`}
               fill
-              priority={slideIndex === 0}
-              className={`object-cover transition-opacity duration-700 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
+              priority={slideIndex <= 1}
+              className={`object-cover transition-opacity duration-1000 ${
+                isCurrentImageLoaded ? "opacity-100" : "opacity-0"
               }`}
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() => handleImageLoad(currentDestination.id)}
               sizes="100vw"
-              quality={85}
+              quality={90}
             />
           </motion.div>
         </motion.div>
       </AnimatePresence>
 
-      {/* Cinematic Gradient Overlay - lighter to show more image */}
+      {/* Cinematic overlay - much lighter to show more of the beautiful images */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
             linear-gradient(
               180deg,
-              rgba(0, 0, 0, 0.4) 0%,
-              rgba(0, 0, 0, 0.15) 30%,
-              rgba(0, 0, 0, 0.1) 50%,
-              rgba(0, 0, 0, 0.2) 80%,
-              rgba(0, 0, 0, 0.5) 100%
+              rgba(0, 0, 0, 0.25) 0%,
+              rgba(0, 0, 0, 0.05) 25%,
+              rgba(0, 0, 0, 0.0) 50%,
+              rgba(0, 0, 0, 0.1) 75%,
+              rgba(0, 0, 0, 0.35) 100%
             )
           `,
         }}
       />
 
-      {/* Brand color tint overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none mix-blend-soft-light"
-        style={{
-          background: `
-            radial-gradient(
-              ellipse at 30% 20%,
-              rgba(255, 107, 107, 0.2) 0%,
-              transparent 50%
-            ),
-            radial-gradient(
-              ellipse at 70% 80%,
-              rgba(255, 217, 61, 0.15) 0%,
-              transparent 50%
-            ),
-            radial-gradient(
-              ellipse at 50% 50%,
-              rgba(0, 180, 166, 0.1) 0%,
-              transparent 60%
-            )
-          `,
-        }}
-      />
-
-      {/* Vignette effect - softer */}
+      {/* Subtle radial gradient for depth */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          boxShadow: "inset 0 0 120px rgba(0, 0, 0, 0.3)",
+          background: `
+            radial-gradient(
+              ellipse 80% 60% at 50% 50%,
+              transparent 0%,
+              rgba(0, 0, 0, 0.15) 100%
+            )
+          `,
         }}
       />
 
-      {/* Subtle noise texture for premium feel */}
+      {/* Brand color accent overlay - very subtle */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        className="absolute inset-0 pointer-events-none mix-blend-soft-light opacity-40"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          background: `
+            radial-gradient(
+              ellipse at 20% 30%,
+              rgba(255, 107, 107, 0.3) 0%,
+              transparent 40%
+            ),
+            radial-gradient(
+              ellipse at 80% 70%,
+              rgba(255, 217, 61, 0.2) 0%,
+              transparent 40%
+            )
+          `,
         }}
       />
+
+      {/* Vignette - softer */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          boxShadow: "inset 0 0 150px rgba(0, 0, 0, 0.2)",
+        }}
+      />
+
+      {/* Film grain texture for cinematic feel */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Destination label - subtle badge in corner */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="absolute bottom-6 right-6 z-20"
+      >
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+          <span className="text-xs text-white/70 font-medium tracking-wide">
+            {currentDestination.name}
+          </span>
+        </div>
+      </motion.div>
     </div>
   );
 }
