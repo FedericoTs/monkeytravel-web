@@ -17,23 +17,25 @@ export default function TourProgress({
 }: TourProgressProps) {
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      {/* Progress Dots - iOS ultra-compact */}
-      <div className="flex items-center gap-1 md:gap-1.5">
+      {/* Progress Dots - iOS style: tiny pill indicators */}
+      <div className="flex items-center gap-[3px]">
         {Array.from({ length: totalSlides }).map((_, index) => (
-          <motion.button
+          <motion.div
             key={index}
             onClick={() => onDotClick(index)}
-            className={`
-              rounded-full transition-all duration-300 cursor-pointer
-              ${currentSlide === index
-                ? "w-4 md:w-5 h-1 md:h-1.5 bg-white shadow-sm"
-                : "w-1 md:w-1.5 h-1 md:h-1.5 bg-white/30 hover:bg-white/50"
-              }
-            `}
-            whileHover={{ scale: 1.2 }}
+            className="cursor-pointer"
             whileTap={{ scale: 0.9 }}
-            aria-label={`Go to slide ${index + 1}`}
-          />
+          >
+            <div
+              className={`
+                rounded-full transition-all duration-300
+                ${currentSlide === index
+                  ? "w-[14px] h-[5px] bg-white/90"
+                  : "w-[5px] h-[5px] bg-white/40"
+                }
+              `}
+            />
+          </motion.div>
         ))}
       </div>
     </div>

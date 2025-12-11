@@ -308,12 +308,12 @@ export default function TourBackground({ slideIndex, className = "" }: TourBackg
         }}
       />
 
-      {/* Destination label - subtle badge in corner */}
+      {/* Destination label - hidden on mobile, visible on larger screens */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="absolute bottom-6 right-6 z-20"
+        className="hidden md:block absolute bottom-6 right-6 z-20"
       >
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10">
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />

@@ -324,30 +324,6 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             </svg>
           </motion.button>
 
-          {/* Mobile swipe hint (first slide only) - iOS compact */}
-          {currentSlide === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: 1.5 }}
-              className="lg:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
-            >
-              <motion.div
-                animate={{ x: [-6, 6, -6] }}
-                transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/20 backdrop-blur-md"
-              >
-                <svg className="w-2.5 h-2.5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-white/50 text-[10px] font-medium">Swipe</span>
-                <svg className="w-2.5 h-2.5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </motion.div>
-            </motion.div>
-          )}
         </motion.div>
       )}
     </AnimatePresence>
