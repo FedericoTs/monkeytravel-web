@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 
 // Dynamically import ProductTour to avoid SSR issues
 const ProductTour = dynamic(() => import("./ProductTour"), {
@@ -12,6 +13,15 @@ const ProductTour = dynamic(() => import("./ProductTour"), {
 });
 
 const TOUR_COMPLETED_KEY = "monkeytravel_tour_completed";
+
+// All tour screenshots - preload on component mount for instant display
+const TOUR_SCREENSHOTS = [
+  "/screenshots/trip-barcelona-hero.png",
+  "/screenshots/trip-barcelona-itinerary.png",
+  "/screenshots/templates.png",
+  "/screenshots/trip-lisbon-hero.png",
+  "/screenshots/trip-porto-hero.png",
+];
 
 interface TourTriggerProps {
   variant?: "button" | "link" | "text" | "primary-cta" | "custom";
@@ -133,6 +143,21 @@ export default function TourTrigger({
       </motion.button>
 
       <ProductTour isOpen={isTourOpen} onClose={handleCloseTour} />
+
+      {/* Hidden preloader - renders Next.js optimized images off-screen on mount */}
+      <div className="sr-only" aria-hidden="true">
+        {TOUR_SCREENSHOTS.map((src) => (
+          <Image
+            key={src}
+            src={src}
+            alt=""
+            width={320}
+            height={693}
+            priority
+            className="absolute opacity-0 pointer-events-none"
+          />
+        ))}
+      </div>
     </>
   );
 }

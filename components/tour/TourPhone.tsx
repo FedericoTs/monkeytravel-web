@@ -139,13 +139,13 @@ export default function TourPhone({
                   ease: "easeInOut",
                   delay: 1,
                 }}
-                className="absolute z-10 border-2 border-[var(--primary)] rounded-xl pointer-events-none"
+                className="absolute z-10 border-2 border-[var(--accent)] rounded-xl pointer-events-none"
                 style={{
                   top: spotlightPosition.top,
                   left: spotlightPosition.left,
                   width: spotlightPosition.width,
                   height: spotlightPosition.height,
-                  boxShadow: "0 0 20px 4px rgba(255, 107, 107, 0.4)",
+                  boxShadow: "0 0 20px 4px rgba(242, 198, 65, 0.5)",
                 }}
               />
             )}
