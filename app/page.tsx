@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import Link from 'next/link';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
+import { TourTrigger } from '@/components/tour';
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
@@ -34,7 +35,7 @@ const FAQS = [
   },
   {
     question: 'How does the AI itinerary generator work?',
-    answer: 'Tell us where you\'re going, when, and for how long. Our AI analyzes thousands of options and builds three complete day-by-day itineraries at different price points — in about 30 seconds. Each plan includes restaurants, attractions, timing, and walking routes.',
+    answer: 'Tell us where you\'re going, your travel dates, who\'s coming, and what you enjoy. Our AI creates one personalized day-by-day itinerary in about 30 seconds — tailored to your preferences, pace, and interests. Each plan includes restaurants, attractions, timing, and walking routes.',
   },
   {
     question: 'Can I edit the itinerary?',
@@ -108,11 +109,11 @@ export default async function Home() {
 
                 {/* Sub-headline with value proposition */}
                 <p className="text-lg sm:text-xl text-[var(--foreground-muted)] mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Drop a destination. Get a <span className="text-[var(--foreground)] font-medium">complete day-by-day itinerary</span> in 30 seconds — with restaurants, timings, and local gems tailored to your budget.
+                  Drop a destination. Get a <span className="text-[var(--foreground)] font-medium">personalized day-by-day itinerary</span> in 30 seconds — tailored to your travel style, interests, and pace.
                 </p>
 
                 {/* Primary CTAs */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-4">
                   <Link
                     href="/trips/new"
                     className="group relative px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 flex items-center justify-center gap-2"
@@ -128,6 +129,20 @@ export default async function Home() {
                   >
                     <span>Sign In</span>
                   </Link>
+                </div>
+
+                {/* Tour Trigger - See How It Works */}
+                <div className="flex justify-center lg:justify-start mb-8">
+                  <TourTrigger
+                    variant="link"
+                    className="text-[var(--foreground-muted)] hover:text-[var(--primary)]"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-medium">See How It Works</span>
+                  </TourTrigger>
                 </div>
 
                 {/* Trust Signals */}
@@ -152,21 +167,6 @@ export default async function Home() {
                   </div>
                 </div>
 
-                {/* Explore Link */}
-                <div className="mt-6 text-center lg:text-left">
-                  <Link
-                    href="/explore"
-                    className="inline-flex items-center gap-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span>Or explore trips shared by our community</span>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
               </div>
 
               {/* Right - Phone Mockup (hidden on mobile) */}
@@ -233,8 +233,8 @@ export default async function Home() {
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">3</div>
-                <div className="text-sm text-[var(--foreground-muted)]">Budget options every trip</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">100%</div>
+                <div className="text-sm text-[var(--foreground-muted)]">Personalized to you</div>
               </div>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default async function Home() {
                 <span className="gradient-text">nothing you don't</span>
               </h2>
               <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                Our AI vacation planner builds complete itineraries with real restaurants, actual attractions, and smart timing. No fluff, just trips that work.
+                Tell us your preferences. Our AI travel planner builds a personalized itinerary with real restaurants, verified attractions, and smart timing. Then our AI Travel Agent helps you refine it.
               </p>
             </div>
 
@@ -335,11 +335,11 @@ export default async function Home() {
                 {
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   ),
-                  title: 'Your Budget, Your Rules',
-                  description: 'Every trip comes in Budget, Balanced, and Premium. Same destination, three ways to experience it.',
+                  title: 'AI Travel Agent',
+                  description: 'Need to adjust something? Chat with our AI assistant to swap activities, change timing, or get local tips.',
                   color: 'bg-emerald-50 text-emerald-500',
                 },
                 {
@@ -358,8 +358,8 @@ export default async function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   ),
-                  title: 'Make It Yours',
-                  description: "Swap any activity, add your must-sees, adjust timing. It's a starting point, not a locked plan.",
+                  title: 'Fully Customizable',
+                  description: "Swap activities, add your must-sees, adjust timing — manually or with help from our AI Travel Agent.",
                   color: 'bg-violet-50 text-violet-500',
                 },
                 {
@@ -428,8 +428,8 @@ export default async function Home() {
                 },
                 {
                   step: '2',
-                  title: 'AI Builds 3 Itineraries',
-                  description: 'In 30 seconds, get three complete day-by-day plans at Budget, Balanced, and Premium price points.',
+                  title: 'AI Builds Your Itinerary',
+                  description: 'In 30 seconds, get a complete day-by-day plan tailored to your travel style, interests, and budget.',
                   icon: (
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -658,7 +658,7 @@ export default async function Home() {
                   Ready to skip the planning headaches?
                 </h2>
                 <p className="text-lg sm:text-xl text-white/70 mb-4 max-w-2xl mx-auto leading-relaxed">
-                  Your perfect trip is 30 seconds away. No credit card, no catch — just AI-powered itineraries built for how you actually travel.
+                  Your personalized itinerary is 30 seconds away. No credit card, no catch — just an AI travel planner that builds trips around your preferences.
                 </p>
                 <p className="text-base text-white/50 mb-10 max-w-2xl mx-auto">
                   Love it? Invite friends and earn free premium features.

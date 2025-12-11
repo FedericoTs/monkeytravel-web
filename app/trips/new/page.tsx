@@ -19,11 +19,11 @@ import { buildSeasonalContext } from "@/lib/seasonal";
 import StartOverModal from "@/components/trip/StartOverModal";
 import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
+import PersonalizationStep from "@/components/trip/PersonalizationStep";
 import AuthPromptModal from "@/components/ui/AuthPromptModal";
 import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
-import OnboardingModal from "@/components/ui/OnboardingModal";
 import { BetaCodeInput, WaitlistSignup } from "@/components/beta";
-import { hasLocalOnboardingPreferences } from "@/hooks/useOnboardingPreferences";
+import { useOnboardingPreferences, hasLocalOnboardingPreferences } from "@/hooks/useOnboardingPreferences";
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
@@ -103,7 +103,17 @@ export default function NewTripPage() {
   // Auth state for gradual engagement
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [hasExistingTrips, setHasExistingTrips] = useState(false);
+  const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
+
+  // Onboarding preferences - inline in wizard instead of modal
+  const {
+    preferences: onboardingPrefs,
+    isLoaded: onboardingLoaded,
+    isCompleted: onboardingCompleted,
+    savePreferences: saveOnboardingPrefs,
+    completeOnboarding,
+  } = useOnboardingPreferences();
 
   // Early access gate
   const {
@@ -140,14 +150,25 @@ export default function NewTripPage() {
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
-  const TOTAL_STEPS = 4; // Added vibe step
+  // Dynamic step count: 5 steps for new users (includes personalization), 4 for returning users
+  const needsOnboarding = onboardingLoaded && !onboardingCompleted;
+  const TOTAL_STEPS = needsOnboarding ? 5 : 4;
 
-  // Check authentication status on mount
+  // Check authentication status and existing trips on mount
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+
+      // For authenticated users, check if they have existing trips
+      if (user) {
+        const { count } = await supabase
+          .from("trips")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        setHasExistingTrips((count ?? 0) > 0);
+      }
     };
     checkAuth();
   }, []);
@@ -310,7 +331,12 @@ export default function NewTripPage() {
       case 3:
         return selectedVibes.length > 0; // At least one vibe required
       case 4:
-        return true; // Budget and pace have defaults, requirements is optional
+        // For 5-step flow: step 4 is budget/pace (always valid)
+        // For 4-step flow: step 4 is final (always valid)
+        return true;
+      case 5:
+        // Personalization step - requires at least one travel style
+        return onboardingPrefs.travelStyles.length > 0;
       default:
         return false;
     }
@@ -324,6 +350,11 @@ export default function NewTripPage() {
   };
 
   const handleGenerate = async () => {
+    // Complete onboarding if we're in step 5 flow
+    if (needsOnboarding && onboardingPrefs.travelStyles.length > 0) {
+      completeOnboarding();
+    }
+
     // Check authentication first - show modal if not logged in
     if (!isAuthenticated) {
       // Save current form state to draft before prompting
@@ -339,15 +370,7 @@ export default function NewTripPage() {
         });
       }
 
-      // Check if onboarding has been completed
-      // If not, show onboarding modal first → then auth modal
-      const hasOnboardingPrefs = hasLocalOnboardingPreferences();
-      if (!hasOnboardingPrefs) {
-        setShowOnboardingModal(true);
-        return;
-      }
-
-      // Onboarding done, show auth modal
+      // Show auth modal to prompt signup/login
       setShowAuthModal(true);
       return;
     }
@@ -986,19 +1009,7 @@ export default function NewTripPage() {
   // Wizard form
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Onboarding Modal - collect preferences before signup */}
-      <OnboardingModal
-        isOpen={showOnboardingModal}
-        onClose={() => setShowOnboardingModal(false)}
-        destination={destination}
-        onComplete={() => {
-          // Onboarding complete, now show auth modal
-          setShowOnboardingModal(false);
-          setShowAuthModal(true);
-        }}
-      />
-
-      {/* Auth Prompt Modal - for gradual engagement (after onboarding) */}
+      {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -1058,6 +1069,48 @@ export default function NewTripPage() {
 
       {/* Form Content */}
       <main className="max-w-2xl mx-auto px-4 py-8">
+        {/* Returning User Banner - shows on step 1 for authenticated users with trips */}
+        {isAuthenticated && hasExistingTrips && showReturningUserBanner && step === 1 && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900">Welcome back!</h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  You already have trips saved. Want to continue where you left off?
+                </p>
+                <div className="flex items-center gap-3 mt-3">
+                  <Link
+                    href="/trips"
+                    className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+                  >
+                    Go to My Trips
+                  </Link>
+                  <button
+                    onClick={() => setShowReturningUserBanner(false)}
+                    className="px-4 py-2 text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors"
+                  >
+                    Start New Trip
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReturningUserBanner(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Dismiss"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
@@ -1245,6 +1298,23 @@ export default function NewTripPage() {
               />
             </div>
           </div>
+        )}
+
+        {/* Step 5: Personalization (for new users only) */}
+        {step === 5 && needsOnboarding && (
+          <PersonalizationStep
+            destination={destination}
+            travelStyles={onboardingPrefs.travelStyles}
+            onTravelStylesChange={(styles) => saveOnboardingPrefs({ travelStyles: styles })}
+            dietaryPreferences={onboardingPrefs.dietaryPreferences}
+            onDietaryChange={(prefs) => saveOnboardingPrefs({ dietaryPreferences: prefs })}
+            accessibilityNeeds={onboardingPrefs.accessibilityNeeds}
+            onAccessibilityChange={(needs) => saveOnboardingPrefs({ accessibilityNeeds: needs })}
+            activeHoursStart={onboardingPrefs.activeHoursStart}
+            activeHoursEnd={onboardingPrefs.activeHoursEnd}
+            onActiveHoursStartChange={(hour) => saveOnboardingPrefs({ activeHoursStart: hour })}
+            onActiveHoursEndChange={(hour) => saveOnboardingPrefs({ activeHoursEnd: hour })}
+          />
         )}
 
         {/* Navigation */}

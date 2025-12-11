@@ -1,0 +1,149 @@
+"use client";
+
+import { motion } from "framer-motion";
+import TourPhone from "../TourPhone";
+import { textContainerVariants, textItemVariants, featureCardVariants } from "../animations";
+
+const ITINERARY_SCREENSHOT = "/screenshots/trip-barcelona-itinerary.png";
+
+export default function SlideItinerary() {
+  return (
+    <div className="relative w-full h-full flex items-center justify-center px-4 md:px-8">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+        {/* Text Content - Left on desktop */}
+        <motion.div
+          variants={textContainerVariants}
+          initial="hidden"
+          animate="visible"
+          className="order-2 lg:order-1 text-center lg:text-left"
+        >
+          {/* Slide indicator */}
+          <motion.div
+            variants={textItemVariants}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
+          >
+            <span className="w-2 h-2 rounded-full bg-[var(--secondary)]" />
+            <span className="text-sm text-white/80 font-medium">Step 2 of 4</span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h2
+            variants={textItemVariants}
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight"
+            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+          >
+            AI Magic in
+            <br />
+            <span className="text-[var(--secondary)]">30 Seconds</span>
+          </motion.h2>
+
+          {/* Description */}
+          <motion.p
+            variants={textItemVariants}
+            className="text-lg md:text-xl text-white/80 mb-8 max-w-md mx-auto lg:mx-0"
+          >
+            Get a complete day-by-day itinerary with perfect timing, walking routes, and local favorites.
+          </motion.p>
+
+          {/* Feature highlights */}
+          <div className="space-y-4">
+            {[
+              { icon: "📅", text: "Day-by-day schedule", color: "bg-[var(--primary)]/20" },
+              { icon: "🚶", text: "Walking times included", color: "bg-[var(--secondary)]/20" },
+              { icon: "💰", text: "Budget estimates", color: "bg-[var(--accent)]/20" },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                variants={featureCardVariants}
+                custom={index}
+                initial="hidden"
+                animate="visible"
+                className={`flex items-center gap-3 ${feature.color} backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 max-w-xs mx-auto lg:mx-0`}
+              >
+                <span className="text-2xl">{feature.icon}</span>
+                <span className="text-white font-medium">{feature.text}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Phone Mockup - Right on desktop */}
+        <div className="order-1 lg:order-2 flex justify-center relative">
+          <TourPhone
+            screenImage={ITINERARY_SCREENSHOT}
+            variant="left"
+            size="lg"
+            delay={0.2}
+          >
+            {/* Animated highlight overlays on the phone */}
+            <ActivityHighlight
+              delay={1.0}
+              position={{ top: "14%", left: "6%", width: "88%", height: "22%" }}
+              label="Activity cards"
+            />
+            <ActivityHighlight
+              delay={1.5}
+              position={{ top: "38%", left: "20%", width: "60%", height: "6%" }}
+              label="Walking time"
+              small
+            />
+          </TourPhone>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Activity highlight component with label
+interface ActivityHighlightProps {
+  delay: number;
+  position: { top: string; left: string; width: string; height: string };
+  label: string;
+  small?: boolean;
+}
+
+function ActivityHighlight({ delay, position, label, small = false }: ActivityHighlightProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{
+        opacity: [0, 1, 1, 0],
+        scale: [0.9, 1, 1, 0.9],
+      }}
+      transition={{
+        duration: 3,
+        delay,
+        repeat: Infinity,
+        repeatDelay: 2,
+        times: [0, 0.1, 0.9, 1],
+      }}
+      className="absolute z-10 pointer-events-none"
+      style={{
+        top: position.top,
+        left: position.left,
+        width: position.width,
+        height: position.height,
+      }}
+    >
+      {/* Highlight border */}
+      <div
+        className={`absolute inset-0 border-2 border-[var(--accent)] ${small ? "rounded-lg" : "rounded-2xl"}`}
+        style={{
+          boxShadow: "0 0 20px 4px rgba(255, 217, 61, 0.4)",
+        }}
+      />
+
+      {/* Label */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay + 0.2 }}
+        className={`absolute ${small ? "-top-6" : "-top-8"} left-1/2 -translate-x-1/2 whitespace-nowrap`}
+      >
+        <span className="bg-[var(--accent)] text-[var(--primary-dark)] text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+          {label}
+        </span>
+      </motion.div>
+    </motion.div>
+  );
+}
