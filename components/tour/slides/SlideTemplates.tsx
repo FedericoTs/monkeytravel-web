@@ -118,11 +118,11 @@ export default function SlideTemplates() {
 
 // Animated template card highlights
 function TemplateHighlights() {
-  // templates.png: Featured Paris card ~10-52%, Tokyo/Barcelona cards ~58-80%
+  // templates.png: Featured Paris card ~14-52%, Tokyo/Barcelona cards ~57-88%
   const cards = [
-    { top: "10%", left: "4%", width: "92%", height: "42%", delay: 1.0 },   // Featured Paris card
-    { top: "58%", left: "4%", width: "44%", height: "24%", delay: 1.3 },   // Tokyo card (left)
-    { top: "58%", left: "52%", width: "44%", height: "24%", delay: 1.6 },  // Barcelona card (right)
+    { top: "14%", left: "4%", width: "92%", height: "38%", delay: 1.0 },   // Featured Paris card
+    { top: "57%", left: "4%", width: "44%", height: "30%", delay: 1.3 },   // Tokyo card (left)
+    { top: "57%", left: "52%", width: "44%", height: "30%", delay: 1.6 },  // Barcelona card (right)
   ];
 
   return (
