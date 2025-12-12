@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CascadePhoneScreen, ShowcaseScreen } from "../phone-content";
+import { CascadePhoneScreen, CTAShowcaseScreen } from "../phone-content";
 import { textContainerVariants, textItemVariants, ctaPulseVariants } from "../animations";
 
 // Cascade phone variants - code-rendered, no images needed
@@ -30,7 +30,7 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
               }`}
             >
               <CascadePhoneScreen index={index}>
-                <ShowcaseScreen variant={variant} />
+                <CTAShowcaseScreen variant={variant} />
               </CascadePhoneScreen>
             </div>
           ))}
@@ -46,19 +46,19 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
           {/* Headline */}
           <motion.h2
             variants={textItemVariants}
-            className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight"
+            className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4 leading-tight"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
             Your Adventure{" "}
-            <span className="text-[var(--accent)]">Awaits</span>
+            <span className="text-[#FF6B6B]">Awaits</span>
           </motion.h2>
 
           {/* Description */}
           <motion.p
             variants={textItemVariants}
-            className="text-sm md:text-lg text-white/70 mb-4 md:mb-8"
+            className="text-sm md:text-lg text-gray-600 mb-4 md:mb-8"
           >
-            Join thousands of travelers planning smarter trips.
+            Join thousands of travelers planning smarter trips with AI.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -76,11 +76,11 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
               whileTap={{ scale: 0.98 }}
               className="
                 relative px-6 py-3 md:px-8 md:py-4 rounded-full
-                bg-[var(--accent)] text-[var(--primary-dark)]
+                bg-[#FF6B6B] text-white
                 font-bold text-base md:text-lg
-                shadow-lg shadow-[var(--accent)]/30
+                shadow-lg shadow-[#FF6B6B]/30
                 transition-colors
-                hover:bg-[#ffe066]
+                hover:bg-[#FF5252]
               "
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
@@ -94,13 +94,13 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
             {/* Secondary CTA */}
             <motion.button
               onClick={onSignIn}
-              whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+              whileHover={{ scale: 1.02, backgroundColor: "rgba(0, 0, 0, 0.08)" }}
               whileTap={{ scale: 0.98 }}
               className="
                 px-6 py-3 md:px-8 md:py-4 rounded-full
-                bg-white/10 text-white
+                bg-white/80 text-gray-700
                 font-semibold text-base md:text-lg
-                border border-white/20
+                border border-gray-200
                 backdrop-blur-sm
                 transition-colors
               "
@@ -119,11 +119,11 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
               "Free AI trip",
               "Cancel anytime"
             ].map((text, i) => (
-              <div key={i} className="flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 rounded-full bg-black/15 backdrop-blur-sm">
-                <svg className="w-3 h-3 md:w-4 md:h-4 text-[var(--secondary)]" fill="currentColor" viewBox="0 0 20 20">
+              <div key={i} className="flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 rounded-full bg-white/80 border border-gray-200/50 backdrop-blur-sm">
+                <svg className="w-3 h-3 md:w-4 md:h-4 text-[#00B4A6]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span className="text-white/70 text-xs md:text-sm font-medium">{text}</span>
+                <span className="text-gray-600 text-xs md:text-sm font-medium">{text}</span>
               </div>
             ))}
           </motion.div>

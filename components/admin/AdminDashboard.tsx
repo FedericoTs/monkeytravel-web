@@ -8,9 +8,10 @@ import AccessControl from "./AccessControl";
 import ApiControlPanel from "./ApiControlPanel";
 import PromptEditor from "./PromptEditor";
 import AccessCodesManager from "./AccessCodesManager";
+import GrowthDashboard from "./GrowthDashboard";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"analytics" | "costs" | "apis" | "prompts" | "access" | "codes">("analytics");
+  const [activeTab, setActiveTab] = useState<"analytics" | "growth" | "costs" | "apis" | "prompts" | "access" | "codes">("analytics");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false); // Start false - no auto-load
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +113,19 @@ export default function AdminDashboard() {
             Analytics
           </button>
           <button
+            onClick={() => setActiveTab("growth")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              activeTab === "growth"
+                ? "bg-white text-emerald-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            Growth
+          </button>
+          <button
             onClick={() => setActiveTab("costs")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "costs"
@@ -126,7 +140,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("apis")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "apis"
                 ? "bg-white text-green-600 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
@@ -139,7 +153,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("prompts")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "prompts"
                 ? "bg-white text-purple-600 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
@@ -180,6 +194,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab Content */}
+      {activeTab === "growth" && <GrowthDashboard />}
       {activeTab === "costs" && <CostCommandCenter />}
       {activeTab === "apis" && <ApiControlPanel />}
       {activeTab === "prompts" && <PromptEditor />}

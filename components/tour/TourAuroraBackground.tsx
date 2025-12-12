@@ -4,119 +4,126 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 
-// Aurora orb configuration - soft gradient blobs that drift
+// Premium coral aurora orbs on pristine white/cream background
 interface AuroraOrb {
   id: string;
   color: string;
-  size: number; // vw units
-  x: string;
-  y: string;
-  driftX: [string, string];
-  driftY: [string, string];
-  scale: [number, number];
-  duration: number;
+  size: number;
+  x: number;
+  y: number;
   blur: number;
+  duration: number;
+  delay: number;
   opacity: number;
 }
 
-// iOS-style drifting orbs using brand colors
 const AURORA_ORBS: AuroraOrb[] = [
-  // Large coral - top left, drifts right-down
+  // Primary coral glow - large, soft, top-left
   {
-    id: "coral-main",
-    color: "rgba(255, 107, 107, 0.35)",
-    size: 55,
-    x: "-5%",
-    y: "-15%",
-    driftX: ["-5%", "8%"],
-    driftY: ["-15%", "-5%"],
-    scale: [1, 1.15],
-    duration: 20,
-    blur: 80,
-    opacity: 0.6,
-  },
-  // Teal accent - center right, drifts up-left
-  {
-    id: "teal-pulse",
-    color: "rgba(0, 180, 166, 0.3)",
-    size: 45,
-    x: "55%",
-    y: "15%",
-    driftX: ["55%", "48%"],
-    driftY: ["15%", "5%"],
-    scale: [1, 1.2],
+    id: "coral-primary",
+    color: "rgba(255, 107, 107, 0.18)",
+    size: 65,
+    x: 15,
+    y: 10,
+    blur: 120,
     duration: 25,
-    blur: 70,
-    opacity: 0.5,
+    delay: 0,
+    opacity: 1,
   },
-  // Gold shimmer - bottom center, subtle pulse
-  {
-    id: "gold-shimmer",
-    color: "rgba(255, 217, 61, 0.25)",
-    size: 40,
-    x: "25%",
-    y: "60%",
-    driftX: ["25%", "35%"],
-    driftY: ["60%", "55%"],
-    scale: [1, 1.25],
-    duration: 18,
-    blur: 60,
-    opacity: 0.4,
-  },
-  // Secondary coral - bottom right
+  // Secondary coral - medium, bottom-right
   {
     id: "coral-secondary",
-    color: "rgba(255, 107, 107, 0.2)",
-    size: 50,
-    x: "70%",
-    y: "70%",
-    driftX: ["70%", "60%"],
-    driftY: ["70%", "65%"],
-    scale: [1, 1.1],
-    duration: 28,
-    blur: 90,
-    opacity: 0.35,
+    color: "rgba(255, 107, 107, 0.14)",
+    size: 55,
+    x: 80,
+    y: 75,
+    blur: 100,
+    duration: 30,
+    delay: 2,
+    opacity: 1,
   },
-  // Purple mist - left side, adds depth
-  {
-    id: "purple-mist",
-    color: "rgba(162, 155, 254, 0.18)",
-    size: 35,
-    x: "5%",
-    y: "45%",
-    driftX: ["5%", "15%"],
-    driftY: ["45%", "38%"],
-    scale: [1, 1.18],
-    duration: 22,
-    blur: 65,
-    opacity: 0.3,
-  },
-  // Small teal accent - top right
+  // Teal accent - subtle complement, right side
   {
     id: "teal-accent",
-    color: "rgba(0, 206, 201, 0.2)",
-    size: 25,
-    x: "80%",
-    y: "5%",
-    driftX: ["80%", "75%"],
-    driftY: ["5%", "12%"],
-    scale: [1, 1.3],
-    duration: 15,
-    blur: 50,
-    opacity: 0.35,
+    color: "rgba(0, 180, 166, 0.1)",
+    size: 45,
+    x: 90,
+    y: 25,
+    blur: 90,
+    duration: 22,
+    delay: 4,
+    opacity: 1,
+  },
+  // Gold shimmer - bottom left, very subtle
+  {
+    id: "gold-shimmer",
+    color: "rgba(255, 217, 61, 0.08)",
+    size: 40,
+    x: 5,
+    y: 85,
+    blur: 80,
+    duration: 28,
+    delay: 6,
+    opacity: 1,
+  },
+  // Coral mist - center ambient fill
+  {
+    id: "coral-mist",
+    color: "rgba(255, 180, 180, 0.12)",
+    size: 70,
+    x: 50,
+    y: 45,
+    blur: 150,
+    duration: 35,
+    delay: 3,
+    opacity: 1,
+  },
+  // Peachy warmth - top right
+  {
+    id: "peach-warmth",
+    color: "rgba(255, 200, 150, 0.1)",
+    size: 50,
+    x: 70,
+    y: 5,
+    blur: 110,
+    duration: 20,
+    delay: 5,
+    opacity: 1,
   },
 ];
 
-// Concentric ring ripples for iOS effect
-interface RippleRing {
-  delay: number;
-  duration: number;
-}
-
-const RIPPLE_RINGS: RippleRing[] = [
-  { delay: 0, duration: 12 },
-  { delay: 4, duration: 12 },
-  { delay: 8, duration: 12 },
+// Wave animation paths - organic flowing shapes
+const WAVE_CONFIGS = [
+  {
+    id: "wave-1",
+    fill: "rgba(255, 107, 107, 0.05)",
+    paths: [
+      "M0,100 C150,70 350,130 500,100 C650,70 850,130 1000,100 L1000,200 L0,200 Z",
+      "M0,85 C200,115 300,65 500,85 C700,105 800,55 1000,85 L1000,200 L0,200 Z",
+      "M0,100 C150,70 350,130 500,100 C650,70 850,130 1000,100 L1000,200 L0,200 Z",
+    ],
+    duration: 12,
+  },
+  {
+    id: "wave-2",
+    fill: "rgba(255, 107, 107, 0.035)",
+    paths: [
+      "M0,120 C200,90 300,150 500,120 C700,90 800,150 1000,120 L1000,200 L0,200 Z",
+      "M0,135 C150,105 350,165 500,135 C650,105 850,165 1000,135 L1000,200 L0,200 Z",
+      "M0,120 C200,90 300,150 500,120 C700,90 800,150 1000,120 L1000,200 L0,200 Z",
+    ],
+    duration: 16,
+  },
+  {
+    id: "wave-3",
+    fill: "rgba(255, 107, 107, 0.025)",
+    paths: [
+      "M0,145 C100,120 400,170 500,145 C600,120 900,170 1000,145 L1000,200 L0,200 Z",
+      "M0,160 C200,135 300,185 500,160 C700,135 800,185 1000,160 L1000,200 L0,200 Z",
+      "M0,145 C100,120 400,170 500,145 C600,120 900,170 1000,145 L1000,200 L0,200 Z",
+    ],
+    duration: 20,
+  },
 ];
 
 interface TourAuroraBackgroundProps {
@@ -130,42 +137,39 @@ export default function TourAuroraBackground({
 }: TourAuroraBackgroundProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  // Shift orb positions slightly based on slide for subtle parallax
-  const orbShift = useMemo(() => {
-    return {
-      x: slideIndex * 3,
-      y: slideIndex * 2,
-    };
-  }, [slideIndex]);
-
-  // Color intensity shifts per slide
-  const slideColorShift = useMemo(() => {
-    const shifts = [
-      { hue: 0, saturation: 1 },      // Slide 0: Normal
-      { hue: -10, saturation: 1.1 },  // Slide 1: Slightly warmer
-      { hue: 10, saturation: 0.95 },  // Slide 2: Slightly cooler
-      { hue: -5, saturation: 1.05 },  // Slide 3: Warm again
-      { hue: 0, saturation: 1.15 },   // Slide 4: More vibrant
-    ];
-    return shifts[slideIndex] || shifts[0];
-  }, [slideIndex]);
+  // Shift aurora positions slightly based on slide for parallax effect
+  const orbShift = useMemo(() => ({
+    x: slideIndex * 2.5,
+    y: slideIndex * 1.5,
+  }), [slideIndex]);
 
   return (
-    <div
-      className={`absolute inset-0 overflow-hidden ${className}`}
-      style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)",
-      }}
-    >
-      {/* Base gradient layer */}
+    <div className={`absolute inset-0 overflow-hidden ${className}`}>
+      {/* Base: Pristine white to warm cream gradient */}
       <div
         className="absolute inset-0"
         style={{
           background: `
-            radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0, 180, 166, 0.06) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 50% at 0% 50%, rgba(255, 217, 61, 0.04) 0%, transparent 50%)
+            linear-gradient(180deg,
+              #FFFFFF 0%,
+              #FFFCFA 20%,
+              #FFF9F5 45%,
+              #FFFAF5 70%,
+              #FFF8F0 100%
+            )
           `,
+        }}
+      />
+
+      {/* Ultra-subtle grid pattern for premium depth */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255, 107, 107, 0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 107, 107, 0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: "80px 80px",
         }}
       />
 
@@ -177,118 +181,191 @@ export default function TourAuroraBackground({
           style={{
             width: `${orb.size}vw`,
             height: `${orb.size}vw`,
-            background: `radial-gradient(circle at 30% 30%, ${orb.color}, transparent 70%)`,
+            background: `radial-gradient(circle at 35% 35%, ${orb.color} 0%, transparent 65%)`,
             filter: `blur(${orb.blur}px)`,
+            left: `${orb.x}%`,
+            top: `${orb.y}%`,
+            transform: "translate(-50%, -50%)",
             opacity: orb.opacity,
-            left: orb.x,
-            top: orb.y,
-            willChange: "transform",
+            willChange: "transform, opacity",
           }}
           animate={
             prefersReducedMotion
               ? {}
               : {
-                  x: [
-                    `calc(${orb.driftX[0]} + ${orbShift.x}%)`,
-                    `calc(${orb.driftX[1]} + ${orbShift.x}%)`,
-                    `calc(${orb.driftX[0]} + ${orbShift.x}%)`,
-                  ],
-                  y: [
-                    `calc(${orb.driftY[0]} + ${orbShift.y}%)`,
-                    `calc(${orb.driftY[1]} + ${orbShift.y}%)`,
-                    `calc(${orb.driftY[0]} + ${orbShift.y}%)`,
-                  ],
-                  scale: [orb.scale[0], orb.scale[1], orb.scale[0]],
+                  x: [0, 25, -15, 10, 0],
+                  y: [0, -18, 22, -8, 0],
+                  scale: [1, 1.08, 0.96, 1.04, 1],
+                  opacity: [orb.opacity, orb.opacity * 1.15, orb.opacity * 0.9, orb.opacity * 1.1, orb.opacity],
                 }
           }
           transition={{
             duration: orb.duration,
-            ease: "easeInOut",
+            delay: orb.delay,
             repeat: Infinity,
-            repeatType: "loop",
+            ease: "easeInOut",
           }}
         />
       ))}
 
-      {/* Concentric Ripple Rings - iOS style */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {!prefersReducedMotion &&
-          RIPPLE_RINGS.map((ring, index) => (
-            <motion.div
-              key={`ripple-${index}`}
-              className="absolute rounded-full border border-white/[0.03]"
-              style={{
-                width: "10vw",
-                height: "10vw",
-              }}
-              animate={{
-                width: ["10vw", "150vw"],
-                height: ["10vw", "150vw"],
-                opacity: [0.15, 0],
-              }}
-              transition={{
-                duration: ring.duration,
-                delay: ring.delay,
-                ease: "easeOut",
-                repeat: Infinity,
-                repeatDelay: 0,
-              }}
-            />
-          ))}
-      </div>
+      {/* Animated Wave Layers - Bottom */}
+      <svg
+        className="absolute bottom-0 left-0 w-full h-44 md:h-56"
+        viewBox="0 0 1000 200"
+        preserveAspectRatio="none"
+      >
+        {WAVE_CONFIGS.map((wave, index) => (
+          <motion.path
+            key={wave.id}
+            fill={wave.fill}
+            d={wave.paths[0]}
+            animate={
+              prefersReducedMotion
+                ? {}
+                : {
+                    d: wave.paths,
+                  }
+            }
+            transition={{
+              duration: wave.duration,
+              delay: index * 0.8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </svg>
 
-      {/* Subtle noise texture overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.015] pointer-events-none"
+      {/* Top wave accent - inverted */}
+      <svg
+        className="absolute top-0 left-0 w-full h-28 md:h-40 rotate-180 opacity-60"
+        viewBox="0 0 1000 200"
+        preserveAspectRatio="none"
+      >
+        <motion.path
+          d="M0,165 C250,140 350,190 500,165 C650,140 750,190 1000,165 L1000,200 L0,200 Z"
+          fill="rgba(255, 107, 107, 0.03)"
+          animate={
+            prefersReducedMotion
+              ? {}
+              : {
+                  d: [
+                    "M0,165 C250,140 350,190 500,165 C650,140 750,190 1000,165 L1000,200 L0,200 Z",
+                    "M0,175 C200,150 400,200 500,175 C600,150 800,200 1000,175 L1000,200 L0,200 Z",
+                    "M0,165 C250,140 350,190 500,165 C650,140 750,190 1000,165 L1000,200 L0,200 Z",
+                  ],
+                }
+          }
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </svg>
+
+      {/* Floating soft particles */}
+      {!prefersReducedMotion && [...Array(6)].map((_, i) => (
+        <motion.div
+          key={`particle-${i}`}
+          className="absolute rounded-full"
+          style={{
+            width: 4 + (i % 3) * 2,
+            height: 4 + (i % 3) * 2,
+            background: `rgba(255, 107, 107, ${0.12 + (i % 3) * 0.04})`,
+            left: `${12 + i * 14}%`,
+            top: `${25 + (i % 4) * 18}%`,
+            filter: "blur(1px)",
+          }}
+          animate={{
+            y: [0, -25, 0],
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 5 + i * 0.7,
+            delay: i * 0.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Center radial glow - slide-reactive intensity */}
+      <motion.div
+        className="absolute pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          width: "90vw",
+          height: "90vw",
+          maxWidth: "900px",
+          maxHeight: "900px",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, rgba(255, 107, 107, 0.06) 0%, rgba(255, 200, 180, 0.03) 40%, transparent 65%)`,
+          filter: "blur(50px)",
+        }}
+        animate={
+          prefersReducedMotion
+            ? {}
+            : {
+                scale: [1, 1.06, 1],
+                opacity: [0.7, 0.85, 0.7],
+              }
+        }
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
         }}
       />
 
-      {/* Vignette effect for depth */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(ellipse 100% 100% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.4) 100%)
-          `,
-        }}
-      />
-
-      {/* Slide-specific accent glow */}
+      {/* Slide-specific accent overlays */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
-        animate={{
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 4,
-          ease: "easeInOut",
-          repeat: Infinity,
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
         style={{
-          background: getSlideAccentGradient(slideIndex),
+          background: getSlideAccent(slideIndex),
+        }}
+      />
+
+      {/* Soft radial vignette - focuses attention to center */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 85% 85% at 50% 50%, transparent 35%, rgba(255, 250, 245, 0.5) 100%)`,
+        }}
+      />
+
+      {/* Premium noise texture */}
+      <div
+        className="absolute inset-0 opacity-[0.012] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          mixBlendMode: "multiply",
         }}
       />
     </div>
   );
 }
 
-// Get slide-specific accent gradient
-function getSlideAccentGradient(slideIndex: number): string {
-  const gradients = [
-    // Slide 0: Destination - Coral emphasis
-    "radial-gradient(ellipse 60% 40% at 20% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 60%)",
-    // Slide 1: Itinerary - Teal emphasis
-    "radial-gradient(ellipse 60% 40% at 80% 30%, rgba(0, 180, 166, 0.1) 0%, transparent 60%)",
-    // Slide 2: Map - Gold emphasis
-    "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255, 217, 61, 0.08) 0%, transparent 60%)",
-    // Slide 3: Templates - Purple accent
-    "radial-gradient(ellipse 60% 40% at 30% 70%, rgba(162, 155, 254, 0.1) 0%, transparent 60%)",
-    // Slide 4: CTA - Multi-color vibrant
-    `radial-gradient(ellipse 50% 30% at 20% 50%, rgba(255, 107, 107, 0.12) 0%, transparent 50%),
-     radial-gradient(ellipse 50% 30% at 80% 50%, rgba(0, 180, 166, 0.1) 0%, transparent 50%),
-     radial-gradient(ellipse 40% 30% at 50% 80%, rgba(255, 217, 61, 0.1) 0%, transparent 50%)`,
+// Slide-specific accent gradients for storytelling flow
+function getSlideAccent(slideIndex: number): string {
+  const accents = [
+    // Slide 0: Destination - Warm coral top-left
+    "radial-gradient(ellipse 50% 35% at 15% 15%, rgba(255, 107, 107, 0.08) 0%, transparent 70%)",
+    // Slide 1: Itinerary - Teal accent right
+    "radial-gradient(ellipse 45% 40% at 85% 35%, rgba(0, 180, 166, 0.07) 0%, transparent 70%)",
+    // Slide 2: Map - Gold center warmth
+    "radial-gradient(ellipse 55% 45% at 50% 50%, rgba(255, 217, 61, 0.06) 0%, transparent 65%)",
+    // Slide 3: Templates - Coral bottom-left
+    "radial-gradient(ellipse 50% 40% at 25% 75%, rgba(255, 107, 107, 0.07) 0%, transparent 70%)",
+    // Slide 4: CTA - Multi-glow celebration
+    `radial-gradient(ellipse 40% 30% at 20% 40%, rgba(255, 107, 107, 0.1) 0%, transparent 60%),
+     radial-gradient(ellipse 40% 30% at 80% 60%, rgba(0, 180, 166, 0.08) 0%, transparent 60%),
+     radial-gradient(ellipse 35% 25% at 50% 85%, rgba(255, 217, 61, 0.07) 0%, transparent 60%)`,
   ];
-  return gradients[slideIndex] || gradients[0];
+  return accents[slideIndex] || accents[0];
 }
