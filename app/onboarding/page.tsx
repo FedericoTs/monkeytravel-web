@@ -42,7 +42,7 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/trips/new";
+  const redirectUrl = searchParams.get("redirect") || "/trips";
 
   // Use localStorage hook for anonymous persistence
   const {

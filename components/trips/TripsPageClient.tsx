@@ -455,9 +455,12 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 Plan and manage your AI-powered itineraries
               </p>
             </div>
+            {/* Hide on mobile when no trips (empty state has its own CTA) */}
             <Link
               href="/trips/new"
-              className="bg-[var(--primary)] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25"
+              className={`bg-[var(--primary)] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25 ${
+                trips.length === 0 ? "hidden sm:flex" : ""
+              }`}
             >
               <svg
                 className="w-5 h-5"

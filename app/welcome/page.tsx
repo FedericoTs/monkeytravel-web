@@ -22,8 +22,8 @@ export default async function WelcomePage({ searchParams }: WelcomePageProps) {
     redirect("/auth/login?redirect=/welcome");
   }
 
-  // Get the intended destination (default to /trips/new for new users)
-  const intendedDestination = params.next || "/trips/new";
+  // Get the intended destination (default to /trips for new users)
+  const intendedDestination = params.next || "/trips";
 
   // Check if user already completed welcome
   const { data: profile } = await supabase
