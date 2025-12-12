@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEarlyAccessRedeemed, trackBetaCodeAttempt } from "@/lib/analytics";
 
 interface BetaCodeInputProps {
   onSuccess?: (access: BetaAccessResult) => void;
@@ -54,9 +55,24 @@ export default function BetaCodeInput({
       if (!response.ok) {
         setError(data.error || "Failed to redeem code");
         onError?.(data.error || "Failed to redeem code");
+        // Track failed attempt
+        trackBetaCodeAttempt({
+          code: code.trim().toUpperCase(),
+          success: false,
+          errorReason: data.error || "Unknown error",
+        });
         setLoading(false);
         return;
       }
+
+      // Track successful redemption
+      trackBetaCodeAttempt({
+        code: code.trim().toUpperCase(),
+        success: true,
+      });
+      trackEarlyAccessRedeemed({
+        codeId: data.access?.codeUsed || code.trim().toUpperCase(),
+      });
 
       setSuccess(true);
       onSuccess?.(data.access);

@@ -27,6 +27,13 @@ import { useOnboardingPreferences, hasLocalOnboardingPreferences } from "@/hooks
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
+import {
+  trackItineraryGenerated,
+  trackTripCreated,
+  trackDestinationSelected,
+  trackUpgradePromptShown,
+  trackLimitReached,
+} from "@/lib/analytics";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -347,6 +354,11 @@ export default function NewTripPage() {
     if (prediction.coordinates) {
       setDestinationCoords(prediction.coordinates);
     }
+    // Track destination selection
+    trackDestinationSelected({
+      destination: prediction.fullText,
+      source: "autocomplete",
+    });
   };
 
   const handleGenerate = async () => {
@@ -409,6 +421,19 @@ export default function NewTripPage() {
           // Show inline prompt instead of modal for better UX
           setShowInlineLimitPrompt(true);
           setLimitReachedMessage(data.error || "You've reached your usage limit");
+
+          // Track limit reached event
+          trackLimitReached({
+            limitType: "generation",
+            currentUsage: data.usage?.used || 0,
+            limit: data.usage?.limit || 3,
+          });
+          trackUpgradePromptShown({
+            trigger: "limit_reached",
+            limitType: "generation",
+            location: "trip_creation",
+          });
+
           setGenerating(false);
           return;
         }
@@ -451,6 +476,17 @@ export default function NewTripPage() {
       }
 
       setGeneratedItinerary(itinerary);
+
+      // Track successful itinerary generation
+      const generationTime = Date.now() - performance.now();
+      trackItineraryGenerated({
+        destination,
+        duration: Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1,
+        budgetTier,
+        generationTimeMs: Math.round(generationTime),
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -532,6 +568,17 @@ export default function NewTripPage() {
         .single();
 
       if (tripError) throw tripError;
+
+      // Track trip creation
+      trackTripCreated({
+        tripId: trip.id,
+        destination,
+        duration: Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1,
+        budgetTier,
+        isFromTemplate: false,
+      });
 
       // Clear draft on successful save
       clearDraft();
@@ -1154,6 +1201,10 @@ export default function NewTripPage() {
                     onClick={() => {
                       setDestination(place.name);
                       setDestinationCoords(place.coords);
+                      trackDestinationSelected({
+                        destination: place.name,
+                        source: "popular",
+                      });
                     }}
                     className="px-4 py-2 rounded-full border border-slate-200 text-slate-700
                                hover:border-[var(--primary)] hover:text-[var(--primary)]

@@ -9,6 +9,7 @@ import type {
 } from "@/types/timeline";
 import { ACTIVITY_XP, STREAK_MULTIPLIERS, ACHIEVEMENTS } from "@/types/timeline";
 import type { Activity, ItineraryDay } from "@/types";
+import { trackActivityCompleted, trackAchievementUnlocked } from "@/lib/analytics";
 
 interface UseGamificationProps {
   tripId: string;
@@ -324,6 +325,24 @@ export function useGamification({
         };
       });
 
+      // Track activity completion in analytics
+      trackActivityCompleted({
+        tripId,
+        activityId: activity.id!,
+        dayNumber,
+        xpEarned: totalXp,
+      });
+
+      // Track each new achievement
+      newAchievements.forEach((achievementId) => {
+        trackAchievementUnlocked({
+          achievementId,
+          achievementName: ACHIEVEMENTS[achievementId].name,
+          xpEarned: ACHIEVEMENTS[achievementId].xpBonus,
+          totalXp: gamification.totalXp + totalXp,
+        });
+      });
+
       return {
         baseXp,
         streakMultiplier: multiplier,
@@ -332,7 +351,7 @@ export function useGamification({
         newAchievements,
       };
     },
-    [calculateActivityXp, getStreakMultiplier, checkNewAchievements, gamification.currentStreak]
+    [tripId, calculateActivityXp, getStreakMultiplier, checkNewAchievements, gamification.currentStreak, gamification.totalXp]
   );
 
   // Record skip (resets streak)

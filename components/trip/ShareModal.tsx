@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { TrendingUp, Globe } from "lucide-react";
+import {
+  trackShareModalOpened,
+  trackTripShared,
+  trackReferralLinkClicked,
+} from "@/lib/analytics";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -33,14 +38,19 @@ export default function ShareModal({
   const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
   const [trendingLoading, setTrendingLoading] = useState(false);
 
-  // Reset state when modal opens
+  // Reset state when modal opens and track view
   useEffect(() => {
     if (isOpen) {
       setCopied(false);
       setShowStopConfirm(false);
       setTrendingEnabled(isInTrending);
+      // Track modal opened
+      trackShareModalOpened({
+        tripId,
+        tripDestination: tripTitle,
+      });
     }
-  }, [isOpen, isInTrending]);
+  }, [isOpen, isInTrending, tripId, tripTitle]);
 
   // Handle trending toggle
   const handleTrendingToggle = async () => {
@@ -88,6 +98,9 @@ export default function ShareModal({
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      // Track copy action
+      trackTripShared({ tripId, shareMethod: "link" });
+      trackReferralLinkClicked({ code: tripId, medium: "copy" });
     } catch (error) {
       console.error("Failed to copy:", error);
     }
@@ -97,17 +110,26 @@ export default function ShareModal({
     const text = encodeURIComponent(`Check out my trip to ${tripTitle} on MonkeyTravel!`);
     const url = encodeURIComponent(shareUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+    // Track Twitter share
+    trackTripShared({ tripId, shareMethod: "social" });
+    trackReferralLinkClicked({ code: tripId, medium: "twitter" });
   };
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(`Check out my trip: ${tripTitle}\n${shareUrl}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
+    // Track WhatsApp share
+    trackTripShared({ tripId, shareMethod: "social" });
+    trackReferralLinkClicked({ code: tripId, medium: "whatsapp" });
   };
 
   const handleShareEmail = () => {
     const subject = encodeURIComponent(`Check out my trip: ${tripTitle}`);
     const body = encodeURIComponent(`I planned this amazing trip using MonkeyTravel. Take a look!\n\n${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    // Track email share
+    trackTripShared({ tripId, shareMethod: "email" });
+    trackReferralLinkClicked({ code: tripId, medium: "email" });
   };
 
   return (

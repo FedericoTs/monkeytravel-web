@@ -456,3 +456,315 @@ export function trackTiming(params: {
     event_label: params.label,
   });
 }
+
+// ============================================================================
+// RETENTION EVENTS - Critical for growth measurement
+// ============================================================================
+
+/**
+ * Track user returning to the app
+ * Call on app load after checking last visit
+ */
+export function trackUserReturn(params: {
+  daysSinceLastVisit: number;
+  totalSessions: number;
+  returnSource?: "direct" | "notification" | "email" | "share";
+}): void {
+  trackEvent("user_return", {
+    days_since_last_visit: params.daysSinceLastVisit,
+    total_sessions: params.totalSessions,
+    return_source: params.returnSource || "direct",
+    // Bucket for easier analysis
+    return_bucket:
+      params.daysSinceLastVisit === 0
+        ? "same_day"
+        : params.daysSinceLastVisit === 1
+          ? "d1"
+          : params.daysSinceLastVisit <= 7
+            ? "d2_7"
+            : params.daysSinceLastVisit <= 30
+              ? "d8_30"
+              : "d30_plus",
+  });
+}
+
+/**
+ * Track when user views their trip (engagement signal)
+ */
+export function trackTripViewed(params: {
+  tripId: string;
+  isOwnTrip: boolean;
+  tripStatus: string;
+  daysSinceCreation: number;
+  activitiesCount: number;
+}): void {
+  trackEvent("trip_viewed", {
+    trip_id: params.tripId,
+    is_own_trip: params.isOwnTrip,
+    trip_status: params.tripStatus,
+    days_since_creation: params.daysSinceCreation,
+    activities_count: params.activitiesCount,
+  });
+}
+
+/**
+ * Track session start with context
+ */
+export function trackSessionStart(params: {
+  userId?: string;
+  isNewUser: boolean;
+  hasActiveTrip: boolean;
+  tripsCount: number;
+  daysSinceSignup: number;
+}): void {
+  trackEvent("session_start", {
+    is_new_user: params.isNewUser,
+    has_active_trip: params.hasActiveTrip,
+    trips_count: params.tripsCount,
+    days_since_signup: params.daysSinceSignup,
+    // Lifecycle stage
+    user_stage:
+      params.tripsCount === 0
+        ? "new"
+        : params.tripsCount === 1
+          ? "activated"
+          : params.tripsCount < 5
+            ? "engaged"
+            : "power_user",
+  });
+}
+
+/**
+ * Track achievement unlock (gamification retention)
+ */
+export function trackAchievementUnlocked(params: {
+  achievementId: string;
+  achievementName: string;
+  xpEarned: number;
+  totalXp: number;
+}): void {
+  trackEvent("achievement_unlocked", {
+    achievement_id: params.achievementId,
+    achievement_name: params.achievementName,
+    xp_earned: params.xpEarned,
+    total_xp: params.totalXp,
+  });
+}
+
+// ============================================================================
+// REFERRAL FUNNEL EVENTS - Viral coefficient tracking
+// ============================================================================
+
+/**
+ * Track referral code generated
+ */
+export function trackReferralCodeGenerated(params: {
+  code: string;
+  userId: string;
+}): void {
+  trackEvent("referral_code_generated", {
+    referral_code: params.code,
+    user_id: params.userId,
+  });
+}
+
+/**
+ * Track referral link clicked
+ */
+export function trackReferralLinkClicked(params: {
+  code: string;
+  medium: "copy" | "whatsapp" | "twitter" | "facebook" | "email" | "qr" | "direct";
+}): void {
+  trackEvent("referral_link_clicked", {
+    referral_code: params.code,
+    share_medium: params.medium,
+  });
+}
+
+/**
+ * Track signup from referral
+ */
+export function trackReferralSignup(params: {
+  referralCode: string;
+  referrerId: string;
+}): void {
+  trackEvent("referral_signup", {
+    referral_code: params.referralCode,
+    referrer_id: params.referrerId,
+  });
+}
+
+/**
+ * Track referral conversion (when referee creates first trip)
+ */
+export function trackReferralConversion(params: {
+  referralCode: string;
+  rewardAmount: number;
+  referrerId: string;
+  refereeId: string;
+}): void {
+  trackEvent("referral_conversion", {
+    referral_code: params.referralCode,
+    reward_amount: params.rewardAmount,
+    referrer_id: params.referrerId,
+    referee_id: params.refereeId,
+  });
+}
+
+/**
+ * Track share modal opened
+ */
+export function trackShareModalOpened(params: {
+  tripId: string;
+  tripDestination: string;
+}): void {
+  trackEvent("share_modal_opened", {
+    trip_id: params.tripId,
+    trip_destination: params.tripDestination,
+  });
+}
+
+// ============================================================================
+// REVENUE INTENT EVENTS - Pre-monetization tracking
+// ============================================================================
+
+/**
+ * Track upgrade prompt shown
+ */
+export function trackUpgradePromptShown(params: {
+  trigger: "limit_reached" | "feature_gate" | "trial_ending" | "upsell";
+  limitType?: string;
+  location: string;
+}): void {
+  trackEvent("upgrade_prompt_shown", {
+    trigger: params.trigger,
+    limit_type: params.limitType,
+    location: params.location,
+  });
+}
+
+/**
+ * Track upgrade prompt action
+ */
+export function trackUpgradePromptAction(params: {
+  trigger: string;
+  action: "clicked" | "dismissed" | "later";
+}): void {
+  trackEvent("upgrade_prompt_action", {
+    trigger: params.trigger,
+    action: params.action,
+  });
+}
+
+/**
+ * Track limit reached
+ */
+export function trackLimitReached(params: {
+  limitType: "generation" | "regeneration" | "assistant";
+  currentUsage: number;
+  limit: number;
+}): void {
+  trackEvent("limit_reached", {
+    limit_type: params.limitType,
+    current_usage: params.currentUsage,
+    limit: params.limit,
+    utilization_percent: Math.round((params.currentUsage / params.limit) * 100),
+  });
+}
+
+/**
+ * Track free trip used
+ */
+export function trackFreeTripUsed(params: {
+  tripsRemaining: number;
+  tripId: string;
+}): void {
+  trackEvent("free_trip_used", {
+    trips_remaining: params.tripsRemaining,
+    trip_id: params.tripId,
+    is_last_free: params.tripsRemaining === 0,
+  });
+}
+
+/**
+ * Track beta code attempt (success or failure)
+ */
+export function trackBetaCodeAttempt(params: {
+  code: string;
+  success: boolean;
+  errorReason?: string;
+}): void {
+  trackEvent("beta_code_attempt", {
+    code_entered: params.code,
+    success: params.success,
+    error_reason: params.errorReason,
+  });
+}
+
+/**
+ * Track welcome page viewed
+ */
+export function trackWelcomePageViewed(params: {
+  hasBetaAccess: boolean;
+  hasCompletedOnboarding: boolean;
+}): void {
+  trackEvent("welcome_page_viewed", {
+    has_beta_access: params.hasBetaAccess,
+    has_completed_onboarding: params.hasCompletedOnboarding,
+  });
+}
+
+/**
+ * Track destination selected (trip creation flow)
+ */
+export function trackDestinationSelected(params: {
+  destination: string;
+  source: "autocomplete" | "popular" | "manual";
+}): void {
+  trackEvent("destination_selected", {
+    destination: params.destination,
+    selection_source: params.source,
+  });
+}
+
+/**
+ * Track email subscription
+ */
+export function trackEmailSubscribed(params: {
+  source: "hero" | "footer" | "cta" | "modal";
+  email?: string;
+}): void {
+  trackEvent("email_subscribed", {
+    subscription_source: params.source,
+    // Don't track actual email for privacy
+  });
+}
+
+// ============================================================================
+// ENHANCED USER PROPERTIES
+// ============================================================================
+
+/**
+ * Set comprehensive user properties for segmentation
+ */
+export function setUserPropertiesEnhanced(properties: {
+  subscriptionTier?: "free" | "premium" | "enterprise";
+  tripsCreated?: number;
+  accountAgeDays?: number;
+  onboardingCompleted?: boolean;
+  hasBetaAccess?: boolean;
+  referralSource?: "organic" | "referral" | "paid";
+  userStage?: "new" | "activated" | "engaged" | "power_user";
+}): void {
+  if (isAnalyticsAvailable()) {
+    window.gtag!("set", "user_properties", {
+      subscription_tier: properties.subscriptionTier,
+      trips_count: properties.tripsCreated,
+      account_age_days: properties.accountAgeDays,
+      onboarding_completed: properties.onboardingCompleted,
+      has_beta_access: properties.hasBetaAccess,
+      referral_source: properties.referralSource,
+      user_stage: properties.userStage,
+    });
+  }
+}

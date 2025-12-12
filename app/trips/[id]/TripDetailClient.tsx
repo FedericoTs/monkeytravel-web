@@ -25,7 +25,7 @@ import {
   ActivityRatingModal,
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
-import { trackActivityRegenerated } from "@/lib/analytics";
+import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
@@ -205,6 +205,22 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
   const allActivitiesByDay = useMemo(() => {
     return editedItinerary.map((day) => day.activities);
   }, [editedItinerary]);
+
+  // Track trip view for retention analytics (runs once on mount)
+  useEffect(() => {
+    const daysSinceCreation = tripStartDate
+      ? Math.floor((Date.now() - tripStartDate.getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    trackTripViewed({
+      tripId: trip.id,
+      isOwnTrip: true, // This page is only accessible by the trip owner
+      tripStatus: trip.status,
+      daysSinceCreation: Math.abs(daysSinceCreation),
+      activitiesCount: totalActivities,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trip.id]); // Only track once per trip view
 
   // Calculate day progress for LiveJourneyHeader
   const dayProgress = activityTimeline.getDayProgress(allActivitiesByDay, currentDayNumber);

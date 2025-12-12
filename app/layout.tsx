@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { LocaleProvider } from "@/lib/locale";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
+import SessionTracker from "@/components/analytics/SessionTracker";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -171,6 +172,8 @@ export default function RootLayout({
         </LocaleProvider>
         <Analytics />
         <SpeedInsights />
+        {/* Session tracking for retention analytics */}
+        <SessionTracker />
         {/* Google Analytics 4 - only load if measurement ID is configured */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
