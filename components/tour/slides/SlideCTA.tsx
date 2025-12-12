@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CascadePhone } from "../TourPhone";
+import { CascadePhoneScreen, ShowcaseScreen } from "../phone-content";
 import { textContainerVariants, textItemVariants, ctaPulseVariants } from "../animations";
 
-// Three different screenshots for the cascade
-const CASCADE_SCREENSHOTS = [
-  "/screenshots/trip-lisbon-hero.png",
-  "/screenshots/trip-barcelona-hero.png",
-  "/screenshots/trip-porto-hero.png",
+// Cascade phone variants - code-rendered, no images needed
+const CASCADE_VARIANTS: Array<"lisbon" | "barcelona" | "porto"> = [
+  "lisbon",
+  "barcelona",
+  "porto",
 ];
 
 interface SlideCTAProps {
@@ -20,19 +20,18 @@ export default function SlideCTA({ onStartPlanning, onSignIn }: SlideCTAProps) {
   return (
     <div className="relative w-full h-full flex items-center justify-center px-3 md:px-8">
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-        {/* Phone Cascade - Smaller on mobile */}
+        {/* Phone Cascade - Code rendered */}
         <div className="relative flex items-end justify-center mb-4 md:mb-10">
-          {CASCADE_SCREENSHOTS.map((screenshot, index) => (
+          {CASCADE_VARIANTS.map((variant, index) => (
             <div
-              key={index}
+              key={variant}
               className={`${index === 1 ? "relative z-10" : "relative z-5"} ${
                 index === 0 ? "-mr-6 md:-mr-10" : index === 2 ? "-ml-6 md:-ml-10" : ""
               }`}
             >
-              <CascadePhone
-                screenImage={screenshot}
-                index={index}
-              />
+              <CascadePhoneScreen index={index}>
+                <ShowcaseScreen variant={variant} />
+              </CascadePhoneScreen>
             </div>
           ))}
         </div>

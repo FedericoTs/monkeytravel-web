@@ -1,10 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import TourPhone from "../TourPhone";
+import { PhoneScreen, TemplatesScreen } from "../phone-content";
 import { textContainerVariants, textItemVariants, featureCardVariants, GENTLE_SPRING } from "../animations";
-
-const TEMPLATES_SCREENSHOT = "/screenshots/templates.png";
 
 const MOOD_CHIPS = [
   { label: "Romantic", emoji: "💕" },
@@ -97,56 +95,11 @@ export default function SlideTemplates() {
 
         {/* Phone Mockup with Templates */}
         <div className="order-1 lg:order-2 flex justify-center relative">
-          <TourPhone
-            screenImage={TEMPLATES_SCREENSHOT}
-            variant="right"
-            size="lg"
-            delay={0.2}
-          >
-            {/* Template card highlights */}
-            <TemplateHighlights />
-          </TourPhone>
+          <PhoneScreen variant="right" size="lg" delay={0.2}>
+            <TemplatesScreen />
+          </PhoneScreen>
         </div>
       </div>
     </div>
-  );
-}
-
-// Animated template card highlights
-function TemplateHighlights() {
-  const cards = [
-    { top: "17%", left: "4%", width: "92%", height: "32%", delay: 1.0 },
-    { top: "54%", left: "4%", width: "44%", height: "26%", delay: 1.3 },
-    { top: "54%", left: "52%", width: "44%", height: "26%", delay: 1.6 },
-  ];
-
-  return (
-    <>
-      {cards.map((card, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{
-            opacity: [0, 0.8, 0.8, 0],
-            scale: [0.95, 1, 1, 0.95],
-          }}
-          transition={{
-            duration: 4,
-            delay: card.delay,
-            repeat: Infinity,
-            repeatDelay: 3,
-            times: [0, 0.1, 0.9, 1],
-          }}
-          className="absolute z-10 pointer-events-none rounded-lg md:rounded-xl border border-white/50 md:border-2 md:border-white/60"
-          style={{
-            top: card.top,
-            left: card.left,
-            width: card.width,
-            height: card.height,
-            boxShadow: "0 0 10px 1px rgba(255, 255, 255, 0.2)",
-          }}
-        />
-      ))}
-    </>
   );
 }

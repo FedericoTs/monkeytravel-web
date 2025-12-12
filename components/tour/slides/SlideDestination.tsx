@@ -1,11 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import TourPhone from "../TourPhone";
+import { PhoneScreen, DestinationScreen } from "../phone-content";
 import { textContainerVariants, textItemVariants, featureCardVariants } from "../animations";
-
-// This would use a wizard screenshot - using placeholder for now
-const WIZARD_SCREENSHOT = "/screenshots/trip-barcelona-hero.png";
 
 export default function SlideDestination() {
   return (
@@ -13,19 +10,9 @@ export default function SlideDestination() {
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 lg:gap-16 items-center">
         {/* Phone Mockup - Shows first on mobile */}
         <div className="order-1 lg:order-2 flex justify-center">
-          <TourPhone
-            screenImage={WIZARD_SCREENSHOT}
-            variant="right"
-            size="lg"
-            delay={0.2}
-            showSpotlight
-            spotlightPosition={{
-              top: "10%",
-              left: "4%",
-              width: "92%",
-              height: "18%",
-            }}
-          />
+          <PhoneScreen variant="right" size="lg" delay={0.2}>
+            <DestinationScreen />
+          </PhoneScreen>
         </div>
 
         {/* Text Content - Compact on mobile */}

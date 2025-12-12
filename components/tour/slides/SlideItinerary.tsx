@@ -1,10 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import TourPhone from "../TourPhone";
+import { PhoneScreen, ItineraryScreen } from "../phone-content";
 import { textContainerVariants, textItemVariants, featureCardVariants } from "../animations";
-
-const ITINERARY_SCREENSHOT = "/screenshots/trip-barcelona-itinerary.png";
 
 export default function SlideItinerary() {
   return (
@@ -75,81 +73,11 @@ export default function SlideItinerary() {
 
         {/* Phone Mockup - Right on desktop */}
         <div className="order-1 lg:order-2 flex justify-center relative">
-          <TourPhone
-            screenImage={ITINERARY_SCREENSHOT}
-            variant="left"
-            size="lg"
-            delay={0.2}
-          >
-            {/* Animated highlight overlays on the phone */}
-            <ActivityHighlight
-              delay={1.0}
-              position={{ top: "15%", left: "4%", width: "92%", height: "30%" }}
-              label="Activity cards"
-            />
-            <ActivityHighlight
-              delay={1.5}
-              position={{ top: "47%", left: "22%", width: "56%", height: "5%" }}
-              label="Walking time"
-              small
-            />
-          </TourPhone>
+          <PhoneScreen variant="left" size="lg" delay={0.2}>
+            <ItineraryScreen />
+          </PhoneScreen>
         </div>
       </div>
     </div>
-  );
-}
-
-// Activity highlight component with label
-interface ActivityHighlightProps {
-  delay: number;
-  position: { top: string; left: string; width: string; height: string };
-  label: string;
-  small?: boolean;
-}
-
-function ActivityHighlight({ delay, position, label, small = false }: ActivityHighlightProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        scale: [0.9, 1, 1, 0.9],
-      }}
-      transition={{
-        duration: 3,
-        delay,
-        repeat: Infinity,
-        repeatDelay: 2,
-        times: [0, 0.1, 0.9, 1],
-      }}
-      className="absolute z-10 pointer-events-none"
-      style={{
-        top: position.top,
-        left: position.left,
-        width: position.width,
-        height: position.height,
-      }}
-    >
-      {/* Highlight border - thinner on mobile */}
-      <div
-        className={`absolute inset-0 border border-[var(--accent)] md:border-2 ${small ? "rounded-md md:rounded-lg" : "rounded-xl md:rounded-2xl"}`}
-        style={{
-          boxShadow: "0 0 12px 2px rgba(255, 217, 61, 0.3)",
-        }}
-      />
-
-      {/* Label - hidden on mobile to reduce visual clutter */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: delay + 0.2 }}
-        className={`hidden md:block absolute ${small ? "-top-6" : "-top-8"} left-1/2 -translate-x-1/2 whitespace-nowrap`}
-      >
-        <span className="bg-[var(--accent)] text-[var(--primary-dark)] text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-          {label}
-        </span>
-      </motion.div>
-    </motion.div>
   );
 }

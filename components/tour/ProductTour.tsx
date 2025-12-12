@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-import TourBackground from "./TourBackground";
+import TourAuroraBackground from "./TourAuroraBackground";
 import TourProgress from "./TourProgress";
 import { useTourNavigation } from "./hooks/useTourNavigation";
 import { useReducedMotion } from "./hooks/useReducedMotion";
@@ -19,22 +19,7 @@ import SlideMap from "./slides/SlideMap";
 import SlideTemplates from "./slides/SlideTemplates";
 import SlideCTA from "./slides/SlideCTA";
 
-// Phone mockup screenshots to preload for instant display
-const PHONE_SCREENSHOTS = [
-  "/screenshots/trip-barcelona-hero.png",
-  "/screenshots/trip-barcelona-itinerary.png",
-  "/screenshots/templates.png",
-  "/screenshots/trip-lisbon-hero.png",
-  "/screenshots/trip-porto-hero.png",
-];
-
-// Preload all phone mockup screenshots on mount
-const preloadScreenshots = () => {
-  PHONE_SCREENSHOTS.forEach((src) => {
-    const img = new window.Image();
-    img.src = src;
-  });
-};
+// No longer need to preload screenshots - all content is code-rendered
 
 // Regular slides without props
 const CONTENT_SLIDES = [
@@ -74,12 +59,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
     setIsMounted(true);
   }, []);
 
-  // Preload all phone mockup screenshots when tour opens
-  useEffect(() => {
-    if (isOpen) {
-      preloadScreenshots();
-    }
-  }, [isOpen]);
+  // No longer need to preload - all content is code-rendered
 
   // Prevent body scroll when tour is open
   useEffect(() => {
@@ -181,8 +161,8 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
           transition={{ duration: 0.3, ease: PREMIUM_EASE }}
           className="fixed inset-0 z-[200] bg-black"
         >
-          {/* Background with Ken Burns */}
-          <TourBackground slideIndex={currentSlide} />
+          {/* iOS-style Aurora Background */}
+          <TourAuroraBackground slideIndex={currentSlide} />
 
           {/* Navigation zones indicator (desktop only) */}
           <div className="hidden lg:block">
