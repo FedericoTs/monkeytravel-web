@@ -260,98 +260,118 @@ function UserLifecycle({ lifecycle }: { lifecycle: GrowthStats["lifecycle"] }) {
 }
 
 // ============================================
-// REFERRAL ANALYTICS COMPONENT
+// REFERRAL ANALYTICS COMPONENT (Sean Ellis)
 // ============================================
 function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
       <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-        Referral Performance
+        Sharing & Virality
       </h3>
 
-      {/* K-Factor highlight */}
-      <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-amber-700 font-medium">K-Factor (Virality)</p>
-            <p className="text-3xl font-bold text-amber-800">{referral.kFactor.toFixed(2)}</p>
+      {/* K-Factor + Shares Per User - Hero metrics */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-4">
+          <p className="text-sm text-amber-700 font-medium">K-Factor</p>
+          <p className="text-3xl font-bold text-amber-800">{referral.kFactor.toFixed(2)}</p>
+          <p className="text-xs text-amber-600 mt-1">
+            {referral.kFactor >= 1 ? "Viral!" : referral.kFactor >= 0.5 ? "Growing" : "Build sharing"}
+          </p>
+        </div>
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4">
+          <p className="text-sm text-blue-700 font-medium">Shares/User</p>
+          <p className="text-3xl font-bold text-blue-800">{referral.sharesPerUser.toFixed(2)}</p>
+          <p className="text-xs text-blue-600 mt-1">
+            Target: 2.0+ for growth
+          </p>
+        </div>
+      </div>
+
+      {/* Share Actions - The user ACTION */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Share Actions</p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+            <p className="text-2xl font-bold text-emerald-700">{referral.totalTripShares}</p>
+            <p className="text-xs text-emerald-600">Trips Shared</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-amber-600">
-              {referral.kFactor >= 1 ? "Viral Growth" : referral.kFactor >= 0.5 ? "Good Growth" : "Needs Work"}
-            </p>
-            <p className="text-xs text-amber-500 mt-1">
-              Target: 1.0+ for viral
-            </p>
+          <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+            <p className="text-2xl font-bold text-emerald-700">{referral.usersWhoShared}</p>
+            <p className="text-xs text-emerald-600">Sharers</p>
+          </div>
+          <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+            <p className="text-2xl font-bold text-emerald-700">{referral.shareRate}%</p>
+            <p className="text-xs text-emerald-600">Share Rate</p>
           </div>
         </div>
       </div>
 
-      {/* Metrics grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-3 bg-slate-50 rounded-lg">
-          <p className="text-2xl font-bold text-slate-700">{referral.codesGenerated}</p>
-          <p className="text-xs text-slate-500">Codes Created</p>
+      {/* Share Funnel: Shares → Views → Signups */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Share Funnel</p>
+        <div className="space-y-2">
+          {[
+            { label: "Trips Shared", value: referral.totalTripShares, color: "bg-emerald-500" },
+            { label: "Share Views", value: referral.totalShareViews, color: "bg-blue-500" },
+            { label: "Referral Clicks", value: referral.totalReferralClicks, color: "bg-purple-500" },
+            { label: "Referred Signups", value: referral.referredSignups, color: "bg-amber-500" },
+          ].map((item) => {
+            const max = Math.max(referral.totalTripShares, 1);
+            const width = (item.value / max) * 100;
+            return (
+              <div key={item.label} className="flex items-center gap-3">
+                <span className="w-28 text-xs text-slate-500">{item.label}</span>
+                <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                  <div
+                    className={`h-full ${item.color} flex items-center justify-end pr-2 transition-all duration-500`}
+                    style={{ width: `${Math.max(width, 3)}%` }}
+                  >
+                    {width >= 20 && (
+                      <span className="text-white text-xs font-medium">{item.value}</span>
+                    )}
+                  </div>
+                </div>
+                {width < 20 && (
+                  <span className="text-xs text-slate-600 font-medium w-8">{item.value}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <div className="text-center p-3 bg-slate-50 rounded-lg">
-          <p className="text-2xl font-bold text-slate-700">{referral.totalClicks}</p>
-          <p className="text-xs text-slate-500">Link Clicks</p>
-        </div>
-        <div className="text-center p-3 bg-slate-50 rounded-lg">
-          <p className="text-2xl font-bold text-slate-700">{referral.totalSignups}</p>
-          <p className="text-xs text-slate-500">Signups</p>
-        </div>
-        <div className="text-center p-3 bg-slate-50 rounded-lg">
-          <p className="text-2xl font-bold text-slate-700">{referral.totalConversions}</p>
-          <p className="text-xs text-slate-500">Conversions</p>
-        </div>
+        {referral.conversionRate > 0 && (
+          <p className="text-xs text-slate-500 mt-2 text-right">
+            {referral.conversionRate}% click-to-signup conversion
+          </p>
+        )}
       </div>
 
-      {/* Funnel visualization */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-600 mb-3">Referral Funnel</p>
-        {[
-          { label: "Clicks", value: referral.totalClicks, color: "bg-blue-500" },
-          { label: "Signups", value: referral.totalSignups, color: "bg-green-500" },
-          { label: "Conversions", value: referral.totalConversions, color: "bg-purple-500" },
-        ].map((item) => {
-          const max = Math.max(referral.totalClicks, 1);
-          const width = (item.value / max) * 100;
-          return (
-            <div key={item.label} className="flex items-center gap-3">
-              <span className="w-24 text-xs text-slate-500">{item.label}</span>
-              <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
-                <div
-                  className={`h-full ${item.color} flex items-center justify-end pr-2 transition-all duration-500`}
-                  style={{ width: `${Math.max(width, 2)}%` }}
-                >
-                  {width >= 15 && (
-                    <span className="text-white text-xs font-medium">{item.value}</span>
+      {/* Top Sharers */}
+      {referral.topReferrers.length > 0 && (
+        <div className="pt-4 border-t border-slate-100">
+          <p className="text-sm font-medium text-slate-600 mb-3">Top Sharers</p>
+          <div className="space-y-2">
+            {referral.topReferrers.map((ref, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">
+                  #{i + 1} {ref.name}
+                </span>
+                <div className="flex gap-3">
+                  <span className="text-emerald-600 text-xs">{ref.shares} shares</span>
+                  {ref.signups > 0 && (
+                    <span className="text-amber-600 text-xs font-medium">{ref.signups} signups</span>
                   )}
                 </div>
               </div>
-              {width < 15 && (
-                <span className="text-xs text-slate-600 font-medium w-8">{item.value}</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Top Referrers */}
-      {referral.topReferrers.length > 0 && (
-        <div className="mt-6 pt-6 border-t border-slate-100">
-          <p className="text-sm font-medium text-slate-600 mb-3">Top Referrers</p>
-          <div className="space-y-2">
-            {referral.topReferrers.map((ref, i) => (
-              <div key={ref.code} className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">
-                  #{i + 1} <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{ref.code}</code>
-                </span>
-                <span className="font-medium text-slate-700">{ref.signups} signups</span>
-              </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {referral.totalTripShares === 0 && (
+        <div className="text-center py-6 text-slate-400">
+          <p className="text-sm">No shares yet</p>
+          <p className="text-xs mt-1">Encourage users to share their trips!</p>
         </div>
       )}
     </div>

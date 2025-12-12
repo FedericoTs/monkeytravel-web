@@ -31,12 +31,28 @@ export interface GrowthStats {
     powerUser: number;
   };
   referral: {
-    codesGenerated: number;
-    totalClicks: number;
-    totalSignups: number;
-    totalConversions: number;
-    kFactor: number;
-    topReferrers: { userId: string; code: string; signups: number }[];
+    // Share Actions (what users DO)
+    totalTripShares: number;        // Trips with share_token enabled
+    usersWhoShared: number;         // Unique users who shared at least 1 trip
+    shareRate: number;              // % of users who have shared
+
+    // Reach & Clicks
+    totalShareViews: number;        // Views on shared trips
+    totalReferralClicks: number;    // Clicks on referral links
+
+    // Conversions
+    referredSignups: number;        // Users who signed up via referral
+    conversionRate: number;         // signups / clicks %
+
+    // Viral Coefficient
+    kFactor: number;                // (shares/users) × (signups/shares) - K>1 = viral
+    sharesPerUser: number;          // Average shares per active user
+
+    topReferrers: {
+      name: string;
+      shares: number;
+      signups: number;
+    }[];
   };
   ahaMoments: {
     generatedItinerary: { didIt: number; didntDoIt: number; retentionLift: number };
@@ -78,25 +94,25 @@ export async function GET() {
       usersResult,
       tripsResult,
       referralCodesResult,
-      referralEventsResult,
+      tripViewsResult,
       aiConversationsResult,
     ] = await Promise.all([
       // All users with relevant dates
       supabase
         .from("users")
-        .select("id, created_at, last_sign_in_at, onboarding_completed, subscription_tier, is_pro, referred_by_code"),
+        .select("id, display_name, created_at, last_sign_in_at, onboarding_completed, subscription_tier, is_pro, referred_by_code"),
       // All trips with user_id and share_token
       supabase
         .from("trips")
-        .select("id, user_id, created_at, share_token, is_template"),
-      // Referral codes
+        .select("id, user_id, created_at, share_token, shared_at, is_template"),
+      // Referral codes (for referral link tracking)
       supabase
         .from("referral_codes")
         .select("id, user_id, code, total_clicks, total_signups, total_conversions"),
-      // Referral events
+      // Trip views (for share reach tracking)
       supabase
-        .from("referral_events")
-        .select("id, event_type, event_at"),
+        .from("trip_views")
+        .select("id, trip_id, viewer_id, viewed_at"),
       // AI conversations (for assistant usage)
       supabase
         .from("ai_conversations")
@@ -106,7 +122,7 @@ export async function GET() {
     const users = usersResult.data || [];
     const trips = (tripsResult.data || []).filter(t => !t.is_template);
     const referralCodes = referralCodesResult.data || [];
-    const referralEvents = referralEventsResult.data || [];
+    const tripViews = tripViewsResult.data || [];
     const aiConversations = aiConversationsResult.data || [];
 
     // Helper: calculate retention for users signed up before a threshold
@@ -171,7 +187,9 @@ export async function GET() {
       const lastSignIn = new Date(u.last_sign_in_at);
       return (lastSignIn.getTime() - createdAt.getTime()) > 24 * 60 * 60 * 1000; // returned after 1+ day
     }).length;
-    const referringUsers = referralCodes.filter(c => c.total_signups > 0).length;
+    // Referral in funnel = users who shared at least one trip (the ACTION, not result)
+    const sharedTripsForFunnel = trips.filter(t => t.share_token != null);
+    const referringUsers = new Set(sharedTripsForFunnel.map(t => t.user_id).filter(Boolean)).size;
     const revenueUsers = users.filter(u => u.subscription_tier !== "free" || u.is_pro).length;
 
     // User lifecycle stages
@@ -200,22 +218,63 @@ export async function GET() {
       }
     });
 
-    // Referral metrics
-    const totalClicks = referralCodes.reduce((sum, c) => sum + (c.total_clicks || 0), 0);
-    const totalSignups = referralCodes.reduce((sum, c) => sum + (c.total_signups || 0), 0);
-    const totalConversions = referralCodes.reduce((sum, c) => sum + (c.total_conversions || 0), 0);
-    const kFactor = totalUsers > 0 ? totalSignups / totalUsers : 0;
+    // ===========================================
+    // REFERRAL METRICS (Sean Ellis Framework)
+    // ===========================================
 
-    // Top referrers
-    const topReferrers = referralCodes
-      .filter(c => c.total_signups > 0)
-      .sort((a, b) => (b.total_signups || 0) - (a.total_signups || 0))
-      .slice(0, 5)
-      .map(c => ({
-        userId: c.user_id,
-        code: c.code,
-        signups: c.total_signups || 0,
-      }));
+    // 1. SHARE ACTIONS - What users actually DO
+    const sharedTrips = trips.filter(t => t.share_token != null);
+    const totalTripShares = sharedTrips.length;
+    const userIdsWhoShared = new Set(sharedTrips.map(t => t.user_id).filter(Boolean));
+    const usersWhoShared = userIdsWhoShared.size;
+    const shareRate = totalUsers > 0 ? Math.round((usersWhoShared / totalUsers) * 100) : 0;
+
+    // 2. REACH - How far shares travel
+    const totalShareViews = tripViews.length;
+    const totalReferralClicks = referralCodes.reduce((sum, c) => sum + (c.total_clicks || 0), 0);
+
+    // 3. CONVERSIONS - Users who signed up via referral
+    const referredSignups = users.filter(u => u.referred_by_code != null).length;
+    const totalClicks = totalReferralClicks + totalShareViews; // Combined reach
+    const conversionRate = totalClicks > 0 ? Math.round((referredSignups / totalClicks) * 100) : 0;
+
+    // 4. K-FACTOR (Viral Coefficient)
+    // K = (invites per user) × (conversion rate)
+    // K > 1 means each user brings in more than 1 new user = viral growth
+    const sharesPerUser = totalUsers > 0 ? Math.round((totalTripShares / totalUsers) * 100) / 100 : 0;
+    const referralConversionRate = totalTripShares > 0 ? referredSignups / totalTripShares : 0;
+    const kFactor = Math.round(sharesPerUser * referralConversionRate * 100) / 100;
+
+    // 5. TOP REFERRERS - Users who drive the most shares/signups
+    // Group shares by user and combine with referral signups
+    const userShareCounts = new Map<string, number>();
+    sharedTrips.forEach(t => {
+      if (t.user_id) {
+        userShareCounts.set(t.user_id, (userShareCounts.get(t.user_id) || 0) + 1);
+      }
+    });
+
+    const userSignupCounts = new Map<string, number>();
+    referralCodes.forEach(c => {
+      if (c.total_signups > 0) {
+        userSignupCounts.set(c.user_id, c.total_signups);
+      }
+    });
+
+    // Combine and rank top referrers
+    const allSharerIds = new Set([...userShareCounts.keys(), ...userSignupCounts.keys()]);
+    const topReferrers = Array.from(allSharerIds)
+      .map(userId => {
+        const user = users.find(u => u.id === userId);
+        return {
+          name: user?.display_name || user?.id?.slice(0, 8) || "Unknown",
+          shares: userShareCounts.get(userId) || 0,
+          signups: userSignupCounts.get(userId) || 0,
+        };
+      })
+      .filter(r => r.shares > 0 || r.signups > 0)
+      .sort((a, b) => (b.shares + b.signups * 10) - (a.shares + a.signups * 10)) // Weight signups more
+      .slice(0, 5);
 
     // Aha Moment correlations
     // Users who created a trip vs didn't - and their D7 retention
@@ -301,11 +360,23 @@ export async function GET() {
         powerUser: powerUsers,
       },
       referral: {
-        codesGenerated: referralCodes.length,
-        totalClicks,
-        totalSignups,
-        totalConversions,
-        kFactor: Math.round(kFactor * 100) / 100,
+        // Share Actions
+        totalTripShares,
+        usersWhoShared,
+        shareRate,
+
+        // Reach
+        totalShareViews,
+        totalReferralClicks,
+
+        // Conversions
+        referredSignups,
+        conversionRate,
+
+        // Viral Coefficient
+        kFactor,
+        sharesPerUser,
+
         topReferrers,
       },
       ahaMoments: {
