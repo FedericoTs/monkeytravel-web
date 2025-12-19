@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
@@ -23,7 +24,7 @@ interface SortableActivityCardProps {
   onPhotoCapture?: (activityId: string, photoUrl: string) => void;
 }
 
-export default function SortableActivityCard({
+function SortableActivityCard({
   activity,
   ...props
 }: SortableActivityCardProps) {
@@ -153,3 +154,24 @@ export default function SortableActivityCard({
     </div>
   );
 }
+
+// Memoize to prevent re-renders when sibling cards update during drag operations
+// Compares activity by id and key properties that affect rendering
+export default memo(SortableActivityCard, (prevProps, nextProps) => {
+  // Quick equality check on activity id and index
+  if (prevProps.activity.id !== nextProps.activity.id) return false;
+  if (prevProps.index !== nextProps.index) return false;
+  if (prevProps.isEditMode !== nextProps.isEditMode) return false;
+  if (prevProps.isRegenerating !== nextProps.isRegenerating) return false;
+  if (prevProps.currentDayIndex !== nextProps.currentDayIndex) return false;
+
+  // Check key activity properties that affect visual rendering
+  const prev = prevProps.activity;
+  const next = nextProps.activity;
+  if (prev.name !== next.name) return false;
+  if (prev.start_time !== next.start_time) return false;
+  if (prev.duration_minutes !== next.duration_minutes) return false;
+  if (prev.image_url !== next.image_url) return false;
+
+  return true;
+});

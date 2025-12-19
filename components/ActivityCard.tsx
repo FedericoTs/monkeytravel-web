@@ -1,103 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import type { Activity } from "@/types";
 import PlaceGallery from "./PlaceGallery";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
 import { useCurrency, parsePriceRange } from "@/lib/locale";
-
-interface VerifiedPriceData {
-  priceRange?: string;         // Direct range from Google like "EUR 40-50"
-  priceLevel?: number;         // 0-4 price level from Google
-  priceLevelSymbol?: string;   // $, $$, $$$, $$$$
-  priceLevelLabel?: string;    // "Inexpensive", "Moderate", etc.
-}
-
-/**
- * Convert Google's price level (0-4) to an estimated price range.
- * Intentionally overestimates to avoid disappointing users.
- * Ranges are per person for the activity type.
- */
-function convertPriceLevelToRange(
-  priceLevel: number,
-  activityType: string,
-  currency: string
-): { min: number; max: number } | null {
-  // Price ranges by category (intentionally on the higher side)
-  const foodTypes = ["restaurant", "food", "cafe", "bar", "foodie", "wine bar"];
-  const attractionTypes = ["attraction", "cultural", "museum", "landmark"];
-  const wellnessTypes = ["spa", "wellness"];
-  const shoppingTypes = ["shopping", "market"];
-  const entertainmentTypes = ["entertainment", "nightlife", "event"];
-
-  // Define ranges for each level by category (per person)
-  const ranges: Record<string, Record<number, { min: number; max: number }>> = {
-    food: {
-      0: { min: 0, max: 0 },      // Free
-      1: { min: 15, max: 30 },    // $ - Budget
-      2: { min: 35, max: 60 },    // $$ - Moderate
-      3: { min: 65, max: 110 },   // $$$ - Expensive
-      4: { min: 120, max: 220 },  // $$$$ - Very Expensive
-    },
-    attraction: {
-      0: { min: 0, max: 0 },
-      1: { min: 10, max: 22 },
-      2: { min: 25, max: 50 },
-      3: { min: 55, max: 95 },
-      4: { min: 100, max: 180 },
-    },
-    wellness: {
-      0: { min: 0, max: 0 },
-      1: { min: 45, max: 80 },
-      2: { min: 90, max: 160 },
-      3: { min: 180, max: 320 },
-      4: { min: 350, max: 600 },
-    },
-    shopping: {
-      0: { min: 0, max: 0 },
-      1: { min: 25, max: 55 },
-      2: { min: 65, max: 130 },
-      3: { min: 150, max: 300 },
-      4: { min: 350, max: 700 },
-    },
-    entertainment: {
-      0: { min: 0, max: 0 },
-      1: { min: 20, max: 45 },
-      2: { min: 50, max: 95 },
-      3: { min: 110, max: 200 },
-      4: { min: 220, max: 450 },
-    },
-  };
-
-  // Determine category
-  let category = "attraction"; // default
-  if (foodTypes.includes(activityType)) category = "food";
-  else if (wellnessTypes.includes(activityType)) category = "wellness";
-  else if (shoppingTypes.includes(activityType)) category = "shopping";
-  else if (entertainmentTypes.includes(activityType)) category = "entertainment";
-  else if (attractionTypes.includes(activityType)) category = "attraction";
-
-  const levelRanges = ranges[category];
-  if (!levelRanges || levelRanges[priceLevel] === undefined) return null;
-
-  return levelRanges[priceLevel];
-}
-
-/**
- * Get estimated price from a range.
- * Uses 80% of the way from min to max, rounded UP to nearest 5.
- * This ensures we lean toward overestimating (safer for budgeting).
- * Returns the numeric value for currency conversion.
- */
-function getEstimatedPriceValue(min: number, max: number): number {
-  if (min === 0 && max === 0) return 0;
-
-  // Use 80% of the way between min and max for a realistic high estimate
-  const estimate = min + 0.8 * (max - min);
-
-  // Round UP to nearest 5 to avoid any underestimation
-  return Math.ceil(estimate / 5) * 5;
-}
+import {
+  convertPriceLevelToRange,
+  getEstimatedPriceValue,
+  type VerifiedPriceData,
+} from "@/lib/utils/pricing";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -117,7 +29,7 @@ interface ActivityCardProps {
   onPhotoCapture?: (activityId: string, photoUrl: string) => void;
 }
 
-export default function ActivityCard({
+function ActivityCard({
   activity,
   index,
   currency = "USD",
@@ -601,3 +513,24 @@ export default function ActivityCard({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when sibling activities update
+export default memo(ActivityCard, (prevProps, nextProps) => {
+  // Check activity identity and key visual properties
+  if (prevProps.activity.id !== nextProps.activity.id) return false;
+  if (prevProps.index !== nextProps.index) return false;
+  if (prevProps.currency !== nextProps.currency) return false;
+  if (prevProps.showGallery !== nextProps.showGallery) return false;
+  if (prevProps.disableAutoFetch !== nextProps.disableAutoFetch) return false;
+
+  // Check key activity properties that affect rendering
+  const prev = prevProps.activity;
+  const next = nextProps.activity;
+  if (prev.name !== next.name) return false;
+  if (prev.start_time !== next.start_time) return false;
+  if (prev.duration_minutes !== next.duration_minutes) return false;
+  if (prev.image_url !== next.image_url) return false;
+  if (prev.type !== next.type) return false;
+
+  return true;
+});
