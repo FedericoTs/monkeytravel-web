@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     // Step 3: Fetch uncached addresses from Google Geocoding API in parallel
     // Using batches of 10 to respect rate limits while maximizing throughput
     const apiResults: GeocodeResult[] = [];
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 25; // Google supports up to 25 addresses per batch
 
     // Process a single address with deduplication for concurrent requests
     async function geocodeAddress(

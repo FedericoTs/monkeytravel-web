@@ -40,7 +40,8 @@ interface DistanceResult {
  * This ensures consistent caching for nearby points
  */
 function roundCoord(n: number): number {
-  return Math.round(n * 100000) / 100000;
+  // 4 decimals (~11m precision) improves cache hit rate while maintaining accuracy
+  return Math.round(n * 10000) / 10000;
 }
 
 /**
@@ -421,8 +422,8 @@ export async function POST(request: NextRequest) {
                       duration_text: element.duration.text,
                       status: "OK",
                       expires_at: new Date(
-                        Date.now() + 30 * 24 * 60 * 60 * 1000
-                      ).toISOString(), // 30 days - distances between points rarely change
+                        Date.now() + 60 * 24 * 60 * 60 * 1000
+                      ).toISOString(), // 60 days - distances between fixed points are very stable
                     })
                     .then(({ error }) => {
                       if (error) console.error("Distance cache insert error:", error);

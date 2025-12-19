@@ -39,8 +39,8 @@ const ACTIVITY_TYPES = [
   "activity",
 ] as const;
 
-// Number of activities to generate per type
-const ACTIVITIES_PER_TYPE = 5;
+// Number of activities to generate per type (increased for better cache hit rate)
+const ACTIVITIES_PER_TYPE = 10;
 
 // Cache duration in days
 const CACHE_DURATION_DAYS = 90;

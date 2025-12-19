@@ -6,7 +6,7 @@ const PEXELS_API_URL = "https://api.pexels.com/v1/search";
 // Cache for destination images (in-memory, per-instance)
 // In production, you'd use Redis or similar
 const imageCache = new Map<string, { url: string; timestamp: number }>();
-const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 hours (extended for cost efficiency)
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days - images rarely change
 
 // Curated high-quality destination images as fallbacks
 // These are stable Pexels URLs that won't change

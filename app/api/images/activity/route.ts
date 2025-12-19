@@ -11,7 +11,7 @@ const PEXELS_API_URL = "https://api.pexels.com/v1/search";
 
 // In-memory cache (per-instance)
 const imageCache = new Map<string, { url: string; timestamp: number }>();
-const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 hours
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days - images rarely change
 
 // Curated images by activity type - high-quality Pexels URLs
 const CURATED_BY_TYPE: Record<string, string[]> = {
