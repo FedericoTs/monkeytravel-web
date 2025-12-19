@@ -258,6 +258,16 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", cachedResult.id)
           .then(() => {});
+
+        // Log cache hit for cost tracking
+        logApiCall({
+          apiName: "google_distance_matrix",
+          endpoint: "/distancematrix/json",
+          status: 200,
+          responseTimeMs: 0,
+          cacheHit: true,
+          costUsd: 0, // Cache hit = FREE
+        });
       } else {
         uncached.push({
           originAddress: pair.originAddress,

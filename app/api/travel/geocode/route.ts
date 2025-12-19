@@ -147,6 +147,16 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", cachedResult.id)
           .then(() => {});
+
+        // Log cache hit for cost tracking
+        logApiCall({
+          apiName: "google_geocoding",
+          endpoint: "/geocode/json",
+          status: 200,
+          responseTimeMs: 0,
+          cacheHit: true,
+          costUsd: 0, // Cache hit = FREE
+        });
       } else {
         uncachedAddresses.push({ address, hash, index });
       }

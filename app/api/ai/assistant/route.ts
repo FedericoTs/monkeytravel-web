@@ -10,6 +10,7 @@ import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
+import { findMatchingActivity, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
 import type {
   ItineraryDay,
   Activity,
@@ -423,6 +424,41 @@ function extractGeographicContext(activities: Activity[]): {
   };
 }
 
+// Detect activity type from user preference text
+function detectActivityType(preference: string): string | undefined {
+  const lowerPref = preference.toLowerCase();
+
+  const typeKeywords: Record<string, string[]> = {
+    restaurant: ["restaurant", "food", "eat", "lunch", "dinner", "breakfast", "meal", "dining"],
+    museum: ["museum", "gallery", "exhibit", "art", "history"],
+    cafe: ["cafe", "coffee", "bakery", "tea", "pastry"],
+    attraction: ["attraction", "tourist", "famous", "landmark", "monument", "sight"],
+    nature: ["nature", "park", "garden", "beach", "hike", "walk", "outdoor"],
+    shopping: ["shop", "shopping", "market", "store", "mall", "boutique"],
+    nightlife: ["nightlife", "bar", "club", "pub", "drink", "night"],
+    entertainment: ["entertainment", "show", "theater", "cinema", "concert", "performance"],
+    activity: ["activity", "tour", "experience", "class", "workshop"],
+  };
+
+  for (const [type, keywords] of Object.entries(typeKeywords)) {
+    if (keywords.some(kw => lowerPref.includes(kw))) {
+      return type;
+    }
+  }
+
+  return undefined; // Let the bank search across all types
+}
+
+// Get default start time for a time slot
+function getDefaultStartTime(timeSlot: "morning" | "afternoon" | "evening"): string {
+  switch (timeSlot) {
+    case "morning": return "10:00";
+    case "afternoon": return "14:00";
+    case "evening": return "19:00";
+    default: return "12:00";
+  }
+}
+
 // Typical operating hours by activity type
 const TYPICAL_OPERATING_HOURS: Record<string, { open: string; close: string; bestTimes: string }> = {
   attraction: { open: "09:00", close: "18:00", bestTimes: "Morning (09:00-12:00) or early afternoon (13:00-16:00)" },
@@ -438,6 +474,7 @@ const TYPICAL_OPERATING_HOURS: Record<string, { open: string; close: string; bes
 };
 
 // Generate a new activity using AI with geographic and schedule awareness
+// OPTIMIZATION: First tries activity bank (FREE), falls back to AI if no match
 async function generateNewActivity(
   genAI: GoogleGenerativeAI,
   destination: string,
@@ -450,6 +487,44 @@ async function generateNewActivity(
   destinationCoords?: Coordinates // Destination center coordinates for fallback
 ): Promise<Activity> {
   console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
+
+  // OPTIMIZATION: Try activity bank first (FREE - no AI call)
+  const existingActivityNames = sameDayActivities.map(a => a.name).filter(Boolean);
+  const activityType = detectActivityType(preference);
+
+  const cachedActivity = await findMatchingActivity(destination, preference, {
+    type: activityType,
+    timeSlot: timeSlot,
+    existingActivityNames,
+  });
+
+  if (cachedActivity) {
+    console.log(`[AI Assistant] CACHE HIT: Found "${cachedActivity.name}" in activity bank (FREE)`);
+
+    // Adjust the cached activity for this context
+    cachedActivity.time_slot = timeSlot;
+    cachedActivity.start_time = suggestedStartTime || getDefaultStartTime(timeSlot);
+
+    // Generate coordinates if missing
+    if (!cachedActivity.coordinates) {
+      const existingCoords = sameDayActivities
+        .filter(a => a.coordinates?.lat && a.coordinates?.lng)
+        .map(a => a.coordinates as Coordinates);
+
+      if (existingCoords.length > 0) {
+        const centroid = calculateCentroid(existingCoords);
+        if (centroid) {
+          cachedActivity.coordinates = generateNearbyCoordinates(centroid, 0.4);
+        }
+      } else if (destinationCoords) {
+        cachedActivity.coordinates = generateNearbyCoordinates(destinationCoords, 1.5);
+      }
+    }
+
+    return cachedActivity;
+  }
+
+  console.log(`[AI Assistant] Cache MISS - falling back to AI generation`);
   console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
   console.log(`[AI Assistant] Suggested start time: ${suggestedStartTime || "not specified"}`);
 
@@ -599,26 +674,26 @@ CRITICAL TIMING RULES:
 
   // Validate and fix the time if AI returned something unreasonable
   const [hours] = (activity.start_time || "12:00").split(":").map(Number);
-  const activityType = activity.type?.toLowerCase() || "activity";
-  const typeHours = TYPICAL_OPERATING_HOURS[activityType] || TYPICAL_OPERATING_HOURS.activity;
+  const finalActivityType = activity.type?.toLowerCase() || "activity";
+  const typeHours = TYPICAL_OPERATING_HOURS[finalActivityType] || TYPICAL_OPERATING_HOURS.activity;
   const [openH] = typeHours.open.split(":").map(Number);
   const [closeH] = typeHours.close.split(":").map(Number);
 
   // Check if time is within operating hours
-  const isNightlife = activityType === "nightlife";
+  const isNightlife = finalActivityType === "nightlife";
   const isValidTime = isNightlife
     ? (hours >= 20 || hours <= 3) // Nightlife: 20:00-03:00
     : (hours >= openH && hours < closeH); // Normal: within open-close
 
   if (!isValidTime) {
-    console.log(`[AI Assistant] Time ${activity.start_time} is outside operating hours for ${activityType}. Adjusting...`);
+    console.log(`[AI Assistant] Time ${activity.start_time} is outside operating hours for ${finalActivityType}. Adjusting...`);
     // Pick a sensible default based on time slot
     if (timeSlot === "morning") {
-      activity.start_time = activityType === "restaurant" || activityType === "cafe" ? "09:00" : "10:00";
+      activity.start_time = finalActivityType === "restaurant" || finalActivityType === "cafe" ? "09:00" : "10:00";
     } else if (timeSlot === "afternoon") {
-      activity.start_time = activityType === "restaurant" ? "13:00" : "14:00";
+      activity.start_time = finalActivityType === "restaurant" ? "13:00" : "14:00";
     } else {
-      activity.start_time = activityType === "restaurant" ? "19:30" : activityType === "nightlife" ? "21:00" : "17:00";
+      activity.start_time = finalActivityType === "restaurant" ? "19:30" : finalActivityType === "nightlife" ? "21:00" : "17:00";
     }
     console.log(`[AI Assistant] Adjusted to ${activity.start_time}`);
   }
@@ -630,6 +705,15 @@ CRITICAL TIMING RULES:
   else activity.time_slot = "evening";
 
   console.log(`[AI Assistant] Generated activity: "${activity.name}" at ${activity.start_time} in location: "${activity.location}"`);
+
+  // OPTIMIZATION: Save AI-generated activity to bank for future cache hits (fire-and-forget)
+  // This ensures subsequent users asking for similar activities get FREE cache hits
+  saveToActivityBank(destination, activity).then((saved) => {
+    if (saved) {
+      console.log(`[AI Assistant] Activity saved to bank for future use`);
+    }
+  });
+
   return activity;
 }
 
