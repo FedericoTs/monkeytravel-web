@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import {
   generateItinerary,
@@ -352,21 +353,29 @@ export async function POST(request: NextRequest) {
       }
 
       // Populate activity bank in background for future activity additions
-      // This is async and non-blocking - user doesn't wait for it
+      // Use waitUntil to ensure background work completes on Vercel serverless
       // Try to get coordinates from the first activity that has them
       const firstActivityWithCoords = itinerary.days
         ?.flatMap(d => d.activities || [])
         ?.find(a => a.coordinates?.lat && a.coordinates?.lng);
       const destinationCoords: Coordinates | undefined = firstActivityWithCoords?.coordinates;
 
-      isActivityBankPopulated(params.destination).then((populated) => {
-        if (!populated) {
-          console.log(`[AI Generate] Populating activity bank for ${params.destination} in background...`);
-          populateActivityBank(params.destination, destinationCoords).then((result) => {
-            console.log(`[AI Generate] Activity bank populated: ${result.count} activities, cost: $${result.cost}`);
-          });
-        }
-      });
+      // waitUntil keeps the function alive until the promise resolves
+      // This ensures the activity bank population completes after response is sent
+      waitUntil(
+        (async () => {
+          try {
+            const populated = await isActivityBankPopulated(params.destination);
+            if (!populated) {
+              console.log(`[AI Generate] Populating activity bank for ${params.destination} in background...`);
+              const result = await populateActivityBank(params.destination, destinationCoords);
+              console.log(`[AI Generate] Activity bank populated: ${result.count} activities, cost: $${result.cost}`);
+            }
+          } catch (err) {
+            console.error(`[AI Generate] Activity bank population error:`, err);
+          }
+        })()
+      );
     }
 
     const generationTime = Date.now() - startTime;
@@ -431,7 +440,7 @@ export async function POST(request: NextRequest) {
       itinerary,
       meta: {
         generationTimeMs: generationTime,
-        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : "gemini-2.0-flash",
+        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : "gemini-2.5-flash-lite",
         cached: cacheHit,
         // Incremental generation metadata
         isPartial: isPartialGeneration,

@@ -20,36 +20,44 @@ export interface ModelConfig {
 }
 
 // Available models with their configurations
-// Updated to use current Gemini models (1.5 models were retired April 2025)
+// Updated to Gemini 2.5 for implicit caching (75-90% token discount)
+// Note: Costs shown are BASE costs; cached tokens get 75% discount automatically
+// See: https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/
 export const MODELS: Record<string, ModelConfig> = {
-  // Fast tier - for quick, simple tasks (using 2.0 Flash which is now very cheap)
-  "gemini-2.0-flash-lite": {
-    id: "gemini-2.0-flash-lite",
-    name: "Gemini 2.0 Flash Lite",
+  // Fast tier - for quick, simple tasks
+  // Base: $0.10/1K input, $0.40/1K output
+  // With implicit caching: ~$0.025/1K input (75% discount on repeated prompts)
+  "gemini-2.5-flash-lite": {
+    id: "gemini-2.5-flash-lite",
+    name: "Gemini 2.5 Flash Lite",
     tier: "fast",
-    costPer1kTokens: 0.0375, // Very cheap
+    costPer1kTokens: 0.10, // Base cost (effective ~0.025 with caching)
     maxTokens: 8192,
     supportsStreaming: true,
     bestFor: ["quick_answers", "clarifications", "simple_edits", "formatting"],
   },
 
   // Standard tier - for most tasks
-  "gemini-2.0-flash": {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
+  // Base: $0.30/1K input, $2.50/1K output
+  // With implicit caching: ~$0.075/1K input (75% discount on repeated prompts)
+  "gemini-2.5-flash": {
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
     tier: "standard",
-    costPer1kTokens: 0.075,
+    costPer1kTokens: 0.30, // Base cost (effective ~0.075 with caching)
     maxTokens: 8192,
     supportsStreaming: true,
     bestFor: ["activity_suggestions", "single_regeneration", "tips", "recommendations"],
   },
 
   // Powerful tier - for complex tasks
-  "gemini-2.5-pro-preview-05-06": {
-    id: "gemini-2.5-pro-preview-05-06",
+  // Base: $1.25/1K input (≤200K), $10/1K output
+  // With implicit caching: ~$0.31/1K input (75% discount on repeated prompts)
+  "gemini-2.5-pro": {
+    id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
     tier: "powerful",
-    costPer1kTokens: 1.25,
+    costPer1kTokens: 1.25, // Base cost (effective ~0.31 with caching)
     maxTokens: 8192,
     supportsStreaming: true,
     bestFor: ["full_itinerary", "complex_redesign", "multi_day_planning", "deep_research"],
@@ -166,7 +174,7 @@ export function selectModel(classification: TaskClassification): ModelConfig {
   );
 
   // Return the first matching model for the tier
-  return tierModels[0] || MODELS["gemini-2.0-flash"];
+  return tierModels[0] || MODELS["gemini-2.5-flash"];
 }
 
 /**

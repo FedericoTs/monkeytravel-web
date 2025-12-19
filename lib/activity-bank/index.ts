@@ -325,7 +325,8 @@ export async function populateActivityBank(
   }
 
   // Generate activities using AI - ONE call for all types
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  // Use Gemini 2.5 Flash for implicit caching benefits (75% discount on cached tokens)
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `Generate a comprehensive list of activities for ${destination}.
 
@@ -361,6 +362,19 @@ Return ONLY a JSON array of activities, no other text.`;
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
+
+    // Log cache metrics for monitoring
+    const usage = result.response.usageMetadata;
+    if (usage) {
+      const cacheHitRate = usage.promptTokenCount && usage.promptTokenCount > 0
+        ? (((usage.cachedContentTokenCount || 0) / usage.promptTokenCount) * 100).toFixed(1)
+        : "0.0";
+      console.log(
+        `[ActivityBank Cache] prompt=${usage.promptTokenCount || 0}, ` +
+        `output=${usage.candidatesTokenCount || 0}, ` +
+        `cached=${usage.cachedContentTokenCount || 0} (${cacheHitRate}% cache hit)`
+      );
+    }
 
     // Parse JSON response
     const jsonMatch = text.match(/\[[\s\S]*\]/);

@@ -13,11 +13,55 @@ export const INITIAL_DAYS_TO_GENERATE = 14; // Max trip length
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
+/**
+ * Log Gemini response usage metadata for cache monitoring
+ * Tracks implicit caching stats to verify cost savings
+ */
+function logCacheMetrics(
+  endpoint: string,
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    cachedContentTokenCount?: number;
+    totalTokenCount?: number;
+  }
+) {
+  if (!usageMetadata) return;
+
+  const {
+    promptTokenCount = 0,
+    candidatesTokenCount = 0,
+    cachedContentTokenCount = 0,
+    totalTokenCount = 0,
+  } = usageMetadata;
+
+  const cacheHitRate = promptTokenCount > 0
+    ? ((cachedContentTokenCount / promptTokenCount) * 100).toFixed(1)
+    : "0.0";
+
+  // Log cache metrics for monitoring
+  console.log(
+    `[Gemini Cache] ${endpoint}: ` +
+    `prompt=${promptTokenCount}, output=${candidatesTokenCount}, ` +
+    `cached=${cachedContentTokenCount} (${cacheHitRate}% cache hit)`
+  );
+
+  // Calculate cost savings (cached tokens are 75% cheaper)
+  if (cachedContentTokenCount > 0) {
+    const regularCost = cachedContentTokenCount * 0.00001; // $0.01 per 1K tokens
+    const cachedCost = cachedContentTokenCount * 0.0000025; // $0.0025 per 1K cached tokens
+    const savings = regularCost - cachedCost;
+    console.log(`[Gemini Cache] Savings: $${savings.toFixed(6)} from cached tokens`);
+  }
+}
+
 // Model configurations
+// Updated to Gemini 2.5 for implicit caching (75-90% discount on cached tokens)
+// See: https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/
 export const MODELS = {
-  fast: "gemini-2.0-flash",
-  thinking: "gemini-2.5-pro-preview-05-06",
-  premium: "gemini-2.5-flash-preview-05-20",
+  fast: "gemini-2.5-flash-lite",      // Cheapest with implicit caching ($0.10/1M → $0.025 with cache)
+  thinking: "gemini-2.5-pro",          // Best for complex reasoning
+  premium: "gemini-2.5-flash",         // Best price/performance ratio
 } as const;
 
 // System prompt for trip generation - now loaded from database via getPrompt()
@@ -464,6 +508,9 @@ export async function generateItinerary(
     const response = result.response;
     const text = response.text();
 
+    // Log cache metrics for monitoring
+    logCacheMetrics("generateItinerary", response.usageMetadata);
+
     // Try to parse JSON
     try {
       const itinerary = JSON.parse(text) as GeneratedItinerary;
@@ -615,6 +662,9 @@ Return ONLY the JSON object, no extra text.`;
 
     const response = result.response;
     const text = response.text();
+
+    // Log cache metrics for monitoring
+    logCacheMetrics("regenerateSingleActivity", response.usageMetadata);
 
     try {
       const activity = JSON.parse(text) as Activity;
@@ -900,6 +950,9 @@ Rules:
 
     const response = result.response;
     const text = response.text();
+
+    // Log cache metrics for monitoring
+    logCacheMetrics("generateMoreDays", response.usageMetadata);
 
     try {
       const days = JSON.parse(text) as ItineraryDay[];

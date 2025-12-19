@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       activity: newActivity,
       meta: {
         generationTimeMs: generationTime,
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash-lite",
       },
       usage: updatedUsage,
     });
