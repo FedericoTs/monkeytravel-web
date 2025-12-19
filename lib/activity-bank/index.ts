@@ -404,6 +404,7 @@ Return ONLY a JSON array of activities, no other text.`;
       destination_hash: destinationHash,
       destination_name: destination,
       activity_type: activity.type || "activity",
+      activity_name_lower: activity.name?.toLowerCase()?.trim() || "", // REQUIRED for unique constraint
       activity_data: {
         name: activity.name,
         type: activity.type,
@@ -540,6 +541,7 @@ export async function saveToActivityBank(
         destination_hash: destinationHash,
         destination_name: destination,
         activity_type: activity.type || "activity",
+        activity_name_lower: activity.name?.toLowerCase()?.trim() || "", // REQUIRED for unique constraint
         activity_data: {
           id: activity.id || generateActivityId(),
           name: activity.name,

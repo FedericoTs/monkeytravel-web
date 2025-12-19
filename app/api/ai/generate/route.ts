@@ -7,12 +7,23 @@ import {
   INITIAL_DAYS_TO_GENERATE,
   INCREMENTAL_GENERATION_THRESHOLD,
 } from "@/lib/gemini";
+import {
+  generateItineraryWithMapsGrounding,
+  isMapsGroundingAvailable,
+  getMapsGroundingCost,
+} from "@/lib/maps-grounding";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage, decrementFreeTrips } from "@/lib/early-access";
+import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
+import type { Coordinates } from "@/lib/utils/geo";
 import crypto from "crypto";
+
+// Feature flag: Enable Maps Grounding for cost-effective generation
+// Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
+const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
 
 /**
  * Generate a hash for destination-based cache lookup
@@ -273,6 +284,7 @@ export async function POST(request: NextRequest) {
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
     let isPartialGeneration = false;
+    let usedMapsGrounding = false;
 
     // Calculate total trip duration
     const totalDays = Math.ceil(
@@ -299,7 +311,29 @@ export async function POST(request: NextRequest) {
       // Cache miss - generate fresh itinerary
       console.log(`[AI Generate] Cache MISS for ${params.destination}, generating fresh...`);
 
-      if (useIncremental) {
+      // Try Maps Grounding first (59% cost savings)
+      // Falls back to traditional Gemini if Maps Grounding fails or is disabled
+      if (USE_MAPS_GROUNDING && isMapsGroundingAvailable()) {
+        try {
+          console.log(`[AI Generate] Using Maps Grounding for ${params.destination}...`);
+          itinerary = await generateItineraryWithMapsGrounding(params);
+          usedMapsGrounding = true;
+          console.log(`[AI Generate] Maps Grounding SUCCESS: ${itinerary.days.length} days, ${itinerary.days.reduce((sum, d) => sum + d.activities.length, 0)} activities`);
+        } catch (mapsError) {
+          console.error(`[AI Generate] Maps Grounding failed, falling back to Gemini:`, mapsError);
+          // Fall through to traditional generation
+          if (useIncremental) {
+            console.log(`[AI Generate] Using incremental generation: first ${INITIAL_DAYS_TO_GENERATE} of ${totalDays} days`);
+            itinerary = await generateItinerary(params, {
+              maxDays: INITIAL_DAYS_TO_GENERATE,
+              isPartial: true,
+            });
+            isPartialGeneration = true;
+          } else {
+            itinerary = await generateItinerary(params);
+          }
+        }
+      } else if (useIncremental) {
         // For long trips (>5 days), only generate the first 3 days initially
         console.log(`[AI Generate] Using incremental generation: first ${INITIAL_DAYS_TO_GENERATE} of ${totalDays} days`);
         itinerary = await generateItinerary(params, {
@@ -316,20 +350,46 @@ export async function POST(request: NextRequest) {
       if (!isPartialGeneration) {
         await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
       }
+
+      // Populate activity bank in background for future activity additions
+      // This is async and non-blocking - user doesn't wait for it
+      // Try to get coordinates from the first activity that has them
+      const firstActivityWithCoords = itinerary.days
+        ?.flatMap(d => d.activities || [])
+        ?.find(a => a.coordinates?.lat && a.coordinates?.lng);
+      const destinationCoords: Coordinates | undefined = firstActivityWithCoords?.coordinates;
+
+      isActivityBankPopulated(params.destination).then((populated) => {
+        if (!populated) {
+          console.log(`[AI Generate] Populating activity bank for ${params.destination} in background...`);
+          populateActivityBank(params.destination, destinationCoords).then((result) => {
+            console.log(`[AI Generate] Activity bank populated: ${result.count} activities, cost: $${result.cost}`);
+          });
+        }
+      });
     }
 
     const generationTime = Date.now() - startTime;
     const generatedDays = itinerary.days.length;
     const hasMoreDays = generatedDays < totalDays;
 
+    // Calculate cost: Cache hit = $0, Maps Grounding = $0.025, Gemini partial = $0.002, Gemini full = $0.003
+    const generationCost = cacheHit
+      ? 0
+      : usedMapsGrounding
+        ? getMapsGroundingCost()
+        : isPartialGeneration
+          ? 0.002
+          : 0.003;
+
     // Log the request using centralized gateway
     await logApiCall({
-      apiName: "gemini",
+      apiName: usedMapsGrounding ? "maps_grounding" : "gemini",
       endpoint: "/api/ai/generate",
       status: 200,
       responseTimeMs: generationTime,
       cacheHit,
-      costUsd: cacheHit ? 0 : isPartialGeneration ? 0.002 : 0.003, // Partial generation costs less
+      costUsd: generationCost,
       metadata: {
         user_id: user.id,
         destination: params.destination,
@@ -338,6 +398,7 @@ export async function POST(request: NextRequest) {
         generated_days: generatedDays,
         is_partial: isPartialGeneration,
         is_admin: userIsAdmin,
+        used_maps_grounding: usedMapsGrounding,
       },
     });
 
@@ -370,7 +431,7 @@ export async function POST(request: NextRequest) {
       itinerary,
       meta: {
         generationTimeMs: generationTime,
-        model: cacheHit ? "cache" : "gemini-2.0-flash",
+        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : "gemini-2.0-flash",
         cached: cacheHit,
         // Incremental generation metadata
         isPartial: isPartialGeneration,
@@ -379,6 +440,9 @@ export async function POST(request: NextRequest) {
         hasMoreDays,
         nextStartDay: hasMoreDays ? generatedDays + 1 : null,
         remainingDays: hasMoreDays ? totalDays - generatedDays : 0,
+        // Cost tracking
+        costUsd: generationCost,
+        usedMapsGrounding,
       },
       // Usage information for the client
       usage: updatedUsage,
