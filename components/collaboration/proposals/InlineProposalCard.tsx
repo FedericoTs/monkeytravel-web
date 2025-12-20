@@ -312,19 +312,19 @@ function InlineProposalCardComponent({
         {isActive && canVote && (
           <div className="mt-3 flex items-center justify-between">
             {hasVoted ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600">
-                <span>{userVote === 'approve' ? '✅' : '❌'}</span>
-                <span>You voted {userVote === 'approve' ? 'yes' : 'no'}</span>
+              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${userVote === 'approve' ? 'text-green-600' : 'text-red-600'}`}>
+                <span>{userVote === 'approve' ? '👍' : '👎'}</span>
+                <span>You: {userVote === 'approve' ? 'Positive' : 'Negative'}</span>
               </span>
             ) : (
-              <span className="text-xs text-blue-600 font-medium">
+              <span className="text-xs text-blue-600 font-medium animate-pulse">
                 Tap to vote
               </span>
             )}
 
             {hasVoted && (
-              <span className="text-xs text-gray-400">
-                Tap to change
+              <span className="text-xs text-blue-500 font-medium">
+                Change vote →
               </span>
             )}
           </div>
