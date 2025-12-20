@@ -126,6 +126,10 @@ export async function GET() {
     const aiConversations = aiConversationsResult.data || [];
 
     // Helper: calculate retention for users signed up before a threshold
+    // FIXED: Changed from >= to > 0 AND <= to properly measure "returned WITHIN N days"
+    // D1 = Users who returned within 1 day (came back at least once within 24 hours)
+    // D7 = Users who returned within 7 days (came back at least once within 7 days)
+    // D30 = Users who returned within 30 days (came back at least once within 30 days)
     const calculateRetention = (daysAgo: number, returnWithinDays: number) => {
       const threshold = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
       const eligibleUsers = users.filter(u => new Date(u.created_at) < threshold);
@@ -137,7 +141,8 @@ export async function GET() {
         const createdAt = new Date(u.created_at);
         const lastSignIn = new Date(u.last_sign_in_at);
         const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
-        return daysSinceCreation >= returnWithinDays;
+        // User must have returned (daysSinceCreation > 0) within the retention window
+        return daysSinceCreation > 0 && daysSinceCreation <= returnWithinDays;
       });
 
       return {
@@ -167,7 +172,8 @@ export async function GET() {
         const createdAt = new Date(u.created_at);
         const lastSignIn = new Date(u.last_sign_in_at);
         const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
-        return daysSinceCreation >= returnWithinDays;
+        // FIXED: User must have returned (daysSinceCreation > 0) within the retention window
+        return daysSinceCreation > 0 && daysSinceCreation <= returnWithinDays;
       });
 
       return Math.round((returnedUsers.length / eligibleUsers.length) * 100);
@@ -227,7 +233,8 @@ export async function GET() {
     const totalTripShares = sharedTrips.length;
     const userIdsWhoShared = new Set(sharedTrips.map(t => t.user_id).filter(Boolean));
     const usersWhoShared = userIdsWhoShared.size;
-    const shareRate = totalUsers > 0 ? Math.round((usersWhoShared / totalUsers) * 100) : 0;
+    // FIX: Use usersWithTrips (defined above) as denominator (users without trips CAN'T share)
+    const shareRate = usersWithTrips > 0 ? Math.round((usersWhoShared / usersWithTrips) * 100) : 0;
 
     // 2. REACH - How far shares travel
     const totalShareViews = tripViews.length;
@@ -235,15 +242,17 @@ export async function GET() {
 
     // 3. CONVERSIONS - Users who signed up via referral
     const referredSignups = users.filter(u => u.referred_by_code != null).length;
-    const totalClicks = totalReferralClicks + totalShareViews; // Combined reach
-    const conversionRate = totalClicks > 0 ? Math.round((referredSignups / totalClicks) * 100) : 0;
+    // FIX: Use only referral clicks for conversion rate (not mixed with content share views)
+    // Trip share views are content sharing, referral clicks are explicit invitations
+    const conversionRate = totalReferralClicks > 0 ? Math.round((referredSignups / totalReferralClicks) * 100) : 0;
 
     // 4. K-FACTOR (Viral Coefficient)
     // K = (invites per user) × (conversion rate)
     // K > 1 means each user brings in more than 1 new user = viral growth
-    const sharesPerUser = totalUsers > 0 ? Math.round((totalTripShares / totalUsers) * 100) / 100 : 0;
+    // FIX: Use usersWithTrips as denominator and 4 decimal precision for K-factor analysis
+    const sharesPerUser = usersWithTrips > 0 ? Math.round((totalTripShares / usersWithTrips) * 10000) / 10000 : 0;
     const referralConversionRate = totalTripShares > 0 ? referredSignups / totalTripShares : 0;
-    const kFactor = Math.round(sharesPerUser * referralConversionRate * 100) / 100;
+    const kFactor = Math.round(sharesPerUser * referralConversionRate * 10000) / 10000;
 
     // 5. TOP REFERRERS - Users who drive the most shares/signups
     // Group shares by user and combine with referral signups
@@ -302,7 +311,10 @@ export async function GET() {
           if (!u.last_sign_in_at) return false;
           const createdAt = new Date(u.created_at);
           const lastSignIn = new Date(u.last_sign_in_at);
-          return (lastSignIn.getTime() - createdAt.getTime()) >= 7 * 24 * 60 * 60 * 1000;
+          // FIX: Measure "returned WITHIN 7 days" not "returned AFTER 7+ days"
+          // User must have returned (diff > 0) AND within 7 days (diff <= 7 days)
+          const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
+          return daysSinceCreation > 0 && daysSinceCreation <= 7;
         });
         return Math.round((returned.length / userList.length) * 100);
       };

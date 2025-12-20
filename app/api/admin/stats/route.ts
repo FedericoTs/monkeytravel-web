@@ -473,11 +473,14 @@ async function fetchCohortRetention(supabase: Awaited<ReturnType<typeof createCl
     for (let week = 0; week <= Math.min(weeksSinceCohort, 7); week++) {
       const weekEnd = new Date(weekStart.getTime() + (week + 1) * 7 * 24 * 60 * 60 * 1000);
 
-      // Count users who were active during or after this week
+      // FIX: Count users who were active DURING this specific week (non-cumulative)
+      // Previously this was cumulative (>= week start), now checks if active within week boundaries
+      const weekNStart = new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);
+      const weekNEnd = new Date(weekNStart.getTime() + 7 * 24 * 60 * 60 * 1000);
       const activeUsers = cohortUsers.filter((user) => {
         if (!user.last_sign_in_at) return week === 0; // Count as active only in week 0 if never signed in again
         const lastActive = new Date(user.last_sign_in_at);
-        return lastActive >= weekStart && lastActive >= new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);
+        return lastActive >= weekNStart && lastActive < weekNEnd;
       }).length;
 
       const retentionPct = cohortSize > 0 ? Math.round((activeUsers / cohortSize) * 100) : 0;

@@ -528,7 +528,8 @@ async function generateNewActivity(
   console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
   console.log(`[AI Assistant] Suggested start time: ${suggestedStartTime || "not specified"}`);
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  // Use Gemini 2.5 Flash for implicit caching (75% discount on repeated prompts)
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   // Extract geographic context from other activities on the same day
   const geoContext = extractGeographicContext(sameDayActivities);
@@ -1247,7 +1248,8 @@ export async function POST(request: NextRequest) {
             }
           } else {
             // Full day optimization - use AI to suggest optimal order
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            // Use Gemini 2.5 Flash for implicit caching (75% discount on repeated prompts)
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
             const activitiesInfo = targetDay.activities.map((a, i) => ({
               index: i,

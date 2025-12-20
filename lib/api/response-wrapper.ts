@@ -134,7 +134,7 @@ export const errors = {
  * @example
  * // With metadata
  * return apiSuccess(itinerary, {
- *   meta: { generationTimeMs: 1234, model: "gemini-2.0-flash" }
+ *   meta: { generationTimeMs: 1234, model: "gemini-2.5-flash" }
  * });
  *
  * @example

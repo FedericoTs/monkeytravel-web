@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Fetch all collaborators with profile info
+    // Fetch all collaborators with user info
     const { data: collaborators, error } = await supabase
       .from("trip_collaborators")
       .select(`
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         role,
         invited_by,
         joined_at,
-        profiles:user_id (
+        users:user_id (
           display_name,
           avatar_url,
           email
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     let ownerData = null;
     if (!ownerInList) {
       const { data: ownerProfile } = await supabase
-        .from("profiles")
+        .from("users")
         .select("display_name, avatar_url, email")
         .eq("id", trip.user_id)
         .single();
@@ -101,10 +101,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Transform collaborators to include profile data at top level
+    // Transform collaborators to include user data at top level
     const transformedCollaborators: TripCollaborator[] = (collaborators || []).map((c) => {
-      // Supabase returns the joined profile as an object (single relation)
-      const profile = c.profiles as unknown as { display_name: string; avatar_url: string | null; email: string } | null;
+      // Supabase returns the joined user as an object (single relation)
+      const profile = c.users as unknown as { display_name: string; avatar_url: string | null; email: string } | null;
       return {
         id: c.id,
         trip_id: c.trip_id,

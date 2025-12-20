@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
-import UserGrowthChart from "./UserGrowthChart";
-import CostCommandCenter from "./CostCommandCenter";
-import AccessControl from "./AccessControl";
-import ApiControlPanel from "./ApiControlPanel";
-import PromptEditor from "./PromptEditor";
-import AccessCodesManager from "./AccessCodesManager";
-import GrowthDashboard from "./GrowthDashboard";
+import {
+  LazyUserGrowthChart,
+  LazyCostCommandCenter,
+  LazyAccessControl,
+  LazyApiControlPanel,
+  LazyPromptEditor,
+  LazyAccessCodesManager,
+  LazyGrowthDashboard,
+  preloadAdminTab,
+} from "@/lib/lazy";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"analytics" | "growth" | "costs" | "apis" | "prompts" | "access" | "codes">("analytics");
@@ -114,6 +117,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("growth")}
+            onMouseEnter={() => preloadAdminTab("growth")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "growth"
                 ? "bg-white text-emerald-600 shadow-sm"
@@ -127,6 +131,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("costs")}
+            onMouseEnter={() => preloadAdminTab("costs")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "costs"
                 ? "bg-white text-red-600 shadow-sm"
@@ -140,6 +145,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("apis")}
+            onMouseEnter={() => preloadAdminTab("apis")}
             className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "apis"
                 ? "bg-white text-green-600 shadow-sm"
@@ -153,6 +159,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("prompts")}
+            onMouseEnter={() => preloadAdminTab("prompts")}
             className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "prompts"
                 ? "bg-white text-purple-600 shadow-sm"
@@ -166,6 +173,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("access")}
+            onMouseEnter={() => preloadAdminTab("access")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "access"
                 ? "bg-white text-amber-600 shadow-sm"
@@ -179,6 +187,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("codes")}
+            onMouseEnter={() => preloadAdminTab("codes")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === "codes"
                 ? "bg-white text-emerald-600 shadow-sm"
@@ -193,13 +202,13 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === "growth" && <GrowthDashboard />}
-      {activeTab === "costs" && <CostCommandCenter />}
-      {activeTab === "apis" && <ApiControlPanel />}
-      {activeTab === "prompts" && <PromptEditor />}
-      {activeTab === "access" && <AccessControl />}
-      {activeTab === "codes" && <AccessCodesManager />}
+      {/* Tab Content - Lazy loaded for bundle optimization */}
+      {activeTab === "growth" && <LazyGrowthDashboard />}
+      {activeTab === "costs" && <LazyCostCommandCenter />}
+      {activeTab === "apis" && <LazyApiControlPanel />}
+      {activeTab === "prompts" && <LazyPromptEditor />}
+      {activeTab === "access" && <LazyAccessControl />}
+      {activeTab === "codes" && <LazyAccessCodesManager />}
 
       {/* Analytics Tab Content */}
       {activeTab === "analytics" && (
@@ -286,7 +295,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* User Growth Trend Chart */}
-      <UserGrowthChart data={stats.userTrend} />
+      <LazyUserGrowthChart data={stats.userTrend} />
 
       {/* User & Churn Section */}
       <div className="grid md:grid-cols-2 gap-6">

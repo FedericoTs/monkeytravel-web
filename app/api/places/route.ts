@@ -118,9 +118,10 @@ async function logPlacesApiRequest(
     status?: number;
     error?: string;
     responseTimeMs?: number;
+    userId?: string;
   } = {}
 ): Promise<void> {
-  const { cacheHit = false, status = 200, error, responseTimeMs = 0 } = options;
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0, userId } = options;
 
   await logApiCall({
     apiName: "google_places_search",
@@ -130,6 +131,7 @@ async function logPlacesApiRequest(
     cacheHit,
     costUsd: cacheHit || status >= 400 ? 0 : 0.032, // Places Text Search Pro costs ~$32 per 1000
     error,
+    userId,
   });
 }
 
@@ -154,6 +156,7 @@ export async function POST(request: NextRequest) {
       await logPlacesApiRequest("/places:searchText", {
         status: 503,
         error: `BLOCKED: ${access.message}`,
+        userId: user?.id,
       });
       return NextResponse.json(
         { error: access.message || "Places API is currently disabled" },
@@ -181,6 +184,7 @@ export async function POST(request: NextRequest) {
       await logPlacesApiRequest("/places:searchText", {
         status: 500,
         error: "API key not configured or blocked",
+        userId: user?.id,
       });
       return NextResponse.json(
         { error: "Google Places API key not configured" },
@@ -194,7 +198,7 @@ export async function POST(request: NextRequest) {
 
     if (cachedResult) {
       console.log("[Places API] Cache HIT for:", query);
-      await logPlacesApiRequest("/places:searchText", { cacheHit: true });
+      await logPlacesApiRequest("/places:searchText", { cacheHit: true, userId: user?.id });
       return NextResponse.json(cachedResult);
     }
 
@@ -296,6 +300,7 @@ export async function POST(request: NextRequest) {
     saveToCache(cacheKey, "search", result);
     await logPlacesApiRequest("/places:searchText", {
       responseTimeMs: Date.now() - startTime,
+      userId: user?.id,
     });
 
     // Increment usage counter for authenticated users (only on API calls, not cache hits)
@@ -307,11 +312,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Places API error:", error);
 
-    // Log the failure
+    // Log the failure (user may be undefined if auth failed)
     await logPlacesApiRequest("/places:searchText", {
       status: 500,
       error: error instanceof Error ? error.message : String(error),
       responseTimeMs: Date.now() - startTime,
+      userId: undefined, // User context lost in catch block - need to capture earlier
     });
 
     return NextResponse.json(
@@ -345,6 +351,7 @@ export async function GET(request: NextRequest) {
       await logPlacesApiRequest("/places:searchText (destination)", {
         status: 503,
         error: `BLOCKED: ${access.message}`,
+        userId: user?.id,
       });
       return NextResponse.json(
         { error: access.message || "Places API is currently disabled" },
@@ -371,6 +378,7 @@ export async function GET(request: NextRequest) {
       await logPlacesApiRequest("/places:searchText (destination)", {
         status: 500,
         error: "API key not configured or blocked",
+        userId: user?.id,
       });
       return NextResponse.json(
         { error: "Google Places API key not configured" },
@@ -384,7 +392,7 @@ export async function GET(request: NextRequest) {
 
     if (cachedResult) {
       console.log("[Places API] Cache HIT for destination:", destination);
-      await logPlacesApiRequest("/places:searchText (destination)", { cacheHit: true });
+      await logPlacesApiRequest("/places:searchText (destination)", { cacheHit: true, userId: user?.id });
       return NextResponse.json(cachedResult);
     }
 
@@ -461,6 +469,7 @@ export async function GET(request: NextRequest) {
     saveToCache(cacheKey, "destination", result);
     await logPlacesApiRequest("/places:searchText (destination)", {
       responseTimeMs: Date.now() - startTime,
+      userId: user?.id,
     });
 
     // Increment usage counter for authenticated users (only on API calls, not cache hits)
@@ -472,11 +481,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Destination API error:", error);
 
-    // Log the failure
+    // Log the failure (user may be undefined if auth failed)
     await logPlacesApiRequest("/places:searchText (destination)", {
       status: 500,
       error: error instanceof Error ? error.message : String(error),
       responseTimeMs: Date.now() - startTime,
+      userId: undefined, // User context lost in catch block
     });
 
     return NextResponse.json(

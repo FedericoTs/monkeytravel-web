@@ -148,106 +148,100 @@ export default function PhoneScreen({
         transformStyle: "preserve-3d",
       }}
     >
-      {/* Glowing primary color wave effect behind phone */}
+      {/* AI Voice Assistant Coral Orb - Glassmorphism Style */}
+      {/* Ultra-soft, low opacity glow behind frosted glass effect */}
+
+      {/* Primary soft glow - very subtle, large blur */}
       <motion.div
-        className="absolute -inset-[40%] pointer-events-none z-[-1]"
+        className="absolute pointer-events-none z-[-1]"
         style={{
+          width: "220%",
+          height: "180%",
+          left: "-60%",
+          top: "-40%",
           background: `
-            radial-gradient(ellipse 60% 40% at 50% 60%, rgba(10, 75, 115, 0.25) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 30% at 30% 40%, rgba(10, 75, 115, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 30% at 70% 70%, rgba(10, 75, 115, 0.18) 0%, transparent 50%)
+            radial-gradient(
+              ellipse 55% 45% at 50% 50%,
+              rgba(255, 138, 128, 0.18) 0%,
+              rgba(255, 107, 107, 0.12) 30%,
+              rgba(255, 171, 145, 0.06) 60%,
+              transparent 85%
+            )
           `,
-          filter: "blur(40px)",
+          filter: "blur(60px)",
         }}
         animate={{
-          scale: [1, 1.08, 1],
-          opacity: [0.7, 1, 0.7],
+          scale: [1, 1.03, 0.98, 1.02, 1],
+          x: ["0%", "2%", "-1%", "1%", "0%"],
+          y: ["0%", "-1%", "2%", "-0.5%", "0%"],
         }}
         transition={{
-          duration: 4,
+          duration: 12,
           repeat: Infinity,
           ease: "easeInOut",
         }}
       />
 
-      {/* Animated wave layers */}
-      <svg
-        className="absolute -inset-[30%] pointer-events-none z-[-1] opacity-40"
-        viewBox="0 0 400 400"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <motion.ellipse
-          cx="200"
-          cy="200"
-          rx="160"
-          ry="80"
-          fill="none"
-          stroke="rgba(10, 75, 115, 0.4)"
-          strokeWidth="2"
-          filter="url(#glow)"
-          animate={{
-            ry: [80, 100, 80],
-            rx: [160, 140, 160],
-            opacity: [0.4, 0.6, 0.4],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.ellipse
-          cx="200"
-          cy="220"
-          rx="140"
-          ry="60"
-          fill="none"
-          stroke="rgba(10, 75, 115, 0.3)"
-          strokeWidth="1.5"
-          filter="url(#glow)"
-          animate={{
-            ry: [60, 75, 60],
-            rx: [140, 120, 140],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 3.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.5,
-          }}
-        />
-        <motion.ellipse
-          cx="200"
-          cy="180"
-          rx="120"
-          ry="50"
-          fill="none"
-          stroke="rgba(10, 75, 115, 0.25)"
-          strokeWidth="1"
-          filter="url(#glow)"
-          animate={{
-            ry: [50, 65, 50],
-            rx: [120, 100, 120],
-            opacity: [0.25, 0.4, 0.25],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-      </svg>
+      {/* Secondary ambient glow - warmer, offset */}
+      <motion.div
+        className="absolute pointer-events-none z-[-2]"
+        style={{
+          width: "180%",
+          height: "160%",
+          left: "-40%",
+          top: "-30%",
+          background: `
+            radial-gradient(
+              ellipse 50% 55% at 55% 45%,
+              rgba(255, 205, 210, 0.12) 0%,
+              rgba(255, 138, 128, 0.08) 40%,
+              transparent 75%
+            )
+          `,
+          filter: "blur(80px)",
+        }}
+        animate={{
+          scale: [1, 0.97, 1.04, 0.99, 1],
+          x: ["0%", "-2%", "1.5%", "-0.5%", "0%"],
+          y: ["0%", "1.5%", "-1%", "0.5%", "0%"],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 0.5,
+        }}
+      />
+
+      {/* Subtle accent highlight - very faint top-left */}
+      <motion.div
+        className="absolute pointer-events-none z-[-3]"
+        style={{
+          width: "120%",
+          height: "100%",
+          left: "-40%",
+          top: "-30%",
+          background: `
+            radial-gradient(
+              ellipse 40% 35% at 40% 40%,
+              rgba(255, 224, 178, 0.08) 0%,
+              rgba(255, 183, 77, 0.04) 50%,
+              transparent 80%
+            )
+          `,
+          filter: "blur(50px)",
+        }}
+        animate={{
+          opacity: [0.8, 1, 0.7, 0.9, 0.8],
+          scale: [1, 1.05, 0.95, 1.02, 1],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+      />
 
       {/* Premium layered shadow for depth */}
       <div
