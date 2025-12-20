@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import Image from "next/image";
 import type {
   ProposalWithVotes,
@@ -100,6 +100,7 @@ export function VotingBottomSheet({
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   // ======================================================================
 
+  const dragControls = useDragControls();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<VoteOptionId | null>(null);
   const [showCommentInput, setShowCommentInput] = useState(false);
@@ -234,9 +235,23 @@ export function VotingBottomSheet({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0, bottom: 0.5 }}
+          dragListener={false}
+          dragControls={dragControls}
+          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+            if (info.offset.y > 100 || info.velocity.y > 500) {
+              onClose();
+            }
+          }}
           className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
         >
-          <div className="flex justify-center py-3">
+          <div
+            className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
+            onPointerDown={(e) => dragControls.start(e)}
+            style={{ touchAction: 'none' }}
+          >
             <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
           </div>
           <div className="text-center py-8">
@@ -265,9 +280,23 @@ export function VotingBottomSheet({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0, bottom: 0.5 }}
+          dragListener={false}
+          dragControls={dragControls}
+          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+            if (info.offset.y > 100 || info.velocity.y > 500) {
+              onClose();
+            }
+          }}
           className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
         >
-          <div className="flex justify-center py-3">
+          <div
+            className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
+            onPointerDown={(e) => dragControls.start(e)}
+            style={{ touchAction: 'none' }}
+          >
             <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
           </div>
           <div className="text-center py-8">
@@ -300,15 +329,31 @@ export function VotingBottomSheet({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        dragListener={false}
+        dragControls={dragControls}
+        onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+          // Close if dragged down more than 100px or with velocity
+          if (info.offset.y > 100 || info.velocity.y > 500) {
+            onClose();
+          }
+        }}
         className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] overflow-hidden"
       >
-        {/* Drag Handle */}
-        <div className="flex justify-center py-3">
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        {/* Drag Handle - Swipe down to close */}
+        <div
+          className="flex justify-center py-4 cursor-grab active:cursor-grabbing select-none"
+          onPointerDown={(e) => dragControls.start(e)}
+          style={{ touchAction: 'none' }}
+        >
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" />
+          <span className="sr-only">Drag to close</span>
         </div>
 
-        {/* Content */}
-        <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[calc(90vh-40px)]">
+        {/* Content - Scrollable */}
+        <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[calc(90vh-56px)] overscroll-contain">
 
           {/* Activity Preview Card */}
           <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-4">
