@@ -116,7 +116,7 @@ export default function InviteAcceptClient({
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/join/${invite.token}`,
+          redirectTo: `${window.location.origin}/invite/${invite.token}`,
         },
       });
 
@@ -141,7 +141,7 @@ export default function InviteAcceptClient({
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/join/${invite.token}`,
+          emailRedirectTo: `${window.location.origin}/invite/${invite.token}`,
         },
       });
 

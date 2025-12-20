@@ -62,27 +62,57 @@ CREATE INDEX IF NOT EXISTS idx_trip_collaborators_trip ON trip_collaborators(tri
 CREATE INDEX IF NOT EXISTS idx_trip_collaborators_user ON trip_collaborators(user_id);
 
 -- RLS for trip_collaborators
+-- IMPORTANT: Avoid self-referencing policies to prevent infinite recursion
 ALTER TABLE trip_collaborators ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Trip owners can view collaborators" ON trip_collaborators
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM trips t WHERE t.id = trip_id AND t.user_id = auth.uid())
-  );
+-- Any authenticated user can view collaborators (simple, no recursion)
+CREATE POLICY "Authenticated users can view collaborators" ON trip_collaborators
+  FOR SELECT USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "Users can view own collaborator record" ON trip_collaborators
-  FOR SELECT USING (user_id = auth.uid());
-
-CREATE POLICY "Trip owners can add collaborators" ON trip_collaborators
+-- Trip owners can insert collaborators (references trips table only)
+CREATE POLICY "Trip owners can insert collaborators" ON trip_collaborators
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM trips t WHERE t.id = trip_id AND t.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM trips WHERE trips.id = trip_id AND trips.user_id = auth.uid())
   );
 
+-- Trip owners can update collaborators
 CREATE POLICY "Trip owners can update collaborators" ON trip_collaborators
   FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM trips t WHERE t.id = trip_id AND t.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM trips WHERE trips.id = trip_id AND trips.user_id = auth.uid())
   );
 
+-- Trip owners can delete collaborators
 CREATE POLICY "Trip owners can delete collaborators" ON trip_collaborators
   FOR DELETE USING (
-    EXISTS (SELECT 1 FROM trips t WHERE t.id = trip_id AND t.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM trips WHERE trips.id = trip_id AND trips.user_id = auth.uid())
   );
+
+-- =====================================================
+-- Update trips table RLS for collaborator access
+-- =====================================================
+-- Note: These policies were applied via Supabase MCP execute_sql
+
+-- trips_select: Allow collaborators to view trips they're part of
+-- DROP POLICY IF EXISTS "trips_select" ON trips;
+-- CREATE POLICY "trips_select" ON trips FOR SELECT USING (
+--   (user_id = auth.uid())
+--   OR (share_token IS NOT NULL)
+--   OR (is_template = true AND visibility = 'public')
+--   OR EXISTS (
+--     SELECT 1 FROM trip_collaborators
+--     WHERE trip_collaborators.trip_id = trips.id
+--     AND trip_collaborators.user_id = auth.uid()
+--   )
+-- );
+
+-- trips_update: Allow editors to update trips
+-- DROP POLICY IF EXISTS "trips_update_own" ON trips;
+-- CREATE POLICY "trips_update" ON trips FOR UPDATE USING (
+--   (user_id = auth.uid())
+--   OR EXISTS (
+--     SELECT 1 FROM trip_collaborators
+--     WHERE trip_collaborators.trip_id = trips.id
+--     AND trip_collaborators.user_id = auth.uid()
+--     AND trip_collaborators.role = 'editor'
+--   )
+-- );

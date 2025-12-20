@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import InviteAcceptClient from "./InviteAcceptClient";
 
 interface PageProps {
@@ -7,7 +7,12 @@ interface PageProps {
 }
 
 async function getInviteData(token: string) {
-  const supabase = await createClient();
+  // Use admin client for public invite preview (bypasses RLS)
+  // This is safe because we only expose limited preview data
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   // Fetch invite with trip details
   const { data: invite, error: inviteError } = await supabase
     .from("trip_invites")
@@ -43,9 +48,9 @@ async function getInviteData(token: string) {
     return { error: "TRIP_NOT_FOUND" };
   }
 
-  // Fetch owner profile
+  // Fetch owner profile from users table
   const { data: owner } = await supabase
-    .from("profiles")
+    .from("users")
     .select("display_name, avatar_url")
     .eq("id", trip.user_id)
     .single();
@@ -54,7 +59,7 @@ async function getInviteData(token: string) {
   let inviter = null;
   if (invite.created_by && invite.created_by !== trip.user_id) {
     const { data: inviterProfile } = await supabase
-      .from("profiles")
+      .from("users")
       .select("display_name, avatar_url")
       .eq("id", invite.created_by)
       .single();

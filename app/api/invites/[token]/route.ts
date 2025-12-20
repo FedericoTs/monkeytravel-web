@@ -89,9 +89,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Fetch trip owner info
+    // Fetch trip owner info from users table
     const { data: owner } = await supabaseAdmin
-      .from("profiles")
+      .from("users")
       .select("display_name, avatar_url")
       .eq("id", trip.user_id)
       .single();
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     let inviter = null;
     if (invite.created_by && invite.created_by !== trip.user_id) {
       const { data: inviterProfile } = await supabaseAdmin
-        .from("profiles")
+        .from("users")
         .select("display_name, avatar_url")
         .eq("id", invite.created_by)
         .single();
