@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Fetch all votes for the trip with user info
+    // Fetch all votes for the trip (without user join - FK points to auth.users, not public.users)
     const { data: votes, error: votesError } = await supabase
       .from("activity_votes")
       .select(`
@@ -64,11 +64,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         comment,
         vote_weight,
         voted_at,
-        updated_at,
-        users:user_id (
-          display_name,
-          avatar_url
-        )
+        updated_at
       `)
       .eq("trip_id", tripId)
       .order("voted_at", { ascending: true });
@@ -79,6 +75,28 @@ export async function GET(request: NextRequest, context: RouteContext) {
         { error: "Failed to fetch votes" },
         { status: 500 }
       );
+    }
+
+    // Collect all user IDs from votes to batch fetch profiles
+    const voteUserIds = new Set<string>();
+    for (const v of votes || []) {
+      voteUserIds.add(v.user_id);
+    }
+
+    // Batch fetch user profiles from public.users table
+    let userProfileMap = new Map<string, { display_name: string; avatar_url: string | null }>();
+    if (voteUserIds.size > 0) {
+      const { data: userProfiles } = await supabase
+        .from("users")
+        .select("id, display_name, avatar_url")
+        .in("id", Array.from(voteUserIds));
+
+      for (const profile of userProfiles || []) {
+        userProfileMap.set(profile.id, {
+          display_name: profile.display_name || "Unknown",
+          avatar_url: profile.avatar_url,
+        });
+      }
     }
 
     // Fetch activity statuses
@@ -106,12 +124,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Transform votes
+    // Transform votes using the profile map
     const transformedVotes: ActivityVote[] = (votes || []).map((v) => {
-      const profile = v.users as unknown as {
-        display_name: string;
-        avatar_url: string | null;
-      } | null;
+      const profile = userProfileMap.get(v.user_id);
       return {
         id: v.id,
         trip_id: v.trip_id,
@@ -124,7 +139,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         updated_at: v.updated_at,
         user: profile
           ? {
-              display_name: profile.display_name || "Unknown",
+              display_name: profile.display_name,
               avatar_url: profile.avatar_url || undefined,
             }
           : undefined,

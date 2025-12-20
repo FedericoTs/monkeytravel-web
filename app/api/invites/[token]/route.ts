@@ -46,9 +46,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     // Check if invite is still valid
+    // IMPORTANT: Check max_uses BEFORE is_active to show correct error message
+    // (used-up invites may have is_active=false, but "max uses" is more accurate)
+    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
+      return NextResponse.json(
+        { error: "This invite link has already been used", code: "MAX_USES" },
+        { status: 410 }
+      );
+    }
+
     if (!invite.is_active) {
       return NextResponse.json(
-        { error: "This invite has been revoked", code: "REVOKED" },
+        { error: "This invite has been revoked by the trip owner", code: "REVOKED" },
         { status: 410 }
       );
     }
@@ -56,13 +65,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (new Date(invite.expires_at) < new Date()) {
       return NextResponse.json(
         { error: "This invite has expired", code: "EXPIRED" },
-        { status: 410 }
-      );
-    }
-
-    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-      return NextResponse.json(
-        { error: "This invite has reached its maximum uses", code: "MAX_USES" },
         { status: 410 }
       );
     }
@@ -211,9 +213,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Validate invite is still usable
+    // IMPORTANT: Check max_uses BEFORE is_active to show correct error message
+    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
+      return NextResponse.json(
+        { error: "This invite link has already been used", code: "MAX_USES" },
+        { status: 410 }
+      );
+    }
+
     if (!invite.is_active) {
       return NextResponse.json(
-        { error: "This invite has been revoked", code: "REVOKED" },
+        { error: "This invite has been revoked by the trip owner", code: "REVOKED" },
         { status: 410 }
       );
     }
@@ -221,13 +231,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (new Date(invite.expires_at) < new Date()) {
       return NextResponse.json(
         { error: "This invite has expired", code: "EXPIRED" },
-        { status: 410 }
-      );
-    }
-
-    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-      return NextResponse.json(
-        { error: "This invite has reached its maximum uses", code: "MAX_USES" },
         { status: 410 }
       );
     }
@@ -294,18 +297,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Increment invite use count
+    // NOTE: We intentionally do NOT set is_active=false when max_uses is reached.
+    // The use_count check already prevents reuse, and keeping is_active=true
+    // allows for clearer error messages ("already used" vs "revoked by owner")
     await supabaseAdmin
       .from("trip_invites")
       .update({ use_count: invite.use_count + 1 })
       .eq("id", invite.id);
-
-    // Deactivate invite if max uses reached
-    if (invite.max_uses > 0 && invite.use_count + 1 >= invite.max_uses) {
-      await supabaseAdmin
-        .from("trip_invites")
-        .update({ is_active: false })
-        .eq("id", invite.id);
-    }
 
     return NextResponse.json({
       success: true,

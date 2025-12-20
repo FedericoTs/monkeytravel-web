@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Fetch all collaborators with user info
+    // Fetch all collaborators (without user join - FK points to auth.users, not public.users)
     const { data: collaborators, error } = await supabase
       .from("trip_collaborators")
       .select(`
@@ -57,12 +57,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         user_id,
         role,
         invited_by,
-        joined_at,
-        users:user_id (
-          display_name,
-          avatar_url,
-          email
-        )
+        joined_at
       `)
       .eq("trip_id", tripId)
       .order("joined_at", { ascending: true });
@@ -75,36 +70,52 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Also include trip owner as a "virtual" collaborator if not in the list
+    // Collect all user IDs we need to fetch (collaborators + owner)
+    const userIds = new Set<string>();
+    userIds.add(trip.user_id); // Always include owner
+    for (const c of collaborators || []) {
+      userIds.add(c.user_id);
+    }
+
+    // Batch fetch all user profiles from public.users table
+    const { data: userProfiles } = await supabase
+      .from("users")
+      .select("id, display_name, avatar_url, email")
+      .in("id", Array.from(userIds));
+
+    // Create a lookup map for user profiles
+    const profileMap = new Map<string, { display_name: string; avatar_url: string | null; email: string }>();
+    for (const profile of userProfiles || []) {
+      profileMap.set(profile.id, {
+        display_name: profile.display_name || "Unknown User",
+        avatar_url: profile.avatar_url,
+        email: profile.email,
+      });
+    }
+
+    // Check if owner is in the collaborators list
     const ownerInList = collaborators?.some((c) => c.user_id === trip.user_id);
 
+    // Create owner data if not in list
     let ownerData = null;
     if (!ownerInList) {
-      const { data: ownerProfile } = await supabase
-        .from("users")
-        .select("display_name, avatar_url, email")
-        .eq("id", trip.user_id)
-        .single();
-
-      if (ownerProfile) {
-        ownerData = {
-          id: `owner-${trip.user_id}`,
-          trip_id: tripId,
-          user_id: trip.user_id,
-          role: "owner" as CollaboratorRole,
-          invited_by: null,
-          joined_at: null, // Owner didn't "join"
-          display_name: ownerProfile.display_name || "Trip Owner",
-          avatar_url: ownerProfile.avatar_url,
-          email: ownerProfile.email,
-        };
-      }
+      const ownerProfile = profileMap.get(trip.user_id);
+      ownerData = {
+        id: `owner-${trip.user_id}`,
+        trip_id: tripId,
+        user_id: trip.user_id,
+        role: "owner" as CollaboratorRole,
+        invited_by: null,
+        joined_at: null, // Owner didn't "join"
+        display_name: ownerProfile?.display_name || "Trip Owner",
+        avatar_url: ownerProfile?.avatar_url || null,
+        email: ownerProfile?.email,
+      };
     }
 
     // Transform collaborators to include user data at top level
     const transformedCollaborators: TripCollaborator[] = (collaborators || []).map((c) => {
-      // Supabase returns the joined user as an object (single relation)
-      const profile = c.users as unknown as { display_name: string; avatar_url: string | null; email: string } | null;
+      const profile = profileMap.get(c.user_id);
       return {
         id: c.id,
         trip_id: c.trip_id,
