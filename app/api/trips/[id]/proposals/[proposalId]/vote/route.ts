@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ProposalVote, ProposalVoteType } from "@/types";
+import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
+import { PROPOSAL_TIMING } from "@/types";
 
 interface RouteContext {
   params: Promise<{ id: string; proposalId: string }>;
@@ -269,6 +271,65 @@ export async function POST(request: NextRequest, context: RouteContext) {
         );
       }
       vote = newVote;
+    }
+
+    // After vote is recorded, check for consensus and auto-update proposal status
+    try {
+      // Get all votes for this proposal
+      const { data: allVotes } = await supabase
+        .from("proposal_votes")
+        .select("id, proposal_id, user_id, vote_type, comment, voted_at")
+        .eq("proposal_id", proposalId);
+
+      // Get total voter count (owner + all editors/voters)
+      const { count: collaboratorCount } = await supabase
+        .from("trip_collaborators")
+        .select("id", { count: "exact", head: true })
+        .eq("trip_id", tripId)
+        .in("role", ["editor", "voter"]);
+
+      const totalVoters = 1 + (collaboratorCount || 0); // +1 for owner
+
+      // Get proposal created_at and expires_at
+      const { data: proposalDetails } = await supabase
+        .from("activity_proposals")
+        .select("created_at, expires_at")
+        .eq("id", proposalId)
+        .single();
+
+      if (proposalDetails && allVotes) {
+        const expiresAt = proposalDetails.expires_at ||
+          new Date(new Date(proposalDetails.created_at).getTime() + PROPOSAL_TIMING.EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+        const consensus = calculateProposalConsensus({
+          votes: allVotes.map(v => ({
+            id: v.id,
+            proposal_id: v.proposal_id,
+            user_id: v.user_id,
+            vote_type: v.vote_type as ProposalVoteType,
+            comment: v.comment,
+            voted_at: v.voted_at,
+            updated_at: v.voted_at, // Use voted_at as updated_at for simplicity
+          })),
+          totalVoters,
+          createdAt: proposalDetails.created_at,
+          expiresAt,
+        });
+
+        // Auto-update proposal status if consensus is reached
+        if (consensus.status === 'approved' || consensus.status === 'rejected') {
+          await supabase
+            .from("activity_proposals")
+            .update({
+              status: consensus.status,
+              resolved_at: new Date().toISOString(),
+            })
+            .eq("id", proposalId);
+        }
+      }
+    } catch (consensusError) {
+      // Log but don't fail the request - vote was still recorded
+      console.error("Error checking consensus:", consensusError);
     }
 
     return NextResponse.json({

@@ -9,6 +9,7 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { ProposeActivitySheet, InlineProposalCard, VotingBottomSheet } from "@/components/collaboration/proposals";
+import { RouteOptimizationModal } from "@/components/trip/RouteOptimizationModal";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
@@ -255,6 +256,17 @@ export default function TripDetailClient({
     proposal: null,
   });
 
+  // Route optimization modal state
+  const [routeOptimizationState, setRouteOptimizationState] = useState<{
+    isOpen: boolean;
+    dayNumber: number;
+    activities: Activity[];
+  }>({
+    isOpen: false,
+    dayNumber: 1,
+    activities: [],
+  });
+
   // Open voting sheet for a proposal
   const openVotingSheet = useCallback((proposal: typeof proposals[number]) => {
     setVotingSheetState({ isOpen: true, proposal });
@@ -263,6 +275,16 @@ export default function TripDetailClient({
   // Close voting sheet
   const closeVotingSheet = useCallback(() => {
     setVotingSheetState({ isOpen: false, proposal: null });
+  }, []);
+
+  // Open route optimization modal for a day
+  const openRouteOptimization = useCallback((dayNumber: number, activities: Activity[]) => {
+    setRouteOptimizationState({ isOpen: true, dayNumber, activities });
+  }, []);
+
+  // Close route optimization modal
+  const closeRouteOptimization = useCallback(() => {
+    setRouteOptimizationState({ isOpen: false, dayNumber: 1, activities: [] });
   }, []);
 
   // Rating modal state
@@ -377,6 +399,23 @@ export default function TripDetailClient({
     setUndoStack([]);
     setRedoStack([]);
   }, []);
+
+  // Apply optimized route to a day (with undo support)
+  const applyOptimizedRoute = useCallback((dayNumber: number, optimizedActivities: Activity[]) => {
+    pushUndo("Optimize route");
+    setEditedItinerary((prev) => {
+      const newItinerary = [...prev];
+      const dayIndex = newItinerary.findIndex((d) => d.day_number === dayNumber);
+      if (dayIndex >= 0) {
+        newItinerary[dayIndex] = {
+          ...newItinerary[dayIndex],
+          activities: optimizedActivities,
+        };
+      }
+      return newItinerary;
+    });
+    addToast("Route optimized! Save changes to apply.", "success");
+  }, [pushUndo, addToast]);
 
   // Edit handlers (with undo support)
   const handleActivityMove = useCallback(
@@ -1245,14 +1284,33 @@ export default function TripDetailClient({
                         )}
                       </div>
                     </div>
-                    {day.daily_budget && (
-                      <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">Est. Budget</div>
-                        <div className="font-semibold text-slate-900">
-                          {trip.budget?.currency || "USD"} {day.daily_budget.total}
+                    <div className="ml-auto flex items-center gap-3">
+                      {/* Optimize Route Button - only show in edit mode with 3+ activities */}
+                      {isEditMode && day.activities.length >= 3 && (
+                        <button
+                          onClick={() => openRouteOptimization(day.day_number, day.activities)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+                                     text-emerald-700 bg-emerald-50 hover:bg-emerald-100
+                                     rounded-lg transition-colors border border-emerald-200"
+                          title="Optimize route to minimize travel distance"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          <span className="hidden sm:inline">Optimize Route</span>
+                          <span className="sm:hidden">Optimize</span>
+                        </button>
+                      )}
+                      {day.daily_budget && (
+                        <div className="text-right">
+                          <div className="text-sm text-slate-500">Est. Budget</div>
+                          <div className="font-semibold text-slate-900">
+                            {trip.budget?.currency || "USD"} {day.daily_budget.total}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
 
                   {/* Activities */}
@@ -1804,6 +1862,18 @@ export default function TripDetailClient({
             await forceResolve(votingSheetState.proposal.id, action);
             addToast(`Proposal ${action}d`, "success");
           }
+        }}
+      />
+
+      {/* Route Optimization Modal */}
+      <RouteOptimizationModal
+        isOpen={routeOptimizationState.isOpen}
+        onClose={closeRouteOptimization}
+        dayNumber={routeOptimizationState.dayNumber}
+        activities={routeOptimizationState.activities}
+        onApplyOptimization={(optimizedActivities) => {
+          applyOptimizedRoute(routeOptimizationState.dayNumber, optimizedActivities);
+          closeRouteOptimization();
         }}
       />
 

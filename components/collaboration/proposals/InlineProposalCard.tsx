@@ -36,8 +36,29 @@ function InlineProposalCardComponent({
   onTapToVote,
   totalVoters = 5,
 }: InlineProposalCardProps) {
-  const activity = proposal.activity_data as Activity;
+  const activity = proposal.activity_data as Activity | null;
   const isActive = proposal.status === 'pending' || proposal.status === 'voting';
+
+  const handleClick = () => {
+    if (isActive && canVote) {
+      onTapToVote();
+    }
+  };
+
+  // Handle missing or invalid activity_data - render a fallback card
+  if (!activity || typeof activity !== 'object' || !activity.name) {
+    return (
+      <div className="w-full text-left relative overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-4">
+        <div className="flex items-center gap-2 text-gray-500">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+            <span>⚠️</span>
+            <span>INVALID</span>
+          </span>
+          <span className="text-sm">Proposal data unavailable</span>
+        </div>
+      </div>
+    );
+  }
   const consensusStatus = proposal.consensus?.status;
 
   // Calculate time remaining
@@ -145,7 +166,7 @@ function InlineProposalCardComponent({
       exit={{ opacity: 0, y: -10, scale: 0.98 }}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      onClick={isActive && canVote ? onTapToVote : undefined}
+      onClick={handleClick}
       disabled={!isActive || !canVote}
       className={`
         w-full text-left relative overflow-hidden

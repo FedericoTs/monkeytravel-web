@@ -11,6 +11,63 @@ import type {
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 
+/**
+ * 4-Level Voting Options for Proposals
+ * Maps to binary approve/reject for storage but provides nuanced UX
+ */
+const PROPOSAL_VOTE_OPTIONS = [
+  {
+    id: 'love' as const,
+    label: 'Love it!',
+    emoji: '😍',
+    mapsTo: 'approve' as ProposalVoteType,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    ringColor: 'ring-green-500',
+    hoverBg: 'hover:bg-green-100',
+    description: 'This is a must-do!',
+    requiresComment: false,
+  },
+  {
+    id: 'flexible' as const,
+    label: 'Open to it',
+    emoji: '👌',
+    mapsTo: 'approve' as ProposalVoteType,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    ringColor: 'ring-blue-500',
+    hoverBg: 'hover:bg-blue-100',
+    description: "I'm flexible on this",
+    requiresComment: false,
+  },
+  {
+    id: 'concerns' as const,
+    label: 'Concerns',
+    emoji: '🤔',
+    mapsTo: 'reject' as ProposalVoteType,
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50',
+    ringColor: 'ring-amber-500',
+    hoverBg: 'hover:bg-amber-100',
+    description: 'I have some reservations',
+    requiresComment: true,
+  },
+  {
+    id: 'skip' as const,
+    label: 'Skip this',
+    emoji: '👎',
+    mapsTo: 'reject' as ProposalVoteType,
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    ringColor: 'ring-red-500',
+    hoverBg: 'hover:bg-red-100',
+    description: "This isn't for me",
+    requiresComment: true,
+  },
+] as const;
+
+type VoteOptionId = typeof PROPOSAL_VOTE_OPTIONS[number]['id'];
+
 interface VotingBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,30 +75,21 @@ interface VotingBottomSheetProps {
   currentUserId?: string;
   onVote: (voteType: ProposalVoteType, comment?: string) => Promise<void>;
   onRemoveVote?: () => Promise<void>;
-  /** Total number of collaborators who can vote */
   totalVoters?: number;
-  /** Whether the current user is the trip owner */
   isOwner?: boolean;
-  /** Callback for owner force resolution */
   onForceResolve?: (action: 'approve' | 'reject') => Promise<void>;
 }
 
 /**
- * VotingBottomSheet - Mobile-friendly voting panel
+ * VotingBottomSheet - Premium mobile-first voting experience
  *
- * Design principles:
- * - Slide up from bottom (thumb-friendly)
- * - Drag handle for native feel
- * - Large vote buttons (min 52px height)
- * - Activity preview at top
- * - Vote progress with breakdown
- * - Comment option for rejection
+ * Uses 4-level voting (Love/Open/Concerns/Skip) for nuanced feedback
+ * while storing as binary (approve/reject) in the database.
  */
 export function VotingBottomSheet({
   isOpen,
   onClose,
   proposal,
-  currentUserId,
   onVote,
   onRemoveVote,
   totalVoters = 5,
@@ -49,32 +97,38 @@ export function VotingBottomSheet({
   onForceResolve,
 }: VotingBottomSheetProps) {
   // ======================================================================
-  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP (Rules of Hooks)
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   // ======================================================================
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showRejectComment, setShowRejectComment] = useState(false);
-  const [rejectComment, setRejectComment] = useState("");
+  const [selectedOption, setSelectedOption] = useState<VoteOptionId | null>(null);
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [comment, setComment] = useState("");
 
-  // Handle vote - MUST be before any conditional returns
-  const handleVote = useCallback(async (voteType: ProposalVoteType) => {
+  const handleVote = useCallback(async (option: typeof PROPOSAL_VOTE_OPTIONS[number]) => {
     if (isSubmitting) return;
-    setIsSubmitting(true);
 
+    // If requires comment and not showing input yet, show it
+    if (option.requiresComment && !showCommentInput) {
+      setSelectedOption(option.id);
+      setShowCommentInput(true);
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const comment = voteType === 'reject' ? rejectComment.trim() : undefined;
-      await onVote(voteType, comment);
-      setRejectComment("");
-      setShowRejectComment(false);
+      await onVote(option.mapsTo, comment.trim() || undefined);
+      setComment("");
+      setShowCommentInput(false);
+      setSelectedOption(null);
       onClose();
     } catch {
       // Error handling done by parent
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, onVote, rejectComment, onClose]);
+  }, [isSubmitting, onVote, comment, showCommentInput, onClose]);
 
-  // Handle remove vote - MUST be before any conditional returns
   const handleRemoveVote = useCallback(async () => {
     if (isSubmitting || !onRemoveVote) return;
     setIsSubmitting(true);
@@ -89,7 +143,6 @@ export function VotingBottomSheet({
     }
   }, [isSubmitting, onRemoveVote, onClose]);
 
-  // Handle force resolve (owner only) - MUST be before any conditional returns
   const handleForceResolve = useCallback(async (action: 'approve' | 'reject') => {
     if (isSubmitting || !onForceResolve) return;
     setIsSubmitting(true);
@@ -104,7 +157,6 @@ export function VotingBottomSheet({
     }
   }, [isSubmitting, onForceResolve, onClose]);
 
-  // Compute derived values safely (using useMemo for consistency)
   const activity = useMemo(() => {
     return proposal?.activity_data as Activity | null;
   }, [proposal?.activity_data]);
@@ -117,7 +169,6 @@ export function VotingBottomSheet({
   const hasVoted = !!userVote;
   const isDeadlock = proposal?.consensus?.status === 'deadlock';
 
-  // Calculate time remaining - safe even if proposal is null
   const timeRemaining = useMemo(() => {
     if (!proposal) return { hours: 0, minutes: 0, isExpired: true, isExpiringSoon: false };
     return getProposalTimeRemaining(
@@ -126,23 +177,30 @@ export function VotingBottomSheet({
     );
   }, [proposal]);
 
-  // Vote progress - safe even if proposal is null
   const voteCount = proposal?.vote_summary.total ?? 0;
   const approveCount = proposal?.vote_summary.approve ?? 0;
   const rejectCount = proposal?.vote_summary.reject ?? 0;
-  const approvePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
+  const positivePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
 
   // ======================================================================
-  // END OF HOOKS - NOW SAFE FOR CONDITIONAL RETURNS AND RENDERING LOGIC
+  // END OF HOOKS - CONDITIONAL RENDERING BELOW
   // ======================================================================
 
-  // Format time
   const formatTime = (time: string) => {
+    if (!time) return '';
     const [hours, minutes] = time.split(':');
     const h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
     const h12 = h % 12 || 12;
     return `${h12}:${minutes} ${ampm}`;
+  };
+
+  const formatDuration = (mins: number) => {
+    if (!mins) return '';
+    if (mins < 60) return `${mins} min`;
+    const hours = Math.floor(mins / 60);
+    const remaining = mins % 60;
+    return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
   };
 
   const formatTimeRemaining = (hours: number): string => {
@@ -152,13 +210,18 @@ export function VotingBottomSheet({
     return `${days}d left`;
   };
 
-  // Don't render if sheet is not open
+  // Get user's selected option based on their vote
+  const getUserSelectedOption = (): VoteOptionId | null => {
+    if (!userVote) return null;
+    // Map approve/reject back to the first matching option
+    return userVote === 'approve' ? 'love' : 'skip';
+  };
+
   if (!isOpen) return null;
 
-  // Handle missing proposal
   if (!proposal) {
     return (
-      <AnimatePresence>
+      <>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -178,23 +241,18 @@ export function VotingBottomSheet({
           </div>
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">No proposal selected</p>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700"
-            >
+            <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
               Close
             </button>
           </div>
         </motion.div>
-      </AnimatePresence>
+      </>
     );
   }
 
-  // Handle missing or invalid activity_data
   if (!isValidActivity || !activity) {
-    console.error("VotingBottomSheet: Invalid activity_data", { proposalId: proposal.id, activity_data: proposal.activity_data });
     return (
-      <AnimatePresence>
+      <>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -214,330 +272,340 @@ export function VotingBottomSheet({
           </div>
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">Unable to load proposal details</p>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700"
-            >
+            <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
               Close
             </button>
           </div>
         </motion.div>
-      </AnimatePresence>
+      </>
     );
   }
 
-  // Main render - we now know proposal and activity are valid
-  return (
-    <>
-      {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/40 z-50"
-          />
+  const userSelectedOption = getUserSelectedOption();
 
-          {/* Bottom Sheet */}
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[85vh] overflow-hidden"
-          >
-            {/* Drag Handle */}
-            <div className="flex justify-center py-3">
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+  return (
+    <AnimatePresence>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/40 z-50"
+      />
+
+      {/* Bottom Sheet */}
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] overflow-hidden"
+      >
+        {/* Drag Handle */}
+        <div className="flex justify-center py-3">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        </div>
+
+        {/* Content */}
+        <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[calc(90vh-40px)]">
+
+          {/* Activity Preview Card */}
+          <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-4">
+            <div className="flex items-start gap-4">
+              {activity.image_url && (
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0 shadow-sm">
+                  <Image
+                    src={activity.image_url}
+                    alt={activity.name}
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-lg text-gray-900 leading-tight">
+                  {activity.name}
+                </h3>
+
+                {/* Activity Details */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <span>📅</span> Day {proposal.target_day + 1}
+                  </span>
+                  {activity.start_time && (
+                    <span className="flex items-center gap-1">
+                      <span>🕐</span> {formatTime(activity.start_time)}
+                    </span>
+                  )}
+                  {activity.duration_minutes && (
+                    <span className="flex items-center gap-1">
+                      <span>⏱️</span> {formatDuration(activity.duration_minutes)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Activity Type & Location */}
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {activity.type && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-gray-600 border border-gray-200 capitalize">
+                      {activity.type}
+                    </span>
+                  )}
+                  {activity.location && (
+                    <span className="text-xs text-gray-400 truncate max-w-[150px]">
+                      📍 {activity.location}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* Content */}
-            <div className="px-6 pb-8 space-y-5 overflow-y-auto max-h-[calc(85vh-40px)]">
-              {/* Activity Preview */}
-              <div className="flex items-start gap-4">
-                {/* Activity Image */}
-                {activity.image_url && (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                    <Image
-                      src={activity.image_url}
-                      alt={activity.name}
-                      width={64}
-                      height={64}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+            {/* Proposer Info */}
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200/50">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                {proposal.proposer?.avatar_url ? (
+                  <Image
+                    src={proposal.proposer.avatar_url}
+                    alt={proposal.proposer.display_name}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 rounded-full"
+                  />
+                ) : (
+                  <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                    👤
+                  </span>
                 )}
+                <span>Suggested by <span className="font-medium text-gray-700">{proposal.proposer?.display_name || 'Unknown'}</span></span>
+              </div>
+              <span className="text-xs text-gray-400">
+                {formatTimeRemaining(timeRemaining.hours)}
+              </span>
+            </div>
+          </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg text-gray-900 leading-tight">
-                    {activity.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Day {proposal.target_day + 1} • {formatTime(activity.start_time)}
-                    {proposal.target_time_slot && ` • ${proposal.target_time_slot}`}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    {proposal.proposer?.avatar_url ? (
+          {/* Proposal Note */}
+          {proposal.note && (
+            <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-sm text-amber-800">
+              <span className="font-medium">Note:</span> "{proposal.note}"
+            </div>
+          )}
+
+          {/* Vote Progress - Compact */}
+          <div className="flex items-center gap-3 py-2">
+            <div className="flex-1">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${positivePercent}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-500 flex-shrink-0">
+              <span className="flex items-center gap-1">
+                <span className="text-green-500">👍</span>
+                <span className="font-medium">{approveCount}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="text-red-400">👎</span>
+                <span className="font-medium">{rejectCount}</span>
+              </span>
+              <span className="text-gray-400">of {totalVoters}</span>
+            </div>
+          </div>
+
+          {/* User's Current Vote Status */}
+          {hasVoted && (
+            <div className="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl">
+              <span className="text-sm text-gray-600">Your vote:</span>
+              <span className={`text-sm font-medium ${userVote === 'approve' ? 'text-green-600' : 'text-red-600'}`}>
+                {userVote === 'approve' ? '👍 Positive' : '👎 Negative'}
+              </span>
+            </div>
+          )}
+
+          {/* Vote Buttons - 2x2 Grid */}
+          {!showCommentInput ? (
+            <div className="grid grid-cols-2 gap-3">
+              {PROPOSAL_VOTE_OPTIONS.map((option) => {
+                const isSelected = userSelectedOption === option.id || selectedOption === option.id;
+                const isPositive = option.mapsTo === 'approve';
+
+                return (
+                  <motion.button
+                    key={option.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleVote(option)}
+                    disabled={isSubmitting}
+                    className={`
+                      flex flex-col items-center justify-center gap-1 py-4 px-3 rounded-2xl
+                      font-medium text-sm transition-all duration-200
+                      ${isSelected
+                        ? `${option.bgColor} ${option.color} ring-2 ${option.ringColor}`
+                        : `bg-gray-50 text-gray-600 ${option.hoverBg}`
+                      }
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      ${isPositive ? 'border-l-4 border-l-transparent hover:border-l-green-400' : 'border-l-4 border-l-transparent hover:border-l-red-300'}
+                    `}
+                  >
+                    <span className="text-2xl">{option.emoji}</span>
+                    <span className="font-semibold">{option.label}</span>
+                    <span className="text-xs text-gray-400 font-normal">{option.description}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Comment Input for Concerns/Skip */
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <span className="text-lg">
+                  {PROPOSAL_VOTE_OPTIONS.find(o => o.id === selectedOption)?.emoji}
+                </span>
+                <span>Why do you feel this way? (optional)</span>
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Help your travel buddies understand..."
+                className="w-full p-4 border border-gray-200 rounded-xl text-sm
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                           resize-none bg-gray-50"
+                rows={3}
+                maxLength={200}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCommentInput(false);
+                    setComment("");
+                    setSelectedOption(null);
+                  }}
+                  className="flex-1 py-3 rounded-xl text-gray-600 bg-gray-100
+                             hover:bg-gray-200 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const option = PROPOSAL_VOTE_OPTIONS.find(o => o.id === selectedOption);
+                    if (option) handleVote(option);
+                  }}
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl text-white bg-gray-800
+                             hover:bg-gray-900 font-medium transition-colors
+                             disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Vote'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Change Vote Option */}
+          {hasVoted && onRemoveVote && !showCommentInput && (
+            <button
+              onClick={handleRemoveVote}
+              disabled={isSubmitting}
+              className="w-full text-center text-sm text-gray-400 hover:text-gray-600
+                         py-2 transition-colors disabled:opacity-50"
+            >
+              Change my vote
+            </button>
+          )}
+
+          {/* Owner Actions (for deadlock) */}
+          {isOwner && isDeadlock && onForceResolve && (
+            <div className="bg-amber-50 rounded-xl p-4 space-y-3 border border-amber-200">
+              <div className="flex items-center gap-2 text-amber-700">
+                <span className="text-lg">⚠️</span>
+                <span className="font-medium">Voting is split</span>
+              </div>
+              <p className="text-sm text-amber-600">
+                As the trip organizer, you can make the final call.
+              </p>
+              <div className="flex gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleForceResolve('approve')}
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl text-white bg-green-500
+                             hover:bg-green-600 font-medium transition-colors
+                             disabled:opacity-50"
+                >
+                  Add to Plan
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleForceResolve('reject')}
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl text-white bg-gray-500
+                             hover:bg-gray-600 font-medium transition-colors
+                             disabled:opacity-50"
+                >
+                  Skip This
+                </motion.button>
+              </div>
+            </div>
+          )}
+
+          {/* Activity Description - if available */}
+          {activity.description && (
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {activity.description}
+              </p>
+            </div>
+          )}
+
+          {/* Votes List - Collapsed */}
+          {proposal.votes.length > 0 && (
+            <details className="group">
+              <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600
+                                  list-none flex items-center gap-2 py-2">
+                <span>See who voted ({proposal.votes.length})</span>
+                <span className="group-open:rotate-180 transition-transform text-xs">▼</span>
+              </summary>
+              <div className="mt-2 space-y-2">
+                {proposal.votes.map((vote) => (
+                  <div
+                    key={vote.id}
+                    className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-2"
+                  >
+                    {vote.user?.avatar_url ? (
                       <Image
-                        src={proposal.proposer.avatar_url}
-                        alt={proposal.proposer.display_name}
-                        width={18}
-                        height={18}
-                        className="w-[18px] h-[18px] rounded-full"
+                        src={vote.user.avatar_url}
+                        alt={vote.user.display_name}
+                        width={24}
+                        height={24}
+                        className="w-6 h-6 rounded-full"
                       />
                     ) : (
-                      <span className="w-[18px] h-[18px] bg-gray-200 rounded-full flex items-center justify-center text-[10px]">
+                      <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
                         👤
                       </span>
                     )}
-                    <span>Proposed by {proposal.proposer?.display_name || 'Unknown'}</span>
-                    <span>•</span>
-                    <span>{formatTimeRemaining(timeRemaining.hours)}</span>
+                    <span className="flex-1 text-gray-700">{vote.user?.display_name || 'Unknown'}</span>
+                    <span>{vote.vote_type === 'approve' ? '👍' : '👎'}</span>
                   </div>
-                </div>
+                ))}
               </div>
-
-              {/* Proposal Note */}
-              {proposal.note && (
-                <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-600 italic">
-                  "{proposal.note}"
-                </div>
-              )}
-
-              {/* Vote Progress */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                {/* Progress Header */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-700">Voting Progress</span>
-                  <span className="text-gray-500">{voteCount}/{totalVoters} voted</span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-green-400 to-green-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${approvePercent}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                  />
-                </div>
-
-                {/* Vote Breakdown */}
-                <div className="flex items-center justify-center gap-8 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">👍</span>
-                    <span className="font-medium text-green-600">{approveCount}</span>
-                    <span className="text-gray-400">approve</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">👎</span>
-                    <span className="font-medium text-red-600">{rejectCount}</span>
-                    <span className="text-gray-400">reject</span>
-                  </div>
-                </div>
-
-                {/* User's Current Vote */}
-                {hasVoted && (
-                  <div className="text-center pt-2 border-t border-gray-200">
-                    <span className="text-sm text-gray-600">
-                      You voted: {' '}
-                      <span className={`font-medium ${userVote === 'approve' ? 'text-green-600' : 'text-red-600'}`}>
-                        {userVote === 'approve' ? '👍 Approve' : '👎 Reject'}
-                      </span>
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Vote Buttons */}
-              {!showRejectComment ? (
-                <div className="space-y-3">
-                  {/* Approve Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleVote('approve')}
-                    disabled={isSubmitting}
-                    className={`
-                      w-full flex items-center justify-center gap-2 py-4 rounded-xl
-                      font-semibold text-base transition-all
-                      ${hasVoted && userVote === 'approve'
-                        ? 'bg-green-100 text-green-700 ring-2 ring-green-500'
-                        : 'bg-green-500 text-white hover:bg-green-600'
-                      }
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
-                  >
-                    <span className="text-xl">✅</span>
-                    <span>{hasVoted && userVote === 'approve' ? 'Approved' : 'Approve'}</span>
-                  </motion.button>
-
-                  {/* Reject Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      if (hasVoted && userVote === 'reject') {
-                        // Already rejected, just confirm
-                        handleVote('reject');
-                      } else {
-                        // Show comment input
-                        setShowRejectComment(true);
-                      }
-                    }}
-                    disabled={isSubmitting}
-                    className={`
-                      w-full flex items-center justify-center gap-2 py-4 rounded-xl
-                      font-semibold text-base transition-all
-                      ${hasVoted && userVote === 'reject'
-                        ? 'bg-red-100 text-red-700 ring-2 ring-red-500'
-                        : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
-                      }
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
-                  >
-                    <span className="text-xl">❌</span>
-                    <span>{hasVoted && userVote === 'reject' ? 'Rejected' : 'Reject'}</span>
-                  </motion.button>
-                </div>
-              ) : (
-                /* Reject Comment Input */
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Reason for rejection (optional)
-                  </label>
-                  <textarea
-                    value={rejectComment}
-                    onChange={(e) => setRejectComment(e.target.value)}
-                    placeholder="Help the team understand why..."
-                    className="w-full p-3 border border-gray-300 rounded-xl text-sm
-                               focus:ring-2 focus:ring-red-500 focus:border-red-500
-                               resize-none"
-                    rows={2}
-                    maxLength={200}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setShowRejectComment(false);
-                        setRejectComment("");
-                      }}
-                      className="flex-1 py-3 rounded-xl text-gray-600 bg-gray-100
-                                 hover:bg-gray-200 font-medium transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleVote('reject')}
-                      disabled={isSubmitting}
-                      className="flex-1 py-3 rounded-xl text-white bg-red-500
-                                 hover:bg-red-600 font-medium transition-colors
-                                 disabled:opacity-50"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit Rejection'}
-                    </motion.button>
-                  </div>
-                </div>
-              )}
-
-              {/* Change Vote / Remove Vote */}
-              {hasVoted && onRemoveVote && !showRejectComment && (
-                <button
-                  onClick={handleRemoveVote}
-                  disabled={isSubmitting}
-                  className="w-full text-center text-sm text-gray-500 hover:text-gray-700
-                             py-2 transition-colors disabled:opacity-50"
-                >
-                  Remove my vote
-                </button>
-              )}
-
-              {/* Owner Actions (for deadlock) */}
-              {isOwner && isDeadlock && onForceResolve && (
-                <div className="bg-amber-50 rounded-xl p-4 space-y-3 border border-amber-200">
-                  <div className="flex items-center gap-2 text-amber-700">
-                    <span className="text-lg">⚠️</span>
-                    <span className="font-medium">Voting is deadlocked</span>
-                  </div>
-                  <p className="text-sm text-amber-600">
-                    As the trip owner, you can make the final decision.
-                  </p>
-                  <div className="flex gap-2">
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleForceResolve('approve')}
-                      disabled={isSubmitting}
-                      className="flex-1 py-3 rounded-xl text-white bg-green-500
-                                 hover:bg-green-600 font-medium transition-colors
-                                 disabled:opacity-50"
-                    >
-                      Force Approve
-                    </motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleForceResolve('reject')}
-                      disabled={isSubmitting}
-                      className="flex-1 py-3 rounded-xl text-white bg-red-500
-                                 hover:bg-red-600 font-medium transition-colors
-                                 disabled:opacity-50"
-                    >
-                      Force Reject
-                    </motion.button>
-                  </div>
-                </div>
-              )}
-
-              {/* Activity Details */}
-              {activity.description && (
-                <div className="pt-2">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">About this activity</h4>
-                  <p className="text-sm text-gray-600">
-                    {activity.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Vote History (collapsed) */}
-              {proposal.votes.length > 0 && (
-                <details className="group">
-                  <summary className="text-sm font-medium text-gray-700 cursor-pointer
-                                      hover:text-gray-900 list-none flex items-center gap-2">
-                    <span>View all votes ({proposal.votes.length})</span>
-                    <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
-                  </summary>
-                  <div className="mt-3 space-y-2">
-                    {proposal.votes.map((vote) => (
-                      <div
-                        key={vote.id}
-                        className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-2"
-                      >
-                        {vote.user?.avatar_url ? (
-                          <Image
-                            src={vote.user.avatar_url}
-                            alt={vote.user.display_name}
-                            width={24}
-                            height={24}
-                            className="w-6 h-6 rounded-full"
-                          />
-                        ) : (
-                          <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
-                            👤
-                          </span>
-                        )}
-                        <span className="flex-1 text-gray-700">
-                          {vote.user?.display_name || 'Unknown'}
-                        </span>
-                        <span>
-                          {vote.vote_type === 'approve' ? '👍' : '👎'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          </motion.div>
-    </>
+            </details>
+          )}
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
