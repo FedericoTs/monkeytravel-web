@@ -4,9 +4,11 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2 } from "lucide-react";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
+import { useProposals } from "@/lib/hooks/useProposals";
+import { ProposeActivitySheet, InlineProposalCard, VotingBottomSheet } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
@@ -26,6 +28,7 @@ import {
   ActivityRatingModal,
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
+import { useToast } from "@/components/ui/Toast";
 import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
@@ -186,6 +189,9 @@ export default function TripDetailClient({
   // Pre-trip checklist (only load when in pre-trip phase)
   const checklist = useChecklist(trip.id);
 
+  // Toast notifications
+  const { addToast } = useToast();
+
   // Activity timeline for live journey mode
   const activityTimeline = useActivityTimeline(trip.id);
 
@@ -207,9 +213,57 @@ export default function TripDetailClient({
     enabled: votingEnabled,
   });
 
+  // Activity proposals for collaborative trips
+  const {
+    proposals,
+    isLoading: proposalsLoading,
+    createProposal,
+    voteOnProposal,
+    removeVote: removeProposalVote,
+    withdrawProposal,
+    forceResolve,
+    getProposalsForSlot,
+  } = useProposals({
+    tripId: trip.id,
+    enabled: votingEnabled,
+    statusFilter: 'active',
+  });
+
   // Permission checks for current user
   const canVote = ROLE_PERMISSIONS[userRole]?.canVote ?? false;
   const canEdit = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
+  const canPropose = ROLE_PERMISSIONS[userRole]?.canSuggest ?? false; // canSuggest = canPropose
+
+  // Proposal modal state
+  const [proposeModalState, setProposeModalState] = useState<{
+    isOpen: boolean;
+    targetDay: number;
+    targetTimeSlot?: 'morning' | 'afternoon' | 'evening';
+    targetActivityId?: string;
+    targetActivityName?: string;
+  }>({
+    isOpen: false,
+    targetDay: 1,
+  });
+
+  // Voting bottom sheet state (for inline proposal voting)
+  const [votingSheetState, setVotingSheetState] = useState<{
+    isOpen: boolean;
+    proposal: typeof proposals[number] | null;
+  }>({
+    isOpen: false,
+    proposal: null,
+  });
+
+  // Open voting sheet for a proposal
+  const openVotingSheet = useCallback((proposal: typeof proposals[number]) => {
+    setVotingSheetState({ isOpen: true, proposal });
+  }, []);
+
+  // Close voting sheet
+  const closeVotingSheet = useCallback(() => {
+    setVotingSheetState({ isOpen: false, proposal: null });
+  }, []);
 
   // Rating modal state
   const [ratingModalActivity, setRatingModalActivity] = useState<{
@@ -578,6 +632,80 @@ export default function TripDetailClient({
     clearHistory(); // Start fresh undo/redo stacks
   }, [savedItinerary, clearHistory]);
 
+  // Open propose activity modal
+  const handleOpenProposeModal = useCallback((
+    day: number,
+    timeSlot?: 'morning' | 'afternoon' | 'evening',
+    targetActivityId?: string,
+    targetActivityName?: string
+  ) => {
+    setProposeModalState({
+      isOpen: true,
+      targetDay: day,
+      targetTimeSlot: timeSlot,
+      targetActivityId,
+      targetActivityName,
+    });
+  }, []);
+
+  // Close propose activity modal
+  const handleCloseProposeModal = useCallback(() => {
+    setProposeModalState(prev => ({ ...prev, isOpen: false }));
+  }, []);
+
+  // Get proposals for a specific day (1-indexed day number)
+  const getProposalsForDay = useCallback((dayNumber: number) => {
+    return proposals.filter(p => p.target_day === dayNumber - 1);
+  }, [proposals]);
+
+  // Get merged timeline of activities and proposals for a day
+  // Returns items sorted chronologically, with proposals inserted at their target time slots
+  type TimelineItem =
+    | { type: 'activity'; data: Activity; index: number }
+    | { type: 'proposal'; data: typeof proposals[number] };
+
+  const getMergedTimeline = useCallback((dayNumber: number): TimelineItem[] => {
+    const dayIndex = dayNumber - 1;
+    const dayActivities = editedItinerary[dayIndex]?.activities || [];
+    const dayProposals = getProposalsForDay(dayNumber)
+      .filter(p => p.status === 'pending' || p.status === 'voting');
+
+    const timeline: TimelineItem[] = [];
+
+    // Add all activities first
+    dayActivities.forEach((activity, index) => {
+      timeline.push({ type: 'activity', data: activity, index });
+    });
+
+    // Insert proposals at their target positions based on time slot
+    dayProposals.forEach(proposal => {
+      const proposedActivity = proposal.activity_data as Activity;
+      const proposedTime = proposedActivity.start_time;
+
+      // Find insert position based on time
+      let insertIndex = timeline.length;
+      for (let i = 0; i < timeline.length; i++) {
+        const item = timeline[i];
+        if (item.type === 'activity') {
+          if (item.data.start_time > proposedTime) {
+            insertIndex = i;
+            break;
+          }
+        } else if (item.type === 'proposal') {
+          const propActivity = item.data.activity_data as Activity;
+          if (propActivity.start_time > proposedTime) {
+            insertIndex = i;
+            break;
+          }
+        }
+      }
+
+      timeline.splice(insertIndex, 0, { type: 'proposal', data: proposal });
+    });
+
+    return timeline;
+  }, [editedItinerary, getProposalsForDay, proposals]);
+
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -928,6 +1056,28 @@ export default function TripDetailClient({
           }}
         />
 
+        {/* Propose Activity Modal - Collaborative Trips */}
+        {votingEnabled && (
+          <ProposeActivitySheet
+            isOpen={proposeModalState.isOpen}
+            onClose={handleCloseProposeModal}
+            tripId={trip.id}
+            destination={destination}
+            targetDay={proposeModalState.targetDay}
+            targetTimeSlot={proposeModalState.targetTimeSlot}
+            targetActivityId={proposeModalState.targetActivityId}
+            targetActivityName={proposeModalState.targetActivityName}
+            onPropose={async (input) => {
+              await createProposal(input);
+              addToast(
+                "🗳️ Proposal submitted! Other travelers will vote on it.",
+                "success",
+                4000
+              );
+            }}
+          />
+        )}
+
         {/* Planning/Confirmed Phase - Full Itinerary View */}
         {!isActiveTripPhase && (
           <>
@@ -1197,60 +1347,78 @@ export default function TripDetailClient({
                         </DndContext>
                         </>
                       ) : (
-                        /* View Mode - No Drag-and-Drop, but with Voting UI */
+                        /* View Mode - Merged Timeline with Activities and Inline Proposals */
                         <div className="grid gap-0">
-                          {day.activities.map((activity, idx) => {
-                            const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
-                            const nextActivity = day.activities[idx + 1];
-                            const dayTravelData = travelData.get(day.day_number);
-                            const segment = nextActivity && dayTravelData?.segments.find(
-                              (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                            );
+                          {getMergedTimeline(day.day_number).map((item, timelineIdx) => {
+                            if (item.type === 'activity') {
+                              const activity = item.data;
+                              const idx = item.index;
+                              const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                              const nextActivity = day.activities[idx + 1];
+                              const dayTravelData = travelData.get(day.day_number);
+                              const segment = nextActivity && dayTravelData?.segments.find(
+                                (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
+                              );
 
-                            return (
-                              <div key={`${activity.id || idx}-v${itineraryVersion}`}>
-                                <div
-                                  className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
-                                >
-                                  <EditableActivityCard
-                                    activity={activity}
-                                    index={idx}
-                                    currency={trip.budget?.currency}
-                                    showGallery={true}
-                                    isEditMode={false}
-                                    onDelete={() => {}}
-                                    onUpdate={() => {}}
-                                    onMoveToDay={() => {}}
-                                    onRegenerate={() => {}}
-                                    availableDays={[]}
-                                    currentDayIndex={dayIndex}
-                                    disableAutoFetch={true}
-                                    onPhotoCapture={handlePhotoCapture}
-                                    // Voting props - enabled in view mode
-                                    votingEnabled={votingEnabled}
-                                    votes={getActivityVotes(activity.id || "")}
-                                    consensus={getActivityConsensus(activity.id || "")}
-                                    activityStatus={getActivityStatus(activity.id || "")}
-                                    currentUserVote={getCurrentUserVote(activity.id || "")}
+                              return (
+                                <div key={`activity-${activity.id || idx}-v${itineraryVersion}`}>
+                                  <div
+                                    className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
+                                  >
+                                    <EditableActivityCard
+                                      activity={activity}
+                                      index={idx}
+                                      currency={trip.budget?.currency}
+                                      showGallery={true}
+                                      isEditMode={false}
+                                      onDelete={() => {}}
+                                      onUpdate={() => {}}
+                                      onMoveToDay={() => {}}
+                                      onRegenerate={() => {}}
+                                      availableDays={[]}
+                                      currentDayIndex={dayIndex}
+                                      disableAutoFetch={true}
+                                      onPhotoCapture={handlePhotoCapture}
+                                      // Voting props - enabled in view mode
+                                      votingEnabled={votingEnabled}
+                                      votes={getActivityVotes(activity.id || "")}
+                                      consensus={getActivityConsensus(activity.id || "")}
+                                      activityStatus={getActivityStatus(activity.id || "")}
+                                      currentUserVote={getCurrentUserVote(activity.id || "")}
+                                      canVote={canVote}
+                                      totalVoters={voterCount}
+                                      onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
+                                      onRemoveVote={() => removeVote(activity.id || "")}
+                                    />
+                                  </div>
+                                  {/* Travel connector to next activity */}
+                                  {idx < day.activities.length - 1 && (
+                                    <TravelConnector
+                                      distanceMeters={segment?.distanceMeters}
+                                      durationSeconds={segment?.durationSeconds}
+                                      distanceText={segment?.distanceText}
+                                      durationText={segment?.durationText}
+                                      mode={segment?.mode}
+                                      isLoading={travelLoading || dayTravelData?.isLoading}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            } else {
+                              // Inline Proposal Card
+                              const proposal = item.data;
+                              return (
+                                <div key={`proposal-${proposal.id}`} className="my-2">
+                                  <InlineProposalCard
+                                    proposal={proposal}
+                                    currentUserId={undefined}
                                     canVote={canVote}
+                                    onTapToVote={() => openVotingSheet(proposal)}
                                     totalVoters={voterCount}
-                                    onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
-                                    onRemoveVote={() => removeVote(activity.id || "")}
                                   />
                                 </div>
-                                {/* Travel connector to next activity */}
-                                {idx < day.activities.length - 1 && (
-                                  <TravelConnector
-                                    distanceMeters={segment?.distanceMeters}
-                                    durationSeconds={segment?.durationSeconds}
-                                    distanceText={segment?.distanceText}
-                                    durationText={segment?.durationText}
-                                    mode={segment?.mode}
-                                    isLoading={travelLoading || dayTravelData?.isLoading}
-                                  />
-                                )}
-                              </div>
-                            );
+                              );
+                            }
                           })}
                         </div>
                       )}
@@ -1262,6 +1430,17 @@ export default function TripDetailClient({
                           onAdd={(partialActivity) => handleAddActivity(dayIndex, partialActivity)}
                           className="mt-4 ml-6"
                         />
+                      )}
+                      {/* Suggest Activity Button - View Mode Only, Collaborative Trips */}
+                      {!isEditMode && votingEnabled && canPropose && (
+                        <button
+                          onClick={() => handleOpenProposeModal(day.day_number)}
+                          className="w-full mt-4 py-3 border-2 border-dashed border-gray-200
+                                     rounded-xl text-gray-400 hover:border-blue-300
+                                     hover:text-blue-500 transition-colors text-sm font-medium"
+                        >
+                          + Suggest an activity for this day
+                        </button>
                       )}
                       {/* Day travel summary */}
                       {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
@@ -1599,6 +1778,34 @@ export default function TripDetailClient({
           </div>
         </div>
       )}
+
+      {/* Voting Bottom Sheet - for inline proposal voting */}
+      <VotingBottomSheet
+        isOpen={votingSheetState.isOpen}
+        onClose={closeVotingSheet}
+        proposal={votingSheetState.proposal}
+        currentUserId={undefined}
+        onVote={async (voteType, comment) => {
+          if (votingSheetState.proposal) {
+            await voteOnProposal(votingSheetState.proposal.id, voteType, comment);
+            addToast("Vote recorded!", "success");
+          }
+        }}
+        onRemoveVote={async () => {
+          if (votingSheetState.proposal) {
+            await removeProposalVote(votingSheetState.proposal.id);
+            addToast("Vote removed", "success");
+          }
+        }}
+        totalVoters={voterCount}
+        isOwner={userRole === 'owner'}
+        onForceResolve={async (action) => {
+          if (votingSheetState.proposal) {
+            await forceResolve(votingSheetState.proposal.id, action);
+            addToast(`Proposal ${action}d`, "success");
+          }
+        }}
+      />
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}
       {!isEditMode && <MobileBottomNav activePage="trip-detail" tripId={trip.id} />}

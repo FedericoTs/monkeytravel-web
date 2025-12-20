@@ -576,3 +576,183 @@ export const VOTING_TIMING = {
   STRONG_CONSENSUS_SCORE: 1.5, // Instant confirm if score >= 1.5
   REJECTION_THRESHOLD: -1,    // Reject if score <= -1
 } as const;
+
+// =====================================================
+// Activity Proposal Types
+// =====================================================
+
+/**
+ * Proposal type: what kind of change is being proposed
+ * - 'new': Add new activity to an empty slot
+ * - 'replacement': Replace an existing activity with a different one
+ */
+export type ProposalType = 'new' | 'replacement';
+
+/**
+ * Proposal lifecycle status
+ * - 'pending': Just created, awaiting votes
+ * - 'voting': Has at least one vote, voting in progress
+ * - 'approved': Approved by consensus or owner
+ * - 'rejected': Rejected by consensus or owner
+ * - 'withdrawn': Withdrawn by proposer
+ * - 'expired': Expired without resolution
+ */
+export type ProposalStatus =
+  | 'pending'
+  | 'voting'
+  | 'approved'
+  | 'rejected'
+  | 'withdrawn'
+  | 'expired';
+
+/**
+ * Proposal resolution method (how it was resolved)
+ */
+export type ProposalResolutionMethod =
+  | 'consensus'        // Approved by group vote
+  | 'owner_override'   // Owner force-approved/rejected
+  | 'auto_approve'     // Auto-approved after timeout with positive score
+  | 'timeout'          // Expired without resolution
+  | 'withdrawn';       // Proposer withdrew
+
+/**
+ * Vote type for proposals (simpler than activity votes)
+ */
+export type ProposalVoteType = 'approve' | 'reject';
+
+/**
+ * Activity proposal from a collaborator
+ */
+export interface ActivityProposal {
+  id: string;
+  trip_id: string;
+  proposed_by: string;
+  type: ProposalType;
+  activity_data: Activity;
+  target_activity_id?: string;  // For replacement: which activity to replace
+  target_day: number;
+  target_time_slot?: 'morning' | 'afternoon' | 'evening';
+  note?: string;
+  status: ProposalStatus;
+  resolved_at?: string;
+  resolved_by?: string;
+  resolution_method?: ProposalResolutionMethod;
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+  // Joined data from users table
+  proposer?: {
+    display_name: string;
+    avatar_url?: string;
+  };
+}
+
+/**
+ * Vote on a proposal
+ */
+export interface ProposalVote {
+  id: string;
+  proposal_id: string;
+  user_id: string;
+  vote_type: ProposalVoteType;
+  comment?: string;
+  rank?: number;  // For future tournament ranking
+  voted_at: string;
+  updated_at: string;
+  // Joined data from users table
+  user?: {
+    display_name: string;
+    avatar_url?: string;
+  };
+}
+
+/**
+ * Proposal consensus result (similar to ConsensusResult but for proposals)
+ */
+export interface ProposalConsensusResult {
+  status: 'waiting' | 'voting' | 'likely_approve' | 'approved' | 'rejected' | 'deadlock' | 'expired';
+  score: number;
+  participation: number;
+  hasStrongObjection: boolean;
+  canAutoApprove: boolean;
+  voteCounts: {
+    approve: number;
+    reject: number;
+  };
+  pendingVoters: string[];
+  hoursRemaining: number;
+}
+
+/**
+ * Proposal with votes and computed consensus
+ */
+export interface ProposalWithVotes extends ActivityProposal {
+  votes: ProposalVote[];
+  vote_summary: {
+    approve: number;
+    reject: number;
+    total: number;
+  };
+  consensus?: ProposalConsensusResult;
+  current_user_vote?: ProposalVoteType;
+}
+
+/**
+ * Slot key format for grouping proposals
+ * Format: "day-{dayIndex}-{timeSlot}" e.g., "day-0-morning"
+ */
+export type ProposalSlotKey = `day-${number}-${string}`;
+
+/**
+ * Generate a slot key from day and time slot
+ */
+export function getProposalSlotKey(day: number, timeSlot?: string): ProposalSlotKey {
+  return `day-${day}-${timeSlot || 'any'}` as ProposalSlotKey;
+}
+
+/**
+ * Vote weights for proposal consensus calculation
+ * Maps to same weights as activity votes for consistency
+ */
+export const PROPOSAL_VOTE_WEIGHTS: Record<ProposalVoteType, number> = {
+  approve: 2,   // Same as "love" in activity votes
+  reject: -2,   // Same as "no" in activity votes
+};
+
+/**
+ * Proposal vote display information
+ */
+export const PROPOSAL_VOTE_INFO: Record<ProposalVoteType, {
+  label: string;
+  emoji: string;
+  color: string;
+  bgColor: string;
+  description: string;
+}> = {
+  approve: {
+    label: 'Approve',
+    emoji: '✅',
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    description: 'Add this to our trip!',
+  },
+  reject: {
+    label: 'Reject',
+    emoji: '❌',
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    description: 'Skip this one',
+  },
+};
+
+/**
+ * Proposal timing constants (similar to voting)
+ */
+export const PROPOSAL_TIMING = {
+  EXPIRY_DAYS: 7,             // Proposals expire after 7 days
+  AUTO_APPROVE_HOURS: 48,     // Auto-approve if majority after 48h
+  DEADLOCK_HOURS: 72,         // Escalate to owner if mixed votes after 72h
+  MIN_PARTICIPATION: 0.5,     // At least 50% must vote
+  STRONG_CONSENSUS_SCORE: 1.5, // Instant approve if score >= 1.5
+  REJECTION_THRESHOLD: -1,    // Reject if score <= -1
+} as const;
