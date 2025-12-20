@@ -10,6 +10,8 @@ import {
 } from "@/lib/analytics";
 import { RoleSelector } from "@/components/collaboration/RoleSelector";
 import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
+import { useToast } from "@/components/ui/Toast";
+import BottomSheet from "@/components/ui/BottomSheet";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
@@ -50,6 +52,10 @@ export default function ShareAndInviteModal({
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
   const [trendingLoading, setTrendingLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Toast notifications
+  const { addToast } = useToast();
 
   // Invite state
   const [selectedRole, setSelectedRole] = useState<Exclude<CollaboratorRole, "owner">>("voter");
@@ -60,6 +66,14 @@ export default function ShareAndInviteModal({
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
   const [isLoadingCollaborators, setIsLoadingCollaborators] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Fetch current user
   useEffect(() => {
@@ -195,12 +209,15 @@ export default function ShareAndInviteModal({
       if (response.ok) {
         const data = await response.json();
         setInviteUrl(data.invite.inviteUrl);
+        addToast("Invite link created!", "success");
       } else {
         const error = await response.json();
         console.error("Failed to generate invite:", error);
+        addToast(error.error || "Failed to create invite link", "error");
       }
     } catch (error) {
       console.error("Failed to generate invite:", error);
+      addToast("Network error. Please try again.", "error");
     } finally {
       setIsGeneratingInvite(false);
     }
@@ -213,8 +230,10 @@ export default function ShareAndInviteModal({
       await navigator.clipboard.writeText(inviteUrl);
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 2000);
+      addToast("Link copied to clipboard!", "success");
     } catch (error) {
       console.error("Failed to copy:", error);
+      addToast("Failed to copy link", "error");
     }
   };
 
@@ -229,9 +248,13 @@ export default function ShareAndInviteModal({
 
       if (response.ok) {
         await fetchCollaborators();
+        addToast(`Role updated to ${newRole}`, "success");
+      } else {
+        addToast("Failed to update role", "error");
       }
     } catch (error) {
       console.error("Failed to update role:", error);
+      addToast("Failed to update role", "error");
     }
   };
 
@@ -244,9 +267,13 @@ export default function ShareAndInviteModal({
 
       if (response.ok) {
         await fetchCollaborators();
+        addToast("Team member removed", "success");
+      } else {
+        addToast("Failed to remove member", "error");
       }
     } catch (error) {
       console.error("Failed to remove collaborator:", error);
+      addToast("Failed to remove member", "error");
     }
   };
 
@@ -254,78 +281,47 @@ export default function ShareAndInviteModal({
 
   const hasCollaborators = collaborators.length > 1; // More than just owner
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+  // Tab buttons component (reused in both mobile and desktop)
+  const TabButtons = ({ className = "" }: { className?: string }) => (
+    <div className={cn("flex", className)}>
+      <button
+        onClick={() => setActiveTab("share")}
+        className={cn(
+          "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+          activeTab === "share"
+            ? "border-[var(--primary)] text-[var(--primary)]"
+            : "border-transparent text-slate-500 hover:text-slate-700"
+        )}
+      >
+        <Link2 className="w-4 h-4" />
+        Share Link
+      </button>
+      <button
+        onClick={() => setActiveTab("invite")}
+        className={cn(
+          "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+          activeTab === "invite"
+            ? "border-[var(--primary)] text-[var(--primary)]"
+            : "border-transparent text-slate-500 hover:text-slate-700"
+        )}
+      >
+        <Users className="w-4 h-4" />
+        Invite Team
+        {hasCollaborators && (
+          <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+            {collaborators.length - 1}
+          </span>
+        )}
+      </button>
+    </div>
+  );
 
-      {/* Modal */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Header with tabs */}
-          <div className="border-b border-slate-200">
-            <div className="flex items-center gap-4 px-6 pt-6 pb-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                <Share2 className="w-6 h-6 text-[var(--primary)]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-slate-900">Share & Invite</h3>
-                <p className="text-sm text-slate-500 truncate">{tripTitle}</p>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex px-6">
-              <button
-                onClick={() => setActiveTab("share")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-                  activeTab === "share"
-                    ? "border-[var(--primary)] text-[var(--primary)]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Link2 className="w-4 h-4" />
-                Share Link
-              </button>
-              <button
-                onClick={() => setActiveTab("invite")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-                  activeTab === "invite"
-                    ? "border-[var(--primary)] text-[var(--primary)]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Users className="w-4 h-4" />
-                Invite Team
-                {hasCollaborators && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
-                    {collaborators.length - 1}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
-            {activeTab === "share" ? (
-              // SHARE TAB
-              <div className="space-y-6">
+  // Content component (reused in both mobile and desktop)
+  const ModalContent = () => (
+    <>
+      {activeTab === "share" ? (
+        // SHARE TAB
+        <div className="space-y-6">
                 {/* Enable sharing if not shared */}
                 {!isShared && (
                   <div className="text-center py-4">
@@ -545,9 +541,69 @@ export default function ShareAndInviteModal({
                       </div>
                     )}
                   </div>
-                )}
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  // Mobile: Use BottomSheet for better UX
+  if (isMobile) {
+    return (
+      <BottomSheet isOpen={isOpen} onClose={onClose} title="Share & Invite">
+        <div className="px-4 pb-6">
+          {/* Tabs */}
+          <div className="border-b border-slate-200 mb-4">
+            <TabButtons />
+          </div>
+          {/* Content */}
+          <ModalContent />
+        </div>
+      </BottomSheet>
+    );
+  }
+
+  // Desktop: Traditional centered modal
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative min-h-screen flex items-center justify-center p-4">
+        <div className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Header with tabs */}
+          <div className="border-b border-slate-200">
+            <div className="flex items-center gap-4 px-6 pt-6 pb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                <Share2 className="w-6 h-6 text-[var(--primary)]" />
               </div>
-            )}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-slate-900">Share & Invite</h3>
+                <p className="text-sm text-slate-500 truncate">{tripTitle}</p>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <TabButtons className="px-6" />
+          </div>
+
+          {/* Content */}
+          <div className="p-6 max-h-[60vh] overflow-y-auto">
+            <ModalContent />
           </div>
         </div>
       </div>

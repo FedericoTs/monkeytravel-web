@@ -469,7 +469,7 @@ export default async function Home() {
               <TourTrigger
                 variant="button"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg"
               >
                 Try It Free Now
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -559,6 +559,67 @@ export default async function Home() {
                   </svg>
                 </TourTrigger>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            COLLABORATION SECTION - Plan Together Feature
+            ================================================================ */}
+        <section className="py-20 bg-gradient-to-b from-purple-50/50 to-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                </span>
+                New Feature
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+                Plan{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">
+                  Together
+                </span>
+              </h2>
+              <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+                Trip planning is better with friends. Invite your travel group, vote on activities, and watch your perfect trip come together.
+              </p>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
+              {[
+                { icon: "👥", text: "Invite Friends" },
+                { icon: "🗳️", text: "Vote Together" },
+                { icon: "⚡", text: "Real-time Sync" },
+                { icon: "🔐", text: "Role-based Access" },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-200 transition-all"
+                >
+                  <span className="text-xl">{item.icon}</span>
+                  <span className="font-medium text-gray-700">{item.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <TourTrigger
+                variant="button"
+                skipToAuthIfCompleted={true}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
+              >
+                Start Planning Together
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </TourTrigger>
+              <p className="mt-4 text-sm text-gray-500">
+                Free for up to 8 collaborators per trip
+              </p>
             </div>
           </div>
         </section>
