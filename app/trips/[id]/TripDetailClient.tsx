@@ -8,7 +8,6 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import DestinationHero from "@/components/DestinationHero";
-import ActivityCard from "@/components/ActivityCard";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
 import ExportMenu from "@/components/trip/ExportMenu";
@@ -1198,7 +1197,7 @@ export default function TripDetailClient({
                         </DndContext>
                         </>
                       ) : (
-                        /* View Mode - No Drag-and-Drop */
+                        /* View Mode - No Drag-and-Drop, but with Voting UI */
                         <div className="grid gap-0">
                           {day.activities.map((activity, idx) => {
                             const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
@@ -1213,13 +1212,30 @@ export default function TripDetailClient({
                                 <div
                                   className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
                                 >
-                                  <ActivityCard
+                                  <EditableActivityCard
                                     activity={activity}
                                     index={idx}
                                     currency={trip.budget?.currency}
                                     showGallery={true}
+                                    isEditMode={false}
+                                    onDelete={() => {}}
+                                    onUpdate={() => {}}
+                                    onMoveToDay={() => {}}
+                                    onRegenerate={() => {}}
+                                    availableDays={[]}
+                                    currentDayIndex={dayIndex}
                                     disableAutoFetch={true}
                                     onPhotoCapture={handlePhotoCapture}
+                                    // Voting props - enabled in view mode
+                                    votingEnabled={votingEnabled}
+                                    votes={getActivityVotes(activity.id || "")}
+                                    consensus={getActivityConsensus(activity.id || "")}
+                                    activityStatus={getActivityStatus(activity.id || "")}
+                                    currentUserVote={getCurrentUserVote(activity.id || "")}
+                                    canVote={canVote}
+                                    totalVoters={voterCount}
+                                    onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
+                                    onRemoveVote={() => removeVote(activity.id || "")}
                                   />
                                 </div>
                                 {/* Travel connector to next activity */}

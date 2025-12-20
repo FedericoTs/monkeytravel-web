@@ -179,8 +179,10 @@ export function useActivityVotes({
 
   const getActivityStatus = useCallback(
     (activityId: string): ActivityVotingStatus =>
-      statuses[activityId]?.status || "confirmed",
-    [statuses]
+      // Default to "voting" if enabled (collaborative trip) so voting UI shows
+      // Only use "confirmed" if there's an explicit status record marking it confirmed
+      statuses[activityId]?.status || (enabled ? "voting" : "confirmed"),
+    [statuses, enabled]
   );
 
   const getCurrentUserVote = useCallback(
