@@ -223,11 +223,26 @@ export default function ShareAndInviteModal({
     }
   };
 
-  // Copy invite URL
+  // Copy invite URL with fallback for older browsers
   const handleCopyInviteUrl = async () => {
     if (!inviteUrl) return;
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = inviteUrl;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 2000);
       addToast("Link copied to clipboard!", "success");
