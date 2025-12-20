@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2 } from "lucide-react";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
@@ -215,6 +215,59 @@ export default function TripDetailClient({
   });
 
   // Activity proposals for collaborative trips
+  // Track recently approved proposals to show transition animation
+  const [recentlyApproved, setRecentlyApproved] = useState<Set<string>>(new Set());
+
+  // Handle proposal status changes (especially approvals)
+  const handleProposalChange = useCallback((proposal: ProposalWithVotes) => {
+    if (proposal.status === 'approved' && proposal.activity_data) {
+      // Mark as recently approved for animation
+      setRecentlyApproved(prev => new Set([...prev, proposal.id]));
+
+      // Add the approved activity to the local itinerary
+      const activityData = proposal.activity_data as Activity;
+      const targetDayIndex = proposal.target_day; // 0-indexed
+
+      if (targetDayIndex >= 0 && targetDayIndex < editedItinerary.length) {
+        const newActivity: Activity = {
+          ...activityData,
+          id: activityData.id || `act_${proposal.id.slice(0, 12)}`,
+        };
+
+        setEditedItinerary(prev => {
+          return prev.map((day, index) => {
+            if (index === targetDayIndex) {
+              // Check if activity already exists (avoid duplicates)
+              const exists = day.activities.some(a => a.id === newActivity.id);
+              if (exists) return day;
+
+              // Insert and sort by time
+              const activities = [...day.activities, newActivity].sort((a, b) => {
+                const timeA = a.start_time || "00:00";
+                const timeB = b.start_time || "00:00";
+                return timeA.localeCompare(timeB);
+              });
+              return { ...day, activities };
+            }
+            return day;
+          });
+        });
+
+        // Show success toast
+        addToast(`"${newActivity.name}" has been approved and added to your itinerary!`, "success");
+      }
+
+      // Remove from recently approved after animation completes
+      setTimeout(() => {
+        setRecentlyApproved(prev => {
+          const next = new Set(prev);
+          next.delete(proposal.id);
+          return next;
+        });
+      }, 3000);
+    }
+  }, [editedItinerary.length, addToast]);
+
   const {
     proposals,
     isLoading: proposalsLoading,
@@ -228,6 +281,7 @@ export default function TripDetailClient({
     tripId: trip.id,
     enabled: votingEnabled,
     statusFilter: 'active',
+    onProposalChange: handleProposalChange,
   });
 
   // Permission checks for current user
@@ -706,8 +760,13 @@ export default function TripDetailClient({
   const getMergedTimeline = useCallback((dayNumber: number): TimelineItem[] => {
     const dayIndex = dayNumber - 1;
     const dayActivities = editedItinerary[dayIndex]?.activities || [];
+    // Show pending, voting, AND recently approved proposals (for animation)
     const dayProposals = getProposalsForDay(dayNumber)
-      .filter(p => p.status === 'pending' || p.status === 'voting');
+      .filter(p =>
+        p.status === 'pending' ||
+        p.status === 'voting' ||
+        (p.status === 'approved' && recentlyApproved.has(p.id))
+      );
 
     const timeline: TimelineItem[] = [];
 
@@ -743,7 +802,7 @@ export default function TripDetailClient({
     });
 
     return timeline;
-  }, [editedItinerary, getProposalsForDay, proposals]);
+  }, [editedItinerary, getProposalsForDay, proposals, recentlyApproved]);
 
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
   useEffect(() => {

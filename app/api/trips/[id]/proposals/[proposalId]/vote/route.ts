@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { ProposalVote, ProposalVoteType } from "@/types";
+import type { ProposalVote, ProposalVoteType, Activity, ItineraryDay } from "@/types";
 import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
+import { generateActivityId } from "@/lib/utils/activity-id";
 
 interface RouteContext {
   params: Promise<{ id: string; proposalId: string }>;
@@ -325,6 +326,71 @@ export async function POST(request: NextRequest, context: RouteContext) {
               resolved_at: new Date().toISOString(),
             })
             .eq("id", proposalId);
+
+          // If APPROVED: Add the activity to the trip's itinerary
+          if (consensus.status === 'approved') {
+            try {
+              // Get the full proposal with activity_data
+              const { data: fullProposal } = await supabase
+                .from("activity_proposals")
+                .select("activity_data, target_day, target_time_slot, type")
+                .eq("id", proposalId)
+                .single();
+
+              if (fullProposal?.activity_data && fullProposal.target_day) {
+                const activityData = fullProposal.activity_data as Activity;
+                const targetDayNumber = fullProposal.target_day;
+
+                // Get the current trip itinerary
+                const { data: tripData } = await supabase
+                  .from("trips")
+                  .select("itinerary")
+                  .eq("id", tripId)
+                  .single();
+
+                if (tripData?.itinerary) {
+                  const itinerary = tripData.itinerary as ItineraryDay[];
+                  const targetDayIndex = targetDayNumber - 1;
+
+                  if (targetDayIndex >= 0 && targetDayIndex < itinerary.length) {
+                    // Create the new activity with a unique ID
+                    const newActivity: Activity = {
+                      ...activityData,
+                      id: activityData.id || generateActivityId(),
+                    };
+
+                    // Add to the target day's activities
+                    const updatedItinerary = itinerary.map((day, index) => {
+                      if (index === targetDayIndex) {
+                        // Insert activity and sort by start_time
+                        const activities = [...day.activities, newActivity].sort((a, b) => {
+                          const timeA = a.start_time || "00:00";
+                          const timeB = b.start_time || "00:00";
+                          return timeA.localeCompare(timeB);
+                        });
+                        return { ...day, activities };
+                      }
+                      return day;
+                    });
+
+                    // Update the trip with the new itinerary
+                    await supabase
+                      .from("trips")
+                      .update({
+                        itinerary: updatedItinerary,
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq("id", tripId);
+
+                    console.log(`Activity "${newActivity.name}" added to Day ${targetDayNumber} after proposal approval`);
+                  }
+                }
+              }
+            } catch (insertError) {
+              // Log but don't fail - the proposal was still approved
+              console.error("Error adding approved activity to itinerary:", insertError);
+            }
+          }
         }
       }
     } catch (consensusError) {

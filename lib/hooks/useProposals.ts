@@ -74,6 +74,8 @@ export function useProposals({
 
   const supabaseRef = useRef(createClient());
   const channelRef = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
+  // Track proposals in a ref to avoid recreating subscription on every change
+  const proposalsRef = useRef<ProposalWithVotes[]>([]);
 
   // Group proposals by slot for tournament detection
   const proposalsBySlot = useMemo(() => {
@@ -393,6 +395,11 @@ export function useProposals({
     }
   }, [enabled, tripId, fetchProposals]);
 
+  // Keep proposalsRef in sync with proposals state
+  useEffect(() => {
+    proposalsRef.current = proposals;
+  }, [proposals]);
+
   // Set up real-time subscription
   useEffect(() => {
     if (!enabled || !tripId) return;
@@ -420,9 +427,9 @@ export function useProposals({
           // Refresh proposals on any change
           fetchProposals();
 
-          // Notify callback if provided
+          // Notify callback if provided (use ref to avoid recreating subscription)
           if (onProposalChange && payload.new) {
-            const proposal = proposals.find((p) => p.id === (payload.new as { id: string }).id);
+            const proposal = proposalsRef.current.find((p) => p.id === (payload.new as { id: string }).id);
             if (proposal) {
               onProposalChange(proposal);
             }
@@ -437,13 +444,13 @@ export function useProposals({
           table: "proposal_votes",
         },
         (payload) => {
-          // Check if this vote is for a proposal in this trip
+          // Check if this vote is for a proposal in this trip (use ref to avoid recreating subscription)
           const proposalId = (payload.new as { proposal_id?: string })?.proposal_id ||
                             (payload.old as { proposal_id?: string })?.proposal_id;
-          const isRelevant = proposals.some((p) => p.id === proposalId);
+          const isRelevant = proposalsRef.current.some((p) => p.id === proposalId);
 
           if (isRelevant) {
-            console.log("Proposal vote change received");
+            console.log("Proposal vote change received for:", proposalId);
             fetchProposals();
           }
         }
@@ -462,7 +469,9 @@ export function useProposals({
         channelRef.current = null;
       }
     };
-  }, [enabled, tripId, fetchProposals, onProposalChange, proposals]);
+  // Note: Using proposalsRef instead of proposals to avoid recreating subscription
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, tripId, fetchProposals, onProposalChange]);
 
   return {
     // Data
