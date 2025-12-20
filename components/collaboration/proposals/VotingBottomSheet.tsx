@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import type {
@@ -48,47 +48,15 @@ export function VotingBottomSheet({
   isOwner = false,
   onForceResolve,
 }: VotingBottomSheetProps) {
+  // ======================================================================
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP (Rules of Hooks)
+  // ======================================================================
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectComment, setShowRejectComment] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
 
-  // Don't render if no proposal
-  if (!proposal) return null;
-
-  const activity = proposal.activity_data as Activity;
-  const userVote = proposal.current_user_vote;
-  const hasVoted = !!userVote;
-  const isDeadlock = proposal.consensus?.status === 'deadlock';
-
-  // Calculate time remaining
-  const timeRemaining = getProposalTimeRemaining(
-    proposal.created_at,
-    PROPOSAL_TIMING.EXPIRY_DAYS * 24
-  );
-
-  // Vote progress
-  const voteCount = proposal.vote_summary.total;
-  const approveCount = proposal.vote_summary.approve;
-  const rejectCount = proposal.vote_summary.reject;
-  const approvePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
-
-  // Format time
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const h = parseInt(hours, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${h12}:${minutes} ${ampm}`;
-  };
-
-  const formatTimeRemaining = (hours: number): string => {
-    if (hours <= 0) return 'Expiring soon';
-    if (hours < 24) return `${Math.round(hours)}h left`;
-    const days = Math.floor(hours / 24);
-    return `${days}d left`;
-  };
-
-  // Handle vote
+  // Handle vote - MUST be before any conditional returns
   const handleVote = useCallback(async (voteType: ProposalVoteType) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -106,7 +74,7 @@ export function VotingBottomSheet({
     }
   }, [isSubmitting, onVote, rejectComment, onClose]);
 
-  // Handle remove vote
+  // Handle remove vote - MUST be before any conditional returns
   const handleRemoveVote = useCallback(async () => {
     if (isSubmitting || !onRemoveVote) return;
     setIsSubmitting(true);
@@ -121,7 +89,7 @@ export function VotingBottomSheet({
     }
   }, [isSubmitting, onRemoveVote, onClose]);
 
-  // Handle force resolve (owner only)
+  // Handle force resolve (owner only) - MUST be before any conditional returns
   const handleForceResolve = useCallback(async (action: 'approve' | 'reject') => {
     if (isSubmitting || !onForceResolve) return;
     setIsSubmitting(true);
@@ -136,11 +104,132 @@ export function VotingBottomSheet({
     }
   }, [isSubmitting, onForceResolve, onClose]);
 
+  // Compute derived values safely (using useMemo for consistency)
+  const activity = useMemo(() => {
+    return proposal?.activity_data as Activity | null;
+  }, [proposal?.activity_data]);
+
+  const isValidActivity = useMemo(() => {
+    return activity && typeof activity === 'object' && !!activity.name;
+  }, [activity]);
+
+  const userVote = proposal?.current_user_vote;
+  const hasVoted = !!userVote;
+  const isDeadlock = proposal?.consensus?.status === 'deadlock';
+
+  // Calculate time remaining - safe even if proposal is null
+  const timeRemaining = useMemo(() => {
+    if (!proposal) return { hours: 0, minutes: 0, isExpired: true, isExpiringSoon: false };
+    return getProposalTimeRemaining(
+      proposal.created_at,
+      PROPOSAL_TIMING.EXPIRY_DAYS * 24
+    );
+  }, [proposal]);
+
+  // Vote progress - safe even if proposal is null
+  const voteCount = proposal?.vote_summary.total ?? 0;
+  const approveCount = proposal?.vote_summary.approve ?? 0;
+  const rejectCount = proposal?.vote_summary.reject ?? 0;
+  const approvePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
+
+  // ======================================================================
+  // END OF HOOKS - NOW SAFE FOR CONDITIONAL RETURNS AND RENDERING LOGIC
+  // ======================================================================
+
+  // Format time
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  };
+
+  const formatTimeRemaining = (hours: number): string => {
+    if (hours <= 0) return 'Expiring soon';
+    if (hours < 24) return `${Math.round(hours)}h left`;
+    const days = Math.floor(hours / 24);
+    return `${days}d left`;
+  };
+
+  // Don't render if sheet is not open
+  if (!isOpen) return null;
+
+  // Handle missing proposal
+  if (!proposal) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/40 z-50"
+        />
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
+        >
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+          </div>
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">No proposal selected</p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  // Handle missing or invalid activity_data
+  if (!isValidActivity || !activity) {
+    console.error("VotingBottomSheet: Invalid activity_data", { proposalId: proposal.id, activity_data: proposal.activity_data });
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/40 z-50"
+        />
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
+        >
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+          </div>
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">Unable to load proposal details</p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  // Main render - we now know proposal and activity are valid
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
+    <>
+      {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -449,8 +538,6 @@ export function VotingBottomSheet({
               )}
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </>
   );
 }
