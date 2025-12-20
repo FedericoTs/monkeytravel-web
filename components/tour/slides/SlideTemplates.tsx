@@ -28,7 +28,7 @@ export default function SlideTemplates() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFD93D]/20 border border-[#FFD93D]/30 mb-3 md:mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#FFD93D]" />
-            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 3 of 4</span>
+            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 4 of 5</span>
           </motion.div>
 
           {/* Headline */}

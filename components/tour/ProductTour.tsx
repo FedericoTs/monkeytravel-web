@@ -17,6 +17,7 @@ import SlideDestination from "./slides/SlideDestination";
 import SlideItinerary from "./slides/SlideItinerary";
 import SlideMap from "./slides/SlideMap";
 import SlideTemplates from "./slides/SlideTemplates";
+import SlideCollaboration from "./slides/SlideCollaboration";
 import SlideCTA from "./slides/SlideCTA";
 
 // No longer need to preload screenshots - all content is code-rendered
@@ -27,6 +28,7 @@ const CONTENT_SLIDES = [
   { id: "itinerary", Component: SlideItinerary },
   { id: "map", Component: SlideMap },
   { id: "templates", Component: SlideTemplates },
+  { id: "collaboration", Component: SlideCollaboration },
 ];
 
 // Total slides including CTA

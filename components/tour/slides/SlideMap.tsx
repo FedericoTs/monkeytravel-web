@@ -28,7 +28,7 @@ export default function SlideMap() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#9B59B6]/10 border border-[#9B59B6]/20 mb-3 md:mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#9B59B6]" />
-            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 4 of 4</span>
+            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 3 of 5</span>
           </motion.div>
 
           {/* Headline */}

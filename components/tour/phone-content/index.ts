@@ -7,6 +7,7 @@ export { default as AIBuildingScreen } from "./screens/AIBuildingScreen";
 export { default as AIModifyScreen } from "./screens/AIModifyScreen";
 export { default as LiveMapScreen } from "./screens/LiveMapScreen";
 export { default as CTAShowcaseScreen } from "./screens/CTAShowcaseScreen";
+export { default as CollaborationScreen } from "./screens/CollaborationScreen";
 
 // Legacy screens (kept for reference)
 export { default as DestinationScreen } from "./screens/DestinationScreen";

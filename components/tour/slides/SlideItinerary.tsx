@@ -28,7 +28,7 @@ export default function SlideItinerary() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00B4A6]/10 border border-[#00B4A6]/20 mb-3 md:mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#00B4A6]" />
-            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 2 of 4</span>
+            <span className="text-xs md:text-sm text-gray-600 font-medium">Step 2 of 5</span>
           </motion.div>
 
           {/* Headline */}

@@ -46,8 +46,8 @@ const FAQS = [
     answer: 'We cover 180+ destinations worldwide — from Paris and Tokyo to Lisbon and Bali. More locations are being added regularly. If we don\'t have your destination yet, let us know.',
   },
   {
-    question: 'Can I share my trip with friends?',
-    answer: 'Absolutely. Every trip has a share button that generates a link. Send it to your travel group and they can see the full itinerary. Want to invite them to MonkeyTravel? You\'ll both earn rewards.',
+    question: 'Can I plan trips with friends?',
+    answer: 'Yes! MonkeyTravel is built for group travel. Invite your travel companions as collaborators — they can vote on activities, suggest new places, and see real-time updates. No more endless group chats debating where to eat. Everyone stays on the same page.',
   },
 ];
 
@@ -355,9 +355,10 @@ export default async function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   ),
-                  title: 'Invite Friends, Get Free Trips',
-                  description: 'Share MonkeyTravel with friends. When they sign up, you both earn rewards toward free premium features.',
+                  title: 'Plan Together',
+                  description: 'Invite your travel group to collaborate. Everyone can vote on activities, suggest places, and see real-time updates.',
                   color: 'bg-rose-50 text-rose-500',
+                  badge: 'New',
                 },
                 {
                   icon: (
@@ -372,8 +373,13 @@ export default async function Home() {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="group p-8 rounded-3xl bg-white border border-gray-100 card-hover"
+                  className="group relative p-8 rounded-3xl bg-white border border-gray-100 card-hover"
                 >
+                  {'badge' in feature && feature.badge && (
+                    <span className="absolute top-4 right-4 px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-rose-500 text-white rounded-full">
+                      {feature.badge}
+                    </span>
+                  )}
                   <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     {feature.icon}
                   </div>

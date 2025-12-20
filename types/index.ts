@@ -71,6 +71,7 @@ export interface Activity {
     lat: number;
     lng: number;
   };
+  google_place_id?: string; // Google Maps Place ID for lookups
   estimated_cost: {
     amount: number;
     currency: string;
@@ -341,3 +342,88 @@ export interface StructuredAssistantResponse {
     newActivity?: Activity;  // For add/replace actions
   };
 }
+
+// =====================================================
+// Collaboration Types
+// =====================================================
+
+export type CollaboratorRole = 'owner' | 'editor' | 'voter' | 'viewer';
+
+export interface TripCollaborator {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  role: CollaboratorRole;
+  invited_by: string | null;
+  joined_at: string;
+  // Joined from profiles table
+  display_name: string;
+  avatar_url: string | null;
+  email?: string;
+}
+
+export interface TripInvite {
+  id: string;
+  trip_id: string;
+  token: string;
+  role: Exclude<CollaboratorRole, 'owner'>; // Can't invite as owner
+  created_by: string | null;
+  created_at: string;
+  expires_at: string;
+  max_uses: number;
+  use_count: number;
+  is_active: boolean;
+}
+
+// Role permissions helper
+export const ROLE_PERMISSIONS: Record<CollaboratorRole, {
+  canEdit: boolean;
+  canVote: boolean;
+  canSuggest: boolean;
+  canView: boolean;
+  canInvite: boolean;
+  canRemove: boolean;
+}> = {
+  owner: { canEdit: true, canVote: true, canSuggest: true, canView: true, canInvite: true, canRemove: true },
+  editor: { canEdit: true, canVote: true, canSuggest: true, canView: true, canInvite: true, canRemove: false },
+  voter: { canEdit: false, canVote: true, canSuggest: true, canView: true, canInvite: false, canRemove: false },
+  viewer: { canEdit: false, canVote: false, canSuggest: false, canView: true, canInvite: false, canRemove: false },
+};
+
+// Role display info
+export const ROLE_INFO: Record<CollaboratorRole, {
+  label: string;
+  emoji: string;
+  description: string;
+  permissions: string[];
+  restrictions: string[];
+}> = {
+  owner: {
+    label: 'Owner',
+    emoji: '👑',
+    description: 'Full control over the trip',
+    permissions: ['Edit activities', 'Manage team', 'Delete trip'],
+    restrictions: [],
+  },
+  editor: {
+    label: 'Editor',
+    emoji: '✏️',
+    description: 'Can edit and invite others',
+    permissions: ['Edit activities', 'Vote on changes', 'Invite others'],
+    restrictions: ['Cannot delete trip', 'Cannot remove owner'],
+  },
+  voter: {
+    label: 'Voter',
+    emoji: '🗳️',
+    description: 'Can vote and suggest activities',
+    permissions: ['Vote on activities', 'Suggest new places', 'View itinerary'],
+    restrictions: ['Cannot edit directly', 'Cannot invite others'],
+  },
+  viewer: {
+    label: 'Viewer',
+    emoji: '👀',
+    description: 'Read-only access',
+    permissions: ['View full itinerary', 'See trip details'],
+    restrictions: ['Cannot vote', 'Cannot suggest', 'Cannot edit'],
+  },
+};
