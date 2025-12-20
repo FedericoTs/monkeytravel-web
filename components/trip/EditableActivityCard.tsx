@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, memo } from "react";
-import type { Activity } from "@/types";
+import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import PlaceGallery from "../PlaceGallery";
+import VotingSection from "../collaboration/VotingSection";
 import {
   convertPriceLevelToRange,
   formatEstimatedPrice,
@@ -33,6 +34,16 @@ interface EditableActivityCardProps {
    * Use this to persist the photo URL to the activity.
    */
   onPhotoCapture?: (activityId: string, photoUrl: string) => void;
+  // Voting props (optional - only passed when collaboration is enabled)
+  votingEnabled?: boolean;
+  votes?: ActivityVote[];
+  consensus?: ConsensusResult | null;
+  activityStatus?: ActivityVotingStatus;
+  currentUserVote?: VoteType | null;
+  canVote?: boolean;
+  totalVoters?: number;
+  onVote?: (voteType: VoteType, comment?: string) => Promise<void>;
+  onRemoveVote?: () => Promise<void>;
 }
 
 function EditableActivityCard({
@@ -50,6 +61,16 @@ function EditableActivityCard({
   isRegenerating = false,
   disableAutoFetch = false,
   onPhotoCapture,
+  // Voting props
+  votingEnabled = false,
+  votes = [],
+  consensus = null,
+  activityStatus = "confirmed",
+  currentUserVote = null,
+  canVote = false,
+  totalVoters = 0,
+  onVote,
+  onRemoveVote,
 }: EditableActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -638,6 +659,22 @@ function EditableActivityCard({
                 </button>
               </div>
             )}
+
+            {/* Voting Section (only when collaboration is enabled and not editing) */}
+            {votingEnabled && !isEditing && onVote && onRemoveVote && (
+              <VotingSection
+                activityId={activity.id || `activity-${index}`}
+                votes={votes}
+                consensus={consensus}
+                status={activityStatus}
+                currentUserVote={currentUserVote}
+                canVote={canVote}
+                totalVoters={totalVoters}
+                onVote={onVote}
+                onRemoveVote={onRemoveVote}
+                className="mt-3"
+              />
+            )}
           </div>
         </div>
       </div>
@@ -705,6 +742,13 @@ export default memo(EditableActivityCard, (prevProps, nextProps) => {
   if (prev.image_url !== next.image_url) return false;
   if (prev.type !== next.type) return false;
   if (prev.description !== next.description) return false;
+
+  // Voting props
+  if (prevProps.votingEnabled !== nextProps.votingEnabled) return false;
+  if (prevProps.currentUserVote !== nextProps.currentUserVote) return false;
+  if (prevProps.activityStatus !== nextProps.activityStatus) return false;
+  if (prevProps.votes?.length !== nextProps.votes?.length) return false;
+  if (prevProps.totalVoters !== nextProps.totalVoters) return false;
 
   return true;
 });

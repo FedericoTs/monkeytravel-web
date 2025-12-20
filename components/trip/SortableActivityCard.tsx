@@ -4,7 +4,7 @@ import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import type { Activity } from "@/types";
+import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import EditableActivityCard from "./EditableActivityCard";
 
 interface SortableActivityCardProps {
@@ -22,6 +22,16 @@ interface SortableActivityCardProps {
   isRegenerating?: boolean;
   disableAutoFetch?: boolean;
   onPhotoCapture?: (activityId: string, photoUrl: string) => void;
+  // Voting props (passed through to EditableActivityCard)
+  votingEnabled?: boolean;
+  votes?: ActivityVote[];
+  consensus?: ConsensusResult | null;
+  activityStatus?: ActivityVotingStatus;
+  currentUserVote?: VoteType | null;
+  canVote?: boolean;
+  totalVoters?: number;
+  onVote?: (voteType: VoteType, comment?: string) => Promise<void>;
+  onRemoveVote?: () => Promise<void>;
 }
 
 function SortableActivityCard({
@@ -172,6 +182,13 @@ export default memo(SortableActivityCard, (prevProps, nextProps) => {
   if (prev.start_time !== next.start_time) return false;
   if (prev.duration_minutes !== next.duration_minutes) return false;
   if (prev.image_url !== next.image_url) return false;
+
+  // Voting props
+  if (prevProps.votingEnabled !== nextProps.votingEnabled) return false;
+  if (prevProps.currentUserVote !== nextProps.currentUserVote) return false;
+  if (prevProps.activityStatus !== nextProps.activityStatus) return false;
+  if (prevProps.votes?.length !== nextProps.votes?.length) return false;
+  if (prevProps.totalVoters !== nextProps.totalVoters) return false;
 
   return true;
 });

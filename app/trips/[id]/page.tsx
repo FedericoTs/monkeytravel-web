@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { formatDateRange } from "@/lib/utils";
-import type { ItineraryDay, TripMeta } from "@/types";
+import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import TripDetailClient from "./TripDetailClient";
 
 export default async function TripDetailPage({
@@ -20,17 +20,47 @@ export default async function TripDetailPage({
     redirect("/auth/login");
   }
 
-  // Fetch trip
-  const { data: trip, error } = await supabase
+  // First, try to fetch as owner
+  let { data: trip, error } = await supabase
     .from("trips")
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
 
+  let userRole: CollaboratorRole = "owner";
+  let isCollaborator = false;
+
+  // If not found as owner, check if user is a collaborator
+  if (error || !trip) {
+    const { data: collaborator } = await supabase
+      .from("trip_collaborators")
+      .select("role, trips(*)")
+      .eq("trip_id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (collaborator?.trips) {
+      trip = collaborator.trips as typeof trip;
+      userRole = collaborator.role as CollaboratorRole;
+      isCollaborator = true;
+      error = null;
+    }
+  }
+
   if (error || !trip) {
     notFound();
   }
+
+  // Fetch collaborator count for voting quorum
+  const { count: collaboratorCount } = await supabase
+    .from("trip_collaborators")
+    .select("*", { count: "exact", head: true })
+    .eq("trip_id", id);
+
+  // Total voters = collaborators + owner
+  const totalVoters = (collaboratorCount || 0) + 1;
+  const isCollaborativeTrip = totalVoters > 1;
 
   const itinerary = (trip.itinerary as ItineraryDay[]) || [];
   const budget = trip.budget as { total: number; currency: string } | null;
@@ -62,6 +92,9 @@ export default async function TripDetailPage({
         cachedTravelHash,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date)}
+      isCollaborativeTrip={isCollaborativeTrip}
+      userRole={userRole}
+      collaboratorCount={totalVoters}
     />
   );
 }

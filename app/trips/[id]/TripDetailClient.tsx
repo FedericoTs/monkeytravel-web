@@ -4,7 +4,9 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2 } from "lucide-react";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
+import { ROLE_PERMISSIONS } from "@/types";
+import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
@@ -103,9 +105,19 @@ interface TripDetailClientProps {
     cachedTravelHash?: string;
   };
   dateRange: string;
+  // Collaboration props (optional - only passed for collaborative trips)
+  isCollaborativeTrip?: boolean;
+  userRole?: CollaboratorRole;
+  collaboratorCount?: number;
 }
 
-export default function TripDetailClient({ trip, dateRange }: TripDetailClientProps) {
+export default function TripDetailClient({
+  trip,
+  dateRange,
+  isCollaborativeTrip = false,
+  userRole = "owner",
+  collaboratorCount = 0,
+}: TripDetailClientProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -177,6 +189,28 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
 
   // Activity timeline for live journey mode
   const activityTimeline = useActivityTimeline(trip.id);
+
+  // Activity voting for collaborative trips
+  const votingEnabled = isCollaborativeTrip && collaboratorCount > 1;
+  const {
+    votes: allVotes,
+    consensus: allConsensus,
+    currentUserVotes,
+    voterCount,
+    castVote,
+    removeVote,
+    getActivityVotes,
+    getActivityConsensus,
+    getActivityStatus,
+    getCurrentUserVote,
+  } = useActivityVotes({
+    tripId: trip.id,
+    enabled: votingEnabled,
+  });
+
+  // Permission checks for current user
+  const canVote = ROLE_PERMISSIONS[userRole]?.canVote ?? false;
+  const canEdit = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
 
   // Rating modal state
   const [ratingModalActivity, setRatingModalActivity] = useState<{
@@ -1133,6 +1167,16 @@ export default function TripDetailClient({ trip, dateRange }: TripDetailClientPr
                                         isRegenerating={regeneratingActivityId === activity.id}
                                         disableAutoFetch={true}
                                         onPhotoCapture={handlePhotoCapture}
+                                        // Voting props
+                                        votingEnabled={votingEnabled}
+                                        votes={getActivityVotes(activity.id || "")}
+                                        consensus={getActivityConsensus(activity.id || "")}
+                                        activityStatus={getActivityStatus(activity.id || "")}
+                                        currentUserVote={getCurrentUserVote(activity.id || "")}
+                                        canVote={canVote}
+                                        totalVoters={voterCount}
+                                        onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
+                                        onRemoveVote={() => removeVote(activity.id || "")}
                                       />
                                     </div>
                                     {/* Travel connector to next activity */}

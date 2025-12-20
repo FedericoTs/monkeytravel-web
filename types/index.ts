@@ -427,3 +427,152 @@ export const ROLE_INFO: Record<CollaboratorRole, {
     restrictions: ['Cannot vote', 'Cannot suggest', 'Cannot edit'],
   },
 };
+
+// =====================================================
+// Activity Voting Types
+// =====================================================
+
+export type VoteType = 'love' | 'flexible' | 'concerns' | 'no';
+
+export type ActivityVotingStatus =
+  | 'proposed'   // Newly suggested by a collaborator
+  | 'voting'     // Active voting in progress
+  | 'confirmed'  // Approved by consensus
+  | 'rejected'   // Rejected by vote
+  | 'deadlock'   // No consensus reached after timeout
+  | 'completed'  // Activity has been done
+  | 'skipped';   // Activity was skipped
+
+export type ReactionEmoji = 'fire' | 'money' | 'walking' | 'camera' | 'food' | 'clock' | 'heart' | 'star' | 'warning';
+
+export interface ActivityVote {
+  id: string;
+  trip_id: string;
+  activity_id: string;
+  user_id: string;
+  vote_type: VoteType;
+  comment?: string;
+  vote_weight: number;
+  voted_at: string;
+  updated_at?: string;
+  // Joined user info
+  user?: {
+    display_name: string;
+    avatar_url?: string;
+  };
+}
+
+export interface ActivityStatus {
+  id: string;
+  trip_id: string;
+  activity_id: string;
+  status: ActivityVotingStatus;
+  proposed_by?: string;
+  proposed_at: string;
+  voting_started_at?: string;
+  confirmed_at?: string;
+  rejected_at?: string;
+  confirmation_method?: 'unanimous' | 'majority' | 'auto_confirm' | 'owner_override' | 'timeout';
+}
+
+export interface ActivityReaction {
+  id: string;
+  trip_id: string;
+  activity_id: string;
+  user_id: string;
+  emoji: ReactionEmoji;
+  created_at: string;
+}
+
+export interface ConsensusResult {
+  status: 'waiting' | 'voting' | 'likely_yes' | 'confirmed' | 'rejected' | 'deadlock';
+  score: number;              // Weighted average of votes
+  participation: number;      // 0-1, percentage of voters who voted
+  hasStrongObjection: boolean; // Any "no" votes
+  canAutoConfirm: boolean;    // Can be auto-confirmed based on time + score
+  voteCounts: {
+    love: number;
+    flexible: number;
+    concerns: number;
+    no: number;
+  };
+  pendingVoters: string[];    // User IDs who haven't voted yet
+}
+
+// Vote weights for consensus calculation
+export const VOTE_WEIGHTS: Record<VoteType, number> = {
+  love: 2,      // Strong positive
+  flexible: 1,  // Weak positive
+  concerns: -1, // Weak negative
+  no: -2,       // Strong negative (veto power)
+};
+
+// Vote display information
+export const VOTE_INFO: Record<VoteType, {
+  label: string;
+  emoji: string;
+  color: string;
+  bgColor: string;
+  requiresComment: boolean;
+  description: string;
+}> = {
+  love: {
+    label: 'Love it',
+    emoji: '👍',
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    requiresComment: false,
+    description: 'I really want to do this!',
+  },
+  flexible: {
+    label: 'Flexible',
+    emoji: '👌',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    requiresComment: false,
+    description: 'I\'m open to this',
+  },
+  concerns: {
+    label: 'Concerns',
+    emoji: '🤔',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-100',
+    requiresComment: true,
+    description: 'I have some reservations',
+  },
+  no: {
+    label: 'Not for me',
+    emoji: '👎',
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    requiresComment: true,
+    description: 'I\'d prefer to skip this',
+  },
+};
+
+// Reaction display information
+export const REACTION_INFO: Record<ReactionEmoji, {
+  label: string;
+  emoji: string;
+  description: string;
+}> = {
+  fire: { label: 'Must do', emoji: '🔥', description: 'Bucket list item!' },
+  money: { label: 'Expensive', emoji: '💰', description: 'Pricey option' },
+  walking: { label: 'Tiring', emoji: '🚶', description: 'Lots of walking' },
+  camera: { label: 'Photo spot', emoji: '📸', description: 'Great for photos' },
+  food: { label: 'Good food', emoji: '🍽️', description: 'Food highlight' },
+  clock: { label: 'Time-sensitive', emoji: '⏰', description: 'Book early/specific time' },
+  heart: { label: 'Romantic', emoji: '❤️', description: 'Couples favorite' },
+  star: { label: 'Highlight', emoji: '⭐', description: 'Trip highlight' },
+  warning: { label: 'Heads up', emoji: '⚠️', description: 'Note something' },
+};
+
+// Voting timing constants
+export const VOTING_TIMING = {
+  AUTO_CONFIRM_HOURS: 48,     // Auto-confirm if majority after 48h
+  DEADLOCK_HOURS: 72,         // Escalate to owner after 72h
+  REMINDER_HOURS: 24,         // Send reminder after 24h of inactivity
+  MIN_PARTICIPATION: 0.5,     // At least 50% must vote
+  STRONG_CONSENSUS_SCORE: 1.5, // Instant confirm if score >= 1.5
+  REJECTION_THRESHOLD: -1,    // Reject if score <= -1
+} as const;
