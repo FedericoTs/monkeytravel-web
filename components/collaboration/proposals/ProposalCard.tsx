@@ -7,11 +7,12 @@ import type {
   ProposalWithVotes,
   ProposalVoteType,
   Activity,
+  VoteType,
 } from "@/types";
+import { VOTE_INFO, PROPOSAL_TIMING } from "@/types";
 import { ProposalBadge, ProposalVoteSummary } from "./ProposalBadge";
 import { ProposalVoteButtons } from "./ProposalVoteButtons";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
-import { PROPOSAL_TIMING } from "@/types";
 
 interface ProposalCardProps {
   proposal: ProposalWithVotes;
@@ -160,8 +161,10 @@ export function ProposalCard({
       {proposal.vote_summary.total > 0 && (
         <div className="px-4 pb-2">
           <ProposalVoteSummary
-            approve={proposal.vote_summary.approve}
-            reject={proposal.vote_summary.reject}
+            love={proposal.vote_summary.love ?? 0}
+            flexible={proposal.vote_summary.flexible ?? 0}
+            concerns={proposal.vote_summary.concerns ?? 0}
+            no={proposal.vote_summary.no ?? 0}
             total={proposal.vote_summary.total}
           />
         </div>
@@ -272,24 +275,28 @@ export function ProposalCard({
                     <div>
                       <h5 className="text-xs font-medium text-gray-500 mb-2">Votes</h5>
                       <div className="space-y-1">
-                        {proposal.votes.map((vote) => (
-                          <div
-                            key={vote.id}
-                            className="flex items-center gap-2 text-sm"
-                          >
-                            <span>
-                              {vote.vote_type === 'approve' ? '✅' : '❌'}
-                            </span>
-                            <span className="text-gray-700">
-                              {vote.user?.display_name || 'Unknown'}
-                            </span>
-                            {vote.comment && (
-                              <span className="text-gray-500 text-xs truncate">
-                                - {vote.comment}
+                        {proposal.votes.map((vote) => {
+                          const voteInfo = VOTE_INFO[vote.vote_type as VoteType];
+                          return (
+                            <div
+                              key={vote.id}
+                              className="flex items-center gap-2 text-sm"
+                            >
+                              <span>{voteInfo?.emoji || '❓'}</span>
+                              <span className="text-gray-700">
+                                {vote.user?.display_name || 'Unknown'}
                               </span>
-                            )}
-                          </div>
-                        ))}
+                              <span className={`text-xs ${voteInfo?.color || 'text-gray-500'}`}>
+                                {voteInfo?.label || vote.vote_type}
+                              </span>
+                              {vote.comment && (
+                                <span className="text-gray-500 text-xs truncate">
+                                  - {vote.comment}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

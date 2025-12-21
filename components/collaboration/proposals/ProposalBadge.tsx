@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { ProposalStatus, ProposalConsensusResult } from "@/types";
+import { VOTE_INFO, type ProposalStatus, type ProposalConsensusResult } from "@/types";
 
 interface ProposalBadgeProps {
   status: ProposalStatus;
@@ -118,38 +118,59 @@ export function ProposalBadge({
 }
 
 export function ProposalVoteSummary({
-  approve,
-  reject,
+  love,
+  flexible,
+  concerns,
+  no,
   total,
   size = 'sm',
 }: {
-  approve: number;
-  reject: number;
+  love: number;
+  flexible: number;
+  concerns: number;
+  no: number;
   total: number;
   size?: 'sm' | 'md';
 }) {
   if (total === 0) return null;
 
-  const approvePercent = Math.round((approve / total) * 100);
+  // Positive votes = love + flexible
+  const positiveCount = love + flexible;
+  const positivePercent = Math.round((positiveCount / total) * 100);
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   return (
-    <div className={`flex items-center gap-2 ${textSize}`}>
-      <div className="flex items-center gap-1">
-        <span className="text-green-600">✅</span>
-        <span className="text-gray-600">{approve}</span>
+    <div className={`flex flex-col gap-1.5 ${textSize}`}>
+      {/* Progress bar */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${positivePercent}%` }}
+            transition={{ duration: 0.5 }}
+            className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+          />
+        </div>
+        <span className="text-gray-500 text-xs">{total} voted</span>
       </div>
-      <div className="w-12 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${approvePercent}%` }}
-          transition={{ duration: 0.5 }}
-          className="h-full bg-green-500 rounded-full"
-        />
-      </div>
-      <div className="flex items-center gap-1">
-        <span className="text-red-600">❌</span>
-        <span className="text-gray-600">{reject}</span>
+      {/* 4-level breakdown */}
+      <div className="flex items-center gap-2 text-gray-600">
+        <span className="flex items-center gap-0.5" title="Love it!">
+          <span>{VOTE_INFO.love.emoji}</span>
+          <span>{love}</span>
+        </span>
+        <span className="flex items-center gap-0.5" title="Open to it">
+          <span>{VOTE_INFO.flexible.emoji}</span>
+          <span>{flexible}</span>
+        </span>
+        <span className="flex items-center gap-0.5" title="Concerns">
+          <span>{VOTE_INFO.concerns.emoji}</span>
+          <span>{concerns}</span>
+        </span>
+        <span className="flex items-center gap-0.5" title="Skip this">
+          <span>{VOTE_INFO.no.emoji}</span>
+          <span>{no}</span>
+        </span>
       </div>
     </div>
   );

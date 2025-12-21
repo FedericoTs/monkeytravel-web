@@ -6,9 +6,10 @@ import Image from "next/image";
 import type {
   ProposalWithVotes,
   Activity,
+  VoteType,
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
-import { PROPOSAL_TIMING } from "@/types";
+import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
 
 interface InlineProposalCardProps {
   proposal: ProposalWithVotes;
@@ -124,14 +125,20 @@ function InlineProposalCardComponent({
 
   const styles = stateStyles[cardState];
 
-  // Vote progress
+  // Vote progress - 4-level voting system
   const voteCount = proposal.vote_summary.total;
-  const approveCount = proposal.vote_summary.approve;
-  const approvePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
+  const loveCount = proposal.vote_summary.love ?? 0;
+  const flexibleCount = proposal.vote_summary.flexible ?? 0;
+  const concernsCount = proposal.vote_summary.concerns ?? 0;
+  const noCount = proposal.vote_summary.no ?? 0;
+  // Positive votes = love + flexible (for progress bar)
+  const positiveCount = loveCount + flexibleCount;
+  const positivePercent = totalVoters > 0 ? (positiveCount / totalVoters) * 100 : 0;
 
   // User's current vote
   const userVote = proposal.current_user_vote;
   const hasVoted = !!userVote;
+  const userVoteInfo = userVote ? VOTE_INFO[userVote as VoteType] : null;
 
   // Format time
   const formatTime = (time: string) => {
@@ -281,7 +288,7 @@ function InlineProposalCardComponent({
                 <motion.div
                   className="h-full bg-gradient-to-r from-green-400 to-green-500"
                   initial={{ width: 0 }}
-                  animate={{ width: `${approvePercent}%` }}
+                  animate={{ width: `${positivePercent}%` }}
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                 />
               </div>
@@ -292,16 +299,24 @@ function InlineProposalCardComponent({
               </span>
             </div>
 
-            {/* Vote breakdown */}
+            {/* Vote breakdown - 4-level display */}
             {voteCount > 0 && (
-              <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-green-500">👍</span>
-                  <span>{proposal.vote_summary.approve}</span>
+              <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+                <span className="flex items-center gap-0.5" title="Love it!">
+                  <span>{VOTE_INFO.love.emoji}</span>
+                  <span>{loveCount}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">👎</span>
-                  <span>{proposal.vote_summary.reject}</span>
+                <span className="flex items-center gap-0.5" title="Open to it">
+                  <span>{VOTE_INFO.flexible.emoji}</span>
+                  <span>{flexibleCount}</span>
+                </span>
+                <span className="flex items-center gap-0.5" title="Concerns">
+                  <span>{VOTE_INFO.concerns.emoji}</span>
+                  <span>{concernsCount}</span>
+                </span>
+                <span className="flex items-center gap-0.5" title="Skip this">
+                  <span>{VOTE_INFO.no.emoji}</span>
+                  <span>{noCount}</span>
                 </span>
               </div>
             )}
@@ -311,10 +326,10 @@ function InlineProposalCardComponent({
         {/* User Vote Indicator + CTA */}
         {isActive && canVote && (
           <div className="mt-3 flex items-center justify-between">
-            {hasVoted ? (
-              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${userVote === 'approve' ? 'text-green-600' : 'text-red-600'}`}>
-                <span>{userVote === 'approve' ? '👍' : '👎'}</span>
-                <span>You: {userVote === 'approve' ? 'Positive' : 'Negative'}</span>
+            {hasVoted && userVoteInfo ? (
+              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${userVoteInfo.color}`}>
+                <span>{userVoteInfo.emoji}</span>
+                <span>You: {userVoteInfo.label}</span>
               </span>
             ) : (
               <span className="text-xs text-blue-600 font-medium animate-pulse">

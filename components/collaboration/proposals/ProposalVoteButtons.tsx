@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { ProposalVoteType } from "@/types";
-import { PROPOSAL_VOTE_INFO } from "@/types";
+import type { VoteType } from "@/types";
+import { VOTE_INFO } from "@/types";
 
 interface ProposalVoteButtonsProps {
-  currentVote?: ProposalVoteType | null;
-  onVote: (voteType: ProposalVoteType, comment?: string) => Promise<void>;
+  currentVote?: VoteType | null;
+  onVote: (voteType: VoteType, comment?: string) => Promise<void>;
   onRemoveVote?: () => Promise<void>;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  layout?: 'horizontal' | 'compact';
+  layout?: 'horizontal' | 'grid' | 'compact';
 }
+
+const VOTE_OPTIONS: VoteType[] = ['love', 'flexible', 'concerns', 'no'];
 
 export function ProposalVoteButtons({
   currentVote,
@@ -20,18 +22,18 @@ export function ProposalVoteButtons({
   onRemoveVote,
   disabled = false,
   size = 'md',
-  layout = 'horizontal',
+  layout = 'grid',
 }: ProposalVoteButtonsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
-  const [pendingVote, setPendingVote] = useState<ProposalVoteType | null>(null);
+  const [pendingVote, setPendingVote] = useState<VoteType | null>(null);
   const [comment, setComment] = useState('');
 
-  const handleVote = async (voteType: ProposalVoteType) => {
+  const handleVote = async (voteType: VoteType) => {
     if (disabled || isLoading) return;
 
-    // If voting for reject, show comment input
-    if (voteType === 'reject' && !comment.trim()) {
+    // If voting requires comment (concerns or no), show comment input
+    if (VOTE_INFO[voteType].requiresComment && !comment.trim()) {
       setPendingVote(voteType);
       setShowCommentInput(true);
       return;
@@ -52,6 +54,11 @@ export function ProposalVoteButtons({
 
   const handleCommentSubmit = async () => {
     if (!pendingVote || isLoading) return;
+
+    // Check if comment is required but empty
+    if (VOTE_INFO[pendingVote].requiresComment && !comment.trim()) {
+      return; // Don't allow submit without comment for required votes
+    }
 
     try {
       setIsLoading(true);
@@ -91,57 +98,60 @@ export function ProposalVoteButtons({
     lg: 'text-xl',
   };
 
+  const layoutClasses = {
+    horizontal: 'flex gap-2',
+    grid: 'grid grid-cols-2 gap-2',
+    compact: 'flex gap-1 justify-center',
+  };
+
+  const getButtonStyles = (voteType: VoteType, isSelected: boolean) => {
+    const info = VOTE_INFO[voteType];
+    if (isSelected) {
+      // Selected state with matching background
+      const bgMap: Record<VoteType, string> = {
+        love: 'bg-green-500 text-white shadow-md ring-2 ring-green-300',
+        flexible: 'bg-blue-500 text-white shadow-md ring-2 ring-blue-300',
+        concerns: 'bg-amber-500 text-white shadow-md ring-2 ring-amber-300',
+        no: 'bg-red-500 text-white shadow-md ring-2 ring-red-300',
+      };
+      return bgMap[voteType];
+    }
+    // Unselected state
+    return `${info.bgColor} ${info.color} hover:opacity-80 border border-current/20`;
+  };
+
   return (
     <div className="space-y-2">
-      <div className={`flex gap-2 ${layout === 'compact' ? 'justify-center' : ''}`}>
-        {/* Approve Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleVote('approve')}
-          disabled={disabled || isLoading}
-          className={`
-            flex items-center gap-1.5 rounded-full font-medium
-            transition-all duration-200
-            ${sizeClasses[size]}
-            ${currentVote === 'approve'
-              ? 'bg-green-500 text-white shadow-md ring-2 ring-green-300'
-              : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-            }
-            ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          `}
-        >
-          <span className={iconSize[size]}>{PROPOSAL_VOTE_INFO.approve.emoji}</span>
-          {layout !== 'compact' && (
-            <span>{currentVote === 'approve' ? 'Approved' : PROPOSAL_VOTE_INFO.approve.label}</span>
-          )}
-        </motion.button>
+      <div className={layoutClasses[layout]}>
+        {VOTE_OPTIONS.map((voteType) => {
+          const info = VOTE_INFO[voteType];
+          const isSelected = currentVote === voteType;
 
-        {/* Reject Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleVote('reject')}
-          disabled={disabled || isLoading}
-          className={`
-            flex items-center gap-1.5 rounded-full font-medium
-            transition-all duration-200
-            ${sizeClasses[size]}
-            ${currentVote === 'reject'
-              ? 'bg-red-500 text-white shadow-md ring-2 ring-red-300'
-              : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
-            }
-            ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          `}
-        >
-          <span className={iconSize[size]}>{PROPOSAL_VOTE_INFO.reject.emoji}</span>
-          {layout !== 'compact' && (
-            <span>{currentVote === 'reject' ? 'Rejected' : PROPOSAL_VOTE_INFO.reject.label}</span>
-          )}
-        </motion.button>
+          return (
+            <motion.button
+              key={voteType}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleVote(voteType)}
+              disabled={disabled || isLoading}
+              className={`
+                flex items-center gap-1.5 rounded-full font-medium
+                transition-all duration-200
+                ${sizeClasses[size]}
+                ${getButtonStyles(voteType, isSelected)}
+                ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+              `}
+            >
+              <span className={iconSize[size]}>{info.emoji}</span>
+              {layout !== 'compact' && (
+                <span>{isSelected ? info.label : info.label}</span>
+              )}
+            </motion.button>
+          );
+        })}
 
         {/* Remove Vote Button */}
-        {currentVote && onRemoveVote && (
+        {currentVote && onRemoveVote && layout !== 'grid' && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -163,9 +173,31 @@ export function ProposalVoteButtons({
         )}
       </div>
 
-      {/* Comment Input for Reject */}
+      {/* Undo button for grid layout */}
+      {currentVote && onRemoveVote && layout === 'grid' && (
+        <motion.button
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleRemoveVote}
+          disabled={isLoading}
+          className={`
+            w-full flex items-center justify-center gap-1 rounded-full font-medium
+            bg-gray-100 text-gray-600 hover:bg-gray-200
+            transition-all duration-200
+            ${sizeClasses[size]}
+            ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          `}
+        >
+          <span>↩️</span>
+          <span>Change my vote</span>
+        </motion.button>
+      )}
+
+      {/* Comment Input for votes requiring comment */}
       <AnimatePresence>
-        {showCommentInput && (
+        {showCommentInput && pendingVote && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -174,7 +206,9 @@ export function ProposalVoteButtons({
           >
             <div className="bg-gray-50 rounded-lg p-3 space-y-2">
               <p className="text-xs text-gray-600">
-                Why do you think we should skip this? (Optional but helpful)
+                {pendingVote === 'concerns'
+                  ? 'Please share your concerns so the group can address them:'
+                  : 'Please share why this doesn\'t work for you:'}
               </p>
               <textarea
                 value={comment}
@@ -199,9 +233,13 @@ export function ProposalVoteButtons({
                 </button>
                 <button
                   onClick={handleCommentSubmit}
-                  disabled={isLoading}
-                  className="px-3 py-1 text-sm bg-red-500 text-white rounded
-                             hover:bg-red-600 disabled:opacity-50"
+                  disabled={isLoading || !comment.trim()}
+                  className={`px-3 py-1 text-sm text-white rounded
+                             disabled:opacity-50
+                             ${pendingVote === 'concerns'
+                               ? 'bg-amber-500 hover:bg-amber-600'
+                               : 'bg-red-500 hover:bg-red-600'
+                             }`}
                 >
                   {isLoading ? 'Submitting...' : 'Submit Vote'}
                 </button>

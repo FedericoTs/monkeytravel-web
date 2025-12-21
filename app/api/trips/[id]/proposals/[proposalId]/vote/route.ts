@@ -139,11 +139,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       comment?: string;
     };
 
-    // Validate vote type
-    const validVoteTypes: ProposalVoteType[] = ["approve", "reject"];
+    // Validate vote type - 4-level voting unified with activity voting
+    const validVoteTypes: ProposalVoteType[] = ["love", "flexible", "concerns", "no"];
     if (!voteType || !validVoteTypes.includes(voteType)) {
       return NextResponse.json(
-        { error: "Invalid vote type. Must be 'approve' or 'reject'" },
+        { error: "Invalid vote type. Must be 'love', 'flexible', 'concerns', or 'no'" },
+        { status: 400 }
+      );
+    }
+
+    // Require comment for negative votes (concerns and no)
+    if ((voteType === 'concerns' || voteType === 'no') && !comment?.trim()) {
+      return NextResponse.json(
+        { error: `A comment is required when voting '${voteType}' to help the group understand your perspective` },
         { status: 400 }
       );
     }

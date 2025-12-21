@@ -7,66 +7,77 @@ import type {
   ProposalWithVotes,
   ProposalVoteType,
   Activity,
+  VoteType,
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
-import { PROPOSAL_TIMING } from "@/types";
+import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
 
 /**
  * 4-Level Voting Options for Proposals
- * Maps to binary approve/reject for storage but provides nuanced UX
+ * Now stores actual vote type in database (no more mapping)
+ * Unified with activity voting for consistency
  */
-const PROPOSAL_VOTE_OPTIONS = [
+const PROPOSAL_VOTE_OPTIONS: Array<{
+  id: VoteType;
+  label: string;
+  emoji: string;
+  color: string;
+  bgColor: string;
+  ringColor: string;
+  hoverBg: string;
+  description: string;
+  requiresComment: boolean;
+  isPositive: boolean;
+}> = [
   {
-    id: 'love' as const,
-    label: 'Love it!',
-    emoji: '😍',
-    mapsTo: 'approve' as ProposalVoteType,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
+    id: 'love',
+    label: VOTE_INFO.love.label,
+    emoji: VOTE_INFO.love.emoji,
+    color: VOTE_INFO.love.color,
+    bgColor: VOTE_INFO.love.bgColor,
     ringColor: 'ring-green-500',
     hoverBg: 'hover:bg-green-100',
-    description: 'This is a must-do!',
-    requiresComment: false,
+    description: VOTE_INFO.love.description,
+    requiresComment: VOTE_INFO.love.requiresComment,
+    isPositive: true,
   },
   {
-    id: 'flexible' as const,
-    label: 'Open to it',
-    emoji: '👌',
-    mapsTo: 'approve' as ProposalVoteType,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    id: 'flexible',
+    label: VOTE_INFO.flexible.label,
+    emoji: VOTE_INFO.flexible.emoji,
+    color: VOTE_INFO.flexible.color,
+    bgColor: VOTE_INFO.flexible.bgColor,
     ringColor: 'ring-blue-500',
     hoverBg: 'hover:bg-blue-100',
-    description: "I'm flexible on this",
-    requiresComment: false,
+    description: VOTE_INFO.flexible.description,
+    requiresComment: VOTE_INFO.flexible.requiresComment,
+    isPositive: true,
   },
   {
-    id: 'concerns' as const,
-    label: 'Concerns',
-    emoji: '🤔',
-    mapsTo: 'reject' as ProposalVoteType,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
+    id: 'concerns',
+    label: VOTE_INFO.concerns.label,
+    emoji: VOTE_INFO.concerns.emoji,
+    color: VOTE_INFO.concerns.color,
+    bgColor: VOTE_INFO.concerns.bgColor,
     ringColor: 'ring-amber-500',
     hoverBg: 'hover:bg-amber-100',
-    description: 'I have some reservations',
-    requiresComment: true,
+    description: VOTE_INFO.concerns.description,
+    requiresComment: VOTE_INFO.concerns.requiresComment,
+    isPositive: false,
   },
   {
-    id: 'skip' as const,
-    label: 'Skip this',
-    emoji: '👎',
-    mapsTo: 'reject' as ProposalVoteType,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
+    id: 'no',
+    label: VOTE_INFO.no.label,
+    emoji: VOTE_INFO.no.emoji,
+    color: VOTE_INFO.no.color,
+    bgColor: VOTE_INFO.no.bgColor,
     ringColor: 'ring-red-500',
     hoverBg: 'hover:bg-red-100',
-    description: "This isn't for me",
-    requiresComment: true,
+    description: VOTE_INFO.no.description,
+    requiresComment: VOTE_INFO.no.requiresComment,
+    isPositive: false,
   },
-] as const;
-
-type VoteOptionId = typeof PROPOSAL_VOTE_OPTIONS[number]['id'];
+];
 
 interface VotingBottomSheetProps {
   isOpen: boolean;
@@ -102,7 +113,7 @@ export function VotingBottomSheet({
 
   const dragControls = useDragControls();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<VoteOptionId | null>(null);
+  const [selectedOption, setSelectedOption] = useState<VoteType | null>(null);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
 
@@ -118,7 +129,8 @@ export function VotingBottomSheet({
 
     setIsSubmitting(true);
     try {
-      await onVote(option.mapsTo, comment.trim() || undefined);
+      // Now using option.id directly - no more mapping to binary approve/reject
+      await onVote(option.id, comment.trim() || undefined);
       setComment("");
       setShowCommentInput(false);
       setSelectedOption(null);
@@ -178,10 +190,16 @@ export function VotingBottomSheet({
     );
   }, [proposal]);
 
+  // 4-level vote counts from unified voting system
   const voteCount = proposal?.vote_summary.total ?? 0;
-  const approveCount = proposal?.vote_summary.approve ?? 0;
-  const rejectCount = proposal?.vote_summary.reject ?? 0;
-  const positivePercent = totalVoters > 0 ? (approveCount / totalVoters) * 100 : 0;
+  const loveCount = proposal?.vote_summary.love ?? 0;
+  const flexibleCount = proposal?.vote_summary.flexible ?? 0;
+  const concernsCount = proposal?.vote_summary.concerns ?? 0;
+  const noCount = proposal?.vote_summary.no ?? 0;
+  // Positive = love + flexible, used for progress bar
+  const positiveCount = loveCount + flexibleCount;
+  const negativeCount = concernsCount + noCount;
+  const positivePercent = totalVoters > 0 ? (positiveCount / totalVoters) * 100 : 0;
 
   // ======================================================================
   // END OF HOOKS - CONDITIONAL RENDERING BELOW
@@ -212,10 +230,11 @@ export function VotingBottomSheet({
   };
 
   // Get user's selected option based on their vote
-  const getUserSelectedOption = (): VoteOptionId | null => {
+  // Now returns actual vote type directly (no more guessing from binary)
+  const getUserSelectedOption = (): VoteType | null => {
     if (!userVote) return null;
-    // Map approve/reject back to the first matching option
-    return userVote === 'approve' ? 'love' : 'skip';
+    // Vote is now stored as actual type (love/flexible/concerns/no)
+    return userVote as VoteType;
   };
 
   if (!isOpen) return null;
@@ -439,37 +458,49 @@ export function VotingBottomSheet({
             </div>
           )}
 
-          {/* Vote Progress - Compact */}
-          <div className="flex items-center gap-3 py-2">
-            <div className="flex-1">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${positivePercent}%` }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                />
+          {/* Vote Progress - 4-Level Display */}
+          <div className="space-y-2 py-2">
+            {/* Progress bar */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${positivePercent}%` }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                  />
+                </div>
               </div>
+              <span className="text-sm text-gray-400 flex-shrink-0">{voteCount}/{totalVoters}</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-gray-500 flex-shrink-0">
-              <span className="flex items-center gap-1">
-                <span className="text-green-500">👍</span>
-                <span className="font-medium">{approveCount}</span>
+            {/* 4-Level Vote Breakdown */}
+            <div className="flex items-center justify-center gap-4 text-sm">
+              <span className="flex items-center gap-1" title="Love it!">
+                <span>{VOTE_INFO.love.emoji}</span>
+                <span className="font-medium text-gray-600">{loveCount}</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="text-red-400">👎</span>
-                <span className="font-medium">{rejectCount}</span>
+              <span className="flex items-center gap-1" title="Open to it">
+                <span>{VOTE_INFO.flexible.emoji}</span>
+                <span className="font-medium text-gray-600">{flexibleCount}</span>
               </span>
-              <span className="text-gray-400">of {totalVoters}</span>
+              <span className="flex items-center gap-1" title="Concerns">
+                <span>{VOTE_INFO.concerns.emoji}</span>
+                <span className="font-medium text-gray-600">{concernsCount}</span>
+              </span>
+              <span className="flex items-center gap-1" title="Skip this">
+                <span>{VOTE_INFO.no.emoji}</span>
+                <span className="font-medium text-gray-600">{noCount}</span>
+              </span>
             </div>
           </div>
 
-          {/* User's Current Vote Status */}
-          {hasVoted && (
+          {/* User's Current Vote Status - Shows actual vote type */}
+          {hasVoted && userVote && (
             <div className="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl">
               <span className="text-sm text-gray-600">Your vote:</span>
-              <span className={`text-sm font-medium ${userVote === 'approve' ? 'text-green-600' : 'text-red-600'}`}>
-                {userVote === 'approve' ? '👍 Positive' : '👎 Negative'}
+              <span className={`text-sm font-medium ${VOTE_INFO[userVote as VoteType]?.color || 'text-gray-600'}`}>
+                {VOTE_INFO[userVote as VoteType]?.emoji} {VOTE_INFO[userVote as VoteType]?.label}
               </span>
             </div>
           )}
@@ -479,7 +510,6 @@ export function VotingBottomSheet({
             <div className="grid grid-cols-2 gap-3">
               {PROPOSAL_VOTE_OPTIONS.map((option) => {
                 const isSelected = userSelectedOption === option.id || selectedOption === option.id;
-                const isPositive = option.mapsTo === 'approve';
 
                 return (
                   <motion.button
@@ -496,7 +526,7 @@ export function VotingBottomSheet({
                         : `bg-gray-50 text-gray-600 ${option.hoverBg}`
                       }
                       disabled:opacity-50 disabled:cursor-not-allowed
-                      ${isPositive ? 'border-l-4 border-l-transparent hover:border-l-green-400' : 'border-l-4 border-l-transparent hover:border-l-red-300'}
+                      ${option.isPositive ? 'border-l-4 border-l-transparent hover:border-l-green-400' : 'border-l-4 border-l-transparent hover:border-l-red-300'}
                     `}
                   >
                     <span className="text-2xl">{option.emoji}</span>
@@ -624,28 +654,31 @@ export function VotingBottomSheet({
                 <span className="group-open:rotate-180 transition-transform text-xs">▼</span>
               </summary>
               <div className="mt-2 space-y-2">
-                {proposal.votes.map((vote) => (
-                  <div
-                    key={vote.id}
-                    className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-2"
-                  >
-                    {vote.user?.avatar_url ? (
-                      <Image
-                        src={vote.user.avatar_url}
-                        alt={vote.user.display_name}
-                        width={24}
-                        height={24}
-                        className="w-6 h-6 rounded-full"
-                      />
-                    ) : (
-                      <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
-                        👤
-                      </span>
-                    )}
-                    <span className="flex-1 text-gray-700">{vote.user?.display_name || 'Unknown'}</span>
-                    <span>{vote.vote_type === 'approve' ? '👍' : '👎'}</span>
-                  </div>
-                ))}
+                {proposal.votes.map((vote) => {
+                  const voteInfo = VOTE_INFO[vote.vote_type as VoteType];
+                  return (
+                    <div
+                      key={vote.id}
+                      className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-2"
+                    >
+                      {vote.user?.avatar_url ? (
+                        <Image
+                          src={vote.user.avatar_url}
+                          alt={vote.user.display_name}
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 rounded-full"
+                        />
+                      ) : (
+                        <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                          👤
+                        </span>
+                      )}
+                      <span className="flex-1 text-gray-700">{vote.user?.display_name || 'Unknown'}</span>
+                      <span title={voteInfo?.label}>{voteInfo?.emoji || '❓'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </details>
           )}

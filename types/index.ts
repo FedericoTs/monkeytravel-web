@@ -507,7 +507,7 @@ export const VOTE_WEIGHTS: Record<VoteType, number> = {
   no: -2,       // Strong negative (veto power)
 };
 
-// Vote display information
+// Vote display information - unified for both activities and proposals
 export const VOTE_INFO: Record<VoteType, {
   label: string;
   emoji: string;
@@ -517,20 +517,20 @@ export const VOTE_INFO: Record<VoteType, {
   description: string;
 }> = {
   love: {
-    label: 'Love it',
-    emoji: '👍',
+    label: 'Love it!',
+    emoji: '😍',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     requiresComment: false,
-    description: 'I really want to do this!',
+    description: 'This is a must-do!',
   },
   flexible: {
-    label: 'Flexible',
+    label: 'Open to it',
     emoji: '👌',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     requiresComment: false,
-    description: 'I\'m open to this',
+    description: "I'm flexible on this",
   },
   concerns: {
     label: 'Concerns',
@@ -541,12 +541,12 @@ export const VOTE_INFO: Record<VoteType, {
     description: 'I have some reservations',
   },
   no: {
-    label: 'Not for me',
+    label: 'Skip this',
     emoji: '👎',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     requiresComment: true,
-    description: 'I\'d prefer to skip this',
+    description: "This isn't for me",
   },
 };
 
@@ -616,9 +616,10 @@ export type ProposalResolutionMethod =
   | 'withdrawn';       // Proposer withdrew
 
 /**
- * Vote type for proposals (simpler than activity votes)
+ * Vote type for proposals - unified with activity votes for consistency
+ * Uses same 4-level system: love (+2), flexible (+1), concerns (-1), no (-2)
  */
-export type ProposalVoteType = 'approve' | 'reject';
+export type ProposalVoteType = VoteType;
 
 /**
  * Activity proposal from a collaborator
@@ -676,8 +677,10 @@ export interface ProposalConsensusResult {
   hasStrongObjection: boolean;
   canAutoApprove: boolean;
   voteCounts: {
-    approve: number;
-    reject: number;
+    love: number;
+    flexible: number;
+    concerns: number;
+    no: number;
   };
   pendingVoters: string[];
   hoursRemaining: number;
@@ -689,8 +692,10 @@ export interface ProposalConsensusResult {
 export interface ProposalWithVotes extends ActivityProposal {
   votes: ProposalVote[];
   vote_summary: {
-    approve: number;
-    reject: number;
+    love: number;
+    flexible: number;
+    concerns: number;
+    no: number;
     total: number;
   };
   consensus?: ProposalConsensusResult;
@@ -712,38 +717,17 @@ export function getProposalSlotKey(day: number, timeSlot?: string): ProposalSlot
 
 /**
  * Vote weights for proposal consensus calculation
- * Maps to same weights as activity votes for consistency
+ * Now uses unified VOTE_WEIGHTS for consistency with activity voting
+ * @deprecated Use VOTE_WEIGHTS instead
  */
-export const PROPOSAL_VOTE_WEIGHTS: Record<ProposalVoteType, number> = {
-  approve: 2,   // Same as "love" in activity votes
-  reject: -2,   // Same as "no" in activity votes
-};
+export const PROPOSAL_VOTE_WEIGHTS = VOTE_WEIGHTS;
 
 /**
  * Proposal vote display information
+ * Now uses unified VOTE_INFO for consistency with activity voting
+ * @deprecated Use VOTE_INFO instead
  */
-export const PROPOSAL_VOTE_INFO: Record<ProposalVoteType, {
-  label: string;
-  emoji: string;
-  color: string;
-  bgColor: string;
-  description: string;
-}> = {
-  approve: {
-    label: 'Approve',
-    emoji: '✅',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    description: 'Add this to our trip!',
-  },
-  reject: {
-    label: 'Reject',
-    emoji: '❌',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    description: 'Skip this one',
-  },
-};
+export const PROPOSAL_VOTE_INFO = VOTE_INFO;
 
 /**
  * Proposal timing constants (similar to voting)

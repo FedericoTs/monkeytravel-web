@@ -1,19 +1,21 @@
 /**
  * Proposal Consensus Calculation Algorithm
  *
- * Implements a binary voting system for group decision-making on activity proposals.
- * Simpler than activity voting (4-point scale) since proposals are approve/reject decisions.
+ * Implements a 4-level voting system for group decision-making on activity proposals.
+ * Unified with activity voting for consistent user experience.
  *
- * Vote Weights:
- * - approve: +2 (support the proposal)
- * - reject: -2 (oppose the proposal)
+ * Vote Weights (same as activity voting):
+ * - love: +2 (strong positive - must do!)
+ * - flexible: +1 (weak positive - I'm open to it)
+ * - concerns: -1 (weak negative - I have reservations)
+ * - no: -2 (strong negative - this isn't for me)
  *
  * Decision Rules:
  * 1. Minimum 50% participation required for resolution
  * 2. Score >= 1.5 → Instant approval (strong consensus)
  * 3. Score >= 0.5 && 48h passed → Auto-approve (time-based majority)
  * 4. Score <= -1 → Reject
- * 5. Mixed votes && 72h passed → Deadlock (escalate to owner)
+ * 5. Has "no" votes && 72h passed → Deadlock (escalate to owner)
  * 6. 7 days passed → Expire (no action taken)
  * 7. Otherwise → Continue voting
  */
@@ -22,7 +24,7 @@ import {
   ProposalVote,
   ProposalVoteType,
   ProposalConsensusResult,
-  PROPOSAL_VOTE_WEIGHTS,
+  VOTE_WEIGHTS,
   PROPOSAL_TIMING,
 } from '@/types';
 
@@ -35,8 +37,10 @@ export interface ProposalConsensusInput {
 }
 
 export interface ProposalVoteCounts {
-  approve: number;
-  reject: number;
+  love: number;
+  flexible: number;
+  concerns: number;
+  no: number;
 }
 
 // Re-export the type from @/types
@@ -60,10 +64,12 @@ export function calculateProposalConsensus({
     REJECTION_THRESHOLD,
   } = PROPOSAL_TIMING;
 
-  // Initialize vote counts
+  // Initialize vote counts for 4-level voting
   const voteCounts: ProposalVoteCounts = {
-    approve: 0,
-    reject: 0,
+    love: 0,
+    flexible: 0,
+    concerns: 0,
+    no: 0,
   };
 
   // Parse dates
@@ -81,7 +87,7 @@ export function calculateProposalConsensus({
       status: 'expired',
       score: 0,
       participation: votes.length / Math.max(1, totalVoters),
-      hasStrongObjection: votes.some(v => v.vote_type === 'reject'),
+      hasStrongObjection: votes.some(v => v.vote_type === 'no'),
       canAutoApprove: false,
       voteCounts,
       pendingVoters: allVoterIds,
@@ -109,12 +115,13 @@ export function calculateProposalConsensus({
   const votedUserIds = new Set<string>();
 
   for (const vote of votes) {
-    const weight = PROPOSAL_VOTE_WEIGHTS[vote.vote_type];
+    const weight = VOTE_WEIGHTS[vote.vote_type];
     totalWeight += weight;
     voteCounts[vote.vote_type]++;
     votedUserIds.add(vote.user_id);
 
-    if (vote.vote_type === 'reject') {
+    // 'no' votes indicate strong objection (same as activity voting)
+    if (vote.vote_type === 'no') {
       hasStrongObjection = true;
     }
   }
@@ -445,23 +452,28 @@ export function determineTournamentWinner<T extends { id: string }>(
 }
 
 /**
- * Calculate vote summary for display
+ * Calculate vote summary for display - 4-level breakdown
  */
 export function calculateVoteSummary(votes: ProposalVote[]): {
-  approve: number;
-  reject: number;
+  love: number;
+  flexible: number;
+  concerns: number;
+  no: number;
   total: number;
 } {
-  let approve = 0;
-  let reject = 0;
+  const summary = {
+    love: 0,
+    flexible: 0,
+    concerns: 0,
+    no: 0,
+    total: votes.length,
+  };
 
   for (const vote of votes) {
-    if (vote.vote_type === 'approve') {
-      approve++;
-    } else {
-      reject++;
+    if (vote.vote_type in summary) {
+      summary[vote.vote_type]++;
     }
   }
 
-  return { approve, reject, total: votes.length };
+  return summary;
 }
