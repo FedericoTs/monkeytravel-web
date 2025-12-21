@@ -6,15 +6,35 @@
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
   GenerateTripInput,
   MCPTripResponse,
   MCPDay,
-  MCPActivity,
 } from "./schema";
 
-// Initialize Gemini (same pattern as lib/gemini.ts)
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
+// Lazy-initialized clients to avoid build-time errors
+let _genAI: GoogleGenerativeAI | null = null;
+let _supabaseAdmin: SupabaseClient | null = null;
+
+function getGenAI(): GoogleGenerativeAI {
+  if (!_genAI) {
+    _genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
+  }
+  return _genAI;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!_supabaseAdmin) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    _supabaseAdmin = createClient(url, key);
+  }
+  return _supabaseAdmin;
+}
 
 /**
  * Generate a trip itinerary for MCP/ChatGPT
@@ -29,7 +49,7 @@ export async function generateMCPTrip(
   const prompt = buildMCPPrompt(input);
 
   // Use Gemini 2.5 Flash for MCP (fast & cheap)
-  const model = genAI.getGenerativeModel({
+  const model = getGenAI().getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
       temperature: 0.7,
@@ -49,6 +69,25 @@ export async function generateMCPTrip(
     // Generate trip ID
     const tripId = crypto.randomUUID();
 
+    // Store itinerary in database for later import
+    const { error: dbError } = await getSupabaseAdmin()
+      .from("mcp_itineraries")
+      .insert({
+        ref_id: tripId,
+        destination: input.destination,
+        days: input.days,
+        travel_style: input.travel_style || null,
+        interests: input.interests || null,
+        budget: input.budget || null,
+        itinerary: itinerary.days,
+        summary: `Your ${input.days}-day ${input.destination} itinerary is ready!`,
+      });
+
+    if (dbError) {
+      console.error("[MCP DB Error]", dbError);
+      // Don't fail the request - still return itinerary even if DB save fails
+    }
+
     // Build response
     const mcpResponse: MCPTripResponse = {
       id: tripId,
@@ -56,7 +95,7 @@ export async function generateMCPTrip(
       days: input.days,
       itinerary: itinerary.days,
       summary: `Your ${input.days}-day ${input.destination} itinerary is ready! Includes ${countActivities(itinerary.days)} activities across ${input.days} days.`,
-      saveUrl: buildSaveUrl(input, tripId),
+      saveUrl: buildSaveUrl(tripId),
     };
 
     // Log for debugging (will be visible in Vercel logs)
@@ -65,6 +104,7 @@ export async function generateMCPTrip(
       days: input.days,
       duration: Date.now() - startTime,
       activitiesCount: countActivities(itinerary.days),
+      savedToDb: !dbError,
     });
 
     return mcpResponse;
@@ -134,20 +174,10 @@ Important:
 
 /**
  * Build save URL for MonkeyTravel app
+ * Points to import page that retrieves itinerary from DB
  */
-function buildSaveUrl(input: GenerateTripInput, tripId: string): string {
-  const params = new URLSearchParams({
-    destination: input.destination,
-    days: String(input.days),
-    source: "chatgpt",
-    ref: tripId,
-  });
-
-  if (input.travel_style) {
-    params.set("style", input.travel_style);
-  }
-
-  return `https://monkeytravel.app/trip/new?${params.toString()}`;
+function buildSaveUrl(tripId: string): string {
+  return `https://monkeytravel.app/from-chatgpt/${tripId}`;
 }
 
 /**
