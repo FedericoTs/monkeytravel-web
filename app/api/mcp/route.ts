@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { GenerateTripInputSchema, MCP_TOOL_DEFINITION } from "@/lib/mcp/schema";
 import { generateMCPTrip } from "@/lib/mcp/generate";
 import { generateItineraryWidget } from "@/lib/mcp/widget";
@@ -54,17 +55,57 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: RATE_LIMIT - record.count };
 }
 
-function validateApiKey(request: NextRequest): boolean {
+interface AuthResult {
+  valid: boolean;
+  userId?: string;
+  method: "api_key" | "oauth" | "open";
+}
+
+async function validateAuth(request: NextRequest): Promise<AuthResult> {
+  // Check for API key first
   const apiKey = request.headers.get("X-API-Key");
   const expectedKey = process.env.MCP_API_KEY;
+
+  if (apiKey && expectedKey && apiKey === expectedKey) {
+    return { valid: true, method: "api_key" };
+  }
+
+  // Check for OAuth Bearer token
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.substring(7);
+
+    try {
+      // Verify token with Supabase
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser(token);
+
+      if (error || !user) {
+        console.warn("[MCP OAuth] Invalid token:", error?.message);
+        return { valid: false, method: "oauth" };
+      }
+
+      return { valid: true, userId: user.id, method: "oauth" };
+    } catch (e) {
+      console.error("[MCP OAuth] Token verification error:", e);
+      return { valid: false, method: "oauth" };
+    }
+  }
 
   // If no MCP_API_KEY is set, allow all requests (dev mode)
   if (!expectedKey) {
     console.warn("[MCP] No MCP_API_KEY set - running in open mode");
-    return true;
+    return { valid: true, method: "open" };
   }
 
-  return apiKey === expectedKey;
+  return { valid: false, method: "api_key" };
 }
 
 // ============================================================================
@@ -92,11 +133,27 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // 1. Authentication
-    if (!validateApiKey(request)) {
+    // 1. Authentication (supports both API key and OAuth Bearer token)
+    const auth = await validateAuth(request);
+    if (!auth.valid) {
+      // Return WWW-Authenticate header for OAuth clients
       return NextResponse.json(
-        { error: "unauthorized", message: "Invalid or missing API key" },
-        { status: 401, headers: { "X-Request-ID": requestId } }
+        {
+          error: "unauthorized",
+          message: "Invalid or missing authentication",
+          _meta: {
+            "mcp/www_authenticate": [
+              `Bearer resource_metadata="https://monkeytravel.app/.well-known/oauth-protected-resource"`,
+            ],
+          },
+        },
+        {
+          status: 401,
+          headers: {
+            "X-Request-ID": requestId,
+            "WWW-Authenticate": `Bearer resource_metadata="https://monkeytravel.app/.well-known/oauth-protected-resource"`,
+          },
+        }
       );
     }
 
@@ -121,7 +178,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const method = body.method as string;
 
-    console.log("[MCP Request]", { requestId, method, ip });
+    console.log("[MCP Request]", {
+      requestId,
+      method,
+      ip,
+      authMethod: auth.method,
+      userId: auth.userId,
+    });
 
     // 4. Handle MCP methods
     switch (method) {
