@@ -1,17 +1,17 @@
 /**
  * MCP Server Endpoint for ChatGPT Integration
  *
- * This endpoint implements the Model Context Protocol (MCP) for ChatGPT
- * to generate travel itineraries using our existing Gemini AI infrastructure.
+ * Implements MCP with SSE (Server-Sent Events) transport for ChatGPT
  *
  * AUTHENTICATION: None required (public access for acquisition)
  * - Rate limiting by IP prevents abuse
  * - Users can save trips via /from-chatgpt/[ref] (requires login there)
  *
+ * @see https://modelcontextprotocol.io/specification/2025-03-26/basic/transports
  * @see https://developers.openai.com/apps-sdk
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { GenerateTripInputSchema, MCP_TOOL_DEFINITION } from "@/lib/mcp/schema";
 import { generateMCPTrip } from "@/lib/mcp/generate";
 import { generateItineraryWidget } from "@/lib/mcp/widget";
@@ -20,12 +20,19 @@ import { generateItineraryWidget } from "@/lib/mcp/widget";
 // CONFIGURATION
 // ============================================================================
 
-const MCP_VERSION = "1.0.0";
+const MCP_VERSION = "2025-03-26";
+const SERVER_INFO = {
+  name: "MonkeyTravel",
+  version: "1.0.0",
+};
 
-// Rate limit: 20 requests per minute per IP (generous for good UX)
+// Rate limit: 20 requests per minute per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 20;
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_WINDOW = 60 * 1000;
+
+// Session management
+const sessions = new Map<string, { createdAt: number }>();
 
 // ============================================================================
 // HELPERS
@@ -56,124 +63,194 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: RATE_LIMIT - record.count };
 }
 
+/**
+ * Create SSE response with JSON-RPC message
+ */
+function createSSEResponse(data: object, sessionId?: string): Response {
+  const sseData = `data: ${JSON.stringify(data)}\n\n`;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Access-Control-Allow-Origin": "*",
+  };
+
+  if (sessionId) {
+    headers["Mcp-Session-Id"] = sessionId;
+  }
+
+  return new Response(sseData, { headers });
+}
+
+/**
+ * Create JSON-RPC response
+ */
+function jsonRpcResponse(id: string | number | null, result: object) {
+  return {
+    jsonrpc: "2.0",
+    id,
+    result,
+  };
+}
+
+/**
+ * Create JSON-RPC error response
+ */
+function jsonRpcError(id: string | number | null, code: number, message: string) {
+  return {
+    jsonrpc: "2.0",
+    id,
+    error: { code, message },
+  };
+}
+
 // ============================================================================
 // ROUTE HANDLERS
 // ============================================================================
 
 /**
- * GET /api/mcp - Health check and server info
+ * GET /api/mcp - SSE endpoint for server-initiated messages
  */
-export async function GET() {
-  return NextResponse.json({
-    status: "healthy",
-    version: MCP_VERSION,
-    name: "MonkeyTravel MCP Server",
-    description: "AI-powered travel itinerary generation",
-    tools: [MCP_TOOL_DEFINITION.name],
-  });
+export async function GET(request: NextRequest) {
+  const accept = request.headers.get("Accept") || "";
+
+  // Check if client wants SSE
+  if (accept.includes("text/event-stream")) {
+    // Return SSE stream (keep-alive for server notifications)
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        // Send initial ping
+        controller.enqueue(encoder.encode(": ping\n\n"));
+
+        // Keep connection alive with periodic pings
+        const interval = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode(": ping\n\n"));
+          } catch {
+            clearInterval(interval);
+          }
+        }, 30000);
+
+        // Clean up on close
+        request.signal.addEventListener("abort", () => {
+          clearInterval(interval);
+          controller.close();
+        });
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }
+
+  // Return server info for non-SSE GET requests
+  return new Response(
+    JSON.stringify({
+      name: SERVER_INFO.name,
+      version: SERVER_INFO.version,
+      protocolVersion: MCP_VERSION,
+      capabilities: {
+        tools: { listChanged: false },
+      },
+    }),
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    }
+  );
 }
 
 /**
- * POST /api/mcp - Main MCP protocol handler
- * No authentication required - public access for customer acquisition
+ * POST /api/mcp - Main MCP JSON-RPC handler with SSE response
  */
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID();
   const startTime = Date.now();
 
   try {
-    // 1. Rate limiting (only protection needed for public access)
+    // Rate limiting
     const ip = getClientIP(request);
     const rateLimit = checkRateLimit(ip);
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "rate_limit_exceeded", message: "Too many requests" },
-        {
-          status: 429,
-          headers: {
-            "X-Request-ID": requestId,
-            "Retry-After": "60",
-            "X-RateLimit-Remaining": "0",
-          },
-        }
+      return createSSEResponse(
+        jsonRpcError(null, -32000, "Rate limit exceeded. Try again in 60 seconds.")
       );
     }
 
-    // 2. Parse request body
+    // Parse JSON-RPC request
     const body = await request.json();
-    const method = body.method as string;
+    const { method, params, id } = body;
 
-    console.log("[MCP Request]", {
-      requestId,
-      method,
-      ip,
-      source: "chatgpt",
-    });
+    // Get or create session
+    let sessionId = request.headers.get("Mcp-Session-Id");
 
-    // 3. Handle MCP methods
+    console.log("[MCP Request]", { requestId, method, id, ip, sessionId });
+
+    // Handle JSON-RPC methods
     switch (method) {
+      // Initialize session
+      case "initialize": {
+        sessionId = crypto.randomUUID();
+        sessions.set(sessionId, { createdAt: Date.now() });
+
+        return createSSEResponse(
+          jsonRpcResponse(id, {
+            protocolVersion: MCP_VERSION,
+            serverInfo: SERVER_INFO,
+            capabilities: {
+              tools: { listChanged: false },
+            },
+          }),
+          sessionId
+        );
+      }
+
       // List available tools
       case "tools/list": {
-        return NextResponse.json(
-          { tools: [MCP_TOOL_DEFINITION] },
-          {
-            headers: {
-              "X-Request-ID": requestId,
-              "X-RateLimit-Remaining": String(rateLimit.remaining),
-            },
-          }
+        return createSSEResponse(
+          jsonRpcResponse(id, {
+            tools: [MCP_TOOL_DEFINITION],
+          }),
+          sessionId || undefined
         );
       }
 
       // Execute a tool
       case "tools/call": {
-        const toolName = body.params?.name;
-        const toolArgs = body.params?.arguments;
+        const toolName = params?.name;
+        const toolArgs = params?.arguments;
 
         if (toolName !== "generate_trip") {
-          return NextResponse.json(
-            { error: "unknown_tool", message: `Tool '${toolName}' not found` },
-            { status: 400, headers: { "X-Request-ID": requestId } }
+          return createSSEResponse(
+            jsonRpcError(id, -32601, `Unknown tool: ${toolName}`)
           );
         }
 
         // Validate input
         const parseResult = GenerateTripInputSchema.safeParse(toolArgs);
         if (!parseResult.success) {
-          return NextResponse.json(
-            {
-              error: "invalid_input",
-              message: parseResult.error.issues
-                .map((i) => i.message)
-                .join(", "),
-            },
-            { status: 400, headers: { "X-Request-ID": requestId } }
+          return createSSEResponse(
+            jsonRpcError(
+              id,
+              -32602,
+              parseResult.error.issues.map((i) => i.message).join(", ")
+            )
           );
         }
 
         // Generate trip
         const trip = await generateMCPTrip(parseResult.data);
-
-        // Generate widget HTML
         const widgetHtml = generateItineraryWidget(trip);
-
-        // Return MCP response with widget
-        const response = {
-          content: [
-            {
-              type: "text",
-              text: trip.summary,
-            },
-            {
-              type: "resource",
-              resource: {
-                uri: `widget://itinerary/${trip.id}`,
-                mimeType: "text/html",
-                text: widgetHtml,
-              },
-            },
-          ],
-        };
 
         console.log("[MCP Response]", {
           requestId,
@@ -183,34 +260,60 @@ export async function POST(request: NextRequest) {
           duration: Date.now() - startTime,
         });
 
-        return NextResponse.json(response, {
-          headers: {
-            "X-Request-ID": requestId,
-            "X-RateLimit-Remaining": String(rateLimit.remaining),
-          },
-        });
+        return createSSEResponse(
+          jsonRpcResponse(id, {
+            content: [
+              {
+                type: "text",
+                text: trip.summary,
+              },
+              {
+                type: "resource",
+                resource: {
+                  uri: `widget://itinerary/${trip.id}`,
+                  mimeType: "text/html",
+                  text: widgetHtml,
+                },
+              },
+            ],
+          }),
+          sessionId || undefined
+        );
+      }
+
+      // Notifications (no response needed)
+      case "notifications/initialized":
+      case "notifications/cancelled": {
+        return new Response(null, { status: 202 });
       }
 
       // Unknown method
       default: {
-        return NextResponse.json(
-          { error: "unknown_method", message: `Method '${method}' not supported` },
-          { status: 400, headers: { "X-Request-ID": requestId } }
+        return createSSEResponse(
+          jsonRpcError(id, -32601, `Method not found: ${method}`)
         );
       }
     }
   } catch (error) {
     console.error("[MCP Error]", { requestId, error });
 
-    return NextResponse.json(
-      {
-        error: "internal_error",
-        message: error instanceof Error ? error.message : "Unknown error",
-        request_id: requestId,
-      },
-      { status: 500, headers: { "X-Request-ID": requestId } }
+    return createSSEResponse(
+      jsonRpcError(null, -32603, error instanceof Error ? error.message : "Internal error")
     );
   }
+}
+
+/**
+ * DELETE /api/mcp - Terminate session
+ */
+export async function DELETE(request: NextRequest) {
+  const sessionId = request.headers.get("Mcp-Session-Id");
+
+  if (sessionId) {
+    sessions.delete(sessionId);
+  }
+
+  return new Response(null, { status: 204 });
 }
 
 /**
@@ -221,8 +324,9 @@ export async function OPTIONS() {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization",
+      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Session-Id, Last-Event-ID",
+      "Access-Control-Expose-Headers": "Mcp-Session-Id",
       "Access-Control-Max-Age": "86400",
     },
   });
