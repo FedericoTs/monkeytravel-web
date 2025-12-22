@@ -39,9 +39,9 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    // Redirect to login with return URL
+    // Redirect to login with return URL (login page uses 'redirect' param)
     const returnUrl = `/oauth/authorize?authorization_id=${authorization_id}`;
-    redirect(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    redirect(`/auth/login?redirect=${encodeURIComponent(returnUrl)}`);
   }
 
   // Get authorization details from Supabase
