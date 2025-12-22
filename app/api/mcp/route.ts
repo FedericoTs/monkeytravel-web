@@ -66,14 +66,23 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 /**
  * Create SSE response with JSON-RPC message
  */
-function createSSEResponse(data: object, sessionId?: string): Response {
+function createSSEResponse(data: object, sessionId?: string, origin?: string): Response {
   const sseData = `data: ${JSON.stringify(data)}\n\n`;
+
+  // Determine CORS origin
+  const allowedOrigins = [
+    "https://chatgpt.com",
+    "https://chat.openai.com",
+    "https://platform.openai.com",
+  ];
+  const corsOrigin = origin && allowedOrigins.includes(origin) ? origin : "*";
 
   const headers: Record<string, string> = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     "Connection": "keep-alive",
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": corsOrigin,
+    "Access-Control-Allow-Credentials": "true",
   };
 
   if (sessionId) {
@@ -176,6 +185,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID();
   const startTime = Date.now();
+  const origin = request.headers.get("Origin") || undefined;
 
   try {
     // Rate limiting
@@ -183,7 +193,9 @@ export async function POST(request: NextRequest) {
     const rateLimit = checkRateLimit(ip);
     if (!rateLimit.allowed) {
       return createSSEResponse(
-        jsonRpcError(null, -32000, "Rate limit exceeded. Try again in 60 seconds.")
+        jsonRpcError(null, -32000, "Rate limit exceeded. Try again in 60 seconds."),
+        undefined,
+        origin
       );
     }
 
@@ -194,7 +206,7 @@ export async function POST(request: NextRequest) {
     // Get or create session
     let sessionId = request.headers.get("Mcp-Session-Id");
 
-    console.log("[MCP Request]", { requestId, method, id, ip, sessionId });
+    console.log("[MCP Request]", { requestId, method, id, ip, sessionId, origin });
 
     // Handle JSON-RPC methods
     switch (method) {
@@ -211,7 +223,8 @@ export async function POST(request: NextRequest) {
               tools: { listChanged: false },
             },
           }),
-          sessionId
+          sessionId,
+          origin
         );
       }
 
@@ -221,7 +234,8 @@ export async function POST(request: NextRequest) {
           jsonRpcResponse(id, {
             tools: [MCP_TOOL_DEFINITION],
           }),
-          sessionId || undefined
+          sessionId || undefined,
+          origin
         );
       }
 
@@ -232,7 +246,9 @@ export async function POST(request: NextRequest) {
 
         if (toolName !== "generate_trip") {
           return createSSEResponse(
-            jsonRpcError(id, -32601, `Unknown tool: ${toolName}`)
+            jsonRpcError(id, -32601, `Unknown tool: ${toolName}`),
+            undefined,
+            origin
           );
         }
 
@@ -244,7 +260,9 @@ export async function POST(request: NextRequest) {
               id,
               -32602,
               parseResult.error.issues.map((i) => i.message).join(", ")
-            )
+            ),
+            undefined,
+            origin
           );
         }
 
@@ -277,7 +295,8 @@ export async function POST(request: NextRequest) {
               },
             ],
           }),
-          sessionId || undefined
+          sessionId || undefined,
+          origin
         );
       }
 
@@ -290,7 +309,9 @@ export async function POST(request: NextRequest) {
       // Unknown method
       default: {
         return createSSEResponse(
-          jsonRpcError(id, -32601, `Method not found: ${method}`)
+          jsonRpcError(id, -32601, `Method not found: ${method}`),
+          undefined,
+          origin
         );
       }
     }
@@ -298,7 +319,9 @@ export async function POST(request: NextRequest) {
     console.error("[MCP Error]", { requestId, error });
 
     return createSSEResponse(
-      jsonRpcError(null, -32603, error instanceof Error ? error.message : "Internal error")
+      jsonRpcError(null, -32603, error instanceof Error ? error.message : "Internal error"),
+      undefined,
+      origin
     );
   }
 }
@@ -319,15 +342,27 @@ export async function DELETE(request: NextRequest) {
 /**
  * OPTIONS /api/mcp - CORS preflight
  */
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("Origin") || "*";
+
+  // Allow ChatGPT origins specifically
+  const allowedOrigins = [
+    "https://chatgpt.com",
+    "https://chat.openai.com",
+    "https://platform.openai.com",
+  ];
+
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : "*";
+
   return new Response(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": corsOrigin,
       "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Session-Id, Last-Event-ID",
+      "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, Mcp-Session-Id, Last-Event-ID",
       "Access-Control-Expose-Headers": "Mcp-Session-Id",
       "Access-Control-Max-Age": "86400",
+      "Access-Control-Allow-Credentials": "true",
     },
   });
 }
