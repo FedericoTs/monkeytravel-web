@@ -44,10 +44,11 @@ export default function OAuthConsentClient({
     setError(null);
 
     try {
-      // @ts-expect-error - Supabase OAuth methods may not be in types yet
-      const { error: approveError } = await supabase.auth.oauth?.approve(
-        authorizationId
-      );
+      if (!supabase.auth.oauth?.approveAuthorization) {
+        throw new Error("OAuth API not available");
+      }
+
+      const { error: approveError } = await supabase.auth.oauth.approveAuthorization(authorizationId);
 
       if (approveError) {
         throw new Error(approveError.message);
@@ -65,10 +66,11 @@ export default function OAuthConsentClient({
     setError(null);
 
     try {
-      // @ts-expect-error - Supabase OAuth methods may not be in types yet
-      const { error: denyError } = await supabase.auth.oauth?.deny(
-        authorizationId
-      );
+      if (!supabase.auth.oauth?.denyAuthorization) {
+        throw new Error("OAuth API not available");
+      }
+
+      const { error: denyError } = await supabase.auth.oauth.denyAuthorization(authorizationId);
 
       if (denyError) {
         throw new Error(denyError.message);

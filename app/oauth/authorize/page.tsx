@@ -50,14 +50,16 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
   let authError = null;
 
   try {
-    // @ts-expect-error - Supabase OAuth methods may not be in types yet
-    const result = await supabase.auth.oauth?.getAuthorizationDetails(
-      authorization_id
-    );
-    if (result?.error) {
-      authError = result.error.message;
+    // Supabase OAuth API - check if available
+    if (supabase.auth.oauth?.getAuthorizationDetails) {
+      const result = await supabase.auth.oauth.getAuthorizationDetails(authorization_id);
+      if (result.error) {
+        authError = result.error.message;
+      } else {
+        authDetails = result.data;
+      }
     } else {
-      authDetails = result?.data;
+      authError = "OAuth API not available. Please enable OAuth 2.1 in Supabase Dashboard.";
     }
   } catch (e) {
     authError =
@@ -85,12 +87,19 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
     );
   }
 
+  // Parse scope string to array (OAuth 2.1 uses space-separated scopes)
+  const scopeString = authDetails.scope || "";
+  const scopesArray = scopeString ? scopeString.split(" ").filter(Boolean) : [];
+
+  // Cast client to access description which may not be in the official types
+  const clientData = authDetails.client as { name?: string; description?: string } | undefined;
+
   return (
     <OAuthConsentClient
       authorizationId={authorization_id}
-      clientName={authDetails.client?.name || "Unknown App"}
-      clientDescription={authDetails.client?.description}
-      scopes={authDetails.scopes || []}
+      clientName={clientData?.name || "Unknown App"}
+      clientDescription={clientData?.description}
+      scopes={scopesArray}
       userEmail={user.email || ""}
     />
   );
