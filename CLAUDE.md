@@ -164,3 +164,114 @@ const { data, error } = await supabase
 | `/privacy` | Privacy Policy (App Store requirement) |
 | `/terms` | Terms of Service (App Store requirement) |
 | `/api/subscribe` | POST endpoint for email subscription |
+
+## Internationalization (i18n)
+
+MonkeyTravel supports multiple languages using `next-intl`:
+
+### Supported Languages
+- **English** (default) - no URL prefix (`/`)
+- **Spanish** - URL prefix `/es/*`
+- **Italian** - URL prefix `/it/*`
+
+### File Structure
+
+```
+i18n.ts                    # Main i18n configuration
+lib/i18n/routing.ts        # Locale routing config
+middleware.ts              # Locale detection middleware
+app/[locale]/              # All pages under locale dynamic route
+
+messages/
+├── en/                    # English translations
+│   ├── common.json        # Shared UI strings
+│   ├── auth.json          # Auth forms and errors
+│   ├── trips.json         # Trip wizard strings
+│   ├── landing.json       # Landing page copy
+│   └── profile.json       # Profile page strings
+├── es/                    # Spanish translations
+│   └── (same structure)
+└── it/                    # Italian translations
+    └── (same structure)
+```
+
+### How to Add Translations
+
+**1. Server Components (async functions):**
+```tsx
+import { getTranslations } from 'next-intl/server';
+
+export default async function Page() {
+  const t = await getTranslations('landing');
+
+  return <h1>{t('hero.title')}</h1>;
+}
+```
+
+**2. Client Components ('use client'):**
+```tsx
+'use client';
+import { useTranslations } from 'next-intl';
+
+export default function Component() {
+  const t = useTranslations('common');
+
+  return <button>{t('save')}</button>;
+}
+```
+
+### Adding New Translations
+
+1. Add keys to all language files (`messages/{en,es,it}/namespace.json`)
+2. Use `t('key.path')` in components
+3. For nested keys: `t('hero.trustSignals.free')`
+
+### Translation File Example
+
+```json
+// messages/en/landing.json
+{
+  "hero": {
+    "title": "The AI Travel Planner That Actually Works",
+    "subtitle": "Drop a destination. Get a personalized itinerary.",
+    "cta": "Plan My Trip Free"
+  }
+}
+
+// messages/it/landing.json
+{
+  "hero": {
+    "title": "Il Pianificatore di Viaggi con IA Che Funziona Davvero",
+    "subtitle": "Scegli una destinazione. Ottieni un itinerario personalizzato.",
+    "cta": "Pianifica il Mio Viaggio Gratis"
+  }
+}
+```
+
+### AI Content Localization
+
+AI-generated itineraries are localized via language instruction in `lib/gemini.ts`:
+
+```typescript
+// The AI receives language instructions to respond in the user's locale
+function getLanguageInstruction(language: 'en' | 'es' | 'it'): string {
+  // Returns Spanish/Italian instruction for non-English locales
+}
+```
+
+### Database Schema
+
+```sql
+-- User's preferred UI language
+users.preferred_language TEXT DEFAULT 'en' CHECK (preferred_language IN ('en', 'es', 'it'))
+
+-- Cache entries are language-specific
+destination_activity_cache.language VARCHAR(5) DEFAULT 'en'
+```
+
+### Best Practices
+
+1. **Always use translation keys** - Never hardcode user-facing strings
+2. **Namespace by feature** - Use `common.json` for shared strings, feature-specific files otherwise
+3. **Test all locales** - Visit `/es` and `/it` after adding translations
+4. **Keep keys consistent** - Same key structure across all language files

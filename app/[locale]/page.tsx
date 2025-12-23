@@ -236,10 +236,10 @@ export default async function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                You deserve better than <span className="text-[var(--error)]">this</span>
+                {t('problem.title')}
               </h2>
               <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                47 browser tabs. 3 spreadsheets. 6 hours of research. And you still don't know where to eat on day two.
+                {t('problem.subtitle')}
               </p>
             </div>
 
@@ -300,11 +300,10 @@ export default async function Home() {
                 AI Itinerary Generator
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                Everything you need,{' '}
-                <span className="gradient-text">nothing you don't</span>
+                {t('solution.title')}
               </h2>
               <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                Tell us your preferences. Our AI travel planner builds a personalized itinerary with real restaurants, verified attractions, and smart timing. Then our AI Travel Agent helps you refine it.
+                {t('solution.subtitle')}
               </p>
             </div>
 
@@ -403,9 +402,11 @@ export default async function Home() {
                 Free Trip Planner
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                From &ldquo;I want to go to...&rdquo; to{' '}
-                <span className="gradient-text-blue">done</span>
+                {t('howItWorks.title')}
               </h2>
+              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+                {t('howItWorks.subtitle')}
+              </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -639,7 +640,7 @@ export default async function Home() {
                 FAQ
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-                Questions? We've got answers
+                {t('faq.title')}
               </h2>
             </div>
 
@@ -709,14 +710,14 @@ export default async function Home() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                   </span>
-                  100% Free to Use
+                  {t('hero.trustSignals.free')}
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight">
-                  Ready to skip the planning headaches?
+                  {t('cta.title')}
                 </h2>
                 <p className="text-lg sm:text-xl text-white/70 mb-4 max-w-2xl mx-auto leading-relaxed">
-                  Your personalized itinerary is 30 seconds away. No credit card, no catch — just an AI travel planner that builds trips around your preferences.
+                  {t('cta.subtitle')}
                 </p>
                 <p className="text-base text-white/50 mb-10 max-w-2xl mx-auto">
                   Love it? Invite friends and earn free premium features.
@@ -729,7 +730,7 @@ export default async function Home() {
                     skipToAuthIfCompleted={true}
                     className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Plan My Trip Now</span>
+                    <span>{t('cta.button')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -738,7 +739,7 @@ export default async function Home() {
                     href="/auth/login"
                     className="px-8 py-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center"
                   >
-                    Sign In
+                    {t('hero.signIn')}
                   </Link>
                 </div>
 
