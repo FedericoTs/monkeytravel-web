@@ -30,7 +30,16 @@
     "showMore": "Show More",
     "showLess": "Show Less",
     "retry": "Retry",
-    "skip": "Skip"
+    "skip": "Skip",
+    "export": "Export",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "maps": "Maps",
+    "verify": "Verify",
+    "website": "Website",
+    "more": "More",
+    "less": "Less"
   },
   "validation": {
     "required": "This field is required",
@@ -48,7 +57,11 @@
     "error": "Error",
     "success": "Success",
     "pending": "Pending",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "joining": "Joining...",
+    "creating": "Creating...",
+    "generating": "Generating...",
+    "regenerating": "Regenerating..."
   },
   "time": {
     "morning": "Morning",
@@ -57,7 +70,9 @@
     "night": "Night",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "minutes": "{count} min",
+    "hours": "{count} hr"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong. Please try again.",
@@ -67,15 +82,79 @@
     "unauthorized": "You are not authorized to access this page"
   },
   "footer": {
+    "description": "AI-powered travel planning that creates personalized day-by-day itineraries in minutes.",
+    "product": "Product",
+    "support": "Support",
+    "legal": "Legal",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "faq": "FAQ",
+    "joinWaitlist": "Join Waitlist",
+    "contact": "Contact Us",
+    "sendFeedback": "Send Feedback",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "contact": "Contact",
     "copyright": "© {year} MonkeyTravel. All rights reserved."
   },
   "language": {
     "select": "Select Language",
     "english": "English",
-    "spanish": "Spanish",
-    "italian": "Italian"
+    "spanish": "Español",
+    "italian": "Italiano"
+  },
+  "export": {
+    "title": "Export",
+    "download": "Download",
+    "pdfItinerary": "PDF Itinerary",
+    "pdfDescription": "Download as PDF file",
+    "calendarFile": "Calendar File (.ics)",
+    "calendarDescription": "Works with most calendars",
+    "addToCalendar": "Add to Calendar",
+    "googleCalendar": "Google Calendar",
+    "googleCalendarDescription": "Add trip to Google Calendar",
+    "appleCalendar": "Apple Calendar",
+    "appleCalendarDescription": "Open in Apple Calendar"
+  },
+  "activity": {
+    "booking": "Booking",
+    "free": "Free",
+    "aiEstimate": "AI estimate",
+    "googleVerified": "Google verified",
+    "venueTierEstimate": "Venue tier estimate",
+    "insiderTips": "Insider Tips",
+    "loadingPhotos": "Loading photos...",
+    "noPhotos": "No photos available",
+    "regeneratingActivity": "Regenerating activity with AI..."
+  },
+  "trip": {
+    "cards": "Cards",
+    "timeline": "Timeline",
+    "showMap": "Show Map",
+    "hideMap": "Hide Map",
+    "loadingMap": "Loading map...",
+    "dayLabel": "Day {number}",
+    "activities": "{count} activities",
+    "totalCost": "Total: {amount}",
+    "copyShareLink": "Copy share link",
+    "linkCopied": "Link copied!",
+    "shareTrip": "Share Trip"
+  },
+  "shared": {
+    "sharedTrip": "Shared Trip",
+    "sharedBy": "Shared by {name}",
+    "viewOnly": "View only",
+    "saveToAccount": "Save to My Trips",
+    "signUpToSave": "Sign Up to Save"
+  },
+  "emailSubscribe": {
+    "placeholder": "Enter your email",
+    "joining": "Joining...",
+    "youreIn": "You're In!",
+    "getEarlyAccess": "Get Early Access",
+    "joinWaitlist": "Join Waitlist",
+    "subscribe": "Subscribe",
+    "joined": "Joined!",
+    "successMessage": "You're on the list! We'll notify you when we launch.",
+    "errorMessage": "Something went wrong. Please try again."
   }
 }

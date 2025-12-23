@@ -20,6 +20,7 @@ import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Copy, Check, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -55,6 +56,7 @@ interface SharedTripViewProps {
 }
 
 export default function SharedTripView({ trip, shareToken, dateRange }: SharedTripViewProps) {
+  const t = useTranslations('common');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -73,7 +75,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
-    if (amount === 0) return "Free";
+    if (amount === 0) return t('activity.free');
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
   };
@@ -147,7 +149,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline">{t('buttons.back')}</span>
             </Link>
           </div>
 
@@ -163,7 +165,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Cards
+                {t('trip.cards')}
               </button>
               <button
                 onClick={() => setViewMode("timeline")}
@@ -173,7 +175,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Timeline
+                {t('trip.timeline')}
               </button>
             </div>
 
@@ -185,12 +187,12 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                   ? "bg-[var(--primary)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
-              title={showMap ? "Hide Map" : "Show Map"}
+              title={showMap ? t('trip.hideMap') : t('trip.showMap')}
             >
               <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
+              <span className="hidden sm:inline">{showMap ? t('trip.hideMap') : t('trip.showMap')}</span>
             </button>
 
             {/* Export Menu */}

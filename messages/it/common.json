@@ -1,6 +1,6 @@
 {
   "navigation": {
-    "features": "Funzionalita",
+    "features": "Funzionalità",
     "howItWorks": "Come Funziona",
     "myTrips": "I Miei Viaggi",
     "profile": "Profilo",
@@ -23,17 +23,26 @@
     "close": "Chiudi",
     "confirm": "Conferma",
     "tryFree": "Provalo Gratis",
-    "planTrip": "Pianifica il Mio Viaggio",
+    "planTrip": "Pianifica il Tuo Viaggio",
     "getStarted": "Inizia",
-    "learnMore": "Scopri di Piu",
+    "learnMore": "Scopri di Più",
     "viewAll": "Vedi Tutto",
     "showMore": "Mostra Altro",
     "showLess": "Mostra Meno",
     "retry": "Riprova",
-    "skip": "Salta"
+    "skip": "Salta",
+    "export": "Esporta",
+    "share": "Condividi",
+    "copy": "Copia",
+    "copied": "Copiato!",
+    "maps": "Mappe",
+    "verify": "Verifica",
+    "website": "Sito Web",
+    "more": "Altro",
+    "less": "Meno"
   },
   "validation": {
-    "required": "Questo campo e obbligatorio",
+    "required": "Questo campo è obbligatorio",
     "invalidEmail": "Inserisci un indirizzo email valido",
     "passwordTooShort": "La password deve avere almeno {min} caratteri",
     "passwordsDoNotMatch": "Le password non corrispondono",
@@ -48,7 +57,11 @@
     "error": "Errore",
     "success": "Successo",
     "pending": "In attesa",
-    "processing": "Elaborazione..."
+    "processing": "Elaborazione...",
+    "joining": "Iscrizione...",
+    "creating": "Creazione...",
+    "generating": "Generazione...",
+    "regenerating": "Rigenerazione..."
   },
   "time": {
     "morning": "Mattina",
@@ -57,25 +70,91 @@
     "night": "Notte",
     "today": "Oggi",
     "tomorrow": "Domani",
-    "yesterday": "Ieri"
+    "yesterday": "Ieri",
+    "minutes": "{count} min",
+    "hours": "{count} h"
   },
   "errors": {
-    "somethingWentWrong": "Qualcosa e andato storto. Riprova.",
+    "somethingWentWrong": "Qualcosa è andato storto. Riprova.",
     "networkError": "Errore di rete. Controlla la tua connessione.",
-    "sessionExpired": "La tua sessione e scaduta. Accedi di nuovo.",
+    "sessionExpired": "La tua sessione è scaduta. Accedi di nuovo.",
     "notFound": "Pagina non trovata",
     "unauthorized": "Non sei autorizzato ad accedere a questa pagina"
   },
   "footer": {
+    "description": "Pianificazione viaggi con IA che crea itinerari personalizzati giorno per giorno in pochi minuti.",
+    "product": "Prodotto",
+    "support": "Supporto",
+    "legal": "Legale",
+    "features": "Funzionalità",
+    "howItWorks": "Come Funziona",
+    "faq": "Domande Frequenti",
+    "joinWaitlist": "Iscriviti alla Lista",
+    "contact": "Contattaci",
+    "sendFeedback": "Invia Feedback",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Termini di Servizio",
-    "contact": "Contatti",
     "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati."
   },
   "language": {
     "select": "Seleziona Lingua",
-    "english": "Inglese",
-    "spanish": "Spagnolo",
+    "english": "English",
+    "spanish": "Español",
     "italian": "Italiano"
+  },
+  "export": {
+    "title": "Esporta",
+    "download": "Scarica",
+    "pdfItinerary": "Itinerario PDF",
+    "pdfDescription": "Scarica come file PDF",
+    "calendarFile": "File Calendario (.ics)",
+    "calendarDescription": "Compatibile con la maggior parte dei calendari",
+    "addToCalendar": "Aggiungi al Calendario",
+    "googleCalendar": "Google Calendar",
+    "googleCalendarDescription": "Aggiungi viaggio a Google Calendar",
+    "appleCalendar": "Apple Calendar",
+    "appleCalendarDescription": "Apri in Apple Calendar"
+  },
+  "activity": {
+    "booking": "Prenotazione",
+    "free": "Gratis",
+    "aiEstimate": "Stima IA",
+    "googleVerified": "Verificato da Google",
+    "venueTierEstimate": "Stima per categoria",
+    "insiderTips": "Consigli Locali",
+    "loadingPhotos": "Caricamento foto...",
+    "noPhotos": "Nessuna foto disponibile",
+    "regeneratingActivity": "Rigenerazione attività con IA..."
+  },
+  "trip": {
+    "cards": "Schede",
+    "timeline": "Cronologia",
+    "showMap": "Mostra Mappa",
+    "hideMap": "Nascondi Mappa",
+    "loadingMap": "Caricamento mappa...",
+    "dayLabel": "Giorno {number}",
+    "activities": "{count} attività",
+    "totalCost": "Totale: {amount}",
+    "copyShareLink": "Copia link",
+    "linkCopied": "Link copiato!",
+    "shareTrip": "Condividi Viaggio"
+  },
+  "shared": {
+    "sharedTrip": "Viaggio Condiviso",
+    "sharedBy": "Condiviso da {name}",
+    "viewOnly": "Solo lettura",
+    "saveToAccount": "Salva nei Miei Viaggi",
+    "signUpToSave": "Registrati per Salvare"
+  },
+  "emailSubscribe": {
+    "placeholder": "La tua email",
+    "joining": "Iscrizione...",
+    "youreIn": "Sei Dentro!",
+    "getEarlyAccess": "Accesso Anticipato",
+    "joinWaitlist": "Iscriviti alla Lista",
+    "subscribe": "Iscriviti",
+    "joined": "Iscritto!",
+    "successMessage": "Sei nella lista! Ti avviseremo al lancio.",
+    "errorMessage": "Qualcosa è andato storto. Riprova."
   }
 }

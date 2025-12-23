@@ -10,18 +10,20 @@ import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 import { TourTrigger } from '@/components/tour';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-
-const navLinks = [
-  { href: '#features', label: 'Features' },
-  { href: '#how-it-works', label: 'How It Works' },
-];
+import { useTranslations } from 'next-intl';
 
 export default function Navbar() {
+  const t = useTranslations('common');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [referralModalOpen, setReferralModalOpen] = useState(false);
+
+  const navLinks = [
+    { href: '#features', label: t('navigation.features') },
+    { href: '#how-it-works', label: t('navigation.howItWorks') },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,7 +100,7 @@ export default function Navbar() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    Admin
+                    {t('navigation.admin')}
                   </Link>
                 )}
                 <button
@@ -106,18 +108,18 @@ export default function Navbar() {
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
                 >
                   <Gift className="w-4 h-4" />
-                  Invite Friends
+                  {t('buttons.share')}
                 </button>
                 <Link
                   href="/trips"
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
                 >
-                  My Trips
+                  {t('navigation.myTrips')}
                 </Link>
                 <Link
                   href="/profile"
                   className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
-                  title="Profile"
+                  title={t('navigation.profile')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -130,14 +132,14 @@ export default function Navbar() {
                   href="/auth/login"
                   className="px-4 py-2 rounded-full text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
                 >
-                  Sign in
+                  {t('navigation.signIn')}
                 </Link>
                 <TourTrigger
                   variant="custom"
                   skipToAuthIfCompleted={true}
                   className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
                 >
-                  Start Planning
+                  {t('buttons.getStarted')}
                 </TourTrigger>
               </>
             )}
@@ -184,7 +186,7 @@ export default function Navbar() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
-                      Admin Dashboard
+                      {t('navigation.admin')}
                     </Link>
                   )}
                   <button
@@ -195,14 +197,14 @@ export default function Navbar() {
                     className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
                   >
                     <Gift className="w-5 h-5" />
-                    Invite Friends
+                    {t('buttons.share')}
                   </button>
                   <Link
                     href="/trips"
                     className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    My Trips
+                    {t('navigation.myTrips')}
                   </Link>
                   <Link
                     href="/profile"
@@ -212,7 +214,7 @@ export default function Navbar() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Profile
+                    {t('navigation.profile')}
                   </Link>
                 </>
               ) : (
@@ -222,7 +224,7 @@ export default function Navbar() {
                     className="px-4 py-3 rounded-xl font-medium text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Sign in
+                    {t('navigation.signIn')}
                   </Link>
                   <div onClick={() => setMobileMenuOpen(false)}>
                     <TourTrigger
@@ -230,7 +232,7 @@ export default function Navbar() {
                       skipToAuthIfCompleted={true}
                       className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
                     >
-                      Start Planning
+                      {t('buttons.getStarted')}
                     </TourTrigger>
                   </div>
                 </>

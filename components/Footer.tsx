@@ -1,22 +1,8 @@
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
-
-const footerLinks = {
-  product: [
-    { label: 'Features', href: '#features' },
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Join Waitlist', href: '#hero' },
-  ],
-  support: [
-    { label: 'FAQ', href: '#support' },
-    { label: 'Contact Us', href: 'mailto:support@monkeytravel.app' },
-    { label: 'Send Feedback', href: 'mailto:feedback@monkeytravel.app' },
-  ],
-  legal: [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-  ],
-};
+import { useTranslations } from 'next-intl';
 
 const socialLinks = [
   { label: 'Twitter', href: 'https://twitter.com/monkeytravel_app', icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
@@ -25,6 +11,25 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const t = useTranslations('common.footer');
+
+  const footerLinks = {
+    product: [
+      { label: t('features'), href: '#features' },
+      { label: t('howItWorks'), href: '#how-it-works' },
+      { label: t('joinWaitlist'), href: '#hero' },
+    ],
+    support: [
+      { label: t('faq'), href: '#support' },
+      { label: t('contact'), href: 'mailto:support@monkeytravel.app' },
+      { label: t('sendFeedback'), href: 'mailto:feedback@monkeytravel.app' },
+    ],
+    legal: [
+      { label: t('privacyPolicy'), href: '/privacy' },
+      { label: t('termsOfService'), href: '/terms' },
+    ],
+  };
+
   return (
     <footer className="bg-[var(--navy)] text-white">
       {/* Main Footer */}
@@ -43,7 +48,7 @@ export default function Footer() {
               <span className="text-lg font-bold">MonkeyTravel</span>
             </Link>
             <p className="text-white/50 mb-6 max-w-xs leading-relaxed">
-              AI-powered travel planning that creates personalized day-by-day itineraries in minutes.
+              {t('description')}
             </p>
             {/* Social Links */}
             <div className="flex gap-3">
@@ -66,7 +71,7 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">Product</h4>
+            <h4 className="font-semibold mb-4 text-white/90">{t('product')}</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
@@ -80,7 +85,7 @@ export default function Footer() {
 
           {/* Support Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">Support</h4>
+            <h4 className="font-semibold mb-4 text-white/90">{t('support')}</h4>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.label}>
@@ -94,7 +99,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">Legal</h4>
+            <h4 className="font-semibold mb-4 text-white/90">{t('legal')}</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
@@ -112,11 +117,11 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <p>&copy; {new Date().getFullYear()} MonkeyTravel. All rights reserved.</p>
+            <p>{t('copyright', { year: new Date().getFullYear() })}</p>
             <div className="flex items-center gap-6">
-              <Link href="/privacy" className="hover:text-[var(--accent)] transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-[var(--accent)] transition-colors">Terms of Service</Link>
-              <a href="mailto:support@monkeytravel.app" className="hover:text-[var(--accent)] transition-colors">Contact</a>
+              <Link href="/privacy" className="hover:text-[var(--accent)] transition-colors">{t('privacyPolicy')}</Link>
+              <Link href="/terms" className="hover:text-[var(--accent)] transition-colors">{t('termsOfService')}</Link>
+              <a href="mailto:support@monkeytravel.app" className="hover:text-[var(--accent)] transition-colors">{t('contact')}</a>
             </div>
           </div>
         </div>
