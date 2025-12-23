@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -214,9 +214,17 @@ function EditableField({
   );
 }
 
+// Common languages for travelers
+const LANGUAGES = [
+  "English", "Spanish", "French", "German", "Italian",
+  "Portuguese", "Chinese", "Japanese", "Korean", "Arabic",
+  "Hindi", "Russian", "Dutch", "Swedish", "Greek"
+];
+
 export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess }: ProfileClientProps) {
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
+  const [savedProfile, setSavedProfile] = useState(initialProfile); // For rollback on error
   const [betaAccess, setBetaAccess] = useState(initialBetaAccess);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -225,6 +233,15 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   const [isDeleting, setIsDeleting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Refs for debouncing and tracking latest state
+  const profileRef = useRef(profile);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   // Handle avatar upload
   const handleAvatarUpload = useCallback(async (file: File) => {
@@ -268,55 +285,83 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
     e.target.value = "";
   }, [handleAvatarUpload]);
 
-  // Update profile field
+  // Update profile field with debouncing and error rollback
   const updateField = useCallback(
     async (field: string, value: unknown) => {
+      // Clear any pending save for this field
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      // Optimistic UI update immediately
       setProfile((prev) => ({ ...prev, [field]: value }));
       setSaveStatus("saving");
 
-      try {
-        const supabase = createClient();
-        const { error } = await supabase
-          .from("users")
-          .update({ [field]: value, updated_at: new Date().toISOString() })
-          .eq("id", profile.id);
+      // Debounce the actual API call (300ms) to prevent race conditions
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase
+            .from("users")
+            .update({ [field]: value, updated_at: new Date().toISOString() })
+            .eq("id", profileRef.current.id);
 
-        if (error) throw error;
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
-      } catch {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }
+          if (error) throw error;
+
+          // Update saved state on success
+          setSavedProfile((prev) => ({ ...prev, [field]: value }));
+          setSaveStatus("saved");
+          setTimeout(() => setSaveStatus("idle"), 2000);
+        } catch {
+          // Rollback to last saved state on error
+          setProfile(savedProfile);
+          setSaveStatus("error");
+          setTimeout(() => setSaveStatus("idle"), 3000);
+        }
+      }, 300);
     },
-    [profile.id]
+    [savedProfile]
   );
 
-  // Update nested settings
+  // Update nested settings with debouncing and error rollback
   const updateSettings = useCallback(
     async (settingsKey: "notification_settings" | "privacy_settings", updates: Record<string, unknown>) => {
-      const currentSettings = profile[settingsKey];
+      // Clear any pending save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      const currentSettings = profileRef.current[settingsKey];
       const newSettings = { ...currentSettings, ...updates };
 
+      // Optimistic UI update
       setProfile((prev) => ({ ...prev, [settingsKey]: newSettings as typeof currentSettings }));
       setSaveStatus("saving");
 
-      try {
-        const supabase = createClient();
-        const { error } = await supabase
-          .from("users")
-          .update({ [settingsKey]: newSettings, updated_at: new Date().toISOString() })
-          .eq("id", profile.id);
+      // Debounce the actual API call
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase
+            .from("users")
+            .update({ [settingsKey]: newSettings, updated_at: new Date().toISOString() })
+            .eq("id", profileRef.current.id);
 
-        if (error) throw error;
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
-      } catch {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }
+          if (error) throw error;
+
+          // Update saved state on success
+          setSavedProfile((prev) => ({ ...prev, [settingsKey]: newSettings as typeof currentSettings }));
+          setSaveStatus("saved");
+          setTimeout(() => setSaveStatus("idle"), 2000);
+        } catch {
+          // Rollback to last saved state on error
+          setProfile(savedProfile);
+          setSaveStatus("error");
+          setTimeout(() => setSaveStatus("idle"), 3000);
+        }
+      }, 300);
     },
-    [profile]
+    [savedProfile]
   );
 
   // Sign out
@@ -538,6 +583,49 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   placeholder="e.g., Milan"
                 />
               </div>
+
+              {/* Date of Birth */}
+              <EditableField
+                label="Date of Birth"
+                value={profile.date_of_birth || ""}
+                onChange={(value) => updateField("date_of_birth", value || null)}
+                type="date"
+                placeholder="Select your birthday"
+              />
+
+              {/* Languages */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-600">
+                  Languages Spoken
+                </label>
+                <p className="text-xs text-slate-500">
+                  Select languages you speak for better travel recommendations
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGES.map((lang) => {
+                    const currentLangs = Array.isArray(profile.languages) ? profile.languages : [];
+                    const isSelected = currentLangs.includes(lang.toLowerCase());
+                    return (
+                      <button
+                        key={lang}
+                        onClick={() => {
+                          const newLangs = isSelected
+                            ? currentLangs.filter((l) => l !== lang.toLowerCase())
+                            : [...currentLangs, lang.toLowerCase()];
+                          updateField("languages", newLangs);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
+                          isSelected
+                            ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                            : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </ProfileSection>
 
@@ -561,7 +649,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                 <div className="flex flex-wrap gap-2">
                   {["Adventure", "Relaxation", "Cultural", "Foodie", "Romantic", "Budget", "Luxury", "Solo", "Family"].map((style) => {
                     const styleLower = style.toLowerCase();
-                    const currentStyles = (profile.preferences?.travelStyles as string[] | undefined) || [];
+                    const currentPrefs = profile.preferences || {};
+                    const currentStyles = Array.isArray(currentPrefs.travelStyles) ? currentPrefs.travelStyles as string[] : [];
                     const isSelected = currentStyles.includes(styleLower);
                     return (
                       <button
@@ -570,7 +659,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                           const newStyles = isSelected
                             ? currentStyles.filter((s) => s !== styleLower)
                             : [...currentStyles, styleLower];
-                          updateField("preferences", { ...profile.preferences, travelStyles: newStyles });
+                          updateField("preferences", { ...currentPrefs, travelStyles: newStyles });
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
@@ -591,7 +680,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                 <div className="flex flex-wrap gap-2">
                   {["Vegetarian", "Vegan", "Halal", "Kosher", "Gluten-Free", "No Restrictions"].map((diet) => {
                     const dietLower = diet.toLowerCase().replace(" ", "-");
-                    const currentDiets = (profile.preferences?.dietaryPreferences as string[] | undefined) || [];
+                    const currentPrefs = profile.preferences || {};
+                    const currentDiets = Array.isArray(currentPrefs.dietaryPreferences) ? currentPrefs.dietaryPreferences as string[] : [];
                     const isSelected = currentDiets.includes(dietLower);
                     return (
                       <button
@@ -600,7 +690,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                           const newDiets = isSelected
                             ? currentDiets.filter((d) => d !== dietLower)
                             : [...currentDiets, dietLower];
-                          updateField("preferences", { ...profile.preferences, dietaryPreferences: newDiets });
+                          updateField("preferences", { ...currentPrefs, dietaryPreferences: newDiets });
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
@@ -629,7 +719,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                     { id: "hearing", label: "Hearing Impairment" },
                     { id: "sensory", label: "Sensory-Friendly" },
                   ].map((accessibility) => {
-                    const currentNeeds = (profile.preferences?.accessibilityNeeds as string[] | undefined) || [];
+                    const currentPrefs = profile.preferences || {};
+                    const currentNeeds = Array.isArray(currentPrefs.accessibilityNeeds) ? currentPrefs.accessibilityNeeds as string[] : [];
                     const isSelected = currentNeeds.includes(accessibility.id);
                     return (
                       <button
@@ -638,7 +729,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                           const newNeeds = isSelected
                             ? currentNeeds.filter((n) => n !== accessibility.id)
                             : [...currentNeeds, accessibility.id];
-                          updateField("preferences", { ...profile.preferences, accessibilityNeeds: newNeeds });
+                          updateField("preferences", { ...currentPrefs, accessibilityNeeds: newNeeds });
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected

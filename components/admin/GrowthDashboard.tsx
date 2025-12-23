@@ -379,14 +379,192 @@ function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) 
 }
 
 // ============================================
+// COLLABORATION ANALYTICS COMPONENT
+// ============================================
+function CollaborationAnalytics({ collaboration }: { collaboration: GrowthStats["collaboration"] }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">
+          Collaboration Analytics
+        </h3>
+        <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium">
+          New Feature
+        </span>
+      </div>
+
+      {/* Adoption Metrics */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Adoption</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <p className="text-2xl font-bold text-purple-700">{collaboration.collaborativeTrips}</p>
+            <p className="text-xs text-purple-600">Collaborative Trips</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <p className="text-2xl font-bold text-purple-700">{collaboration.totalInvitesCreated}</p>
+            <p className="text-xs text-purple-600">Invites Created</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <p className="text-2xl font-bold text-purple-700">{collaboration.inviteAcceptRate}%</p>
+            <p className="text-xs text-purple-600">Accept Rate</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <p className="text-2xl font-bold text-purple-700">{collaboration.avgCollaboratorsPerTrip || 0}</p>
+            <p className="text-xs text-purple-600">Avg Team Size</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Proposals Pipeline */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Proposal Pipeline</p>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {[
+            { label: "Pending", value: collaboration.proposalsByStatus.pending, color: "bg-slate-100 text-slate-700" },
+            { label: "Voting", value: collaboration.proposalsByStatus.voting, color: "bg-blue-100 text-blue-700" },
+            { label: "Approved", value: collaboration.proposalsByStatus.approved, color: "bg-green-100 text-green-700" },
+            { label: "Rejected", value: collaboration.proposalsByStatus.rejected, color: "bg-red-100 text-red-700" },
+            { label: "Withdrawn", value: collaboration.proposalsByStatus.withdrawn, color: "bg-amber-100 text-amber-700" },
+            { label: "Expired", value: collaboration.proposalsByStatus.expired, color: "bg-gray-100 text-gray-700" },
+          ].map((status) => (
+            <div key={status.label} className={`text-center p-2 rounded-lg ${status.color}`}>
+              <p className="text-lg font-bold">{status.value}</p>
+              <p className="text-xs">{status.label}</p>
+            </div>
+          ))}
+        </div>
+        {collaboration.totalProposals > 0 && (
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+            <span>Total: {collaboration.totalProposals} proposals from {collaboration.proposersCount} users</span>
+            <span>Approval rate: {collaboration.proposalApprovalRate}%</span>
+          </div>
+        )}
+      </div>
+
+      {/* Voting Engagement */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Voting Engagement</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <p className="text-2xl font-bold text-indigo-700">{collaboration.totalProposalVotes}</p>
+            <p className="text-xs text-indigo-600">Total Votes</p>
+          </div>
+          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <p className="text-2xl font-bold text-indigo-700">{collaboration.uniqueVoters}</p>
+            <p className="text-xs text-indigo-600">Unique Voters</p>
+          </div>
+          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <p className="text-2xl font-bold text-indigo-700">{collaboration.avgVotesPerProposal}</p>
+            <p className="text-xs text-indigo-600">Avg Votes/Proposal</p>
+          </div>
+          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <p className="text-2xl font-bold text-indigo-700">{collaboration.participationRate}%</p>
+            <p className="text-xs text-indigo-600">Participation</p>
+          </div>
+        </div>
+        {/* Vote Distribution */}
+        {collaboration.totalProposalVotes > 0 && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-xs text-slate-500 w-16">Votes:</span>
+            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden flex">
+              <div
+                className="bg-green-500 h-full"
+                style={{ width: `${(collaboration.voteDistribution.approve / collaboration.totalProposalVotes) * 100}%` }}
+                title={`${collaboration.voteDistribution.approve} approve`}
+              />
+              <div
+                className="bg-red-500 h-full"
+                style={{ width: `${(collaboration.voteDistribution.reject / collaboration.totalProposalVotes) * 100}%` }}
+                title={`${collaboration.voteDistribution.reject} reject`}
+              />
+            </div>
+            <div className="flex gap-3 text-xs">
+              <span className="text-green-600">{collaboration.voteDistribution.approve} approve</span>
+              <span className="text-red-600">{collaboration.voteDistribution.reject} reject</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Role Distribution */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-600 mb-3">Role Distribution</p>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { label: "Owner", value: collaboration.roleDistribution.owner, color: "bg-amber-500" },
+            { label: "Editor", value: collaboration.roleDistribution.editor, color: "bg-blue-500" },
+            { label: "Voter", value: collaboration.roleDistribution.voter, color: "bg-purple-500" },
+            { label: "Viewer", value: collaboration.roleDistribution.viewer, color: "bg-slate-400" },
+          ].map((role) => (
+            <div key={role.label} className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${role.color}`} />
+              <span className="text-sm text-slate-600">{role.label}: {role.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Collaboration Funnel */}
+      <div className="pt-4 border-t border-slate-100">
+        <p className="text-sm font-medium text-slate-600 mb-3">Collaboration Funnel</p>
+        <div className="space-y-2">
+          {[
+            { label: "Trips Created", value: collaboration.funnel.tripsCreated, color: "bg-slate-500" },
+            { label: "Invites Created", value: collaboration.funnel.invitesCreated, color: "bg-purple-500" },
+            { label: "Invites Accepted", value: collaboration.funnel.invitesAccepted, color: "bg-blue-500" },
+            { label: "Proposals Made", value: collaboration.funnel.proposalsCreated, color: "bg-indigo-500" },
+            { label: "Proposals Resolved", value: collaboration.funnel.proposalsResolved, color: "bg-green-500" },
+          ].map((step) => {
+            const max = Math.max(collaboration.funnel.tripsCreated, 1);
+            const width = (step.value / max) * 100;
+            return (
+              <div key={step.label} className="flex items-center gap-3">
+                <span className="w-32 text-xs text-slate-500">{step.label}</span>
+                <div className="flex-1 h-5 bg-slate-100 rounded overflow-hidden">
+                  <div
+                    className={`h-full ${step.color} flex items-center justify-end pr-2 transition-all duration-500`}
+                    style={{ width: `${Math.max(width, 3)}%` }}
+                  >
+                    {width >= 20 && (
+                      <span className="text-white text-xs font-medium">{step.value}</span>
+                    )}
+                  </div>
+                </div>
+                {width < 20 && (
+                  <span className="text-xs text-slate-600 font-medium w-8">{step.value}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Empty state */}
+      {collaboration.totalCollaborators === 0 && collaboration.totalProposals === 0 && (
+        <div className="text-center py-6 text-slate-400 border-t border-slate-100 mt-4">
+          <p className="text-sm">No collaboration activity yet</p>
+          <p className="text-xs mt-1">Encourage users to invite others to their trips!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // AHA MOMENT TABLE COMPONENT
 // ============================================
 function AhaMomentTable({ ahaMoments }: { ahaMoments: GrowthStats["ahaMoments"] }) {
   const actions = [
-    { key: "generatedItinerary", label: "Generated a Trip", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
-    { key: "sharedTrip", label: "Shared a Trip", icon: "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" },
-    { key: "completedOnboarding", label: "Completed Onboarding", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
-    { key: "usedAssistant", label: "Used AI Assistant", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" },
+    { key: "generatedItinerary", label: "Generated a Trip", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", category: "core" },
+    { key: "sharedTrip", label: "Shared a Trip", icon: "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z", category: "core" },
+    { key: "completedOnboarding", label: "Completed Onboarding", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", category: "core" },
+    { key: "usedAssistant", label: "Used AI Assistant", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z", category: "core" },
+    // Collaboration aha moments
+    { key: "createdInvite", label: "Created Invite Link", icon: "M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1", category: "collab" },
+    { key: "joinedViaInvite", label: "Joined via Invite", icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z", category: "collab" },
+    { key: "votedOnProposal", label: "Voted on Proposal", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", category: "collab" },
+    { key: "createdProposal", label: "Created Proposal", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6", category: "collab" },
   ] as const;
 
   return (
@@ -610,6 +788,11 @@ export default function GrowthDashboard() {
 
       {/* Referral Analytics */}
       <ReferralAnalytics referral={stats.referral} />
+
+      {/* Collaboration Analytics */}
+      {stats.collaboration && (
+        <CollaborationAnalytics collaboration={stats.collaboration} />
+      )}
 
       {/* Aha Moment Analysis */}
       <AhaMomentTable ahaMoments={stats.ahaMoments} />

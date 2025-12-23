@@ -177,6 +177,38 @@ function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePrefe
 interface BuildPromptOptions {
   maxDays?: number; // Limit days to generate (for incremental generation)
   isPartial?: boolean; // Indicates this is a partial generation
+  language?: "en" | "es" | "it"; // Language for AI response
+}
+
+/**
+ * Get language instruction for AI response
+ * Tells Gemini to generate content in the user's preferred language
+ */
+function getLanguageInstruction(language?: "en" | "es" | "it"): string {
+  if (!language || language === "en") return "";
+
+  const instructions: Record<"es" | "it", string> = {
+    es: `
+## IDIOMA OBLIGATORIO
+DEBES responder COMPLETAMENTE en espanol.
+- Nombres de actividades: usa el nombre local con traduccion si es util
+- Descripciones: escritas naturalmente en espanol
+- Consejos (tips): en espanol
+- Resumen del viaje: en espanol
+- Formato de hora: 24h (ej: 14:00 en lugar de 2:00 PM)
+- IMPORTANTE: Mantén la estructura JSON exacta, solo cambia el contenido de texto a espanol`,
+    it: `
+## LINGUA OBBLIGATORIA
+DEVI rispondere COMPLETAMENTE in italiano.
+- Nomi delle attivita: usa il nome locale con traduzione se utile
+- Descrizioni: scritte naturalmente in italiano
+- Consigli (tips): in italiano
+- Riepilogo del viaggio: in italiano
+- Formato dell'ora: 24h (es: 14:00 invece di 2:00 PM)
+- IMPORTANTE: Mantieni la struttura JSON esatta, cambia solo il contenuto testuale in italiano`,
+  };
+
+  return instructions[language] + "\n\n";
 }
 
 /**
@@ -350,7 +382,10 @@ Consider these seasonal factors when selecting activities and timing. Include se
     ? `\n\nNOTE: This is a PARTIAL generation. Only generate days 1-${duration} (of ${totalDuration} total). The remaining days will be generated separately.`
     : "";
 
-  return `Plan a ${duration}-day trip to ${params.destination}.${partialNote}
+  // Language instruction for non-English responses
+  const languageSection = getLanguageInstruction(options?.language);
+
+  return `${languageSection}Plan a ${duration}-day trip to ${params.destination}.${partialNote}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}

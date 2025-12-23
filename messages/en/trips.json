@@ -1,0 +1,170 @@
+{
+  "wizard": {
+    "step1": {
+      "title": "Where do you want to go?",
+      "subtitle": "Search for a city to start planning your trip",
+      "placeholder": "e.g., Paris, Tokyo, New York...",
+      "popularDestinations": "Popular destinations"
+    },
+    "step2": {
+      "title": "When are you traveling?",
+      "subtitle": "Select your trip dates (max 14 days)",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "daysLabel": "{count} days"
+    },
+    "step3": {
+      "title": "What's your travel vibe?",
+      "subtitle": "Choose the mood that captures your ideal {destination} experience",
+      "selectUpTo": "Select up to {count} vibes"
+    },
+    "step4": {
+      "title": "Final details",
+      "subtitle": "Set your budget, pace, and any special requirements"
+    }
+  },
+  "vibes": {
+    "adventure": {
+      "label": "Adventure Seeker",
+      "description": "Outdoor activities, hiking trails, and adrenaline-pumping experiences"
+    },
+    "cultural": {
+      "label": "Cultural Explorer",
+      "description": "Museums, heritage sites, local traditions, and historical wonders"
+    },
+    "foodie": {
+      "label": "Food & Wine",
+      "description": "Local cuisine, food tours, markets, and culinary experiences"
+    },
+    "wellness": {
+      "label": "Wellness & Relaxation",
+      "description": "Spas, yoga retreats, peaceful gardens, and rejuvenating experiences"
+    },
+    "romantic": {
+      "label": "Romantic Getaway",
+      "description": "Scenic spots, sunset views, intimate dining, and couple activities"
+    },
+    "urban": {
+      "label": "Urban Explorer",
+      "description": "City life, shopping districts, nightlife, and modern attractions"
+    },
+    "nature": {
+      "label": "Nature Lover",
+      "description": "Parks, gardens, scenic landscapes, and wildlife encounters"
+    },
+    "offbeat": {
+      "label": "Off the Beaten Path",
+      "description": "Hidden gems, local secrets, and unconventional experiences"
+    },
+    "time-traveler": {
+      "label": "Time Traveler",
+      "description": "Ancient ruins, medieval castles, and historical landmarks"
+    },
+    "photo-hunter": {
+      "label": "Photo Hunter",
+      "description": "Instagram-worthy spots, viewpoints, and photogenic locations"
+    },
+    "local-life": {
+      "label": "Local Life",
+      "description": "Neighborhoods, local cafes, markets, and authentic experiences"
+    },
+    "night-owl": {
+      "label": "Night Owl",
+      "description": "Evening entertainment, bars, clubs, and late-night food"
+    }
+  },
+  "budget": {
+    "title": "Budget",
+    "budget": {
+      "label": "Budget",
+      "description": "Free attractions, street food, public transport",
+      "range": "< $100/day"
+    },
+    "balanced": {
+      "label": "Balanced",
+      "description": "Mix of experiences, local restaurants, some tours",
+      "range": "$100-250/day"
+    },
+    "premium": {
+      "label": "Premium",
+      "description": "Skip-the-line, fine dining, private tours",
+      "range": "$250+/day"
+    }
+  },
+  "pace": {
+    "title": "Pace",
+    "relaxed": {
+      "label": "Relaxed",
+      "description": "2-3 activities/day"
+    },
+    "moderate": {
+      "label": "Moderate",
+      "description": "3-4 activities/day"
+    },
+    "active": {
+      "label": "Active",
+      "description": "5+ activities/day"
+    }
+  },
+  "requirements": {
+    "title": "Special Requirements",
+    "placeholder": "e.g., wheelchair accessible, vegetarian restaurants, kid-friendly...",
+    "hint": "Optional - tell us about any specific needs"
+  },
+  "generation": {
+    "generating": "Creating your perfect itinerary...",
+    "analyzing": "Analyzing {destination}...",
+    "findingActivities": "Finding the best activities...",
+    "optimizingRoute": "Optimizing your daily routes...",
+    "almostDone": "Almost done...",
+    "error": "Failed to generate itinerary. Please try again.",
+    "retry": "Try Again"
+  },
+  "result": {
+    "title": "Your {destination} Itinerary",
+    "daysCount": "{count} Days",
+    "saveTrip": "Save Trip",
+    "startOver": "Start Over",
+    "regenerate": "Regenerate",
+    "share": "Share",
+    "export": "Export"
+  },
+  "day": {
+    "label": "Day {number}",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "travel": "Travel",
+    "totalDistance": "Total distance",
+    "walkingTime": "Walking",
+    "drivingTime": "Driving"
+  },
+  "activity": {
+    "duration": "{duration} min",
+    "cost": "Cost",
+    "free": "Free",
+    "tips": "Tips",
+    "directions": "Directions",
+    "moreInfo": "More Info"
+  },
+  "limits": {
+    "freeTripsRemaining": "You have {count} free trips remaining",
+    "noTripsRemaining": "You've used all your free trips",
+    "upgradePrompt": "Upgrade for unlimited trip planning",
+    "enterCode": "Have an access code?",
+    "joinWaitlist": "Join the waitlist for early access"
+  },
+  "save": {
+    "title": "Save Your Trip",
+    "subtitle": "Create an account to save and access your trip anytime",
+    "saving": "Saving your trip...",
+    "success": "Trip saved successfully!",
+    "error": "Failed to save trip. Please try again."
+  },
+  "startOver": {
+    "title": "Start Over?",
+    "message": "This will discard your current itinerary and start fresh.",
+    "confirm": "Yes, Start Over",
+    "cancel": "Keep Current Trip"
+  }
+}

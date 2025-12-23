@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "features": "Funzionalita",
+    "howItWorks": "Come Funziona",
+    "myTrips": "I Miei Viaggi",
+    "profile": "Profilo",
+    "admin": "Admin",
+    "signIn": "Accedi",
+    "signUp": "Registrati",
+    "signOut": "Esci"
+  },
+  "buttons": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "continue": "Continua",
+    "back": "Indietro",
+    "next": "Avanti",
+    "done": "Fatto",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "create": "Crea",
+    "submit": "Invia",
+    "close": "Chiudi",
+    "confirm": "Conferma",
+    "tryFree": "Provalo Gratis",
+    "planTrip": "Pianifica il Mio Viaggio",
+    "getStarted": "Inizia",
+    "learnMore": "Scopri di Piu",
+    "viewAll": "Vedi Tutto",
+    "showMore": "Mostra Altro",
+    "showLess": "Mostra Meno",
+    "retry": "Riprova",
+    "skip": "Salta"
+  },
+  "validation": {
+    "required": "Questo campo e obbligatorio",
+    "invalidEmail": "Inserisci un indirizzo email valido",
+    "passwordTooShort": "La password deve avere almeno {min} caratteri",
+    "passwordsDoNotMatch": "Le password non corrispondono",
+    "invalidDate": "Inserisci una data valida",
+    "minLength": "Deve avere almeno {min} caratteri",
+    "maxLength": "Deve avere al massimo {max} caratteri"
+  },
+  "status": {
+    "loading": "Caricamento...",
+    "saving": "Salvataggio...",
+    "saved": "Salvato",
+    "error": "Errore",
+    "success": "Successo",
+    "pending": "In attesa",
+    "processing": "Elaborazione..."
+  },
+  "time": {
+    "morning": "Mattina",
+    "afternoon": "Pomeriggio",
+    "evening": "Sera",
+    "night": "Notte",
+    "today": "Oggi",
+    "tomorrow": "Domani",
+    "yesterday": "Ieri"
+  },
+  "errors": {
+    "somethingWentWrong": "Qualcosa e andato storto. Riprova.",
+    "networkError": "Errore di rete. Controlla la tua connessione.",
+    "sessionExpired": "La tua sessione e scaduta. Accedi di nuovo.",
+    "notFound": "Pagina non trovata",
+    "unauthorized": "Non sei autorizzato ad accedere a questa pagina"
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Termini di Servizio",
+    "contact": "Contatti",
+    "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati."
+  },
+  "language": {
+    "select": "Seleziona Lingua",
+    "english": "Inglese",
+    "spanish": "Spagnolo",
+    "italian": "Italiano"
+  }
+}

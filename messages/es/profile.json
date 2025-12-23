@@ -1,0 +1,85 @@
+{
+  "title": "Perfil",
+  "subtitle": "Gestiona tu cuenta y preferencias",
+  "sections": {
+    "personalInfo": {
+      "title": "Informacion Personal",
+      "description": "Tu informacion basica de perfil"
+    },
+    "travelPreferences": {
+      "title": "Preferencias de Viaje",
+      "description": "Ayudanos a personalizar tus recomendaciones de viaje"
+    },
+    "account": {
+      "title": "Configuracion de Cuenta",
+      "description": "Gestiona tu cuenta y suscripcion"
+    }
+  },
+  "fields": {
+    "displayName": {
+      "label": "Nombre",
+      "placeholder": "Tu nombre"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "tu@email.com"
+    },
+    "bio": {
+      "label": "Biografia",
+      "placeholder": "Cuentanos un poco sobre ti..."
+    },
+    "homeCountry": {
+      "label": "Pais de Origen",
+      "placeholder": "Selecciona tu pais"
+    },
+    "homeCity": {
+      "label": "Ciudad de Origen",
+      "placeholder": "Tu ciudad"
+    },
+    "dateOfBirth": {
+      "label": "Fecha de Nacimiento",
+      "placeholder": "Selecciona tu cumpleanos"
+    },
+    "languages": {
+      "label": "Idiomas que Hablas",
+      "description": "Selecciona los idiomas que hablas para mejores recomendaciones"
+    }
+  },
+  "preferences": {
+    "travelStyles": {
+      "label": "Estilos de Viaje",
+      "description": "¿Que tipo de viajes disfrutas?"
+    },
+    "dietaryPreferences": {
+      "label": "Preferencias Alimentarias",
+      "description": "¿Alguna preferencia o restriccion alimentaria?"
+    },
+    "accessibilityNeeds": {
+      "label": "Necesidades de Accesibilidad",
+      "description": "Ayudanos a recomendar opciones accesibles"
+    }
+  },
+  "subscription": {
+    "title": "Suscripcion",
+    "free": {
+      "title": "Plan Gratuito",
+      "description": "Funciones basicas de planificacion"
+    },
+    "premium": {
+      "title": "Premium",
+      "description": "Viajes ilimitados y funciones avanzadas"
+    },
+    "upgrade": "Actualizar a Premium",
+    "manage": "Gestionar Suscripcion"
+  },
+  "actions": {
+    "signOut": "Cerrar Sesion",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleteConfirm": "¿Estas seguro de que quieres eliminar tu cuenta? Esta accion no se puede deshacer."
+  },
+  "status": {
+    "saving": "Guardando...",
+    "saved": "Cambios guardados",
+    "error": "Error al guardar los cambios"
+  }
+}

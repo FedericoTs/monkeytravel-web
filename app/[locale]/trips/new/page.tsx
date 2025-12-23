@@ -20,6 +20,7 @@ import StartOverModal from "@/components/trip/StartOverModal";
 import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
 import PersonalizationStep from "@/components/trip/PersonalizationStep";
+import ShareAfterSaveModal from "@/components/trip/ShareAfterSaveModal";
 import AuthPromptModal from "@/components/ui/AuthPromptModal";
 import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
 import { BetaCodeInput, WaitlistSignup } from "@/components/beta";
@@ -150,6 +151,10 @@ export default function NewTripPage() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showDraftRecovery, setShowDraftRecovery] = useState(false);
   const [draftAutoRestored, setDraftAutoRestored] = useState(false);
+
+  // Post-save sharing modal state (critical for virality)
+  const [showShareAfterSaveModal, setShowShareAfterSaveModal] = useState(false);
+  const [savedTripId, setSavedTripId] = useState<string | null>(null);
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
@@ -582,7 +587,10 @@ export default function NewTripPage() {
 
       // Clear draft on successful save
       clearDraft();
-      router.push(`/trips/${trip.id}`);
+
+      // Show sharing prompt instead of immediate redirect (critical for virality)
+      setSavedTripId(trip.id);
+      setShowShareAfterSaveModal(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
     } finally {
@@ -607,6 +615,28 @@ export default function NewTripPage() {
           destination={fullDestination}
           tripDays={generatedItinerary.days.length}
           activitiesCount={totalActivities}
+        />
+
+        {/* Share After Save Modal - Critical for virality */}
+        <ShareAfterSaveModal
+          isOpen={showShareAfterSaveModal}
+          onClose={() => {
+            setShowShareAfterSaveModal(false);
+            if (savedTripId) {
+              router.push(`/trips/${savedTripId}`);
+            }
+          }}
+          onInvite={() => {
+            setShowShareAfterSaveModal(false);
+            if (savedTripId) {
+              // Redirect with query param to auto-open share modal
+              router.push(`/trips/${savedTripId}?share=invite`);
+            }
+          }}
+          tripId={savedTripId || ""}
+          tripTitle={`${generatedItinerary.destination.name} Trip`}
+          tripDays={generatedItinerary.days.length}
+          destination={fullDestination}
         />
 
         {/* Hero with Cover Image */}

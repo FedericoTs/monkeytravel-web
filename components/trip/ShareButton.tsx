@@ -13,6 +13,8 @@ interface ShareButtonProps {
   variant?: "default" | "compact";
   initialTab?: "share" | "invite";
   showNewBadge?: boolean;
+  /** Auto-open the modal on mount (used after trip save) */
+  autoOpen?: boolean;
 }
 
 export default function ShareButton({
@@ -21,8 +23,9 @@ export default function ShareButton({
   variant = "default",
   initialTab = "share",
   showNewBadge = true,
+  autoOpen = false,
 }: ShareButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(autoOpen);
   const [isShared, setIsShared] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

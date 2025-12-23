@@ -1,0 +1,96 @@
+{
+  "hero": {
+    "badge": "Disponibile Ora — Provalo Gratis",
+    "title": "Il Pianificatore di Viaggi con IA Che Funziona Davvero",
+    "subtitle": "Scegli una destinazione. Ottieni un itinerario personalizzato giorno per giorno in 30 secondi.",
+    "cta": "Pianifica il Mio Viaggio Gratis",
+    "signIn": "Accedi",
+    "trustSignals": {
+      "free": "100% Gratis",
+      "noCard": "Nessuna Carta di Credito",
+      "instant": "Accesso Istantaneo"
+    }
+  },
+  "problem": {
+    "title": "Meriti di meglio",
+    "subtitle": "Pianificare un viaggio non dovrebbe essere un secondo lavoro",
+    "points": {
+      "tabs": "47 schede aperte, cercando di mettere insieme blog, recensioni e mappe",
+      "copy": "Copiando itinerari che non corrispondono al tuo stile o budget",
+      "hours": "Ore perse su liste generiche \"Top 10\" che sembrano tutte uguali"
+    }
+  },
+  "solution": {
+    "title": "C'e un modo migliore",
+    "subtitle": "Lascia che l'IA faccia il lavoro pesante mentre ti concentri sull'emozione",
+    "features": {
+      "personalized": {
+        "title": "Veramente Personalizzato",
+        "description": "Dicci il tuo stile — avventura, gastronomia, cultura o relax — e creeremo un itinerario su misura."
+      },
+      "smart": {
+        "title": "Programmazione Intelligente",
+        "description": "Percorsi ottimizzati, orari realistici e niente attraversamenti inutili della citta."
+      },
+      "local": {
+        "title": "Conoscenze Locali",
+        "description": "Gemme nascoste e preferiti locali, non solo trappole per turisti."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Come Funziona",
+    "subtitle": "Tre semplici passi per il tuo viaggio perfetto",
+    "steps": {
+      "destination": {
+        "title": "Scegli la Tua Destinazione",
+        "description": "Cerca qualsiasi citta nel mondo"
+      },
+      "preferences": {
+        "title": "Imposta le Tue Preferenze",
+        "description": "Scegli il tuo stile di viaggio, budget e ritmo"
+      },
+      "itinerary": {
+        "title": "Ottieni il Tuo Itinerario",
+        "description": "Ricevi un piano completo giorno per giorno in secondi"
+      }
+    }
+  },
+  "faq": {
+    "title": "Domande Frequenti",
+    "items": {
+      "free": {
+        "question": "E davvero gratis?",
+        "answer": "Si! Puoi creare viaggi completamente gratis. Offriamo funzionalita premium per utenti avanzati, ma la pianificazione base e sempre gratuita."
+      },
+      "accuracy": {
+        "question": "Quanto sono precisi gli itinerari?",
+        "answer": "La nostra IA usa dati in tempo reale da Google Places, orari verificati e percorsi ottimizzati per garantire precisione. Aggiorniamo continuamente le nostre raccomandazioni."
+      },
+      "customize": {
+        "question": "Posso personalizzare l'itinerario?",
+        "answer": "Assolutamente! Puoi rigenerare attivita specifiche, modificare gli orari, aggiungere le tue tappe e condividere con compagni di viaggio che possono votare sulle attivita."
+      },
+      "destinations": {
+        "question": "Quali destinazioni supportate?",
+        "answer": "Supportiamo qualsiasi citta nel mondo coperta da Google Maps. Dalle grandi citta come Parigi e Tokyo a piccoli paesi e gemme nascoste."
+      },
+      "save": {
+        "question": "Posso salvare i miei viaggi?",
+        "answer": "Si! Crea un account gratuito per salvare viaggi illimitati, accedere da qualsiasi dispositivo e condividere con gli amici."
+      },
+      "collaborate": {
+        "question": "Posso pianificare con gli amici?",
+        "answer": "Si! Invita compagni di viaggio a collaborare al tuo viaggio. Possono vedere l'itinerario, votare sulle attivita e suggerirne di nuove."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto a pianificare la tua prossima avventura?",
+    "subtitle": "Unisciti a migliaia di viaggiatori che pianificano in modo piu intelligente.",
+    "button": "Inizia a Pianificare — E Gratis"
+  },
+  "testimonials": {
+    "title": "Cosa dicono i viaggiatori"
+  }
+}

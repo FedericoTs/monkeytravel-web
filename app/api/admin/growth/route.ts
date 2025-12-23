@@ -59,6 +59,67 @@ export interface GrowthStats {
     sharedTrip: { didIt: number; didntDoIt: number; retentionLift: number };
     completedOnboarding: { didIt: number; didntDoIt: number; retentionLift: number };
     usedAssistant: { didIt: number; didntDoIt: number; retentionLift: number };
+    // Collaboration aha moments
+    createdInvite: { didIt: number; didntDoIt: number; retentionLift: number };
+    joinedViaInvite: { didIt: number; didntDoIt: number; retentionLift: number };
+    votedOnProposal: { didIt: number; didntDoIt: number; retentionLift: number };
+    createdProposal: { didIt: number; didntDoIt: number; retentionLift: number };
+  };
+  // Collaboration metrics
+  collaboration: {
+    // Adoption metrics
+    collaborativeTrips: number;       // Trips with 2+ collaborators
+    tripsWithInvites: number;         // Trips with invite links created
+    totalInvitesCreated: number;      // Total invite links
+    inviteAcceptRate: number;         // % of invites used
+    avgCollaboratorsPerTrip: number;  // Avg team size (for collaborative trips)
+    totalCollaborators: number;       // Total collaborator records
+
+    // Proposal metrics
+    totalProposals: number;
+    proposalsByStatus: {
+      pending: number;
+      voting: number;
+      approved: number;
+      rejected: number;
+      withdrawn: number;
+      expired: number;
+    };
+    proposalApprovalRate: number;     // % of resolved that were approved
+    avgVotesPerProposal: number;
+    proposersCount: number;           // Unique users who created proposals
+
+    // Voting metrics
+    totalProposalVotes: number;
+    uniqueVoters: number;
+    voteDistribution: { approve: number; reject: number };
+    participationRate: number;        // voters / eligible collaborators
+
+    // Resolution methods
+    resolutionMethods: {
+      consensus: number;
+      ownerOverride: number;
+      autoApprove: number;
+      timeout: number;
+      withdrawn: number;
+    };
+
+    // Role distribution
+    roleDistribution: {
+      owner: number;
+      editor: number;
+      voter: number;
+      viewer: number;
+    };
+
+    // Collaboration funnel
+    funnel: {
+      tripsCreated: number;
+      invitesCreated: number;
+      invitesAccepted: number;
+      proposalsCreated: number;
+      proposalsResolved: number;
+    };
   };
 }
 
@@ -96,6 +157,11 @@ export async function GET() {
       referralCodesResult,
       tripViewsResult,
       aiConversationsResult,
+      // Collaboration data
+      collaboratorsResult,
+      invitesResult,
+      proposalsResult,
+      proposalVotesResult,
     ] = await Promise.all([
       // All users with relevant dates
       supabase
@@ -117,6 +183,22 @@ export async function GET() {
       supabase
         .from("ai_conversations")
         .select("id, user_id"),
+      // Collaboration: Trip collaborators
+      supabase
+        .from("trip_collaborators")
+        .select("id, trip_id, user_id, role, invited_by, joined_at"),
+      // Collaboration: Trip invites
+      supabase
+        .from("trip_invites")
+        .select("id, trip_id, token, role, created_by, created_at, expires_at, max_uses, use_count, is_active"),
+      // Collaboration: Activity proposals
+      supabase
+        .from("activity_proposals")
+        .select("id, trip_id, proposed_by, type, status, resolved_at, resolved_by, resolution_method, created_at"),
+      // Collaboration: Proposal votes
+      supabase
+        .from("proposal_votes")
+        .select("id, proposal_id, user_id, vote_type, voted_at"),
     ]);
 
     const users = usersResult.data || [];
@@ -124,6 +206,11 @@ export async function GET() {
     const referralCodes = referralCodesResult.data || [];
     const tripViews = tripViewsResult.data || [];
     const aiConversations = aiConversationsResult.data || [];
+    // Collaboration data extraction
+    const collaborators = collaboratorsResult.data || [];
+    const invites = invitesResult.data || [];
+    const proposals = proposalsResult.data || [];
+    const proposalVotes = proposalVotesResult.data || [];
 
     // Helper: calculate retention for users signed up before a threshold
     // FIXED: Changed from >= to > 0 AND <= to properly measure "returned WITHIN N days"
@@ -292,6 +379,12 @@ export async function GET() {
     const usersWhoCompletedOnboarding = new Set(users.filter(u => u.onboarding_completed).map(u => u.id));
     const usersWhoUsedAssistant = new Set(aiConversations.map(c => c.user_id));
 
+    // Collaboration aha moment user sets
+    const usersWhoCreatedInvite = new Set(invites.map(i => i.created_by));
+    const usersWhoJoinedViaInvite = new Set(collaborators.filter(c => c.invited_by).map(c => c.user_id));
+    const usersWhoVotedOnProposal = new Set(proposalVotes.map(v => v.user_id));
+    const usersWhoCreatedProposal = new Set(proposals.map(p => p.proposed_by));
+
     const calculateAhaMomentRetention = (userSet: Set<string | null>) => {
       // Filter out null values from the set
       const validUserIds = Array.from(userSet).filter((id): id is string => id !== null);
@@ -330,6 +423,106 @@ export async function GET() {
         didntDoIt: didntDoItRetention,
         retentionLift: lift,
       };
+    };
+
+    // ===========================================
+    // COLLABORATION METRICS
+    // ===========================================
+
+    // 1. ADOPTION METRICS
+    // Count trips by their number of collaborators
+    const collaboratorsByTrip = new Map<string, number>();
+    collaborators.forEach(c => {
+      collaboratorsByTrip.set(c.trip_id, (collaboratorsByTrip.get(c.trip_id) || 0) + 1);
+    });
+
+    // Trips with 2+ collaborators (truly collaborative)
+    const collaborativeTrips = Array.from(collaboratorsByTrip.values()).filter(count => count >= 2).length;
+
+    // Trips with invite links created
+    const tripsWithInvites = new Set(invites.map(i => i.trip_id)).size;
+
+    // Invite acceptance rate (use_count / total invites)
+    const totalInvitesCreated = invites.length;
+    const totalInviteUses = invites.reduce((sum, i) => sum + (i.use_count || 0), 0);
+    const inviteAcceptRate = totalInvitesCreated > 0
+      ? Math.round((totalInviteUses / totalInvitesCreated) * 100)
+      : 0;
+
+    // Average collaborators per collaborative trip
+    const collaborativeTripSizes = Array.from(collaboratorsByTrip.values()).filter(count => count >= 2);
+    const avgCollaboratorsPerTrip = collaborativeTripSizes.length > 0
+      ? Math.round((collaborativeTripSizes.reduce((a, b) => a + b, 0) / collaborativeTripSizes.length) * 10) / 10
+      : 0;
+
+    // 2. PROPOSAL METRICS
+    const totalProposals = proposals.length;
+
+    // Count proposals by status
+    const proposalsByStatus = {
+      pending: proposals.filter(p => p.status === "pending").length,
+      voting: proposals.filter(p => p.status === "voting").length,
+      approved: proposals.filter(p => p.status === "approved").length,
+      rejected: proposals.filter(p => p.status === "rejected").length,
+      withdrawn: proposals.filter(p => p.status === "withdrawn").length,
+      expired: proposals.filter(p => p.status === "expired").length,
+    };
+
+    // Approval rate (of resolved proposals)
+    const resolvedProposals = proposalsByStatus.approved + proposalsByStatus.rejected;
+    const proposalApprovalRate = resolvedProposals > 0
+      ? Math.round((proposalsByStatus.approved / resolvedProposals) * 100)
+      : 0;
+
+    // Average votes per proposal (for proposals with votes)
+    const proposalsWithVotes = new Set(proposalVotes.map(v => v.proposal_id)).size;
+    const avgVotesPerProposal = proposalsWithVotes > 0
+      ? Math.round((proposalVotes.length / proposalsWithVotes) * 10) / 10
+      : 0;
+
+    // Unique proposers
+    const proposersCount = new Set(proposals.map(p => p.proposed_by)).size;
+
+    // 3. VOTING METRICS
+    const totalProposalVotes = proposalVotes.length;
+    const uniqueVoters = new Set(proposalVotes.map(v => v.user_id)).size;
+
+    // Vote distribution
+    const voteDistribution = {
+      approve: proposalVotes.filter(v => v.vote_type === "approve").length,
+      reject: proposalVotes.filter(v => v.vote_type === "reject").length,
+    };
+
+    // Participation rate: voters / total collaborators (excluding owners)
+    const nonOwnerCollaborators = collaborators.filter(c => c.role !== "owner").length;
+    const participationRate = nonOwnerCollaborators > 0
+      ? Math.round((uniqueVoters / nonOwnerCollaborators) * 100)
+      : 0;
+
+    // 4. RESOLUTION METHODS
+    const resolutionMethods = {
+      consensus: proposals.filter(p => p.resolution_method === "consensus").length,
+      ownerOverride: proposals.filter(p => p.resolution_method === "owner_override").length,
+      autoApprove: proposals.filter(p => p.resolution_method === "auto_approve").length,
+      timeout: proposals.filter(p => p.resolution_method === "timeout").length,
+      withdrawn: proposals.filter(p => p.resolution_method === "withdrawn").length,
+    };
+
+    // 5. ROLE DISTRIBUTION
+    const roleDistribution = {
+      owner: collaborators.filter(c => c.role === "owner").length,
+      editor: collaborators.filter(c => c.role === "editor").length,
+      voter: collaborators.filter(c => c.role === "voter").length,
+      viewer: collaborators.filter(c => c.role === "viewer").length,
+    };
+
+    // 6. COLLABORATION FUNNEL
+    const collaborationFunnel = {
+      tripsCreated: trips.length,
+      invitesCreated: totalInvitesCreated,
+      invitesAccepted: totalInviteUses,
+      proposalsCreated: totalProposals,
+      proposalsResolved: proposalsByStatus.approved + proposalsByStatus.rejected + proposalsByStatus.withdrawn,
     };
 
     const growthStats: GrowthStats = {
@@ -396,6 +589,42 @@ export async function GET() {
         sharedTrip: calculateAhaMomentRetention(usersWhoSharedTrip),
         completedOnboarding: calculateAhaMomentRetention(usersWhoCompletedOnboarding),
         usedAssistant: calculateAhaMomentRetention(usersWhoUsedAssistant),
+        // Collaboration aha moments
+        createdInvite: calculateAhaMomentRetention(usersWhoCreatedInvite),
+        joinedViaInvite: calculateAhaMomentRetention(usersWhoJoinedViaInvite),
+        votedOnProposal: calculateAhaMomentRetention(usersWhoVotedOnProposal),
+        createdProposal: calculateAhaMomentRetention(usersWhoCreatedProposal),
+      },
+      collaboration: {
+        // Adoption metrics
+        collaborativeTrips,
+        tripsWithInvites,
+        totalInvitesCreated,
+        inviteAcceptRate,
+        avgCollaboratorsPerTrip,
+        totalCollaborators: collaborators.length,
+
+        // Proposal metrics
+        totalProposals,
+        proposalsByStatus,
+        proposalApprovalRate,
+        avgVotesPerProposal,
+        proposersCount,
+
+        // Voting metrics
+        totalProposalVotes,
+        uniqueVoters,
+        voteDistribution,
+        participationRate,
+
+        // Resolution methods
+        resolutionMethods,
+
+        // Role distribution
+        roleDistribution,
+
+        // Collaboration funnel
+        funnel: collaborationFunnel,
       },
     };
 

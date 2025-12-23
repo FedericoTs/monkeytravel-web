@@ -1,0 +1,96 @@
+{
+  "hero": {
+    "badge": "Live Now — Try It Free",
+    "title": "The AI Travel Planner That Actually Works",
+    "subtitle": "Drop a destination. Get a personalized day-by-day itinerary in 30 seconds.",
+    "cta": "Plan My Trip Free",
+    "signIn": "Sign In",
+    "trustSignals": {
+      "free": "100% Free",
+      "noCard": "No Credit Card",
+      "instant": "Instant Access"
+    }
+  },
+  "problem": {
+    "title": "You deserve better than this",
+    "subtitle": "Planning a trip shouldn't feel like a second job",
+    "points": {
+      "tabs": "47 browser tabs open, trying to piece together blogs, reviews, and maps",
+      "copy": "Copying itineraries that don't match your vibe or budget",
+      "hours": "Hours wasted on generic \"Top 10\" lists that all look the same"
+    }
+  },
+  "solution": {
+    "title": "There's a better way",
+    "subtitle": "Let AI do the heavy lifting while you focus on the excitement",
+    "features": {
+      "personalized": {
+        "title": "Truly Personalized",
+        "description": "Tell us your vibe — adventure, foodie, cultural, or chill — and we'll craft an itinerary that matches."
+      },
+      "smart": {
+        "title": "Smart Scheduling",
+        "description": "Optimized routes, realistic timing, and no backtracking across the city."
+      },
+      "local": {
+        "title": "Local Insights",
+        "description": "Hidden gems and local favorites, not just tourist traps."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Three simple steps to your perfect trip",
+    "steps": {
+      "destination": {
+        "title": "Pick Your Destination",
+        "description": "Search for any city in the world"
+      },
+      "preferences": {
+        "title": "Set Your Preferences",
+        "description": "Choose your travel style, budget, and pace"
+      },
+      "itinerary": {
+        "title": "Get Your Itinerary",
+        "description": "Receive a complete day-by-day plan in seconds"
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "free": {
+        "question": "Is it really free?",
+        "answer": "Yes! You can create trips completely free. We offer premium features for power users, but the core trip planning is always free."
+      },
+      "accuracy": {
+        "question": "How accurate are the itineraries?",
+        "answer": "Our AI uses real-time data from Google Places, verified opening hours, and optimized routing to ensure accuracy. We continuously update our recommendations."
+      },
+      "customize": {
+        "question": "Can I customize the itinerary?",
+        "answer": "Absolutely! You can regenerate specific activities, adjust timing, add your own stops, and share with travel companions who can vote on activities."
+      },
+      "destinations": {
+        "question": "What destinations do you support?",
+        "answer": "We support any city in the world that Google Maps covers. From major cities like Paris and Tokyo to smaller towns and hidden gems."
+      },
+      "save": {
+        "question": "Can I save my trips?",
+        "answer": "Yes! Create a free account to save unlimited trips, access them from any device, and share with friends."
+      },
+      "collaborate": {
+        "question": "Can I plan with friends?",
+        "answer": "Yes! Invite travel companions to collaborate on your trip. They can view the itinerary, vote on activities, and suggest new ones."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to plan your next adventure?",
+    "subtitle": "Join thousands of travelers who plan smarter, not harder.",
+    "button": "Start Planning — It's Free"
+  },
+  "testimonials": {
+    "title": "What travelers are saying"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "myTrips": "My Trips",
+    "profile": "Profile",
+    "admin": "Admin",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "submit": "Submit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "tryFree": "Try It Free",
+    "planTrip": "Plan My Trip",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "showMore": "Show More",
+    "showLess": "Show Less",
+    "retry": "Retry",
+    "skip": "Skip"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least {min} characters",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "invalidDate": "Please enter a valid date",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be at most {max} characters"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "error": "Error",
+    "success": "Success",
+    "pending": "Pending",
+    "processing": "Processing..."
+  },
+  "time": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "night": "Night",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "notFound": "Page not found",
+    "unauthorized": "You are not authorized to access this page"
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "contact": "Contact",
+    "copyright": "© {year} MonkeyTravel. All rights reserved."
+  },
+  "language": {
+    "select": "Select Language",
+    "english": "English",
+    "spanish": "Spanish",
+    "italian": "Italian"
+  }
+}

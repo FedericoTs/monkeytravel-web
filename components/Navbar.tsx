@@ -9,6 +9,7 @@ import type { User } from '@supabase/supabase-js';
 import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 import { TourTrigger } from '@/components/tour';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const navLinks = [
   { href: '#features', label: 'Features' },
@@ -82,8 +83,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Language Switcher & CTA Button */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher showLabel={false} />
             {loading ? (
               <div className="w-24 h-10 bg-slate-100 rounded-full animate-pulse" />
             ) : user ? (
@@ -233,6 +235,10 @@ export default function Navbar() {
                   </div>
                 </>
               )}
+              {/* Language Switcher - Mobile */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <LanguageSwitcher variant="inline" className="justify-center" />
+              </div>
             </div>
           </div>
         )}

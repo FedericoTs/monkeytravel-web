@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2 } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
@@ -121,6 +122,11 @@ export default function TripDetailClient({
   userRole = "owner",
   collaboratorCount = 0,
 }: TripDetailClientProps) {
+  // Check for share query param (used to auto-open share modal after trip save)
+  const searchParams = useSearchParams();
+  const shareParam = searchParams.get("share");
+  const shouldAutoOpenShareModal = shareParam === "invite";
+
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -1238,7 +1244,12 @@ export default function TripDetailClient({
 
             {/* Share Button */}
             {!isEditMode && (
-              <ShareButton tripId={trip.id} tripTitle={trip.title} />
+              <ShareButton
+                tripId={trip.id}
+                tripTitle={trip.title}
+                autoOpen={shouldAutoOpenShareModal}
+                initialTab={shouldAutoOpenShareModal ? "invite" : "share"}
+              />
             )}
 
             {/* Export Menu */}

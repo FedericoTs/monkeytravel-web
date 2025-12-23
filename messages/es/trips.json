@@ -1,0 +1,170 @@
+{
+  "wizard": {
+    "step1": {
+      "title": "¿Adonde quieres ir?",
+      "subtitle": "Busca una ciudad para empezar a planificar tu viaje",
+      "placeholder": "ej., Paris, Tokio, Nueva York...",
+      "popularDestinations": "Destinos populares"
+    },
+    "step2": {
+      "title": "¿Cuando viajas?",
+      "subtitle": "Selecciona las fechas de tu viaje (maximo 14 dias)",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "daysLabel": "{count} dias"
+    },
+    "step3": {
+      "title": "¿Cual es tu estilo de viaje?",
+      "subtitle": "Elige el ambiente que captura tu experiencia ideal en {destination}",
+      "selectUpTo": "Selecciona hasta {count} estilos"
+    },
+    "step4": {
+      "title": "Ultimos detalles",
+      "subtitle": "Configura tu presupuesto, ritmo y requisitos especiales"
+    }
+  },
+  "vibes": {
+    "adventure": {
+      "label": "Aventurero",
+      "description": "Actividades al aire libre, rutas de senderismo y experiencias de adrenalina"
+    },
+    "cultural": {
+      "label": "Explorador Cultural",
+      "description": "Museos, sitios historicos, tradiciones locales y maravillas del pasado"
+    },
+    "foodie": {
+      "label": "Gastronomico",
+      "description": "Cocina local, tours gastronomicos, mercados y experiencias culinarias"
+    },
+    "wellness": {
+      "label": "Bienestar y Relajacion",
+      "description": "Spas, retiros de yoga, jardines tranquilos y experiencias rejuvenecedoras"
+    },
+    "romantic": {
+      "label": "Escapada Romantica",
+      "description": "Lugares pintorescos, puestas de sol, cenas intimas y actividades en pareja"
+    },
+    "urban": {
+      "label": "Explorador Urbano",
+      "description": "Vida de ciudad, zonas comerciales, vida nocturna y atracciones modernas"
+    },
+    "nature": {
+      "label": "Amante de la Naturaleza",
+      "description": "Parques, jardines, paisajes escenicso y encuentros con la fauna"
+    },
+    "offbeat": {
+      "label": "Fuera de lo Comun",
+      "description": "Joyas escondidas, secretos locales y experiencias poco convencionales"
+    },
+    "time-traveler": {
+      "label": "Viajero del Tiempo",
+      "description": "Ruinas antiguas, castillos medievales y monumentos historicos"
+    },
+    "photo-hunter": {
+      "label": "Cazador de Fotos",
+      "description": "Lugares instagrameables, miradores y locaciones fotogenicas"
+    },
+    "local-life": {
+      "label": "Vida Local",
+      "description": "Barrios, cafes locales, mercados y experiencias autenticas"
+    },
+    "night-owl": {
+      "label": "Noctambulo",
+      "description": "Entretenimiento nocturno, bares, clubs y comida de madrugada"
+    }
+  },
+  "budget": {
+    "title": "Presupuesto",
+    "budget": {
+      "label": "Economico",
+      "description": "Atracciones gratuitas, comida callejera, transporte publico",
+      "range": "< 100€/dia"
+    },
+    "balanced": {
+      "label": "Equilibrado",
+      "description": "Mezcla de experiencias, restaurantes locales, algunos tours",
+      "range": "100-250€/dia"
+    },
+    "premium": {
+      "label": "Premium",
+      "description": "Sin colas, alta cocina, tours privados",
+      "range": "250+€/dia"
+    }
+  },
+  "pace": {
+    "title": "Ritmo",
+    "relaxed": {
+      "label": "Relajado",
+      "description": "2-3 actividades/dia"
+    },
+    "moderate": {
+      "label": "Moderado",
+      "description": "3-4 actividades/dia"
+    },
+    "active": {
+      "label": "Activo",
+      "description": "5+ actividades/dia"
+    }
+  },
+  "requirements": {
+    "title": "Requisitos Especiales",
+    "placeholder": "ej., accesible en silla de ruedas, restaurantes vegetarianos, apto para ninos...",
+    "hint": "Opcional - cuentanos sobre cualquier necesidad especifica"
+  },
+  "generation": {
+    "generating": "Creando tu itinerario perfecto...",
+    "analyzing": "Analizando {destination}...",
+    "findingActivities": "Buscando las mejores actividades...",
+    "optimizingRoute": "Optimizando tus rutas diarias...",
+    "almostDone": "Casi listo...",
+    "error": "Error al generar el itinerario. Por favor, intentalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "result": {
+    "title": "Tu Itinerario en {destination}",
+    "daysCount": "{count} Dias",
+    "saveTrip": "Guardar Viaje",
+    "startOver": "Empezar de Nuevo",
+    "regenerate": "Regenerar",
+    "share": "Compartir",
+    "export": "Exportar"
+  },
+  "day": {
+    "label": "Dia {number}",
+    "morning": "Manana",
+    "afternoon": "Tarde",
+    "evening": "Noche",
+    "travel": "Viaje",
+    "totalDistance": "Distancia total",
+    "walkingTime": "Caminando",
+    "drivingTime": "En coche"
+  },
+  "activity": {
+    "duration": "{duration} min",
+    "cost": "Costo",
+    "free": "Gratis",
+    "tips": "Consejos",
+    "directions": "Como llegar",
+    "moreInfo": "Mas Info"
+  },
+  "limits": {
+    "freeTripsRemaining": "Te quedan {count} viajes gratuitos",
+    "noTripsRemaining": "Has usado todos tus viajes gratuitos",
+    "upgradePrompt": "Actualiza para planificacion ilimitada",
+    "enterCode": "¿Tienes un codigo de acceso?",
+    "joinWaitlist": "Unete a la lista de espera para acceso anticipado"
+  },
+  "save": {
+    "title": "Guardar Tu Viaje",
+    "subtitle": "Crea una cuenta para guardar y acceder a tu viaje en cualquier momento",
+    "saving": "Guardando tu viaje...",
+    "success": "¡Viaje guardado exitosamente!",
+    "error": "Error al guardar el viaje. Por favor, intentalo de nuevo."
+  },
+  "startOver": {
+    "title": "¿Empezar de Nuevo?",
+    "message": "Esto descartara tu itinerario actual y empezara desde cero.",
+    "confirm": "Si, Empezar de Nuevo",
+    "cancel": "Mantener Viaje Actual"
+  }
+}

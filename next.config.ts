@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
 
 // Security headers for production
 const securityHeaders = [
@@ -101,5 +102,8 @@ const sentryConfig = {
   tunnelRoute: undefined,
 };
 
-// Export with Sentry wrapper
-export default withSentryConfig(nextConfig, sentryConfig);
+// Create next-intl plugin
+const withNextIntl = createNextIntlPlugin("./i18n.ts");
+
+// Export with next-intl and Sentry wrappers
+export default withSentryConfig(withNextIntl(nextConfig), sentryConfig);

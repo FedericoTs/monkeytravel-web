@@ -3,9 +3,7 @@ import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { ToastProvider } from "@/components/ui/Toast";
 import { LocaleProvider } from "@/lib/locale";
-import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import SessionTracker from "@/components/analytics/SessionTracker";
 import {
@@ -163,11 +161,7 @@ export default function RootLayout({
       >
         <LocaleProvider>
           <PlaceCacheProvider>
-            <ToastProvider>
-              <MaintenanceWrapper>
-                {children}
-              </MaintenanceWrapper>
-            </ToastProvider>
+            {children}
           </PlaceCacheProvider>
         </LocaleProvider>
         <Analytics />

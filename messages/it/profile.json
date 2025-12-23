@@ -1,0 +1,85 @@
+{
+  "title": "Profilo",
+  "subtitle": "Gestisci il tuo account e le tue preferenze",
+  "sections": {
+    "personalInfo": {
+      "title": "Informazioni Personali",
+      "description": "Le tue informazioni base del profilo"
+    },
+    "travelPreferences": {
+      "title": "Preferenze di Viaggio",
+      "description": "Aiutaci a personalizzare i tuoi consigli di viaggio"
+    },
+    "account": {
+      "title": "Impostazioni Account",
+      "description": "Gestisci il tuo account e abbonamento"
+    }
+  },
+  "fields": {
+    "displayName": {
+      "label": "Nome",
+      "placeholder": "Il tuo nome"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "tu@email.com"
+    },
+    "bio": {
+      "label": "Biografia",
+      "placeholder": "Raccontaci un po' di te..."
+    },
+    "homeCountry": {
+      "label": "Paese di Origine",
+      "placeholder": "Seleziona il tuo paese"
+    },
+    "homeCity": {
+      "label": "Citta di Origine",
+      "placeholder": "La tua citta"
+    },
+    "dateOfBirth": {
+      "label": "Data di Nascita",
+      "placeholder": "Seleziona il tuo compleanno"
+    },
+    "languages": {
+      "label": "Lingue Parlate",
+      "description": "Seleziona le lingue che parli per migliori raccomandazioni"
+    }
+  },
+  "preferences": {
+    "travelStyles": {
+      "label": "Stili di Viaggio",
+      "description": "Che tipo di viaggi ti piacciono?"
+    },
+    "dietaryPreferences": {
+      "label": "Preferenze Alimentari",
+      "description": "Hai preferenze o restrizioni alimentari?"
+    },
+    "accessibilityNeeds": {
+      "label": "Esigenze di Accessibilita",
+      "description": "Aiutaci a consigliare opzioni accessibili"
+    }
+  },
+  "subscription": {
+    "title": "Abbonamento",
+    "free": {
+      "title": "Piano Gratuito",
+      "description": "Funzionalita base di pianificazione"
+    },
+    "premium": {
+      "title": "Premium",
+      "description": "Viaggi illimitati e funzionalita avanzate"
+    },
+    "upgrade": "Aggiorna a Premium",
+    "manage": "Gestisci Abbonamento"
+  },
+  "actions": {
+    "signOut": "Esci",
+    "deleteAccount": "Elimina Account",
+    "deleteConfirm": "Sei sicuro di voler eliminare il tuo account? Questa azione non puo essere annullata."
+  },
+  "status": {
+    "saving": "Salvataggio...",
+    "saved": "Modifiche salvate",
+    "error": "Errore nel salvare le modifiche"
+  }
+}

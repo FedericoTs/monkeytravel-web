@@ -624,6 +624,36 @@ export function trackShareModalOpened(params: {
   });
 }
 
+/**
+ * Track post-save sharing prompt shown (critical virality metric)
+ */
+export function trackSharePromptShown(params: {
+  tripId: string;
+  tripDestination: string;
+  tripDays: number;
+}): void {
+  trackEvent("share_prompt_shown", {
+    trip_id: params.tripId,
+    trip_destination: params.tripDestination,
+    trip_days: params.tripDays,
+    location: "post_save",
+  });
+}
+
+/**
+ * Track post-save sharing prompt action
+ */
+export function trackSharePromptAction(params: {
+  tripId: string;
+  action: "invite" | "skip";
+}): void {
+  trackEvent("share_prompt_action", {
+    trip_id: params.tripId,
+    action: params.action,
+    location: "post_save",
+  });
+}
+
 // ============================================================================
 // REVENUE INTENT EVENTS - Pre-monetization tracking
 // ============================================================================

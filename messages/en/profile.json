@@ -1,0 +1,85 @@
+{
+  "title": "Profile",
+  "subtitle": "Manage your account settings and preferences",
+  "sections": {
+    "personalInfo": {
+      "title": "Personal Information",
+      "description": "Your basic profile information"
+    },
+    "travelPreferences": {
+      "title": "Travel Preferences",
+      "description": "Help us personalize your trip recommendations"
+    },
+    "account": {
+      "title": "Account Settings",
+      "description": "Manage your account and subscription"
+    }
+  },
+  "fields": {
+    "displayName": {
+      "label": "Display Name",
+      "placeholder": "Your name"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "your@email.com"
+    },
+    "bio": {
+      "label": "Bio",
+      "placeholder": "Tell us a bit about yourself..."
+    },
+    "homeCountry": {
+      "label": "Home Country",
+      "placeholder": "Select your country"
+    },
+    "homeCity": {
+      "label": "Home City",
+      "placeholder": "Your city"
+    },
+    "dateOfBirth": {
+      "label": "Date of Birth",
+      "placeholder": "Select your birthday"
+    },
+    "languages": {
+      "label": "Languages Spoken",
+      "description": "Select languages you speak for better travel recommendations"
+    }
+  },
+  "preferences": {
+    "travelStyles": {
+      "label": "Travel Styles",
+      "description": "What kind of trips do you enjoy?"
+    },
+    "dietaryPreferences": {
+      "label": "Dietary Preferences",
+      "description": "Any food preferences or restrictions?"
+    },
+    "accessibilityNeeds": {
+      "label": "Accessibility Needs",
+      "description": "Help us recommend accessible options"
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "free": {
+      "title": "Free Plan",
+      "description": "Basic trip planning features"
+    },
+    "premium": {
+      "title": "Premium",
+      "description": "Unlimited trips and advanced features"
+    },
+    "upgrade": "Upgrade to Premium",
+    "manage": "Manage Subscription"
+  },
+  "actions": {
+    "signOut": "Sign Out",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "Are you sure you want to delete your account? This action cannot be undone."
+  },
+  "status": {
+    "saving": "Saving...",
+    "saved": "Changes saved",
+    "error": "Failed to save changes"
+  }
+}
