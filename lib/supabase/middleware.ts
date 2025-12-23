@@ -52,8 +52,9 @@ async function trackPageView(request: NextRequest, userId?: string) {
   }
 }
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+export async function updateSession(request: NextRequest, baseResponse?: NextResponse) {
+  // Use the base response if provided (from chained middleware), otherwise create new
+  let supabaseResponse = baseResponse || NextResponse.next({
     request,
   });
 
@@ -69,9 +70,13 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          // Only create new response if we don't have a base response
+          // This preserves the intl middleware's headers/rewrites
+          if (!baseResponse) {
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+          }
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );

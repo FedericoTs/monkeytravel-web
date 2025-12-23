@@ -15,7 +15,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/admin") ||
     pathname.includes(".") ||
-    pathname.startsWith("/auth/callback");
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/auth/signout");
 
   if (shouldSkipIntl) {
     // Just handle Supabase session for these routes
@@ -25,13 +26,14 @@ export async function middleware(request: NextRequest) {
   // Run i18n middleware first to handle locale routing
   const intlResponse = intlMiddleware(request);
 
-  // If i18n middleware returned a redirect, follow it
-  if (intlResponse.status !== 200) {
+  // If i18n middleware returned a redirect (3xx), follow it
+  if (intlResponse.status >= 300 && intlResponse.status < 400) {
     return intlResponse;
   }
 
-  // Then handle Supabase session
-  return await updateSession(request);
+  // For normal responses, chain Supabase session handling
+  // Pass the modified request from intl middleware (with locale info)
+  return await updateSession(request, intlResponse);
 }
 
 export const config = {
