@@ -8,6 +8,7 @@ import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import Link from 'next/link';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 import { TourTrigger } from '@/components/tour';
+import { getTranslations } from 'next-intl/server';
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
@@ -64,6 +65,9 @@ export default async function Home() {
     redirect('/trips');
   }
 
+  // Get translations for landing page
+  const t = await getTranslations('landing');
+
   // New/anonymous user - show landing page
   return (
     <>
@@ -96,20 +100,18 @@ export default async function Home() {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
                   <span className="text-sm font-semibold text-emerald-700">
-                    Live Now — Try It Free
+                    {t('hero.badge')}
                   </span>
                 </div>
 
                 {/* Main Headline - Primary keyword: AI travel planner */}
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--foreground)] leading-[1.08] tracking-tight mb-6">
-                  The AI Travel Planner
-                  <br />
-                  <span className="gradient-text-blue">That Actually Works</span>
+                  {t('hero.title')}
                 </h1>
 
                 {/* Sub-headline with value proposition */}
                 <p className="text-lg sm:text-xl text-[var(--foreground-muted)] mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Drop a destination. Get a <span className="text-[var(--foreground)] font-medium">personalized day-by-day itinerary</span> in 30 seconds — tailored to your travel style, interests, and pace.
+                  {t('hero.subtitle')}
                 </p>
 
                 {/* Primary CTAs */}
@@ -119,7 +121,7 @@ export default async function Home() {
                     variant="primary-cta"
                     skipToAuthIfCompleted={true}
                   >
-                    <span>Plan My Trip Free</span>
+                    <span>{t('hero.cta')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -128,7 +130,7 @@ export default async function Home() {
                     href="/auth/login"
                     className="px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Sign In</span>
+                    <span>{t('hero.signIn')}</span>
                   </Link>
                 </div>
 
@@ -138,19 +140,19 @@ export default async function Home() {
                     <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>100% Free</span>
+                    <span>{t('hero.trustSignals.free')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>No Credit Card</span>
+                    <span>{t('hero.trustSignals.noCard')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>Instant Access</span>
+                    <span>{t('hero.trustSignals.instant')}</span>
                   </div>
                 </div>
 
