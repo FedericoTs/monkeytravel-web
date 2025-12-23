@@ -138,16 +138,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
-          {/* Left side - Back to trips */}
+          {/* Left side - Back to home */}
           <div className="flex items-center gap-2">
             <Link
-              href="/trips"
+              href="/"
               className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back to My Trips</span>
+              <span className="hidden sm:inline">Back</span>
             </Link>
           </div>
 
