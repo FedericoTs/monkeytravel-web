@@ -3,7 +3,7 @@
     "badge": "Disponible Ahora — Pruébalo Gratis",
     "titleLine1": "El Planificador de Viajes con IA",
     "titleHighlight": "Que Realmente Funciona",
-    "subtitleStart": "Elige un destino. Obtén un",
+    "subtitleStart": "Elige tu destino. Obtén un",
     "subtitleHighlight": "itinerario personalizado día a día",
     "subtitleEnd": "en 30 segundos — adaptado a tu estilo de viaje, intereses y ritmo.",
     "cta": "Planifica Mi Viaje Gratis",
@@ -15,47 +15,47 @@
     }
   },
   "problem": {
-    "title": "Te mereces algo mejor",
-    "subtitle": "Planificar un viaje no deberia ser un segundo trabajo",
+    "title": "Mereces algo mejor",
+    "subtitle": "Planificar un viaje no debería sentirse como un segundo trabajo",
     "points": {
-      "tabs": "47 pestanas abiertas, tratando de unir blogs, resenas y mapas",
-      "copy": "Copiando itinerarios que no coinciden con tu estilo o presupuesto",
-      "hours": "Horas perdidas en listas genericas de \"Top 10\" que todas lucen igual"
+      "tabs": "47 pestañas abiertas, tratando de unir blogs, reseñas y mapas",
+      "copy": "Copiando itinerarios que no coinciden con tu estilo ni tu presupuesto",
+      "hours": "Horas perdidas en listas genéricas de \"Top 10\" que todas lucen igual"
     }
   },
   "solution": {
-    "title": "Hay una mejor manera",
-    "subtitle": "Deja que la IA haga el trabajo pesado mientras tu te concentras en la emocion",
+    "title": "Existe una forma mejor",
+    "subtitle": "Deja que la IA haga el trabajo pesado mientras tú te concentras en la emoción",
     "features": {
       "personalized": {
         "title": "Verdaderamente Personalizado",
-        "description": "Dinos tu estilo — aventura, gastronomia, cultura o relax — y crearemos un itinerario que coincida."
+        "description": "Cuéntanos tu estilo — aventura, gastronomía, cultura o relax — y crearemos un itinerario a tu medida."
       },
       "smart": {
-        "title": "Programacion Inteligente",
+        "title": "Programación Inteligente",
         "description": "Rutas optimizadas, horarios realistas y sin retroceder por toda la ciudad."
       },
       "local": {
-        "title": "Perspectivas Locales",
-        "description": "Joyas escondidas y favoritos locales, no solo trampas para turistas."
+        "title": "Descubre lo Auténtico",
+        "description": "Joyas escondidas y favoritos locales, no solo las típicas trampas para turistas."
       }
     }
   },
   "howItWorks": {
-    "title": "Como Funciona",
-    "subtitle": "Tres simples pasos para tu viaje perfecto",
+    "title": "Cómo Funciona",
+    "subtitle": "Tres simples pasos hacia tu viaje perfecto",
     "steps": {
       "destination": {
         "title": "Elige Tu Destino",
         "description": "Busca cualquier ciudad del mundo"
       },
       "preferences": {
-        "title": "Configura Tus Preferencias",
-        "description": "Elige tu estilo de viaje, presupuesto y ritmo"
+        "title": "Define Tus Preferencias",
+        "description": "Selecciona tu estilo de viaje, presupuesto y ritmo"
       },
       "itinerary": {
-        "title": "Obtén Tu Itinerario",
-        "description": "Recibe un plan completo dia a dia en segundos"
+        "title": "Recibe Tu Itinerario",
+        "description": "Obtén un plan completo día a día en segundos"
       }
     }
   },
@@ -64,33 +64,33 @@
     "items": {
       "free": {
         "question": "¿Es realmente gratis?",
-        "answer": "¡Si! Puedes crear viajes completamente gratis. Ofrecemos funciones premium para usuarios avanzados, pero la planificacion basica siempre es gratis."
+        "answer": "¡Sí! Puedes crear viajes completamente gratis. Ofrecemos funciones premium para usuarios avanzados, pero la planificación básica siempre será gratis."
       },
       "accuracy": {
-        "question": "¿Que tan precisos son los itinerarios?",
-        "answer": "Nuestra IA usa datos en tiempo real de Google Places, horarios verificados y rutas optimizadas para asegurar precision. Actualizamos continuamente nuestras recomendaciones."
+        "question": "¿Qué tan precisos son los itinerarios?",
+        "answer": "Nuestra IA utiliza datos en tiempo real de Google Places, horarios verificados y rutas optimizadas para garantizar precisión. Actualizamos continuamente nuestras recomendaciones."
       },
       "customize": {
         "question": "¿Puedo personalizar el itinerario?",
-        "answer": "¡Por supuesto! Puedes regenerar actividades especificas, ajustar horarios, agregar tus propias paradas y compartir con companeros de viaje que pueden votar sobre las actividades."
+        "answer": "¡Por supuesto! Puedes regenerar actividades específicas, ajustar horarios, agregar tus propias paradas y compartir con compañeros de viaje que pueden votar sobre las actividades."
       },
       "destinations": {
-        "question": "¿Que destinos soportan?",
-        "answer": "Soportamos cualquier ciudad del mundo que Google Maps cubra. Desde grandes ciudades como Paris y Tokio hasta pueblos pequenos y joyas escondidas."
+        "question": "¿Qué destinos cubren?",
+        "answer": "Cubrimos cualquier ciudad del mundo que Google Maps incluya. Desde grandes ciudades como París y Tokio hasta pequeños pueblos y joyas escondidas."
       },
       "save": {
         "question": "¿Puedo guardar mis viajes?",
-        "answer": "¡Si! Crea una cuenta gratuita para guardar viajes ilimitados, acceder desde cualquier dispositivo y compartir con amigos."
+        "answer": "¡Sí! Crea una cuenta gratuita para guardar viajes ilimitados, acceder desde cualquier dispositivo y compartir con amigos."
       },
       "collaborate": {
         "question": "¿Puedo planificar con amigos?",
-        "answer": "¡Si! Invita a companeros de viaje a colaborar en tu viaje. Pueden ver el itinerario, votar sobre actividades y sugerir nuevas."
+        "answer": "¡Sí! Invita a compañeros de viaje a colaborar en tu itinerario. Pueden ver el plan, votar sobre actividades y sugerir nuevas opciones."
       }
     }
   },
   "cta": {
-    "title": "¿Listo para planificar tu proxima aventura?",
-    "subtitle": "Unete a miles de viajeros que planifican de manera mas inteligente.",
+    "title": "¿Listo para planificar tu próxima aventura?",
+    "subtitle": "Únete a miles de viajeros que planifican de manera más inteligente.",
     "button": "Empezar a Planificar — Es Gratis"
   },
   "testimonials": {
