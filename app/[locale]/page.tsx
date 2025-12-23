@@ -106,12 +106,14 @@ export default async function Home() {
 
                 {/* Main Headline - Primary keyword: AI travel planner */}
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--foreground)] leading-[1.08] tracking-tight mb-6">
-                  {t('hero.title')}
+                  {t('hero.titleLine1')}
+                  <br />
+                  <span className="gradient-text-blue">{t('hero.titleHighlight')}</span>
                 </h1>
 
                 {/* Sub-headline with value proposition */}
                 <p className="text-lg sm:text-xl text-[var(--foreground-muted)] mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  {t('hero.subtitle')}
+                  {t('hero.subtitleStart')} <span className="text-[var(--foreground)] font-medium">{t('hero.subtitleHighlight')}</span> {t('hero.subtitleEnd')}
                 </p>
 
                 {/* Primary CTAs */}

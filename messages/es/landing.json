@@ -1,14 +1,17 @@
 {
   "hero": {
-    "badge": "Disponible Ahora — Pruebalo Gratis",
-    "title": "El Planificador de Viajes con IA Que Realmente Funciona",
-    "subtitle": "Elige un destino. Obtén un itinerario personalizado dia a dia en 30 segundos.",
+    "badge": "Disponible Ahora — Pruébalo Gratis",
+    "titleLine1": "El Planificador de Viajes con IA",
+    "titleHighlight": "Que Realmente Funciona",
+    "subtitleStart": "Elige un destino. Obtén un",
+    "subtitleHighlight": "itinerario personalizado día a día",
+    "subtitleEnd": "en 30 segundos — adaptado a tu estilo de viaje, intereses y ritmo.",
     "cta": "Planifica Mi Viaje Gratis",
-    "signIn": "Iniciar Sesion",
+    "signIn": "Iniciar Sesión",
     "trustSignals": {
       "free": "100% Gratis",
-      "noCard": "Sin Tarjeta de Credito",
-      "instant": "Acceso Instantaneo"
+      "noCard": "Sin Tarjeta de Crédito",
+      "instant": "Acceso Instantáneo"
     }
   },
   "problem": {

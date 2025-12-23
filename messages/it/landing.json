@@ -1,8 +1,11 @@
 {
   "hero": {
     "badge": "Disponibile Ora — Provalo Gratis",
-    "title": "Il Pianificatore di Viaggi con IA Che Funziona Davvero",
-    "subtitle": "Scegli una destinazione. Ottieni un itinerario personalizzato giorno per giorno in 30 secondi.",
+    "titleLine1": "Il Pianificatore di Viaggi con IA",
+    "titleHighlight": "Che Funziona Davvero",
+    "subtitleStart": "Scegli una destinazione. Ottieni un",
+    "subtitleHighlight": "itinerario personalizzato giorno per giorno",
+    "subtitleEnd": "in 30 secondi — su misura per il tuo stile di viaggio, interessi e ritmo.",
     "cta": "Pianifica il Mio Viaggio Gratis",
     "signIn": "Accedi",
     "trustSignals": {

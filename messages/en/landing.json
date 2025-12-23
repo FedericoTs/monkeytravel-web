@@ -1,8 +1,11 @@
 {
   "hero": {
     "badge": "Live Now — Try It Free",
-    "title": "The AI Travel Planner That Actually Works",
-    "subtitle": "Drop a destination. Get a personalized day-by-day itinerary in 30 seconds.",
+    "titleLine1": "The AI Travel Planner",
+    "titleHighlight": "That Actually Works",
+    "subtitleStart": "Drop a destination. Get a",
+    "subtitleHighlight": "personalized day-by-day itinerary",
+    "subtitleEnd": "in 30 seconds — tailored to your travel style, interests, and pace.",
     "cta": "Plan My Trip Free",
     "signIn": "Sign In",
     "trustSignals": {
