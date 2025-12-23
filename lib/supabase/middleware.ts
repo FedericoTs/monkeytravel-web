@@ -97,11 +97,25 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   const protectedPaths = ["/trips"];
   const excludedFromProtection = ["/trips/new"];
+
+  // Strip locale prefix from pathname for path matching
+  const locales = ["en", "es", "it"];
+  let pathWithoutLocale = request.nextUrl.pathname;
+  for (const locale of locales) {
+    if (pathWithoutLocale.startsWith(`/${locale}/`)) {
+      pathWithoutLocale = pathWithoutLocale.slice(locale.length + 1);
+      break;
+    } else if (pathWithoutLocale === `/${locale}`) {
+      pathWithoutLocale = "/";
+      break;
+    }
+  }
+
   const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
+    pathWithoutLocale.startsWith(path)
   );
   const isExcluded = excludedFromProtection.some((path) =>
-    request.nextUrl.pathname === path
+    pathWithoutLocale === path
   );
 
   if (isProtectedPath && !isExcluded && !user) {
@@ -134,7 +148,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Redirect logged in users away from auth pages
   const authPaths = ["/auth/login", "/auth/signup"];
   const isAuthPath = authPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
+    pathWithoutLocale.startsWith(path)
   );
 
   if (isAuthPath && user) {
