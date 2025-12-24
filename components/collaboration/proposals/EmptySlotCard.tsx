@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface EmptySlotCardProps {
   day: number;
@@ -10,10 +11,10 @@ interface EmptySlotCardProps {
   proposalCount?: number;
 }
 
-const TIME_SLOT_LABELS = {
-  morning: '🌅 Morning',
-  afternoon: '☀️ Afternoon',
-  evening: '🌙 Evening',
+const TIME_SLOT_ICONS = {
+  morning: '🌅',
+  afternoon: '☀️',
+  evening: '🌙',
 };
 
 export function EmptySlotCard({
@@ -23,6 +24,7 @@ export function EmptySlotCard({
   disabled = false,
   proposalCount = 0,
 }: EmptySlotCardProps) {
+  const t = useTranslations("common.proposals");
   const hasProposals = proposalCount > 0;
 
   return (
@@ -80,17 +82,19 @@ export function EmptySlotCard({
             hasProposals ? 'text-blue-700' : 'text-gray-600'
           }`}>
             {hasProposals
-              ? `${proposalCount} proposal${proposalCount > 1 ? 's' : ''}`
-              : 'Empty slot'
+              ? (proposalCount > 1
+                  ? t("emptySlot.proposalsHerePlural", { count: proposalCount })
+                  : t("emptySlot.proposalsHere", { count: proposalCount }))
+              : t("emptySlot.emptySlot")
             }
           </p>
           {timeSlot && (
             <p className="text-xs text-gray-500 mt-0.5">
-              {TIME_SLOT_LABELS[timeSlot]}
+              {TIME_SLOT_ICONS[timeSlot]} {t(`emptySlot.${timeSlot}`)}
             </p>
           )}
           <p className="text-xs text-gray-400 mt-1">
-            {hasProposals ? 'Tap to view & vote' : 'Tap to propose an activity'}
+            {hasProposals ? t("emptySlot.tapToVote") : t("emptySlot.tapToPropose")}
           </p>
         </div>
       </div>
@@ -108,6 +112,7 @@ export function EmptySlotInline({
   onPropose: () => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("common.proposals");
   return (
     <motion.button
       whileHover={{ scale: disabled ? 1 : 1.02 }}
@@ -126,7 +131,7 @@ export function EmptySlotInline({
       `}
     >
       <span className="text-lg">➕</span>
-      <span>Propose activity</span>
+      <span>{t("emptySlot.proposeActivity")}</span>
     </motion.button>
   );
 }

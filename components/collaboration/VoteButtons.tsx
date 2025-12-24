@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { VoteType, VOTE_INFO } from "@/types";
 
 interface VoteButtonsProps {
@@ -20,6 +21,7 @@ export default function VoteButtons({
   compact = false,
   className = "",
 }: VoteButtonsProps) {
+  const t = useTranslations("common.voting");
   const [isVoting, setIsVoting] = useState(false);
   const [pendingVote, setPendingVote] = useState<VoteType | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -96,15 +98,15 @@ export default function VoteButtons({
                 ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}
                 ${isLoading ? "animate-pulse" : ""}
               `}
-              title={`${info.emoji} ${info.label}: ${info.description}`}
-              aria-label={info.label}
+              title={`${info.emoji} ${t(`types.${type}.label`)}: ${t(`types.${type}.description`)}`}
+              aria-label={t(`types.${type}.label`)}
             >
-              <span className="text-lg" role="img" aria-label={info.label}>
+              <span className="text-lg" role="img" aria-label={t(`types.${type}.label`)}>
                 {info.emoji}
               </span>
               {!compact && (
                 <span className={`ml-1 text-sm font-medium ${isSelected ? info.color : "text-slate-600"}`}>
-                  {info.label}
+                  {t(`types.${type}.label`)}
                 </span>
               )}
               {isSelected && (
@@ -127,10 +129,10 @@ export default function VoteButtons({
               <span className="text-2xl">{VOTE_INFO[pendingVote].emoji}</span>
               <div>
                 <h3 className="font-semibold text-slate-900">
-                  {VOTE_INFO[pendingVote].label}
+                  {t(`types.${pendingVote}.label`)}
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Please share why with the group
+                  {t("shareWhy")}
                 </p>
               </div>
             </div>
@@ -140,8 +142,8 @@ export default function VoteButtons({
               onChange={(e) => setComment(e.target.value)}
               placeholder={
                 pendingVote === "concerns"
-                  ? "What concerns do you have about this activity?"
-                  : "Why isn't this activity right for you?"
+                  ? t("concernsPlaceholder")
+                  : t("noPlaceholder")
               }
               className="w-full h-24 p-3 border border-slate-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               autoFocus
@@ -156,7 +158,7 @@ export default function VoteButtons({
                 }}
                 className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 onClick={handleCommentSubmit}
@@ -170,7 +172,7 @@ export default function VoteButtons({
                   }
                 `}
               >
-                {isVoting ? "Submitting..." : "Submit Vote"}
+                {isVoting ? t("submitting") : t("submitVote")}
               </button>
             </div>
           </div>

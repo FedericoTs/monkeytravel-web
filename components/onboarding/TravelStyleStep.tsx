@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface TravelStyleStepProps {
   selected: string[];
   onChange: (styles: string[]) => void;
@@ -8,43 +10,45 @@ interface TravelStyleStepProps {
 const TRAVEL_STYLES = [
   {
     id: "adventure",
-    label: "Adventure Seeker",
-    description: "Hiking, water sports, outdoor activities",
+    labelKey: "styles.adventure.label",
+    descriptionKey: "styles.adventure.description",
     icon: "M13 10V3L4 14h7v7l9-11h-7z",
   },
   {
     id: "cultural",
-    label: "Culture Explorer",
-    description: "Museums, historical sites, local traditions",
+    labelKey: "styles.cultural.label",
+    descriptionKey: "styles.cultural.description",
     icon: "M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z",
   },
   {
     id: "foodie",
-    label: "Food Enthusiast",
-    description: "Local cuisine, cooking classes, food tours",
+    labelKey: "styles.foodie.label",
+    descriptionKey: "styles.foodie.description",
     icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
   },
   {
     id: "relaxation",
-    label: "Relaxation & Wellness",
-    description: "Spas, beaches, peaceful retreats",
+    labelKey: "styles.relaxation.label",
+    descriptionKey: "styles.relaxation.description",
     icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
   },
   {
     id: "nightlife",
-    label: "Nightlife & Social",
-    description: "Bars, clubs, live entertainment",
+    labelKey: "styles.nightlife.label",
+    descriptionKey: "styles.nightlife.description",
     icon: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3",
   },
   {
     id: "photography",
-    label: "Photography Lover",
-    description: "Scenic spots, iconic landmarks, golden hours",
+    labelKey: "styles.photography.label",
+    descriptionKey: "styles.photography.description",
     icon: "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z",
   },
 ];
 
 export default function TravelStyleStep({ selected, onChange }: TravelStyleStepProps) {
+  const t = useTranslations("common.onboarding.travelStyle");
+
   const toggleStyle = (styleId: string) => {
     if (selected.includes(styleId)) {
       onChange(selected.filter(s => s !== styleId));
@@ -57,10 +61,10 @@ export default function TravelStyleStep({ selected, onChange }: TravelStyleStepP
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          What's your travel style?
+          {t("title")}
         </h1>
         <p className="text-slate-600">
-          Select all that apply - we'll personalize your trips
+          {t("subtitle")}
         </p>
       </div>
 
@@ -84,15 +88,15 @@ export default function TravelStyleStep({ selected, onChange }: TravelStyleStepP
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={style.icon} />
                 </svg>
               </div>
-              <div className="font-medium text-slate-900 text-sm">{style.label}</div>
-              <div className="text-xs text-slate-500 mt-1">{style.description}</div>
+              <div className="font-medium text-slate-900 text-sm">{t(style.labelKey)}</div>
+              <div className="text-xs text-slate-500 mt-1">{t(style.descriptionKey)}</div>
             </button>
           );
         })}
       </div>
 
       <p className="text-center text-sm text-slate-500">
-        Selected: {selected.length} style{selected.length !== 1 ? "s" : ""}
+        {t("selected", { count: selected.length })}
       </p>
     </div>
   );

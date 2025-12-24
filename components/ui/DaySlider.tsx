@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface Day {
   day_number: number;
@@ -20,6 +21,7 @@ export default function DaySlider({
   onSelectDay,
   className = "",
 }: DaySliderProps) {
+  const t = useTranslations("common.daySlider");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftGradient, setShowLeftGradient] = useState(false);
   const [showRightGradient, setShowRightGradient] = useState(false);
@@ -114,7 +116,7 @@ export default function DaySlider({
             }
           `}
         >
-          All
+          {t("all")}
         </button>
 
         {/* Day buttons */}
@@ -145,7 +147,7 @@ export default function DaySlider({
             >
               {/* Day number */}
               <span className="leading-tight whitespace-nowrap">
-                Day {day.day_number}
+                {t("day", { number: day.day_number })}
               </span>
               {/* Theme - hidden on mobile, shown on desktop */}
               {day.theme && (

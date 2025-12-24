@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { CollaboratorRole, ROLE_INFO } from "@/types";
 
@@ -22,6 +23,8 @@ export function RoleSelector({
   disabled = false,
   compact = false,
 }: RoleSelectorProps) {
+  const t = useTranslations("common.roles");
+
   if (compact) {
     return (
       <div className="flex gap-2">
@@ -43,7 +46,7 @@ export function RoleSelector({
               )}
             >
               <span>{info.emoji}</span>
-              <span>{info.label}</span>
+              <span>{t(`${role}.label`)}</span>
             </button>
           );
         })}
@@ -54,7 +57,7 @@ export function RoleSelector({
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-gray-700">
-        Select role for invitee
+        {t("selectRole")}
       </p>
       <div className="grid gap-3">
         {SELECTABLE_ROLES.map((role) => {
@@ -78,14 +81,14 @@ export function RoleSelector({
               {/* Recommended badge */}
               {isRecommended && (
                 <span className="absolute -top-2.5 right-3 px-2 py-0.5 text-xs font-medium bg-[var(--accent)] text-gray-900 rounded-full">
-                  Recommended
+                  {t("recommended")}
                 </span>
               )}
 
               {/* Role header */}
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">{info.emoji}</span>
-                <span className="font-semibold text-gray-900">{info.label}</span>
+                <span className="font-semibold text-gray-900">{t(`${role}.label`)}</span>
                 {isSelected && (
                   <svg
                     className="w-5 h-5 text-[var(--primary)] ml-auto"
@@ -103,12 +106,12 @@ export function RoleSelector({
 
               {/* Description */}
               <p className="text-sm text-gray-600 mb-3">
-                {info.description}
+                {t(`${role}.description`)}
               </p>
 
               {/* Permissions */}
               <div className="space-y-1.5 w-full">
-                {info.permissions.map((permission, idx) => (
+                {info.permissions.map((_, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                     <svg
                       className="w-4 h-4 text-green-500 flex-shrink-0"
@@ -123,10 +126,10 @@ export function RoleSelector({
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span>{permission}</span>
+                    <span>{t(`${role}.permissions.${idx}`)}</span>
                   </div>
                 ))}
-                {info.restrictions.slice(0, 2).map((restriction, idx) => (
+                {info.restrictions.slice(0, 2).map((_, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-sm text-gray-400">
                     <svg
                       className="w-4 h-4 text-gray-300 flex-shrink-0"
@@ -141,7 +144,7 @@ export function RoleSelector({
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                    <span>{restriction}</span>
+                    <span>{t(`${role}.restrictions.${idx}`)}</span>
                   </div>
                 ))}
               </div>

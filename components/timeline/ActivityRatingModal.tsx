@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { QuickTag } from "@/types/timeline";
 import BottomSheet from "../ui/BottomSheet";
@@ -19,15 +20,6 @@ interface ActivityRatingModalProps {
   initialRating?: number;
 }
 
-const QUICK_TAGS: { id: QuickTag; label: string; emoji: string }[] = [
-  { id: "must-do", label: "Must-do", emoji: "⭐" },
-  { id: "crowded", label: "Crowded", emoji: "👥" },
-  { id: "worth-it", label: "Worth it", emoji: "✨" },
-  { id: "skip-next-time", label: "Skip next time", emoji: "⏭️" },
-  { id: "hidden-gem", label: "Hidden gem", emoji: "💎" },
-  { id: "overrated", label: "Overrated", emoji: "😐" },
-];
-
 export default function ActivityRatingModal({
   isOpen,
   onClose,
@@ -36,7 +28,19 @@ export default function ActivityRatingModal({
   onSubmit,
   initialRating = 0,
 }: ActivityRatingModalProps) {
+  const t = useTranslations('common.rating');
+  const tc = useTranslations('common');
   const [rating, setRating] = useState(initialRating);
+
+  // Quick tags with localized labels
+  const QUICK_TAGS: { id: QuickTag; label: string; emoji: string }[] = [
+    { id: "must-do", label: t('tags.mustDo'), emoji: "⭐" },
+    { id: "crowded", label: t('tags.crowded'), emoji: "👥" },
+    { id: "worth-it", label: t('tags.worthIt'), emoji: "✨" },
+    { id: "skip-next-time", label: t('tags.skipNextTime'), emoji: "⏭️" },
+    { id: "hidden-gem", label: t('tags.hiddenGem'), emoji: "💎" },
+    { id: "overrated", label: t('tags.overrated'), emoji: "😐" },
+  ];
   const [notes, setNotes] = useState("");
   const [selectedTags, setSelectedTags] = useState<QuickTag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,7 +87,7 @@ export default function ActivityRatingModal({
           <span className="text-3xl">✨</span>
         </motion.div>
         <h2 className="text-xl font-bold text-slate-900 mb-1">
-          Activity Complete!
+          {t('activityComplete')}
         </h2>
         <p className="text-slate-600">{activityName}</p>
       </div>
@@ -101,7 +105,7 @@ export default function ActivityRatingModal({
 
       {/* Rating stars */}
       <div className="text-center">
-        <p className="text-sm text-slate-500 mb-3">How was it?</p>
+        <p className="text-sm text-slate-500 mb-3">{t('howWasIt')}</p>
         <div className="flex justify-center">
           <StarRating
             value={rating}
@@ -110,18 +114,18 @@ export default function ActivityRatingModal({
           />
         </div>
         <p className="text-sm text-slate-400 mt-2">
-          {rating === 0 && "Tap to rate"}
-          {rating === 1 && "Not great"}
-          {rating === 2 && "Could be better"}
-          {rating === 3 && "It was okay"}
-          {rating === 4 && "Really good!"}
-          {rating === 5 && "Amazing!"}
+          {rating === 0 && t('tapToRate')}
+          {rating === 1 && t('notGreat')}
+          {rating === 2 && t('couldBeBetter')}
+          {rating === 3 && t('itWasOkay')}
+          {rating === 4 && t('reallyGood')}
+          {rating === 5 && t('amazing')}
         </p>
       </div>
 
       {/* Quick tags */}
       <div>
-        <p className="text-sm text-slate-500 mb-3 text-center">Quick tags</p>
+        <p className="text-sm text-slate-500 mb-3 text-center">{t('quickTags')}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {QUICK_TAGS.map((tag) => (
             <motion.button
@@ -148,12 +152,12 @@ export default function ActivityRatingModal({
       {/* Notes textarea */}
       <div>
         <label className="block text-sm text-slate-500 mb-2 text-center">
-          Add a quick note (optional)
+          {t('addNote')}
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Amazing views! Tip: go early to avoid crowds..."
+          placeholder={t('placeholder')}
           className="
             w-full px-4 py-3 rounded-xl
             border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20
@@ -184,10 +188,10 @@ export default function ActivityRatingModal({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Saving...
+              {t('saving')}
             </span>
           ) : (
-            "Continue"
+            tc('buttons.continue')
           )}
         </button>
 
@@ -198,7 +202,7 @@ export default function ActivityRatingModal({
             transition-colors
           "
         >
-          Skip for now
+          {t('skipForNow')}
         </button>
       </div>
     </div>
@@ -211,7 +215,7 @@ export default function ActivityRatingModal({
         <BottomSheet
           isOpen={isOpen}
           onClose={onClose}
-          title="Rate Activity"
+          title={t('title')}
           showCloseButton
         >
           <ModalContent />

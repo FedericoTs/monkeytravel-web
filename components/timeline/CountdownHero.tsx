@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +29,8 @@ export default function CountdownHero({
   weatherForecast,
   coverImageUrl,
 }: CountdownHeroProps) {
+  const t = useTranslations("common.countdown");
+
   const calculateTimeLeft = useCallback((): TimeLeft => {
     const now = new Date();
     const diff = startDate.getTime() - now.getTime();
@@ -90,10 +93,10 @@ export default function CountdownHero({
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           {isStartingToday
-            ? "Your adventure starts today!"
+            ? t("startsToday")
             : isStartingSoon
-            ? "Get ready - almost time!"
-            : "Your adventure awaits"}
+            ? t("almostTime")
+            : t("awaits")}
         </motion.div>
 
         {/* Destination Name */}
@@ -113,14 +116,14 @@ export default function CountdownHero({
           transition={{ delay: 0.3, type: "spring" }}
           className="flex items-center justify-center gap-2 sm:gap-3 mb-8"
         >
-          <CountdownBox value={mounted ? timeLeft.days : 0} label="Days" />
+          <CountdownBox value={mounted ? timeLeft.days : 0} label={t("days")} />
           <span className="text-white/60 text-xl sm:text-2xl font-light">:</span>
-          <CountdownBox value={mounted ? timeLeft.hours : 0} label="Hours" />
+          <CountdownBox value={mounted ? timeLeft.hours : 0} label={t("hours")} />
           <span className="text-white/60 text-xl sm:text-2xl font-light">:</span>
-          <CountdownBox value={mounted ? timeLeft.minutes : 0} label="Mins" />
+          <CountdownBox value={mounted ? timeLeft.minutes : 0} label={t("mins")} />
           <span className="text-white/60 text-xl sm:text-2xl font-light hidden sm:block">:</span>
           <div className="hidden sm:block">
-            <CountdownBox value={mounted ? timeLeft.seconds : 0} label="Secs" />
+            <CountdownBox value={mounted ? timeLeft.seconds : 0} label={t("secs")} />
           </div>
         </motion.div>
 
@@ -144,14 +147,14 @@ export default function CountdownHero({
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span className="font-medium text-sm sm:text-base">{tripDays} days</span>
+            <span className="font-medium text-sm sm:text-base">{t("tripDays", { count: tripDays })}</span>
           </div>
           <div className="w-px h-4 bg-white/30" />
           <div className="flex items-center gap-1.5">
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <span className="font-medium text-sm sm:text-base">{activitiesCount} activities</span>
+            <span className="font-medium text-sm sm:text-base">{t("activities", { count: activitiesCount })}</span>
           </div>
         </motion.div>
       </div>

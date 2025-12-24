@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ActivityVotingStatus, ConsensusResult } from "@/types";
 import { getConsensusDisplayInfo } from "@/lib/voting/consensus";
 
@@ -13,48 +14,48 @@ interface StatusBadgeProps {
 
 const STATUS_STYLES: Record<
   ActivityVotingStatus,
-  { label: string; color: string; bgColor: string; icon: string; pulse?: boolean }
+  { labelKey: string; color: string; bgColor: string; icon: string; pulse?: boolean }
 > = {
   proposed: {
-    label: "Proposed",
+    labelKey: "proposed",
     color: "text-purple-600",
     bgColor: "bg-purple-100",
     icon: "sparkles",
   },
   voting: {
-    label: "Voting",
+    labelKey: "voting",
     color: "text-blue-600",
     bgColor: "bg-blue-100",
     icon: "vote",
     pulse: true,
   },
   confirmed: {
-    label: "Confirmed",
+    labelKey: "confirmed",
     color: "text-green-600",
     bgColor: "bg-green-100",
     icon: "check",
   },
   rejected: {
-    label: "Not Included",
+    labelKey: "rejected",
     color: "text-red-600",
     bgColor: "bg-red-100",
     icon: "x",
   },
   deadlock: {
-    label: "Needs Decision",
+    labelKey: "deadlock",
     color: "text-amber-600",
     bgColor: "bg-amber-100",
     icon: "alert",
     pulse: true,
   },
   completed: {
-    label: "Done",
+    labelKey: "completed",
     color: "text-slate-600",
     bgColor: "bg-slate-100",
     icon: "check-circle",
   },
   skipped: {
-    label: "Skipped",
+    labelKey: "skipped",
     color: "text-slate-500",
     bgColor: "bg-slate-100",
     icon: "skip",
@@ -146,18 +147,22 @@ export default function StatusBadge({
   showIcon = true,
   className = "",
 }: StatusBadgeProps) {
+  const t = useTranslations("common.activityStatus");
+
   // Use consensus-based display if available and status is voting
   let displayData = STATUS_STYLES[status];
+  let labelKey = displayData.labelKey;
 
   if (consensus && (status === "voting" || status === "proposed")) {
     const consensusInfo = getConsensusDisplayInfo(consensus);
     displayData = {
-      label: consensusInfo.label,
+      labelKey: consensusInfo.labelKey,
       color: consensusInfo.color,
       bgColor: consensusInfo.bgColor,
       icon: consensusInfo.icon,
       pulse: consensus.status === "voting",
     };
+    labelKey = consensusInfo.labelKey;
   }
 
   const sizeClasses = size === "sm" ? "text-xs px-2 py-0.5" : "text-sm px-3 py-1";
@@ -173,7 +178,7 @@ export default function StatusBadge({
       `}
     >
       {showIcon && ICONS[displayData.icon]}
-      {displayData.label}
+      {t(labelKey)}
     </span>
   );
 }

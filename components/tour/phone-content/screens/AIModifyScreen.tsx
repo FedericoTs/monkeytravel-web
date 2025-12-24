@@ -2,6 +2,7 @@
 
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 // Activity type configurations
 const ACTIVITY_TYPES = {
@@ -106,6 +107,7 @@ function ChatMessage({
 }
 
 export default function AIModifyScreen() {
+  const t = useTranslations("common.tour.aiModify");
   const [stage, setStage] = useState(0);
 
   // Auto-advance through stages for demo
@@ -136,14 +138,14 @@ export default function AIModifyScreen() {
         className="flex items-center justify-between mb-2"
       >
         <div>
-          <h2 className="text-[12px] font-bold text-gray-900">Day 1 • Barcelona</h2>
-          <p className="text-[8px] text-gray-500">4 activities planned</p>
+          <h2 className="text-[12px] font-bold text-gray-900">{t("header.dayTitle")}</h2>
+          <p className="text-[8px] text-gray-500">{t("header.activitiesCount")}</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
           className="px-2 py-1 bg-[#FF6B6B]/10 rounded-full"
         >
-          <span className="text-[8px] font-medium text-[#FF6B6B]">✨ AI Assistant</span>
+          <span className="text-[8px] font-medium text-[#FF6B6B]">{t("header.aiAssistant")}</span>
         </motion.button>
       </motion.div>
 
@@ -185,14 +187,14 @@ export default function AIModifyScreen() {
         {/* User request */}
         {stage >= 1 && (
           <ChatMessage type="user" delay={0}>
-            Can you add a food tour after Park Güell?
+            {t("messages.userRequest")}
           </ChatMessage>
         )}
 
         {/* AI response */}
         {stage >= 2 && (
           <ChatMessage type="ai" delay={0}>
-            <span>Of course! 🍴 I&apos;ll add the &quot;Barcelona Food Tour&quot; at 12:30 PM, right after Park Güell...</span>
+            <span>{t("messages.aiResponse")}</span>
           </ChatMessage>
         )}
 
@@ -214,7 +216,7 @@ export default function AIModifyScreen() {
               </svg>
             </motion.div>
             <span className="text-[9px] font-medium text-[#00B4A6]">
-              Done! I&apos;ve adjusted the times for you.
+              {t("messages.success")}
             </span>
           </motion.div>
         )}
@@ -227,7 +229,7 @@ export default function AIModifyScreen() {
           className="mt-2 flex items-center gap-2"
         >
           <div className="flex-1 bg-gray-100 rounded-full px-3 py-1.5 flex items-center">
-            <span className="text-[9px] text-gray-400">Ask AI to modify your plan...</span>
+            <span className="text-[9px] text-gray-400">{t("inputPlaceholder")}</span>
           </div>
           <div className="w-6 h-6 bg-[#FF6B6B] rounded-full flex items-center justify-center">
             <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

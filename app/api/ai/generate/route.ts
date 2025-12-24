@@ -21,6 +21,41 @@ import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-ba
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import crypto from "crypto";
+import { cookies } from "next/headers";
+
+type SupportedLanguage = "en" | "es" | "it";
+
+/**
+ * Get the user's preferred language from cookies or profile
+ */
+async function getUserLanguage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<SupportedLanguage> {
+  // First check for locale cookie (set by next-intl middleware)
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE");
+  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
+    return localeCookie.value as SupportedLanguage;
+  }
+
+  // Fall back to user's profile preference
+  try {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("preferred_language")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
+      return profile.preferred_language as SupportedLanguage;
+    }
+  } catch {
+    // Ignore errors, use default
+  }
+
+  return "en";
+}
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -224,6 +259,10 @@ export async function POST(request: NextRequest) {
       console.warn("Could not fetch user preferences:", err);
     }
 
+    // Get user's preferred language for AI content localization
+    const userLanguage = await getUserLanguage(supabase, user.id);
+    console.log(`[AI Generate] User language: ${userLanguage}`);
+
     // Parse request body
     const body = await request.json();
     const params: TripCreationParams = {
@@ -328,10 +367,11 @@ export async function POST(request: NextRequest) {
             itinerary = await generateItinerary(params, {
               maxDays: INITIAL_DAYS_TO_GENERATE,
               isPartial: true,
+              language: userLanguage,
             });
             isPartialGeneration = true;
           } else {
-            itinerary = await generateItinerary(params);
+            itinerary = await generateItinerary(params, { language: userLanguage });
           }
         }
       } else if (useIncremental) {
@@ -340,11 +380,12 @@ export async function POST(request: NextRequest) {
         itinerary = await generateItinerary(params, {
           maxDays: INITIAL_DAYS_TO_GENERATE,
           isPartial: true,
+          language: userLanguage,
         });
         isPartialGeneration = true;
       } else {
         // For short trips, generate the full itinerary
-        itinerary = await generateItinerary(params);
+        itinerary = await generateItinerary(params, { language: userLanguage });
       }
 
       // Only cache full itineraries (not partial ones)

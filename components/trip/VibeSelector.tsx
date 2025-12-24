@@ -1,119 +1,32 @@
 "use client";
 
 import { TripVibe, VibeOption } from "@/types";
+import { useTranslations } from "next-intl";
 
-// All 12 vibe options with premium styling
-const VIBES: VibeOption[] = [
+// Vibe configuration (labels/descriptions come from translations)
+interface VibeConfig {
+  id: string;
+  emoji: string;
+  color: string;
+  category: "practical" | "fantasy";
+  detailCount: number; // Number of detail items to fetch from translations
+}
+
+const VIBE_CONFIGS: VibeConfig[] = [
   // Practical Vibes (8)
-  {
-    id: "adventure",
-    label: "Adventure Seeker",
-    emoji: "🏔️",
-    color: "var(--vibe-adventure)",
-    description: "Outdoor activities, hiking trails, and adrenaline-pumping experiences",
-    details: ["Hiking & trekking", "Water sports", "Rock climbing"],
-    category: "practical",
-  },
-  {
-    id: "cultural",
-    label: "Cultural Explorer",
-    emoji: "🎭",
-    color: "var(--vibe-cultural)",
-    description: "Museums, heritage sites, local traditions, and historical wonders",
-    details: ["Museums & galleries", "Heritage sites", "Local traditions"],
-    category: "practical",
-  },
-  {
-    id: "foodie",
-    label: "Foodie Journey",
-    emoji: "🍜",
-    color: "var(--vibe-foodie)",
-    description: "Food markets, cooking classes, local cuisine, and fine dining",
-    details: ["Food markets", "Cooking classes", "Local restaurants"],
-    category: "practical",
-  },
-  {
-    id: "wellness",
-    label: "Wellness Escape",
-    emoji: "🧘",
-    color: "var(--vibe-wellness)",
-    description: "Spa retreats, yoga, meditation, and peaceful sanctuaries",
-    details: ["Spa treatments", "Yoga retreats", "Nature walks"],
-    category: "practical",
-  },
-  {
-    id: "romantic",
-    label: "Romantic Getaway",
-    emoji: "💕",
-    color: "var(--vibe-romantic)",
-    description: "Intimate experiences, sunset views, and couple activities",
-    details: ["Sunset spots", "Intimate dining", "Scenic views"],
-    category: "practical",
-  },
-  {
-    id: "urban",
-    label: "Urban Discovery",
-    emoji: "🌃",
-    color: "var(--vibe-urban)",
-    description: "City life, nightlife, modern architecture, and trendy spots",
-    details: ["Nightlife", "Architecture", "Trendy cafes"],
-    category: "practical",
-  },
-  {
-    id: "nature",
-    label: "Nature Immersion",
-    emoji: "🌲",
-    color: "var(--vibe-nature)",
-    description: "Wildlife, national parks, wilderness, and eco-tourism",
-    details: ["National parks", "Wildlife watching", "Eco lodges"],
-    category: "practical",
-  },
-  {
-    id: "offbeat",
-    label: "Off the Beaten Path",
-    emoji: "🗺️",
-    color: "var(--vibe-offbeat)",
-    description: "Hidden gems, local secrets, and non-touristy experiences",
-    details: ["Secret spots", "Local hangouts", "Unique finds"],
-    category: "practical",
-  },
+  { id: "adventure", emoji: "🏔️", color: "var(--vibe-adventure)", category: "practical", detailCount: 3 },
+  { id: "cultural", emoji: "🎭", color: "var(--vibe-cultural)", category: "practical", detailCount: 3 },
+  { id: "foodie", emoji: "🍜", color: "var(--vibe-foodie)", category: "practical", detailCount: 3 },
+  { id: "wellness", emoji: "🧘", color: "var(--vibe-wellness)", category: "practical", detailCount: 3 },
+  { id: "romantic", emoji: "💕", color: "var(--vibe-romantic)", category: "practical", detailCount: 3 },
+  { id: "urban", emoji: "🌃", color: "var(--vibe-urban)", category: "practical", detailCount: 3 },
+  { id: "nature", emoji: "🌲", color: "var(--vibe-nature)", category: "practical", detailCount: 3 },
+  { id: "offbeat", emoji: "🗺️", color: "var(--vibe-offbeat)", category: "practical", detailCount: 3 },
   // Fantasy/Whimsical Vibes (4)
-  {
-    id: "wonderland",
-    label: "Wonderland Adventure",
-    emoji: "🐇",
-    color: "var(--vibe-wonderland)",
-    description: "Quirky, whimsical, and surreal spots straight from a dream",
-    details: ["Surreal locations", "Quirky museums", "Whimsical cafes"],
-    category: "fantasy",
-  },
-  {
-    id: "movie-magic",
-    label: "Movie Magic",
-    emoji: "🎬",
-    color: "var(--vibe-movie-magic)",
-    description: "Film locations, cinematic experiences, and famous backdrops",
-    details: ["Film locations", "Studio tours", "Iconic scenes"],
-    category: "fantasy",
-  },
-  {
-    id: "fairytale",
-    label: "Fairytale Escape",
-    emoji: "🏰",
-    color: "var(--vibe-fairytale)",
-    description: "Castles, enchanted forests, and storybook villages",
-    details: ["Castles & palaces", "Charming villages", "Enchanted forests"],
-    category: "fantasy",
-  },
-  {
-    id: "retro",
-    label: "Retro Time Travel",
-    emoji: "🕰️",
-    color: "var(--vibe-retro)",
-    description: "Vintage cafes, historic districts, and nostalgic experiences",
-    details: ["Vintage shops", "Retro diners", "Historic streets"],
-    category: "fantasy",
-  },
+  { id: "wonderland", emoji: "🐇", color: "var(--vibe-wonderland)", category: "fantasy", detailCount: 3 },
+  { id: "movieMagic", emoji: "🎬", color: "var(--vibe-movie-magic)", category: "fantasy", detailCount: 3 },
+  { id: "fairytale", emoji: "🏰", color: "var(--vibe-fairytale)", category: "fantasy", detailCount: 3 },
+  { id: "retro", emoji: "🕰️", color: "var(--vibe-retro)", category: "fantasy", detailCount: 3 },
 ];
 
 interface VibeSelectorProps {
@@ -127,6 +40,21 @@ export default function VibeSelector({
   onVibesChange,
   maxVibes = 3,
 }: VibeSelectorProps) {
+  const t = useTranslations("common.vibes");
+
+  // Build vibes array with translated labels/descriptions
+  const vibes: VibeOption[] = VIBE_CONFIGS.map((config) => ({
+    id: config.id,
+    label: t(`types.${config.id}.label`),
+    emoji: config.emoji,
+    color: config.color,
+    description: t(`types.${config.id}.description`),
+    details: Array.from({ length: config.detailCount }, (_, i) =>
+      t(`types.${config.id}.details.${i}`)
+    ),
+    category: config.category,
+  }));
+
   const toggleVibe = (vibeId: TripVibe) => {
     const currentIndex = selectedVibes.indexOf(vibeId);
 
@@ -146,13 +74,13 @@ export default function VibeSelector({
   };
 
   const getPriorityLabel = (order: number): string => {
-    if (order === 1) return "Primary";
-    if (order === 2) return "Secondary";
-    return "Accent";
+    if (order === 1) return t("priority.primary");
+    if (order === 2) return t("priority.secondary");
+    return t("priority.accent");
   };
 
-  const practicalVibes = VIBES.filter((v) => v.category === "practical");
-  const fantasyVibes = VIBES.filter((v) => v.category === "fantasy");
+  const practicalVibes = vibes.filter((v) => v.category === "practical");
+  const fantasyVibes = vibes.filter((v) => v.category === "fantasy");
 
   return (
     <div className="space-y-6">
@@ -164,14 +92,14 @@ export default function VibeSelector({
           </span>
           <span>/</span>
           <span>{maxVibes}</span>
-          <span className="hidden sm:inline">selected</span>
+          <span className="hidden sm:inline">{t("selected")}</span>
         </div>
       </div>
 
       {/* Practical Vibes Section */}
       <div>
         <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">
-          Classic Vibes
+          {t("categories.classic")}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {practicalVibes.map((vibe) => (
@@ -194,9 +122,9 @@ export default function VibeSelector({
       {/* Fantasy Vibes Section */}
       <div>
         <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <span>Fantasy & Whimsical</span>
+          <span>{t("categories.fantasy")}</span>
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-[var(--secondary)]/20 text-[var(--secondary-dark)]">
-            Unique
+            {t("categories.unique")}
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -221,13 +149,13 @@ export default function VibeSelector({
       {selectedVibes.length > 0 && (
         <div className="p-4 rounded-xl bg-gradient-to-r from-slate-50 to-white border border-slate-200">
           <div className="text-sm font-medium text-slate-700 mb-2">
-            Your trip vibe blend:
+            {t("yourBlend")}
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedVibes.map((vibeId, index) => {
               const vibe = VIBES.find((v) => v.id === vibeId);
               if (!vibe) return null;
-              const influence = index === 0 ? "50%" : index === 1 ? "30%" : "20%";
+              const influencePercent = index === 0 ? 50 : index === 1 ? 30 : 20;
               return (
                 <div
                   key={vibeId}
@@ -236,7 +164,7 @@ export default function VibeSelector({
                 >
                   <span>{vibe.emoji}</span>
                   <span>{vibe.label}</span>
-                  <span className="opacity-75">({influence})</span>
+                  <span className="opacity-75">({t("influence", { percent: influencePercent })})</span>
                 </div>
               );
             })}

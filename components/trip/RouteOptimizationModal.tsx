@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   optimizeDayRoute,
@@ -60,6 +61,7 @@ export function RouteOptimizationModal({
   activities,
   onApplyOptimization,
 }: RouteOptimizationModalProps) {
+  const t = useTranslations("common.routeOptimization");
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [constraints, setConstraints] = useState<OptimizationConstraints>({
@@ -141,10 +143,10 @@ export function RouteOptimizationModal({
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Optimize Route
+                  {t("title")}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Day {dayNumber} • {activities.length} activities
+                  {t("subtitle", { day: dayNumber, count: activities.length })}
                 </p>
               </div>
               <button
@@ -168,17 +170,16 @@ export function RouteOptimizationModal({
                     </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Not Enough Location Data
+                    {t("notEnoughData")}
                   </h3>
                   <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                    Route optimization needs at least 3 activities with coordinates.
-                    Currently only {activitiesWithCoords.length} activities have location data.
+                    {t("notEnoughDataDesc", { current: activitiesWithCoords.length })}
                   </p>
                 </div>
               ) : isOptimizing ? (
                 <div className="text-center py-12">
                   <div className="w-12 h-12 mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-gray-600">Calculating optimal route...</p>
+                  <p className="text-gray-600">{t("calculating")}</p>
                 </div>
               ) : result ? (
                 <div className="space-y-6">
@@ -202,22 +203,22 @@ export function RouteOptimizationModal({
                         {result.savingsPercent > 0 ? (
                           <>
                             <p className="text-sm text-green-700 font-medium">
-                              Potential savings
+                              {t("potentialSavings")}
                             </p>
                             <p className="text-2xl font-bold text-green-800">
-                              {formatDistance(result.savingsMeters)} less travel
+                              {t("lessTravel", { distance: formatDistance(result.savingsMeters) })}
                             </p>
                             <p className="text-sm text-green-600">
-                              {result.savingsPercent}% shorter route
+                              {t("shorterRoute", { percent: result.savingsPercent })}
                             </p>
                           </>
                         ) : (
                           <>
                             <p className="text-sm text-gray-600 font-medium">
-                              Already optimal!
+                              {t("alreadyOptimal")}
                             </p>
                             <p className="text-lg font-semibold text-gray-800">
-                              Your route is already efficient
+                              {t("routeEfficient")}
                             </p>
                           </>
                         )}
@@ -229,7 +230,7 @@ export function RouteOptimizationModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                        Current Distance
+                        {t("currentDistance")}
                       </p>
                       <p className="text-lg font-semibold text-gray-700">
                         {formatDistance(result.originalDistanceMeters)}
@@ -239,7 +240,7 @@ export function RouteOptimizationModal({
                       result.savingsPercent > 0 ? "bg-green-50" : "bg-gray-50"
                     }`}>
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                        Optimized Distance
+                        {t("optimizedDistance")}
                       </p>
                       <p className={`text-lg font-semibold ${
                         result.savingsPercent > 0 ? "text-green-700" : "text-gray-700"
@@ -253,7 +254,7 @@ export function RouteOptimizationModal({
                   {result.savingsPercent > 0 && (
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-700">
-                        Suggested Order
+                        {t("suggestedOrder")}
                       </h3>
                       <div className="space-y-2">
                         {result.optimizedOrder.map((activity, index) => {
@@ -291,7 +292,7 @@ export function RouteOptimizationModal({
                                   {newTime || activity.start_time}
                                   {moved && originalIndex !== -1 && (
                                     <span className="ml-2 text-amber-600">
-                                      (was #{originalIndex + 1})
+                                      {t("wasPosition", { position: originalIndex + 1 })}
                                     </span>
                                   )}
                                 </p>
@@ -314,7 +315,7 @@ export function RouteOptimizationModal({
                   {/* Constraints */}
                   <div className="border-t pt-4">
                     <h3 className="text-sm font-medium text-gray-700 mb-3">
-                      Constraints
+                      {t("constraints")}
                     </h3>
                     <div className="space-y-2">
                       <label className="flex items-center gap-3 cursor-pointer">
@@ -328,7 +329,7 @@ export function RouteOptimizationModal({
                           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">
-                          Keep first activity in place
+                          {t("keepFirst")}
                         </span>
                       </label>
                       <label className="flex items-center gap-3 cursor-pointer">
@@ -342,12 +343,12 @@ export function RouteOptimizationModal({
                           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">
-                          Keep last activity in place
+                          {t("keepLast")}
                         </span>
                       </label>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Meal times are automatically preserved within reasonable windows.
+                      {t("mealTimesNote")}
                     </p>
                   </div>
                 </div>
@@ -361,7 +362,7 @@ export function RouteOptimizationModal({
                 className="flex-1 py-3 px-4 text-gray-700 font-medium rounded-xl
                          border border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t("cancel")}
               </button>
               {result && result.savingsPercent > 0 && (
                 <button
@@ -370,7 +371,7 @@ export function RouteOptimizationModal({
                            text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700
                            transition-all shadow-lg shadow-green-500/25"
                 >
-                  Apply Optimization
+                  {t("applyOptimization")}
                 </button>
               )}
             </div>

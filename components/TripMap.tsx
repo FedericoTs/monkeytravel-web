@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -97,6 +98,7 @@ export default function TripMap({
   onActivityClick,
   disableApiCalls = false,
 }: TripMapProps) {
+  const t = useTranslations("common.map");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
     null
@@ -290,7 +292,7 @@ export default function TripMap({
   if (loadError) {
     return (
       <div className={`bg-slate-100 rounded-xl flex items-center justify-center ${className}`}>
-        <p className="text-slate-500">Failed to load map</p>
+        <p className="text-slate-500">{t("failedToLoad")}</p>
       </div>
     );
   }
@@ -298,7 +300,7 @@ export default function TripMap({
   if (!isLoaded) {
     return (
       <div className={`bg-slate-100 rounded-xl flex items-center justify-center animate-pulse ${className}`}>
-        <div className="text-slate-400">Loading map...</div>
+        <div className="text-slate-400">{t("loading")}</div>
       </div>
     );
   }
@@ -308,13 +310,13 @@ export default function TripMap({
       {isGeocoding && (
         <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-slate-600 shadow-md">
           <span className="inline-block w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse mr-2" />
-          Loading locations...
+          {t("loadingLocations")}
         </div>
       )}
 
       {/* Day Legend - compact on mobile, detailed on desktop */}
       <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:p-2 shadow-md max-w-[calc(100%-1.5rem)] sm:max-w-none">
-        <div className="text-xs font-medium text-slate-700 mb-1.5 hidden sm:block">Days</div>
+        <div className="text-xs font-medium text-slate-700 mb-1.5 hidden sm:block">{t("days")}</div>
         <div className="flex flex-wrap gap-1 justify-center sm:justify-start">
           {days.map((day) => (
             <button
@@ -411,7 +413,7 @@ export default function TripMap({
                   rel="noopener noreferrer"
                   className="text-xs text-[var(--primary)] hover:underline"
                 >
-                  Open in Maps
+                  {t("openInMaps")}
                 </a>
                 {onActivityClick && (
                   <button
@@ -421,7 +423,7 @@ export default function TripMap({
                     }}
                     className="text-xs text-[var(--primary)] hover:underline"
                   >
-                    View Details
+                    {t("viewDetails")}
                   </button>
                 )}
               </div>

@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type {
   ProposalWithVotes,
   Activity,
@@ -37,6 +38,7 @@ function InlineProposalCardComponent({
   onTapToVote,
   totalVoters = 5,
 }: InlineProposalCardProps) {
+  const t = useTranslations("common.proposals");
   const activity = proposal.activity_data as Activity | null;
   const isActive = proposal.status === 'pending' || proposal.status === 'voting';
 
@@ -53,9 +55,9 @@ function InlineProposalCardComponent({
         <div className="flex items-center gap-2 text-gray-500">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
             <span>⚠️</span>
-            <span>INVALID</span>
+            <span>{t("status.invalid")}</span>
           </span>
-          <span className="text-sm">Proposal data unavailable</span>
+          <span className="text-sm">{t("errors.dataUnavailable")}</span>
         </div>
       </div>
     );
@@ -87,7 +89,7 @@ function InlineProposalCardComponent({
       accent: 'border-l-amber-400',
       badge: 'bg-amber-100 text-amber-700',
       badgeIcon: '💡',
-      badgeText: 'PROPOSED',
+      badgeText: t("badges.proposed"),
     },
     voting: {
       border: 'border-blue-300',
@@ -95,7 +97,7 @@ function InlineProposalCardComponent({
       accent: 'border-l-blue-500',
       badge: 'bg-blue-100 text-blue-700',
       badgeIcon: '🗳️',
-      badgeText: 'VOTING',
+      badgeText: t("badges.voting"),
     },
     approved: {
       border: 'border-green-300',
@@ -103,7 +105,7 @@ function InlineProposalCardComponent({
       accent: 'border-l-green-500',
       badge: 'bg-green-100 text-green-700',
       badgeIcon: '✅',
-      badgeText: 'APPROVED',
+      badgeText: t("badges.approved"),
     },
     rejected: {
       border: 'border-gray-300',
@@ -111,7 +113,7 @@ function InlineProposalCardComponent({
       accent: 'border-l-gray-400',
       badge: 'bg-gray-100 text-gray-500',
       badgeIcon: '❌',
-      badgeText: 'REJECTED',
+      badgeText: t("badges.rejected"),
     },
     deadlock: {
       border: 'border-amber-400',
@@ -119,7 +121,7 @@ function InlineProposalCardComponent({
       accent: 'border-l-amber-500',
       badge: 'bg-amber-100 text-amber-700',
       badgeIcon: '⚠️',
-      badgeText: 'NEEDS DECISION',
+      badgeText: t("badges.needsDecision"),
     },
   };
 
@@ -159,10 +161,10 @@ function InlineProposalCardComponent({
 
   // Time remaining display
   const formatTimeRemaining = (hours: number): string => {
-    if (hours <= 0) return 'Expiring soon';
-    if (hours < 24) return `${Math.round(hours)}h left`;
+    if (hours <= 0) return t("time.expiringSoon");
+    if (hours < 24) return t("time.hoursLeft", { hours: Math.round(hours) });
     const days = Math.floor(hours / 24);
-    return `${days}d left`;
+    return t("time.daysLeft", { days });
   };
 
   return (
@@ -269,7 +271,7 @@ function InlineProposalCardComponent({
                 👤
               </span>
             )}
-            <span>by {proposal.proposer?.display_name || 'Unknown'}</span>
+            <span>{t("labels.by", { name: proposal.proposer?.display_name || t("labels.unknown") })}</span>
           </div>
 
           {isActive && (
@@ -295,7 +297,7 @@ function InlineProposalCardComponent({
 
               {/* Vote count */}
               <span className="text-xs text-gray-500 whitespace-nowrap">
-                {voteCount}/{totalVoters} voted
+                {t("voting.votedCount", { count: voteCount, total: totalVoters })}
               </span>
             </div>
 
@@ -329,17 +331,17 @@ function InlineProposalCardComponent({
             {hasVoted && userVoteInfo ? (
               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${userVoteInfo.color}`}>
                 <span>{userVoteInfo.emoji}</span>
-                <span>You: {userVoteInfo.label}</span>
+                <span>{t("voting.yourVote", { vote: userVoteInfo.label })}</span>
               </span>
             ) : (
               <span className="text-xs text-blue-600 font-medium animate-pulse">
-                Tap to vote
+                {t("voting.tapToVote")}
               </span>
             )}
 
             {hasVoted && (
               <span className="text-xs text-blue-500 font-medium">
-                Change vote →
+                {t("voting.changeVote")}
               </span>
             )}
           </div>

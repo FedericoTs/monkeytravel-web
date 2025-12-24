@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { trackEarlyAccessRedeemed, trackBetaCodeAttempt } from "@/lib/analytics";
 
 interface BetaCodeInputProps {
@@ -29,6 +30,7 @@ export default function BetaCodeInput({
   showBenefits = true,
   className = "",
 }: BetaCodeInputProps) {
+  const t = useTranslations("common.beta.codeInput");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function BetaCodeInput({
 
   const handleRedeem = async () => {
     if (!code.trim()) {
-      setError("Please enter a code");
+      setError(t("enterCodeError"));
       return;
     }
 
@@ -53,8 +55,8 @@ export default function BetaCodeInput({
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to redeem code");
-        onError?.(data.error || "Failed to redeem code");
+        setError(data.error || t("redeemFailed"));
+        onError?.(data.error || t("redeemFailed"));
         // Track failed attempt
         trackBetaCodeAttempt({
           code: code.trim().toUpperCase(),
@@ -77,7 +79,7 @@ export default function BetaCodeInput({
       setSuccess(true);
       onSuccess?.(data.access);
     } catch (err) {
-      const errorMessage = "Something went wrong. Please try again.";
+      const errorMessage = t("genericError");
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -101,8 +103,8 @@ export default function BetaCodeInput({
             </svg>
           </div>
           <div>
-            <p className="font-semibold text-emerald-800">Welcome to the beta!</p>
-            <p className="text-sm text-emerald-600">You now have unlimited access to all AI features.</p>
+            <p className="font-semibold text-emerald-800">{t("successTitle")}</p>
+            <p className="text-sm text-emerald-600">{t("successDescription")}</p>
           </div>
         </div>
       </div>
@@ -115,7 +117,7 @@ export default function BetaCodeInput({
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Enter beta code"
+            placeholder={t("placeholderCompact")}
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase());
@@ -139,7 +141,7 @@ export default function BetaCodeInput({
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             ) : (
-              "Unlock"
+              t("unlock")
             )}
           </button>
         </div>
@@ -156,7 +158,7 @@ export default function BetaCodeInput({
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
-            placeholder="BETA-XXXX"
+            placeholder={t("placeholderInline")}
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase());
@@ -180,14 +182,14 @@ export default function BetaCodeInput({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Unlocking...
+                {t("unlocking")}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                 </svg>
-                Unlock Access
+                {t("unlockAccess")}
               </>
             )}
           </button>
@@ -210,22 +212,22 @@ export default function BetaCodeInput({
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Have a Beta Tester Code?</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t("title")}</h3>
             <p className="text-sm text-slate-600 mt-1">
-              Enter your code to unlock unlimited AI features
+              {t("subtitle")}
             </p>
           </div>
         </div>
 
         {showBenefits && (
           <div className="mb-5 p-4 bg-slate-50 rounded-xl">
-            <p className="text-sm font-medium text-slate-700 mb-2">Beta testers get:</p>
+            <p className="text-sm font-medium text-slate-700 mb-2">{t("benefitsTitle")}</p>
             <ul className="space-y-1.5">
               {[
-                "Unlimited AI trip generations",
-                "Unlimited regenerations & AI assistant",
-                "Priority support",
-                "Early access to new features",
+                t("benefits.unlimitedGenerations"),
+                t("benefits.unlimitedAssistant"),
+                t("benefits.prioritySupport"),
+                t("benefits.earlyAccess"),
               ].map((benefit, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
                   <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -241,7 +243,7 @@ export default function BetaCodeInput({
         <div className="flex gap-3">
           <input
             type="text"
-            placeholder="Enter your code"
+            placeholder={t("placeholder")}
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase());
@@ -265,14 +267,14 @@ export default function BetaCodeInput({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Checking...
+                {t("checking")}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                 </svg>
-                Unlock
+                {t("unlock")}
               </>
             )}
           </button>

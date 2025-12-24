@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { VOTE_INFO, type ProposalStatus, type ProposalConsensusResult } from "@/types";
 
 interface ProposalBadgeProps {
@@ -10,50 +11,44 @@ interface ProposalBadgeProps {
   showPulse?: boolean;
 }
 
-const STATUS_CONFIG: Record<ProposalStatus, {
-  label: string;
+// Status styling config (labels come from translations)
+const STATUS_STYLE_CONFIG: Record<ProposalStatus, {
   color: string;
   bgColor: string;
   borderColor: string;
   icon: string;
 }> = {
   pending: {
-    label: 'Proposed',
     color: 'text-amber-700',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
     icon: '💡',
   },
   voting: {
-    label: 'Voting',
     color: 'text-blue-700',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
     icon: '🗳️',
   },
   approved: {
-    label: 'Approved',
     color: 'text-green-700',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     icon: '✅',
   },
   rejected: {
-    label: 'Rejected',
     color: 'text-red-700',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
     icon: '❌',
   },
   withdrawn: {
-    label: 'Withdrawn',
     color: 'text-gray-600',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
     icon: '↩️',
   },
   expired: {
-    label: 'Expired',
     color: 'text-gray-500',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
@@ -67,20 +62,22 @@ export function ProposalBadge({
   size = 'sm',
   showPulse = true,
 }: ProposalBadgeProps) {
-  const config = STATUS_CONFIG[status];
+  const t = useTranslations("common.proposals");
+  const config = STATUS_STYLE_CONFIG[status];
 
-  // Override with consensus-specific labels for active proposals
-  let displayLabel = config.label;
+  // Get translated label for status
+  let displayLabel = t(`status.${status}`);
   let displayIcon = config.icon;
 
+  // Override with consensus-specific labels for active proposals
   if (consensus && (status === 'pending' || status === 'voting')) {
     switch (consensus.status) {
       case 'likely_approve':
-        displayLabel = 'Trending Yes';
+        displayLabel = t('status.trendingYes');
         displayIcon = '📈';
         break;
       case 'deadlock':
-        displayLabel = 'Needs Decision';
+        displayLabel = t('status.needsDecision');
         displayIcon = '⚠️';
         break;
     }
@@ -132,6 +129,7 @@ export function ProposalVoteSummary({
   total: number;
   size?: 'sm' | 'md';
 }) {
+  const t = useTranslations("common.proposals");
   if (total === 0) return null;
 
   // Positive votes = love + flexible
@@ -151,23 +149,23 @@ export function ProposalVoteSummary({
             className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
           />
         </div>
-        <span className="text-gray-500 text-xs">{total} voted</span>
+        <span className="text-gray-500 text-xs">{total} {t("voting.voted")}</span>
       </div>
       {/* 4-level breakdown */}
       <div className="flex items-center gap-2 text-gray-600">
-        <span className="flex items-center gap-0.5" title="Love it!">
+        <span className="flex items-center gap-0.5" title={t("tooltips.loveIt")}>
           <span>{VOTE_INFO.love.emoji}</span>
           <span>{love}</span>
         </span>
-        <span className="flex items-center gap-0.5" title="Open to it">
+        <span className="flex items-center gap-0.5" title={t("tooltips.openToIt")}>
           <span>{VOTE_INFO.flexible.emoji}</span>
           <span>{flexible}</span>
         </span>
-        <span className="flex items-center gap-0.5" title="Concerns">
+        <span className="flex items-center gap-0.5" title={t("tooltips.concerns")}>
           <span>{VOTE_INFO.concerns.emoji}</span>
           <span>{concerns}</span>
         </span>
-        <span className="flex items-center gap-0.5" title="Skip this">
+        <span className="flex items-center gap-0.5" title={t("tooltips.skipThis")}>
           <span>{VOTE_INFO.no.emoji}</span>
           <span>{no}</span>
         </span>

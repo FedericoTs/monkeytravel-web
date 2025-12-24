@@ -7,6 +7,7 @@
  * amenities, room details, pricing, and proximity to activities.
  */
 
+import { useTranslations } from 'next-intl';
 import type { HotelOfferDisplay } from '@/lib/amadeus/types';
 import { formatDistance } from '@/lib/utils/geo';
 
@@ -30,6 +31,8 @@ export default function HotelCard({
   onSelect,
   selected = false,
 }: HotelCardProps) {
+  const t = useTranslations('common.booking.hotels');
+
   // Render star rating
   const renderStars = (rating: number) => {
     return (
@@ -73,7 +76,7 @@ export default function HotelCard({
             : 'bg-orange-100 text-orange-700'
         }`}
       >
-        {isFreeCancellation ? 'Free cancellation' : hotel.cancellationPolicy}
+        {isFreeCancellation ? t('freeCancellation') : hotel.cancellationPolicy}
       </span>
     );
   };
@@ -151,7 +154,7 @@ export default function HotelCard({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span className={`text-sm ${hotel.proximityColor || 'text-slate-600'}`}>
-                    {hotel.proximityLabel} to your activities
+                    {hotel.proximityLabel} {t('toYourActivities')}
                   </span>
                   <span className="text-xs text-slate-400">
                     ({formatDistance(hotel.distanceFromCenter)})
@@ -177,14 +180,14 @@ export default function HotelCard({
                 <div className="mt-1 text-sm text-slate-600">
                   <span className="text-green-600">
                     {hotel.boardType === 'BREAKFAST'
-                      ? 'Breakfast included'
+                      ? t('breakfastIncluded')
                       : hotel.boardType === 'HALF_BOARD'
-                      ? 'Half board'
+                      ? t('halfBoard')
                       : hotel.boardType === 'FULL_BOARD'
-                      ? 'Full board'
+                      ? t('fullBoard')
                       : hotel.boardType === 'ALL_INCLUSIVE'
-                      ? 'All inclusive'
-                      : 'Room only'}
+                      ? t('allInclusive')
+                      : t('roomOnly')}
                   </span>
                 </div>
               )}
@@ -202,7 +205,7 @@ export default function HotelCard({
                   ))}
                   {(hotel.amenities?.length || 0) > 4 && (
                     <span className="text-xs px-2 py-1 text-slate-500">
-                      +{(hotel.amenities?.length || 0) - 4} more
+                      {t('moreAmenities', { count: (hotel.amenities?.length || 0) - 4 })}
                     </span>
                   )}
                 </div>
@@ -222,14 +225,14 @@ export default function HotelCard({
                 <p className="text-2xl font-bold text-slate-900">
                   ${Math.round(hotel.pricePerNight)}
                 </p>
-                <p className="text-xs text-slate-500">per night</p>
+                <p className="text-xs text-slate-500">{t('perNight')}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-slate-700">
-                  ${Math.round(hotel.totalPrice)} total
+                  ${Math.round(hotel.totalPrice)} {t('total')}
                 </p>
                 <p className="text-xs text-slate-400">
-                  for {nights} {nights === 1 ? 'night' : 'nights'}
+                  {nights === 1 ? t('forNight', { count: nights }) : t('forNights', { count: nights })}
                 </p>
               </div>
             </div>

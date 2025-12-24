@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { X, Sparkles, Key, Mail, Check, Loader2, Lock, Zap, Gift } from "lucide-react";
 
 interface EarlyAccessModalProps {
@@ -29,6 +30,7 @@ export default function EarlyAccessModal({
   onRedeemCode,
   error: externalError,
 }: EarlyAccessModalProps) {
+  const t = useTranslations('common.earlyAccess');
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,11 +136,10 @@ export default function EarlyAccessModal({
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold">AI Features • Early Access</h2>
+            <h2 className="text-xl font-bold">{t('title')} • {t('earlyAccess')}</h2>
           </div>
           <p className="text-white/80 text-sm leading-relaxed">
-            Our AI trip planning is currently available to early testers.
-            We&apos;re rolling out access in waves to ensure the best experience.
+            {t('description')}
           </p>
         </div>
 
@@ -151,10 +152,10 @@ export default function EarlyAccessModal({
                 <Check className="w-8 h-8 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Welcome to Early Access!
+                {t('welcomeTitle')}
               </h3>
               <p className="text-gray-600">
-                You now have access to all AI features.
+                {t('welcomeMessage')}
               </p>
             </div>
           ) : waitlistSuccess ? (
@@ -163,10 +164,10 @@ export default function EarlyAccessModal({
                 <Mail className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                You&apos;re on the list!
+                {t('onListTitle')}
               </h3>
               <p className="text-gray-600">
-                We&apos;ll email you when early access opens up.
+                {t('onListMessage')}
               </p>
             </div>
           ) : (
@@ -175,7 +176,7 @@ export default function EarlyAccessModal({
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                 <div className="flex items-center gap-2 mb-3">
                   <Key className="w-4 h-4 text-[var(--primary)]" />
-                  <span className="font-medium text-gray-900">Have a tester code?</span>
+                  <span className="font-medium text-gray-900">{t('haveCode')}</span>
                 </div>
 
                 <form onSubmit={handleSubmitCode} className="flex gap-2">
@@ -183,7 +184,7 @@ export default function EarlyAccessModal({
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code"
+                    placeholder={t('enterCode')}
                     className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent font-mono text-center tracking-wider uppercase"
                     maxLength={20}
                     disabled={isSubmitting}
@@ -196,7 +197,7 @@ export default function EarlyAccessModal({
                     {isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      "Unlock"
+                      t('unlock')
                     )}
                   </button>
                 </form>
@@ -224,7 +225,7 @@ export default function EarlyAccessModal({
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                   <div className="flex items-center gap-2 mb-3">
                     <Mail className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-gray-900">Join the Waitlist</span>
+                    <span className="font-medium text-gray-900">{t('joinWaitlist')}</span>
                   </div>
 
                   <form onSubmit={handleJoinWaitlist} className="flex gap-2">
@@ -232,7 +233,7 @@ export default function EarlyAccessModal({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
+                      placeholder={t('emailPlaceholder')}
                       className="flex-1 px-4 py-2.5 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                       disabled={waitlistSubmitting}
                     />
@@ -244,12 +245,12 @@ export default function EarlyAccessModal({
                       {waitlistSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        "Join"
+                        t('join')
                       )}
                     </button>
                   </form>
                   <p className="mt-2 text-xs text-gray-500">
-                    Be first to know when we open the next wave of invites.
+                    {t('nextWaveHint')}
                   </p>
                 </div>
               ) : (
@@ -258,7 +259,7 @@ export default function EarlyAccessModal({
                   className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
-                  Join Waitlist for Next Wave
+                  {t('joinNextWave')}
                 </button>
               )}
             </>
@@ -271,20 +272,20 @@ export default function EarlyAccessModal({
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
               <h4 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
                 <Gift className="w-4 h-4" />
-                Early Access Benefits
+                {t('benefitsTitle')}
               </h4>
               <ul className="space-y-1.5 text-sm text-amber-800">
                 <li className="flex items-center gap-2">
                   <Lock className="w-3.5 h-3.5 text-amber-600" />
-                  Your preferences are saved
+                  {t('benefits.saved')}
                 </li>
                 <li className="flex items-center gap-2">
                   <Zap className="w-3.5 h-3.5 text-amber-600" />
-                  Get personalized AI recommendations
+                  {t('benefits.personalized')}
                 </li>
                 <li className="flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  14-day Pro access for early testers
+                  {t('benefits.proPlan')}
                 </li>
               </ul>
             </div>

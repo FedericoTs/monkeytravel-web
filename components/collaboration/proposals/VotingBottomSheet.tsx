@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import type {
   ProposalWithVotes,
@@ -111,6 +112,8 @@ export function VotingBottomSheet({
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   // ======================================================================
 
+  const t = useTranslations('common.voting');
+  const tc = useTranslations('common.buttons');
   const dragControls = useDragControls();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<VoteType | null>(null);
@@ -223,10 +226,10 @@ export function VotingBottomSheet({
   };
 
   const formatTimeRemaining = (hours: number): string => {
-    if (hours <= 0) return 'Expiring soon';
-    if (hours < 24) return `${Math.round(hours)}h left`;
+    if (hours <= 0) return t('expiringSoon');
+    if (hours < 24) return t('hoursLeft', { hours: Math.round(hours) });
     const days = Math.floor(hours / 24);
-    return `${days}d left`;
+    return t('daysLeft', { days });
   };
 
   // Get user's selected option based on their vote
@@ -274,9 +277,9 @@ export function VotingBottomSheet({
             <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
           </div>
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">No proposal selected</p>
+            <p className="text-gray-500 mb-4">{t('noProposalSelected')}</p>
             <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
-              Close
+              {tc('close')}
             </button>
           </div>
         </motion.div>
@@ -319,9 +322,9 @@ export function VotingBottomSheet({
             <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
           </div>
           <div className="text-center py-8">
-            <p className="text-red-600 mb-4">Unable to load proposal details</p>
+            <p className="text-red-600 mb-4">{t('unableToLoad')}</p>
             <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
-              Close
+              {tc('close')}
             </button>
           </div>
         </motion.div>
@@ -368,7 +371,7 @@ export function VotingBottomSheet({
           style={{ touchAction: 'none' }}
         >
           <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" />
-          <span className="sr-only">Drag to close</span>
+          <span className="sr-only">{t('dragToClose')}</span>
         </div>
 
         {/* Content - Scrollable */}
@@ -397,7 +400,7 @@ export function VotingBottomSheet({
                 {/* Activity Details */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
-                    <span>📅</span> Day {proposal.target_day + 1}
+                    <span>📅</span> {t('day', { day: proposal.target_day + 1 })}
                   </span>
                   {activity.start_time && (
                     <span className="flex items-center gap-1">
@@ -443,7 +446,7 @@ export function VotingBottomSheet({
                     👤
                   </span>
                 )}
-                <span>Suggested by <span className="font-medium text-gray-700">{proposal.proposer?.display_name || 'Unknown'}</span></span>
+                <span>{t('suggestedBy')} <span className="font-medium text-gray-700">{proposal.proposer?.display_name || t('unknown')}</span></span>
               </div>
               <span className="text-xs text-gray-400">
                 {formatTimeRemaining(timeRemaining.hours)}
@@ -454,7 +457,7 @@ export function VotingBottomSheet({
           {/* Proposal Note */}
           {proposal.note && (
             <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-sm text-amber-800">
-              <span className="font-medium">Note:</span> "{proposal.note}"
+              <span className="font-medium">{t('note')}:</span> &quot;{proposal.note}&quot;
             </div>
           )}
 
@@ -498,7 +501,7 @@ export function VotingBottomSheet({
           {/* User's Current Vote Status - Shows actual vote type */}
           {hasVoted && userVote && (
             <div className="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl">
-              <span className="text-sm text-gray-600">Your vote:</span>
+              <span className="text-sm text-gray-600">{t('yourVote')}</span>
               <span className={`text-sm font-medium ${VOTE_INFO[userVote as VoteType]?.color || 'text-gray-600'}`}>
                 {VOTE_INFO[userVote as VoteType]?.emoji} {VOTE_INFO[userVote as VoteType]?.label}
               </span>
@@ -547,12 +550,12 @@ export function VotingBottomSheet({
                 <span className="text-lg">
                   {PROPOSAL_VOTE_OPTIONS.find(o => o.id === selectedOption)?.emoji}
                 </span>
-                <span>Why do you feel this way? (optional)</span>
+                <span>{t('whyFeelThisWay')}</span>
               </div>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Help your travel buddies understand..."
+                placeholder={t('commentPlaceholder')}
                 className="w-full p-4 border border-gray-200 rounded-xl text-sm
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                            resize-none bg-gray-50"
@@ -570,7 +573,7 @@ export function VotingBottomSheet({
                   className="flex-1 py-3 rounded-xl text-gray-600 bg-gray-100
                              hover:bg-gray-200 font-medium transition-colors"
                 >
-                  Cancel
+                  {tc('cancel')}
                 </button>
                 <motion.button
                   whileTap={{ scale: 0.98 }}
@@ -583,7 +586,7 @@ export function VotingBottomSheet({
                              hover:bg-gray-900 font-medium transition-colors
                              disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Vote'}
+                  {isSubmitting ? t('submitting') : t('submitVote')}
                 </motion.button>
               </div>
             </motion.div>
@@ -597,7 +600,7 @@ export function VotingBottomSheet({
               className="w-full text-center text-sm text-gray-400 hover:text-gray-600
                          py-2 transition-colors disabled:opacity-50"
             >
-              Change my vote
+              {t('changeMyVote')}
             </button>
           )}
 
@@ -606,10 +609,10 @@ export function VotingBottomSheet({
             <div className="bg-amber-50 rounded-xl p-4 space-y-3 border border-amber-200">
               <div className="flex items-center gap-2 text-amber-700">
                 <span className="text-lg">⚠️</span>
-                <span className="font-medium">Voting is split</span>
+                <span className="font-medium">{t('votingSplit')}</span>
               </div>
               <p className="text-sm text-amber-600">
-                As the trip organizer, you can make the final call.
+                {t('tripOrganizerCall')}
               </p>
               <div className="flex gap-2">
                 <motion.button
@@ -620,7 +623,7 @@ export function VotingBottomSheet({
                              hover:bg-green-600 font-medium transition-colors
                              disabled:opacity-50"
                 >
-                  Add to Plan
+                  {t('addToPlan')}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.98 }}
@@ -630,7 +633,7 @@ export function VotingBottomSheet({
                              hover:bg-gray-600 font-medium transition-colors
                              disabled:opacity-50"
                 >
-                  Skip This
+                  {t('skipThis')}
                 </motion.button>
               </div>
             </div>
@@ -650,7 +653,7 @@ export function VotingBottomSheet({
             <details className="group">
               <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600
                                   list-none flex items-center gap-2 py-2">
-                <span>See who voted ({proposal.votes.length})</span>
+                <span>{t('seeWhoVoted')} ({proposal.votes.length})</span>
                 <span className="group-open:rotate-180 transition-transform text-xs">▼</span>
               </summary>
               <div className="mt-2 space-y-2">
@@ -674,7 +677,7 @@ export function VotingBottomSheet({
                           👤
                         </span>
                       )}
-                      <span className="flex-1 text-gray-700">{vote.user?.display_name || 'Unknown'}</span>
+                      <span className="flex-1 text-gray-700">{vote.user?.display_name || t('unknown')}</span>
                       <span title={voteInfo?.label}>{voteInfo?.emoji || '❓'}</span>
                     </div>
                   );

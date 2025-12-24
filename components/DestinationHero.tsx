@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useCurrency } from "@/lib/locale";
 /* eslint-disable @next/next/no-img-element */
 
@@ -41,8 +42,8 @@ interface DestinationHeroProps {
   disableApiCalls?: boolean;
 }
 
-// Weather parsing - extracts condition and optional temperature
-function parseWeatherNote(weather: string): { condition: string; temp?: string; icon: string; gradient: string } {
+// Weather parsing - extracts condition key and optional temperature
+function parseWeatherNote(weather: string): { conditionKey: string; temp?: string; icon: string; gradient: string } {
   const lowerWeather = weather.toLowerCase();
 
   // Try to extract temperature (e.g., "20-25°C" or "68°F")
@@ -51,36 +52,37 @@ function parseWeatherNote(weather: string): { condition: string; temp?: string; 
 
   // Determine condition and styling - Fresh Voyager theme colors
   if (lowerWeather.includes("sun") || lowerWeather.includes("clear") || lowerWeather.includes("warm") || lowerWeather.includes("hot")) {
-    return { condition: "Sunny", temp, icon: "☀️", gradient: "from-[#FF6B6B] to-[#FFB4B4]" };
+    return { conditionKey: "sunny", temp, icon: "☀️", gradient: "from-[#FF6B6B] to-[#FFB4B4]" };
   }
   if (lowerWeather.includes("cloud") || lowerWeather.includes("overcast")) {
-    return { condition: "Cloudy", temp, icon: "☁️", gradient: "from-slate-400 to-slate-500" };
+    return { conditionKey: "cloudy", temp, icon: "☁️", gradient: "from-slate-400 to-slate-500" };
   }
   if (lowerWeather.includes("rain") || lowerWeather.includes("shower")) {
-    return { condition: "Rainy", temp, icon: "🌧️", gradient: "from-[#00B4A6] to-[#008B80]" };
+    return { conditionKey: "rainy", temp, icon: "🌧️", gradient: "from-[#00B4A6] to-[#008B80]" };
   }
   if (lowerWeather.includes("snow") || lowerWeather.includes("cold") || lowerWeather.includes("winter")) {
-    return { condition: "Cold", temp, icon: "❄️", gradient: "from-[#74B9FF] to-[#0984e3]" };
+    return { conditionKey: "cold", temp, icon: "❄️", gradient: "from-[#74B9FF] to-[#0984e3]" };
   }
   if (lowerWeather.includes("wind")) {
-    return { condition: "Windy", temp, icon: "💨", gradient: "from-slate-300 to-slate-500" };
+    return { conditionKey: "windy", temp, icon: "💨", gradient: "from-slate-300 to-slate-500" };
   }
   if (lowerWeather.includes("mild") || lowerWeather.includes("pleasant")) {
-    return { condition: "Pleasant", temp, icon: "🌤️", gradient: "from-[#FFD93D] to-[#E5C235]" };
+    return { conditionKey: "pleasant", temp, icon: "🌤️", gradient: "from-[#FFD93D] to-[#E5C235]" };
   }
   // Default
-  return { condition: "Mild", temp, icon: "🌤️", gradient: "from-[#00B4A6] to-[#55EFC4]" };
+  return { conditionKey: "mild", temp, icon: "🌤️", gradient: "from-[#00B4A6] to-[#55EFC4]" };
 }
 
 // Minimal Weather Chip - integrates with meta info chips
 function WeatherChip({ weatherNote }: { weatherNote: string }) {
+  const t = useTranslations("common.destination.weather");
   const weather = parseWeatherNote(weatherNote);
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
       <span className="text-sm sm:text-base">{weather.icon}</span>
       <span className="text-white/90">
-        {weather.temp || weather.condition}
+        {weather.temp || t(weather.conditionKey)}
       </span>
     </div>
   );
@@ -105,6 +107,7 @@ export default function DestinationHero({
   onCoverImageFetched,
   disableApiCalls = false,
 }: DestinationHeroProps) {
+  const t = useTranslations("common.destination");
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -208,7 +211,7 @@ export default function DestinationHero({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back
+                {t("back")}
               </button>
             )}
 
@@ -255,7 +258,7 @@ export default function DestinationHero({
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
-                    <span>{activitiesCount} activities</span>
+                    <span>{t("activities", { count: activitiesCount })}</span>
                   </div>
                 )}
 
@@ -276,7 +279,7 @@ export default function DestinationHero({
               {/* Highlights - shown as inline badges on larger screens */}
               {highlights && highlights.length > 0 && (
                 <div className="hidden md:flex flex-wrap items-center gap-2 mt-3">
-                  <span className="text-white/60 text-xs uppercase tracking-wider">Highlights:</span>
+                  <span className="text-white/60 text-xs uppercase tracking-wider">{t("highlights")}</span>
                   {highlights.slice(0, 3).map((highlight, idx) => (
                     <span
                       key={idx}

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 type Store = 'apple' | 'google';
 
@@ -13,6 +16,7 @@ export default function StoreButton({
   href = '#',
   className = '',
 }: StoreButtonProps) {
+  const t = useTranslations('common.appStore');
   const isApple = store === 'apple';
 
   return (
@@ -31,10 +35,10 @@ export default function StoreButton({
       )}
       <div className="text-left">
         <p className="text-[10px] uppercase tracking-wide opacity-80">
-          {isApple ? 'Download on the' : 'Get it on'}
+          {isApple ? t('downloadOnThe') : t('getItOn')}
         </p>
         <p className="text-base font-semibold -mt-0.5">
-          {isApple ? 'App Store' : 'Google Play'}
+          {isApple ? t('appStore') : t('googlePlay')}
         </p>
       </div>
     </Link>

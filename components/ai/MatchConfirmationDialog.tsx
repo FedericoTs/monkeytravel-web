@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Activity } from "@/types";
 
@@ -26,6 +27,7 @@ export default function MatchConfirmationDialog({
   onCancel,
   onTypeMore,
 }: MatchConfirmationDialogProps) {
+  const t = useTranslations("common.ai.match");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // Sort matches by confidence
@@ -56,7 +58,7 @@ export default function MatchConfirmationDialog({
             </svg>
           </div>
           <div className="flex-1">
-            <span className="text-sm font-semibold text-slate-800">Which one did you mean?</span>
+            <span className="text-sm font-semibold text-slate-800">{t("whichOne")}</span>
           </div>
         </div>
       </div>
@@ -64,7 +66,7 @@ export default function MatchConfirmationDialog({
       {/* Query context */}
       <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
         <p className="text-xs text-slate-600">
-          You mentioned: <span className="font-medium text-slate-800">&ldquo;{query}&rdquo;</span>
+          {t("youMentioned")} <span className="font-medium text-slate-800">&ldquo;{query}&rdquo;</span>
         </p>
       </div>
 
@@ -120,12 +122,12 @@ export default function MatchConfirmationDialog({
                     </h4>
                     {index === 0 && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">
-                        Best match
+                        {t("bestMatch")}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-slate-500">Day {match.dayNumber}</span>
+                    <span className="text-xs text-slate-500">{t("day", { number: match.dayNumber })}</span>
                     {match.activity.start_time && (
                       <>
                         <span className="text-slate-300">•</span>
@@ -171,7 +173,7 @@ export default function MatchConfirmationDialog({
             onClick={onTypeMore}
             className="w-full text-sm text-slate-500 hover:text-slate-700 py-2 transition-colors"
           >
-            Or type more details to help me find it...
+            {t("typeMore")}
           </button>
         )}
 
@@ -180,7 +182,7 @@ export default function MatchConfirmationDialog({
           onClick={onCancel}
           className="w-full py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
         >
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </motion.div>

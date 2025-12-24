@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import { locales, localeNames, localeFlags, type Locale } from "@/i18n";
@@ -17,6 +17,7 @@ export default function LanguageSwitcher({
   showLabel = true,
   className = "",
 }: LanguageSwitcherProps) {
+  const t = useTranslations("common.language");
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
@@ -86,7 +87,7 @@ export default function LanguageSwitcher({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-        aria-label="Select language"
+        aria-label={t("select")}
       >
         <Globe className="w-4 h-4" />
         {showLabel && (

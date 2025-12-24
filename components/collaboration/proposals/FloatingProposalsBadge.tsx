@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { ProposalWithVotes } from "@/types";
 
 interface FloatingProposalsBadgeProps {
@@ -18,6 +19,7 @@ export function FloatingProposalsBadge({
   proposals,
   onClick,
 }: FloatingProposalsBadgeProps) {
+  const t = useTranslations("common.proposals");
   const pendingCount = proposals.filter(
     p => p.status === 'pending' || p.status === 'voting'
   ).length;
@@ -51,7 +53,7 @@ export function FloatingProposalsBadge({
 
         <span className="text-lg">🗳️</span>
         <span className="font-semibold">
-          {pendingCount} vote{pendingCount !== 1 ? 's' : ''} needed
+          {t("votesNeeded", { count: pendingCount })}
         </span>
       </motion.button>
     </AnimatePresence>

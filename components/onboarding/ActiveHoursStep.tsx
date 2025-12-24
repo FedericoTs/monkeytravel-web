@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface ActiveHoursStepProps {
   startHour: number;
   endHour: number;
@@ -15,9 +17,9 @@ const formatHour = (hour: number): string => {
 };
 
 const PRESETS = [
-  { label: "Early Bird", start: 6, end: 20, description: "6 AM - 8 PM" },
-  { label: "Standard", start: 8, end: 22, description: "8 AM - 10 PM" },
-  { label: "Night Owl", start: 10, end: 24, description: "10 AM - 12 AM" },
+  { id: "earlyBird", start: 6, end: 20, descriptionKey: "presets.earlyBird.description" },
+  { id: "standard", start: 8, end: 22, descriptionKey: "presets.standard.description" },
+  { id: "nightOwl", start: 10, end: 24, descriptionKey: "presets.nightOwl.description" },
 ];
 
 export default function ActiveHoursStep({
@@ -26,6 +28,8 @@ export default function ActiveHoursStep({
   onStartChange,
   onEndChange,
 }: ActiveHoursStepProps) {
+  const t = useTranslations("common.onboarding.activeHours");
+
   const applyPreset = (start: number, end: number) => {
     onStartChange(start);
     onEndChange(end);
@@ -35,10 +39,10 @@ export default function ActiveHoursStep({
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          When do you like to explore?
+          {t("title")}
         </h1>
         <p className="text-slate-600">
-          We'll schedule activities during your active hours
+          {t("subtitle")}
         </p>
       </div>
 
@@ -48,7 +52,7 @@ export default function ActiveHoursStep({
           const isSelected = startHour === preset.start && endHour === preset.end;
           return (
             <button
-              key={preset.label}
+              key={preset.id}
               onClick={() => applyPreset(preset.start, preset.end)}
               className={`p-3 rounded-xl border-2 text-center transition-all ${
                 isSelected
@@ -56,8 +60,8 @@ export default function ActiveHoursStep({
                   : "border-slate-200 hover:border-slate-300"
               }`}
             >
-              <div className="font-medium text-slate-900 text-sm">{preset.label}</div>
-              <div className="text-xs text-slate-500 mt-1">{preset.description}</div>
+              <div className="font-medium text-slate-900 text-sm">{t(`presets.${preset.id}.label`)}</div>
+              <div className="text-xs text-slate-500 mt-1">{t(preset.descriptionKey)}</div>
             </button>
           );
         })}
@@ -66,13 +70,13 @@ export default function ActiveHoursStep({
       {/* Custom Selection */}
       <div className="bg-slate-50 rounded-xl p-6 space-y-6">
         <div className="text-center text-sm font-medium text-slate-700">
-          Or customize your hours
+          {t("customizeHours")}
         </div>
 
         {/* Start Time */}
         <div>
           <label className="block text-sm font-medium text-slate-600 mb-2">
-            Start activities from
+            {t("startFrom")}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -92,7 +96,7 @@ export default function ActiveHoursStep({
         {/* End Time */}
         <div>
           <label className="block text-sm font-medium text-slate-600 mb-2">
-            Wind down by
+            {t("windDownBy")}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -120,10 +124,10 @@ export default function ActiveHoursStep({
           </div>
           <div>
             <div className="font-medium text-amber-900">
-              {endHour - startHour} active hours
+              {t("activeHoursCount", { count: endHour - startHour })}
             </div>
             <div className="text-sm text-amber-700">
-              {formatHour(startHour)} to {formatHour(endHour)}
+              {t("timeRange", { start: formatHour(startHour), end: formatHour(endHour) })}
             </div>
           </div>
         </div>

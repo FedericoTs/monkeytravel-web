@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Activity } from "@/types";
 import { MiniActivityCard } from "./AssistantCards";
@@ -26,6 +27,7 @@ export default function PreviewChangeCard({
   onCancel,
   isApplying = false,
 }: PreviewChangeCardProps) {
+  const t = useTranslations("common.ai.preview");
   const [showComparison, setShowComparison] = useState(true);
 
   return (
@@ -45,11 +47,11 @@ export default function PreviewChangeCard({
             </svg>
           </div>
           <div className="flex-1">
-            <span className="text-sm font-semibold text-slate-800">Suggested Change</span>
-            <span className="text-xs text-slate-500 ml-2">Day {dayNumber}</span>
+            <span className="text-sm font-semibold text-slate-800">{t("suggestedChange")}</span>
+            <span className="text-xs text-slate-500 ml-2">{t("day", { number: dayNumber })}</span>
           </div>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-            Preview
+            {t("previewBadge")}
           </span>
         </div>
       </div>
@@ -86,7 +88,7 @@ export default function PreviewChangeCard({
                   </div>
                 </motion.div>
                 <div className="absolute left-0 sm:-left-2 top-0 sm:top-1/2 sm:-translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">
-                  BEFORE
+                  {t("before")}
                 </div>
               </div>
 
@@ -115,7 +117,7 @@ export default function PreviewChangeCard({
                   <MiniActivityCard activity={newActivity} isNew />
                 </motion.div>
                 <div className="absolute left-0 sm:-left-2 top-0 sm:top-1/2 sm:-translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600 font-medium">
-                  AFTER
+                  {t("after")}
                 </div>
               </div>
             </motion.div>
@@ -137,7 +139,7 @@ export default function PreviewChangeCard({
                 </svg>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-700">Why this change:</span>
+                <span className="text-[11px] font-semibold text-slate-700">{t("whyThisChange")}</span>
                 <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{reason}</p>
               </div>
             </div>
@@ -165,14 +167,14 @@ export default function PreviewChangeCard({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <span>Applying...</span>
+                <span>{t("applying")}</span>
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Apply Change</span>
+                <span>{t("applyChange")}</span>
               </>
             )}
           </button>
@@ -202,7 +204,7 @@ export default function PreviewChangeCard({
 
         {/* Helper text */}
         <p className="text-[10px] text-slate-400 text-center mt-2">
-          Click &quot;Apply&quot; to confirm this change to your trip
+          {t("helperText")}
         </p>
       </div>
     </motion.div>

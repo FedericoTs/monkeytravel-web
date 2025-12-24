@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, Suspense } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/utils";
@@ -48,6 +49,7 @@ type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
 type FilterStatus = "all" | "planning" | "confirmed" | "active" | "completed" | "cancelled";
 
 export default function TripsPageClient({ trips, displayName }: TripsPageClientProps) {
+  const t = useTranslations('common.trips');
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -366,7 +368,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <span className="text-slate-600 text-sm sm:text-base hidden xs:inline">Hi, {displayName}</span>
+            <span className="text-slate-600 text-sm sm:text-base hidden xs:inline">{t('hi')}, {displayName}</span>
             <Link
               href="/profile"
               className="p-2 rounded-lg text-slate-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
@@ -381,7 +383,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 type="submit"
                 className="text-slate-500 hover:text-slate-700 text-xs sm:text-sm px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                Sign out
+                {t('signOut')}
               </button>
             </form>
           </div>
@@ -400,7 +402,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
                   </svg>
                 </div>
-                <span className="text-xs sm:text-sm text-slate-500">Total</span>
+                <span className="text-xs sm:text-sm text-slate-500">{t('total')}</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.total}</div>
             </div>
@@ -412,7 +414,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <span className="text-xs sm:text-sm text-slate-500">Upcoming</span>
+                <span className="text-xs sm:text-sm text-slate-500">{t('upcoming')}</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.upcoming}</div>
             </div>
@@ -424,7 +426,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-xs sm:text-sm text-slate-500">Completed</span>
+                <span className="text-xs sm:text-sm text-slate-500">{t('completed')}</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.past}</div>
             </div>
@@ -436,7 +438,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   </svg>
                 </div>
-                <span className="text-xs sm:text-sm text-slate-500">Destinations</span>
+                <span className="text-xs sm:text-sm text-slate-500">{t('destinations')}</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.destinations}</div>
             </div>
@@ -450,9 +452,9 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
         <div className="flex flex-col gap-4 mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Your Trips</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{t('yourTrips')}</h1>
               <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Plan and manage your AI-powered itineraries
+                {t('manageItineraries')}
               </p>
             </div>
             {/* Hide on mobile when no trips (empty state has its own CTA) */}
@@ -475,7 +477,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Plan New Trip
+              {t('planNewTrip')}
             </Link>
           </div>
 
@@ -499,7 +501,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search trips..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors bg-white"
@@ -524,7 +526,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
-                Filters
+                {t('filters')}
                 {(filterStatus !== "all" || sortBy !== "newest") && (
                   <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
                 )}
@@ -537,10 +539,10 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="upcoming">By Date</option>
-                  <option value="alphabetical">A-Z</option>
+                  <option value="newest">{t('newestFirst')}</option>
+                  <option value="oldest">{t('oldestFirst')}</option>
+                  <option value="upcoming">{t('byDate')}</option>
+                  <option value="alphabetical">{t('alphabetical')}</option>
                 </select>
 
                 <select
@@ -548,12 +550,12 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                   onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
                   className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none"
                 >
-                  <option value="all">All Status</option>
-                  <option value="planning">Planning</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="all">{t('allStatus')}</option>
+                  <option value="planning">{t('planning')}</option>
+                  <option value="confirmed">{t('confirmed')}</option>
+                  <option value="active">{t('active')}</option>
+                  <option value="completed">{t('completed')}</option>
+                  <option value="cancelled">{t('cancelled')}</option>
                 </select>
               </div>
             </div>
@@ -563,31 +565,31 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
           {showFilters && (
             <div className="sm:hidden bg-white rounded-xl border border-slate-200 p-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Sort by</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">{t('sortBy')}</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="upcoming">By Date</option>
-                  <option value="alphabetical">A-Z</option>
+                  <option value="newest">{t('newestFirst')}</option>
+                  <option value="oldest">{t('oldestFirst')}</option>
+                  <option value="upcoming">{t('byDate')}</option>
+                  <option value="alphabetical">{t('alphabetical')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Filter by status</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">{t('filterByStatus')}</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
                 >
-                  <option value="all">All Status</option>
-                  <option value="planning">Planning</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="all">{t('allStatus')}</option>
+                  <option value="planning">{t('planning')}</option>
+                  <option value="confirmed">{t('confirmed')}</option>
+                  <option value="active">{t('active')}</option>
+                  <option value="completed">{t('completed')}</option>
+                  <option value="cancelled">{t('cancelled')}</option>
                 </select>
               </div>
               <button
@@ -597,7 +599,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 }}
                 className="w-full text-sm text-[var(--primary)] font-medium"
               >
-                Reset Filters
+                {t('resetFilters')}
               </button>
             </div>
           )}
@@ -606,7 +608,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
         {/* Active Filters Indicator */}
         {(filterStatus !== "all" || searchQuery) && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="text-sm text-slate-500">Showing:</span>
+            <span className="text-sm text-slate-500">{t('showing')}</span>
             {searchQuery && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-700">
                 &quot;{searchQuery}&quot;
@@ -627,7 +629,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 </button>
               </span>
             )}
-            <span className="text-sm text-slate-500">({filteredTrips.length} trips)</span>
+            <span className="text-sm text-slate-500">({filteredTrips.length} {t('tripsCount')})</span>
           </div>
         )}
 
@@ -638,7 +640,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
             <>
               {/* Current/Active Trips */}
               <TripSection
-                title="Happening Now"
+                title={t('happeningNow')}
                 trips={groupedTrips.current}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -651,7 +653,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
 
               {/* Upcoming Trips */}
               <TripSection
-                title="Upcoming"
+                title={t('upcoming')}
                 trips={groupedTrips.upcoming}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
@@ -660,12 +662,12 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     </svg>
                   </div>
                 }
-                emptyText="No upcoming trips planned. Start planning your next adventure!"
+                emptyText={t('noUpcomingTrips')}
               />
 
               {/* Past Trips */}
               <TripSection
-                title="Past Adventures"
+                title={t('pastAdventures')}
                 trips={groupedTrips.past}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
@@ -691,9 +693,9 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">No trips found</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">{t('noTripsFound')}</h2>
                 <p className="text-slate-600 text-sm mb-4">
-                  Try adjusting your search or filters
+                  {t('adjustFilters')}
                 </p>
                 <button
                   onClick={() => {
@@ -702,7 +704,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                   }}
                   className="text-[var(--primary)] font-medium hover:underline"
                 >
-                  Clear all filters
+                  {t('clearFilters')}
                 </button>
               </div>
             )
@@ -726,11 +728,10 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
               </svg>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
-              No trips yet
+              {t('noTripsYet')}
             </h2>
             <p className="text-slate-600 text-sm sm:text-base mb-6 sm:mb-8 max-w-md mx-auto">
-              Create your first AI-powered trip and let MonkeyTravel plan the
-              perfect itinerary for you.
+              {t('noTripsDescription')}
             </p>
             <Link
               href="/trips/new"
@@ -749,7 +750,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Plan Your First Trip
+              {t('planFirstTrip')}
             </Link>
           </div>
         )}

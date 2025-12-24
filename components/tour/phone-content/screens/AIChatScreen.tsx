@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 // Animated typing effect for AI responses
 interface TypingTextProps {
@@ -134,6 +135,8 @@ function AIAction({ action, delay = 0 }: AIActionProps) {
 }
 
 export default function AIChatScreen() {
+  const t = useTranslations("common.tour.aiChat");
+
   return (
     <div className="absolute inset-0 flex flex-col pt-14 pb-4 px-3">
       {/* Header */}
@@ -147,10 +150,10 @@ export default function AIChatScreen() {
           <span className="text-sm">🐵</span>
         </div>
         <div>
-          <h3 className="text-[11px] font-bold text-gray-900">MonkeyTravel AI</h3>
+          <h3 className="text-[11px] font-bold text-gray-900">{t("header.title")}</h3>
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[8px] text-gray-500">Online • Ready to plan</span>
+            <span className="text-[8px] text-gray-500">{t("header.status")}</span>
           </div>
         </div>
       </motion.div>
@@ -159,17 +162,17 @@ export default function AIChatScreen() {
       <div className="flex-1 overflow-hidden flex flex-col justify-end">
         {/* AI Greeting */}
         <ChatBubble type="ai" delay={0.3}>
-          <span>Hi! 👋 I&apos;m your AI travel assistant. Where would you like to go?</span>
+          <span>{t("messages.greeting")}</span>
         </ChatBubble>
 
         {/* User message */}
         <ChatBubble type="user" delay={0.8}>
-          <span>I want to visit Barcelona for 5 days!</span>
+          <span>{t("messages.userRequest")}</span>
         </ChatBubble>
 
         {/* AI acknowledges */}
         <ChatBubble type="ai" delay={1.4}>
-          <span>Great choice! 🇪🇸 Barcelona is amazing. Let me ask a few questions to personalize your trip...</span>
+          <span>{t("messages.aiResponse")}</span>
         </ChatBubble>
 
         {/* Quick questions */}
@@ -179,7 +182,7 @@ export default function AIChatScreen() {
           transition={{ delay: 2.0 }}
           className="flex flex-wrap gap-1.5 ml-8 mb-2"
         >
-          {["Culture & History", "Food & Wine", "Beach & Relaxation"].map((tag, i) => (
+          {[t("tags.culture"), t("tags.food"), t("tags.beach")].map((tag, i) => (
             <motion.button
               key={tag}
               initial={{ scale: 0 }}
@@ -198,11 +201,11 @@ export default function AIChatScreen() {
 
         {/* User selects */}
         <ChatBubble type="user" delay={2.8}>
-          <span>Culture & History please!</span>
+          <span>{t("messages.userSelection")}</span>
         </ChatBubble>
 
         {/* AI starts planning */}
-        <AIAction action="Creating your personalized itinerary..." delay={3.3} />
+        <AIAction action={t("actions.creating")} delay={3.3} />
       </div>
 
       {/* Input area */}
@@ -215,7 +218,7 @@ export default function AIChatScreen() {
         <div className="flex-1 bg-gray-100 rounded-full px-3 py-2 flex items-center">
           <input
             type="text"
-            placeholder="Ask me anything..."
+            placeholder={t("inputPlaceholder")}
             className="flex-1 bg-transparent text-[10px] text-gray-600 placeholder-gray-400 outline-none"
             disabled
           />

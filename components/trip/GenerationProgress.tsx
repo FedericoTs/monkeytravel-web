@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 interface GenerationProgressProps {
   destination: string;
@@ -12,57 +13,55 @@ interface GenerationProgressProps {
 const PHASES = [
   {
     id: "research",
-    label: "Researching",
-    description: "Discovering the best of",
+    labelKey: "research",
+    descriptionKey: "researchDesc",
     icon: "globe",
     weight: 20, // 0-20%
     duration: 4000, // Target duration in ms
   },
   {
     id: "planning",
-    label: "Planning activities",
-    description: "Curating experiences for",
+    labelKey: "planning",
+    descriptionKey: "planningDesc",
     icon: "calendar",
     weight: 30, // 20-50%
     duration: 8000,
   },
   {
     id: "optimizing",
-    label: "Optimizing schedule",
-    description: "Creating the perfect flow for",
+    labelKey: "optimizing",
+    descriptionKey: "optimizingDesc",
     icon: "route",
     weight: 30, // 50-80%
     duration: 12000,
   },
   {
     id: "enriching",
-    label: "Adding details",
-    description: "Enriching with local insights for",
+    labelKey: "enriching",
+    descriptionKey: "enrichingDesc",
     icon: "sparkle",
     weight: 15, // 80-95%
     duration: 15000, // This phase stretches until API responds
   },
   {
     id: "finalizing",
-    label: "Finalizing",
-    description: "Putting finishing touches on",
+    labelKey: "finalizing",
+    descriptionKey: "finalizingDesc",
     icon: "check",
     weight: 5, // 95-100%
     duration: 1000,
   },
 ];
 
-// Fun facts shown during loading
-const DESTINATION_FACTS: Record<string, string[]> = {
-  default: [
-    "AI is analyzing thousands of reviews and ratings",
-    "Finding hidden gems that locals love",
-    "Optimizing routes to save you time",
-    "Checking opening hours and seasonal availability",
-    "Balancing activities with rest time",
-    "Matching experiences to your travel style",
-  ],
-};
+// Fun fact keys for translation
+const FUN_FACT_KEYS = [
+  "analyzing",
+  "hiddenGems",
+  "optimizingRoutes",
+  "checkingHours",
+  "balancing",
+  "matching",
+];
 
 // Animated icons for each phase
 function PhaseIcon({ phase, isActive }: { phase: string; isActive: boolean }) {
@@ -216,6 +215,7 @@ export default function GenerationProgress({
   destination,
   isGenerating,
 }: GenerationProgressProps) {
+  const t = useTranslations("common.generation");
   const [progress, setProgress] = useState(0);
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
@@ -285,9 +285,8 @@ export default function GenerationProgress({
   useEffect(() => {
     if (!isGenerating) return;
 
-    const facts = DESTINATION_FACTS.default;
     const interval = setInterval(() => {
-      setFactIndex((prev) => (prev + 1) % facts.length);
+      setFactIndex((prev) => (prev + 1) % FUN_FACT_KEYS.length);
     }, 4000);
 
     return () => clearInterval(interval);
@@ -296,10 +295,8 @@ export default function GenerationProgress({
   // Format elapsed time
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
-    return `${seconds}s`;
+    return seconds;
   };
-
-  const facts = DESTINATION_FACTS.default;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center relative overflow-hidden">
@@ -342,7 +339,7 @@ export default function GenerationProgress({
                 <span className={`text-xs font-medium transition-colors ${
                   idx <= currentPhaseIndex ? "text-slate-700" : "text-slate-400"
                 }`}>
-                  {phase.label.split(" ")[0]}
+                  {t(`phases.${phase.labelKey}`).split(" ")[0]}
                 </span>
               </div>
             ))}
@@ -351,10 +348,10 @@ export default function GenerationProgress({
           {/* Current phase description */}
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 transition-all duration-500">
-              {currentPhase.phase.label}...
+              {t(`phases.${currentPhase.phase.labelKey}`)}...
             </h2>
             <p className="text-slate-600">
-              {currentPhase.phase.description}{" "}
+              {t(`phases.${currentPhase.phase.descriptionKey}`)}{" "}
               <span className="font-semibold text-[var(--primary)]">{destination}</span>
             </p>
           </div>
@@ -367,7 +364,7 @@ export default function GenerationProgress({
           {/* Progress percentage and time */}
           <div className="flex justify-between items-center text-sm mb-8">
             <span className="text-slate-500">
-              {formatTime(elapsedTime)} elapsed
+              {t("elapsed", { seconds: formatTime(elapsedTime) })}
             </span>
             <span className="font-semibold text-[var(--primary)]">
               {Math.round(progress)}%
@@ -381,14 +378,14 @@ export default function GenerationProgress({
               className="text-sm text-slate-600 text-center animate-fade-in-up"
             >
               <span className="text-[var(--accent)] mr-2">✨</span>
-              {facts[factIndex]}
+              {t(`funFacts.${FUN_FACT_KEYS[factIndex]}`)}
             </p>
           </div>
         </div>
 
         {/* Bottom reassurance */}
         <p className="text-center text-xs text-slate-400 mt-6">
-          This usually takes 20-40 seconds for a personalized itinerary
+          {t("estimatedTime")}
         </p>
       </div>
     </div>

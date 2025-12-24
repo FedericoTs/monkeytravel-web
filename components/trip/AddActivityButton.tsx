@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, Search, X, MapPin, Clock, Loader2 } from "lucide-react";
 import { Activity } from "@/types";
 import { ActivitySearchResult } from "@/app/api/activities/search/route";
+import { useTranslations } from "next-intl";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -14,11 +15,11 @@ interface AddActivityButtonProps {
 
 // Activity type categories with icons
 const ACTIVITY_CATEGORIES = [
-  { type: "restaurant", label: "Restaurant", icon: "🍽️" },
-  { type: "attraction", label: "Attraction", icon: "🏛️" },
-  { type: "activity", label: "Activity", icon: "🎯" },
-  { type: "nature", label: "Nature", icon: "🌿" },
-  { type: "shopping", label: "Shopping", icon: "🛍️" },
+  { type: "restaurant", labelKey: "restaurant", icon: "🍽️" },
+  { type: "attraction", labelKey: "attraction", icon: "🏛️" },
+  { type: "activity", labelKey: "other", icon: "🎯" },
+  { type: "nature", labelKey: "park", icon: "🌿" },
+  { type: "shopping", labelKey: "shopping", icon: "🛍️" },
 ];
 
 export default function AddActivityButton({
@@ -27,6 +28,8 @@ export default function AddActivityButton({
   onAdd,
   className = "",
 }: AddActivityButtonProps) {
+  const t = useTranslations("common.addActivity");
+  const tTrip = useTranslations("common.trip");
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -163,7 +166,7 @@ export default function AddActivityButton({
         className={`group flex items-center gap-2 w-full py-3 px-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all ${className}`}
       >
         <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
-        <span className="font-medium">Add Activity</span>
+        <span className="font-medium">{t("title")}</span>
       </button>
     );
   }
@@ -175,7 +178,7 @@ export default function AddActivityButton({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
-        <span className="font-medium text-slate-700">Add Activity to Day {dayIndex + 1}</span>
+        <span className="font-medium text-slate-700">{t("title")} - {tTrip("dayLabel", { number: dayIndex + 1 })}</span>
         <button
           onClick={() => {
             setIsExpanded(false);
@@ -300,7 +303,7 @@ export default function AddActivityButton({
                 }`}
               >
                 <span>{cat.icon}</span>
-                <span>{cat.label}</span>
+                <span>{t(`categories.${cat.labelKey}`)}</span>
               </button>
             ))}
           </div>
@@ -382,7 +385,7 @@ export default function AddActivityButton({
             onClick={() => setShowCustomForm(true)}
             className="w-full text-center py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
           >
-            + Add custom activity
+            + {t("addCustom")}
           </button>
         </div>
       )}

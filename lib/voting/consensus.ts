@@ -182,64 +182,67 @@ export function calculateConsensus({
 
 /**
  * Get display information for a consensus status
+ * Returns labelKey and descriptionKey for i18n translation
  */
 export function getConsensusDisplayInfo(result: ConsensusResult): {
-  label: string;
+  labelKey: string;
   color: string;
   bgColor: string;
   icon: string;
-  description: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string | number>;
 } {
   switch (result.status) {
     case 'waiting':
       return {
-        label: 'Awaiting Votes',
+        labelKey: 'waiting',
         color: 'text-slate-600',
         bgColor: 'bg-slate-100',
         icon: 'clock',
-        description: `${Math.round(result.participation * 100)}% voted`,
+        descriptionKey: 'waitingDesc',
+        descriptionParams: { percent: Math.round(result.participation * 100) },
       };
     case 'voting':
       return {
-        label: 'Voting',
+        labelKey: 'voting',
         color: 'text-blue-600',
         bgColor: 'bg-blue-100',
         icon: 'vote',
-        description: result.hasStrongObjection
-          ? 'Has concerns to address'
-          : 'Voting in progress',
+        descriptionKey: result.hasStrongObjection
+          ? 'votingConcerns'
+          : 'votingInProgress',
       };
     case 'likely_yes':
       return {
-        label: 'Likely Approved',
+        labelKey: 'likelyApproved',
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-100',
         icon: 'trending-up',
-        description: 'Trending positive',
+        descriptionKey: 'likelyApprovedDesc',
       };
     case 'confirmed':
       return {
-        label: 'Confirmed',
+        labelKey: 'confirmed',
         color: 'text-green-600',
         bgColor: 'bg-green-100',
         icon: 'check',
-        description: 'Group approved',
+        descriptionKey: 'confirmedDesc',
       };
     case 'rejected':
       return {
-        label: 'Not This Time',
+        labelKey: 'rejected',
         color: 'text-red-600',
         bgColor: 'bg-red-100',
         icon: 'x',
-        description: 'Group decided against',
+        descriptionKey: 'rejectedDesc',
       };
     case 'deadlock':
       return {
-        label: 'Needs Decision',
+        labelKey: 'deadlock',
         color: 'text-amber-600',
         bgColor: 'bg-amber-100',
         icon: 'alert',
-        description: 'Owner needs to decide',
+        descriptionKey: 'deadlockDesc',
       };
   }
 }

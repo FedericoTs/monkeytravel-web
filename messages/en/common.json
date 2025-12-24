@@ -96,6 +96,12 @@
     "termsOfService": "Terms of Service",
     "copyright": "© {year} MonkeyTravel. All rights reserved."
   },
+  "bottomNav": {
+    "home": "Home",
+    "myTrips": "My Trips",
+    "new": "New",
+    "profile": "Profile"
+  },
   "language": {
     "select": "Select Language",
     "english": "English",
@@ -155,6 +161,1090 @@
     "subscribe": "Subscribe",
     "joined": "Joined!",
     "successMessage": "You're on the list! We'll notify you when we launch.",
-    "errorMessage": "Something went wrong. Please try again."
+    "errorMessage": "Something went wrong. Please try again.",
+    "invalidEmail": "Please enter a valid email address"
+  },
+  "aiAssistant": {
+    "title": "Trip Assistant",
+    "howCanIHelp": "How can I help?",
+    "emptyStateHint": "Ask me to add activities, replace places, or get local tips",
+    "thinking": "Thinking...",
+    "placeholder": "Replace the Colosseum with something quieter...",
+    "requestsLeft": "requests left",
+    "clearConversation": "Clear conversation",
+    "changeApplied": "Change applied",
+    "hintText": "Try: \"Replace X with Y\" or \"Add a cafe near the museum\"",
+    "quickActions": {
+      "optimizeBudget": "Optimize budget",
+      "addRestaurant": "Add restaurant",
+      "localTips": "Local tips",
+      "alternatives": "Alternatives"
+    },
+    "quickPrompts": {
+      "optimizeBudget": "Suggest ways to optimize my budget",
+      "addRestaurant": "Suggest a great local restaurant to add",
+      "localTips": "What are insider tips for this destination?",
+      "alternatives": "Suggest alternative activities I could do"
+    }
+  },
+  "deleteAccount": {
+    "title": "Delete Account?",
+    "warning": "This will permanently delete your account and all associated data including:",
+    "items": {
+      "trips": "All your trips and itineraries",
+      "conversations": "AI conversation history",
+      "preferences": "Saved preferences and settings",
+      "checklists": "Trip checklists and memories"
+    },
+    "cannotUndo": "This action cannot be undone.",
+    "typeToConfirm": "Type",
+    "deleteWord": "DELETE",
+    "toConfirm": "to confirm",
+    "typePlaceholder": "Type DELETE",
+    "deleting": "Deleting..."
+  },
+  "earlyAccess": {
+    "title": "AI Features",
+    "earlyAccess": "Early Access",
+    "description": "Our AI trip planning is currently available to early testers. We're rolling out access in waves to ensure the best experience.",
+    "haveCode": "Have a tester code?",
+    "enterCode": "Enter code",
+    "unlock": "Unlock",
+    "welcomeTitle": "Welcome to Early Access!",
+    "welcomeMessage": "You now have access to all AI features.",
+    "onListTitle": "You're on the list!",
+    "onListMessage": "We'll email you when early access opens up.",
+    "joinWaitlist": "Join the Waitlist",
+    "emailPlaceholder": "your@email.com",
+    "join": "Join",
+    "nextWaveHint": "Be first to know when we open the next wave of invites.",
+    "joinNextWave": "Join Waitlist for Next Wave",
+    "benefitsTitle": "Early Access Benefits",
+    "benefits": {
+      "saved": "Your preferences are saved",
+      "personalized": "Get personalized AI recommendations",
+      "proPlan": "14-day Pro access for early testers"
+    }
+  },
+  "voting": {
+    "loveIt": "Love it!",
+    "openToIt": "Open to it",
+    "concerns": "Concerns",
+    "skipThis": "Skip this",
+    "commentPlaceholder": "Help your travel buddies understand...",
+    "noProposalSelected": "No proposal selected",
+    "unableToLoad": "Unable to load proposal details",
+    "yourVote": "Your vote:",
+    "whyFeelThisWay": "Why do you feel this way? (optional)",
+    "submitting": "Submitting...",
+    "submitVote": "Submit Vote",
+    "changeMyVote": "Change my vote",
+    "votingSplit": "Voting is split",
+    "tripOrganizerCall": "As the trip organizer, you can make the final call.",
+    "addToPlan": "Add to Plan",
+    "seeWhoVoted": "See who voted",
+    "shareWhy": "Please share why with the group",
+    "cancel": "Cancel",
+    "concernsPlaceholder": "What concerns do you have about this activity?",
+    "noPlaceholder": "Why isn't this activity right for you?",
+    "expiringSoon": "Expiring soon",
+    "hoursLeft": "{hours}h left",
+    "daysLeft": "{days}d left",
+    "dragToClose": "Drag to close",
+    "day": "Day {day}",
+    "suggestedBy": "Suggested by",
+    "unknown": "Unknown",
+    "note": "Note",
+    "types": {
+      "love": {
+        "label": "Love it!",
+        "description": "This is a must-do!"
+      },
+      "flexible": {
+        "label": "Open to it",
+        "description": "I'm flexible on this"
+      },
+      "concerns": {
+        "label": "Concerns",
+        "description": "I have some reservations"
+      },
+      "no": {
+        "label": "Skip this",
+        "description": "Not for me"
+      }
+    }
+  },
+  "rating": {
+    "title": "Rate Activity",
+    "placeholder": "Amazing views! Tip: go early to avoid crowds...",
+    "activityComplete": "Activity Complete!",
+    "howWasIt": "How was it?",
+    "tapToRate": "Tap to rate",
+    "notGreat": "Not great",
+    "couldBeBetter": "Could be better",
+    "itWasOkay": "It was okay",
+    "reallyGood": "Really good!",
+    "amazing": "Amazing!",
+    "quickTags": "Quick tags",
+    "addNote": "Add a quick note (optional)",
+    "saving": "Saving...",
+    "skipForNow": "Skip for now",
+    "tags": {
+      "mustDo": "Must-do",
+      "crowded": "Crowded",
+      "worthIt": "Worth it",
+      "skipNextTime": "Skip next time",
+      "hiddenGem": "Hidden gem",
+      "overrated": "Overrated"
+    }
+  },
+  "trips": {
+    "searchPlaceholder": "Search trips...",
+    "happeningNow": "Happening Now",
+    "upcoming": "Upcoming",
+    "pastAdventures": "Past Adventures",
+    "yourTrips": "Your Trips",
+    "manageItineraries": "Plan and manage your AI-powered itineraries",
+    "planNewTrip": "Plan New Trip",
+    "planFirstTrip": "Plan Your First Trip",
+    "noTripsYet": "No trips yet",
+    "noTripsDescription": "Create your first AI-powered trip and let MonkeyTravel plan the perfect itinerary for you.",
+    "noTripsFound": "No trips found",
+    "adjustFilters": "Try adjusting your search or filters",
+    "clearFilters": "Clear all filters",
+    "resetFilters": "Reset Filters",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "filterByStatus": "Filter by status",
+    "newestFirst": "Newest First",
+    "oldestFirst": "Oldest First",
+    "byDate": "By Date",
+    "alphabetical": "A-Z",
+    "allStatus": "All Status",
+    "planning": "Planning",
+    "confirmed": "Confirmed",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "total": "Total",
+    "destinations": "Destinations",
+    "showing": "Showing:",
+    "tripsCount": "trips",
+    "noUpcomingTrips": "No upcoming trips planned. Start planning your next adventure!",
+    "signOut": "Sign out",
+    "hi": "Hi"
+  },
+  "booking": {
+    "hotels": {
+      "findHotelsIn": "Find Hotels in {destination}",
+      "night": "night",
+      "nights": "nights",
+      "searchingNearActivities": "Searching near your activities ({count} locations, {radius} radius)",
+      "guests": "Guests",
+      "guest": "guest",
+      "guestsPlural": "guests",
+      "rooms": "Rooms",
+      "room": "room",
+      "roomsPlural": "rooms",
+      "sortClosestToActivities": "Sort: Closest to Activities",
+      "sortLowestPrice": "Sort: Lowest Price",
+      "sortHighestRating": "Sort: Highest Rating",
+      "sortAZ": "Sort: A-Z",
+      "anyRating": "Any rating",
+      "fiveStars": "5 stars",
+      "fourPlusStars": "4+ stars",
+      "threePlusStars": "3+ stars",
+      "anyPrice": "Any price",
+      "priceUnder100": "Under $100/night",
+      "price100to200": "$100 - $200/night",
+      "price200to400": "$200 - $400/night",
+      "price400plus": "$400+/night",
+      "searching": "Searching...",
+      "searchHotels": "Search Hotels",
+      "hotelsFound": "{count} hotels found",
+      "hotelFound": "{count} hotel found",
+      "pricesPerNight": "Prices per night",
+      "noHotelsFound": "No hotels found for these dates.",
+      "tryAdjustingFilters": "Try adjusting your filters.",
+      "toYourActivities": "to your activities",
+      "breakfastIncluded": "Breakfast included",
+      "halfBoard": "Half board",
+      "fullBoard": "Full board",
+      "allInclusive": "All inclusive",
+      "roomOnly": "Room only",
+      "moreAmenities": "+{count} more",
+      "freeCancellation": "Free cancellation",
+      "perNight": "per night",
+      "total": "total",
+      "forNights": "for {count} nights",
+      "forNight": "for {count} night"
+    },
+    "flights": {
+      "findFlightsTo": "Find Flights to {destination}",
+      "departingFrom": "Departing from",
+      "enterCityOrAirport": "Enter city or airport...",
+      "sortCheapest": "Sort: Cheapest",
+      "sortFastest": "Sort: Fastest",
+      "sortDeparture": "Sort: Departure",
+      "anyStops": "Any stops",
+      "directOnly": "Direct only",
+      "oneStopMax": "1 stop max",
+      "twoStopsMax": "2 stops max",
+      "searching": "Searching...",
+      "searchFlights": "Search Flights",
+      "flightsFound": "{count} flights found",
+      "flightFound": "{count} flight found",
+      "pricesIncludeTaxes": "Prices include all taxes and fees",
+      "noFlightsFound": "No flights found for these dates.",
+      "tryAdjustingCriteria": "Try adjusting your search criteria.",
+      "pleaseSelectDeparture": "Please select a departure city or airport",
+      "direct": "Direct",
+      "oneStop": "1 stop",
+      "stops": "{count} stops",
+      "economy": "Economy",
+      "premiumEconomy": "Premium",
+      "business": "Business",
+      "first": "First",
+      "seatsLeft": "{count} left",
+      "via": "Via"
+    }
+  },
+  "destination": {
+    "back": "Back",
+    "activities": "{count} activities",
+    "highlights": "Highlights:",
+    "weather": {
+      "sunny": "Sunny",
+      "cloudy": "Cloudy",
+      "rainy": "Rainy",
+      "cold": "Cold",
+      "windy": "Windy",
+      "pleasant": "Pleasant",
+      "mild": "Mild"
+    }
+  },
+  "gallery": {
+    "loadGooglePhotos": "Load Google Photos",
+    "verified": "Verified: {label}",
+    "openNow": "Open Now",
+    "closed": "Closed",
+    "website": "Website",
+    "viewAll": "View All"
+  },
+  "map": {
+    "failedToLoad": "Failed to load map",
+    "loading": "Loading map...",
+    "loadingLocations": "Loading locations...",
+    "days": "Days",
+    "openInMaps": "Open in Maps",
+    "viewDetails": "View Details"
+  },
+  "maintenance": {
+    "title": "Under Maintenance",
+    "message": "We are currently performing scheduled maintenance to improve your experience. Please check back shortly.",
+    "workingOnIt": "We're working on it",
+    "questions": "Questions?",
+    "contactSupport": "Contact Support"
+  },
+  "features": {
+    "learnMore": "Learn more"
+  },
+  "appStore": {
+    "downloadOnThe": "Download on the",
+    "getItOn": "Get it on",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "packing": {
+    "title": "Packing List",
+    "packed": "{checked} of {total} packed",
+    "items": "{count} items",
+    "showLess": "Show less",
+    "showMoreCategories": "Show {count} more categories",
+    "categories": {
+      "clothing": "Clothing",
+      "electronics": "Electronics",
+      "documents": "Documents",
+      "health": "Health & Care",
+      "accessories": "Accessories",
+      "other": "Other"
+    }
+  },
+  "vibes": {
+    "selected": "selected",
+    "yourBlend": "Your trip vibe blend:",
+    "influence": "{percent}% influence",
+    "categories": {
+      "classic": "Classic Vibes",
+      "fantasy": "Fantasy & Whimsical",
+      "unique": "Unique"
+    },
+    "priority": {
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "accent": "Accent"
+    },
+    "types": {
+      "adventure": {
+        "label": "Adventure Seeker",
+        "description": "Outdoor activities, hiking trails, and adrenaline-pumping experiences",
+        "details": {
+          "0": "Hiking & trekking",
+          "1": "Water sports",
+          "2": "Rock climbing"
+        }
+      },
+      "cultural": {
+        "label": "Cultural Explorer",
+        "description": "Museums, heritage sites, local traditions, and historical wonders",
+        "details": {
+          "0": "Museums & galleries",
+          "1": "Heritage sites",
+          "2": "Local traditions"
+        }
+      },
+      "foodie": {
+        "label": "Foodie Journey",
+        "description": "Food markets, cooking classes, local cuisine, and fine dining",
+        "details": {
+          "0": "Food markets",
+          "1": "Cooking classes",
+          "2": "Local restaurants"
+        }
+      },
+      "wellness": {
+        "label": "Wellness Escape",
+        "description": "Spa retreats, yoga, meditation, and peaceful sanctuaries",
+        "details": {
+          "0": "Spa treatments",
+          "1": "Yoga retreats",
+          "2": "Nature walks"
+        }
+      },
+      "romantic": {
+        "label": "Romantic Getaway",
+        "description": "Intimate experiences, sunset views, and couple activities",
+        "details": {
+          "0": "Sunset spots",
+          "1": "Intimate dining",
+          "2": "Scenic views"
+        }
+      },
+      "urban": {
+        "label": "Urban Discovery",
+        "description": "City life, nightlife, modern architecture, and trendy spots",
+        "details": {
+          "0": "Nightlife",
+          "1": "Architecture",
+          "2": "Trendy cafes"
+        }
+      },
+      "nature": {
+        "label": "Nature Immersion",
+        "description": "Wildlife, national parks, wilderness, and eco-tourism",
+        "details": {
+          "0": "National parks",
+          "1": "Wildlife watching",
+          "2": "Eco lodges"
+        }
+      },
+      "offbeat": {
+        "label": "Off the Beaten Path",
+        "description": "Hidden gems, local secrets, and non-touristy experiences",
+        "details": {
+          "0": "Secret spots",
+          "1": "Local hangouts",
+          "2": "Unique finds"
+        }
+      },
+      "wonderland": {
+        "label": "Wonderland Adventure",
+        "description": "Quirky, whimsical, and surreal spots straight from a dream",
+        "details": {
+          "0": "Surreal locations",
+          "1": "Quirky museums",
+          "2": "Whimsical cafes"
+        }
+      },
+      "movieMagic": {
+        "label": "Movie Magic",
+        "description": "Film locations, cinematic experiences, and famous backdrops",
+        "details": {
+          "0": "Film locations",
+          "1": "Studio tours",
+          "2": "Iconic scenes"
+        }
+      },
+      "fairytale": {
+        "label": "Fairytale Escape",
+        "description": "Castles, enchanted forests, and storybook villages",
+        "details": {
+          "0": "Castles & palaces",
+          "1": "Charming villages",
+          "2": "Enchanted forests"
+        }
+      },
+      "retro": {
+        "label": "Retro Time Travel",
+        "description": "Vintage cafes, historic districts, and nostalgic experiences",
+        "details": {
+          "0": "Vintage shops",
+          "1": "Retro diners",
+          "2": "Historic streets"
+        }
+      }
+    }
+  },
+  "daySlider": {
+    "all": "All",
+    "day": "Day {number}"
+  },
+  "generation": {
+    "phases": {
+      "research": "Researching",
+      "researchDesc": "Discovering the best of",
+      "planning": "Planning activities",
+      "planningDesc": "Curating experiences for",
+      "optimizing": "Optimizing schedule",
+      "optimizingDesc": "Creating the perfect flow for",
+      "enriching": "Adding details",
+      "enrichingDesc": "Enriching with local insights for",
+      "finalizing": "Finalizing",
+      "finalizingDesc": "Putting finishing touches on"
+    },
+    "elapsed": "{seconds}s elapsed",
+    "estimatedTime": "This usually takes 20-40 seconds for a personalized itinerary",
+    "funFacts": {
+      "analyzing": "AI is analyzing thousands of reviews and ratings",
+      "hiddenGems": "Finding hidden gems that locals love",
+      "optimizingRoutes": "Optimizing routes to save you time",
+      "checkingHours": "Checking opening hours and seasonal availability",
+      "balancing": "Balancing activities with rest time",
+      "matching": "Matching experiences to your travel style"
+    }
+  },
+  "addActivity": {
+    "title": "Add Activity",
+    "addCustom": "Add Custom Activity",
+    "selectCategory": "Select a category",
+    "whatActivity": "What activity do you want to add?",
+    "activityPlaceholder": "e.g., Visit the local market...",
+    "estimatedDuration": "Estimated duration",
+    "adding": "Adding...",
+    "add": "Add Activity",
+    "error": "Failed to add activity. Please try again.",
+    "categories": {
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "attraction": "Attraction",
+      "museum": "Museum",
+      "park": "Park",
+      "shopping": "Shopping",
+      "entertainment": "Entertainment",
+      "other": "Other"
+    },
+    "durations": {
+      "30min": "30 min",
+      "1hr": "1 hour",
+      "1.5hr": "1.5 hours",
+      "2hr": "2 hours",
+      "3hr": "3 hours",
+      "halfDay": "Half day"
+    }
+  },
+  "regenerate": {
+    "generating": "Generating...",
+    "regenerate": "Regenerate",
+    "tryDifferent": "Try Different Version",
+    "samePreferences": "Same preferences, new ideas"
+  },
+  "startOver": {
+    "title": "Start Over?",
+    "warning": "This will clear your current trip and start fresh. Your preferences will be saved.",
+    "tip": "Tip: You can always come back to this trip from your trip history.",
+    "cancel": "Keep Current Trip",
+    "confirm": "Start Fresh"
+  },
+  "stagedLoading": {
+    "stages": {
+      "understanding": "Understanding your request",
+      "finding": "Finding activities",
+      "creating": "Creating alternatives",
+      "updating": "Updating your trip"
+    }
+  },
+  "shareButton": {
+    "share": "Share",
+    "shared": "Shared"
+  },
+  "proposals": {
+    "votesNeeded": "{count, plural, =1 {1 vote needed} other {# votes needed}}",
+    "status": {
+      "pending": "Proposed",
+      "voting": "Voting",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired",
+      "trendingYes": "Trending Yes",
+      "needsDecision": "Needs Decision",
+      "invalid": "INVALID"
+    },
+    "badges": {
+      "proposed": "PROPOSED",
+      "voting": "VOTING",
+      "approved": "APPROVED",
+      "rejected": "REJECTED",
+      "needsDecision": "NEEDS DECISION",
+      "replacement": "Replacement"
+    },
+    "time": {
+      "expiringSoon": "Expiring soon",
+      "hoursLeft": "{hours}h left",
+      "daysLeft": "{days}d left"
+    },
+    "voting": {
+      "voted": "voted",
+      "votedCount": "{count}/{total} voted",
+      "tapToVote": "Tap to vote",
+      "changeVote": "Change vote →",
+      "yourVote": "You: {vote}",
+      "activeProposals": "{count} Active Proposal - Vote Now!",
+      "activeProposalsPlural": "{count} Active Proposals - Vote Now!",
+      "tapProposalToVote": "Tap a proposal to vote",
+      "pendingVote": "{count} pending vote",
+      "pendingVotes": "{count} pending votes"
+    },
+    "tooltips": {
+      "loveIt": "Love it!",
+      "openToIt": "Open to it",
+      "concerns": "Concerns",
+      "skipThis": "Skip this"
+    },
+    "actions": {
+      "withdrawProposal": "Withdraw proposal",
+      "approve": "Approve",
+      "reject": "Reject",
+      "proposeActivity": "Propose an activity"
+    },
+    "labels": {
+      "proposedBy": "Proposed by {name}",
+      "by": "by {name}",
+      "unknown": "Unknown",
+      "day": "Day {number}",
+      "description": "Description",
+      "votes": "Votes",
+      "minutes": "{count} min",
+      "duration": "{minutes} min"
+    },
+    "owner": {
+      "needsDecision": "This proposal needs your decision as trip owner."
+    },
+    "expand": {
+      "showMore": "Show more",
+      "showLess": "Show less"
+    },
+    "errors": {
+      "dataUnavailable": "Proposal data unavailable"
+    },
+    "emptySlot": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "addActivity": "Add activity",
+      "proposalsHere": "{count} proposal here",
+      "proposalsHerePlural": "{count} proposals here",
+      "emptySlot": "Empty slot",
+      "tapToVote": "Tap to view & vote",
+      "tapToPropose": "Tap to propose an activity",
+      "proposeActivity": "Propose activity"
+    }
+  },
+  "collaborators": {
+    "you": "you",
+    "owner": "Owner",
+    "editor": "Editor",
+    "viewer": "Viewer",
+    "pending": "Pending",
+    "remove": "Remove",
+    "inviteSent": "Invite sent",
+    "joined": "Joined {date}",
+    "confirmLeave": "Are you sure you want to leave this trip?",
+    "confirmRemove": "Remove {name} from this trip?",
+    "changeRole": "Change",
+    "leaveTrip": "Leave trip",
+    "removeFromTrip": "Remove from trip",
+    "avatarsAriaLabel": "{count, plural, =0 {No collaborators} =1 {1 collaborator} other {# collaborators}}",
+    "invite": "Invite",
+    "peopleCount": "{count, plural, =1 {1 person} other {# people}}"
+  },
+  "roles": {
+    "selectRole": "Select role for invitee",
+    "recommended": "Recommended",
+    "editor": {
+      "label": "Editor",
+      "description": "Can edit and invite others",
+      "permissions": ["Edit activities", "Vote on changes", "Invite others"],
+      "restrictions": ["Cannot delete trip", "Cannot remove owner"]
+    },
+    "voter": {
+      "label": "Voter",
+      "description": "Can vote and suggest activities",
+      "permissions": ["Vote on activities", "Suggest new places", "View itinerary"],
+      "restrictions": ["Cannot edit directly", "Cannot invite others"]
+    },
+    "viewer": {
+      "label": "Viewer",
+      "description": "Can only view the trip",
+      "permissions": ["View itinerary", "See activity details"],
+      "restrictions": ["Cannot edit", "Cannot vote", "Cannot invite"]
+    }
+  },
+  "activityStatus": {
+    "proposed": "Proposed",
+    "voting": "Voting",
+    "confirmed": "Confirmed",
+    "rejected": "Not Included",
+    "deadlock": "Needs Decision",
+    "completed": "Done",
+    "skipped": "Skipped",
+    "waiting": "Awaiting Votes",
+    "likelyApproved": "Likely Approved",
+    "waitingDesc": "{percent}% voted",
+    "votingConcerns": "Has concerns to address",
+    "votingInProgress": "Voting in progress",
+    "likelyApprovedDesc": "Trending positive",
+    "confirmedDesc": "Group approved",
+    "rejectedDesc": "Group decided against",
+    "deadlockDesc": "Owner needs to decide"
+  },
+  "votingSection": {
+    "votedCount": "{voted}/{total} voted",
+    "showVotes": "Show votes",
+    "hideVotes": "Hide votes",
+    "unknown": "Unknown",
+    "waitingForVotes": "{count, plural, =1 {Waiting for 1 more vote} other {Waiting for # more votes}}",
+    "noConsensus": "No consensus reached. Trip owner can make the final decision.",
+    "noVotesYet": "No votes yet",
+    "beFirstToVote": "Be the first to vote"
+  },
+  "checklist": {
+    "title": "Trip Preparation",
+    "progress": "{completed} of {total} completed",
+    "emptyState": "No checklist items yet. Add your first item below!",
+    "addPlaceholder": "Add a custom item...",
+    "add": "Add",
+    "cancel": "Cancel",
+    "addCustomItem": "Add custom item",
+    "dueSoon": "Due soon",
+    "done": "Done",
+    "categories": {
+      "bookings": "Bookings",
+      "packing": "Packing",
+      "documents": "Documents",
+      "other": "Other"
+    }
+  },
+  "proposeActivity": {
+    "title": "Propose Activity",
+    "titleReplacement": "Propose Replacement",
+    "day": "Day {day}",
+    "replacing": "Replacing",
+    "searchPlaceholder": "Search activities in {destination}...",
+    "searchHint": "Search for activities or select a category",
+    "noResults": "No activities found for \"{query}\"",
+    "createCustom": "Create custom activity",
+    "continue": "Continue",
+    "submitting": "Submitting...",
+    "submitProposal": "Submit Proposal",
+    "voteNotice": "Other travelers will vote on your proposal",
+    "categories": {
+      "restaurant": "Restaurant",
+      "attraction": "Attraction",
+      "activity": "Activity",
+      "nature": "Nature",
+      "shopping": "Shopping",
+      "entertainment": "Entertainment"
+    },
+    "timeSlots": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "durations": {
+      "30min": "30 min",
+      "1hour": "1 hour",
+      "1_5hours": "1.5 hours",
+      "2hours": "2 hours",
+      "3hours": "3 hours"
+    },
+    "form": {
+      "nameLabel": "Activity Name",
+      "namePlaceholder": "e.g., Visit the local market",
+      "typeLabel": "Type",
+      "durationLabel": "Duration",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Add any details about this activity..."
+    },
+    "preview": {
+      "noteLabel": "Why should we add this? (optional)",
+      "notePlaceholder": "Share why you think this would be great for the trip...",
+      "noteHint": "This helps others understand your reasoning when voting"
+    }
+  },
+  "routeOptimization": {
+    "title": "Optimize Route",
+    "subtitle": "Day {day} • {count} activities",
+    "notEnoughData": "Not Enough Activities",
+    "notEnoughDataDesc": "You need at least 3 activities with location data to optimize your route. Currently {current} have coordinates.",
+    "calculating": "Finding the best route...",
+    "potentialSavings": "Potential savings",
+    "lessTravel": "{distance} less travel",
+    "shorterRoute": "{percent}% shorter route",
+    "alreadyOptimal": "Already optimal!",
+    "routeEfficient": "Your route is already efficient",
+    "currentDistance": "Current Distance",
+    "optimizedDistance": "Optimized Distance",
+    "suggestedOrder": "Suggested Order",
+    "wasPosition": "(was #{position})",
+    "constraints": "Constraints",
+    "keepFirst": "Keep first activity in place",
+    "keepLast": "Keep last activity in place",
+    "mealTimesNote": "Meal times are automatically preserved within reasonable windows.",
+    "cancel": "Cancel",
+    "applyOptimization": "Apply Optimization"
+  },
+  "ai": {
+    "assistant": {
+      "placeholder": "Replace the Colosseum with something quieter...",
+      "send": "Send",
+      "thinking": "Thinking...",
+      "error": "Something went wrong. Please try again.",
+      "retry": "Retry",
+      "suggestions": "Suggestions",
+      "clearChat": "Clear chat",
+      "title": "Trip Assistant",
+      "requestsLeft": "{count} left",
+      "clearConversation": "Clear conversation",
+      "welcomeTitle": "How can I help?",
+      "welcomeSubtitle": "Ask me to add activities, replace places, or get local tips",
+      "changeApplied": "Change applied",
+      "hint": "Try: \"Replace X with Y\" or \"Add a cafe near the museum\"",
+      "cancelledMessage": "No problem! Let me know if you'd like to try something else.",
+      "undoSuccess": "Change undone successfully!",
+      "undoTitle": "Change Undone",
+      "undoDescription": "Reverted: {action}",
+      "quickActions": {
+        "optimizeBudget": {
+          "label": "Optimize budget",
+          "prompt": "Suggest ways to optimize my budget"
+        },
+        "addRestaurant": {
+          "label": "Add restaurant",
+          "prompt": "Suggest a great local restaurant to add"
+        },
+        "localTips": {
+          "label": "Local tips",
+          "prompt": "What are insider tips for this destination?"
+        },
+        "alternatives": {
+          "label": "Alternatives",
+          "prompt": "Suggest alternative activities I could do"
+        }
+      }
+    },
+    "cards": {
+      "addToTrip": "Add to trip",
+      "viewDetails": "View details",
+      "suggested": "AI Suggested",
+      "new": "NEW",
+      "day": "Day {number}",
+      "activityTypes": {
+        "attraction": "Attraction",
+        "restaurant": "Restaurant",
+        "activity": "Activity",
+        "transport": "Transport"
+      },
+      "activityReplaced": "Activity Replaced",
+      "autoApplied": "Auto-applied",
+      "undoChange": "Undo change",
+      "recommended": "Recommended",
+      "pros": "Pros:",
+      "cons": "Cons:"
+    },
+    "match": {
+      "title": "Match found!",
+      "description": "We found a matching activity",
+      "confirm": "Add this",
+      "skip": "Skip",
+      "searching": "Searching...",
+      "whichOne": "Which one did you mean?",
+      "youMentioned": "You mentioned:",
+      "bestMatch": "Best match",
+      "day": "Day {number}",
+      "typeMore": "Or type more details to help me find it...",
+      "cancel": "Cancel"
+    },
+    "preview": {
+      "change": "Change",
+      "adding": "Adding",
+      "removing": "Removing",
+      "modifying": "Modifying",
+      "suggestedChange": "Suggested Change",
+      "day": "Day {number}",
+      "previewBadge": "Preview",
+      "before": "BEFORE",
+      "after": "AFTER",
+      "whyThisChange": "Why this change:",
+      "applying": "Applying...",
+      "applyChange": "Apply Change",
+      "helperText": "Click \"Apply\" to confirm this change to your trip"
+    },
+    "undo": {
+      "message": "Change applied",
+      "undo": "Undo",
+      "activityReplaced": "Activity replaced",
+      "activityAdded": "Activity added",
+      "activityRemoved": "Activity removed",
+      "changeApplied": "Change applied",
+      "day": "Day {number}",
+      "undoButton": "Undo",
+      "helperText": "Undo available until your next change"
+    }
+  },
+  "beta": {
+    "codeInput": {
+      "title": "Have a Beta Tester Code?",
+      "subtitle": "Enter your code to unlock unlimited AI features",
+      "placeholder": "Enter your code",
+      "placeholderCompact": "Enter beta code",
+      "placeholderInline": "BETA-XXXX",
+      "submit": "Submit",
+      "invalid": "Invalid code. Please try again.",
+      "checking": "Checking...",
+      "unlock": "Unlock",
+      "unlocking": "Unlocking...",
+      "unlockAccess": "Unlock Access",
+      "enterCodeError": "Please enter a code",
+      "redeemFailed": "Failed to redeem code",
+      "genericError": "Something went wrong. Please try again.",
+      "successTitle": "Welcome to the beta!",
+      "successDescription": "You now have unlimited access to all AI features.",
+      "benefitsTitle": "Beta testers get:",
+      "benefits": {
+        "unlimitedGenerations": "Unlimited AI trip generations",
+        "unlimitedAssistant": "Unlimited regenerations & AI assistant",
+        "prioritySupport": "Priority support",
+        "earlyAccess": "Early access to new features"
+      }
+    },
+    "waitlist": {
+      "title": "Don't have a code?",
+      "subtitle": "Join our beta waitlist and we'll notify you when more spots open up",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Join Waitlist",
+      "success": "You're on the list!",
+      "error": "Something went wrong. Please try again.",
+      "successTitle": "You're on the list!",
+      "successDescription": "We'll notify you when more beta spots open up.",
+      "joining": "Joining...",
+      "joiningWaitlist": "Joining Waitlist...",
+      "joinBetaWaitlist": "Join Beta Waitlist",
+      "join": "Join",
+      "usingEmail": "We'll use your account email: {email}",
+      "priorityAccess": "Early waitlist members get priority access. We're rolling out codes regularly!",
+      "enterEmailError": "Please enter your email",
+      "joinFailed": "Failed to join waitlist",
+      "genericError": "Something went wrong. Please try again."
+    }
+  },
+  "countdown": {
+    "startsToday": "Trip starts today!",
+    "almostTime": "Almost time!",
+    "awaits": "Your adventure awaits",
+    "days": "Days",
+    "hours": "Hours",
+    "mins": "Mins",
+    "secs": "Secs",
+    "tripDays": "{count, plural, =1 {1 day} other {# days}}",
+    "activities": "{count, plural, =1 {1 activity} other {# activities}}"
+  },
+  "onboarding": {
+    "accessibility": {
+      "title": "Any accessibility needs?",
+      "subtitle": "We'll prioritize accessible options",
+      "options": {
+        "none": {
+          "label": "No special needs",
+          "description": "Standard accessibility works for me"
+        },
+        "wheelchair": {
+          "label": "Wheelchair accessible",
+          "description": "Ramps, elevators, wide paths"
+        },
+        "limitedMobility": {
+          "label": "Limited mobility",
+          "description": "Minimal walking, frequent rest stops"
+        },
+        "visual": {
+          "label": "Visual assistance",
+          "description": "Audio guides, tactile experiences"
+        },
+        "hearing": {
+          "label": "Hearing assistance",
+          "description": "Visual alerts, sign language options"
+        },
+        "restStops": {
+          "label": "Frequent rest stops",
+          "description": "Regular breaks and seating areas"
+        }
+      }
+    },
+    "activeHours": {
+      "title": "When are you most active?",
+      "subtitle": "We'll plan activities during your peak hours",
+      "presets": {
+        "earlyBird": {
+          "label": "Early Bird",
+          "description": "6 AM – 8 PM"
+        },
+        "standard": {
+          "label": "Standard",
+          "description": "8 AM – 10 PM"
+        },
+        "nightOwl": {
+          "label": "Night Owl",
+          "description": "10 AM – 12 AM"
+        }
+      },
+      "customizeHours": "Or customize your hours",
+      "startFrom": "Start from",
+      "windDownBy": "Wind down by",
+      "activeHoursCount": "{count} active hours",
+      "timeRange": "{start} to {end}"
+    },
+    "dietary": {
+      "title": "Any dietary preferences?",
+      "subtitle": "We'll suggest restaurants that match your needs",
+      "options": {
+        "none": {
+          "label": "No restrictions",
+          "description": "I eat everything"
+        },
+        "vegetarian": {
+          "label": "Vegetarian",
+          "description": "No meat or fish"
+        },
+        "vegan": {
+          "label": "Vegan",
+          "description": "No animal products"
+        },
+        "halal": {
+          "label": "Halal",
+          "description": "Halal-certified only"
+        },
+        "kosher": {
+          "label": "Kosher",
+          "description": "Kosher-certified only"
+        },
+        "glutenFree": {
+          "label": "Gluten-free",
+          "description": "No wheat, barley, or rye"
+        }
+      }
+    },
+    "travelStyle": {
+      "title": "What's your travel style?",
+      "subtitle": "Select all that apply - we'll personalize your trips",
+      "selected": "{count, plural, =0 {No styles selected} =1 {1 style selected} other {# styles selected}}",
+      "styles": {
+        "adventure": {
+          "label": "Adventure Seeker",
+          "description": "Hiking, water sports, outdoor activities"
+        },
+        "cultural": {
+          "label": "Culture Explorer",
+          "description": "Museums, historical sites, local traditions"
+        },
+        "foodie": {
+          "label": "Food Enthusiast",
+          "description": "Local cuisine, cooking classes, food tours"
+        },
+        "relaxation": {
+          "label": "Relaxation & Wellness",
+          "description": "Spas, beaches, peaceful retreats"
+        },
+        "nightlife": {
+          "label": "Nightlife & Social",
+          "description": "Bars, clubs, live entertainment"
+        },
+        "photography": {
+          "label": "Photography Lover",
+          "description": "Scenic spots, iconic landmarks, golden hours"
+        }
+      }
+    }
+  },
+  "tour": {
+    "skip": "Skip",
+    "aiChat": {
+      "header": {
+        "title": "MonkeyTravel AI",
+        "status": "Online • Ready to plan"
+      },
+      "messages": {
+        "greeting": "Hi! 👋 I'm your AI travel assistant. Where would you like to go?",
+        "userRequest": "I want to visit Barcelona for 5 days!",
+        "aiResponse": "Great choice! 🇪🇸 Barcelona is amazing. Let me ask a few questions to personalize your trip...",
+        "userSelection": "Culture & History please!"
+      },
+      "tags": {
+        "culture": "Culture & History",
+        "food": "Food & Wine",
+        "beach": "Beach & Relaxation"
+      },
+      "actions": {
+        "creating": "Creating your personalized itinerary..."
+      },
+      "inputPlaceholder": "Ask me anything..."
+    },
+    "aiModify": {
+      "header": {
+        "dayTitle": "Day 1 • Barcelona",
+        "activitiesCount": "4 activities planned",
+        "aiAssistant": "✨ AI Assistant"
+      },
+      "messages": {
+        "userRequest": "Can you add a food tour after Park Güell?",
+        "aiResponse": "Of course! 🍴 I'll add the \"Barcelona Food Tour\" at 12:30 PM, right after Park Güell...",
+        "success": "Done! I've adjusted the times for you."
+      },
+      "inputPlaceholder": "Ask AI to modify your plan..."
+    }
+  },
+  "referral": {
+    "title": "Invite Friends, Get Free Trips",
+    "subtitle": "Give 1 trip, get 1 trip for each friend",
+    "tryAgain": "Try again",
+    "howItWorks": "How it works",
+    "steps": {
+      "step1": "Share your unique link with friends",
+      "step2": "They sign up and create their first trip",
+      "step3": "You both get 1 free AI trip!"
+    },
+    "yourReferralLink": "Your referral link",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "shareVia": "Share via",
+    "stats": {
+      "friendsJoined": "Friends joined",
+      "tripsEarned": "Trips earned"
+    },
+    "share": {
+      "twitterText": "I've been using MonkeyTravel to plan amazing AI-powered trips! Join me and get a FREE trip when you sign up:",
+      "whatsappText": "Hey! I've been using MonkeyTravel to plan amazing trips with AI. Join me and we both get a FREE trip!",
+      "emailSubject": "You're invited to MonkeyTravel - Get a FREE AI trip!",
+      "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan amazing trips with AI, and I thought you'd love it too.\n\nJoin using my link and we'll both get a FREE AI-generated trip!\n\nHappy travels!"
+    }
   }
 }

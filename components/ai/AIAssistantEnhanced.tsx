@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { ItineraryDay, AssistantCard, Activity } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
@@ -43,12 +44,12 @@ interface AIAssistantEnhancedProps {
   onRefetchTrip?: () => Promise<void>;
 }
 
-// Quick action suggestions
-const QUICK_ACTIONS = [
-  { label: "Optimize budget", prompt: "Suggest ways to optimize my budget", icon: "💰" },
-  { label: "Add restaurant", prompt: "Suggest a great local restaurant to add", icon: "🍽️" },
-  { label: "Local tips", prompt: "What are insider tips for this destination?", icon: "💡" },
-  { label: "Alternatives", prompt: "Suggest alternative activities I could do", icon: "🔄" },
+// Quick action IDs - labels come from translations
+const QUICK_ACTION_IDS = [
+  { id: "optimizeBudget", icon: "💰" },
+  { id: "addRestaurant", icon: "🍽️" },
+  { id: "localTips", icon: "💡" },
+  { id: "alternatives", icon: "🔄" },
 ];
 
 export default function AIAssistantEnhanced({
@@ -61,6 +62,16 @@ export default function AIAssistantEnhanced({
   onItineraryUpdate,
   onRefetchTrip,
 }: AIAssistantEnhancedProps) {
+  const t = useTranslations("common.ai.assistant");
+
+  // Build quick actions from translations
+  const QUICK_ACTIONS = QUICK_ACTION_IDS.map((action) => ({
+    id: action.id,
+    label: t(`quickActions.${action.id}.label`),
+    prompt: t(`quickActions.${action.id}.prompt`),
+    icon: action.icon,
+  }));
+
   // Core state
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -327,11 +338,11 @@ export default function AIAssistantEnhanced({
     // Add a note that the change was cancelled
     const cancelMessage: Message = {
       role: "assistant",
-      content: "No problem! Let me know if you'd like to try something else.",
+      content: t("cancelledMessage"),
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, cancelMessage]);
-  }, []);
+  }, [t]);
 
   // Handle match selection
   const handleMatchSelect = useCallback(
@@ -376,13 +387,13 @@ export default function AIAssistantEnhanced({
       // Add confirmation message
       const undoMessage: Message = {
         role: "assistant",
-        content: "Change undone successfully!",
+        content: t("undoSuccess"),
         cards: [
           {
             type: "confirmation",
             icon: "check",
-            title: "Change Undone",
-            description: `Reverted: ${currentUndo.action.description}`,
+            title: t("undoTitle"),
+            description: t("undoDescription", { action: currentUndo.action.description }),
           },
         ],
         timestamp: new Date().toISOString(),
@@ -452,20 +463,20 @@ export default function AIAssistantEnhanced({
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-white text-lg">Trip Assistant</h3>
+                <h3 className="font-semibold text-white text-lg">{t("title")}</h3>
                 <p className="text-xs text-white/70 truncate max-w-[200px]">{tripTitle}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               {usageInfo && (
                 <span className="text-[11px] text-white/60 px-2 py-1 rounded-full bg-white/10 hidden sm:inline">
-                  {usageInfo.remainingRequests} left
+                  {t("requestsLeft", { count: usageInfo.remainingRequests })}
                 </span>
               )}
               <button
                 onClick={clearConversation}
                 className="p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-                title="Clear conversation"
+                title={t("clearConversation")}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -492,9 +503,9 @@ export default function AIAssistantEnhanced({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-slate-900 mb-1">How can I help?</h4>
+              <h4 className="font-semibold text-slate-900 mb-1">{t("welcomeTitle")}</h4>
               <p className="text-sm text-slate-500 mb-6 max-w-[280px] mx-auto">
-                Ask me to add activities, replace places, or get local tips
+                {t("welcomeSubtitle")}
               </p>
 
               {/* Quick Actions Grid */}
@@ -551,7 +562,7 @@ export default function AIAssistantEnhanced({
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        Change applied
+                        {t("changeApplied")}
                       </div>
                     )}
                   </div>
@@ -651,7 +662,7 @@ export default function AIAssistantEnhanced({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Replace the Colosseum with something quieter..."
+                placeholder={t("placeholder")}
                 rows={1}
                 disabled={isLoading || isApplyingChange}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none text-sm bg-slate-50 focus:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -671,7 +682,7 @@ export default function AIAssistantEnhanced({
 
           {/* Hint text */}
           <p className="text-[10px] text-slate-400 mt-2 text-center">
-            Try: &quot;Replace X with Y&quot; or &quot;Add a cafe near the museum&quot;
+            {t("hint")}
           </p>
         </form>
       </div>

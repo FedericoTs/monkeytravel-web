@@ -7,6 +7,7 @@
  * duration, stops, airline info, and price.
  */
 
+import { useTranslations } from 'next-intl';
 import type { FlightOfferDisplay } from '@/lib/amadeus/types';
 import { AIRLINE_NAMES } from '@/lib/amadeus/types';
 
@@ -21,6 +22,8 @@ export default function FlightCard({
   onSelect,
   selected = false,
 }: FlightCardProps) {
+  const t = useTranslations('common.booking.flights');
+
   const airlineName =
     flight.airlineName ||
     AIRLINE_NAMES[flight.airline] ||
@@ -62,18 +65,18 @@ export default function FlightCard({
 
   // Get stop text
   const getStopText = (stops: number) => {
-    if (stops === 0) return 'Direct';
-    if (stops === 1) return '1 stop';
-    return `${stops} stops`;
+    if (stops === 0) return t('direct');
+    if (stops === 1) return t('oneStop');
+    return t('stops', { count: stops });
   };
 
   // Get cabin class display
   const getCabinDisplay = (cabin: string) => {
     const cabins: Record<string, string> = {
-      ECONOMY: 'Economy',
-      PREMIUM_ECONOMY: 'Premium',
-      BUSINESS: 'Business',
-      FIRST: 'First',
+      ECONOMY: t('economy'),
+      PREMIUM_ECONOMY: t('premiumEconomy'),
+      BUSINESS: t('business'),
+      FIRST: t('first'),
     };
     return cabins[cabin] || cabin;
   };
@@ -207,7 +210,7 @@ export default function FlightCard({
           </div>
           {flight.seatsAvailable && flight.seatsAvailable < 5 && (
             <span className="text-xs text-orange-600 font-medium">
-              {flight.seatsAvailable} left
+              {t('seatsLeft', { count: flight.seatsAvailable })}
             </span>
           )}
         </div>
@@ -217,7 +220,7 @@ export default function FlightCard({
       {flight.outbound.segments.length > 1 && (
         <div className="mt-3 pt-3 border-t border-slate-100">
           <p className="text-xs text-slate-500">
-            Via:{' '}
+            {t('via')}:{' '}
             {flight.outbound.segments
               .slice(0, -1)
               .map((seg) => seg.arrival.airport)

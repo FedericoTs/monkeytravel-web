@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import type {
   AssistantCard,
   AssistantActivityCard,
@@ -11,34 +12,30 @@ import type {
   Activity,
 } from "@/types";
 
-// Activity type colors and icons
+// Activity type colors and icons (labels come from translations)
 const ACTIVITY_STYLES: Record<
   Activity["type"],
-  { bg: string; border: string; icon: string; label: string }
+  { bg: string; border: string; icon: string }
 > = {
   attraction: {
     bg: "from-amber-50 to-orange-50",
     border: "border-amber-200",
     icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
-    label: "Attraction",
   },
   restaurant: {
     bg: "from-rose-50 to-pink-50",
     border: "border-rose-200",
     icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
-    label: "Restaurant",
   },
   activity: {
     bg: "from-emerald-50 to-teal-50",
     border: "border-emerald-200",
     icon: "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    label: "Activity",
   },
   transport: {
     bg: "from-sky-50 to-blue-50",
     border: "border-sky-200",
     icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
-    label: "Transport",
   },
 };
 
@@ -110,6 +107,7 @@ function MiniActivityCard({
   isNew?: boolean;
   className?: string;
 }) {
+  const t = useTranslations("common.ai.cards");
   const style = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.activity;
 
   return (
@@ -125,7 +123,7 @@ function MiniActivityCard({
       {isNew && (
         <div className="absolute -top-1 -right-1">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-sm">
-            NEW
+            {t("new")}
           </span>
         </div>
       )}
@@ -153,12 +151,12 @@ function MiniActivityCard({
           </h4>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[11px] text-slate-500 capitalize">
-              {style.label}
+              {t(`activityTypes.${activity.type}`)}
             </span>
             {dayNumber && (
               <>
                 <span className="text-slate-300">•</span>
-                <span className="text-[11px] text-slate-500">Day {dayNumber}</span>
+                <span className="text-[11px] text-slate-500">{t("day", { number: dayNumber })}</span>
               </>
             )}
             {activity.start_time && (
@@ -237,6 +235,7 @@ function ActivityReplacementCard({
   card: AssistantReplacementCard;
   onUndo?: () => void;
 }) {
+  const t = useTranslations("common.ai.cards");
   const [showNew, setShowNew] = useState(false);
 
   useEffect(() => {
@@ -259,12 +258,12 @@ function ActivityReplacementCard({
             </svg>
           </div>
           <div className="flex-1">
-            <span className="text-xs font-semibold text-slate-700">Activity Replaced</span>
-            <span className="text-[10px] text-slate-500 ml-2">Day {card.dayNumber}</span>
+            <span className="text-xs font-semibold text-slate-700">{t("activityReplaced")}</span>
+            <span className="text-[10px] text-slate-500 ml-2">{t("day", { number: card.dayNumber })}</span>
           </div>
           {card.autoApplied && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">
-              Auto-applied
+              {t("autoApplied")}
             </span>
           )}
         </div>
@@ -349,7 +348,7 @@ function ActivityReplacementCard({
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
-            Undo change
+            {t("undoChange")}
           </button>
         </div>
       )}
@@ -380,6 +379,7 @@ function TipCard({ card }: { card: AssistantTipCard }) {
 
 // Comparison Card
 function ComparisonCard({ card }: { card: AssistantComparisonCard }) {
+  const t = useTranslations("common.ai.cards");
   return (
     <div className="animate-in slide-in-from-bottom-2 duration-300 rounded-xl border border-slate-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
@@ -399,13 +399,13 @@ function ComparisonCard({ card }: { card: AssistantComparisonCard }) {
           >
             {option.recommended && (
               <span className="absolute -top-2 right-2 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-white font-medium">
-                Recommended
+                {t("recommended")}
               </span>
             )}
             <h5 className="font-medium text-sm text-slate-900 mb-1.5">{option.name}</h5>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div>
-                <span className="text-emerald-600 font-medium">Pros:</span>
+                <span className="text-emerald-600 font-medium">{t("pros")}</span>
                 <ul className="mt-0.5 space-y-0.5">
                   {option.pros.map((pro, i) => (
                     <li key={i} className="flex items-start gap-1 text-slate-600">
@@ -416,7 +416,7 @@ function ComparisonCard({ card }: { card: AssistantComparisonCard }) {
                 </ul>
               </div>
               <div>
-                <span className="text-rose-600 font-medium">Cons:</span>
+                <span className="text-rose-600 font-medium">{t("cons")}</span>
                 <ul className="mt-0.5 space-y-0.5">
                   {option.cons.map((con, i) => (
                     <li key={i} className="flex items-start gap-1 text-slate-600">

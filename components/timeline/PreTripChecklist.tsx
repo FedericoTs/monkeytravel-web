@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ChecklistItem, ChecklistCategory } from "@/types/timeline";
 
@@ -19,6 +20,7 @@ export default function PreTripChecklist({
   onDelete,
   isLoading = false,
 }: PreTripChecklistProps) {
+  const t = useTranslations("common.checklist");
   const [isExpanded, setIsExpanded] = useState(true);
   const [newItemText, setNewItemText] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -32,11 +34,11 @@ export default function PreTripChecklist({
     return acc;
   }, {} as Record<string, ChecklistItem[]>);
 
-  const categoryConfig: Record<ChecklistCategory, { label: string; icon: string }> = {
-    booking: { label: "Bookings", icon: "🎫" },
-    packing: { label: "Packing", icon: "🧳" },
-    document: { label: "Documents", icon: "📄" },
-    custom: { label: "Other", icon: "📝" },
+  const categoryConfig: Record<ChecklistCategory, { labelKey: string; icon: string }> = {
+    booking: { labelKey: "categories.bookings", icon: "🎫" },
+    packing: { labelKey: "categories.packing", icon: "🧳" },
+    document: { labelKey: "categories.documents", icon: "📄" },
+    custom: { labelKey: "categories.other", icon: "📝" },
   };
 
   const handleAddItem = () => {
@@ -100,9 +102,9 @@ export default function PreTripChecklist({
             </span>
           </div>
           <div className="text-left">
-            <h3 className="font-semibold text-slate-900">Trip Preparation</h3>
+            <h3 className="font-semibold text-slate-900">{t("title")}</h3>
             <p className="text-sm text-slate-500">
-              {completedCount} of {items.length} completed
+              {t("progress", { completed: completedCount, total: items.length })}
             </p>
           </div>
         </div>
@@ -129,7 +131,7 @@ export default function PreTripChecklist({
             <div className="px-4 pb-4 space-y-4">
               {items.length === 0 ? (
                 <p className="text-center text-slate-400 py-4">
-                  No checklist items yet. Add your first item below!
+                  {t("emptyState")}
                 </p>
               ) : (
                 Object.entries(categoryConfig).map(([category, config]) => {
@@ -140,7 +142,7 @@ export default function PreTripChecklist({
                     <div key={category}>
                       <h4 className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
                         <span>{config.icon}</span>
-                        {config.label}
+                        {t(config.labelKey)}
                       </h4>
                       <div className="space-y-1">
                         {categoryItems.map((item) => (
@@ -149,6 +151,7 @@ export default function PreTripChecklist({
                             item={item}
                             onToggle={() => onToggle(item.id)}
                             onDelete={() => onDelete(item.id)}
+                            t={t}
                           />
                         ))}
                       </div>
@@ -165,7 +168,7 @@ export default function PreTripChecklist({
                     value={newItemText}
                     onChange={(e) => setNewItemText(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
-                    placeholder="Add a custom item..."
+                    placeholder={t("addPlaceholder")}
                     className="
                       flex-1 px-3 py-2 rounded-lg
                       border border-slate-200
@@ -183,7 +186,7 @@ export default function PreTripChecklist({
                       hover:bg-[var(--primary)]/90
                     "
                   >
-                    Add
+                    {t("add")}
                   </button>
                   <button
                     onClick={() => {
@@ -192,7 +195,7 @@ export default function PreTripChecklist({
                     }}
                     className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </div>
               ) : (
@@ -207,7 +210,7 @@ export default function PreTripChecklist({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  Add custom item
+                  {t("addCustomItem")}
                 </button>
               )}
             </div>
@@ -222,10 +225,12 @@ function ChecklistRow({
   item,
   onToggle,
   onDelete,
+  t,
 }: {
   item: ChecklistItem;
   onToggle: () => void;
   onDelete: () => void;
+  t: (key: string) => string;
 }) {
   const [showDelete, setShowDelete] = useState(false);
 
@@ -281,12 +286,12 @@ function ChecklistRow({
 
       {isDueSoon && (
         <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
-          Due soon
+          {t("dueSoon")}
         </span>
       )}
 
       {item.is_checked && (
-        <span className="text-xs text-green-600 font-medium">Done</span>
+        <span className="text-xs text-green-600 font-medium">{t("done")}</span>
       )}
 
       {showDelete && (

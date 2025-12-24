@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Twitter, Mail, Users, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ReferralStats {
   clicks: number;
@@ -16,6 +17,7 @@ interface ReferralModalProps {
 }
 
 export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
+  const t = useTranslations("common.referral");
   const [code, setCode] = useState<string | null>(null);
   const [stats, setStats] = useState<ReferralStats>({ clicks: 0, signups: 0, conversions: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -69,25 +71,19 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   };
 
   const handleShareTwitter = () => {
-    const text = encodeURIComponent(
-      "I've been using MonkeyTravel to plan amazing AI-powered trips! Join me and get a FREE trip when you sign up:"
-    );
+    const text = encodeURIComponent(t("share.twitterText"));
     const url = encodeURIComponent(referralUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Hey! I've been using MonkeyTravel to plan amazing trips with AI. Join me and we both get a FREE trip! ${referralUrl}`
-    );
+    const text = encodeURIComponent(`${t("share.whatsappText")} ${referralUrl}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
   const handleShareEmail = () => {
-    const subject = encodeURIComponent("You're invited to MonkeyTravel - Get a FREE AI trip!");
-    const body = encodeURIComponent(
-      `Hey!\n\nI've been using MonkeyTravel to plan amazing trips with AI, and I thought you'd love it too.\n\nJoin using my link and we'll both get a FREE AI-generated trip!\n\n${referralUrl}\n\nHappy travels!`
-    );
+    const subject = encodeURIComponent(t("share.emailSubject"));
+    const body = encodeURIComponent(`${t("share.emailBody")}\n\n${referralUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
@@ -130,10 +126,10 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  Invite Friends, Get Free Trips
+                  {t("title")}
                 </h3>
                 <p className="text-sm text-slate-600 mt-0.5">
-                  Give 1 trip, get 1 trip for each friend
+                  {t("subtitle")}
                 </p>
               </div>
             </div>
@@ -152,21 +148,21 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   onClick={fetchReferralCode}
                   className="text-[var(--primary)] hover:underline font-medium"
                 >
-                  Try again
+                  {t("tryAgain")}
                 </button>
               </div>
             ) : (
               <>
                 {/* How it works */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-slate-900 mb-3">How it works</h4>
+                  <h4 className="text-sm font-semibold text-slate-900 mb-3">{t("howItWorks")}</h4>
                   <div className="space-y-2.5">
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs font-bold text-amber-600">1</span>
                       </div>
                       <p className="text-sm text-slate-600">
-                        Share your unique link with friends
+                        {t("steps.step1")}
                       </p>
                     </div>
                     <div className="flex items-start gap-3">
@@ -174,7 +170,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         <span className="text-xs font-bold text-amber-600">2</span>
                       </div>
                       <p className="text-sm text-slate-600">
-                        They sign up and create their first trip
+                        {t("steps.step2")}
                       </p>
                     </div>
                     <div className="flex items-start gap-3">
@@ -182,7 +178,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                       </div>
                       <p className="text-sm text-slate-600">
-                        <strong className="text-slate-900">You both get 1 free AI trip!</strong>
+                        <strong className="text-slate-900">{t("steps.step3")}</strong>
                       </p>
                     </div>
                   </div>
@@ -191,7 +187,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 {/* Referral URL */}
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-slate-900 mb-2">
-                    Your referral link
+                    {t("yourReferralLink")}
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -211,12 +207,12 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       {copied ? (
                         <>
                           <Check className="w-4 h-4" />
-                          <span>Copied!</span>
+                          <span>{t("copied")}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-4 h-4" />
-                          <span>Copy</span>
+                          <span>{t("copy")}</span>
                         </>
                       )}
                     </button>
@@ -226,7 +222,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 {/* Share buttons */}
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-slate-900 mb-2">
-                    Share via
+                    {t("shareVia")}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     <button
@@ -263,7 +259,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         <Users className="w-4 h-4" />
                         <span className="text-lg font-bold text-slate-900">{stats.conversions}</span>
                       </div>
-                      <p className="text-xs text-slate-500">Friends joined</p>
+                      <p className="text-xs text-slate-500">{t("stats.friendsJoined")}</p>
                     </div>
                     <div className="w-px h-10 bg-slate-200" />
                     <div>
@@ -271,7 +267,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         <Sparkles className="w-4 h-4 text-amber-500" />
                         <span className="text-lg font-bold text-slate-900">{stats.conversions}</span>
                       </div>
-                      <p className="text-xs text-slate-500">Trips earned</p>
+                      <p className="text-xs text-slate-500">{t("stats.tripsEarned")}</p>
                     </div>
                   </div>
                 </div>

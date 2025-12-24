@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 
 interface StartOverModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export default function StartOverModal({
   tripDays,
   activitiesCount,
 }: StartOverModalProps) {
+  const t = useTranslations("common.startOver");
+
   // Handle escape key
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -73,10 +76,10 @@ export default function StartOverModal({
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Start Over?
+                {t("title")}
               </h2>
               <p className="text-sm text-slate-600">
-                This action cannot be undone
+                {t("warning")}
               </p>
             </div>
           </div>
@@ -116,9 +119,7 @@ export default function StartOverModal({
 
           {/* Tip */}
           <p className="text-sm text-slate-500 mt-4">
-            <span className="font-medium">Tip:</span> Want a different version? Use{" "}
-            <span className="font-medium text-[var(--primary)]">"Regenerate"</span>{" "}
-            instead to get a new itinerary with the same preferences.
+            {t("tip")}
           </p>
         </div>
 
@@ -128,13 +129,13 @@ export default function StartOverModal({
             onClick={onClose}
             className="flex-1 px-6 py-3 bg-[var(--secondary)] text-white font-semibold rounded-xl hover:bg-[var(--secondary)]/90 transition-colors shadow-lg shadow-[var(--secondary)]/25"
           >
-            Keep My Trip
+            {t("cancel")}
           </button>
           <button
             onClick={onConfirm}
             className="flex-1 px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
           >
-            Start Over
+            {t("confirm")}
           </button>
         </div>
       </div>

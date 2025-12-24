@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export default function DeleteAccountModal({
   onConfirm,
   isDeleting,
 }: DeleteAccountModalProps) {
+  const t = useTranslations('common.deleteAccount');
+  const tc = useTranslations('common.buttons');
   const [confirmText, setConfirmText] = useState("");
   const canDelete = confirmText === "DELETE";
 
@@ -53,52 +56,51 @@ export default function DeleteAccountModal({
         </div>
 
         <h3 className="text-xl font-bold text-center text-slate-900 mb-2">
-          Delete Account?
+          {t('title')}
         </h3>
 
         <p className="text-slate-600 text-center mb-4">
-          This will permanently delete your account and all associated data
-          including:
+          {t('warning')}
         </p>
 
         <ul className="text-sm text-slate-500 mb-4 space-y-1 pl-4">
           <li className="flex items-start gap-2">
             <span className="text-red-400">•</span>
-            All your trips and itineraries
+            {t('items.trips')}
           </li>
           <li className="flex items-start gap-2">
             <span className="text-red-400">•</span>
-            AI conversation history
+            {t('items.conversations')}
           </li>
           <li className="flex items-start gap-2">
             <span className="text-red-400">•</span>
-            Saved preferences and settings
+            {t('items.preferences')}
           </li>
           <li className="flex items-start gap-2">
             <span className="text-red-400">•</span>
-            Trip checklists and memories
+            {t('items.checklists')}
           </li>
         </ul>
 
         <p className="text-red-600 text-sm font-medium text-center mb-4">
-          This action cannot be undone.
+          {t('cannotUndo')}
         </p>
 
         {/* Confirmation Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Type{" "}
+            {t('typeToConfirm')}{" "}
             <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">
-              DELETE
+              {t('deleteWord')}
             </span>{" "}
-            to confirm
+            {t('toConfirm')}
           </label>
           <input
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
             className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-            placeholder="Type DELETE"
+            placeholder={t('typePlaceholder')}
             disabled={isDeleting}
             autoComplete="off"
             autoCapitalize="characters"
@@ -112,7 +114,7 @@ export default function DeleteAccountModal({
             disabled={isDeleting}
             className="flex-1 px-4 py-3 rounded-xl font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            {tc('cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -140,10 +142,10 @@ export default function DeleteAccountModal({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Deleting...
+                {t('deleting')}
               </>
             ) : (
-              "Delete Account"
+              tc('delete')
             )}
           </button>
         </div>

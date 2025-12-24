@@ -167,6 +167,9 @@ const { data, error } = await supabase
 
 ## Internationalization (i18n)
 
+> **MANDATORY**: All new features MUST be built with translations from the start.
+> Never hardcode user-facing strings. Use translation keys immediately.
+
 MonkeyTravel supports multiple languages using `next-intl`:
 
 ### Supported Languages
@@ -275,3 +278,49 @@ destination_activity_cache.language VARCHAR(5) DEFAULT 'en'
 2. **Namespace by feature** - Use `common.json` for shared strings, feature-specific files otherwise
 3. **Test all locales** - Visit `/es` and `/it` after adding translations
 4. **Keep keys consistent** - Same key structure across all language files
+
+### Development Rules (MANDATORY)
+
+When creating any new component or feature:
+
+1. **Start with translation keys** - Before writing any UI text, add keys to all 3 language files
+2. **Use the pattern**:
+   ```tsx
+   // Client component
+   const t = useTranslations("common.featureName");
+   return <h1>{t("title")}</h1>;
+
+   // Server component
+   const t = await getTranslations("common.featureName");
+   ```
+3. **For config-driven UI** (arrays, options):
+   ```tsx
+   // WRONG - hardcoded text
+   const OPTIONS = [{ label: "Option 1" }];
+
+   // CORRECT - translation keys
+   const OPTIONS = [{ labelKey: "option1" }];
+   // Then: {t(option.labelKey)}
+   ```
+4. **Always add to ALL 3 files** - `en`, `es`, and `it` must have the same keys
+5. **ICU format for plurals/variables**:
+   ```json
+   {
+     "items": "{count, plural, =1 {1 item} other {# items}}"
+   }
+   ```
+
+### Admin Translation Editor
+
+Admins can edit translations at `/admin/translations`:
+- View all translation keys across languages
+- Edit values inline
+- Search by key or value
+- Changes are saved to JSON files immediately
+
+### AI Response Language
+
+The AI generates content in the user's selected language:
+- `lib/gemini.ts` contains `getLanguageInstruction()`
+- Append language instruction to prompts for non-English locales
+- Activity descriptions, tips, and summaries are localized

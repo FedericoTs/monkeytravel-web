@@ -1,14 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface MaintenancePageProps {
   title?: string;
   message?: string;
 }
 
 export default function MaintenancePage({
-  title = "Under Maintenance",
-  message = "We are currently performing scheduled maintenance to improve your experience. Please check back shortly.",
+  title,
+  message,
 }: MaintenancePageProps) {
+  const t = useTranslations("common.maintenance");
+  const displayTitle = title || t("title");
+  const displayMessage = message || t("message");
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6">
       {/* Logo */}
@@ -40,10 +45,10 @@ export default function MaintenancePage({
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-slate-900 mb-4">{title}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-4">{displayTitle}</h1>
 
         {/* Message */}
-        <p className="text-slate-600 leading-relaxed mb-6">{message}</p>
+        <p className="text-slate-600 leading-relaxed mb-6">{displayMessage}</p>
 
         {/* Divider */}
         <div className="w-16 h-1 bg-[var(--primary)] mx-auto mb-6 rounded-full" />
@@ -51,19 +56,19 @@ export default function MaintenancePage({
         {/* Status */}
         <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
           <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          <span>We&apos;re working on it</span>
+          <span>{t("workingOnIt")}</span>
         </div>
       </div>
 
       {/* Footer */}
       <div className="mt-8 text-center">
         <p className="text-sm text-slate-400">
-          Questions?{" "}
+          {t("questions")}{" "}
           <a
             href="mailto:support@monkeytravel.app"
             className="text-[var(--primary)] hover:underline"
           >
-            Contact Support
+            {t("contactSupport")}
           </a>
         </p>
       </div>

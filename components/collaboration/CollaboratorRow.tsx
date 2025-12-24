@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { TripCollaborator, CollaboratorRole, ROLE_INFO } from "@/types";
 
@@ -19,6 +20,7 @@ export function CollaboratorRow({
   onRoleChange,
   onRemove,
 }: CollaboratorRowProps) {
+  const t = useTranslations("common.collaborators");
   const [isChangingRole, setIsChangingRole] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -45,8 +47,8 @@ export function CollaboratorRow({
     if (!onRemove) return;
 
     const confirmMessage = isCurrentUser
-      ? "Are you sure you want to leave this trip?"
-      : `Remove ${collaborator.display_name} from this trip?`;
+      ? t("confirmLeave")
+      : t("confirmRemove", { name: collaborator.display_name });
 
     if (!confirm(confirmMessage)) return;
 
@@ -89,7 +91,7 @@ export function CollaboratorRow({
             {collaborator.display_name}
           </span>
           {isCurrentUser && (
-            <span className="text-xs text-gray-500">(you)</span>
+            <span className="text-xs text-gray-500">({t("you")})</span>
           )}
         </div>
         <div className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -134,7 +136,7 @@ export function CollaboratorRow({
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  Change
+                  {t("changeRole")}
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -190,7 +192,7 @@ export function CollaboratorRow({
               "p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors",
               isRemoving && "opacity-50 cursor-not-allowed"
             )}
-            title={isCurrentUser ? "Leave trip" : "Remove from trip"}
+            title={isCurrentUser ? t("leaveTrip") : t("removeFromTrip")}
           >
             {isRemoving ? (
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">

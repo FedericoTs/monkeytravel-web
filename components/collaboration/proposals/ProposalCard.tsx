@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type {
   ProposalWithVotes,
   ProposalVoteType,
@@ -27,13 +28,6 @@ interface ProposalCardProps {
   compact?: boolean;
 }
 
-function formatTimeRemaining(hours: number): string {
-  if (hours <= 0) return 'Expiring soon';
-  if (hours < 24) return `${Math.round(hours)}h left`;
-  const days = Math.floor(hours / 24);
-  return `${days}d left`;
-}
-
 export function ProposalCard({
   proposal,
   currentUserId,
@@ -46,11 +40,20 @@ export function ProposalCard({
   showActions = true,
   compact = false,
 }: ProposalCardProps) {
+  const t = useTranslations("common.proposals");
   const [isExpanded, setIsExpanded] = useState(false);
   // Reserved for future owner action expansion feature
   // const [showOwnerActions, setShowOwnerActions] = useState(false);
 
   const activity = proposal.activity_data as Activity;
+
+  // Format time remaining with translations
+  const formatTimeRemaining = (hours: number): string => {
+    if (hours <= 0) return t("time.expiringSoon");
+    if (hours < 24) return t("time.hoursLeft", { hours: Math.round(hours) });
+    const days = Math.floor(hours / 24);
+    return t("time.daysLeft", { days });
+  };
   const isProposer = currentUserId === proposal.proposed_by;
   const isActive = proposal.status === 'pending' || proposal.status === 'voting';
   const isDeadlock = proposal.consensus?.status === 'deadlock';
@@ -96,7 +99,7 @@ export function ProposalCard({
               />
               {proposal.type === 'replacement' && (
                 <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                  Replacement
+                  {t("badges.replacement")}
                 </span>
               )}
             </div>
@@ -107,7 +110,7 @@ export function ProposalCard({
 
             {!compact && (
               <p className="text-sm text-gray-500 mt-0.5">
-                Day {proposal.target_day + 1}
+                {t("labels.day", { number: proposal.target_day + 1 })}
                 {proposal.target_time_slot && ` • ${proposal.target_time_slot}`}
               </p>
             )}
@@ -143,7 +146,7 @@ export function ProposalCard({
             </span>
           )}
           <span>
-            Proposed by {proposal.proposer?.display_name || 'Unknown'}
+            {t("labels.proposedBy", { name: proposal.proposer?.display_name || t("labels.unknown") })}
           </span>
           <span>•</span>
           <span>{formatTimeRemaining(timeRemaining.hours)}</span>
@@ -189,7 +192,7 @@ export function ProposalCard({
               onClick={() => onWithdraw(proposal.id)}
               className="w-full text-center text-xs text-gray-500 hover:text-gray-700"
             >
-              Withdraw proposal
+              {t("actions.withdrawProposal")}
             </button>
           )}
 
@@ -197,7 +200,7 @@ export function ProposalCard({
           {isOwner && isDeadlock && onForceResolve && (
             <div className="border-t pt-3">
               <p className="text-xs text-amber-700 mb-2">
-                This proposal needs your decision as trip owner.
+                {t("owner.needsDecision")}
               </p>
               <div className="flex gap-2">
                 <button
@@ -205,14 +208,14 @@ export function ProposalCard({
                   className="flex-1 px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg
                              hover:bg-green-600"
                 >
-                  Approve
+                  {t("actions.approve")}
                 </button>
                 <button
                   onClick={() => onForceResolve(proposal.id, 'reject')}
                   className="flex-1 px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg
                              hover:bg-red-600"
                 >
-                  Reject
+                  {t("actions.reject")}
                 </button>
               </div>
             </div>
@@ -228,7 +231,7 @@ export function ProposalCard({
             className="w-full px-4 py-2 text-xs text-gray-500 hover:bg-gray-50
                        border-t flex items-center justify-center gap-1"
           >
-            <span>{isExpanded ? 'Show less' : 'Show more'}</span>
+            <span>{isExpanded ? t("expand.showLess") : t("expand.showMore")}</span>
             <motion.span
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
@@ -249,7 +252,7 @@ export function ProposalCard({
                   {/* Description */}
                   {activity.description && (
                     <div>
-                      <h5 className="text-xs font-medium text-gray-500 mb-1">Description</h5>
+                      <h5 className="text-xs font-medium text-gray-500 mb-1">{t("labels.description")}</h5>
                       <p className="text-sm text-gray-700">{activity.description}</p>
                     </div>
                   )}
@@ -259,7 +262,7 @@ export function ProposalCard({
                     {activity.duration_minutes && (
                       <div className="flex items-center gap-1 text-gray-600">
                         <span>⏱️</span>
-                        <span>{activity.duration_minutes} min</span>
+                        <span>{t("labels.duration", { minutes: activity.duration_minutes })}</span>
                       </div>
                     )}
                     {activity.type && (
@@ -273,7 +276,7 @@ export function ProposalCard({
                   {/* Votes Breakdown */}
                   {proposal.votes.length > 0 && (
                     <div>
-                      <h5 className="text-xs font-medium text-gray-500 mb-2">Votes</h5>
+                      <h5 className="text-xs font-medium text-gray-500 mb-2">{t("labels.votes")}</h5>
                       <div className="space-y-1">
                         {proposal.votes.map((vote) => {
                           const voteInfo = VOTE_INFO[vote.vote_type as VoteType];

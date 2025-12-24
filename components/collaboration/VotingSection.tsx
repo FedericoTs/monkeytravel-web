@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import VoteButtons from "./VoteButtons";
 import StatusBadge from "./StatusBadge";
 import { VoteType, ActivityVote, ConsensusResult, VOTE_INFO, ActivityVotingStatus } from "@/types";
@@ -31,6 +32,7 @@ export default function VotingSection({
   onRemoveVote,
   className = "",
 }: VotingSectionProps) {
+  const t = useTranslations("common.votingSection");
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Don't show voting for confirmed activities (unless there are existing votes)
@@ -46,11 +48,11 @@ export default function VotingSection({
   const displayInfo = consensus
     ? getConsensusDisplayInfo(consensus)
     : {
-        label: "No votes yet",
+        labelKey: "noVotesYet",
         color: "text-slate-500",
         bgColor: "bg-slate-100",
         icon: "clock",
-        description: "Be the first to vote",
+        descriptionKey: "beFirstToVote",
       };
 
   const votedCount = votes.length;
@@ -63,7 +65,7 @@ export default function VotingSection({
         <div className="flex items-center gap-2">
           <StatusBadge status={status} consensus={consensus} />
           <span className="text-xs text-slate-500">
-            {votedCount}/{totalVoters} voted
+            {t("votedCount", { voted: votedCount, total: totalVoters })}
           </span>
         </div>
 
@@ -72,7 +74,7 @@ export default function VotingSection({
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
           >
-            {isExpanded ? "Hide" : "Show"} votes
+            {isExpanded ? t("hideVotes") : t("showVotes")}
             <svg
               className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
               fill="none"
@@ -142,7 +144,7 @@ export default function VotingSection({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-medium text-slate-700 truncate">
-                      {vote.user?.display_name || "Unknown"}
+                      {vote.user?.display_name || t("unknown")}
                     </span>
                     <span className="text-sm">{VOTE_INFO[vote.vote_type].emoji}</span>
                   </div>
@@ -160,8 +162,7 @@ export default function VotingSection({
           {consensus && consensus.pendingVoters.length > 0 && (
             <div className="mt-3 pt-2 border-t border-slate-200">
               <p className="text-xs text-slate-500">
-                Waiting for {consensus.pendingVoters.length} more vote
-                {consensus.pendingVoters.length !== 1 ? "s" : ""}
+                {t("waitingForVotes", { count: consensus.pendingVoters.length })}
               </p>
             </div>
           )}
@@ -172,7 +173,7 @@ export default function VotingSection({
       {status === "deadlock" && (
         <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-xs text-amber-700">
-            No consensus reached. Trip owner can make the final decision.
+            {t("noConsensus")}
           </p>
         </div>
       )}

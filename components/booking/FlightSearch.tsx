@@ -12,6 +12,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { FlightOfferDisplay, LocationResult } from '@/lib/amadeus/types';
 import FlightCard from './FlightCard';
@@ -31,6 +32,8 @@ export default function FlightSearch({
   tripEndDate,
   onFlightSelect,
 }: FlightSearchProps) {
+  const t = useTranslations('common.booking.flights');
+
   // Origin input state
   const [originInput, setOriginInput] = useState('');
   const [originSuggestions, setOriginSuggestions] = useState<LocationResult[]>([]);
@@ -81,7 +84,7 @@ export default function FlightSearch({
   // Search flights
   const searchFlights = async () => {
     if (!selectedOrigin) {
-      setError('Please select a departure city or airport');
+      setError(t('pleaseSelectDeparture'));
       return;
     }
 
@@ -164,7 +167,7 @@ export default function FlightSearch({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
-          Find Flights to {tripDestination}
+          {t('findFlightsTo', { destination: tripDestination })}
         </h3>
         <p className="text-white/80 text-sm mt-1">
           {tripStartDate} - {tripEndDate}
@@ -175,7 +178,7 @@ export default function FlightSearch({
         {/* Origin Input with Autocomplete */}
         <div className="relative">
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Departing from
+            {t('departingFrom')}
           </label>
           <div className="relative">
             <input
@@ -189,7 +192,7 @@ export default function FlightSearch({
                 }
               }}
               onFocus={() => setShowOriginDropdown(true)}
-              placeholder="Enter city or airport..."
+              placeholder={t('enterCityOrAirport')}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all"
             />
             {loadingSuggestions && (
@@ -241,9 +244,9 @@ export default function FlightSearch({
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-[var(--primary)] outline-none"
           >
-            <option value="price">Sort: Cheapest</option>
-            <option value="duration">Sort: Fastest</option>
-            <option value="departure">Sort: Departure</option>
+            <option value="price">{t('sortCheapest')}</option>
+            <option value="duration">{t('sortFastest')}</option>
+            <option value="departure">{t('sortDeparture')}</option>
           </select>
 
           {/* Stops Filter */}
@@ -252,10 +255,10 @@ export default function FlightSearch({
             onChange={(e) => setMaxStops(e.target.value ? parseInt(e.target.value) : null)}
             className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-[var(--primary)] outline-none"
           >
-            <option value="">Any stops</option>
-            <option value="0">Direct only</option>
-            <option value="1">1 stop max</option>
-            <option value="2">2 stops max</option>
+            <option value="">{t('anyStops')}</option>
+            <option value="0">{t('directOnly')}</option>
+            <option value="1">{t('oneStopMax')}</option>
+            <option value="2">{t('twoStopsMax')}</option>
           </select>
         </div>
 
@@ -268,14 +271,14 @@ export default function FlightSearch({
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Searching...
+              {t('searching')}
             </>
           ) : (
             <>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Search Flights
+              {t('searchFlights')}
             </>
           )}
         </button>
@@ -295,11 +298,11 @@ export default function FlightSearch({
           <div className="mt-6 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-slate-900">
-                {flights.length} {flights.length === 1 ? 'flight' : 'flights'} found
+                {flights.length === 1 ? t('flightFound', { count: flights.length }) : t('flightsFound', { count: flights.length })}
               </h4>
               {flights.length > 0 && (
                 <span className="text-xs text-slate-500">
-                  Prices include all taxes and fees
+                  {t('pricesIncludeTaxes')}
                 </span>
               )}
             </div>
@@ -319,8 +322,8 @@ export default function FlightSearch({
                 <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
-                <p>No flights found for these dates.</p>
-                <p className="text-sm mt-1">Try adjusting your search criteria.</p>
+                <p>{t('noFlightsFound')}</p>
+                <p className="text-sm mt-1">{t('tryAdjustingCriteria')}</p>
               </div>
             )}
           </div>

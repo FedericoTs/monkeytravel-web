@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import ImageCarousel from "./ui/ImageCarousel";
 import { usePlaceCache, generatePlaceCacheKey, CachedPlaceData } from "@/lib/context/PlaceCacheContext";
 /* eslint-disable @next/next/no-img-element */
@@ -52,6 +53,7 @@ export default function PlaceGallery({
   onFirstPhotoFetched,
   existingImageUrl,
 }: PlaceGalleryProps) {
+  const t = useTranslations("common.gallery");
   const [placeData, setPlaceData] = useState<PlaceData | null>(null);
   const [loading, setLoading] = useState(!disableAutoFetch);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +175,7 @@ export default function PlaceGallery({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Load Google Photos
+          {t("loadGooglePhotos")}
         </button>
       </div>
     );
@@ -208,7 +210,7 @@ export default function PlaceGallery({
 
             {/* Verified Price Level */}
             {placeData.priceLevelSymbol && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded-full border border-green-100" title={`Verified: ${placeData.priceLevelLabel}`}>
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded-full border border-green-100" title={t("verified", { label: placeData.priceLevelLabel || "" })}>
                 <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
@@ -232,7 +234,7 @@ export default function PlaceGallery({
                   ? "bg-green-50 text-green-700 border border-green-100"
                   : "bg-red-50 text-red-700 border border-red-100"
               }`}>
-                {placeData.openNow ? "Open Now" : "Closed"}
+                {placeData.openNow ? t("openNow") : t("closed")}
               </span>
             )}
 
@@ -244,7 +246,7 @@ export default function PlaceGallery({
                 rel="noopener noreferrer"
                 className="text-xs text-[var(--primary)] hover:underline"
               >
-                Website
+                {t("website")}
               </a>
             )}
           </div>
@@ -304,7 +306,7 @@ export default function PlaceGallery({
                 <svg className="w-5 h-5 mx-auto text-white/90 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
-                <span className="text-xs font-semibold text-white">View All</span>
+                <span className="text-xs font-semibold text-white">{t("viewAll")}</span>
               </div>
             </button>
           )}

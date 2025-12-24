@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { cookies } from "next/headers";
 import {
   classifyTask,
   selectModel,
@@ -25,6 +26,52 @@ import {
 } from "@/lib/utils/geo";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
+
+type SupportedLanguage = "en" | "es" | "it";
+
+/**
+ * Get the user's preferred language from cookies or profile
+ */
+async function getUserLanguage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<SupportedLanguage> {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE");
+  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
+    return localeCookie.value as SupportedLanguage;
+  }
+
+  try {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("preferred_language")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
+      return profile.preferred_language as SupportedLanguage;
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  return "en";
+}
+
+/**
+ * Get language instruction for AI prompts
+ */
+function getLanguageInstruction(language: SupportedLanguage): string {
+  if (language === "en") return "";
+
+  const instructions: Record<"es" | "it", string> = {
+    es: `\n\nIMPORTANTE: Responde COMPLETAMENTE en espanol. Los nombres de actividades, descripciones, consejos y el resumen deben estar en espanol.`,
+    it: `\n\nIMPORTANTE: Rispondi COMPLETAMENTE in italiano. I nomi delle attivita, le descrizioni, i consigli e il riepilogo devono essere in italiano.`,
+  };
+
+  return instructions[language];
+}
 
 // Types for the assistant
 interface AssistantMessage {
@@ -484,7 +531,8 @@ async function generateNewActivity(
   timeSlot: "morning" | "afternoon" | "evening" = "afternoon",
   sameDayActivities: Activity[] = [], // Other activities on the same day for geographic context
   suggestedStartTime?: string, // Optional: caller-suggested start time (AI can override if unreasonable)
-  destinationCoords?: Coordinates // Destination center coordinates for fallback
+  destinationCoords?: Coordinates, // Destination center coordinates for fallback
+  language: SupportedLanguage = "en" // User's language for localization
 ): Promise<Activity> {
   console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
 
@@ -610,7 +658,8 @@ NEVER schedule:
 - Any activity at unrealistic hours (e.g., museum at 23:00 is WRONG)
 `;
 
-  const prompt = `Generate a travel activity for ${destination}.
+  const langInstruction = getLanguageInstruction(language);
+  const prompt = `Generate a travel activity for ${destination}.${langInstruction}
 ${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type}) at ${existingActivity.start_time || "TBD"} - was located in: ${existingActivity.location || existingActivity.address || "unspecified"}` : "New activity to ADD to the schedule"}
 User preference: ${preference}
 Preferred time slot: ${timeSlot}
@@ -732,6 +781,10 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Get user's preferred language for AI content localization
+    const userLanguage = await getUserLanguage(supabase, user.id);
+    console.log(`[AI Assistant] User language: ${userLanguage}`);
 
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "assistant", user.email);
@@ -878,7 +931,8 @@ export async function POST(request: NextRequest) {
             found.activity.time_slot,
             sameDayActivities, // Pass other activities for geographic clustering
             undefined, // suggestedStartTime - use original
-            destinationCoords // Destination center for coordinate fallback
+            destinationCoords, // Destination center for coordinate fallback
+            userLanguage // User's language for localization
           );
 
           // Preserve time from original
@@ -1013,7 +1067,8 @@ export async function POST(request: NextRequest) {
             targetTimeSlot,
             existingDayActivities, // Pass existing activities for geographic clustering
             startTime, // Pass as a SUGGESTION - AI can override if unrealistic
-            destinationCoords // Destination center for coordinate fallback
+            destinationCoords, // Destination center for coordinate fallback
+            userLanguage // User's language for localization
           );
 
           // DO NOT override the AI's chosen time - it has considered operating hours
@@ -1420,7 +1475,8 @@ Explain this to the user and suggest alternatives.`;
     }
 
     const systemPrompt = buildSystemPrompt(tripContext);
-    const fullPrompt = `${systemPrompt}
+    const languageInstruction = getLanguageInstruction(userLanguage);
+    const fullPrompt = `${systemPrompt}${languageInstruction}
 ${actionContext}
 ${conversationHistory ? `\nRecent conversation:\n${conversationHistory}\n` : ""}
 User: ${message}

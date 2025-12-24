@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Search, X, MapPin, Clock, Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import type { Activity, ProposalType } from "@/types";
@@ -46,17 +47,17 @@ interface ProposeActivitySheetProps {
 
 // Activity type categories with icons
 const ACTIVITY_CATEGORIES = [
-  { type: "restaurant", label: "Restaurant", icon: "🍽️" },
-  { type: "attraction", label: "Attraction", icon: "🏛️" },
-  { type: "activity", label: "Activity", icon: "🎯" },
-  { type: "nature", label: "Nature", icon: "🌿" },
-  { type: "shopping", label: "Shopping", icon: "🛍️" },
+  { type: "restaurant", labelKey: "categories.restaurant", icon: "🍽️" },
+  { type: "attraction", labelKey: "categories.attraction", icon: "🏛️" },
+  { type: "activity", labelKey: "categories.activity", icon: "🎯" },
+  { type: "nature", labelKey: "categories.nature", icon: "🌿" },
+  { type: "shopping", labelKey: "categories.shopping", icon: "🛍️" },
 ];
 
-const TIME_SLOT_LABELS: Record<string, { label: string; icon: string }> = {
-  morning: { label: "Morning", icon: "🌅" },
-  afternoon: { label: "Afternoon", icon: "☀️" },
-  evening: { label: "Evening", icon: "🌙" },
+const TIME_SLOT_CONFIG: Record<string, { labelKey: string; icon: string }> = {
+  morning: { labelKey: "timeSlots.morning", icon: "🌅" },
+  afternoon: { labelKey: "timeSlots.afternoon", icon: "☀️" },
+  evening: { labelKey: "timeSlots.evening", icon: "🌙" },
 };
 
 type Step = 'search' | 'custom' | 'preview';
@@ -80,6 +81,8 @@ export function ProposeActivitySheet({
   targetActivityName,
   onPropose,
 }: ProposeActivitySheetProps) {
+  const t = useTranslations("common.proposeActivity");
+
   // Step navigation
   const [step, setStep] = useState<Step>('search');
 
@@ -283,12 +286,12 @@ export function ProposeActivitySheet({
         <div className="flex-1">
           <h3 className="font-semibold text-slate-900">
             {proposalType === 'replacement'
-              ? 'Propose Replacement'
-              : 'Propose Activity'}
+              ? t("titleReplacement")
+              : t("title")}
           </h3>
           <p className="text-xs text-slate-500">
-            Day {targetDay}
-            {targetTimeSlot && ` • ${TIME_SLOT_LABELS[targetTimeSlot].icon} ${TIME_SLOT_LABELS[targetTimeSlot].label}`}
+            {t("day", { day: targetDay })}
+            {targetTimeSlot && ` • ${TIME_SLOT_CONFIG[targetTimeSlot].icon} ${t(TIME_SLOT_CONFIG[targetTimeSlot].labelKey)}`}
           </p>
         </div>
         <button
@@ -303,7 +306,7 @@ export function ProposeActivitySheet({
       {proposalType === 'replacement' && targetActivityName && (
         <div className="mx-4 mt-4 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg">
           <p className="text-sm text-purple-700">
-            <span className="font-medium">Replacing:</span> {targetActivityName}
+            <span className="font-medium">{t("replacing")}:</span> {targetActivityName}
           </p>
         </div>
       )}
@@ -320,7 +323,7 @@ export function ProposeActivitySheet({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder={`Search activities in ${destination}...`}
+                placeholder={t("searchPlaceholder", { destination })}
                 className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg
                            focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               />
@@ -342,7 +345,7 @@ export function ProposeActivitySheet({
                   }`}
                 >
                   <span>{cat.icon}</span>
-                  <span>{cat.label}</span>
+                  <span>{t(cat.labelKey)}</span>
                 </button>
               ))}
             </div>
@@ -402,17 +405,17 @@ export function ProposeActivitySheet({
                 ))
               ) : !isSearching && searchQuery.length >= 2 ? (
                 <div className="text-center py-6 text-slate-500">
-                  <p>No activities found for &quot;{searchQuery}&quot;</p>
+                  <p>{t("noResults", { query: searchQuery })}</p>
                   <button
                     onClick={() => setStep('custom')}
                     className="mt-2 text-[var(--primary)] hover:underline text-sm"
                   >
-                    Create custom activity
+                    {t("createCustom")}
                   </button>
                 </div>
               ) : !isSearching && results.length === 0 ? (
                 <div className="text-center py-6 text-slate-400 text-sm">
-                  Search for activities or select a category
+                  {t("searchHint")}
                 </div>
               ) : null}
             </div>
@@ -423,7 +426,7 @@ export function ProposeActivitySheet({
               className="w-full text-center py-2 text-sm text-[var(--primary)]
                          hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
             >
-              + Create custom activity
+              + {t("createCustom")}
             </button>
           </div>
         )}
@@ -432,13 +435,13 @@ export function ProposeActivitySheet({
           <div className="p-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Activity Name *
+                {t("form.nameLabel")} *
               </label>
               <input
                 type="text"
                 value={customActivity.name}
                 onChange={(e) => setCustomActivity({ ...customActivity, name: e.target.value })}
-                placeholder="e.g., Visit the local market"
+                placeholder={t("form.namePlaceholder")}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg
                            focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 autoFocus
@@ -447,46 +450,46 @@ export function ProposeActivitySheet({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t("form.typeLabel")}</label>
                 <select
                   value={customActivity.type}
                   onChange={(e) => setCustomActivity({ ...customActivity, type: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg
                              focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 >
-                  <option value="activity">Activity</option>
-                  <option value="restaurant">Restaurant</option>
-                  <option value="attraction">Attraction</option>
-                  <option value="nature">Nature</option>
-                  <option value="shopping">Shopping</option>
-                  <option value="entertainment">Entertainment</option>
+                  <option value="activity">{t("categories.activity")}</option>
+                  <option value="restaurant">{t("categories.restaurant")}</option>
+                  <option value="attraction">{t("categories.attraction")}</option>
+                  <option value="nature">{t("categories.nature")}</option>
+                  <option value="shopping">{t("categories.shopping")}</option>
+                  <option value="entertainment">{t("categories.entertainment")}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Duration</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t("form.durationLabel")}</label>
                 <select
                   value={customActivity.duration}
                   onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg
                              focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 >
-                  <option value={30}>30 min</option>
-                  <option value={60}>1 hour</option>
-                  <option value={90}>1.5 hours</option>
-                  <option value={120}>2 hours</option>
-                  <option value={180}>3 hours</option>
+                  <option value={30}>{t("durations.30min")}</option>
+                  <option value={60}>{t("durations.1hour")}</option>
+                  <option value={90}>{t("durations.1_5hours")}</option>
+                  <option value={120}>{t("durations.2hours")}</option>
+                  <option value={180}>{t("durations.3hours")}</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Description (optional)
+                {t("form.descriptionLabel")}
               </label>
               <textarea
                 value={customActivity.description}
                 onChange={(e) => setCustomActivity({ ...customActivity, description: e.target.value })}
-                placeholder="Add any details about this activity..."
+                placeholder={t("form.descriptionPlaceholder")}
                 rows={2}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg
                            focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none"
@@ -500,7 +503,7 @@ export function ProposeActivitySheet({
                          hover:bg-[var(--primary)]/90 rounded-lg transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              Continue
+              {t("continue")}
             </button>
           </div>
         )}
@@ -539,18 +542,18 @@ export function ProposeActivitySheet({
             {/* Proposal Note */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Why should we add this? (optional)
+                {t("preview.noteLabel")}
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Share why you think this would be great for the trip..."
+                placeholder={t("preview.notePlaceholder")}
                 rows={3}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg
                            focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none"
               />
               <p className="mt-1 text-xs text-slate-400">
-                This helps others understand your reasoning when voting
+                {t("preview.noteHint")}
               </p>
             </div>
 
@@ -574,18 +577,18 @@ export function ProposeActivitySheet({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Submitting...</span>
+                  <span>{t("submitting")}</span>
                 </>
               ) : (
                 <>
                   <span>🗳️</span>
-                  <span>Submit Proposal</span>
+                  <span>{t("submitProposal")}</span>
                 </>
               )}
             </button>
 
             <p className="text-center text-xs text-slate-400">
-              Other travelers will vote on your proposal
+              {t("voteNotice")}
             </p>
           </div>
         )}

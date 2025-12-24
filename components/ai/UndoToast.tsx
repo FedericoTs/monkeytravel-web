@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ItineraryDay } from "@/types";
 
@@ -30,6 +31,7 @@ export default function UndoToast({
   onDismiss,
   persistUntilNextAction = true,
 }: UndoToastProps) {
+  const t = useTranslations("common.ai.undo");
   const [isUndoing, setIsUndoing] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -63,25 +65,25 @@ export default function UndoToast({
       case "replace":
         return {
           icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
-          label: "Activity replaced",
+          label: t("activityReplaced"),
           color: "from-violet-500 to-purple-500",
         };
       case "add":
         return {
           icon: "M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z",
-          label: "Activity added",
+          label: t("activityAdded"),
           color: "from-emerald-500 to-green-500",
         };
       case "remove":
         return {
           icon: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16",
-          label: "Activity removed",
+          label: t("activityRemoved"),
           color: "from-rose-500 to-red-500",
         };
       default:
         return {
           icon: "M5 13l4 4L19 7",
-          label: "Change applied",
+          label: t("changeApplied"),
           color: "from-emerald-500 to-green-500",
         };
     }
@@ -123,7 +125,7 @@ export default function UndoToast({
               {undoState.action.activityName && (
                 <p className="text-xs text-slate-400 truncate">
                   {undoState.action.activityName}
-                  {undoState.action.dayNumber && ` • Day ${undoState.action.dayNumber}`}
+                  {undoState.action.dayNumber && ` • ${t("day", { number: undoState.action.dayNumber })}`}
                 </p>
               )}
             </div>
@@ -159,7 +161,7 @@ export default function UndoToast({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                   </svg>
                 )}
-                <span>Undo</span>
+                <span>{t("undoButton")}</span>
               </motion.button>
 
               {/* Dismiss button */}
@@ -181,7 +183,7 @@ export default function UndoToast({
             transition={{ delay: 0.3 }}
             className="text-center text-[10px] text-slate-500 mt-2"
           >
-            Undo available until your next change
+            {t("helperText")}
           </motion.p>
         </motion.div>
       )}

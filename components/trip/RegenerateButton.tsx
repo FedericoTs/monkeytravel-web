@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface RegenerateButtonProps {
   onRegenerate: () => void;
   isRegenerating: boolean;
@@ -15,6 +17,7 @@ export default function RegenerateButton({
   variant = "default",
   className = "",
 }: RegenerateButtonProps) {
+  const t = useTranslations("common.regenerate");
   const isDisabled = disabled || isRegenerating;
 
   // Refresh/regenerate icon with rotation animation when loading
@@ -58,7 +61,7 @@ export default function RegenerateButton({
           transition-all duration-200
           ${className}
         `}
-        title={isRegenerating ? "Generating..." : "Try different version"}
+        title={isRegenerating ? t("generating") : t("tryDifferent")}
       >
         <RefreshIcon />
       </button>
@@ -82,7 +85,7 @@ export default function RegenerateButton({
       >
         <RefreshIcon />
         <span className="hidden sm:inline">
-          {isRegenerating ? "Generating..." : "Regenerate"}
+          {isRegenerating ? t("generating") : t("regenerate")}
         </span>
       </button>
     );
@@ -120,14 +123,14 @@ export default function RegenerateButton({
         <div className="text-left">
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-slate-900 group-hover:text-[var(--primary)] transition-colors">
-              {isRegenerating ? "Generating..." : "Try Different Version"}
+              {isRegenerating ? t("generating") : t("tryDifferent")}
             </span>
             {!isRegenerating && (
               <SparkleIcon />
             )}
           </div>
           <span className="text-xs text-slate-500">
-            Same preferences, new ideas
+            {t("samePreferences")}
           </span>
         </div>
       </div>

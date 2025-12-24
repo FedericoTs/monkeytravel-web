@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+import { useTranslations } from "next-intl";
 import TourAuroraBackground from "./TourAuroraBackground";
 import TourProgress from "./TourProgress";
 import { useTourNavigation } from "./hooks/useTourNavigation";
@@ -40,6 +41,7 @@ interface ProductTourProps {
 }
 
 export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
+  const t = useTranslations("common.tour");
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
   const dragControls = useDragControls();
@@ -320,9 +322,9 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
             style={{ fontFamily: "var(--font-source-sans), system-ui, sans-serif" }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="Skip tour"
+            aria-label={t("skip")}
           >
-            <span>Skip</span>
+            <span>{t("skip")}</span>
             <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface WaitlistSignupProps {
   userEmail?: string;
@@ -17,6 +18,7 @@ export default function WaitlistSignup({
   source = "beta_waitlist",
   className = "",
 }: WaitlistSignupProps) {
+  const t = useTranslations("common.beta.waitlist");
   const [email, setEmail] = useState(userEmail || "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -26,7 +28,7 @@ export default function WaitlistSignup({
     e?.preventDefault();
 
     if (!email.trim()) {
-      setError("Please enter your email");
+      setError(t("enterEmailError"));
       return;
     }
 
@@ -52,7 +54,7 @@ export default function WaitlistSignup({
           onSuccess?.();
           return;
         }
-        setError(data.error || "Failed to join waitlist");
+        setError(data.error || t("joinFailed"));
         setLoading(false);
         return;
       }
@@ -60,7 +62,7 @@ export default function WaitlistSignup({
       setSuccess(true);
       onSuccess?.();
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(t("genericError"));
     } finally {
       setLoading(false);
     }
@@ -76,8 +78,8 @@ export default function WaitlistSignup({
             </svg>
           </div>
           <div>
-            <p className="font-semibold text-blue-800">You're on the list!</p>
-            <p className="text-sm text-blue-600">We'll notify you when more beta spots open up.</p>
+            <p className="font-semibold text-blue-800">{t("successTitle")}</p>
+            <p className="text-sm text-blue-600">{t("successDescription")}</p>
           </div>
         </div>
       </div>
@@ -98,20 +100,20 @@ export default function WaitlistSignup({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Joining...
+              {t("joining")}
             </>
           ) : (
             <>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              Join Beta Waitlist
+              {t("joinBetaWaitlist")}
             </>
           )}
         </button>
         {userEmail && (
           <p className="text-xs text-slate-500 mt-2 text-center">
-            We'll use your account email: {userEmail}
+            {t("usingEmail", { email: userEmail })}
           </p>
         )}
         {error && (
@@ -132,16 +134,16 @@ export default function WaitlistSignup({
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Don't have a code?</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t("title")}</h3>
             <p className="text-sm text-slate-600 mt-1">
-              Join our beta waitlist and we'll notify you when more spots open up
+              {t("subtitle")}
             </p>
           </div>
         </div>
 
         <div className="space-y-3">
           <p className="text-sm text-slate-600">
-            Early waitlist members get priority access. We're rolling out codes regularly!
+            {t("priorityAccess")}
           </p>
 
           {userEmail ? (
@@ -157,26 +159,26 @@ export default function WaitlistSignup({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Joining Waitlist...
+                    {t("joiningWaitlist")}
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    Join Beta Waitlist
+                    {t("joinBetaWaitlist")}
                   </>
                 )}
               </button>
               <p className="text-xs text-slate-500 mt-2 text-center">
-                We'll use your account email: {userEmail}
+                {t("usingEmail", { email: userEmail })}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex gap-2">
               <input
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t("emailPlaceholder")}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -198,7 +200,7 @@ export default function WaitlistSignup({
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 ) : (
-                  "Join"
+                  t("join")
                 )}
               </button>
             </form>

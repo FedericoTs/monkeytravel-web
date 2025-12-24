@@ -52,6 +52,7 @@ import {
 } from "@/lib/utils/activity-id";
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import { useTranslations } from "next-intl";
 import {
   DndContext,
   DragEndEvent,
@@ -82,7 +83,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
+      <span className="text-slate-400"></span>
     </div>
   ),
 });
@@ -122,6 +123,8 @@ export default function TripDetailClient({
   userRole = "owner",
   collaboratorCount = 0,
 }: TripDetailClientProps) {
+  const t = useTranslations('trips');
+
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
   const shareParam = searchParams.get("share");
@@ -1196,7 +1199,7 @@ export default function TripDetailClient({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back to Trips</span>
+              <span className="hidden sm:inline">{t('detail.backToTrips')}</span>
             </Link>
           </div>
 
@@ -1212,7 +1215,7 @@ export default function TripDetailClient({
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Cards
+                {t('detail.cards')}
               </button>
               <button
                 onClick={() => setViewMode("timeline")}
@@ -1222,7 +1225,7 @@ export default function TripDetailClient({
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Timeline
+                {t('detail.timeline')}
               </button>
             </div>
 
@@ -1234,12 +1237,12 @@ export default function TripDetailClient({
                   ? "bg-[var(--primary)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
-              title={showMap ? "Hide Map" : "Show Map"}
+              title={showMap ? t('detail.hideMap') : t('detail.showMap')}
             >
               <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
+              <span className="hidden sm:inline">{showMap ? t('detail.hideMap') : t('detail.showMap')}</span>
             </button>
 
             {/* Share Button */}
@@ -1273,20 +1276,20 @@ export default function TripDetailClient({
               <button
                 onClick={handleEnterEditMode}
                 className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
-                title="Edit Trip"
+                title={t('detail.editTrip')}
               >
                 <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <span className="hidden sm:inline">Edit Trip</span>
+                <span className="hidden sm:inline">{t('detail.editTrip')}</span>
               </button>
             ) : (
               <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <span className="hidden sm:inline">Editing Mode</span>
-                <span className="sm:hidden">Editing</span>
+                <span className="hidden sm:inline">{t('detail.editingMode')}</span>
+                <span className="sm:hidden">{t('detail.editing')}</span>
               </div>
             )}
           </div>
@@ -1347,7 +1350,7 @@ export default function TripDetailClient({
                       </div>
                       <div>
                         <h2 className="font-bold text-xl text-slate-900">
-                          Day {day.day_number}
+                          {t('day.label', { number: day.day_number })}
                         </h2>
                         {day.theme && (
                           <p className="text-slate-500 text-sm">{day.theme}</p>
@@ -1362,19 +1365,19 @@ export default function TripDetailClient({
                           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
                                      text-emerald-700 bg-emerald-50 hover:bg-emerald-100
                                      rounded-lg transition-colors border border-emerald-200"
-                          title="Optimize route to minimize travel distance"
+                          title={t('detail.optimizeRoute')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                               d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                           </svg>
-                          <span className="hidden sm:inline">Optimize Route</span>
-                          <span className="sm:hidden">Optimize</span>
+                          <span className="hidden sm:inline">{t('detail.optimizeRoute')}</span>
+                          <span className="sm:hidden">{t('detail.optimize')}</span>
                         </button>
                       )}
                       {day.daily_budget && (
                         <div className="text-right">
-                          <div className="text-sm text-slate-500">Est. Budget</div>
+                          <div className="text-sm text-slate-500">{t('detail.estBudget')}</div>
                           <div className="font-semibold text-slate-900">
                             {trip.budget?.currency || "USD"} {day.daily_budget.total}
                           </div>
@@ -1399,9 +1402,7 @@ export default function TripDetailClient({
                                   </svg>
                                 </div>
                                 <span className="text-sm text-slate-600">
-                                  <span className="font-medium">Reorder activities</span>
-                                  <span className="text-slate-400 hidden sm:inline"> — drag the handle on the left to rearrange</span>
-                                  <span className="text-slate-400 sm:hidden"> — hold & drag</span>
+                                  <span className="font-medium">{t('detail.reorderActivities')}</span>
                                 </span>
                               </div>
                             </div>
@@ -1567,7 +1568,7 @@ export default function TripDetailClient({
                                      rounded-xl text-gray-400 hover:border-blue-300
                                      hover:text-blue-500 transition-colors text-sm font-medium"
                         >
-                          + Suggest an activity for this day
+                          {t('detail.suggestActivity')}
                         </button>
                       )}
                       {/* Day travel summary */}
@@ -1621,7 +1622,7 @@ export default function TripDetailClient({
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
                                         {activity.estimated_cost.amount === 0
-                                          ? "Free"
+                                          ? t('activity.free')
                                           : `${activity.estimated_cost.currency || trip.budget?.currency || "USD"} ${activity.estimated_cost.amount}`}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
@@ -1665,8 +1666,8 @@ export default function TripDetailClient({
             <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
-            <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
+            <h3 className="text-lg font-medium text-slate-900 mb-2">{t('detail.noItinerary')}</h3>
+            <p className="text-slate-600">{t('detail.noItineraryMessage')}</p>
           </div>
         )}
 
@@ -1693,12 +1694,10 @@ export default function TripDetailClient({
               </div>
               <div>
                 <h4 className="font-semibold text-amber-900 mb-1">
-                  AI-Generated Itinerary with Verified Data
+                  {t('detail.aiGenerated')}
                 </h4>
                 <p className="text-sm text-amber-800">
-                  This itinerary was created by AI and enriched with real-time data from Google Places.
-                  Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
-                  and availability before your trip. Click "More" on any activity to see verified details and photos.
+                  {t('detail.aiGeneratedDescription')} {t('detail.clickMoreInfo')}
                 </p>
               </div>
             </div>
@@ -1718,11 +1717,10 @@ export default function TripDetailClient({
               </div>
               <div>
                 <h4 className="font-semibold text-blue-900 mb-1">
-                  Edit Mode Active
+                  {t('detail.editModeActive')}
                 </h4>
                 <p className="text-sm text-blue-800">
-                  You can now edit, move, delete, or regenerate activities. Use the buttons on each activity card
-                  to make changes. Click "Save Changes" when you're done, or "Discard" to cancel your edits.
+                  {t('detail.editModeInstructions')}
                 </p>
               </div>
             </div>
@@ -1759,7 +1757,7 @@ export default function TripDetailClient({
                 </div>
                 {hasChanges && (
                   <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
-                    Unsaved changes
+                    {t('detail.unsavedChanges')}
                   </span>
                 )}
                 {saveError && (
@@ -1772,7 +1770,7 @@ export default function TripDetailClient({
                   disabled={isSaving}
                   className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  Discard Changes
+                  {t('detail.discardChanges')}
                 </button>
                 <button
                   onClick={handleSaveChanges}
@@ -1785,14 +1783,14 @@ export default function TripDetailClient({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Saving...
+                      {t('detail.saving')}
                     </>
                   ) : (
                     <>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      Save Changes
+                      {t('detail.saveChanges')}
                     </>
                   )}
                 </button>
@@ -1810,7 +1808,7 @@ export default function TripDetailClient({
         <button
           onClick={() => setIsAIAssistantOpen(true)}
           className="fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group"
-          title="AI Trip Assistant"
+          title={t('detail.aiTripAssistant')}
         >
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300 hover:scale-[1.02]">
             {/* AI Icon with gradient background */}
@@ -1831,8 +1829,8 @@ export default function TripDetailClient({
             </div>
             {/* Label - hidden on very small screens */}
             <div className="hidden sm:flex flex-col items-start leading-none">
-              <span className="text-sm font-semibold text-slate-800">AI Assistant</span>
-              <span className="text-[11px] text-slate-500">Customize your trip</span>
+              <span className="text-sm font-semibold text-slate-800">{t('detail.aiAssistant')}</span>
+              <span className="text-[11px] text-slate-500">{t('detail.customizeTrip')}</span>
             </div>
             {/* Arrow indicator */}
             <svg className="w-4 h-4 text-slate-400 group-hover:text-[var(--primary)] group-hover:translate-x-0.5 transition-all hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1847,7 +1845,7 @@ export default function TripDetailClient({
         <button
           onClick={() => setIsAIAssistantOpen(true)}
           className="fixed bottom-24 left-6 z-40 group"
-          title="AI Trip Assistant"
+          title={t('detail.aiTripAssistant')}
         >
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-sm">
@@ -1865,7 +1863,7 @@ export default function TripDetailClient({
                 />
               </svg>
             </div>
-            <span className="text-sm font-medium text-slate-700 hidden sm:inline">AI Help</span>
+            <span className="text-sm font-medium text-slate-700 hidden sm:inline">{t('detail.aiHelp')}</span>
           </div>
         </button>
       )}
@@ -1892,8 +1890,8 @@ export default function TripDetailClient({
               </svg>
             </div>
             <div>
-              <p className="font-medium text-green-800">Changes saved!</p>
-              <p className="text-sm text-green-600">Your trip has been updated successfully.</p>
+              <p className="font-medium text-green-800">{t('detail.changesSaved')}</p>
+              <p className="text-sm text-green-600">{t('detail.tripUpdated')}</p>
             </div>
             <button
               onClick={() => setSaveSuccess(false)}

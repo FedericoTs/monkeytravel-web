@@ -1,4 +1,7 @@
+"use client";
+
 import { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface FeatureCardProps {
   icon: ReactNode;
@@ -13,6 +16,7 @@ export default function FeatureCard({
   description,
   className = '',
 }: FeatureCardProps) {
+  const t = useTranslations('common.features');
   return (
     <div
       className={`group p-6 bg-white rounded-2xl border border-gray-100 hover:border-[var(--accent)] hover:shadow-xl transition-all duration-300 ${className}`}
@@ -23,7 +27,7 @@ export default function FeatureCard({
       <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">{title}</h3>
       <p className="text-[var(--foreground-muted)] leading-relaxed">{description}</p>
       <div className="mt-4 flex items-center text-[var(--primary)] font-medium group-hover:text-[var(--accent-dark)] transition-colors">
-        <span>Learn more</span>
+        <span>{t('learnMore')}</span>
         <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>

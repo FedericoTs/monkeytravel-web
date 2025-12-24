@@ -15,6 +15,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import type { HotelOfferDisplay } from '@/lib/amadeus/types';
 import type { ItineraryDay } from '@/types';
 import { getHotelSearchCenter, formatDistance, getProximityLabel, calculateDistance, type GeoCenter, type Coordinates } from '@/lib/utils/geo';
@@ -47,6 +48,8 @@ export default function HotelSearch({
   itinerary,
   onHotelSelect,
 }: HotelSearchProps) {
+  const t = useTranslations('common.booking.hotels');
+
   // Search state
   const [hotels, setHotels] = useState<HotelWithDistance[]>([]);
   const [loading, setLoading] = useState(false);
@@ -173,10 +176,10 @@ export default function HotelSearch({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
-          Find Hotels in {tripDestination}
+          {t('findHotelsIn', { destination: tripDestination })}
         </h3>
         <p className="text-slate-700 text-sm mt-1">
-          {tripStartDate} - {tripEndDate} ({nights} {nights === 1 ? 'night' : 'nights'})
+          {tripStartDate} - {tripEndDate} ({nights} {nights === 1 ? t('night') : t('nights')})
         </p>
         {/* Geo-search indicator */}
         {useGeoSearch && geoCenter && (
@@ -186,7 +189,7 @@ export default function HotelSearch({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span>
-              Searching near your activities ({geoCenter.activityCount} locations, {formatDistance(geoCenter.radius)} radius)
+              {t('searchingNearActivities', { count: geoCenter.activityCount, radius: formatDistance(geoCenter.radius) })}
             </span>
           </div>
         )}
@@ -197,7 +200,7 @@ export default function HotelSearch({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Guests
+              {t('guests')}
             </label>
             <select
               value={guests}
@@ -206,14 +209,14 @@ export default function HotelSearch({
             >
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <option key={n} value={n}>
-                  {n} {n === 1 ? 'guest' : 'guests'}
+                  {n} {n === 1 ? t('guest') : t('guestsPlural')}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Rooms
+              {t('rooms')}
             </label>
             <select
               value={rooms}
@@ -222,7 +225,7 @@ export default function HotelSearch({
             >
               {[1, 2, 3, 4].map((n) => (
                 <option key={n} value={n}>
-                  {n} {n === 1 ? 'room' : 'rooms'}
+                  {n} {n === 1 ? t('room') : t('roomsPlural')}
                 </option>
               ))}
             </select>
@@ -237,10 +240,10 @@ export default function HotelSearch({
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-[var(--primary)] outline-none"
           >
-            {geoCenter && <option value="distance">Sort: Closest to Activities</option>}
-            <option value="price">Sort: Lowest Price</option>
-            <option value="rating">Sort: Highest Rating</option>
-            <option value="name">Sort: A-Z</option>
+            {geoCenter && <option value="distance">{t('sortClosestToActivities')}</option>}
+            <option value="price">{t('sortLowestPrice')}</option>
+            <option value="rating">{t('sortHighestRating')}</option>
+            <option value="name">{t('sortAZ')}</option>
           </select>
 
           {/* Rating Filter */}
@@ -249,10 +252,10 @@ export default function HotelSearch({
             onChange={(e) => setMinRating(e.target.value ? parseInt(e.target.value) : null)}
             className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-[var(--primary)] outline-none"
           >
-            <option value="">Any rating</option>
-            <option value="5">5 stars</option>
-            <option value="4">4+ stars</option>
-            <option value="3">3+ stars</option>
+            <option value="">{t('anyRating')}</option>
+            <option value="5">{t('fiveStars')}</option>
+            <option value="4">{t('fourPlusStars')}</option>
+            <option value="3">{t('threePlusStars')}</option>
           </select>
 
           {/* Price Range Filter */}
@@ -261,11 +264,11 @@ export default function HotelSearch({
             onChange={(e) => setPriceRange(e.target.value || null)}
             className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-[var(--primary)] outline-none"
           >
-            <option value="">Any price</option>
-            <option value="0-100">Under $100/night</option>
-            <option value="100-200">$100 - $200/night</option>
-            <option value="200-400">$200 - $400/night</option>
-            <option value="400-1000">$400+/night</option>
+            <option value="">{t('anyPrice')}</option>
+            <option value="0-100">{t('priceUnder100')}</option>
+            <option value="100-200">{t('price100to200')}</option>
+            <option value="200-400">{t('price200to400')}</option>
+            <option value="400-1000">{t('price400plus')}</option>
           </select>
         </div>
 
@@ -278,14 +281,14 @@ export default function HotelSearch({
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Searching...
+              {t('searching')}
             </>
           ) : (
             <>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Search Hotels
+              {t('searchHotels')}
             </>
           )}
         </button>
@@ -305,11 +308,11 @@ export default function HotelSearch({
           <div className="mt-6 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-slate-900">
-                {hotels.length} {hotels.length === 1 ? 'hotel' : 'hotels'} found
+                {hotels.length === 1 ? t('hotelFound', { count: hotels.length }) : t('hotelsFound', { count: hotels.length })}
               </h4>
               {hotels.length > 0 && (
                 <span className="text-xs text-slate-500">
-                  Prices per night
+                  {t('pricesPerNight')}
                 </span>
               )}
             </div>
@@ -330,8 +333,8 @@ export default function HotelSearch({
                 <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <p>No hotels found for these dates.</p>
-                <p className="text-sm mt-1">Try adjusting your filters.</p>
+                <p>{t('noHotelsFound')}</p>
+                <p className="text-sm mt-1">{t('tryAdjustingFilters')}</p>
               </div>
             )}
           </div>

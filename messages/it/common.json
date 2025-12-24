@@ -96,6 +96,12 @@
     "termsOfService": "Termini di Servizio",
     "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati."
   },
+  "bottomNav": {
+    "home": "Home",
+    "myTrips": "I Miei Viaggi",
+    "new": "Nuovo",
+    "profile": "Profilo"
+  },
   "language": {
     "select": "Seleziona Lingua",
     "english": "English",
@@ -155,6 +161,1090 @@
     "subscribe": "Iscriviti",
     "joined": "Iscritto!",
     "successMessage": "Sei nella lista! Ti avviseremo al lancio.",
-    "errorMessage": "Qualcosa è andato storto. Riprova."
+    "errorMessage": "Qualcosa è andato storto. Riprova.",
+    "invalidEmail": "Inserisci un indirizzo email valido"
+  },
+  "aiAssistant": {
+    "title": "Assistente di Viaggio",
+    "howCanIHelp": "Come posso aiutarti?",
+    "emptyStateHint": "Chiedimi di aggiungere attività, sostituire luoghi o ottenere consigli locali",
+    "thinking": "Sto pensando...",
+    "placeholder": "Sostituisci il Colosseo con qualcosa di più tranquillo...",
+    "requestsLeft": "richieste rimanenti",
+    "clearConversation": "Cancella conversazione",
+    "changeApplied": "Modifica applicata",
+    "hintText": "Prova: \"Sostituisci X con Y\" o \"Aggiungi un caffè vicino al museo\"",
+    "quickActions": {
+      "optimizeBudget": "Ottimizza budget",
+      "addRestaurant": "Aggiungi ristorante",
+      "localTips": "Consigli locali",
+      "alternatives": "Alternative"
+    },
+    "quickPrompts": {
+      "optimizeBudget": "Suggerisci modi per ottimizzare il mio budget",
+      "addRestaurant": "Suggerisci un ottimo ristorante locale da aggiungere",
+      "localTips": "Quali sono i consigli locali per questa destinazione?",
+      "alternatives": "Suggerisci attività alternative che potrei fare"
+    }
+  },
+  "deleteAccount": {
+    "title": "Eliminare Account?",
+    "warning": "Questo eliminerà permanentemente il tuo account e tutti i dati associati, inclusi:",
+    "items": {
+      "trips": "Tutti i tuoi viaggi e itinerari",
+      "conversations": "Cronologia conversazioni con IA",
+      "preferences": "Preferenze e impostazioni salvate",
+      "checklists": "Liste di viaggio e ricordi"
+    },
+    "cannotUndo": "Questa azione non può essere annullata.",
+    "typeToConfirm": "Scrivi",
+    "deleteWord": "ELIMINA",
+    "toConfirm": "per confermare",
+    "typePlaceholder": "Scrivi ELIMINA",
+    "deleting": "Eliminazione..."
+  },
+  "earlyAccess": {
+    "title": "Funzionalità IA",
+    "earlyAccess": "Accesso Anticipato",
+    "description": "La nostra pianificazione viaggi con IA è attualmente disponibile per i tester. Stiamo aprendo l'accesso gradualmente per garantire la migliore esperienza.",
+    "haveCode": "Hai un codice tester?",
+    "enterCode": "Inserisci codice",
+    "unlock": "Sblocca",
+    "welcomeTitle": "Benvenuto nell'Accesso Anticipato!",
+    "welcomeMessage": "Ora hai accesso a tutte le funzionalità IA.",
+    "onListTitle": "Sei nella lista!",
+    "onListMessage": "Ti invieremo un'email quando apriremo l'accesso anticipato.",
+    "joinWaitlist": "Iscriviti alla Lista d'Attesa",
+    "emailPlaceholder": "tua@email.com",
+    "join": "Iscriviti",
+    "nextWaveHint": "Sii il primo a sapere quando apriremo la prossima ondata di inviti.",
+    "joinNextWave": "Iscriviti per la Prossima Ondata",
+    "benefitsTitle": "Vantaggi dell'Accesso Anticipato",
+    "benefits": {
+      "saved": "Le tue preferenze vengono salvate",
+      "personalized": "Ottieni raccomandazioni IA personalizzate",
+      "proPlan": "14 giorni di accesso Pro per i tester"
+    }
+  },
+  "voting": {
+    "loveIt": "Mi piace!",
+    "openToIt": "Aperto a questo",
+    "concerns": "Ho dubbi",
+    "skipThis": "Salta",
+    "commentPlaceholder": "Aiuta i tuoi compagni di viaggio a capire...",
+    "noProposalSelected": "Nessuna proposta selezionata",
+    "unableToLoad": "Impossibile caricare i dettagli della proposta",
+    "yourVote": "Il tuo voto:",
+    "whyFeelThisWay": "Perché ti senti così? (opzionale)",
+    "submitting": "Invio...",
+    "submitVote": "Invia Voto",
+    "changeMyVote": "Cambia il mio voto",
+    "votingSplit": "La votazione è divisa",
+    "tripOrganizerCall": "Come organizzatore del viaggio, puoi prendere la decisione finale.",
+    "addToPlan": "Aggiungi al Piano",
+    "seeWhoVoted": "Vedi chi ha votato",
+    "shareWhy": "Per favore condividi il motivo con il gruppo",
+    "cancel": "Annulla",
+    "concernsPlaceholder": "Quali dubbi hai su questa attività?",
+    "noPlaceholder": "Perché questa attività non fa per te?",
+    "expiringSoon": "Scade presto",
+    "hoursLeft": "{hours}h rimanenti",
+    "daysLeft": "{days}g rimanenti",
+    "dragToClose": "Trascina per chiudere",
+    "day": "Giorno {day}",
+    "suggestedBy": "Suggerito da",
+    "unknown": "Sconosciuto",
+    "note": "Nota",
+    "types": {
+      "love": {
+        "label": "Mi piace!",
+        "description": "È imperdibile!"
+      },
+      "flexible": {
+        "label": "Aperto a questo",
+        "description": "Sono flessibile su questo"
+      },
+      "concerns": {
+        "label": "Ho dubbi",
+        "description": "Ho alcune riserve"
+      },
+      "no": {
+        "label": "Salta",
+        "description": "Non fa per me"
+      }
+    }
+  },
+  "rating": {
+    "title": "Valuta Attività",
+    "placeholder": "Viste incredibili! Consiglio: vai presto per evitare la folla...",
+    "activityComplete": "Attività Completata!",
+    "howWasIt": "Com'è andata?",
+    "tapToRate": "Tocca per valutare",
+    "notGreat": "Non granché",
+    "couldBeBetter": "Potrebbe essere meglio",
+    "itWasOkay": "Era ok",
+    "reallyGood": "Molto bene!",
+    "amazing": "Fantastico!",
+    "quickTags": "Tag rapidi",
+    "addNote": "Aggiungi una nota (opzionale)",
+    "saving": "Salvataggio...",
+    "skipForNow": "Salta per ora",
+    "tags": {
+      "mustDo": "Da fare",
+      "crowded": "Affollato",
+      "worthIt": "Ne vale la pena",
+      "skipNextTime": "Evita la prossima volta",
+      "hiddenGem": "Gemma nascosta",
+      "overrated": "Sopravvalutato"
+    }
+  },
+  "trips": {
+    "searchPlaceholder": "Cerca viaggi...",
+    "happeningNow": "In Corso",
+    "upcoming": "In Arrivo",
+    "pastAdventures": "Avventure Passate",
+    "yourTrips": "I Tuoi Viaggi",
+    "manageItineraries": "Pianifica e gestisci i tuoi itinerari con IA",
+    "planNewTrip": "Pianifica Viaggio",
+    "planFirstTrip": "Pianifica il Tuo Primo Viaggio",
+    "noTripsYet": "Nessun viaggio ancora",
+    "noTripsDescription": "Crea il tuo primo viaggio con IA e lascia che MonkeyTravel pianifichi l'itinerario perfetto per te.",
+    "noTripsFound": "Nessun viaggio trovato",
+    "adjustFilters": "Prova a modificare la ricerca o i filtri",
+    "clearFilters": "Cancella tutti i filtri",
+    "resetFilters": "Reimposta Filtri",
+    "filters": "Filtri",
+    "sortBy": "Ordina per",
+    "filterByStatus": "Filtra per stato",
+    "newestFirst": "Più recenti",
+    "oldestFirst": "Più vecchi",
+    "byDate": "Per data",
+    "alphabetical": "A-Z",
+    "allStatus": "Tutti gli stati",
+    "planning": "In pianificazione",
+    "confirmed": "Confermato",
+    "active": "Attivo",
+    "completed": "Completato",
+    "cancelled": "Annullato",
+    "total": "Totale",
+    "destinations": "Destinazioni",
+    "showing": "Mostrando:",
+    "tripsCount": "viaggi",
+    "noUpcomingTrips": "Nessun viaggio in arrivo. Inizia a pianificare la tua prossima avventura!",
+    "signOut": "Esci",
+    "hi": "Ciao"
+  },
+  "booking": {
+    "hotels": {
+      "findHotelsIn": "Cerca Hotel a {destination}",
+      "night": "notte",
+      "nights": "notti",
+      "searchingNearActivities": "Cercando vicino alle tue attività ({count} località, raggio di {radius})",
+      "guests": "Ospiti",
+      "guest": "ospite",
+      "guestsPlural": "ospiti",
+      "rooms": "Camere",
+      "room": "camera",
+      "roomsPlural": "camere",
+      "sortClosestToActivities": "Ordina: Più vicino alle attività",
+      "sortLowestPrice": "Ordina: Prezzo più basso",
+      "sortHighestRating": "Ordina: Migliore valutazione",
+      "sortAZ": "Ordina: A-Z",
+      "anyRating": "Qualsiasi valutazione",
+      "fiveStars": "5 stelle",
+      "fourPlusStars": "4+ stelle",
+      "threePlusStars": "3+ stelle",
+      "anyPrice": "Qualsiasi prezzo",
+      "priceUnder100": "Meno di $100/notte",
+      "price100to200": "$100 - $200/notte",
+      "price200to400": "$200 - $400/notte",
+      "price400plus": "$400+/notte",
+      "searching": "Ricerca in corso...",
+      "searchHotels": "Cerca Hotel",
+      "hotelsFound": "{count} hotel trovati",
+      "hotelFound": "{count} hotel trovato",
+      "pricesPerNight": "Prezzi per notte",
+      "noHotelsFound": "Nessun hotel trovato per queste date.",
+      "tryAdjustingFilters": "Prova a modificare i filtri.",
+      "toYourActivities": "alle tue attività",
+      "breakfastIncluded": "Colazione inclusa",
+      "halfBoard": "Mezza pensione",
+      "fullBoard": "Pensione completa",
+      "allInclusive": "Tutto incluso",
+      "roomOnly": "Solo camera",
+      "moreAmenities": "+{count} altri",
+      "freeCancellation": "Cancellazione gratuita",
+      "perNight": "per notte",
+      "total": "totale",
+      "forNights": "per {count} notti",
+      "forNight": "per {count} notte"
+    },
+    "flights": {
+      "findFlightsTo": "Cerca Voli per {destination}",
+      "departingFrom": "Partenza da",
+      "enterCityOrAirport": "Inserisci città o aeroporto...",
+      "sortCheapest": "Ordina: Più economico",
+      "sortFastest": "Ordina: Più veloce",
+      "sortDeparture": "Ordina: Partenza",
+      "anyStops": "Qualsiasi scalo",
+      "directOnly": "Solo diretto",
+      "oneStopMax": "Massimo 1 scalo",
+      "twoStopsMax": "Massimo 2 scali",
+      "searching": "Ricerca in corso...",
+      "searchFlights": "Cerca Voli",
+      "flightsFound": "{count} voli trovati",
+      "flightFound": "{count} volo trovato",
+      "pricesIncludeTaxes": "I prezzi includono tutte le tasse e i costi",
+      "noFlightsFound": "Nessun volo trovato per queste date.",
+      "tryAdjustingCriteria": "Prova a modificare i criteri di ricerca.",
+      "pleaseSelectDeparture": "Seleziona una città o aeroporto di partenza",
+      "direct": "Diretto",
+      "oneStop": "1 scalo",
+      "stops": "{count} scali",
+      "economy": "Economy",
+      "premiumEconomy": "Premium",
+      "business": "Business",
+      "first": "Prima classe",
+      "seatsLeft": "{count} rimasti",
+      "via": "Via"
+    }
+  },
+  "destination": {
+    "back": "Indietro",
+    "activities": "{count} attività",
+    "highlights": "In evidenza:",
+    "weather": {
+      "sunny": "Soleggiato",
+      "cloudy": "Nuvoloso",
+      "rainy": "Piovoso",
+      "cold": "Freddo",
+      "windy": "Ventoso",
+      "pleasant": "Piacevole",
+      "mild": "Mite"
+    }
+  },
+  "gallery": {
+    "loadGooglePhotos": "Carica foto da Google",
+    "verified": "Verificato: {label}",
+    "openNow": "Aperto ora",
+    "closed": "Chiuso",
+    "website": "Sito web",
+    "viewAll": "Vedi tutto"
+  },
+  "map": {
+    "failedToLoad": "Errore nel caricamento della mappa",
+    "loading": "Caricamento mappa...",
+    "loadingLocations": "Caricamento posizioni...",
+    "days": "Giorni",
+    "openInMaps": "Apri in Maps",
+    "viewDetails": "Vedi dettagli"
+  },
+  "maintenance": {
+    "title": "In Manutenzione",
+    "message": "Stiamo eseguendo la manutenzione programmata per migliorare la tua esperienza. Per favore torna presto.",
+    "workingOnIt": "Stiamo lavorando",
+    "questions": "Domande?",
+    "contactSupport": "Contatta l'Assistenza"
+  },
+  "features": {
+    "learnMore": "Scopri di più"
+  },
+  "appStore": {
+    "downloadOnThe": "Scarica su",
+    "getItOn": "Disponibile su",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "packing": {
+    "title": "Lista Bagagli",
+    "packed": "{checked} di {total} preparati",
+    "items": "{count} articoli",
+    "showLess": "Mostra meno",
+    "showMoreCategories": "Mostra {count} altre categorie",
+    "categories": {
+      "clothing": "Abbigliamento",
+      "electronics": "Elettronica",
+      "documents": "Documenti",
+      "health": "Salute e Cura",
+      "accessories": "Accessori",
+      "other": "Altro"
+    }
+  },
+  "vibes": {
+    "selected": "selezionati",
+    "yourBlend": "Il tuo mix di viaggio:",
+    "influence": "{percent}% di influenza",
+    "categories": {
+      "classic": "Stili Classici",
+      "fantasy": "Fantasia e Capriccioso",
+      "unique": "Unico"
+    },
+    "priority": {
+      "primary": "Principale",
+      "secondary": "Secondario",
+      "accent": "Accento"
+    },
+    "types": {
+      "adventure": {
+        "label": "Cercatore di Avventure",
+        "description": "Attività all'aperto, sentieri escursionistici ed esperienze adrenaliniche",
+        "details": {
+          "0": "Escursionismo e trekking",
+          "1": "Sport acquatici",
+          "2": "Arrampicata"
+        }
+      },
+      "cultural": {
+        "label": "Esploratore Culturale",
+        "description": "Musei, siti del patrimonio, tradizioni locali e meraviglie storiche",
+        "details": {
+          "0": "Musei e gallerie",
+          "1": "Siti del patrimonio",
+          "2": "Tradizioni locali"
+        }
+      },
+      "foodie": {
+        "label": "Viaggio Gastronomico",
+        "description": "Mercati del cibo, corsi di cucina, cucina locale e alta gastronomia",
+        "details": {
+          "0": "Mercati del cibo",
+          "1": "Corsi di cucina",
+          "2": "Ristoranti locali"
+        }
+      },
+      "wellness": {
+        "label": "Fuga di Benessere",
+        "description": "Ritiri spa, yoga, meditazione e santuari di pace",
+        "details": {
+          "0": "Trattamenti spa",
+          "1": "Ritiri yoga",
+          "2": "Passeggiate nella natura"
+        }
+      },
+      "romantic": {
+        "label": "Fuga Romantica",
+        "description": "Esperienze intime, viste al tramonto e attività di coppia",
+        "details": {
+          "0": "Punti panoramici al tramonto",
+          "1": "Cene intime",
+          "2": "Viste panoramiche"
+        }
+      },
+      "urban": {
+        "label": "Scoperta Urbana",
+        "description": "Vita cittadina, vita notturna, architettura moderna e luoghi di tendenza",
+        "details": {
+          "0": "Vita notturna",
+          "1": "Architettura",
+          "2": "Caffè trendy"
+        }
+      },
+      "nature": {
+        "label": "Immersione nella Natura",
+        "description": "Fauna selvatica, parchi nazionali, natura selvaggia ed ecoturismo",
+        "details": {
+          "0": "Parchi nazionali",
+          "1": "Osservazione della fauna",
+          "2": "Eco-lodge"
+        }
+      },
+      "offbeat": {
+        "label": "Fuori dai Sentieri Battuti",
+        "description": "Gemme nascoste, segreti locali ed esperienze non turistiche",
+        "details": {
+          "0": "Luoghi segreti",
+          "1": "Ritrovi locali",
+          "2": "Scoperte uniche"
+        }
+      },
+      "wonderland": {
+        "label": "Avventura nel Paese delle Meraviglie",
+        "description": "Luoghi bizzarri, stravaganti e surreali come usciti da un sogno",
+        "details": {
+          "0": "Location surreali",
+          "1": "Musei bizzarri",
+          "2": "Caffè stravaganti"
+        }
+      },
+      "movieMagic": {
+        "label": "Magia del Cinema",
+        "description": "Location cinematografiche, esperienze filmiche e scenari famosi",
+        "details": {
+          "0": "Location di film",
+          "1": "Tour degli studi",
+          "2": "Scene iconiche"
+        }
+      },
+      "fairytale": {
+        "label": "Fuga da Fiaba",
+        "description": "Castelli, foreste incantate e villaggi da libro di fiabe",
+        "details": {
+          "0": "Castelli e palazzi",
+          "1": "Villaggi incantevoli",
+          "2": "Foreste incantate"
+        }
+      },
+      "retro": {
+        "label": "Viaggio nel Tempo Retrò",
+        "description": "Caffè vintage, quartieri storici ed esperienze nostalgiche",
+        "details": {
+          "0": "Negozi vintage",
+          "1": "Tavole calde retrò",
+          "2": "Strade storiche"
+        }
+      }
+    }
+  },
+  "daySlider": {
+    "all": "Tutti",
+    "day": "Giorno {number}"
+  },
+  "generation": {
+    "phases": {
+      "research": "Ricerca in corso",
+      "researchDesc": "Scoprendo il meglio di",
+      "planning": "Pianificazione attività",
+      "planningDesc": "Selezionando esperienze per",
+      "optimizing": "Ottimizzazione programma",
+      "optimizingDesc": "Creando il flusso perfetto per",
+      "enriching": "Aggiunta dettagli",
+      "enrichingDesc": "Arricchendo con informazioni locali per",
+      "finalizing": "Finalizzazione",
+      "finalizingDesc": "Ultimi ritocchi per"
+    },
+    "elapsed": "{seconds}s trascorsi",
+    "estimatedTime": "Di solito ci vogliono 20-40 secondi per un itinerario personalizzato",
+    "funFacts": {
+      "analyzing": "L'IA sta analizzando migliaia di recensioni e valutazioni",
+      "hiddenGems": "Trovando gemme nascoste amate dai locali",
+      "optimizingRoutes": "Ottimizzando i percorsi per farti risparmiare tempo",
+      "checkingHours": "Verificando orari di apertura e disponibilità stagionale",
+      "balancing": "Bilanciando attività con tempo di riposo",
+      "matching": "Abbinando esperienze al tuo stile di viaggio"
+    }
+  },
+  "addActivity": {
+    "title": "Aggiungi Attività",
+    "addCustom": "Aggiungi Attività Personalizzata",
+    "selectCategory": "Seleziona una categoria",
+    "whatActivity": "Quale attività vuoi aggiungere?",
+    "activityPlaceholder": "Es: Visitare il mercato locale...",
+    "estimatedDuration": "Durata stimata",
+    "adding": "Aggiunta...",
+    "add": "Aggiungi Attività",
+    "error": "Errore nell'aggiunta dell'attività. Riprova.",
+    "categories": {
+      "restaurant": "Ristorante",
+      "cafe": "Caffè",
+      "attraction": "Attrazione",
+      "museum": "Museo",
+      "park": "Parco",
+      "shopping": "Shopping",
+      "entertainment": "Intrattenimento",
+      "other": "Altro"
+    },
+    "durations": {
+      "30min": "30 min",
+      "1hr": "1 ora",
+      "1.5hr": "1.5 ore",
+      "2hr": "2 ore",
+      "3hr": "3 ore",
+      "halfDay": "Mezza giornata"
+    }
+  },
+  "regenerate": {
+    "generating": "Generazione...",
+    "regenerate": "Rigenera",
+    "tryDifferent": "Prova Versione Diversa",
+    "samePreferences": "Stesse preferenze, nuove idee"
+  },
+  "startOver": {
+    "title": "Ricominciare?",
+    "warning": "Questo cancellerà il tuo viaggio attuale e ricomincerà da zero. Le tue preferenze verranno salvate.",
+    "tip": "Suggerimento: Puoi sempre tornare a questo viaggio dalla cronologia dei viaggi.",
+    "cancel": "Mantieni Viaggio Attuale",
+    "confirm": "Ricomincia"
+  },
+  "stagedLoading": {
+    "stages": {
+      "understanding": "Comprensione della richiesta",
+      "finding": "Ricerca attività",
+      "creating": "Creazione alternative",
+      "updating": "Aggiornamento del viaggio"
+    }
+  },
+  "shareButton": {
+    "share": "Condividi",
+    "shared": "Condiviso"
+  },
+  "proposals": {
+    "votesNeeded": "{count, plural, =1 {1 voto necessario} other {# voti necessari}}",
+    "status": {
+      "pending": "Proposto",
+      "voting": "In votazione",
+      "approved": "Approvato",
+      "rejected": "Rifiutato",
+      "withdrawn": "Ritirato",
+      "expired": "Scaduto",
+      "trendingYes": "Tendenza Sì",
+      "needsDecision": "Richiede Decisione",
+      "invalid": "NON VALIDO"
+    },
+    "badges": {
+      "proposed": "PROPOSTO",
+      "voting": "VOTAZIONE",
+      "approved": "APPROVATO",
+      "rejected": "RIFIUTATO",
+      "needsDecision": "RICHIEDE DECISIONE",
+      "replacement": "Sostituzione"
+    },
+    "time": {
+      "expiringSoon": "Scade presto",
+      "hoursLeft": "{hours}h rimanenti",
+      "daysLeft": "{days}g rimanenti"
+    },
+    "voting": {
+      "voted": "votato",
+      "votedCount": "{count}/{total} hanno votato",
+      "tapToVote": "Tocca per votare",
+      "changeVote": "Cambia voto →",
+      "yourVote": "Tu: {vote}",
+      "activeProposals": "{count} Proposta Attiva - Vota Ora!",
+      "activeProposalsPlural": "{count} Proposte Attive - Vota Ora!",
+      "tapProposalToVote": "Tocca una proposta per votare",
+      "pendingVote": "{count} voto in sospeso",
+      "pendingVotes": "{count} voti in sospeso"
+    },
+    "tooltips": {
+      "loveIt": "Lo adoro!",
+      "openToIt": "Aperto a questo",
+      "concerns": "Preoccupazioni",
+      "skipThis": "Salta questo"
+    },
+    "actions": {
+      "withdrawProposal": "Ritira proposta",
+      "approve": "Approva",
+      "reject": "Rifiuta",
+      "proposeActivity": "Proponi un'attività"
+    },
+    "labels": {
+      "proposedBy": "Proposto da {name}",
+      "by": "da {name}",
+      "unknown": "Sconosciuto",
+      "day": "Giorno {number}",
+      "description": "Descrizione",
+      "votes": "Voti",
+      "minutes": "{count} min",
+      "duration": "{minutes} min"
+    },
+    "owner": {
+      "needsDecision": "Questa proposta richiede la tua decisione come proprietario del viaggio."
+    },
+    "expand": {
+      "showMore": "Mostra di più",
+      "showLess": "Mostra meno"
+    },
+    "errors": {
+      "dataUnavailable": "Dati proposta non disponibili"
+    },
+    "emptySlot": {
+      "morning": "Mattina",
+      "afternoon": "Pomeriggio",
+      "evening": "Sera",
+      "addActivity": "Aggiungi attività",
+      "proposalsHere": "{count} proposta qui",
+      "proposalsHerePlural": "{count} proposte qui",
+      "emptySlot": "Spazio vuoto",
+      "tapToVote": "Tocca per vedere e votare",
+      "tapToPropose": "Tocca per proporre un'attività",
+      "proposeActivity": "Proponi attività"
+    }
+  },
+  "collaborators": {
+    "you": "tu",
+    "owner": "Proprietario",
+    "editor": "Editore",
+    "viewer": "Osservatore",
+    "pending": "In sospeso",
+    "remove": "Rimuovi",
+    "inviteSent": "Invito inviato",
+    "joined": "Iscritto {date}",
+    "confirmLeave": "Sei sicuro di voler abbandonare questo viaggio?",
+    "confirmRemove": "Rimuovere {name} da questo viaggio?",
+    "changeRole": "Cambia",
+    "leaveTrip": "Abbandona viaggio",
+    "removeFromTrip": "Rimuovi dal viaggio",
+    "avatarsAriaLabel": "{count, plural, =0 {Nessun collaboratore} =1 {1 collaboratore} other {# collaboratori}}",
+    "invite": "Invita",
+    "peopleCount": "{count, plural, =1 {1 persona} other {# persone}}"
+  },
+  "roles": {
+    "selectRole": "Seleziona il ruolo dell'invitato",
+    "recommended": "Consigliato",
+    "editor": {
+      "label": "Editore",
+      "description": "Può modificare e invitare altri",
+      "permissions": ["Modificare attività", "Votare modifiche", "Invitare altri"],
+      "restrictions": ["Non può eliminare il viaggio", "Non può rimuovere il proprietario"]
+    },
+    "voter": {
+      "label": "Votante",
+      "description": "Può votare e suggerire attività",
+      "permissions": ["Votare attività", "Suggerire nuovi posti", "Vedere l'itinerario"],
+      "restrictions": ["Non può modificare direttamente", "Non può invitare altri"]
+    },
+    "viewer": {
+      "label": "Osservatore",
+      "description": "Può solo visualizzare il viaggio",
+      "permissions": ["Vedere l'itinerario", "Vedere i dettagli delle attività"],
+      "restrictions": ["Non può modificare", "Non può votare", "Non può invitare"]
+    }
+  },
+  "activityStatus": {
+    "proposed": "Proposta",
+    "voting": "In votazione",
+    "confirmed": "Confermata",
+    "rejected": "Non inclusa",
+    "deadlock": "Richiede decisione",
+    "completed": "Completata",
+    "skipped": "Saltata",
+    "waiting": "In attesa di voti",
+    "likelyApproved": "Probabilmente approvata",
+    "waitingDesc": "{percent}% ha votato",
+    "votingConcerns": "Ci sono dubbi da risolvere",
+    "votingInProgress": "Votazione in corso",
+    "likelyApprovedDesc": "Tendenza positiva",
+    "confirmedDesc": "Gruppo ha approvato",
+    "rejectedDesc": "Gruppo ha rifiutato",
+    "deadlockDesc": "Il proprietario deve decidere"
+  },
+  "votingSection": {
+    "votedCount": "{voted}/{total} hanno votato",
+    "showVotes": "Mostra voti",
+    "hideVotes": "Nascondi voti",
+    "unknown": "Sconosciuto",
+    "waitingForVotes": "{count, plural, =1 {In attesa di 1 altro voto} other {In attesa di # altri voti}}",
+    "noConsensus": "Non è stato raggiunto un consenso. Il proprietario del viaggio può prendere la decisione finale.",
+    "noVotesYet": "Nessun voto ancora",
+    "beFirstToVote": "Sii il primo a votare"
+  },
+  "checklist": {
+    "title": "Preparazione del Viaggio",
+    "progress": "{completed} di {total} completati",
+    "emptyState": "Nessun elemento nella lista. Aggiungi il primo!",
+    "addPlaceholder": "Aggiungi un elemento personalizzato...",
+    "add": "Aggiungi",
+    "cancel": "Annulla",
+    "addCustomItem": "Aggiungi elemento personalizzato",
+    "dueSoon": "Scade presto",
+    "done": "Fatto",
+    "categories": {
+      "bookings": "Prenotazioni",
+      "packing": "Bagaglio",
+      "documents": "Documenti",
+      "other": "Altro"
+    }
+  },
+  "proposeActivity": {
+    "title": "Proponi Attività",
+    "titleReplacement": "Proponi Sostituzione",
+    "day": "Giorno {day}",
+    "replacing": "Sostituendo",
+    "searchPlaceholder": "Cerca attività a {destination}...",
+    "searchHint": "Cerca attività o seleziona una categoria",
+    "noResults": "Nessuna attività trovata per \"{query}\"",
+    "createCustom": "Crea attività personalizzata",
+    "continue": "Continua",
+    "submitting": "Invio in corso...",
+    "submitProposal": "Invia Proposta",
+    "voteNotice": "Altri viaggiatori voteranno sulla tua proposta",
+    "categories": {
+      "restaurant": "Ristorante",
+      "attraction": "Attrazione",
+      "activity": "Attività",
+      "nature": "Natura",
+      "shopping": "Shopping",
+      "entertainment": "Intrattenimento"
+    },
+    "timeSlots": {
+      "morning": "Mattina",
+      "afternoon": "Pomeriggio",
+      "evening": "Sera"
+    },
+    "durations": {
+      "30min": "30 min",
+      "1hour": "1 ora",
+      "1_5hours": "1.5 ore",
+      "2hours": "2 ore",
+      "3hours": "3 ore"
+    },
+    "form": {
+      "nameLabel": "Nome Attività",
+      "namePlaceholder": "es., Visitare il mercato locale",
+      "typeLabel": "Tipo",
+      "durationLabel": "Durata",
+      "descriptionLabel": "Descrizione (opzionale)",
+      "descriptionPlaceholder": "Aggiungi dettagli su questa attività..."
+    },
+    "preview": {
+      "noteLabel": "Perché dovremmo aggiungerla? (opzionale)",
+      "notePlaceholder": "Spiega perché pensi che sarebbe fantastica per il viaggio...",
+      "noteHint": "Questo aiuta gli altri a capire il tuo ragionamento quando votano"
+    }
+  },
+  "routeOptimization": {
+    "title": "Ottimizza Percorso",
+    "subtitle": "Giorno {day} • {count} attività",
+    "notEnoughData": "Attività Insufficienti",
+    "notEnoughDataDesc": "Servono almeno 3 attività con dati di posizione per ottimizzare il percorso. Attualmente {current} hanno coordinate.",
+    "calculating": "Cerco il percorso migliore...",
+    "potentialSavings": "Risparmio potenziale",
+    "lessTravel": "{distance} in meno di viaggio",
+    "shorterRoute": "{percent}% più corto",
+    "alreadyOptimal": "Già ottimizzato!",
+    "routeEfficient": "Il tuo percorso è già efficiente",
+    "currentDistance": "Distanza Attuale",
+    "optimizedDistance": "Distanza Ottimizzata",
+    "suggestedOrder": "Ordine Suggerito",
+    "wasPosition": "(era #{position})",
+    "constraints": "Vincoli",
+    "keepFirst": "Mantieni la prima attività al suo posto",
+    "keepLast": "Mantieni l'ultima attività al suo posto",
+    "mealTimesNote": "Gli orari dei pasti vengono preservati automaticamente in finestre ragionevoli.",
+    "cancel": "Annulla",
+    "applyOptimization": "Applica Ottimizzazione"
+  },
+  "ai": {
+    "assistant": {
+      "placeholder": "Sostituisci il Colosseo con qualcosa di più tranquillo...",
+      "send": "Invia",
+      "thinking": "Sto pensando...",
+      "error": "Qualcosa è andato storto. Per favore riprova.",
+      "retry": "Riprova",
+      "suggestions": "Suggerimenti",
+      "clearChat": "Cancella chat",
+      "title": "Assistente di Viaggio",
+      "requestsLeft": "{count} rimanenti",
+      "clearConversation": "Cancella conversazione",
+      "welcomeTitle": "Come posso aiutarti?",
+      "welcomeSubtitle": "Chiedimi di aggiungere attività, cambiare luoghi o ottenere consigli locali",
+      "changeApplied": "Modifica applicata",
+      "hint": "Prova: \"Sostituisci X con Y\" o \"Aggiungi un caffè vicino al museo\"",
+      "cancelledMessage": "Nessun problema! Fammi sapere se vuoi provare qualcos'altro.",
+      "undoSuccess": "Modifica annullata con successo!",
+      "undoTitle": "Modifica Annullata",
+      "undoDescription": "Ripristinato: {action}",
+      "quickActions": {
+        "optimizeBudget": {
+          "label": "Ottimizza budget",
+          "prompt": "Suggerisci modi per ottimizzare il mio budget"
+        },
+        "addRestaurant": {
+          "label": "Aggiungi ristorante",
+          "prompt": "Suggerisci un ottimo ristorante locale da aggiungere"
+        },
+        "localTips": {
+          "label": "Consigli locali",
+          "prompt": "Quali sono i segreti di questa destinazione?"
+        },
+        "alternatives": {
+          "label": "Alternative",
+          "prompt": "Suggerisci attività alternative che potrei fare"
+        }
+      }
+    },
+    "cards": {
+      "addToTrip": "Aggiungi al viaggio",
+      "viewDetails": "Vedi dettagli",
+      "suggested": "Suggerito dall'IA",
+      "new": "NUOVO",
+      "day": "Giorno {number}",
+      "activityTypes": {
+        "attraction": "Attrazione",
+        "restaurant": "Ristorante",
+        "activity": "Attività",
+        "transport": "Trasporto"
+      },
+      "activityReplaced": "Attività Sostituita",
+      "autoApplied": "Applicato automaticamente",
+      "undoChange": "Annulla modifica",
+      "recommended": "Consigliato",
+      "pros": "Pro:",
+      "cons": "Contro:"
+    },
+    "match": {
+      "title": "Corrispondenza trovata!",
+      "description": "Abbiamo trovato un'attività corrispondente",
+      "confirm": "Aggiungi questo",
+      "skip": "Salta",
+      "searching": "Ricerca...",
+      "whichOne": "A quale ti riferisci?",
+      "youMentioned": "Hai menzionato:",
+      "bestMatch": "Migliore corrispondenza",
+      "day": "Giorno {number}",
+      "typeMore": "Oppure scrivi più dettagli per aiutarmi a trovarlo...",
+      "cancel": "Annulla"
+    },
+    "preview": {
+      "change": "Modifica",
+      "adding": "Aggiunta",
+      "removing": "Rimozione",
+      "modifying": "Modifica",
+      "suggestedChange": "Modifica Suggerita",
+      "day": "Giorno {number}",
+      "previewBadge": "Anteprima",
+      "before": "PRIMA",
+      "after": "DOPO",
+      "whyThisChange": "Perché questa modifica:",
+      "applying": "Applicando...",
+      "applyChange": "Applica Modifica",
+      "helperText": "Clicca \"Applica\" per confermare questa modifica al tuo viaggio"
+    },
+    "undo": {
+      "message": "Modifica applicata",
+      "undo": "Annulla",
+      "activityReplaced": "Attività sostituita",
+      "activityAdded": "Attività aggiunta",
+      "activityRemoved": "Attività rimossa",
+      "changeApplied": "Modifica applicata",
+      "day": "Giorno {number}",
+      "undoButton": "Annulla",
+      "helperText": "Annulla disponibile fino alla prossima modifica"
+    }
+  },
+  "beta": {
+    "codeInput": {
+      "title": "Hai un Codice Beta Tester?",
+      "subtitle": "Inserisci il tuo codice per sbloccare funzionalità IA illimitate",
+      "placeholder": "Inserisci il tuo codice",
+      "placeholderCompact": "Codice beta",
+      "placeholderInline": "BETA-XXXX",
+      "submit": "Invia",
+      "invalid": "Codice non valido. Per favore riprova.",
+      "checking": "Verificando...",
+      "unlock": "Sblocca",
+      "unlocking": "Sbloccando...",
+      "unlockAccess": "Sblocca Accesso",
+      "enterCodeError": "Per favore inserisci un codice",
+      "redeemFailed": "Impossibile riscattare il codice",
+      "genericError": "Qualcosa è andato storto. Per favore riprova.",
+      "successTitle": "Benvenuto nella beta!",
+      "successDescription": "Ora hai accesso illimitato a tutte le funzionalità IA.",
+      "benefitsTitle": "I beta tester ottengono:",
+      "benefits": {
+        "unlimitedGenerations": "Generazioni di viaggi con IA illimitate",
+        "unlimitedAssistant": "Rigenerazioni e assistente IA illimitati",
+        "prioritySupport": "Supporto prioritario",
+        "earlyAccess": "Accesso anticipato alle nuove funzionalità"
+      }
+    },
+    "waitlist": {
+      "title": "Non hai un codice?",
+      "subtitle": "Unisciti alla nostra lista d'attesa beta e ti avviseremo quando ci saranno più posti",
+      "emailPlaceholder": "tua@email.com",
+      "submit": "Unisciti alla Lista",
+      "success": "Sei nella lista!",
+      "error": "Qualcosa è andato storto. Per favore riprova.",
+      "successTitle": "Sei nella lista!",
+      "successDescription": "Ti avviseremo quando ci saranno più posti beta disponibili.",
+      "joining": "Iscrizione...",
+      "joiningWaitlist": "Iscrizione alla lista...",
+      "joinBetaWaitlist": "Unisciti alla Lista Beta",
+      "join": "Unisciti",
+      "usingEmail": "Useremo la tua email dell'account: {email}",
+      "priorityAccess": "I primi iscritti hanno accesso prioritario. Inviamo codici regolarmente!",
+      "enterEmailError": "Per favore inserisci la tua email",
+      "joinFailed": "Impossibile unirsi alla lista",
+      "genericError": "Qualcosa è andato storto. Per favore riprova."
+    }
+  },
+  "countdown": {
+    "startsToday": "Il tuo viaggio inizia oggi!",
+    "almostTime": "Ci siamo quasi!",
+    "awaits": "La tua avventura ti aspetta",
+    "days": "Giorni",
+    "hours": "Ore",
+    "mins": "Min",
+    "secs": "Sec",
+    "tripDays": "{count, plural, =1 {1 giorno} other {# giorni}}",
+    "activities": "{count, plural, =1 {1 attività} other {# attività}}"
+  },
+  "onboarding": {
+    "accessibility": {
+      "title": "Hai bisogno di accessibilità?",
+      "subtitle": "Daremo priorità alle opzioni accessibili",
+      "options": {
+        "none": {
+          "label": "Nessuna esigenza speciale",
+          "description": "L'accessibilità standard va bene per me"
+        },
+        "wheelchair": {
+          "label": "Sedia a rotelle",
+          "description": "Rampe, ascensori, percorsi ampi"
+        },
+        "limitedMobility": {
+          "label": "Mobilità ridotta",
+          "description": "Camminare poco, soste frequenti"
+        },
+        "visual": {
+          "label": "Assistenza visiva",
+          "description": "Audioguide, esperienze tattili"
+        },
+        "hearing": {
+          "label": "Assistenza uditiva",
+          "description": "Avvisi visivi, lingua dei segni"
+        },
+        "restStops": {
+          "label": "Soste di riposo",
+          "description": "Pause regolari e aree di seduta"
+        }
+      }
+    },
+    "activeHours": {
+      "title": "Quando sei più attivo?",
+      "subtitle": "Pianificheremo attività nelle tue ore migliori",
+      "presets": {
+        "earlyBird": {
+          "label": "Mattiniero",
+          "description": "6:00 – 20:00"
+        },
+        "standard": {
+          "label": "Standard",
+          "description": "8:00 – 22:00"
+        },
+        "nightOwl": {
+          "label": "Nottambulo",
+          "description": "10:00 – 24:00"
+        }
+      },
+      "customizeHours": "Oppure personalizza gli orari",
+      "startFrom": "Inizia da",
+      "windDownBy": "Termina entro",
+      "activeHoursCount": "{count} ore attive",
+      "timeRange": "{start} a {end}"
+    },
+    "dietary": {
+      "title": "Preferenze alimentari?",
+      "subtitle": "Suggeriremo ristoranti adatti a te",
+      "options": {
+        "none": {
+          "label": "Nessuna restrizione",
+          "description": "Mangio di tutto"
+        },
+        "vegetarian": {
+          "label": "Vegetariano",
+          "description": "Senza carne né pesce"
+        },
+        "vegan": {
+          "label": "Vegano",
+          "description": "Senza prodotti animali"
+        },
+        "halal": {
+          "label": "Halal",
+          "description": "Solo certificato halal"
+        },
+        "kosher": {
+          "label": "Kosher",
+          "description": "Solo certificato kosher"
+        },
+        "glutenFree": {
+          "label": "Senza glutine",
+          "description": "Senza grano, orzo o segale"
+        }
+      }
+    },
+    "travelStyle": {
+      "title": "Qual è il tuo stile di viaggio?",
+      "subtitle": "Seleziona tutti quelli che si applicano - personalizzeremo i tuoi viaggi",
+      "selected": "{count, plural, =0 {Nessuno stile selezionato} =1 {1 stile selezionato} other {# stili selezionati}}",
+      "styles": {
+        "adventure": {
+          "label": "Cercatore di Avventure",
+          "description": "Escursioni, sport acquatici, attività all'aperto"
+        },
+        "cultural": {
+          "label": "Esploratore Culturale",
+          "description": "Musei, siti storici, tradizioni locali"
+        },
+        "foodie": {
+          "label": "Appassionato di Cucina",
+          "description": "Cucina locale, corsi di cucina, tour gastronomici"
+        },
+        "relaxation": {
+          "label": "Relax e Benessere",
+          "description": "Spa, spiagge, ritiri tranquilli"
+        },
+        "nightlife": {
+          "label": "Vita Notturna",
+          "description": "Bar, club, intrattenimento dal vivo"
+        },
+        "photography": {
+          "label": "Amante della Fotografia",
+          "description": "Luoghi panoramici, monumenti iconici, ore dorate"
+        }
+      }
+    }
+  },
+  "tour": {
+    "skip": "Salta",
+    "aiChat": {
+      "header": {
+        "title": "MonkeyTravel IA",
+        "status": "Online • Pronto a pianificare"
+      },
+      "messages": {
+        "greeting": "Ciao! 👋 Sono il tuo assistente di viaggio IA. Dove vorresti andare?",
+        "userRequest": "Voglio visitare Barcellona per 5 giorni!",
+        "aiResponse": "Ottima scelta! 🇪🇸 Barcellona è fantastica. Lasciami farti alcune domande per personalizzare il tuo viaggio...",
+        "userSelection": "Cultura e Storia per favore!"
+      },
+      "tags": {
+        "culture": "Cultura e Storia",
+        "food": "Cibo e Vino",
+        "beach": "Spiaggia e Relax"
+      },
+      "actions": {
+        "creating": "Creando il tuo itinerario personalizzato..."
+      },
+      "inputPlaceholder": "Chiedimi qualsiasi cosa..."
+    },
+    "aiModify": {
+      "header": {
+        "dayTitle": "Giorno 1 • Barcellona",
+        "activitiesCount": "4 attività pianificate",
+        "aiAssistant": "✨ Assistente IA"
+      },
+      "messages": {
+        "userRequest": "Puoi aggiungere un tour gastronomico dopo il Park Güell?",
+        "aiResponse": "Certamente! 🍴 Aggiungerò il \"Tour Gastronomico di Barcellona\" alle 12:30, subito dopo il Park Güell...",
+        "success": "Fatto! Ho regolato gli orari per te."
+      },
+      "inputPlaceholder": "Chiedi all'IA di modificare il tuo piano..."
+    }
+  },
+  "referral": {
+    "title": "Invita Amici, Ottieni Viaggi Gratis",
+    "subtitle": "Dai 1 viaggio, ricevi 1 viaggio per ogni amico",
+    "tryAgain": "Riprova",
+    "howItWorks": "Come funziona",
+    "steps": {
+      "step1": "Condividi il tuo link unico con gli amici",
+      "step2": "Si registrano e creano il loro primo viaggio",
+      "step3": "Entrambi ricevete 1 viaggio IA gratis!"
+    },
+    "yourReferralLink": "Il tuo link di referral",
+    "copy": "Copia",
+    "copied": "Copiato!",
+    "shareVia": "Condividi tramite",
+    "stats": {
+      "friendsJoined": "Amici iscritti",
+      "tripsEarned": "Viaggi guadagnati"
+    },
+    "share": {
+      "twitterText": "Sto usando MonkeyTravel per pianificare viaggi incredibili con l'IA! Unisciti e ottieni un viaggio GRATIS quando ti iscrivi:",
+      "whatsappText": "Ciao! Sto usando MonkeyTravel per pianificare viaggi fantastici con l'IA. Unisciti e entrambi otteniamo un viaggio GRATIS!",
+      "emailSubject": "Sei invitato a MonkeyTravel - Ottieni un viaggio IA GRATIS!",
+      "emailBody": "Ciao!\n\nSto usando MonkeyTravel per pianificare viaggi incredibili con l'IA, e ho pensato che ti piacerebbe anche.\n\nUnisciti usando il mio link e entrambi otteniamo un viaggio generato dall'IA GRATIS!\n\nBuon viaggio!"
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type {
   ProposalWithVotes,
   ProposalVoteType,
@@ -68,6 +69,7 @@ export function ProposalSection({
   isEditMode = false,
   votingEnabled = true,
 }: ProposalSectionProps) {
+  const t = useTranslations("common.proposals");
   // Reserved for future expansion feature
   // const [expandedTimeSlot, setExpandedTimeSlot] = useState<TimeSlot | null>(null);
 
@@ -153,7 +155,9 @@ export function ProposalSection({
           >
             <span className="text-base">🗳️</span>
             <span className="text-sm font-semibold text-white">
-              {activeProposals.length} Active Proposal{activeProposals.length !== 1 ? 's' : ''} - Vote Now!
+              {activeProposals.length !== 1
+                ? t("voting.activeProposalsPlural", { count: activeProposals.length })
+                : t("voting.activeProposals", { count: activeProposals.length })}
             </span>
           </motion.div>
           <div className="flex-1 h-px bg-blue-200" />
@@ -187,7 +191,7 @@ export function ProposalSection({
             ))}
           </AnimatePresence>
           <p className="text-xs text-center text-blue-600 font-medium pt-1">
-            👆 Tap a proposal to vote
+            👆 {t("voting.tapProposalToVote")}
           </p>
         </div>
       )}
@@ -225,7 +229,7 @@ export function ProposalSection({
                      transition-colors"
         >
           <span className="text-lg">➕</span>
-          <span>Propose an activity</span>
+          <span>{t("actions.proposeActivity")}</span>
         </motion.button>
       )}
     </motion.div>
@@ -243,6 +247,7 @@ export function ProposalIndicator({
   count: number;
   onClick?: () => void;
 }) {
+  const t = useTranslations("common.proposals");
   if (count === 0) return null;
 
   return (
@@ -264,7 +269,7 @@ export function ProposalIndicator({
       transition={{ duration: 2, repeat: Infinity }}
     >
       <span>🗳️</span>
-      <span>{count} pending vote{count !== 1 ? 's' : ''}</span>
+      <span>{count !== 1 ? t("voting.pendingVotes", { count }) : t("voting.pendingVote", { count })}</span>
     </motion.button>
   );
 }

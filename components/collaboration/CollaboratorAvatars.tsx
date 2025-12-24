@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { TripCollaborator } from "@/types";
 
@@ -32,6 +33,7 @@ export function CollaboratorAvatars({
   showAddButton = true,
   className,
 }: CollaboratorAvatarsProps) {
+  const t = useTranslations("common.collaborators");
   const visibleCollaborators = collaborators.slice(0, maxVisible);
   const hiddenCount = Math.max(0, collaborators.length - maxVisible);
   const sizeClass = sizeClasses[size];
@@ -49,7 +51,7 @@ export function CollaboratorAvatars({
         onClick && "cursor-pointer",
         className
       )}
-      aria-label={`${collaborators.length} collaborators. Click to manage team.`}
+      aria-label={t("avatarsAriaLabel", { count: collaborators.length })}
     >
       {/* Avatar stack */}
       <div className="flex items-center">
@@ -122,6 +124,8 @@ export function CollaboratorAvatarsInline({
   onClick?: () => void;
   className?: string;
 }) {
+  const t = useTranslations("common.collaborators");
+
   if (collaborators.length === 0) {
     return (
       <button
@@ -134,7 +138,7 @@ export function CollaboratorAvatarsInline({
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
         </svg>
-        <span>Invite</span>
+        <span>{t("invite")}</span>
       </button>
     );
   }
@@ -155,7 +159,7 @@ export function CollaboratorAvatarsInline({
         onClick={undefined} // Parent button handles click
       />
       <span className="text-sm font-medium text-gray-700 pr-1">
-        {collaborators.length} {collaborators.length === 1 ? "person" : "people"}
+        {t("peopleCount", { count: collaborators.length })}
       </span>
     </button>
   );

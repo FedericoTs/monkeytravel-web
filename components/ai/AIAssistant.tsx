@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import { trackAIAssistantMessage } from "@/lib/analytics";
@@ -29,14 +30,6 @@ interface AIAssistantProps {
   onRefetchTrip?: () => Promise<void>; // Refetch trip data after AI modifications
 }
 
-// Quick action suggestions - more concise
-const QUICK_ACTIONS = [
-  { label: "Optimize budget", prompt: "Suggest ways to optimize my budget", icon: "💰" },
-  { label: "Add restaurant", prompt: "Suggest a great local restaurant to add", icon: "🍽️" },
-  { label: "Local tips", prompt: "What are insider tips for this destination?", icon: "💡" },
-  { label: "Alternatives", prompt: "Suggest alternative activities I could do", icon: "🔄" },
-];
-
 export default function AIAssistant({
   tripId,
   tripTitle,
@@ -47,6 +40,7 @@ export default function AIAssistant({
   onItineraryUpdate,
   onRefetchTrip,
 }: AIAssistantProps) {
+  const t = useTranslations('common.aiAssistant');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +53,14 @@ export default function AIAssistant({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Quick action suggestions - localized
+  const QUICK_ACTIONS = [
+    { label: t('quickActions.optimizeBudget'), prompt: t('quickPrompts.optimizeBudget'), icon: "💰" },
+    { label: t('quickActions.addRestaurant'), prompt: t('quickPrompts.addRestaurant'), icon: "🍽️" },
+    { label: t('quickActions.localTips'), prompt: t('quickPrompts.localTips'), icon: "💡" },
+    { label: t('quickActions.alternatives'), prompt: t('quickPrompts.alternatives'), icon: "🔄" },
+  ];
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -248,7 +250,7 @@ export default function AIAssistant({
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-white text-lg">Trip Assistant</h3>
+                <h3 className="font-semibold text-white text-lg">{t('title')}</h3>
                 <p className="text-xs text-white/70 truncate max-w-[200px]">
                   {tripTitle}
                 </p>
@@ -257,13 +259,13 @@ export default function AIAssistant({
             <div className="flex items-center gap-1">
               {usageInfo && (
                 <span className="text-[11px] text-white/60 px-2 py-1 rounded-full bg-white/10 hidden sm:inline">
-                  {usageInfo.remainingRequests} requests left
+                  {usageInfo.remainingRequests} {t('requestsLeft')}
                 </span>
               )}
               <button
                 onClick={clearConversation}
                 className="p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-                title="Clear conversation"
+                title={t('clearConversation')}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -301,10 +303,10 @@ export default function AIAssistant({
                 </svg>
               </div>
               <h4 className="font-semibold text-slate-900 mb-1">
-                How can I help?
+                {t('howCanIHelp')}
               </h4>
               <p className="text-sm text-slate-500 mb-6 max-w-[280px] mx-auto">
-                Ask me to add activities, replace places, or get local tips
+                {t('emptyStateHint')}
               </p>
 
               {/* Quick Actions Grid */}
@@ -361,7 +363,7 @@ export default function AIAssistant({
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        Change applied
+                        {t('changeApplied')}
                       </div>
                     )}
                   </div>
@@ -384,7 +386,7 @@ export default function AIAssistant({
                           style={{ animationDelay: "0.2s" }}
                         />
                       </div>
-                      <span className="text-xs text-slate-400">Thinking...</span>
+                      <span className="text-xs text-slate-400">{t('thinking')}</span>
                     </div>
                   </div>
                 </div>
@@ -437,7 +439,7 @@ export default function AIAssistant({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Replace the Colosseum with something quieter..."
+                placeholder={t('placeholder')}
                 rows={1}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none text-sm bg-slate-50 focus:bg-white transition-colors"
                 style={{ maxHeight: "100px" }}
@@ -466,7 +468,7 @@ export default function AIAssistant({
 
           {/* Hint text */}
           <p className="text-[10px] text-slate-400 mt-2 text-center">
-            Try: "Replace X with Y" or "Add a cafe near the museum"
+            {t('hintText')}
           </p>
         </form>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface TripPackingListProps {
   items: string[];
@@ -110,9 +111,9 @@ function categorizeItem(item: string): string {
 }
 
 // Category icons and colors
-const categoryConfig: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
+const categoryConfig: Record<string, { icon: React.ReactNode; color: string; key: string }> = {
   clothing: {
-    label: "Clothing",
+    key: "clothing",
     color: "text-rose-500 bg-rose-50 border-rose-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +122,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
     ),
   },
   electronics: {
-    label: "Electronics",
+    key: "electronics",
     color: "text-blue-500 bg-blue-50 border-blue-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +131,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
     ),
   },
   documents: {
-    label: "Documents",
+    key: "documents",
     color: "text-amber-600 bg-amber-50 border-amber-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +140,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
     ),
   },
   health: {
-    label: "Health & Care",
+    key: "health",
     color: "text-emerald-500 bg-emerald-50 border-emerald-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +149,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
     ),
   },
   accessories: {
-    label: "Accessories",
+    key: "accessories",
     color: "text-violet-500 bg-violet-50 border-violet-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +158,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
     ),
   },
   other: {
-    label: "Other",
+    key: "other",
     color: "text-slate-500 bg-slate-50 border-slate-200",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,6 +169,7 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
 };
 
 export default function TripPackingList({ items, className = "" }: TripPackingListProps) {
+  const t = useTranslations("common.packing");
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -210,8 +212,8 @@ export default function TripPackingList({ items, className = "" }: TripPackingLi
             </svg>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Packing List</h2>
-            <p className="text-xs text-slate-500">{checkedItems.size} of {items.length} packed</p>
+            <h2 className="text-lg font-semibold text-slate-900">{t("title")}</h2>
+            <p className="text-xs text-slate-500">{t("packed", { checked: checkedItems.size, total: items.length })}</p>
           </div>
         </div>
 
@@ -258,8 +260,8 @@ export default function TripPackingList({ items, className = "" }: TripPackingLi
               {/* Category Header */}
               <div className={`px-4 py-2.5 ${config.color} flex items-center gap-2 border-b border-slate-100`}>
                 {config.icon}
-                <span className="text-sm font-medium">{config.label}</span>
-                <span className="ml-auto text-xs opacity-60">{categoryItems.length} items</span>
+                <span className="text-sm font-medium">{t(`categories.${config.key}`)}</span>
+                <span className="ml-auto text-xs opacity-60">{t("items", { count: categoryItems.length })}</span>
               </div>
 
               {/* Items */}
@@ -312,14 +314,14 @@ export default function TripPackingList({ items, className = "" }: TripPackingLi
         >
           {isExpanded ? (
             <>
-              Show less
+              {t("showLess")}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
             </>
           ) : (
             <>
-              Show {sortedCategories.length - 3} more categories
+              {t("showMoreCategories", { count: sortedCategories.length - 3 })}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
