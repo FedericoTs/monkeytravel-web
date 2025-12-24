@@ -83,8 +83,8 @@ const sentryConfig = {
   // Auth token for source maps upload (from environment)
   authToken: process.env.SENTRY_AUTH_TOKEN,
 
-  // Only upload source maps in production builds
-  silent: !process.env.CI,
+  // Silence all Sentry build output
+  silent: true,
 
   // Upload source maps for better error stack traces
   widenClientFileUpload: true,
@@ -100,6 +100,11 @@ const sentryConfig = {
 
   // Tunneling (disabled - use default Sentry endpoints)
   tunnelRoute: undefined,
+
+  // Disable source map upload in CI to prevent timeouts
+  sourcemaps: {
+    disable: !!process.env.VERCEL,
+  },
 };
 
 // Create next-intl plugin
