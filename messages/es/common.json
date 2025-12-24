@@ -566,7 +566,7 @@
           "2": "Cafés caprichosos"
         }
       },
-      "movieMagic": {
+      "movie-magic": {
         "label": "Magia del Cine",
         "description": "Locaciones de películas, experiencias cinematográficas y escenarios famosos",
         "details": {
@@ -1245,6 +1245,110 @@
       "whatsappText": "¡Hola! He estado usando MonkeyTravel para planificar viajes increíbles con IA. ¡Únete y ambos obtendremos un viaje GRATIS!",
       "emailSubject": "Estás invitado a MonkeyTravel - ¡Obtén un viaje IA GRATIS!",
       "emailBody": "¡Hola!\n\nHe estado usando MonkeyTravel para planificar viajes increíbles con IA, y pensé que te encantaría también.\n\n¡Únete usando mi enlace y ambos obtendremos un viaje generado por IA GRATIS!\n\n¡Felices viajes!"
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "back": "Volver",
+    "memberSince": "Miembro desde {date}",
+    "stats": {
+      "trips": "Viajes",
+      "upcoming": "Próximos",
+      "places": "Lugares",
+      "days": "Días"
+    },
+    "sections": {
+      "personalInfo": "Información Personal",
+      "travelPreferences": "Preferencias de Viaje",
+      "betaAccess": "Acceso Beta",
+      "account": "Cuenta"
+    },
+    "fields": {
+      "displayName": "Nombre de Usuario",
+      "displayNamePlaceholder": "Tu nombre",
+      "bio": "Biografía",
+      "bioPlaceholder": "Cuéntanos sobre ti y tu estilo de viaje...",
+      "email": "Correo Electrónico",
+      "homeCountry": "País de Origen",
+      "homeCountryPlaceholder": "ej., España",
+      "homeCity": "Ciudad de Origen",
+      "homeCityPlaceholder": "ej., Madrid",
+      "dateOfBirth": "Fecha de Nacimiento",
+      "dateOfBirthPlaceholder": "Selecciona tu cumpleaños",
+      "languagesSpoken": "Idiomas que Hablas",
+      "languagesHint": "Selecciona los idiomas que hablas para mejores recomendaciones"
+    },
+    "travelPrefs": {
+      "description": "Tus preferencias nos ayudan a crear mejores recomendaciones de viaje.",
+      "travelStyle": "Estilo de Viaje",
+      "styles": {
+        "adventure": "Aventura",
+        "relaxation": "Relajación",
+        "cultural": "Cultural",
+        "foodie": "Gastronómico",
+        "romantic": "Romántico",
+        "budget": "Económico",
+        "luxury": "Lujo",
+        "solo": "Solo",
+        "family": "Familia"
+      },
+      "dietary": "Preferencias Dietéticas",
+      "dietaryOptions": {
+        "vegetarian": "Vegetariano",
+        "vegan": "Vegano",
+        "halal": "Halal",
+        "kosher": "Kosher",
+        "glutenFree": "Sin Gluten",
+        "noRestrictions": "Sin Restricciones"
+      },
+      "accessibility": "Necesidades de Accesibilidad",
+      "accessibilityHint": "Ayúdanos a recomendar lugares y actividades accesibles",
+      "accessibilityOptions": {
+        "wheelchair": "Acceso para Silla de Ruedas",
+        "limitedMobility": "Movilidad Reducida",
+        "visual": "Discapacidad Visual",
+        "hearing": "Discapacidad Auditiva",
+        "sensory": "Sensible a Estímulos"
+      },
+      "activitySchedule": "Horario de Actividades",
+      "activityScheduleHint": "Establece tus horas preferidas para actividades diarias - la IA planificará según tu rutina",
+      "wakeUpTime": "Hora de despertar",
+      "windDownTime": "Hora de relajarse",
+      "activityScheduleNote": "La primera actividad comenzará cerca de tu hora de despertar, la última terminará antes de relajarte"
+    },
+    "betaSection": {
+      "active": "Acceso Beta Activo",
+      "code": "Código: {code}",
+      "activated": "Activado {date}",
+      "benefits": {
+        "generations": "Generaciones IA",
+        "regenerations": "Regeneraciones",
+        "assistant": "Asistente IA",
+        "support": "Soporte Prioritario"
+      },
+      "unlimited": "Ilimitado",
+      "activeBadge": "Activo",
+      "enterCodeHint": "Ingresa un código beta para desbloquear funciones IA ilimitadas y soporte prioritario.",
+      "noCodeHint": "¿No tienes código? Únete a nuestra",
+      "waitlist": "lista de espera beta",
+      "toGetAccess": "para obtener acceso prioritario."
+    },
+    "accountSection": {
+      "signOut": "Cerrar Sesión",
+      "dangerZone": "Zona de Peligro",
+      "deleteAccount": "Eliminar Cuenta"
+    },
+    "signOutModal": {
+      "title": "¿Cerrar Sesión?",
+      "message": "¿Estás seguro de que quieres cerrar sesión de tu cuenta?",
+      "cancel": "Cancelar",
+      "confirm": "Cerrar Sesión",
+      "signingOut": "Cerrando sesión..."
+    },
+    "appInfo": {
+      "version": "MonkeyTravel v1.0",
+      "privacyPolicy": "Política de Privacidad",
+      "termsOfService": "Términos de Servicio"
     }
   }
 }

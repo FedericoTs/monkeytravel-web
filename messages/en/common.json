@@ -566,7 +566,7 @@
           "2": "Whimsical cafes"
         }
       },
-      "movieMagic": {
+      "movie-magic": {
         "label": "Movie Magic",
         "description": "Film locations, cinematic experiences, and famous backdrops",
         "details": {
@@ -1245,6 +1245,110 @@
       "whatsappText": "Hey! I've been using MonkeyTravel to plan amazing trips with AI. Join me and we both get a FREE trip!",
       "emailSubject": "You're invited to MonkeyTravel - Get a FREE AI trip!",
       "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan amazing trips with AI, and I thought you'd love it too.\n\nJoin using my link and we'll both get a FREE AI-generated trip!\n\nHappy travels!"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "back": "Back",
+    "memberSince": "Member since {date}",
+    "stats": {
+      "trips": "Trips",
+      "upcoming": "Upcoming",
+      "places": "Places",
+      "days": "Days"
+    },
+    "sections": {
+      "personalInfo": "Personal Info",
+      "travelPreferences": "Travel Preferences",
+      "betaAccess": "Beta Access",
+      "account": "Account"
+    },
+    "fields": {
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Your name",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself and your travel style...",
+      "email": "Email",
+      "homeCountry": "Home Country",
+      "homeCountryPlaceholder": "e.g., Italy",
+      "homeCity": "Home City",
+      "homeCityPlaceholder": "e.g., Milan",
+      "dateOfBirth": "Date of Birth",
+      "dateOfBirthPlaceholder": "Select your birthday",
+      "languagesSpoken": "Languages Spoken",
+      "languagesHint": "Select languages you speak for better travel recommendations"
+    },
+    "travelPrefs": {
+      "description": "Your preferences help us create better trip recommendations.",
+      "travelStyle": "Travel Style",
+      "styles": {
+        "adventure": "Adventure",
+        "relaxation": "Relaxation",
+        "cultural": "Cultural",
+        "foodie": "Foodie",
+        "romantic": "Romantic",
+        "budget": "Budget",
+        "luxury": "Luxury",
+        "solo": "Solo",
+        "family": "Family"
+      },
+      "dietary": "Dietary Preferences",
+      "dietaryOptions": {
+        "vegetarian": "Vegetarian",
+        "vegan": "Vegan",
+        "halal": "Halal",
+        "kosher": "Kosher",
+        "glutenFree": "Gluten-Free",
+        "noRestrictions": "No Restrictions"
+      },
+      "accessibility": "Accessibility Needs",
+      "accessibilityHint": "Help us recommend accessible venues and activities",
+      "accessibilityOptions": {
+        "wheelchair": "Wheelchair Accessible",
+        "limitedMobility": "Limited Mobility",
+        "visual": "Visual Impairment",
+        "hearing": "Hearing Impairment",
+        "sensory": "Sensory-Friendly"
+      },
+      "activitySchedule": "Activity Schedule",
+      "activityScheduleHint": "Set your preferred hours for daily activities - AI will schedule around your routine",
+      "wakeUpTime": "Wake up time",
+      "windDownTime": "Wind down time",
+      "activityScheduleNote": "First activity will start around your wake time, last activity ends before wind down"
+    },
+    "betaSection": {
+      "active": "Beta Access Active",
+      "code": "Code: {code}",
+      "activated": "Activated {date}",
+      "benefits": {
+        "generations": "AI Generations",
+        "regenerations": "Regenerations",
+        "assistant": "AI Assistant",
+        "support": "Priority Support"
+      },
+      "unlimited": "Unlimited",
+      "activeBadge": "Active",
+      "enterCodeHint": "Enter a beta tester code to unlock unlimited AI features and priority support.",
+      "noCodeHint": "Don't have a code? Join our",
+      "waitlist": "beta waitlist",
+      "toGetAccess": "to get priority access."
+    },
+    "accountSection": {
+      "signOut": "Sign Out",
+      "dangerZone": "Danger Zone",
+      "deleteAccount": "Delete Account"
+    },
+    "signOutModal": {
+      "title": "Sign Out?",
+      "message": "Are you sure you want to sign out of your account?",
+      "cancel": "Cancel",
+      "confirm": "Sign Out",
+      "signingOut": "Signing out..."
+    },
+    "appInfo": {
+      "version": "MonkeyTravel v1.0",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
     }
   }
 }
