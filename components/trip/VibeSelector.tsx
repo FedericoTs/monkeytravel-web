@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 // Vibe configuration (labels/descriptions come from translations)
 interface VibeConfig {
-  id: string;
+  id: TripVibe;
   emoji: string;
   color: string;
   category: "practical" | "fantasy";
@@ -24,7 +24,7 @@ const VIBE_CONFIGS: VibeConfig[] = [
   { id: "offbeat", emoji: "🗺️", color: "var(--vibe-offbeat)", category: "practical", detailCount: 3 },
   // Fantasy/Whimsical Vibes (4)
   { id: "wonderland", emoji: "🐇", color: "var(--vibe-wonderland)", category: "fantasy", detailCount: 3 },
-  { id: "movieMagic", emoji: "🎬", color: "var(--vibe-movie-magic)", category: "fantasy", detailCount: 3 },
+  { id: "movie-magic", emoji: "🎬", color: "var(--vibe-movie-magic)", category: "fantasy", detailCount: 3 },
   { id: "fairytale", emoji: "🏰", color: "var(--vibe-fairytale)", category: "fantasy", detailCount: 3 },
   { id: "retro", emoji: "🕰️", color: "var(--vibe-retro)", category: "fantasy", detailCount: 3 },
 ];
@@ -153,7 +153,7 @@ export default function VibeSelector({
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedVibes.map((vibeId, index) => {
-              const vibe = VIBES.find((v) => v.id === vibeId);
+              const vibe = vibes.find((v) => v.id === vibeId);
               if (!vibe) return null;
               const influencePercent = index === 0 ? 50 : index === 1 ? 30 : 20;
               return (
@@ -308,5 +308,5 @@ function VibeCard({
   );
 }
 
-// Export the VIBES array for use in other components
-export { VIBES };
+// Export the VIBE_CONFIGS array for use in other components
+export { VIBE_CONFIGS };
