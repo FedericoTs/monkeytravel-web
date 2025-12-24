@@ -275,7 +275,7 @@ export default function TranslationsPage() {
                             {/* Key */}
                             <div className="w-1/3 min-w-0">
                               <code className="text-sm text-slate-600 break-all">{shortKey}</code>
-                              {selectedLang !== "en" && enValue && (
+                              {selectedLang !== "en" && enValue != null && (
                                 <div className="mt-1 text-xs text-slate-400 italic">
                                   EN: {String(enValue)}
                                 </div>
