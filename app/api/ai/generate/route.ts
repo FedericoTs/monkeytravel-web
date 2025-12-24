@@ -72,13 +72,14 @@ function hashDestination(destination: string): string {
 
 /**
  * Check if cached activities can be reused for this request
- * Matches by destination, vibes, and budget tier
+ * Matches by destination, vibes, budget tier, and language
  */
 async function getCachedItinerary(
   supabase: Awaited<ReturnType<typeof createClient>>,
   destination: string,
   vibes: string[],
-  budgetTier: string
+  budgetTier: string,
+  language: SupportedLanguage
 ): Promise<GeneratedItinerary | null> {
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
@@ -88,6 +89,7 @@ async function getCachedItinerary(
     .select("*")
     .eq("destination_hash", destinationHash)
     .eq("budget_tier", budgetTier)
+    .eq("language", language)
     .contains("vibes", sortedVibes)
     .gt("expires_at", new Date().toISOString())
     .order("hit_count", { ascending: false })
@@ -108,7 +110,7 @@ async function getCachedItinerary(
     .eq("id", data.id)
     .then(() => {});
 
-  console.log(`[AI Generate] Cache HIT for ${destination} (vibes: ${vibes.join(", ")})`);
+  console.log(`[AI Generate] Cache HIT for ${destination} (vibes: ${vibes.join(", ")}, language: ${language})`);
 
   return {
     destination: data.trip_summary?.destination || { name: destination, country: "", description: "" },
@@ -126,6 +128,7 @@ async function cacheItinerary(
   destination: string,
   vibes: string[],
   budgetTier: string,
+  language: SupportedLanguage,
   itinerary: GeneratedItinerary
 ): Promise<void> {
   const destinationHash = hashDestination(destination);
@@ -141,6 +144,7 @@ async function cacheItinerary(
         destination_name: destination,
         vibes: sortedVibes,
         budget_tier: budgetTier,
+        language: language,
         activities: itinerary.days,
         trip_summary: {
           destination: itinerary.destination,
@@ -151,13 +155,13 @@ async function cacheItinerary(
         hit_count: 0,
         last_accessed_at: new Date().toISOString(),
       },
-      { onConflict: "unique_destination_cache" }
+      { onConflict: "unique_destination_cache_lang" }
     );
 
     if (error) {
       console.error(`[AI Generate] Cache write error for ${destination}:`, error.message, error.details);
     } else {
-      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier})`);
+      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier}, language: ${language})`);
     }
   } catch (err) {
     console.error("[AI Generate] Cache write exception:", err);
@@ -339,7 +343,8 @@ export async function POST(request: NextRequest) {
       supabase,
       params.destination,
       params.vibes,
-      params.budgetTier
+      params.budgetTier,
+      userLanguage
     );
 
     if (cachedItinerary && cachedItinerary.days.length >= 1) {
@@ -390,7 +395,7 @@ export async function POST(request: NextRequest) {
 
       // Only cache full itineraries (not partial ones)
       if (!isPartialGeneration) {
-        await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, itinerary);
+        await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, userLanguage, itinerary);
       }
 
       // Populate activity bank in background for future activity additions
