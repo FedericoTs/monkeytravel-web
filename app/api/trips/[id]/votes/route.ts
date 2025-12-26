@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote, ActivityConfirmationRecord } from "@/types";
@@ -12,43 +12,16 @@ import { calculateConsensus, aggregateVotesByActivity } from "@/lib/voting/conse
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Verify user has access to this trip
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check collaborator access if not owner
-    if (!isOwner) {
-      const { data: collab } = await supabase
-        .from("trip_collaborators")
-        .select("id")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .single();
-
-      if (!collab) {
-        return errors.forbidden("Access denied");
-      }
-    }
+    // Verify user has access (owner or collaborator)
+    const { trip, errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
 
     // Fetch all votes for the trip (without user join - FK points to auth.users, not public.users)
     const { data: votes, error: votesError } = await supabase

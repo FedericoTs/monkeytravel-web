@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { v4 as uuidv4 } from "uuid";
 import type { ItineraryDay, Activity } from "@/types";
@@ -19,16 +19,8 @@ import { captureServerEvent } from "@/lib/posthog/server";
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized("Please sign in to save this trip");
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errors.unauthorized("Please sign in to save this trip");
 
     // Get share token and optional start date from request body
     const body = await request.json();

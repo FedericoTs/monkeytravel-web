@@ -154,3 +154,187 @@ export async function getAuthenticatedUserId(): Promise<string | null> {
   const { user } = await getAuthenticatedUser();
   return user?.id ?? null;
 }
+
+/**
+ * Trip ownership verification result - success case
+ */
+export interface TripOwnershipSuccess {
+  /** The trip data */
+  trip: { id: string; user_id: string; [key: string]: unknown };
+  /** No error response */
+  errorResponse: null;
+}
+
+/**
+ * Trip ownership verification result - failure case
+ */
+export interface TripOwnershipFailure {
+  /** No trip */
+  trip: null;
+  /** Pre-built error response */
+  errorResponse: Response;
+}
+
+/**
+ * Union type for trip ownership verification
+ */
+export type TripOwnershipResult = TripOwnershipSuccess | TripOwnershipFailure;
+
+/**
+ * Verify user owns a trip
+ *
+ * Consolidates the common pattern of verifying trip ownership (49+ occurrences).
+ * Returns the trip if owned by user, or an error response to return.
+ *
+ * @param supabase - Supabase client
+ * @param tripId - Trip ID to verify
+ * @param userId - User ID to check ownership against
+ * @param selectFields - Fields to select (default: "id, user_id")
+ *
+ * @example
+ * const { trip, errorResponse } = await verifyTripOwnership(supabase, tripId, user.id);
+ * if (errorResponse) return errorResponse;
+ *
+ * // Now trip is guaranteed to exist and be owned by user
+ */
+export async function verifyTripOwnership(
+  supabase: SupabaseClient,
+  tripId: string,
+  userId: string,
+  selectFields: string = "id, user_id"
+): Promise<TripOwnershipResult> {
+  const { data: trip, error } = await supabase
+    .from("trips")
+    .select(selectFields)
+    .eq("id", tripId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !trip) {
+    return {
+      trip: null,
+      errorResponse: errors.notFound("Trip not found"),
+    };
+  }
+
+  // Cast to expected type - the select guarantees these fields exist
+  const typedTrip = trip as unknown as { id: string; user_id: string; [key: string]: unknown };
+
+  return {
+    trip: typedTrip,
+    errorResponse: null,
+  };
+}
+
+/**
+ * Trip access verification result - success case
+ */
+export interface TripAccessSuccess {
+  /** The trip data */
+  trip: { id: string; user_id: string; [key: string]: unknown };
+  /** Whether user is the owner */
+  isOwner: boolean;
+  /** Collaborator role if not owner */
+  collaboratorRole: string | null;
+  /** No error response */
+  errorResponse: null;
+}
+
+/**
+ * Trip access verification result - failure case
+ */
+export interface TripAccessFailure {
+  /** No trip */
+  trip: null;
+  /** Not applicable */
+  isOwner: false;
+  /** Not applicable */
+  collaboratorRole: null;
+  /** Pre-built error response */
+  errorResponse: Response;
+}
+
+/**
+ * Union type for trip access verification
+ */
+export type TripAccessResult = TripAccessSuccess | TripAccessFailure;
+
+/**
+ * Verify user has access to a trip (owner OR collaborator)
+ *
+ * Use this for routes where collaborators can access trip data.
+ * Returns trip data plus access info (isOwner, collaboratorRole).
+ *
+ * @param supabase - Supabase client
+ * @param tripId - Trip ID to verify
+ * @param userId - User ID to check access for
+ * @param selectFields - Fields to select from trips (default: "id, user_id")
+ * @param requiredRoles - Required collaborator roles (default: all roles)
+ *
+ * @example
+ * const { trip, isOwner, collaboratorRole, errorResponse } = await verifyTripAccess(
+ *   supabase, tripId, user.id, "id, user_id, title", ["editor", "voter"]
+ * );
+ * if (errorResponse) return errorResponse;
+ */
+export async function verifyTripAccess(
+  supabase: SupabaseClient,
+  tripId: string,
+  userId: string,
+  selectFields: string = "id, user_id",
+  requiredRoles: string[] = ["editor", "voter", "viewer"]
+): Promise<TripAccessResult> {
+  // Fetch trip
+  const { data: trip, error } = await supabase
+    .from("trips")
+    .select(selectFields)
+    .eq("id", tripId)
+    .single();
+
+  if (error || !trip) {
+    return {
+      trip: null,
+      isOwner: false,
+      collaboratorRole: null,
+      errorResponse: errors.notFound("Trip not found"),
+    };
+  }
+
+  // Cast to expected type - the select includes user_id by default
+  const typedTrip = trip as unknown as { id: string; user_id: string; [key: string]: unknown };
+
+  // Check if user is owner
+  const isOwner = typedTrip.user_id === userId;
+  if (isOwner) {
+    return {
+      trip: typedTrip,
+      isOwner: true,
+      collaboratorRole: null,
+      errorResponse: null,
+    };
+  }
+
+  // Check collaborator access
+  const { data: collab } = await supabase
+    .from("trip_collaborators")
+    .select("role")
+    .eq("trip_id", tripId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!collab || !requiredRoles.includes(collab.role)) {
+    return {
+      trip: null,
+      isOwner: false,
+      collaboratorRole: null,
+      errorResponse: errors.forbidden("Access denied"),
+    };
+  }
+
+  return {
+    trip: typedTrip,
+    isOwner: false,
+    collaboratorRole: collab.role,
+    errorResponse: null,
+  };
+}

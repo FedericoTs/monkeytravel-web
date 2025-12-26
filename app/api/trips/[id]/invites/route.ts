@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { nanoid } from "nanoid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -11,43 +11,18 @@ import type { CollaboratorRole, TripInvite } from "@/types";
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Verify user has access (owner or editor)
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check if user is an editor
-    const { data: userCollab } = await supabase
-      .from("trip_collaborators")
-      .select("role")
-      .eq("trip_id", tripId)
-      .eq("user_id", user.id)
-      .single();
-
-    const canViewInvites = isOwner || userCollab?.role === "editor";
-
-    if (!canViewInvites) {
-      return errors.forbidden("You don't have permission to view invites");
-    }
+    // Verify user has access (owner or editor can view invites)
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id,
+      "id, user_id",
+      ["editor"] // Only editors (besides owner) can view invites
+    );
+    if (accessError) return accessError;
 
     // Fetch active invites (no expiration filter - invites are essentially permanent)
     const { data: invites, error } = await supabase
@@ -82,16 +57,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const {
@@ -109,32 +76,15 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest("Invalid role. Must be editor, voter, or viewer");
     }
 
-    // Verify user has permission to create invites (owner or editor)
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id, title")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check if user is an editor
-    const { data: userCollab } = await supabase
-      .from("trip_collaborators")
-      .select("role")
-      .eq("trip_id", tripId)
-      .eq("user_id", user.id)
-      .single();
-
-    const canCreateInvites = isOwner || userCollab?.role === "editor";
-
-    if (!canCreateInvites) {
-      return errors.forbidden("You don't have permission to create invites");
-    }
+    // Verify user has permission (owner or editor can create invites)
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id,
+      "id, user_id, title",
+      ["editor"]
+    );
+    if (accessError) return accessError;
 
     // Generate invite token (URL-safe, short)
     const token = nanoid(12); // 12 chars = 64^12 combinations

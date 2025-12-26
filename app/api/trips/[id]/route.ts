@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -11,28 +11,17 @@ import type { ItineraryDay } from "@/types";
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Fetch trip
-    const { data: trip, error } = await supabase
-      .from("trips")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (error || !trip) {
-      return errors.notFound("Trip not found");
-    }
+    // Fetch trip with ownership verification
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      "*"
+    );
+    if (tripError) return tripError;
 
     return apiSuccess({ success: true, trip });
   } catch (error) {
@@ -47,28 +36,16 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 export async function PATCH(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify trip ownership
-    const { data: existingTrip, error: fetchError } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !existingTrip) {
-      return errors.notFound("Trip not found");
-    }
+    const { errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id
+    );
+    if (tripError) return tripError;
 
     // Parse request body
     const body = await request.json();
@@ -133,16 +110,8 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
 export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Delete trip (only if owned by user)
     const { error } = await supabase

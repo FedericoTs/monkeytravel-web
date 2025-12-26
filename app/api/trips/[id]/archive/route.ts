@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser, verifyTripOwnership } from '@/lib/api/auth';
 import { errors, apiSuccess } from '@/lib/api/response-wrapper';
 import type { TripRouteContext } from '@/lib/api/route-context';
 
@@ -13,27 +13,17 @@ import type { TripRouteContext } from '@/lib/api/route-context';
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Fetch trip to verify ownership
-    const { data: trip, error: fetchError } = await supabase
-      .from('trips')
-      .select('id, is_archived')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound('Trip not found');
-    }
+    // Verify ownership and get archive status
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      'id, is_archived'
+    );
+    if (tripError) return tripError;
 
     if (trip.is_archived) {
       return errors.badRequest('Trip is already archived');
@@ -71,27 +61,17 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
 export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Fetch trip to verify ownership
-    const { data: trip, error: fetchError } = await supabase
-      .from('trips')
-      .select('id, is_archived')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound('Trip not found');
-    }
+    // Verify ownership and get archive status
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      'id, is_archived'
+    );
+    if (tripError) return tripError;
 
     if (!trip.is_archived) {
       return errors.badRequest('Trip is not archived');

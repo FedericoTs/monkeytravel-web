@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { v4 as uuidv4 } from "uuid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -10,28 +10,17 @@ import type { TripRouteContext } from "@/lib/api/route-context";
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Verify trip ownership and get current share status
-    const { data: trip, error: fetchError } = await supabase
-      .from("trips")
-      .select("id, user_id, share_token")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+    // Verify ownership and get share status
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      "id, user_id, share_token"
+    );
+    if (tripError) return tripError;
 
     // If already shared, return existing token
     if (trip.share_token) {
@@ -85,28 +74,16 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
 export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify trip ownership
-    const { data: trip, error: fetchError } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+    const { errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id
+    );
+    if (tripError) return tripError;
 
     // Remove share token
     const { error: updateError } = await supabase
@@ -137,28 +114,17 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Verify trip ownership and get share status
-    const { data: trip, error: fetchError } = await supabase
-      .from("trips")
-      .select("id, share_token, shared_at, visibility")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+    // Verify ownership and get share status
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      "id, share_token, shared_at, visibility"
+    );
+    if (tripError) return tripError;
 
     const isShared = !!trip.share_token;
     const shareUrl = isShared

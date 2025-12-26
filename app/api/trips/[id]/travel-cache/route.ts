@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CachedDayTravelData, TripMeta } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -17,28 +17,17 @@ interface TravelCacheBody {
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Verify trip ownership and get current trip_meta
-    const { data: trip, error: fetchError } = await supabase
-      .from("trips")
-      .select("id, user_id, trip_meta")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+    // Verify ownership and get trip_meta
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      "id, user_id, trip_meta"
+    );
+    if (tripError) return tripError;
 
     // Parse request body
     const body: TravelCacheBody = await request.json();
