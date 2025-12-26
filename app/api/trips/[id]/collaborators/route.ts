@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { TripCollaborator, CollaboratorRole } from "@/types";
 
@@ -10,16 +11,8 @@ import type { TripCollaborator, CollaboratorRole } from "@/types";
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // First check if user has access to this trip (owner or collaborator)
     const { data: trip } = await supabase
@@ -72,21 +65,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       userIds.add(c.user_id);
     }
 
-    // Batch fetch all user profiles from public.users table
-    const { data: userProfiles } = await supabase
-      .from("users")
-      .select("id, display_name, avatar_url, email")
-      .in("id", Array.from(userIds));
-
-    // Create a lookup map for user profiles
-    const profileMap = new Map<string, { display_name: string; avatar_url: string | null; email: string }>();
-    for (const profile of userProfiles || []) {
-      profileMap.set(profile.id, {
-        display_name: profile.display_name || "Unknown User",
-        avatar_url: profile.avatar_url,
-        email: profile.email,
-      });
-    }
+    // Batch fetch all user profiles using shared utility
+    const profileMap = await batchFetchUserProfiles(supabase, userIds);
 
     // Check if owner is in the collaborators list
     const ownerInList = collaborators?.some((c) => c.user_id === trip.user_id);
@@ -104,7 +84,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         joined_at: null, // Owner didn't "join"
         display_name: ownerProfile?.display_name || "Trip Owner",
         avatar_url: ownerProfile?.avatar_url || null,
-        email: ownerProfile?.email,
+        email: ownerProfile?.email ?? undefined,
       };
     }
 
@@ -120,7 +100,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         joined_at: c.joined_at,
         display_name: profile?.display_name || "Unknown User",
         avatar_url: profile?.avatar_url || null,
-        email: profile?.email,
+        email: profile?.email ?? undefined,
       };
     });
 
@@ -146,16 +126,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { userId, role, invitedBy } = body as {

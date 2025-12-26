@@ -21,8 +21,9 @@ import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
-// Cache TTL: 7 days (historical weather data doesn't change)
-const WEATHER_CACHE_DAYS = 7;
+// Cache TTL: 30 days (historical weather data doesn't change)
+// Extended from 7 days - same dates from previous year are static
+const WEATHER_CACHE_DAYS = 30;
 
 interface WeatherData {
   temperature: {
@@ -126,7 +127,7 @@ async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
   try {
     const { data, error } = await supabase
       .from("geocode_cache") // Reuse geocode_cache table for weather data
-      .select("*")
+      .select("id, coordinates, metadata, hit_count")
       .eq("address", `weather:${cacheKey}`)
       .gt("expires_at", new Date().toISOString())
       .single();

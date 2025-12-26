@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripChecklistItemRouteContext } from "@/lib/api/route-context";
 
@@ -9,16 +9,8 @@ import type { TripChecklistItemRouteContext } from "@/lib/api/route-context";
 export async function PATCH(request: NextRequest, context: TripChecklistItemRouteContext) {
   try {
     const { id: tripId, itemId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify item ownership
     const { data: existingItem, error: fetchError } = await supabase
@@ -101,16 +93,8 @@ export async function PATCH(request: NextRequest, context: TripChecklistItemRout
 export async function DELETE(request: NextRequest, context: TripChecklistItemRouteContext) {
   try {
     const { id: tripId, itemId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Delete item (RLS will ensure ownership)
     const { error } = await supabase

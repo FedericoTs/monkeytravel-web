@@ -1,5 +1,6 @@
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 
 /**
  * GET /api/referral/history
@@ -45,24 +46,12 @@ export async function GET() {
       .order("event_at", { ascending: false })
       .limit(50);
 
-    // Get referee display names
+    // Get referee display names using batch utility
     const refereeIds = events
       ?.filter(e => e.referee_id)
-      .map(e => e.referee_id) || [];
+      .map(e => e.referee_id as string) || [];
 
-    let refereeMap: Record<string, { display_name: string; avatar_url: string | null }> = {};
-
-    if (refereeIds.length > 0) {
-      const { data: referees } = await supabase
-        .from("users")
-        .select("id, display_name, avatar_url")
-        .in("id", refereeIds);
-
-      refereeMap = (referees || []).reduce((acc, r) => {
-        acc[r.id] = { display_name: r.display_name, avatar_url: r.avatar_url };
-        return acc;
-      }, {} as Record<string, { display_name: string; avatar_url: string | null }>);
-    }
+    const refereeMap = await batchFetchUserProfiles(supabase, refereeIds);
 
     // Format referrals
     const referrals = (events || []).map(event => ({
@@ -72,8 +61,8 @@ export async function GET() {
       rewardedAt: event.reward_granted_at,
       rewardAmount: event.reward_amount,
       referee: event.referee_id ? {
-        name: refereeMap[event.referee_id]?.display_name || "Anonymous",
-        avatar: refereeMap[event.referee_id]?.avatar_url,
+        name: refereeMap.get(event.referee_id)?.display_name || "Anonymous",
+        avatar: refereeMap.get(event.referee_id)?.avatar_url,
       } : null,
     }));
 

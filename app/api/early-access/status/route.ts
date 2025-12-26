@@ -1,17 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { getEarlyAccessStatus } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const status = await getEarlyAccessStatus(user.id, user.email);
 

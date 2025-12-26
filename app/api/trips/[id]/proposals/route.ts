@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type {
@@ -23,16 +23,8 @@ import {
 export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Parse query params for filtering
     const { searchParams } = new URL(request.url);
@@ -245,16 +237,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Parse request body
     const body = await request.json();

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { nanoid } from "nanoid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { ASSIGNABLE_ROLES, isValidAssignableRole } from "@/lib/api/constants";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole, TripInvite } from "@/types";
 
@@ -72,8 +73,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     };
 
     // Validate role
-    if (!["editor", "voter", "viewer"].includes(role)) {
-      return errors.badRequest("Invalid role. Must be editor, voter, or viewer");
+    if (!isValidAssignableRole(role)) {
+      return errors.badRequest(`Invalid role. Must be one of: ${ASSIGNABLE_ROLES.join(", ")}`);
     }
 
     // Verify user has permission (owner or editor can create invites)

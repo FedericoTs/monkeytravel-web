@@ -2,6 +2,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
+import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
+import {
+  withDeduplication,
+  getItineraryDedupKey,
+  getActivityDedupKey,
+  getMoreDaysDedupKey,
+} from "./gemini-dedup";
 
 // Threshold for incremental generation (days)
 // NOTE: Incremental generation is disabled (threshold set to 99) because:
@@ -499,13 +506,39 @@ export function shouldUseIncrementalGeneration(startDate: string, endDate: strin
 
 export async function generateItinerary(
   params: TripCreationParams,
-  options?: GenerationOptions
+  options?: GenerationOptions & { userId?: string }
+): Promise<GeneratedItinerary> {
+  // Generate deduplication key from request parameters
+  const dedupKey = getItineraryDedupKey({
+    destination: params.destination,
+    startDate: params.startDate,
+    endDate: params.endDate,
+    budgetTier: params.budgetTier,
+    pace: params.pace,
+    vibes: params.vibes,
+    language: options?.language,
+  });
+
+  // Wrap with deduplication to prevent duplicate concurrent requests
+  return withDeduplication(dedupKey, () =>
+    generateItineraryInternal(params, options)
+  );
+}
+
+/**
+ * Internal itinerary generation function (without deduplication wrapper)
+ */
+async function generateItineraryInternal(
+  params: TripCreationParams,
+  options?: GenerationOptions & { userId?: string }
 ): Promise<GeneratedItinerary> {
   const retryCount = options?.retryCount ?? 0;
   const MAX_RETRIES = 2;
+  const startTime = performance.now();
 
+  const modelName = MODELS.fast;
   const model = genAI.getGenerativeModel({
-    model: MODELS.fast,
+    model: modelName,
     generationConfig: {
       temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
@@ -542,6 +575,7 @@ export async function generateItinerary(
     const result = await chat.sendMessage(userPrompt);
     const response = result.response;
     const text = response.text();
+    const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
     logCacheMetrics("generateItinerary", response.usageMetadata);
@@ -558,6 +592,24 @@ export async function generateItinerary(
       // Validate and fix coordinates for all activities
       itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
 
+      // Capture LLM analytics (fire and forget)
+      captureLLMGeneration({
+        distinctId: options?.userId || "anonymous",
+        model: modelName,
+        endpoint: "generateItinerary",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: true,
+        properties: {
+          destination: params.destination,
+          duration_days: itinerary.days.length,
+          budget_tier: params.budgetTier,
+          pace: params.pace,
+          vibes: params.vibes,
+          retry_count: retryCount,
+        },
+      }).catch(() => {}); // Ignore analytics errors
+
       return itinerary;
     } catch (parseError) {
       console.error(
@@ -567,15 +619,32 @@ export async function generateItinerary(
         text.substring(0, 500)
       );
 
-      // Retry with lower temperature
+      // Capture failed attempt analytics
+      captureLLMGeneration({
+        distinctId: options?.userId || "anonymous",
+        model: modelName,
+        endpoint: "generateItinerary",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: false,
+        error: "JSON parse error",
+        properties: {
+          destination: params.destination,
+          retry_count: retryCount,
+        },
+      }).catch(() => {});
+
+      // Retry with lower temperature (bypass deduplication for retries)
       if (retryCount < MAX_RETRIES) {
         console.log(`Retrying generation (attempt ${retryCount + 2})...`);
-        return generateItinerary(params, { ...options, retryCount: retryCount + 1 });
+        return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
       }
 
       throw new Error("Failed to generate valid itinerary after retries");
     }
   } catch (error) {
+    const latencyMs = performance.now() - startTime;
+
     // Handle API errors (rate limits, network issues, etc.)
     if (error instanceof Error && error.message.includes("after retries")) {
       throw error;
@@ -583,10 +652,24 @@ export async function generateItinerary(
 
     console.error("Gemini API error:", error);
 
+    // Capture API error analytics
+    captureLLMGeneration({
+      distinctId: options?.userId || "anonymous",
+      model: modelName,
+      endpoint: "generateItinerary",
+      latencyMs,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown API error",
+      properties: {
+        destination: params.destination,
+        retry_count: retryCount,
+      },
+    }).catch(() => {});
+
     if (retryCount < MAX_RETRIES) {
       console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return generateItinerary(params, { ...options, retryCount: retryCount + 1 });
+      return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
     }
 
     throw new Error("Failed to generate itinerary: AI service unavailable");
@@ -613,13 +696,41 @@ export interface RegenerateActivityParams {
 // See lib/prompts.ts for default values
 
 export async function regenerateSingleActivity(
-  params: RegenerateActivityParams,
+  params: RegenerateActivityParams & { userId?: string },
+  retryCount = 0
+): Promise<Activity> {
+  // Generate deduplication key - note: only first call gets deduplicated, retries bypass
+  if (retryCount === 0) {
+    const dedupKey = getActivityDedupKey({
+      destination: params.destination,
+      activityName: params.activityToReplace.name,
+      timeSlot: params.activityToReplace.time_slot,
+      dayNumber: params.dayContext.day_number,
+      budgetTier: params.budgetTier,
+    });
+
+    return withDeduplication(dedupKey, () =>
+      regenerateSingleActivityInternal(params, retryCount)
+    );
+  }
+
+  // Retries bypass deduplication
+  return regenerateSingleActivityInternal(params, retryCount);
+}
+
+/**
+ * Internal activity regeneration function (without deduplication wrapper)
+ */
+async function regenerateSingleActivityInternal(
+  params: RegenerateActivityParams & { userId?: string },
   retryCount = 0
 ): Promise<Activity> {
   const MAX_RETRIES = 2;
+  const startTime = performance.now();
+  const modelName = MODELS.fast;
 
   const model = genAI.getGenerativeModel({
-    model: MODELS.fast,
+    model: modelName,
     generationConfig: {
       temperature: retryCount > 0 ? 0.8 : 1.2, // Higher temperature for variety
       topP: 0.95,
@@ -697,6 +808,7 @@ Return ONLY the JSON object, no extra text.`;
 
     const response = result.response;
     const text = response.text();
+    const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
     logCacheMetrics("regenerateSingleActivity", response.usageMetadata);
@@ -712,6 +824,23 @@ Return ONLY the JSON object, no extra text.`;
       // Add unique ID
       activity.id = generateActivityId();
 
+      // Capture LLM analytics (fire and forget)
+      captureLLMGeneration({
+        distinctId: params.userId || "anonymous",
+        model: modelName,
+        endpoint: "regenerateSingleActivity",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: true,
+        properties: {
+          destination: params.destination,
+          replaced_activity: activityToReplace.name,
+          new_activity: activity.name,
+          budget_tier: params.budgetTier,
+          retry_count: retryCount,
+        },
+      }).catch(() => {});
+
       return activity;
     } catch (parseError) {
       console.error(
@@ -721,24 +850,55 @@ Return ONLY the JSON object, no extra text.`;
         text.substring(0, 300)
       );
 
+      // Capture failed attempt analytics
+      captureLLMGeneration({
+        distinctId: params.userId || "anonymous",
+        model: modelName,
+        endpoint: "regenerateSingleActivity",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: false,
+        error: "JSON parse error",
+        properties: {
+          destination: params.destination,
+          retry_count: retryCount,
+        },
+      }).catch(() => {});
+
       if (retryCount < MAX_RETRIES) {
         console.log(`Retrying activity regeneration (attempt ${retryCount + 2})...`);
-        return regenerateSingleActivity(params, retryCount + 1);
+        return regenerateSingleActivityInternal(params, retryCount + 1);
       }
 
       throw new Error("Failed to regenerate activity after retries");
     }
   } catch (error) {
+    const latencyMs = performance.now() - startTime;
+
     if (error instanceof Error && error.message.includes("after retries")) {
       throw error;
     }
 
     console.error("Gemini API error during activity regeneration:", error);
 
+    // Capture API error analytics
+    captureLLMGeneration({
+      distinctId: params.userId || "anonymous",
+      model: modelName,
+      endpoint: "regenerateSingleActivity",
+      latencyMs,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown API error",
+      properties: {
+        destination: params.destination,
+        retry_count: retryCount,
+      },
+    }).catch(() => {});
+
     if (retryCount < MAX_RETRIES) {
       console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return regenerateSingleActivity(params, retryCount + 1);
+      return regenerateSingleActivityInternal(params, retryCount + 1);
     }
 
     throw new Error("Failed to regenerate activity: AI service unavailable");
@@ -883,13 +1043,41 @@ export interface GenerateMoreDaysParams {
  * Used for incremental loading of long trips (5+ days)
  */
 export async function generateMoreDays(
-  params: GenerateMoreDaysParams,
+  params: GenerateMoreDaysParams & { userId?: string },
+  retryCount = 0
+): Promise<ItineraryDay[]> {
+  // Generate deduplication key - note: only first call gets deduplicated, retries bypass
+  if (retryCount === 0) {
+    const dedupKey = getMoreDaysDedupKey({
+      destination: params.destination,
+      startFromDay: params.startFromDay,
+      daysToGenerate: params.daysToGenerate,
+      budgetTier: params.budgetTier,
+      pace: params.pace,
+    });
+
+    return withDeduplication(dedupKey, () =>
+      generateMoreDaysInternal(params, retryCount)
+    );
+  }
+
+  // Retries bypass deduplication
+  return generateMoreDaysInternal(params, retryCount);
+}
+
+/**
+ * Internal more days generation function (without deduplication wrapper)
+ */
+async function generateMoreDaysInternal(
+  params: GenerateMoreDaysParams & { userId?: string },
   retryCount = 0
 ): Promise<ItineraryDay[]> {
   const MAX_RETRIES = 2;
+  const startTime = performance.now();
+  const modelName = MODELS.fast;
 
   const model = genAI.getGenerativeModel({
-    model: MODELS.fast,
+    model: modelName,
     generationConfig: {
       temperature: retryCount > 0 ? 0.7 : 1.0,
       topP: 0.95,
@@ -985,6 +1173,7 @@ Rules:
 
     const response = result.response;
     const text = response.text();
+    const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
     logCacheMetrics("generateMoreDays", response.usageMetadata);
@@ -1004,6 +1193,24 @@ Rules:
         }
       }
 
+      // Capture LLM analytics (fire and forget)
+      captureLLMGeneration({
+        distinctId: params.userId || "anonymous",
+        model: modelName,
+        endpoint: "generateMoreDays",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: true,
+        properties: {
+          destination: params.destination,
+          days_generated: days.length,
+          start_from_day: params.startFromDay,
+          budget_tier: params.budgetTier,
+          pace: params.pace,
+          retry_count: retryCount,
+        },
+      }).catch(() => {});
+
       return days;
     } catch (parseError) {
       console.error(
@@ -1013,24 +1220,55 @@ Rules:
         text.substring(0, 500)
       );
 
+      // Capture failed attempt analytics
+      captureLLMGeneration({
+        distinctId: params.userId || "anonymous",
+        model: modelName,
+        endpoint: "generateMoreDays",
+        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+        latencyMs,
+        success: false,
+        error: "JSON parse error",
+        properties: {
+          destination: params.destination,
+          retry_count: retryCount,
+        },
+      }).catch(() => {});
+
       if (retryCount < MAX_RETRIES) {
         console.log(`Retrying generateMoreDays (attempt ${retryCount + 2})...`);
-        return generateMoreDays(params, retryCount + 1);
+        return generateMoreDaysInternal(params, retryCount + 1);
       }
 
       throw new Error("Failed to generate more days after retries");
     }
   } catch (error) {
+    const latencyMs = performance.now() - startTime;
+
     if (error instanceof Error && error.message.includes("after retries")) {
       throw error;
     }
 
     console.error("Gemini API error in generateMoreDays:", error);
 
+    // Capture API error analytics
+    captureLLMGeneration({
+      distinctId: params.userId || "anonymous",
+      model: modelName,
+      endpoint: "generateMoreDays",
+      latencyMs,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown API error",
+      properties: {
+        destination: params.destination,
+        retry_count: retryCount,
+      },
+    }).catch(() => {});
+
     if (retryCount < MAX_RETRIES) {
       console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return generateMoreDays(params, retryCount + 1);
+      return generateMoreDaysInternal(params, retryCount + 1);
     }
 
     throw new Error("Failed to generate more days: AI service unavailable");

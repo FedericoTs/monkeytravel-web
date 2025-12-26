@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
@@ -155,16 +156,8 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
     const { token } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized("Authentication required");
-    }
+    const { user, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errors.unauthorized("Authentication required");
 
     // Use admin client for invite operations
     const supabaseAdmin = createAdminClient(

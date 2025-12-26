@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type { ProposalVote, ProposalVoteType, Activity, ItineraryDay } from "@/types";
@@ -14,16 +14,8 @@ import { generateActivityId } from "@/lib/utils/activity-id";
 export async function GET(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify proposal exists and belongs to trip
     const { data: proposal, error: proposalError } = await supabase
@@ -110,16 +102,8 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
 export async function POST(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Parse request body
     const body = await request.json();
@@ -392,16 +376,8 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
 export async function DELETE(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify proposal exists
     const { data: proposal, error: proposalError } = await supabase

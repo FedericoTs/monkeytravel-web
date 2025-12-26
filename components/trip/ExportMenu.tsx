@@ -2,9 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { ItineraryDay, TripMeta } from "@/types";
-import { downloadPDF, downloadPremiumPDF, type PremiumTripForExport } from "@/lib/export/pdf";
+// Types only (zero bundle impact) - functions loaded dynamically on demand
+import type { PremiumTripForExport } from "@/lib/export/pdf";
 import { downloadICS } from "@/lib/export/calendar";
 import { useTranslations } from "next-intl";
+
+// Lazy loaders for PDF export (~75KB saved from initial bundle)
+const lazyLoadPdfExport = () => import("@/lib/export/pdf");
+const lazyLoadPremiumPdfExport = () => import("@/lib/export/pdf/index");
 
 interface ExportMenuProps {
   trip: {
@@ -46,6 +51,8 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
   const handleExportPDF = async () => {
     setIsExporting("pdf");
     try {
+      // Dynamically load PDF export on first use (~75KB)
+      const { downloadPDF } = await lazyLoadPdfExport();
       await downloadPDF(trip);
     } catch (error) {
       console.error("Error exporting PDF:", error);
@@ -60,6 +67,9 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
     setExportProgress({ step: "Starting...", progress: 0 });
 
     try {
+      // Dynamically load premium PDF export on first use
+      const { downloadPremiumPDF } = await lazyLoadPremiumPdfExport();
+
       // Build the premium trip data
       const premiumTrip: PremiumTripForExport = {
         title: trip.title,

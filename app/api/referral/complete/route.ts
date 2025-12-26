@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import {
   addReferralBananas,
@@ -14,14 +14,8 @@ import {
  */
 export async function POST() {
   try {
-    const supabase = await createClient();
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Get user's referral info
     const { data: currentUser } = await supabase

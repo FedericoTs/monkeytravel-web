@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -17,32 +17,17 @@ export async function POST(
 ) {
   try {
     const { id: tripId } = await params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Verify authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Fetch the trip
-    const { data: trip, error: tripError } = await supabase
-      .from("trips")
-      .select("id, user_id, itinerary, title")
-      .eq("id", tripId)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    // Verify ownership
-    if (trip.user_id !== user.id) {
-      return errors.forbidden("Not authorized to modify this trip");
-    }
+    // Fetch the trip with ownership verification
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      tripId,
+      user.id,
+      "id, user_id, itinerary, title"
+    );
+    if (tripError) return tripError;
 
     const itinerary = trip.itinerary as ItineraryDay[];
     if (!itinerary || !Array.isArray(itinerary)) {
@@ -50,7 +35,7 @@ export async function POST(
     }
 
     // Extract destination from title (e.g., "Trieste Trip" -> "Trieste")
-    const destination = trip.title?.replace(" Trip", "") || "";
+    const destination = (trip.title as string | undefined)?.replace(" Trip", "") || "";
 
     // Collect activities missing coordinates
     const activitiesToGeocode: {

@@ -62,30 +62,37 @@ export default function SessionTracker() {
       // Set user ID for cross-session tracking
       setUserId(user.id);
 
-      // Fetch user data for context
-      const { data: userData } = await supabase
-        .from("users")
-        .select("created_at, onboarding_completed, subscription_tier, is_pro, referral_tier, preferred_language")
-        .eq("id", user.id)
-        .single();
-
-      const { count: tripsCount } = await supabase
-        .from("trips")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      const { count: activeTripsCount } = await supabase
-        .from("trips")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("status", "active");
-
-      // Check for beta access
-      const { data: betaAccess } = await supabase
-        .from("user_tester_access")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
+      // Fetch all user data in parallel for better performance
+      const [
+        { data: userData },
+        { count: tripsCount },
+        { count: activeTripsCount },
+        { data: betaAccess },
+      ] = await Promise.all([
+        // User profile data
+        supabase
+          .from("users")
+          .select("created_at, onboarding_completed, subscription_tier, is_pro, referral_tier, preferred_language")
+          .eq("id", user.id)
+          .single(),
+        // Total trips count
+        supabase
+          .from("trips")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        // Active trips count
+        supabase
+          .from("trips")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("status", "active"),
+        // Beta access check
+        supabase
+          .from("user_tester_access")
+          .select("id")
+          .eq("user_id", user.id)
+          .single(),
+      ]);
 
       // Calculate account age
       const accountCreated = userData?.created_at ? new Date(userData.created_at) : new Date();

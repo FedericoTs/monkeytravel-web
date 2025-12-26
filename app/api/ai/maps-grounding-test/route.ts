@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { isAdmin } from "@/lib/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
 
   try {
     // Admin-only endpoint for testing
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    if (!user || !(await isAdmin(user.id))) {
+    if (!(await isAdmin(user.id))) {
       return errors.forbidden("Admin access required for testing");
     }
 
@@ -179,14 +179,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[Maps Grounding Test] API error:`, errorText);
-      return NextResponse.json(
-        {
-          error: "Maps grounding API error",
-          details: errorText,
-          status: response.status
-        },
-        { status: response.status }
-      );
+      return errors.serviceUnavailable(`Maps grounding API error: ${errorText}`);
     }
 
     const result = await response.json();

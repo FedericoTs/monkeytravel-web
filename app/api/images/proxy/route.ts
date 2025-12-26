@@ -139,10 +139,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch image", status: response.status },
-        { status: response.status }
-      );
+      return errors.serviceUnavailable(`Failed to fetch image (status: ${response.status})`);
     }
 
     // Get the image data as ArrayBuffer

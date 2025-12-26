@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -12,29 +12,17 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errors.unauthorized();
-    }
-
-    // Verify trip ownership
-    const { data: trip, error: tripError } = await supabase
-      .from("trips")
-      .select("id, user_id, visibility, share_token, submitted_to_trending_at")
-      .eq("id", id)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    if (trip.user_id !== user.id) {
-      return errors.forbidden("Not authorized to modify this trip");
-    }
+    // Verify trip ownership with needed fields
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id,
+      "id, user_id, visibility, share_token, submitted_to_trending_at"
+    );
+    if (tripError) return tripError;
 
     // Trip must be shared first
     if (!trip.share_token) {
@@ -88,29 +76,16 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Verify trip ownership
-    const { data: trip, error: tripError } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", id)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    if (trip.user_id !== user.id) {
-      return errors.forbidden("Not authorized to modify this trip");
-    }
+    const { errorResponse: tripError } = await verifyTripOwnership(
+      supabase,
+      id,
+      user.id
+    );
+    if (tripError) return tripError;
 
     // Remove from trending
     const { error: updateError } = await supabase

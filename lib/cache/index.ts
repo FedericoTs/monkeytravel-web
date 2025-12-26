@@ -81,6 +81,11 @@ interface DatabaseCacheOptions<T> {
 /**
  * TTL values in milliseconds
  * Organized by volatility - shorter TTLs for frequently changing data
+ *
+ * OPTIMIZATION NOTE (2025-12):
+ * - IATA codes (locations) never change - extended to 90 days
+ * - Hotel lists are very stable - extended to 30 days
+ * - Weather historical data doesn't change - extended to 24 hours in memory
  */
 export const CACHE_TTL: Record<CacheType, number> = {
   // Highly volatile (minutes)
@@ -91,11 +96,11 @@ export const CACHE_TTL: Record<CacheType, number> = {
 
   // Moderately stable (hours)
   hotels: 2 * 60 * 60 * 1000,         // 2 hours
-  weather: 3 * 60 * 60 * 1000,        // 3 hours
+  weather: 24 * 60 * 60 * 1000,       // 24 hours (was 3h - historical data is stable)
 
   // Very stable (days) - these also use database caching
-  locations: 24 * 60 * 60 * 1000,     // 24 hours
-  hotel_list: 24 * 60 * 60 * 1000,    // 24 hours
+  locations: 90 * 24 * 60 * 60 * 1000,      // 90 days (was 24h - IATA codes never change)
+  hotel_list: 30 * 24 * 60 * 60 * 1000,     // 30 days (was 24h - hotel lists are stable)
   place_search: 30 * 24 * 60 * 60 * 1000,   // 30 days
   geocoding: 90 * 24 * 60 * 60 * 1000,      // 90 days
   distance: 60 * 24 * 60 * 60 * 1000,       // 60 days
@@ -104,13 +109,14 @@ export const CACHE_TTL: Record<CacheType, number> = {
 
 /**
  * TTL in days for database caching
+ * OPTIMIZATION NOTE: Historical weather data doesn't change - extended to 30 days
  */
 export const CACHE_TTL_DAYS: Partial<Record<CacheType, number>> = {
   place_details: 180,
   geocoding: 90,
   distance: 60,
   place_search: 30,
-  weather: 1,
+  weather: 30, // Was 1 - historical weather data never changes
 };
 
 // ============================================================================
@@ -282,7 +288,7 @@ export async function getFromDatabase<T>(
   try {
     const { data, error } = await supabase
       .from("google_places_cache")
-      .select("*")
+      .select("id, data, hit_count") // Optimized: only fetch needed fields
       .eq("place_id", cacheKey)
       .eq("cache_type", cacheType)
       .gt("expires_at", new Date().toISOString())

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote } from "@/types";
@@ -11,16 +11,8 @@ import type { VoteType, ActivityVote } from "@/types";
 export async function GET(request: NextRequest, context: TripActivityRouteContext) {
   try {
     const { id: tripId, activityId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Fetch votes with user info
     const { data: votes, error } = await supabase
@@ -97,16 +89,8 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
 export async function POST(request: NextRequest, context: TripActivityRouteContext) {
   try {
     const { id: tripId, activityId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Parse request body
     const body = await request.json();
@@ -223,16 +207,8 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
 export async function DELETE(request: NextRequest, context: TripActivityRouteContext) {
   try {
     const { id: tripId, activityId } = await context.params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Delete the user's vote
     const { error } = await supabase

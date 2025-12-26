@@ -1,18 +1,12 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { redeemTesterCode, validateCode } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized("You must be logged in to redeem a code");
-    }
+    const { user, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errors.unauthorized("You must be logged in to redeem a code");
 
     const body = await request.json();
     const { code } = body;

@@ -56,6 +56,9 @@ export * from "./events";
 // Flags
 export * from "./flags";
 
+// LLM Analytics - exported separately from "./llm-analytics" for server-only use
+// Do not import here to avoid bundling server code in client components
+
 // Re-export PostHog React components
 export {
   PostHogProvider,

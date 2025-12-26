@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote, ActivityConfirmationRecord } from "@/types";
 import { calculateConsensus, aggregateVotesByActivity } from "@/lib/voting/consensus";
@@ -51,21 +52,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       voteUserIds.add(v.user_id);
     }
 
-    // Batch fetch user profiles from public.users table
-    let userProfileMap = new Map<string, { display_name: string; avatar_url: string | null }>();
-    if (voteUserIds.size > 0) {
-      const { data: userProfiles } = await supabase
-        .from("users")
-        .select("id, display_name, avatar_url")
-        .in("id", Array.from(voteUserIds));
-
-      for (const profile of userProfiles || []) {
-        userProfileMap.set(profile.id, {
-          display_name: profile.display_name || "Unknown",
-          avatar_url: profile.avatar_url,
-        });
-      }
-    }
+    // Batch fetch user profiles using shared utility
+    const userProfileMap = await batchFetchUserProfiles(supabase, voteUserIds);
 
     // Fetch activity statuses
     const { data: statuses, error: statusError } = await supabase
@@ -107,7 +95,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         updated_at: v.updated_at,
         user: profile
           ? {
-              display_name: profile.display_name,
+              display_name: profile.display_name || "Unknown",
               avatar_url: profile.avatar_url || undefined,
             }
           : undefined,
