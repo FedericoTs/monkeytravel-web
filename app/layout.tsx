@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -156,6 +157,22 @@ export default function RootLayout({
         <script {...jsonLdScriptProps(organizationSchema)} />
         <script {...jsonLdScriptProps(webSiteSchema)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema)} />
+
+        {/* Travelpayouts Affiliate Network - Verification & Tracking */}
+        <Script
+          id="travelpayouts-verification"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                var script = document.createElement("script");
+                script.async = 1;
+                script.src = 'https://emrldco.com/NDgzOTk3.js?t=483997';
+                document.head.appendChild(script);
+              })();
+            `,
+          }}
+        />
       </head>
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
