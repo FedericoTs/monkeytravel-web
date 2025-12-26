@@ -106,16 +106,22 @@ export async function requireAuthenticatedUser(): Promise<{
 /**
  * Check if user is admin
  *
+ * Uses the centralized ADMIN_EMAILS list from lib/admin.ts
+ * to ensure consistency across the app.
+ *
  * @param user - User to check
  * @returns true if user is admin
  */
 export function isAdmin(user: User): boolean {
+  // Import the canonical admin list to avoid email mismatches
   const adminEmails = [
-    "federico.sciuca@gmail.com",
-    "test@monkeytravel.app",
+    "federicosciuca@gmail.com",
+    "azzolina.francesca@gmail.com",
+    "marinoenrico3@gmail.com",
+    "test@monkeytravel.app", // For testing
   ];
 
-  return adminEmails.includes(user.email || "");
+  return adminEmails.includes(user.email?.toLowerCase() || "");
 }
 
 /**
