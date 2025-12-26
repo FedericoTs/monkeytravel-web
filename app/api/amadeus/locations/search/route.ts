@@ -8,7 +8,7 @@
  * Includes caching (24h TTL since locations rarely change).
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
   getAmadeusClient,
   withAmadeusErrorHandling,
@@ -19,6 +19,7 @@ import {
   isAmadeusConfigured,
 } from '@/lib/amadeus';
 import type { LocationResult } from '@/lib/amadeus/types';
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -26,10 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     // Check if Amadeus is configured
     if (!isAmadeusConfigured()) {
-      return NextResponse.json(
-        { error: 'Amadeus API not configured' },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable('Amadeus API not configured');
     }
 
     // Parse query parameters
@@ -41,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Validate keyword
     if (!keyword || keyword.length < 2) {
-      return NextResponse.json({
+      return apiSuccess({
         data: [],
         meta: {
           count: 0,
@@ -56,7 +54,7 @@ export async function GET(request: NextRequest) {
     const cached = getFromCache<{ data: LocationResult[] }>(cacheKey);
 
     if (cached) {
-      return NextResponse.json({
+      return apiSuccess({
         ...cached,
         meta: {
           count: cached.data.length,
@@ -92,7 +90,7 @@ export async function GET(request: NextRequest) {
       return scoreB - scoreA;
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       data: sortedData,
       meta: {
         count: sortedData.length,
@@ -108,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     // Return empty array instead of error for autocomplete UX
     // Errors should not break the typing experience
-    return NextResponse.json({
+    return apiSuccess({
       data: [],
       meta: {
         count: 0,

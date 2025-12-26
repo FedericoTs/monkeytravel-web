@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { regenerateSingleActivity } from "@/lib/gemini";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
@@ -6,6 +6,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -18,20 +19,13 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "regeneration", user.email);
     if (!earlyAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: "Early access required",
-          code: earlyAccess.error,
-          message: earlyAccess.message,
-        },
-        { status: 403 }
-      );
+      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
     }
 
     // Parse request body
@@ -57,10 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!tripId || !activityId || dayIndex === undefined || !destination || !itinerary) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing required fields");
     }
 
     // Verify trip ownership
@@ -72,26 +63,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Find the activity to replace
     const activityLocation = findActivityById(itinerary, activityId);
     if (!activityLocation) {
-      return NextResponse.json(
-        { error: "Activity not found in itinerary" },
-        { status: 404 }
-      );
+      return errors.notFound("Activity not found in itinerary");
     }
 
     const { activity: activityToReplace } = activityLocation;
     const dayContext = itinerary[dayIndex];
 
     if (!dayContext) {
-      return NextResponse.json(
-        { error: "Invalid day index" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid day index");
     }
 
     // Check API access control
@@ -107,22 +92,15 @@ export async function POST(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         metadata: { user_id: user.id, trip_id: tripId },
       });
-      return NextResponse.json(
-        { error: access.message || "AI regeneration is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "AI regeneration is currently disabled");
     }
 
     // Check usage limits (tier-based monthly limits)
     const usageCheck = await checkUsageLimit(user.id, "aiRegenerations", user.email);
     if (!usageCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: usageCheck.message || "Monthly activity regeneration limit reached.",
-          usage: usageCheck,
-          upgradeUrl: "/pricing",
-        },
-        { status: 429 }
+      return errors.rateLimit(
+        usageCheck.message || "Monthly activity regeneration limit reached.",
+        { usage: usageCheck, upgradeUrl: "/pricing" }
       );
     }
 
@@ -172,7 +150,7 @@ export async function POST(request: NextRequest) {
       remaining: Math.max(0, usageCheck.remaining - 1),
     };
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       activity: newActivity,
       meta: {
@@ -182,7 +160,7 @@ export async function POST(request: NextRequest) {
       usage: updatedUsage,
     });
   } catch (error) {
-    console.error("Activity regeneration error:", error);
+    console.error("[AI Regenerate] Activity regeneration error:", error);
 
     // Log error using centralized gateway
     await logApiCall({
@@ -195,9 +173,6 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : "Unknown error",
     });
 
-    return NextResponse.json(
-      { error: "Failed to regenerate activity. Please try again." },
-      { status: 500 }
-    );
+    return errors.internal("Failed to regenerate activity. Please try again.", "Activity Regeneration");
   }
 }

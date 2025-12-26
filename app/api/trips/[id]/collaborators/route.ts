@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
 import type { TripCollaborator, CollaboratorRole } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
 
 /**
  * GET /api/trips/[id]/collaborators - List all collaborators on a trip
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -20,7 +18,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // First check if user has access to this trip (owner or collaborator)
@@ -31,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -45,7 +43,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!isOwner && !userCollab) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      return errors.forbidden("Access denied");
     }
 
     // Fetch all collaborators (without user join - FK points to auth.users, not public.users)
@@ -63,11 +61,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .order("joined_at", { ascending: true });
 
     if (error) {
-      console.error("Error fetching collaborators:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch collaborators" },
-        { status: 500 }
-      );
+      console.error("[Collaborators] Error fetching collaborators:", error);
+      return errors.internal("Failed to fetch collaborators", "Collaborators");
     }
 
     // Collect all user IDs we need to fetch (collaborators + owner)
@@ -134,24 +129,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
       ? [ownerData, ...transformedCollaborators]
       : transformedCollaborators;
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       collaborators: allCollaborators,
       currentUserRole: isOwner ? "owner" : (userCollab ? "collaborator" : null),
     });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/collaborators:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Collaborators] Error fetching collaborators:", error);
+    return errors.internal("Failed to fetch collaborators", "Collaborators");
   }
 }
 
 /**
  * POST /api/trips/[id]/collaborators - Add a collaborator (internal, called after invite accept)
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -162,7 +154,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body = await request.json();
@@ -173,10 +165,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     };
 
     if (!userId || !role) {
-      return NextResponse.json(
-        { error: "userId and role are required" },
-        { status: 400 }
-      );
+      return errors.badRequest("userId and role are required");
     }
 
     // Verify the requester has permission to add collaborators
@@ -187,7 +176,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -203,10 +192,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const canAddCollaborators = isOwner || requesterCollab?.role === "editor";
 
     if (!canAddCollaborators) {
-      return NextResponse.json(
-        { error: "You don't have permission to add collaborators" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to add collaborators");
     }
 
     // Check if user is already a collaborator
@@ -218,10 +204,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (existingCollab) {
-      return NextResponse.json(
-        { error: "User is already a collaborator" },
-        { status: 409 }
-      );
+      return errors.conflict("User is already a collaborator");
     }
 
     // Add the collaborator
@@ -237,22 +220,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error) {
-      console.error("Error adding collaborator:", error);
-      return NextResponse.json(
-        { error: "Failed to add collaborator" },
-        { status: 500 }
-      );
+      console.error("[Collaborators] Error adding collaborator:", error);
+      return errors.internal("Failed to add collaborator", "Collaborators");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       collaborator: newCollab,
     });
   } catch (error) {
-    console.error("Error in POST /api/trips/[id]/collaborators:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Collaborators] Error adding collaborator:", error);
+    return errors.internal("Failed to add collaborator", "Collaborators");
   }
 }

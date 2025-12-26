@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { BookingLink } from "@/types";
 
 interface TripBookingLinksProps {
@@ -41,6 +42,7 @@ function getProviderStyle(provider: string) {
 }
 
 export default function TripBookingLinks({ bookingLinks, className = "" }: TripBookingLinksProps) {
+  const t = useTranslations("common.booking.links");
   const [activeTab, setActiveTab] = useState<"flights" | "hotels">("flights");
 
   if (!bookingLinks) {
@@ -66,8 +68,8 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
           </svg>
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Book Your Trip</h2>
-          <p className="text-xs text-slate-500">Compare prices across platforms</p>
+          <h2 className="text-lg font-semibold text-slate-900">{t("title")}</h2>
+          <p className="text-xs text-slate-500">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -89,7 +91,7 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
-            Flights
+            {t("flights")}
             {hasFlights && (
               <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
                 {bookingLinks.flights.length}
@@ -110,7 +112,7 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            Hotels
+            {t("hotels")}
             {hasHotels && (
               <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
                 {bookingLinks.hotels.length}
@@ -163,7 +165,7 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
 
           {/* Disclaimer */}
           <p className="mt-4 text-xs text-center text-slate-500">
-            Prices and availability may vary. Click to compare on each platform.
+            {t("disclaimer")}
           </p>
         </div>
       </div>

@@ -5,6 +5,8 @@
  * with clear guidance on how to resolve the issue.
  */
 
+import { isValidEmail } from "@/lib/validation";
+
 export interface AuthError {
   message: string;
   field?: 'email' | 'password' | 'general';
@@ -143,6 +145,7 @@ export function humanizeAuthError(errorMessage: string): AuthError {
 
 /**
  * Validate email format client-side
+ * Uses shared email validation from @/lib/validation
  */
 export function validateEmail(email: string): AuthError | null {
   if (!email) {
@@ -152,9 +155,7 @@ export function validateEmail(email: string): AuthError | null {
     };
   }
 
-  // Basic email regex pattern
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!isValidEmail(email)) {
     return {
       message: 'Please enter a valid email address.',
       field: 'email',

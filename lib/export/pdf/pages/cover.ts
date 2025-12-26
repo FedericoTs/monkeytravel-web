@@ -2,25 +2,7 @@ import type jsPDF from "jspdf";
 import type { PageContext, PremiumTripForExport } from "../types";
 import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
-
-/**
- * Format date for display
- */
-function formatDateRange(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  const startMonth = start.toLocaleDateString("en-US", { month: "short" });
-  const endMonth = end.toLocaleDateString("en-US", { month: "short" });
-  const startDay = start.getDate();
-  const endDay = end.getDate();
-  const year = end.getFullYear();
-
-  if (startMonth === endMonth) {
-    return `${startMonth} ${startDay} - ${endDay}, ${year}`;
-  }
-  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
-}
+import { formatDateRange } from "@/lib/datetime";
 
 /**
  * Draw a beautiful gradient background when no cover image

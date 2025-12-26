@@ -12,8 +12,9 @@
  * Cost: $0 (local database operation)
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 interface UpsertRequest {
   name: string;
@@ -31,10 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!name || !country || latitude === undefined || longitude === undefined) {
-      return NextResponse.json(
-        { error: "Missing required fields: name, country, latitude, longitude" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing required fields: name, country, latitude, longitude");
     }
 
     // Validate coordinates
@@ -46,10 +44,7 @@ export async function POST(request: NextRequest) {
       longitude < -180 ||
       longitude > 180
     ) {
-      return NextResponse.json(
-        { error: "Invalid coordinates" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid coordinates");
     }
 
     const supabase = await createClient();
@@ -64,11 +59,8 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (findError) {
-      console.error("Error finding destination:", findError);
-      return NextResponse.json(
-        { error: "Database error" },
-        { status: 500 }
-      );
+      console.error("[Destinations Upsert] Error finding destination:", findError);
+      return errors.internal("Database error", "Destinations Upsert");
     }
 
     if (existing) {
@@ -102,14 +94,14 @@ export async function POST(request: NextRequest) {
           .eq("id", existing.id);
 
         if (updateError) {
-          console.error("Error updating destination:", updateError);
+          console.error("[Destinations Upsert] Error updating destination:", updateError);
           // Non-critical, don't fail the request
         } else {
           console.log(`[Destinations] Updated: ${name}, ${country}`);
         }
       }
 
-      return NextResponse.json({
+      return apiSuccess({
         action: "updated",
         id: existing.id,
         name: existing.name,
@@ -147,34 +139,28 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       // Check if it's a duplicate constraint error (race condition)
       if (insertError.code === "23505") {
-        console.log(`[Destinations] Duplicate detected (race): ${name}, ${country}`);
-        return NextResponse.json({
+        console.log(`[Destinations Upsert] Duplicate detected (race): ${name}, ${country}`);
+        return apiSuccess({
           action: "already_exists",
           name: name.trim(),
           country: country.trim(),
         });
       }
 
-      console.error("Error inserting destination:", insertError);
-      return NextResponse.json(
-        { error: "Failed to insert destination" },
-        { status: 500 }
-      );
+      console.error("[Destinations Upsert] Error inserting destination:", insertError);
+      return errors.internal("Failed to insert destination", "Destinations Upsert");
     }
 
-    console.log(`[Destinations] Inserted: ${name}, ${country} (from Google Places)`);
+    console.log(`[Destinations Upsert] Inserted: ${name}, ${country} (from Google Places)`);
 
-    return NextResponse.json({
+    return apiSuccess({
       action: "inserted",
       id: inserted.id,
       name: inserted.name,
       country: inserted.country,
     });
   } catch (error) {
-    console.error("Destinations upsert error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Destinations Upsert] Destinations upsert error:", error);
+    return errors.internal("Internal server error", "Destinations Upsert");
   }
 }

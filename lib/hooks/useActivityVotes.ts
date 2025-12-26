@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   VoteType,
   ActivityVote,
-  ActivityStatus,
+  ActivityConfirmationRecord,
   ConsensusResult,
   ActivityVotingStatus,
 } from "@/types";
@@ -20,7 +20,7 @@ interface UseActivityVotesOptions {
 interface UseActivityVotesReturn {
   // Data
   votes: Record<string, ActivityVote[]>;
-  statuses: Record<string, ActivityStatus>;
+  statuses: Record<string, ActivityConfirmationRecord>;
   consensus: Record<string, ConsensusResult>;
   currentUserVotes: Record<string, VoteType>;
   voterCount: number;
@@ -47,7 +47,7 @@ export function useActivityVotes({
   onVoteChange,
 }: UseActivityVotesOptions): UseActivityVotesReturn {
   const [votes, setVotes] = useState<Record<string, ActivityVote[]>>({});
-  const [statuses, setStatuses] = useState<Record<string, ActivityStatus>>({});
+  const [statuses, setStatuses] = useState<Record<string, ActivityConfirmationRecord>>({});
   const [consensus, setConsensus] = useState<Record<string, ConsensusResult>>({});
   const [currentUserVotes, setCurrentUserVotes] = useState<Record<string, VoteType>>({});
   const [voterCount, setVoterCount] = useState(0);

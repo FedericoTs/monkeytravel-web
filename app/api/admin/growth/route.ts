@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Growth metrics for Sean Ellis framework
 export interface GrowthStats {
@@ -121,6 +121,41 @@ export interface GrowthStats {
       proposalsResolved: number;
     };
   };
+  // Bananas economy metrics
+  bananasEconomy: {
+    overview: {
+      totalInCirculation: number;
+      totalEarned: number;
+      totalSpent: number;
+      totalExpired: number;
+      avgPerUser: number;
+      velocity: { current7d: number; previous7d: number; changePercent: number };
+    };
+    tierDistribution: {
+      tier0: { count: number; pct: number };
+      tier1: { count: number; pct: number };
+      tier2: { count: number; pct: number };
+      tier3: { count: number; pct: number };
+      avgDaysToTier: { tier1: number | null; tier2: number | null; tier3: number | null };
+    };
+    earningBreakdown: {
+      byType: Record<string, number>;
+      topEarners: { displayName: string; total: number; tier: number }[];
+    };
+    redemptions: {
+      total: number;
+      bananasSpent: number;
+      uniqueRedeemers: number;
+      redemptionRate: number;
+      topItems: { name: string; count: number; spent: number }[];
+    };
+    expiration: {
+      atRisk30d: number;
+      atRiskUsers: number;
+      totalExpired: number;
+      utilizationRate: number;
+    };
+  };
 }
 
 export async function GET() {
@@ -133,12 +168,12 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     const now = new Date();
@@ -162,11 +197,16 @@ export async function GET() {
       invitesResult,
       proposalsResult,
       proposalVotesResult,
+      // Bananas economy data
+      bananaTransactionsResult,
+      referralTiersResult,
+      redemptionCatalogResult,
+      bananaRedemptionsResult,
     ] = await Promise.all([
-      // All users with relevant dates
+      // All users with relevant dates and bananas economy fields
       supabase
         .from("users")
-        .select("id, display_name, created_at, last_sign_in_at, onboarding_completed, subscription_tier, is_pro, referred_by_code"),
+        .select("id, display_name, created_at, last_sign_in_at, onboarding_completed, subscription_tier, is_pro, referred_by_code, banana_balance, referral_tier, show_on_leaderboard, leaderboard_visibility"),
       // All trips with user_id and share_token
       supabase
         .from("trips")
@@ -199,6 +239,22 @@ export async function GET() {
       supabase
         .from("proposal_votes")
         .select("id, proposal_id, user_id, vote_type, voted_at"),
+      // Bananas economy: All transactions
+      supabase
+        .from("banana_transactions")
+        .select("id, user_id, amount, transaction_type, created_at, expires_at, expired"),
+      // Bananas economy: Referral tier unlock history
+      supabase
+        .from("referral_tiers")
+        .select("id, user_id, tier, unlocked_at"),
+      // Bananas economy: Redemption catalog
+      supabase
+        .from("banana_redemption_catalog")
+        .select("id, name, cost, category, is_active"),
+      // Bananas economy: User redemptions
+      supabase
+        .from("banana_redemptions")
+        .select("id, user_id, catalog_item_id, bananas_spent, created_at"),
     ]);
 
     const users = usersResult.data || [];
@@ -211,6 +267,11 @@ export async function GET() {
     const invites = invitesResult.data || [];
     const proposals = proposalsResult.data || [];
     const proposalVotes = proposalVotesResult.data || [];
+    // Bananas economy data extraction
+    const bananaTransactions = bananaTransactionsResult.data || [];
+    const referralTiersData = referralTiersResult.data || [];
+    const redemptionCatalog = redemptionCatalogResult.data || [];
+    const bananaRedemptions = bananaRedemptionsResult.data || [];
 
     // Helper: calculate retention for users signed up before a threshold
     // FIXED: Changed from >= to > 0 AND <= to properly measure "returned WITHIN N days"
@@ -525,6 +586,124 @@ export async function GET() {
       proposalsResolved: proposalsByStatus.approved + proposalsByStatus.rejected + proposalsByStatus.withdrawn,
     };
 
+    // ===========================================
+    // 7. BANANAS ECONOMY METRICS
+    // ===========================================
+
+    // Economy Overview
+    const totalInCirculation = users.reduce((s, u) => s + (u.banana_balance || 0), 0);
+    const usersWithBananas = users.filter(u => (u.banana_balance || 0) > 0).length;
+    const totalEarned = bananaTransactions
+      .filter(t => t.amount > 0)
+      .reduce((s, t) => s + t.amount, 0);
+    const totalSpent = bananaTransactions
+      .filter(t => t.amount < 0)
+      .reduce((s, t) => s + Math.abs(t.amount), 0);
+    const totalExpiredBananas = bananaTransactions
+      .filter(t => t.transaction_type === "expiration")
+      .reduce((s, t) => s + Math.abs(t.amount), 0);
+
+    // Velocity (7d vs previous 7d)
+    const d7AgoDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const d14AgoDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const current7dEarned = bananaTransactions
+      .filter(t => t.amount > 0 && new Date(t.created_at) >= d7AgoDate)
+      .reduce((s, t) => s + t.amount, 0);
+    const previous7dEarned = bananaTransactions
+      .filter(t => t.amount > 0 && new Date(t.created_at) >= d14AgoDate && new Date(t.created_at) < d7AgoDate)
+      .reduce((s, t) => s + t.amount, 0);
+    const velocityChange = previous7dEarned > 0
+      ? Math.round(((current7dEarned - previous7dEarned) / previous7dEarned) * 100)
+      : (current7dEarned > 0 ? 100 : 0);
+
+    // Tier distribution from users table
+    const tierCounts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+    users.forEach(u => {
+      const tier = (u.referral_tier || 0) as 0 | 1 | 2 | 3;
+      tierCounts[tier]++;
+    });
+    const totalUsersForTier = users.length;
+
+    // Earning by type
+    const earningByType: Record<string, number> = {};
+    bananaTransactions.filter(t => t.amount > 0).forEach(t => {
+      earningByType[t.transaction_type] = (earningByType[t.transaction_type] || 0) + t.amount;
+    });
+
+    // Top earners (anonymized per leaderboard settings)
+    const userEarnings = new Map<string, { total: number; user: typeof users[0] }>();
+    bananaTransactions.filter(t => t.amount > 0).forEach(t => {
+      const existing = userEarnings.get(t.user_id);
+      const user = users.find(u => u.id === t.user_id);
+      if (user) {
+        userEarnings.set(t.user_id, { total: (existing?.total || 0) + t.amount, user });
+      }
+    });
+    const topEarners = [...userEarnings.values()]
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map(e => ({
+        displayName: e.user.show_on_leaderboard === false ? "Anonymous" :
+          e.user.leaderboard_visibility === "initials" ? `${e.user.display_name?.[0] || "U"}***` :
+          e.user.display_name || "Anonymous",
+        total: e.total,
+        tier: e.user.referral_tier || 0,
+      }));
+
+    // Redemptions
+    const redemptionRate = totalEarned > 0
+      ? Math.round((totalSpent / totalEarned) * 1000) / 10
+      : 0;
+    const uniqueRedeemers = new Set(bananaRedemptions.map(r => r.user_id)).size;
+    const itemCounts = new Map<string, { name: string; count: number; spent: number }>();
+    bananaRedemptions.forEach(r => {
+      const item = redemptionCatalog.find(c => c.id === r.catalog_item_id);
+      if (item) {
+        const existing = itemCounts.get(item.id) || { name: item.name, count: 0, spent: 0 };
+        itemCounts.set(item.id, { ...existing, count: existing.count + 1, spent: existing.spent + r.bananas_spent });
+      }
+    });
+    const topItems = [...itemCounts.values()].sort((a, b) => b.count - a.count).slice(0, 5);
+
+    // Expiration metrics
+    const d30FromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const atRiskTransactions = bananaTransactions.filter(t =>
+      t.amount > 0 && !t.expired && t.expires_at &&
+      new Date(t.expires_at) > now && new Date(t.expires_at) <= d30FromNow
+    );
+    const atRisk30d = atRiskTransactions.reduce((s, t) => s + t.amount, 0);
+    const atRiskUsers = new Set(atRiskTransactions.map(t => t.user_id)).size;
+    const utilizationRate = totalEarned > 0
+      ? Math.round(((totalEarned - totalExpiredBananas) / totalEarned) * 1000) / 10
+      : 100;
+
+    // Avg days to tier (from referral_tiers table)
+    const avgDaysToTier: { tier1: number | null; tier2: number | null; tier3: number | null } = {
+      tier1: null,
+      tier2: null,
+      tier3: null,
+    };
+    // Calculate avg days for each tier based on unlock timestamps
+    [1, 2, 3].forEach(tier => {
+      const tierUnlocks = referralTiersData.filter(rt => rt.tier === tier);
+      if (tierUnlocks.length > 0) {
+        // Find account creation for each user who unlocked this tier
+        const daysToUnlock = tierUnlocks.map(tu => {
+          const user = users.find(u => u.id === tu.user_id);
+          if (user) {
+            const createdAt = new Date(user.created_at);
+            const unlockedAt = new Date(tu.unlocked_at);
+            return Math.round((unlockedAt.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000));
+          }
+          return null;
+        }).filter((d): d is number => d !== null);
+        if (daysToUnlock.length > 0) {
+          const tierKey = `tier${tier}` as "tier1" | "tier2" | "tier3";
+          avgDaysToTier[tierKey] = Math.round(daysToUnlock.reduce((a, b) => a + b, 0) / daysToUnlock.length);
+        }
+      }
+    });
+
     const growthStats: GrowthStats = {
       retention: {
         d1: d1Current.rate,
@@ -626,14 +805,49 @@ export async function GET() {
         // Collaboration funnel
         funnel: collaborationFunnel,
       },
+      bananasEconomy: {
+        overview: {
+          totalInCirculation,
+          totalEarned,
+          totalSpent,
+          totalExpired: totalExpiredBananas,
+          avgPerUser: usersWithBananas > 0 ? Math.round(totalInCirculation / usersWithBananas) : 0,
+          velocity: {
+            current7d: current7dEarned,
+            previous7d: previous7dEarned,
+            changePercent: velocityChange,
+          },
+        },
+        tierDistribution: {
+          tier0: { count: tierCounts[0], pct: totalUsersForTier > 0 ? Math.round((tierCounts[0] / totalUsersForTier) * 100) : 0 },
+          tier1: { count: tierCounts[1], pct: totalUsersForTier > 0 ? Math.round((tierCounts[1] / totalUsersForTier) * 100) : 0 },
+          tier2: { count: tierCounts[2], pct: totalUsersForTier > 0 ? Math.round((tierCounts[2] / totalUsersForTier) * 100) : 0 },
+          tier3: { count: tierCounts[3], pct: totalUsersForTier > 0 ? Math.round((tierCounts[3] / totalUsersForTier) * 100) : 0 },
+          avgDaysToTier,
+        },
+        earningBreakdown: {
+          byType: earningByType,
+          topEarners,
+        },
+        redemptions: {
+          total: bananaRedemptions.length,
+          bananasSpent: totalSpent,
+          uniqueRedeemers,
+          redemptionRate,
+          topItems,
+        },
+        expiration: {
+          atRisk30d,
+          atRiskUsers,
+          totalExpired: totalExpiredBananas,
+          utilizationRate,
+        },
+      },
     };
 
-    return NextResponse.json(growthStats);
+    return apiSuccess(growthStats);
   } catch (error) {
-    console.error("Growth stats error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch growth stats" },
-      { status: 500 }
-    );
+    console.error("[Admin Growth] Error:", error);
+    return errors.internal("Failed to fetch growth stats", "Admin Growth");
   }
 }

@@ -4,17 +4,7 @@ import type { ItineraryDay } from "@/types";
 import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
 import { renderActivityCard, renderCompactActivityCard } from "./activity-card";
-
-/**
- * Format date for display
- */
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatDateWithWeekday } from "@/lib/datetime";
 
 /**
  * Render a day page with visual timeline and activities
@@ -59,7 +49,7 @@ export function renderDayPage(
   // Date on right side
   doc.setFontSize(11);
   doc.setFont(config.fonts.body, "normal");
-  doc.text(formatDate(day.date), pageWidth - margin - 10, y + 18, { align: "right" });
+  doc.text(formatDateWithWeekday(day.date), pageWidth - margin - 10, y + 18, { align: "right" });
 
   y += 36;
 
@@ -266,7 +256,7 @@ function renderDayPageHeader(
   doc.setTextColor(...COLORS.muted);
   doc.setFontSize(9);
   doc.setFont(config.fonts.display, "normal");
-  doc.text(formatDate(day.date), pageWidth - margin, margin + 12, { align: "right" });
+  doc.text(formatDateWithWeekday(day.date), pageWidth - margin, margin + 12, { align: "right" });
 
   // Page number
   doc.setTextColor(...COLORS.muted);

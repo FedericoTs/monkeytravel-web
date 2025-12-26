@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
@@ -70,6 +70,10 @@ export default async function SharedTripPage({ params }: PageProps) {
   const cachedTravelDistances = tripMeta.travel_distances;
   const cachedTravelHash = tripMeta.travel_distances_hash;
 
+  // Extract destination from title (e.g., "Cusco Trip" -> "Cusco")
+  // Note: 'destination' is not a column in trips table, it's derived from title
+  const destination = trip.title.replace(/ Trip$/i, "");
+
   // Generate structured data for SEO
   const tripUrl = `https://monkeytravel.app/shared/${token}`;
   const tripSchema = generateTripSchema({
@@ -78,7 +82,7 @@ export default async function SharedTripPage({ params }: PageProps) {
     url: tripUrl,
     startDate: trip.start_date,
     endDate: trip.end_date,
-    destination: trip.destination,
+    destination,
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import { trackAIAssistantMessage } from "@/lib/analytics";
@@ -234,20 +235,14 @@ export default function AIAssistant({
 
           <div className="relative flex items-center justify-between px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
+              <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg overflow-hidden">
+                <Image
+                  src="/images/ai-agent.png"
+                  alt="AI Assistant"
+                  width={44}
+                  height={44}
+                  className="object-cover"
+                />
               </div>
               <div>
                 <h3 className="font-semibold text-white text-lg">{t('title')}</h3>
@@ -287,20 +282,13 @@ export default function AIAssistant({
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50 to-white">
           {messages.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-[var(--primary)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-4">
+                <Image
+                  src="/images/ai-agent.png"
+                  alt="AI Assistant"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <h4 className="font-semibold text-slate-900 mb-1">
                 {t('howCanIHelp')}

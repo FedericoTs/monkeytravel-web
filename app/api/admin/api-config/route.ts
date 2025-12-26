@@ -5,10 +5,11 @@
  * PATCH - Update API configuration (enable/disable, change block mode)
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { invalidateConfigCache } from "@/lib/api-gateway";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface ApiConfig {
   id: string;
@@ -40,12 +41,12 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Fetch all API configs
@@ -56,20 +57,14 @@ export async function GET() {
       .order("display_name", { ascending: true });
 
     if (error) {
-      console.error("[ApiConfig] Failed to fetch:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch API configurations" },
-        { status: 500 }
-      );
+      console.error("[Admin ApiConfig] Failed to fetch:", error);
+      return errors.internal("Failed to fetch API configurations", "Admin ApiConfig");
     }
 
-    return NextResponse.json({ configs: data || [] });
+    return apiSuccess({ configs: data || [] });
   } catch (error) {
-    console.error("[ApiConfig] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin ApiConfig] GET error:", error);
+    return errors.internal("Internal server error", "Admin ApiConfig");
   }
 }
 
@@ -87,12 +82,12 @@ export async function PATCH(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Parse request body
@@ -100,10 +95,7 @@ export async function PATCH(request: NextRequest) {
     const { api_name, enabled, block_mode, daily_limit, monthly_limit } = body;
 
     if (!api_name) {
-      return NextResponse.json(
-        { error: "api_name is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("api_name is required");
     }
 
     // Build update object
@@ -137,29 +129,23 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("[ApiConfig] Failed to update:", error);
-      return NextResponse.json(
-        { error: "Failed to update API configuration" },
-        { status: 500 }
-      );
+      console.error("[Admin ApiConfig] Failed to update:", error);
+      return errors.internal("Failed to update API configuration", "Admin ApiConfig");
     }
 
     // Invalidate the config cache so changes take effect immediately
     invalidateConfigCache();
 
-    console.log(`[ApiConfig] Updated ${api_name}:`, updates);
+    console.log(`[Admin ApiConfig] Updated ${api_name}:`, updates);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       config: data,
       message: `${data.display_name} configuration updated`,
     });
   } catch (error) {
-    console.error("[ApiConfig] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin ApiConfig] PATCH error:", error);
+    return errors.internal("Internal server error", "Admin ApiConfig");
   }
 }
 
@@ -177,12 +163,12 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     const body = await request.json();
@@ -198,11 +184,11 @@ export async function POST(request: NextRequest) {
         .eq("api_name", api_name || "");
 
       if (error) {
-        return NextResponse.json({ error: "Failed to reset" }, { status: 500 });
+        return errors.internal("Failed to reset daily counter", "Admin ApiConfig");
       }
 
       invalidateConfigCache();
-      return NextResponse.json({ success: true, message: "Daily counter reset" });
+      return apiSuccess({ success: true, message: "Daily counter reset" });
     }
 
     if (action === "reset_monthly") {
@@ -215,11 +201,11 @@ export async function POST(request: NextRequest) {
         .eq("api_name", api_name || "");
 
       if (error) {
-        return NextResponse.json({ error: "Failed to reset" }, { status: 500 });
+        return errors.internal("Failed to reset monthly counter", "Admin ApiConfig");
       }
 
       invalidateConfigCache();
-      return NextResponse.json({ success: true, message: "Monthly counter reset" });
+      return apiSuccess({ success: true, message: "Monthly counter reset" });
     }
 
     if (action === "enable_all") {
@@ -233,11 +219,11 @@ export async function POST(request: NextRequest) {
         });
 
       if (error) {
-        return NextResponse.json({ error: "Failed to enable all" }, { status: 500 });
+        return errors.internal("Failed to enable all APIs", "Admin ApiConfig");
       }
 
       invalidateConfigCache();
-      return NextResponse.json({ success: true, message: "All APIs enabled" });
+      return apiSuccess({ success: true, message: "All APIs enabled" });
     }
 
     if (action === "disable_all") {
@@ -251,19 +237,16 @@ export async function POST(request: NextRequest) {
         });
 
       if (error) {
-        return NextResponse.json({ error: "Failed to disable all" }, { status: 500 });
+        return errors.internal("Failed to disable all APIs", "Admin ApiConfig");
       }
 
       invalidateConfigCache();
-      return NextResponse.json({ success: true, message: "All APIs disabled" });
+      return apiSuccess({ success: true, message: "All APIs disabled" });
     }
 
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return errors.badRequest("Invalid action");
   } catch (error) {
-    console.error("[ApiConfig] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin ApiConfig] POST error:", error);
+    return errors.internal("Internal server error", "Admin ApiConfig");
   }
 }

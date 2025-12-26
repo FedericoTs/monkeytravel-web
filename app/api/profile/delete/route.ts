@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { NextResponse } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 /**
  * DELETE /api/profile/delete
@@ -15,17 +15,8 @@ import { NextResponse } from "next/server";
  * Analytics data (page_views, api_request_logs) is anonymized rather than deleted.
  */
 export async function DELETE() {
-  const supabase = await createClient();
-
-  // Get authenticated user
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { user, errorResponse } = await getAuthenticatedUser();
+  if (errorResponse) return errorResponse;
 
   const userId = user.id;
 
@@ -42,7 +33,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (checklistError) {
-      console.error("Error deleting trip_checklists:", checklistError);
+      console.error("[Profile Delete] Error deleting trip_checklists:", checklistError);
     }
 
     // Activity timelines
@@ -51,7 +42,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (timelineError) {
-      console.error("Error deleting activity_timelines:", timelineError);
+      console.error("[Profile Delete] Error deleting activity_timelines:", timelineError);
     }
 
     // Phase 2: Delete AI/usage records
@@ -60,7 +51,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (aiConvoError) {
-      console.error("Error deleting ai_conversations:", aiConvoError);
+      console.error("[Profile Delete] Error deleting ai_conversations:", aiConvoError);
     }
 
     const { error: aiUsageError } = await adminClient
@@ -68,7 +59,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (aiUsageError) {
-      console.error("Error deleting ai_usage:", aiUsageError);
+      console.error("[Profile Delete] Error deleting ai_usage:", aiUsageError);
     }
 
     const { error: userUsageError } = await adminClient
@@ -76,7 +67,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (userUsageError) {
-      console.error("Error deleting user_usage:", userUsageError);
+      console.error("[Profile Delete] Error deleting user_usage:", userUsageError);
     }
 
     // Phase 3: Anonymize analytics (preserve data, remove PII)
@@ -85,7 +76,7 @@ export async function DELETE() {
       .update({ user_id: null })
       .eq("user_id", userId);
     if (pageViewsError) {
-      console.error("Error anonymizing page_views:", pageViewsError);
+      console.error("[Profile Delete] Error anonymizing page_views:", pageViewsError);
     }
 
     const { error: apiLogsError } = await adminClient
@@ -93,7 +84,7 @@ export async function DELETE() {
       .update({ user_id: null })
       .eq("user_id", userId);
     if (apiLogsError) {
-      console.error("Error anonymizing api_request_logs:", apiLogsError);
+      console.error("[Profile Delete] Error anonymizing api_request_logs:", apiLogsError);
     }
 
     // Phase 4: Delete trips (main content)
@@ -102,7 +93,7 @@ export async function DELETE() {
       .delete()
       .eq("user_id", userId);
     if (tripsError) {
-      console.error("Error deleting trips:", tripsError);
+      console.error("[Profile Delete] Error deleting trips:", tripsError);
       throw new Error("Failed to delete trips");
     }
 
@@ -112,7 +103,7 @@ export async function DELETE() {
       .delete()
       .eq("id", userId);
     if (userError) {
-      console.error("Error deleting user profile:", userError);
+      console.error("[Profile Delete] Error deleting user profile:", userError);
       throw new Error("Failed to delete user profile");
     }
 
@@ -121,24 +112,21 @@ export async function DELETE() {
       await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteAuthError) {
-      console.error("Error deleting auth user:", deleteAuthError);
+      console.error("[Profile Delete] Error deleting auth user:", deleteAuthError);
       throw new Error("Failed to delete authentication record");
     }
 
-    console.log(`Successfully deleted account for user: ${userId}`);
+    console.log(`[Profile Delete] Successfully deleted account for user: ${userId}`);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Account deleted successfully",
     });
   } catch (error) {
-    console.error("Account deletion failed:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to delete account",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
+    console.error("[Profile Delete] Account deletion failed:", error);
+    return errors.internal(
+      "Failed to delete account",
+      "Profile Delete"
     );
   }
 }

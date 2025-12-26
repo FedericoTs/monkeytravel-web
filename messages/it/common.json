@@ -21,6 +21,7 @@
     "create": "Crea",
     "submit": "Invia",
     "close": "Chiudi",
+    "closeModal": "Chiudi finestra",
     "confirm": "Conferma",
     "tryFree": "Provalo Gratis",
     "planTrip": "Pianifica il Tuo Viaggio",
@@ -40,6 +41,11 @@
     "website": "Sito Web",
     "more": "Altro",
     "less": "Meno"
+  },
+  "drag": {
+    "title": "Tieni premuto e trascina per riordinare",
+    "ariaLabel": "Maniglia di trascinamento - tieni premuto e trascina per riordinare le attività",
+    "hint": "Trascina"
   },
   "validation": {
     "required": "Questo campo è obbligatorio",
@@ -131,6 +137,34 @@
     "loadingPhotos": "Caricamento foto...",
     "noPhotos": "Nessuna foto disponibile",
     "regeneratingActivity": "Rigenerazione attività con IA..."
+  },
+  "xp": {
+    "todaysProgress": "Progresso di Oggi",
+    "activitiesCount": "{completed}/{total} attività",
+    "xpToNextLevel": "{xp} XP per {levelName}",
+    "maxLevel": "Livello Massimo!",
+    "dayComplete": "Giorno Completato!",
+    "levels": {
+      "traveler": "Viaggiatore",
+      "explorer": "Esploratore",
+      "adventurer": "Avventuriero",
+      "voyager": "Navigatore",
+      "globetrotter": "Giramondo",
+      "wayfarer": "Viandante",
+      "wanderer": "Vagabondo",
+      "pathfinder": "Pioniere",
+      "pioneer": "Precursore",
+      "legend": "Leggenda"
+    },
+    "achievement": {
+      "unlocked": "Trofeo {rarity}",
+      "rarities": {
+        "common": "Comune",
+        "rare": "Raro",
+        "epic": "Epico",
+        "legendary": "Leggendario"
+      }
+    }
   },
   "trip": {
     "cards": "Schede",
@@ -239,6 +273,10 @@
     "submitting": "Invio...",
     "submitVote": "Invia Voto",
     "changeMyVote": "Cambia il mio voto",
+    "undo": "Annulla",
+    "concernsPrompt": "Per favore condividi i tuoi dubbi in modo che il gruppo possa affrontarli:",
+    "noPrompt": "Per favore condividi perché questo non funziona per te:",
+    "shareThoughts": "Condividi i tuoi pensieri...",
     "votingSplit": "La votazione è divisa",
     "tripOrganizerCall": "Come organizzatore del viaggio, puoi prendere la decisione finale.",
     "addToPlan": "Aggiungi al Piano",
@@ -323,16 +361,39 @@
     "allStatus": "Tutti gli stati",
     "planning": "In pianificazione",
     "confirmed": "Confermato",
-    "active": "Attivo",
+    "active": "In Corso",
     "completed": "Completato",
+    "memories": "Ricordi",
     "cancelled": "Annullato",
+    "archived": "Archiviato",
     "total": "Totale",
     "destinations": "Destinazioni",
     "showing": "Mostrando:",
     "tripsCount": "viaggi",
     "noUpcomingTrips": "Nessun viaggio in arrivo. Inizia a pianificare la tua prossima avventura!",
     "signOut": "Esci",
-    "hi": "Ciao"
+    "hi": "Ciao",
+    "confirmTrip": "Conferma Viaggio",
+    "cancelTrip": "Annulla Viaggio",
+    "restoreTrip": "Ripristina Viaggio",
+    "archiveTrip": "Archivia Viaggio",
+    "unarchiveTrip": "Ripristina dall'Archivio",
+    "deleteTrip": "Elimina Viaggio",
+    "archivedSection": "Viaggi Archiviati",
+    "noArchivedTrips": "Nessun viaggio archiviato",
+    "showArchived": "Mostra archiviati",
+    "hideArchived": "Nascondi archiviati",
+    "confirmArchive": "Archiviare questo viaggio?",
+    "confirmArchiveMessage": "Questo nasconderà il viaggio dalla vista principale. Puoi ripristinarlo in qualsiasi momento.",
+    "confirmDelete": "Eliminare questo viaggio?",
+    "confirmDeleteMessage": "Questa azione non può essere annullata. Il viaggio verrà eliminato permanentemente.",
+    "tripArchived": "Viaggio archiviato",
+    "tripRestored": "Viaggio ripristinato",
+    "tripDeleted": "Viaggio eliminato",
+    "tripConfirmed": "Viaggio confermato",
+    "tripCancelled": "Viaggio annullato",
+    "readyToConfirm": "Pronto a confermare il tuo viaggio?",
+    "confirmTripDescription": "Una volta confermato, avrai un conto alla rovescia fino alla partenza e accesso alla tua lista di preparativi."
   },
   "booking": {
     "hotels": {
@@ -377,7 +438,25 @@
       "perNight": "per notte",
       "total": "totale",
       "forNights": "per {count} notti",
-      "forNight": "per {count} notte"
+      "forNight": "per {count} notte",
+      "curatedStays": "Soggiorni Selezionati",
+      "hotelsNearActivities": "Hotel vicino alle tue {count} attività pianificate",
+      "hotelsIn": "Hotel a {destination}",
+      "checkAvailability": "Verifica Disponibilità",
+      "googleHotels": "Google Hotels",
+      "comparePrices": "Confronta prezzi",
+      "bookDirectly": "Prenota direttamente",
+      "collectRewards": "Raccogli premi",
+      "bundleSave": "Pacchetto e risparmio",
+      "noHotelsNearby": "Nessun hotel trovato nelle vicinanze",
+      "noHotelsNearbyDesc": "Non siamo riusciti a trovare hotel vicino alle tue attività pianificate. Prova ad ampliare la ricerca su Google Maps o Booking.com.",
+      "disclaimer": "Dati degli hotel forniti da Google Places. Prezzi e disponibilità possono variare. Prenota direttamente con l'hotel per le migliori tariffe.",
+      "couldntLoadHotels": "Impossibile caricare i suggerimenti sugli hotel",
+      "withinKmOfActivities": "Entro {distance}km dalle attività",
+      "scrollLeft": "Scorri a sinistra",
+      "scrollRight": "Scorri a destra",
+      "openNow": "Aperto ora",
+      "reviewCount": "{count, plural, =1 {# recensione} other {# recensioni}}"
     },
     "flights": {
       "findFlightsTo": "Cerca Voli per {destination}",
@@ -407,6 +486,13 @@
       "first": "Prima classe",
       "seatsLeft": "{count} rimasti",
       "via": "Via"
+    },
+    "links": {
+      "title": "Prenota il Tuo Viaggio",
+      "subtitle": "Confronta i prezzi su diverse piattaforme",
+      "flights": "Voli",
+      "hotels": "Hotel",
+      "disclaimer": "Prezzi e disponibilità potrebbero variare. Clicca per confrontare su ogni piattaforma."
     }
   },
   "destination": {
@@ -429,7 +515,13 @@
     "openNow": "Aperto ora",
     "closed": "Chiuso",
     "website": "Sito web",
-    "viewAll": "Vedi tutto"
+    "viewAll": "Vedi tutto",
+    "closeGallery": "Chiudi galleria",
+    "previousImage": "Immagine precedente",
+    "nextImage": "Immagine successiva",
+    "viewPhoto": "Vedi foto {index}",
+    "photoBy": "Foto: {attribution}",
+    "thumbnail": "Miniatura {index}"
   },
   "map": {
     "failedToLoad": "Errore nel caricamento della mappa",
@@ -474,6 +566,7 @@
     "selected": "selezionati",
     "yourBlend": "Il tuo mix di viaggio:",
     "influence": "{percent}% di influenza",
+    "maxReached": "Massimo raggiunto",
     "categories": {
       "classic": "Stili Classici",
       "fantasy": "Fantasia e Capriccioso",
@@ -633,6 +726,17 @@
     "adding": "Aggiunta...",
     "add": "Aggiungi Attività",
     "error": "Errore nell'aggiunta dell'attività. Riprova.",
+    "activityName": "Nome Attività",
+    "activityNameRequired": "Nome Attività *",
+    "type": "Tipo",
+    "duration": "Durata",
+    "descriptionOptional": "Descrizione (opzionale)",
+    "descriptionPlaceholder": "Aggiungi note o dettagli...",
+    "back": "Indietro",
+    "searchPlaceholder": "Cerca attività a {destination}...",
+    "noResults": "Nessuna attività trovata per \"{query}\"",
+    "addManually": "Aggiungilo manualmente",
+    "searchOrSelect": "Cerca attività o seleziona una categoria",
     "categories": {
       "restaurant": "Ristorante",
       "cafe": "Caffè",
@@ -641,6 +745,9 @@
       "park": "Parco",
       "shopping": "Shopping",
       "entertainment": "Intrattenimento",
+      "nature": "Natura",
+      "transport": "Trasporto",
+      "activity": "Attività",
       "other": "Altro"
     },
     "durations": {
@@ -649,6 +756,7 @@
       "1.5hr": "1.5 ore",
       "2hr": "2 ore",
       "3hr": "3 ore",
+      "4hr": "4 ore",
       "halfDay": "Mezza giornata"
     }
   },
@@ -658,12 +766,107 @@
     "tryDifferent": "Prova Versione Diversa",
     "samePreferences": "Stesse preferenze, nuove idee"
   },
+  "duplicateTrip": {
+    "tripSaved": "Viaggio salvato! Reindirizzamento...",
+    "makeItYours": "Fai tuo questo viaggio",
+    "saveAndCustomize": "Salva nel tuo account e personalizza ogni dettaglio",
+    "saving": "Salvataggio...",
+    "saveToMyTrips": "Salva nei Miei Viaggi",
+    "signUpToSave": "Registrati per Salvare",
+    "alreadyHaveAccount": "Hai già un account?",
+    "logIn": "Accedi",
+    "trustBadges": {
+      "freeForever": "Gratis per sempre",
+      "fullyEditable": "Completamente modificabile",
+      "shareWithFriends": "Condividi con gli amici"
+    }
+  },
   "startOver": {
     "title": "Ricominciare?",
-    "warning": "Questo cancellerà il tuo viaggio attuale e ricomincerà da zero. Le tue preferenze verranno salvate.",
+    "warning": "Questa azione non può essere annullata",
+    "discardMessage": "Stai per eliminare il tuo itinerario generato per {destination}.",
+    "youllLose": "Perderai:",
+    "daysPlanned": "{count} giorni pianificati",
+    "activities": "{count} attività",
     "tip": "Suggerimento: Puoi sempre tornare a questo viaggio dalla cronologia dei viaggi.",
     "cancel": "Mantieni Viaggio Attuale",
     "confirm": "Ricomincia"
+  },
+  "personalization": {
+    "title": "Personalizza il tuo viaggio",
+    "subtitleWithDestination": "Aiutaci a creare un itinerario perfetto per {destination}",
+    "subtitleGeneric": "Aiutaci a creare l'itinerario perfetto per te",
+    "infoBanner": {
+      "required": "Solo lo stile di viaggio è obbligatorio.",
+      "optional": "Altre preferenze sono opzionali e ci aiutano a suggerire ristoranti e attività migliori."
+    },
+    "sections": {
+      "travelStyle": "Stile di viaggio",
+      "dietary": "Preferenze alimentari",
+      "accessibility": "Esigenze di accessibilità",
+      "activeHours": "Orari di attività"
+    },
+    "badges": {
+      "required": "Obbligatorio",
+      "optional": "Opzionale",
+      "selected": "{count} selezionati",
+      "selectAtLeastOne": "Seleziona almeno uno",
+      "noRestrictions": "Nessuna restrizione",
+      "noSpecificNeeds": "Nessuna esigenza specifica"
+    },
+    "travelStyles": {
+      "adventure": "Avventura",
+      "cultural": "Cultura",
+      "foodie": "Gastronomia",
+      "relaxation": "Benessere",
+      "nightlife": "Vita notturna",
+      "photography": "Fotografia"
+    },
+    "dietary": {
+      "none": "Nessuna restrizione",
+      "vegetarian": "Vegetariano",
+      "vegan": "Vegano",
+      "halal": "Halal",
+      "kosher": "Kosher",
+      "gluten-free": "Senza glutine"
+    },
+    "accessibility": {
+      "none": "Nessuna esigenza",
+      "wheelchair": "Accessibile in sedia a rotelle",
+      "limited-mobility": "Mobilità limitata",
+      "visual": "Assistenza visiva",
+      "hearing": "Assistenza uditiva",
+      "rest-stops": "Soste frequenti"
+    },
+    "hours": {
+      "earlyBird": "Mattiniero",
+      "standard": "Standard",
+      "nightOwl": "Nottambulo",
+      "customSchedule": "Orario personalizzato",
+      "startActivities": "Inizio attività",
+      "windDownBy": "Conclusione entro"
+    }
+  },
+  "liveJourney": {
+    "dayOfTotal": "Giorno {current} di {total}",
+    "now": "Ora",
+    "inMinutes": "tra {minutes}m",
+    "inHoursMinutes": "tra {hours}h {minutes}m",
+    "inProgress": "In Corso",
+    "upNext": "Prossima",
+    "allComplete": "Tutte le attività di oggi sono complete!",
+    "todaysProgress": "Progresso di Oggi",
+    "activitiesCount": "{completed} / {total} attività"
+  },
+  "destinationSearch": {
+    "placeholder": "Cerca destinazioni...",
+    "clearInput": "Cancella testo",
+    "cityBadge": "Città",
+    "popularDestinations": "Destinazioni popolari",
+    "typeToSearch": "Digita 3+ caratteri per cercare",
+    "fromCuratedList": "Dalla nostra lista selezionata",
+    "notInListYet": "Non ancora nella nostra lista",
+    "typeAndEnter": "Digita il nome completo della destinazione e premi Invio"
   },
   "stagedLoading": {
     "stages": {
@@ -676,6 +879,90 @@
   "shareButton": {
     "share": "Condividi",
     "shared": "Condiviso"
+  },
+  "share": {
+    "title": "Condividi Viaggio",
+    "titleWithInvite": "Condividi e Invita",
+    "shareLink": "Link di Condivisione",
+    "shareVia": "Condividi tramite",
+    "platforms": {
+      "twitter": "Twitter",
+      "whatsapp": "WhatsApp",
+      "email": "Email"
+    },
+    "explore": {
+      "listedOn": "Pubblicato su Esplora",
+      "submitTo": "Invia a Esplora",
+      "visibleInGallery": "Il tuo viaggio è visibile nella galleria pubblica",
+      "letOthersDiscover": "Lascia che altri scoprano il tuo itinerario"
+    },
+    "stopSharing": {
+      "button": "Smetti di condividere questo viaggio",
+      "confirmMessage": "Sei sicuro? Chiunque abbia il link non potrà più vedere questo viaggio.",
+      "stopping": "Interruzione...",
+      "stop": "Smetti di Condividere"
+    },
+    "socialText": {
+      "twitterShare": "Guarda il mio viaggio a {tripTitle} su MonkeyTravel!",
+      "whatsappShare": "Guarda il mio viaggio: {tripTitle}",
+      "emailSubject": "Guarda il mio viaggio: {tripTitle}",
+      "emailBody": "Ho pianificato questo fantastico viaggio usando MonkeyTravel. Dai un'occhiata!"
+    },
+    "invite": {
+      "viewOnlyLink": "Link Solo Visualizzazione",
+      "anyoneCanView": "Chiunque può vedere",
+      "inviteToCollaborate": "Invita a Collaborare",
+      "editVoteSuggest": "Modifica, vota e suggerisci",
+      "viewOnlyLabel": "Solo visualizzazione",
+      "viewOnlyHint": "I destinatari possono vedere il tuo itinerario ma non possono modificarlo",
+      "enableSharing": "Abilita la condivisione per ottenere un link pubblico per questo viaggio",
+      "enabling": "Abilitazione...",
+      "enableSharingButton": "Abilita Condivisione",
+      "publicLink": "Link Pubblico",
+      "readOnlyNote": "Chiunque abbia questo link può vedere il tuo viaggio (solo lettura)",
+      "collaborateLabel": "Collabora",
+      "collaborateHint": "I membri del team possono modificare attività, votare opzioni e suggerire cambiamenti",
+      "generateLink": "Genera Link di Invito",
+      "generating": "Generazione...",
+      "inviteCreated": "Link di invito creato! Condividilo con i tuoi compagni di viaggio.",
+      "generateAnother": "Genera un altro link",
+      "teamMembers": "Membri del Team ({count})"
+    },
+    "toast": {
+      "viewOnlyCopied": "Link di sola visualizzazione copiato!",
+      "collaborationCopied": "Invito di collaborazione copiato!",
+      "copyFailed": "Impossibile copiare il link",
+      "inviteCreated": "Link di invito creato!",
+      "inviteCreateFailed": "Impossibile creare il link di invito",
+      "networkError": "Errore di rete. Riprova.",
+      "roleUpdated": "Ruolo aggiornato a {role}",
+      "roleUpdateFailed": "Impossibile aggiornare il ruolo",
+      "memberRemoved": "Membro del team rimosso",
+      "memberRemoveFailed": "Impossibile rimuovere il membro"
+    },
+    "afterSave": {
+      "tripSaved": "Viaggio Salvato!",
+      "daysInDestination": "{tripDays} giorni a {destination}",
+      "travelingWithFriends": "Viaggi con amici?",
+      "inviteToCollaborate": "Invitali a collaborare al tuo viaggio!",
+      "inviteTripBuddies": "Invita Compagni di Viaggio",
+      "maybeLater": "Forse Dopo",
+      "collaboratorStats": "I viaggi con collaboratori hanno 3 volte più attività pianificate"
+    },
+    "collaborationBenefits": {
+      "planTogether": {
+        "title": "Pianifica Insieme",
+        "description": "Invita amici a vedere e modificare l'itinerario"
+      },
+      "voteOnActivities": {
+        "title": "Vota le Attività",
+        "description": "Lascia che tutti votino cosa fare ogni giorno"
+      },
+      "suggestIdeas": {
+        "title": "Suggerisci Idee",
+        "description": "I collaboratori possono proporre nuove attività"
+      }
+    }
   },
   "proposals": {
     "votesNeeded": "{count, plural, =1 {1 voto necessario} other {# voti necessari}}",
@@ -1187,6 +1474,8 @@
   },
   "tour": {
     "skip": "Salta",
+    "seeHowItWorks": "Scopri Come Funziona",
+    "newBadge": "Nuovo",
     "aiChat": {
       "header": {
         "title": "MonkeyTravel IA",
@@ -1260,6 +1549,7 @@
     "sections": {
       "personalInfo": "Informazioni Personali",
       "travelPreferences": "Preferenze di Viaggio",
+      "referrals": "Referral e Premi",
       "betaAccess": "Accesso Beta",
       "account": "Account"
     },
@@ -1349,6 +1639,67 @@
       "version": "MonkeyTravel v1.0",
       "privacyPolicy": "Informativa sulla Privacy",
       "termsOfService": "Termini di Servizio"
+    }
+  },
+  "profileCompletion": {
+    "title": "Completa il Tuo Profilo Viaggiatore",
+    "subtitle": "Aiutaci a personalizzare i tuoi viaggi! Solo qualche dettaglio veloce.",
+    "complete": "Completa Profilo",
+    "skip": "Lo farò dopo",
+    "saving": "Salvataggio...",
+    "fields": {
+      "displayName": "Nome Visualizzato",
+      "displayNamePlaceholder": "Come ti chiamiamo?",
+      "homeCountry": "Paese di Origine",
+      "selectCountry": "Seleziona paese...",
+      "homeCity": "Città di Origine",
+      "homeCityPlaceholder": "La tua città",
+      "languages": "Lingue che Parli",
+      "languagesHint": "Seleziona fino a 5 lingue",
+      "bio": "Breve Biografia (Opzionale)",
+      "bioPlaceholder": "Raccontaci qualcosa di te..."
+    },
+    "errors": {
+      "nameRequired": "Inserisci il tuo nome",
+      "saveFailed": "Salvataggio fallito. Riprova."
+    }
+  },
+  "authPrompt": {
+    "title": "Pronto a Generare il Tuo Viaggio!",
+    "subtitle": "Crea un account gratuito per generare il tuo itinerario personalizzato per {destination}",
+    "benefits": {
+      "aiPowered": "Generazione itinerari con IA",
+      "saveEdit": "Salva e modifica i tuoi viaggi in qualsiasi momento",
+      "realTime": "Informazioni di viaggio in tempo reale"
+    },
+    "redirecting": "Reindirizzamento...",
+    "createAccount": "Crea Account Gratis",
+    "hasAccount": "Hai già un account? Accedi",
+    "trust": {
+      "secure": "Sicuro",
+      "free": "Gratis per iniziare",
+      "quick": "Bastano 30 secondi"
+    }
+  },
+  "saveTrip": {
+    "selectDate": "Seleziona una data di inizio",
+    "saveFailed": "Impossibile salvare il viaggio",
+    "tripSaved": "Viaggio Salvato!",
+    "redirecting": "Reindirizzamento al tuo nuovo viaggio...",
+    "whenStart": "Quando inizia il tuo viaggio?",
+    "adjustDates": "Adatteremo tutte le date nell'itinerario",
+    "start": "Inizio",
+    "end": "Fine",
+    "days": "{count} giorni",
+    "daysInfo": "{days} giorni · {title}",
+    "creating": "Creazione del Tuo Viaggio...",
+    "signUpToSave": "Registrati per Salvare",
+    "saveToTrips": "Salva nei Miei Viaggi",
+    "hasAccount": "Hai già un account?",
+    "logIn": "Accedi",
+    "trust": {
+      "freeForever": "Gratis per sempre",
+      "fullyEditable": "Completamente modificabile"
     }
   }
 }

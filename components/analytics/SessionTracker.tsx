@@ -8,6 +8,7 @@ import {
   setUserId,
   setUserPropertiesEnhanced,
 } from "@/lib/analytics";
+import { identifyUser, type PostHogUserProperties } from "@/lib/posthog";
 
 const SESSION_STORAGE_KEY = "mt_last_visit";
 const SESSION_COUNT_KEY = "mt_session_count";
@@ -64,7 +65,7 @@ export default function SessionTracker() {
       // Fetch user data for context
       const { data: userData } = await supabase
         .from("users")
-        .select("created_at, onboarding_completed, subscription_tier, is_pro")
+        .select("created_at, onboarding_completed, subscription_tier, is_pro, referral_tier, preferred_language")
         .eq("id", user.id)
         .single();
 
@@ -128,6 +129,21 @@ export default function SessionTracker() {
         referralSource: "organic", // Could be enhanced with UTM tracking
         userStage,
       });
+
+      // Identify user in PostHog for feature flags and experiments
+      const posthogProperties: PostHogUserProperties = {
+        email: user.email,
+        name: user.user_metadata?.display_name || user.user_metadata?.full_name,
+        subscription_tier: (userData?.subscription_tier as "free" | "pro" | "premium") || "free",
+        referral_tier: (userData?.referral_tier as 0 | 1 | 2 | 3) ?? 0,
+        onboarding_completed: userData?.onboarding_completed ?? false,
+        trips_created: trips,
+        account_age_days: daysSinceSignup,
+        has_beta_access: !!betaAccess,
+        preferred_language: userData?.preferred_language || "en",
+        user_stage: userStage as "new" | "activated" | "engaged" | "power_user",
+      };
+      identifyUser(user, posthogProperties);
     };
 
     // Small delay to ensure the page is ready

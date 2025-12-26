@@ -1,17 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { VoteType, ActivityVote, ActivityStatus, CollaboratorRole } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
+import type { VoteType, ActivityVote, ActivityConfirmationRecord } from "@/types";
 import { calculateConsensus, aggregateVotesByActivity } from "@/lib/voting/consensus";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
 
 /**
  * GET /api/trips/[id]/votes
  * Get all votes for a trip (batch fetch for efficiency)
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -22,7 +20,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify user has access to this trip
@@ -33,7 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -48,7 +46,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         .single();
 
       if (!collab) {
-        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+        return errors.forbidden("Access denied");
       }
     }
 
@@ -70,11 +68,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .order("voted_at", { ascending: true });
 
     if (votesError) {
-      console.error("Error fetching votes:", votesError);
-      return NextResponse.json(
-        { error: "Failed to fetch votes" },
-        { status: 500 }
-      );
+      console.error("[Votes] Error fetching votes:", votesError);
+      return errors.internal("Failed to fetch votes", "Votes");
     }
 
     // Collect all user IDs from votes to batch fetch profiles
@@ -150,9 +145,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const votesByActivity = aggregateVotesByActivity(transformedVotes);
 
     // Create activity status map
-    const statusMap: Record<string, ActivityStatus> = {};
+    const statusMap: Record<string, ActivityConfirmationRecord> = {};
     for (const s of statuses || []) {
-      statusMap[s.activity_id] = s as ActivityStatus;
+      statusMap[s.activity_id] = s as ActivityConfirmationRecord;
     }
 
     // Calculate consensus for each activity
@@ -175,7 +170,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       votes: Object.fromEntries(votesByActivity),
       statuses: statusMap,
@@ -184,10 +179,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       voterCount: voterIds.length,
     });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/votes:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Votes] Error fetching votes:", error);
+    return errors.internal("Failed to fetch votes", "Votes");
   }
 }

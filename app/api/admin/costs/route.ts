@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { API_COSTS } from "@/lib/api-gateway/config";
 import { circuitBreakerManager } from "@/lib/api-gateway";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * Enhanced Cost Analytics API
@@ -169,12 +169,12 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     const now = new Date();
@@ -550,12 +550,9 @@ export async function GET() {
       generatedAt: now.toISOString(),
     };
 
-    return NextResponse.json(analytics);
+    return apiSuccess(analytics);
   } catch (error) {
-    console.error("Admin costs error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch cost analytics" },
-      { status: 500 }
-    );
+    console.error("[Admin Costs] Error:", error);
+    return errors.internal("Failed to fetch cost analytics", "Admin Costs");
   }
 }

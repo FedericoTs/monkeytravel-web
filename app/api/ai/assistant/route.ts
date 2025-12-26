@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { cookies } from "next/headers";
@@ -24,6 +24,8 @@ import {
   calculateCentroid,
   type Coordinates,
 } from "@/lib/utils/geo";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -592,7 +594,7 @@ ${sameDayActivities
       ? (() => {
           const [h, m] = a.start_time.split(":").map(Number);
           const endMins = h * 60 + m + a.duration_minutes;
-          return `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
+          return formatMinutesToTime(endMins);
         })()
       : "TBD";
     return `  ${a.start_time || "TBD"} - ${endTime}: ${a.name} (${a.type}) - ${a.location || a.address || "location unspecified"}`;
@@ -609,15 +611,15 @@ ${(() => {
     const [h, m] = act.start_time.split(":").map(Number);
     const startMins = h * 60 + m;
     if (startMins > lastEnd + 30) { // At least 30 min gap
-      const gapStart = `${String(Math.floor(lastEnd / 60)).padStart(2, "0")}:${String(lastEnd % 60).padStart(2, "0")}`;
-      const gapEnd = `${String(Math.floor(startMins / 60)).padStart(2, "0")}:${String(startMins % 60).padStart(2, "0")}`;
+      const gapStart = formatMinutesToTime(lastEnd);
+      const gapEnd = formatMinutesToTime(startMins);
       freeSlots.push(`  ${gapStart} - ${gapEnd} (${startMins - lastEnd} min available)`);
     }
     lastEnd = startMins + (act.duration_minutes || 60);
   }
   // Add evening slot if day ends before 22:00
   if (lastEnd < 22 * 60) {
-    const gapStart = `${String(Math.floor(lastEnd / 60)).padStart(2, "0")}:${String(lastEnd % 60).padStart(2, "0")}`;
+    const gapStart = formatMinutesToTime(lastEnd);
     freeSlots.push(`  ${gapStart} - 22:00 (${22 * 60 - lastEnd} min available)`);
   }
   return freeSlots.length > 0 ? freeSlots.join("\n") : "  No obvious gaps - consider adjusting existing activities";
@@ -779,7 +781,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Get user's preferred language for AI content localization
@@ -789,14 +791,7 @@ export async function POST(request: NextRequest) {
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "assistant", user.email);
     if (!earlyAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: "Early access required",
-          code: earlyAccess.error,
-          message: earlyAccess.message,
-        },
-        { status: 403 }
-      );
+      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
     }
 
     const body: AssistantRequest = await request.json();
@@ -808,10 +803,7 @@ export async function POST(request: NextRequest) {
     console.log(`[AI Assistant] Preview mode: ${previewMode}`);
 
     if (!tripId || !message) {
-      return NextResponse.json(
-        { error: "Missing tripId or message" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing tripId or message");
     }
 
     // Check API access control
@@ -827,22 +819,15 @@ export async function POST(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         metadata: { user_id: user.id, trip_id: tripId },
       });
-      return NextResponse.json(
-        { error: access.message || "AI assistant is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "AI assistant is currently disabled");
     }
 
     // Check usage limits (daily limit for assistant messages)
     const usageCheck = await checkUsageLimit(user.id, "aiAssistantMessages", user.email);
     if (!usageCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: usageCheck.message || "Daily AI assistant message limit reached.",
-          usage: usageCheck,
-          upgradeUrl: "/pricing",
-        },
-        { status: 429 }
+      return errors.rateLimit(
+        usageCheck.message || "Daily AI assistant message limit reached.",
+        { usage: usageCheck, upgradeUrl: "/pricing" }
       );
     }
 
@@ -855,7 +840,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Use client itinerary if provided (for real-time edits), otherwise use DB
@@ -1652,13 +1637,10 @@ Respond with valid JSON only.`;
 
     console.log(`[AI Assistant] Response: modifiedItinerary=${!!responsePayload.modifiedItinerary}, itineraryWasModified=${itineraryWasModified}`);
 
-    return NextResponse.json(responsePayload);
+    return apiSuccess(responsePayload);
   } catch (error) {
-    console.error("[AI Assistant] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to process request" },
-      { status: 500 }
-    );
+    console.error("[AI Assistant] POST error:", error);
+    return errors.internal("Failed to process request", "AI Assistant");
   }
 }
 
@@ -1672,7 +1654,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const { searchParams } = new URL(request.url);
@@ -1687,7 +1669,7 @@ export async function GET(request: NextRequest) {
         .eq("user_id", user.id)
         .single();
 
-      return NextResponse.json({ conversation });
+      return apiSuccess({ conversation });
     }
 
     if (tripId) {
@@ -1698,12 +1680,12 @@ export async function GET(request: NextRequest) {
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
 
-      return NextResponse.json({ conversations });
+      return apiSuccess({ conversations });
     }
 
-    return NextResponse.json({ error: "Missing tripId or conversationId" }, { status: 400 });
+    return errors.badRequest("Missing tripId or conversationId");
   } catch (error) {
-    console.error("Error fetching conversations:", error);
-    return NextResponse.json({ error: "Failed to fetch conversations" }, { status: 500 });
+    console.error("[AI Assistant] GET error:", error);
+    return errors.internal("Failed to fetch conversations", "AI Assistant");
   }
 }

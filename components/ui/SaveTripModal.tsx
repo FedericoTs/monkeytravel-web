@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
@@ -66,6 +67,7 @@ export default function SaveTripModal({
   onSuccess,
 }: SaveTripModalProps) {
   const router = useRouter();
+  const t = useTranslations("saveTrip");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -135,7 +137,7 @@ export default function SaveTripModal({
   // Handle save action
   const handleSave = async () => {
     if (!startDate) {
-      setError("Please select a start date");
+      setError(t("selectDate"));
       return;
     }
 
@@ -176,7 +178,7 @@ export default function SaveTripModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save trip");
+        throw new Error(data.error || t("saveFailed"));
       }
 
       setSaveSuccess(true);
@@ -210,7 +212,7 @@ export default function SaveTripModal({
         }, 1500);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save trip");
+      setError(err instanceof Error ? err.message : t("saveFailed"));
       setIsSaving(false);
     }
   };
@@ -242,10 +244,10 @@ export default function SaveTripModal({
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">
-              Trip Saved!
+              {t("tripSaved")}
             </h3>
             <p className="text-slate-600">
-              Redirecting to your new trip...
+              {t("redirecting")}
             </p>
           </div>
         ) : (
@@ -261,7 +263,7 @@ export default function SaveTripModal({
                     {tripDestination}
                   </h3>
                   <p className="text-sm text-slate-500">
-                    {durationDays} days · {tripTitle}
+                    {t("daysInfo", { days: durationDays, title: tripTitle })}
                   </p>
                 </div>
               </div>
@@ -275,10 +277,10 @@ export default function SaveTripModal({
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-900">
-                    When does your trip start?
+                    {t("whenStart")}
                   </label>
                   <p className="text-xs text-slate-500">
-                    We'll adjust all dates in the itinerary
+                    {t("adjustDates")}
                   </p>
                 </div>
               </div>
@@ -295,18 +297,18 @@ export default function SaveTripModal({
                 <div className="mt-4 p-4 bg-slate-50 rounded-xl">
                   <div className="flex items-center justify-between text-sm">
                     <div>
-                      <span className="text-slate-500">Start</span>
+                      <span className="text-slate-500">{t("start")}</span>
                       <p className="font-semibold text-slate-900">
                         {formatDate(new Date(startDate))}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 text-slate-400">
                       <div className="w-8 h-px bg-slate-300" />
-                      <span className="text-xs">{durationDays} days</span>
+                      <span className="text-xs">{t("days", { count: durationDays })}</span>
                       <div className="w-8 h-px bg-slate-300" />
                     </div>
                     <div className="text-right">
-                      <span className="text-slate-500">End</span>
+                      <span className="text-slate-500">{t("end")}</span>
                       <p className="font-semibold text-slate-900">
                         {formatDate(endDate)}
                       </p>
@@ -333,24 +335,24 @@ export default function SaveTripModal({
                 {isSaving ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Creating Your Trip...</span>
+                    <span>{t("creating")}</span>
                   </>
                 ) : isAuthenticated === false ? (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    <span>Sign Up to Save</span>
+                    <span>{t("signUpToSave")}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-5 h-5" />
-                    <span>Save to My Trips</span>
+                    <span>{t("saveToTrips")}</span>
                   </>
                 )}
               </button>
 
               {isAuthenticated === false && (
                 <p className="text-center text-xs text-slate-500 mt-3">
-                  Already have an account?{" "}
+                  {t("hasAccount")}{" "}
                   <button
                     onClick={() => {
                       storePendingSave();
@@ -361,7 +363,7 @@ export default function SaveTripModal({
                     }}
                     className="text-[var(--primary)] hover:underline font-medium"
                   >
-                    Log in
+                    {t("logIn")}
                   </button>
                 </p>
               )}
@@ -370,11 +372,11 @@ export default function SaveTripModal({
               <div className="flex items-center justify-center gap-4 mt-4 text-xs text-slate-500">
                 <span className="flex items-center gap-1">
                   <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  Free forever
+                  {t("trust.freeForever")}
                 </span>
                 <span className="flex items-center gap-1">
                   <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  Fully editable
+                  {t("trust.fullyEditable")}
                 </span>
               </div>
             </div>

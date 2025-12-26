@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
 import type { ItineraryDay } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createClient();
@@ -21,7 +19,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Fetch trip
@@ -33,23 +31,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
-    return NextResponse.json({ success: true, trip });
+    return apiSuccess({ success: true, trip });
   } catch (error) {
-    console.error("Error fetching trip:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch trip" },
-      { status: 500 }
-    );
+    console.error("[Trips] Error fetching trip:", error);
+    return errors.internal("Failed to fetch trip", "Trips");
   }
 }
 
 /**
  * PATCH /api/trips/[id] - Update trip (supports itinerary updates)
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createClient();
@@ -60,7 +55,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify trip ownership
@@ -72,7 +67,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (fetchError || !existingTrip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Parse request body
@@ -89,10 +84,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
       // Validate itinerary structure
       if (!Array.isArray(itinerary)) {
-        return NextResponse.json(
-          { error: "Invalid itinerary format" },
-          { status: 400 }
-        );
+        return errors.badRequest("Invalid itinerary format");
       }
 
       // Ensure all activities have IDs
@@ -124,30 +116,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (updateError) {
-      console.error("Error updating trip:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update trip" },
-        { status: 500 }
-      );
+      console.error("[Trips] Error updating trip:", updateError);
+      return errors.internal("Failed to update trip", "Trips");
     }
 
-    return NextResponse.json({
-      success: true,
-      trip: updatedTrip,
-    });
+    return apiSuccess({ success: true, trip: updatedTrip });
   } catch (error) {
-    console.error("Error updating trip:", error);
-    return NextResponse.json(
-      { error: "Failed to update trip" },
-      { status: 500 }
-    );
+    console.error("[Trips] Error updating trip:", error);
+    return errors.internal("Failed to update trip", "Trips");
   }
 }
 
 /**
  * DELETE /api/trips/[id] - Delete a trip
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createClient();
@@ -158,7 +141,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Delete trip (only if owned by user)
@@ -169,19 +152,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Error deleting trip:", error);
-      return NextResponse.json(
-        { error: "Failed to delete trip" },
-        { status: 500 }
-      );
+      console.error("[Trips] Error deleting trip:", error);
+      return errors.internal("Failed to delete trip", "Trips");
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Error deleting trip:", error);
-    return NextResponse.json(
-      { error: "Failed to delete trip" },
-      { status: 500 }
-    );
+    console.error("[Trips] Error deleting trip:", error);
+    return errors.internal("Failed to delete trip", "Trips");
   }
 }

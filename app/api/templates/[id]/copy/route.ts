@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import type { ItineraryDay, Activity } from "@/types";
+import { completeReferralIfEligible } from "@/lib/referral/completion";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * POST /api/templates/[id]/copy
@@ -27,10 +30,7 @@ export async function POST(
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return errors.unauthorized();
     }
 
     // Parse request body
@@ -38,10 +38,7 @@ export async function POST(
     const { startDate } = body;
 
     if (!startDate) {
-      return NextResponse.json(
-        { error: "startDate is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("startDate is required");
     }
 
     // Fetch the template
@@ -53,10 +50,7 @@ export async function POST(
       .single();
 
     if (fetchError || !template) {
-      return NextResponse.json(
-        { error: "Template not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Template not found");
     }
 
     // Calculate end date based on template duration
@@ -110,10 +104,7 @@ export async function POST(
 
     if (createError) {
       console.error("[Template Copy] Error creating trip:", createError);
-      return NextResponse.json(
-        { error: "Failed to create trip from template" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to create trip from template", "Template Copy");
     }
 
     // Increment the template's copy count (fire and forget)
@@ -129,7 +120,37 @@ export async function POST(
       }
     })();
 
-    return NextResponse.json({
+    // Complete referral if this is user's first trip (fire and forget)
+    void (async () => {
+      try {
+        // Extract destination from template title (e.g., "Rome Trip" -> "Rome")
+        const destination = template.title?.replace(/ Trip$/i, "") || "Unknown";
+
+        // Track trip creation in PostHog
+        await captureServerEvent(user.id, "trip_created", {
+          trip_id: createdTrip.id,
+          destination,
+          duration_days: durationDays,
+          is_from_template: true,
+          template_id: templateId,
+        });
+
+        // Complete referral if eligible
+        const referralResult = await completeReferralIfEligible(
+          supabase,
+          user.id,
+          createdTrip.id
+        );
+
+        if (referralResult.wasReferred && referralResult.refereeRewarded) {
+          console.log(`[Template Copy] Referral completed for user ${user.id}`);
+        }
+      } catch (err) {
+        console.error("[Template Copy] Error in referral/tracking:", err);
+      }
+    })();
+
+    return apiSuccess({
       success: true,
       trip: {
         id: createdTrip.id,
@@ -139,9 +160,6 @@ export async function POST(
     });
   } catch (error) {
     console.error("[Template Copy] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Template Copy");
   }
 }

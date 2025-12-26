@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { v4 as uuidv4 } from "uuid";
 import type { ItineraryDay, Activity } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { completeReferralIfEligible } from "@/lib/referral/completion";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * POST /api/trips/duplicate - Duplicate a shared trip to user's account
@@ -24,10 +27,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Please sign in to save this trip" },
-        { status: 401 }
-      );
+      return errors.unauthorized("Please sign in to save this trip");
     }
 
     // Get share token and optional start date from request body
@@ -35,10 +35,7 @@ export async function POST(request: NextRequest) {
     const { shareToken, startDate } = body;
 
     if (!shareToken) {
-      return NextResponse.json(
-        { error: "Share token is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Share token is required");
     }
 
     // Fetch the source trip by share token
@@ -49,10 +46,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !sourceTrip) {
-      return NextResponse.json(
-        { error: "Shared trip not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Shared trip not found");
     }
 
     // Note: We allow users to duplicate the same trip multiple times
@@ -105,12 +99,12 @@ export async function POST(request: NextRequest) {
 
     // Prepare the duplicated trip data
     // Only include columns that exist in the trips table
+    // Note: 'destination' is NOT a column - it's stored in trip_meta or derived from title
     const duplicatedTrip: Record<string, unknown> = {
       id: newTripId,
       user_id: user.id,
       title: sourceTrip.title,
       description: sourceTrip.description,
-      destination: sourceTrip.destination,
       start_date: tripStartDate,
       end_date: tripEndDate,
       status: "planning", // New trips start as planning
@@ -132,24 +126,56 @@ export async function POST(request: NextRequest) {
       .insert(duplicatedTrip);
 
     if (insertError) {
-      console.error("Error duplicating trip:", insertError);
-      return NextResponse.json(
-        { error: "Failed to save trip to your account" },
-        { status: 500 }
-      );
+      console.error("[Trip Duplicate] Error inserting:", insertError);
+      return errors.internal("Failed to save trip to your account", "Trip Duplicate");
     }
 
-    return NextResponse.json({
+    // Complete referral if this is user's first trip (fire and forget)
+    void (async () => {
+      try {
+        // Extract destination from trip title (e.g., "Paris Trip" -> "Paris")
+        const destination = sourceTrip.title?.replace(/ Trip$/i, "") || "Unknown";
+
+        // Calculate duration from dates
+        const start = new Date(tripStartDate);
+        const end = new Date(tripEndDate);
+        const durationDays = Math.ceil(
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+
+        // Track trip creation in PostHog
+        await captureServerEvent(user.id, "trip_created", {
+          trip_id: newTripId,
+          destination,
+          duration_days: durationDays,
+          is_from_template: false,
+          is_duplicate: true,
+          source_trip_id: sourceTrip.id,
+        });
+
+        // Complete referral if eligible
+        const referralResult = await completeReferralIfEligible(
+          supabase,
+          user.id,
+          newTripId
+        );
+
+        if (referralResult.wasReferred && referralResult.refereeRewarded) {
+          console.log(`[Trip Duplicate] Referral completed for user ${user.id}`);
+        }
+      } catch (err) {
+        console.error("[Trip Duplicate] Error in referral/tracking:", err);
+      }
+    })();
+
+    return apiSuccess({
       success: true,
       tripId: newTripId,
       message: "Trip saved to your account!",
       isExisting: false,
     });
   } catch (error) {
-    console.error("Error in trip duplicate API:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
+    console.error("[Trip Duplicate] Unexpected error:", error);
+    return errors.internal("An unexpected error occurred", "Trip Duplicate");
   }
 }

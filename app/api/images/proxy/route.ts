@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
   const imageUrl = searchParams.get("url");
 
   if (!imageUrl) {
-    return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
+    return errors.badRequest("Missing url parameter");
   }
 
   try {
@@ -110,10 +111,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(decodedUrl);
 
     if (!isDomainAllowed(url.hostname)) {
-      return NextResponse.json(
-        { error: "Domain not allowed", domain: url.hostname },
-        { status: 403 }
-      );
+      return errors.forbidden(`Domain not allowed: ${url.hostname}`);
     }
 
     // Check cache first (30-day TTL for images)
@@ -122,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     if (cachedImage) {
       console.log(`[Image Proxy] Cache HIT for ${url.hostname}`);
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         dataUrl: cachedImage.dataUrl,
         contentType: cachedImage.contentType,
@@ -161,7 +159,7 @@ export async function GET(request: NextRequest) {
     // Cache the result (don't await - fire and forget for speed)
     cacheImage(cacheKey, dataUrl, contentType, decodedUrl);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       dataUrl,
       contentType,
@@ -169,11 +167,8 @@ export async function GET(request: NextRequest) {
       cached: false,
     });
   } catch (error) {
-    console.error("Image proxy error:", error);
-    return NextResponse.json(
-      { error: "Failed to process image", details: String(error) },
-      { status: 500 }
-    );
+    console.error("[Image Proxy] Error:", error);
+    return errors.internal(`Failed to process image: ${String(error)}`, "Image Proxy");
   }
 }
 
@@ -186,7 +181,7 @@ export async function POST(request: NextRequest) {
     const { urls } = body as { urls: string[] };
 
     if (!urls || !Array.isArray(urls)) {
-      return NextResponse.json({ error: "Missing urls array" }, { status: 400 });
+      return errors.badRequest("Missing urls array");
     }
 
     // Limit to 20 images per request
@@ -251,7 +246,7 @@ export async function POST(request: NextRequest) {
 
     // Process results
     const images: Record<string, string> = {};
-    const errors: Record<string, string> = {};
+    const fetchErrors: Record<string, string> = {};
     let cacheHits = 0;
 
     results.forEach((result, index) => {
@@ -260,25 +255,22 @@ export async function POST(request: NextRequest) {
         images[originalUrl] = result.value.dataUrl;
         if (result.value.cached) cacheHits++;
       } else if (result.status === "fulfilled" && result.value.error) {
-        errors[originalUrl] = result.value.error;
+        fetchErrors[originalUrl] = result.value.error;
       } else if (result.status === "rejected") {
-        errors[originalUrl] = result.reason?.message || "Unknown error";
+        fetchErrors[originalUrl] = result.reason?.message || "Unknown error";
       }
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       images,
-      errors,
+      errors: fetchErrors,
       fetched: Object.keys(images).length,
-      failed: Object.keys(errors).length,
+      failed: Object.keys(fetchErrors).length,
       cacheHits,
     });
   } catch (error) {
-    console.error("Batch image proxy error:", error);
-    return NextResponse.json(
-      { error: "Failed to process images", details: String(error) },
-      { status: 500 }
-    );
+    console.error("[Image Proxy] Batch error:", error);
+    return errors.internal(`Failed to process images: ${String(error)}`, "Image Proxy Batch");
   }
 }

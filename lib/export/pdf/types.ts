@@ -1,35 +1,8 @@
 import type jsPDF from "jspdf";
-import type { ItineraryDay, TripMeta } from "@/types";
+import type { PremiumTripForExport, RGB, ActivityTypeConfig } from "@/types";
 
-/**
- * Trip data structure for premium PDF export
- */
-export interface PremiumTripForExport {
-  // Basic info
-  title: string;
-  description?: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-
-  // Budget
-  budget?: { total: number; currency: string } | null;
-
-  // Itinerary
-  itinerary: ItineraryDay[];
-
-  // Meta (from TripMeta)
-  meta?: TripMeta;
-
-  // Images
-  coverImageUrl?: string;
-  galleryPhotos?: { url: string; thumbnailUrl: string }[];
-}
-
-/**
- * RGB color tuple
- */
-export type RGB = [number, number, number];
+// Re-export for backward compatibility
+export type { PremiumTripForExport, RGB, ActivityTypeConfig } from "@/types";
 
 /**
  * PDF configuration - matches PDF_CONFIG in config.ts
@@ -135,12 +108,4 @@ export interface TypographyScale {
   lineHeight: number;
 }
 
-/**
- * Activity type display configuration
- */
-export interface ActivityTypeConfig {
-  label: string;
-  color: RGB;
-  icon: string;
-  bgLight: RGB;
-}
+// ActivityTypeConfig is now imported from @/types

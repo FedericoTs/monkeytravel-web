@@ -13,10 +13,11 @@
  * Cache duration: 30 days (hotel listings are stable; prices handled by booking links)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Cache duration: 30 days for hotel searches (listings are stable; real prices via booking links)
 const CACHE_DURATION_DAYS = 30;
@@ -233,10 +234,7 @@ export async function GET(request: NextRequest) {
         status: 503,
         error: `BLOCKED: ${access.message}`,
       });
-      return NextResponse.json(
-        { error: access.message || "Hotel search API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Hotel search API is currently disabled");
     }
 
     const apiKey = process.env.GOOGLE_PLACES_API_KEY;
@@ -246,10 +244,7 @@ export async function GET(request: NextRequest) {
         status: 500,
         error: "API key not configured or blocked",
       });
-      return NextResponse.json(
-        { error: 'Google Places API key not configured' },
-        { status: 500 }
-      );
+      return errors.internal('Google Places API key not configured', 'Hotels API');
     }
 
     // Parse query parameters
@@ -263,13 +258,7 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (isNaN(latitude) || isNaN(longitude)) {
-      return NextResponse.json(
-        {
-          error: 'Missing or invalid coordinates',
-          required: ['latitude', 'longitude'],
-        },
-        { status: 400 }
-      );
+      return errors.badRequest('Missing or invalid coordinates', { required: ['latitude', 'longitude'] });
     }
 
     // Check cache first
@@ -305,7 +294,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      return NextResponse.json({
+      return apiSuccess({
         ...cachedData,
         meta: {
           ...(cachedData.meta as object),
@@ -333,13 +322,7 @@ export async function GET(request: NextRequest) {
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
       console.error('[Google Places] API error:', data.status, data.error_message);
-      return NextResponse.json(
-        {
-          error: 'Google Places API error',
-          details: data.error_message || data.status,
-        },
-        { status: 500 }
-      );
+      return errors.internal(`Google Places API error: ${data.error_message || data.status}`, 'Hotels API');
     }
 
     // Transform and enrich results
@@ -421,7 +404,7 @@ export async function GET(request: NextRequest) {
     saveToCache(cacheKey, result);
     await logHotelApiRequest({ responseTimeMs: Date.now() - startTime });
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
     console.error('[Google Places Hotels] Error:', error);
 
@@ -432,12 +415,9 @@ export async function GET(request: NextRequest) {
       responseTimeMs: Date.now() - startTime,
     });
 
-    return NextResponse.json(
-      {
-        error: 'Failed to search hotels',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    return errors.internal(
+      `Failed to search hotels: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'Hotels API'
     );
   }
 }

@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { errors, apiSuccess } from '@/lib/api/response-wrapper'
+import { isValidEmail, normalizeEmail } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,19 +10,12 @@ export async function POST(request: NextRequest) {
 
     // Validate email
     if (!email || typeof email !== 'string') {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return errors.badRequest('Email is required')
     }
 
-    // Basic email format validation
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
+    // Use shared email validation
+    if (!isValidEmail(email)) {
+      return errors.badRequest('Invalid email format')
     }
 
     // Get metadata from request
@@ -34,7 +29,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('email_subscribers')
       .insert({
-        email: email.toLowerCase().trim(),
+        email: normalizeEmail(email),
         source,
         metadata,
       })
@@ -42,33 +37,21 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      // Handle duplicate email
+      // Handle duplicate email - not an error, just inform user
       if (error.code === '23505') {
-        return NextResponse.json(
-          { message: 'You are already on our waitlist!' },
-          { status: 200 }
-        )
+        return apiSuccess({ message: 'You are already on our waitlist!' })
       }
 
-      console.error('Supabase error:', error)
-      return NextResponse.json(
-        { error: 'Failed to subscribe. Please try again.' },
-        { status: 500 }
-      )
+      console.error('[Subscribe] Supabase error:', error)
+      return errors.internal('Failed to subscribe. Please try again.', 'Subscribe')
     }
 
-    return NextResponse.json(
-      {
-        message: 'Successfully joined the waitlist!',
-        id: data.id
-      },
+    return apiSuccess(
+      { message: 'Successfully joined the waitlist!', id: data.id },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Subscribe error:', error)
-    return NextResponse.json(
-      { error: 'An unexpected error occurred' },
-      { status: 500 }
-    )
+    console.error('[Subscribe] Error:', error)
+    return errors.internal('An unexpected error occurred', 'Subscribe')
   }
 }

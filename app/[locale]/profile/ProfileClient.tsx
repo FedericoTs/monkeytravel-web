@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
 import { BetaCodeInput } from "@/components/beta";
+import { ReferralDashboard } from "@/components/bananas";
 import { createClient } from "@/lib/supabase/client";
 
 // Types
@@ -803,6 +804,46 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
               These features require backend infrastructure (email service, push notifications,
               social features) that don't exist yet. Settings data is still stored in DB.
               Re-enable when backend is implemented. See docs/CRIT-002-SETTINGS-INTEGRATION-PLAN.md */}
+
+          {/* Referrals & Rewards */}
+          <ProfileSection
+            title={t("profile.sections.referrals")}
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            defaultOpen={true}
+          >
+            <div className="pt-4">
+              <ReferralDashboard
+                onShare={async () => {
+                  try {
+                    // Fetch the referral code to share
+                    const response = await fetch("/api/referral/code");
+                    if (!response.ok) throw new Error("Failed to fetch referral code");
+                    const data = await response.json();
+                    const shareUrl = `${window.location.origin}/ref/${data.code}`;
+                    const shareText = `Join me on MonkeyTravel and get a FREE AI-powered trip! 🌴✈️`;
+
+                    // Try native share first
+                    if (navigator.share) {
+                      await navigator.share({
+                        title: "Join MonkeyTravel",
+                        text: shareText,
+                        url: shareUrl,
+                      });
+                    } else {
+                      // Fallback to clipboard
+                      await navigator.clipboard.writeText(shareUrl);
+                    }
+                  } catch (error) {
+                    console.error("Share error:", error);
+                  }
+                }}
+              />
+            </div>
+          </ProfileSection>
 
           {/* Beta Access */}
           <ProfileSection

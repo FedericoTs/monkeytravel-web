@@ -11,7 +11,7 @@
  * - Skipping non-essential auth/logging
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
   searchHotelOffers,
   transformHotelOffer,
@@ -21,6 +21,7 @@ import {
   calculateNights,
 } from '@/lib/amadeus';
 import type { HotelSearchParams, BoardType, HotelAmenity } from '@/lib/amadeus/types';
+import { errors, apiSuccess, apiError, getErrorStatus } from "@/lib/api/response-wrapper";
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -28,10 +29,7 @@ export async function GET(request: NextRequest) {
   try {
     // Check if Amadeus is configured
     if (!isAmadeusConfigured()) {
-      return NextResponse.json(
-        { error: 'Amadeus API not configured' },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable('Amadeus API not configured');
     }
 
     // Skip auth check to save time (hotel search is read-only)
@@ -62,79 +60,50 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (!cityCode && (!latitude || !longitude)) {
-      return NextResponse.json(
-        {
-          error: 'Missing required parameters',
-          required: 'Either cityCode OR (latitude AND longitude)',
-          received: { cityCode, latitude, longitude },
-        },
-        { status: 400 }
-      );
+      return errors.badRequest('Missing required parameters', {
+        required: 'Either cityCode OR (latitude AND longitude)',
+        received: { cityCode, latitude, longitude },
+      });
     }
 
     if (!checkInDate || !checkOutDate) {
-      return NextResponse.json(
-        {
-          error: 'Missing required date parameters',
-          required: ['checkInDate', 'checkOutDate'],
-          received: { checkInDate, checkOutDate },
-        },
-        { status: 400 }
-      );
+      return errors.badRequest('Missing required date parameters', {
+        required: ['checkInDate', 'checkOutDate'],
+        received: { checkInDate, checkOutDate },
+      });
     }
 
     // Validate dates
     if (!isValidDate(checkInDate)) {
-      return NextResponse.json(
-        { error: `Invalid check-in date format: ${checkInDate}. Use YYYY-MM-DD.` },
-        { status: 400 }
-      );
+      return errors.badRequest(`Invalid check-in date format: ${checkInDate}. Use YYYY-MM-DD.`);
     }
 
     if (!isValidDate(checkOutDate)) {
-      return NextResponse.json(
-        { error: `Invalid check-out date format: ${checkOutDate}. Use YYYY-MM-DD.` },
-        { status: 400 }
-      );
+      return errors.badRequest(`Invalid check-out date format: ${checkOutDate}. Use YYYY-MM-DD.`);
     }
 
     if (!isFutureDate(checkInDate)) {
-      return NextResponse.json(
-        { error: 'Check-in date must be in the future' },
-        { status: 400 }
-      );
+      return errors.badRequest('Check-in date must be in the future');
     }
 
     if (new Date(checkOutDate) <= new Date(checkInDate)) {
-      return NextResponse.json(
-        { error: 'Check-out date must be after check-in date' },
-        { status: 400 }
-      );
+      return errors.badRequest('Check-out date must be after check-in date');
     }
 
     // Validate stay length (Amadeus limit is typically 30 nights)
     const nights = calculateNights(checkInDate, checkOutDate);
     if (nights > 30) {
-      return NextResponse.json(
-        { error: 'Maximum stay is 30 nights' },
-        { status: 400 }
-      );
+      return errors.badRequest('Maximum stay is 30 nights');
     }
 
     // Validate adults
     if (adults < 1 || adults > 9) {
-      return NextResponse.json(
-        { error: 'Adults must be between 1 and 9' },
-        { status: 400 }
-      );
+      return errors.badRequest('Adults must be between 1 and 9');
     }
 
     // Validate room quantity
     if (roomQuantity < 1 || roomQuantity > 9) {
-      return NextResponse.json(
-        { error: 'Room quantity must be between 1 and 9' },
-        { status: 400 }
-      );
+      return errors.badRequest('Room quantity must be between 1 and 9');
     }
 
     // Build search params
@@ -166,7 +135,7 @@ export async function GET(request: NextRequest) {
 
     // Skip API logging to save time on Hobby plan timeout
 
-    return NextResponse.json({
+    return apiSuccess({
       data: result.data,
       display: displayOffers,
       meta: {
@@ -188,23 +157,15 @@ export async function GET(request: NextRequest) {
     console.error('[Amadeus Hotels] Search error:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const statusCode = getErrorStatus(errorMessage);
 
-    let statusCode = 500;
-    if (errorMessage.includes('rate limit')) {
-      statusCode = 429;
-    } else if (errorMessage.includes('authentication')) {
-      statusCode = 401;
-    } else if (errorMessage.includes('request error')) {
-      statusCode = 400;
-    }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to search hotels',
+    return apiError('Failed to search hotels', {
+      status: statusCode,
+      context: {
         details: errorMessage,
         responseTime: Date.now() - startTime,
       },
-      { status: statusCode }
-    );
+      category: 'Amadeus Hotels',
+    });
   }
 }

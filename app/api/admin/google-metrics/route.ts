@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Google Cloud Monitoring API types
 interface TimeSeriesPoint {
@@ -152,14 +152,14 @@ async function getAccessToken(): Promise<string | null> {
     });
 
     if (!tokenResponse.ok) {
-      console.error("Failed to get access token:", await tokenResponse.text());
+      console.error("[Google Metrics] Failed to get access token:", await tokenResponse.text());
       return null;
     }
 
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
-    console.error("Error getting access token:", error);
+    console.error("[Google Metrics] Error getting access token:", error);
     return null;
   }
 }
@@ -194,7 +194,7 @@ async function queryMetrics(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Monitoring API error for ${service}:`, errorText);
+      console.error(`[Google Metrics] Monitoring API error for ${service}:`, errorText);
       return 0;
     }
 
@@ -214,7 +214,7 @@ async function queryMetrics(
 
     return total;
   } catch (error) {
-    console.error(`Error querying metrics for ${service}:`, error);
+    console.error(`[Google Metrics] Error querying metrics for ${service}:`, error);
     return 0;
   }
 }
@@ -268,7 +268,7 @@ async function queryDailyMetrics(
 
     return dailyCounts;
   } catch (error) {
-    console.error(`Error querying daily metrics for ${service}:`, error);
+    console.error(`[Google Metrics] Error querying daily metrics for ${service}:`, error);
     return {};
   }
 }
@@ -286,12 +286,12 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Check if Google Cloud credentials are configured
@@ -299,7 +299,7 @@ export async function GET() {
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
 
     if (!serviceAccountKey || !projectId) {
-      return NextResponse.json<GoogleMetrics>({
+      return apiSuccess<GoogleMetrics>({
         configured: false,
         error: "Google Cloud credentials not configured. Add GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY and GOOGLE_CLOUD_PROJECT_ID to enable real metrics.",
         requestCounts: [],
@@ -311,7 +311,7 @@ export async function GET() {
     const accessToken = await getAccessToken();
 
     if (!accessToken) {
-      return NextResponse.json<GoogleMetrics>({
+      return apiSuccess<GoogleMetrics>({
         configured: false,
         error: "Failed to authenticate with Google Cloud. Check your service account credentials.",
         requestCounts: [],
@@ -415,7 +415,7 @@ export async function GET() {
       netCost += billableRequests * costPerRequest;
     }
 
-    return NextResponse.json<GoogleMetrics>({
+    return apiSuccess<GoogleMetrics>({
       configured: true,
       projectId,
       costSummary: {
@@ -437,11 +437,8 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Google metrics error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch Google metrics" },
-      { status: 500 }
-    );
+    console.error("[Google Metrics] Error:", error);
+    return errors.internal("Failed to fetch Google metrics", "Google Metrics");
   }
 }
 

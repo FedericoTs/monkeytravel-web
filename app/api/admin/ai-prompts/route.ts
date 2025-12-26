@@ -5,10 +5,11 @@
  * PATCH - Update an AI prompt
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { clearPromptCache } from "@/lib/prompts";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface AiPrompt {
   id: string;
@@ -40,12 +41,12 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Fetch all AI prompts
@@ -56,24 +57,18 @@ export async function GET() {
       .order("name", { ascending: true });
 
     if (error) {
-      console.error("[AiPrompts] Failed to fetch:", error);
+      console.error("[Admin AiPrompts] Failed to fetch:", error);
       // Return empty array if table doesn't exist yet
       if (error.code === "42P01") {
-        return NextResponse.json({ prompts: [], tableExists: false });
+        return apiSuccess({ prompts: [], tableExists: false });
       }
-      return NextResponse.json(
-        { error: "Failed to fetch AI prompts" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to fetch AI prompts", "Admin AiPrompts");
     }
 
-    return NextResponse.json({ prompts: data || [], tableExists: true });
+    return apiSuccess({ prompts: data || [], tableExists: true });
   } catch (error) {
-    console.error("[AiPrompts] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin AiPrompts] GET error:", error);
+    return errors.internal("Internal server error", "Admin AiPrompts");
   }
 }
 
@@ -91,12 +86,12 @@ export async function PATCH(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Parse request body
@@ -104,10 +99,7 @@ export async function PATCH(request: NextRequest) {
     const { id, name, prompt_text, is_active, description, token_estimate } = body;
 
     if (!id && !name) {
-      return NextResponse.json(
-        { error: "id or name is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("id or name is required");
     }
 
     // Get current prompt to increment version
@@ -118,11 +110,8 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error("[AiPrompts] Failed to fetch current prompt:", fetchError);
-      return NextResponse.json(
-        { error: "Prompt not found" },
-        { status: 404 }
-      );
+      console.error("[Admin AiPrompts] Failed to fetch current prompt:", fetchError);
+      return errors.notFound("Prompt not found");
     }
 
     // Build update object
@@ -159,29 +148,23 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("[AiPrompts] Failed to update:", error);
-      return NextResponse.json(
-        { error: "Failed to update AI prompt" },
-        { status: 500 }
-      );
+      console.error("[Admin AiPrompts] Failed to update:", error);
+      return errors.internal("Failed to update AI prompt", "Admin AiPrompts");
     }
 
-    console.log(`[AiPrompts] Updated ${data.name} (v${data.version}) by ${user.email}`);
+    console.log(`[Admin AiPrompts] Updated ${data.name} (v${data.version}) by ${user.email}`);
 
     // Clear prompt cache so new version takes effect immediately
     clearPromptCache();
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       prompt: data,
       message: `${data.display_name} updated to version ${data.version}`,
     });
   } catch (error) {
-    console.error("[AiPrompts] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin AiPrompts] PATCH error:", error);
+    return errors.internal("Internal server error", "Admin AiPrompts");
   }
 }
 
@@ -199,12 +182,12 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     const body = await request.json();
@@ -224,13 +207,13 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error) {
-        return NextResponse.json({ error: "Failed to revert" }, { status: 500 });
+        return errors.internal("Failed to revert prompt", "Admin AiPrompts");
       }
 
       // Clear cache so change takes effect
       clearPromptCache();
 
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: `${data.display_name} will now use the default hardcoded prompt`,
       });
@@ -250,13 +233,13 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error) {
-        return NextResponse.json({ error: "Failed to activate" }, { status: 500 });
+        return errors.internal("Failed to activate prompt", "Admin AiPrompts");
       }
 
       // Clear cache so change takes effect
       clearPromptCache();
 
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: `${data.display_name} is now active`,
       });
@@ -264,10 +247,7 @@ export async function POST(request: NextRequest) {
 
     // Create new prompt
     if (!name || !display_name || !prompt_text) {
-      return NextResponse.json(
-        { error: "name, display_name, and prompt_text are required" },
-        { status: 400 }
-      );
+      return errors.badRequest("name, display_name, and prompt_text are required");
     }
 
     const { data, error } = await supabase
@@ -287,31 +267,22 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("[AiPrompts] Failed to create:", error);
+      console.error("[Admin AiPrompts] Failed to create:", error);
       if (error.code === "23505") {
-        return NextResponse.json(
-          { error: "A prompt with this name already exists" },
-          { status: 409 }
-        );
+        return errors.conflict("A prompt with this name already exists");
       }
-      return NextResponse.json(
-        { error: "Failed to create AI prompt" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to create AI prompt", "Admin AiPrompts");
     }
 
-    console.log(`[AiPrompts] Created ${data.name} by ${user.email}`);
+    console.log(`[Admin AiPrompts] Created ${data.name} by ${user.email}`);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       prompt: data,
       message: `${data.display_name} created successfully`,
     });
   } catch (error) {
-    console.error("[AiPrompts] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Admin AiPrompts] POST error:", error);
+    return errors.internal("Internal server error", "Admin AiPrompts");
   }
 }

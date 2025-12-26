@@ -12,6 +12,7 @@ import TourProgress from "./TourProgress";
 import { useTourNavigation } from "./hooks/useTourNavigation";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import { slideVariants, PREMIUM_EASE } from "./animations";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 // Import slides
 import SlideDestination from "./slides/SlideDestination";
@@ -65,17 +66,8 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
 
   // No longer need to preload - all content is code-rendered
 
-  // Prevent body scroll when tour is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  // Scroll lock only (escape has custom behavior via handleSkip)
+  useModalBehavior({ isOpen, onClose, closeOnEscape: false });
 
   // Keyboard navigation
   useEffect(() => {

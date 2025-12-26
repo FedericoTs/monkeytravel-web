@@ -22,6 +22,8 @@ import {
   LIMIT_DISPLAY_NAMES,
   isUnlimited,
 } from "./config";
+import { TIER_BENEFITS } from "@/lib/bananas/config";
+import type { ReferralTierLevel } from "@/types/bananas";
 
 /**
  * Custom limits for a user (from early access code redemption)
@@ -29,6 +31,44 @@ import {
 interface CustomLimitsResult {
   hasCustomLimits: boolean;
   limits: Partial<TierLimits> | null;
+}
+
+/**
+ * Get referral tier bonus for a specific limit type
+ * Referral bonuses are ADDITIVE to subscription tier limits
+ */
+function getReferralTierBonus(
+  referralTier: ReferralTierLevel,
+  limitType: UsageLimitType
+): number {
+  const benefits = TIER_BENEFITS[referralTier];
+
+  switch (limitType) {
+    case "aiGenerations":
+      return benefits.aiGenerationsBonus;
+    case "aiRegenerations":
+      return benefits.aiRegenerationsBonus;
+    default:
+      return 0; // No bonus for other limit types
+  }
+}
+
+/**
+ * Get user's referral tier from database
+ */
+async function getUserReferralTier(userId: string): Promise<ReferralTierLevel> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("users")
+      .select("referral_tier")
+      .eq("id", userId)
+      .single();
+
+    return (data?.referral_tier ?? 0) as ReferralTierLevel;
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -260,10 +300,10 @@ export async function checkUsageLimit(
 
     // No early access - use normal tier-based limits
     const tier = await getUserTier(userId, userEmail);
-    const limit = TIER_LIMITS[tier][limitType];
+    const baseLimit = TIER_LIMITS[tier][limitType];
 
-    // Unlimited check
-    if (isUnlimited(limit)) {
+    // Unlimited check (before adding bonus)
+    if (isUnlimited(baseLimit)) {
       return {
         allowed: true,
         remaining: -1,
@@ -275,22 +315,44 @@ export async function checkUsageLimit(
       };
     }
 
+    // Get referral tier bonus (ADDITIVE to subscription tier)
+    const referralTier = await getUserReferralTier(userId);
+    const referralBonus = getReferralTierBonus(referralTier, limitType);
+
+    // Check if referral bonus gives unlimited (-1)
+    if (referralBonus === -1) {
+      return {
+        allowed: true,
+        remaining: -1,
+        limit: -1,
+        used: 0,
+        resetAt,
+        tier,
+        periodType,
+      };
+    }
+
+    // Calculate effective limit with bonus
+    const effectiveLimit = baseLimit + referralBonus;
+
     // Get current usage
     const used = await getCurrentUsage(userId, limitType);
-    const remaining = Math.max(0, limit - used);
-    const allowed = used < limit;
+    const remaining = Math.max(0, effectiveLimit - used);
+    const allowed = used < effectiveLimit;
 
     return {
       allowed,
       remaining,
-      limit,
+      limit: effectiveLimit,
       used,
       resetAt,
       tier,
       periodType,
       message: allowed
         ? undefined
-        : `You've reached your ${LIMIT_DISPLAY_NAMES[limitType]} limit for this ${periodType === "monthly" ? "month" : "day"}. Upgrade to Premium for unlimited access.`,
+        : referralBonus > 0
+          ? `You've reached your ${LIMIT_DISPLAY_NAMES[limitType]} limit for this ${periodType === "monthly" ? "month" : "day"}. Invite more friends to unlock additional usage!`
+          : `You've reached your ${LIMIT_DISPLAY_NAMES[limitType]} limit for this ${periodType === "monthly" ? "month" : "day"}. Upgrade to Premium for unlimited access or invite friends for bonus usage.`,
     };
   } catch (error) {
     console.error("[UsageLimits] Error checking limit:", error);

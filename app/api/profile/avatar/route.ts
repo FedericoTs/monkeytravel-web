@@ -1,41 +1,28 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return errors.badRequest("No file provided");
     }
 
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid file type. Allowed: JPEG, PNG, WebP, GIF");
     }
 
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size is 5MB" },
-        { status: 400 }
-      );
+      return errors.badRequest("File too large. Maximum size is 5MB");
     }
 
     // Generate unique filename
@@ -71,11 +58,8 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
-      return NextResponse.json(
-        { error: "Failed to upload avatar" },
-        { status: 500 }
-      );
+      console.error("[Profile Avatar] Upload error:", uploadError);
+      return errors.internal("Failed to upload avatar", "Profile Avatar");
     }
 
     // Get public URL
@@ -95,37 +79,24 @@ export async function POST(request: Request) {
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("Update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update profile" },
-        { status: 500 }
-      );
+      console.error("[Profile Avatar] Update error:", updateError);
+      return errors.internal("Failed to update profile", "Profile Avatar");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       avatar_url: avatarUrl,
     });
   } catch (error) {
-    console.error("Error in avatar upload:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Profile Avatar] Error in avatar upload:", error);
+    return errors.internal("Internal server error", "Profile Avatar");
   }
 }
 
 export async function DELETE() {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Get current avatar URL
     const { data: userData } = await supabase
@@ -152,19 +123,13 @@ export async function DELETE() {
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("Update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update profile" },
-        { status: 500 }
-      );
+      console.error("[Profile Avatar] Delete update error:", updateError);
+      return errors.internal("Failed to update profile", "Profile Avatar");
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Error in avatar delete:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Profile Avatar] Error in avatar delete:", error);
+    return errors.internal("Internal server error", "Profile Avatar");
   }
 }

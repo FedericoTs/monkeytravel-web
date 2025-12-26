@@ -20,14 +20,21 @@ export default async function TripsPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Fetch user profile
+  // Fetch user profile with referral data
   const { data: profile } = await supabase
     .from("users")
-    .select("display_name, avatar_url")
+    .select("display_name, avatar_url, lifetime_referral_conversions")
     .eq("id", user.id)
     .single();
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Traveler";
+  const lifetimeConversions = profile?.lifetime_referral_conversions || 0;
 
-  return <TripsPageClient trips={trips || []} displayName={displayName} />;
+  return (
+    <TripsPageClient
+      trips={trips || []}
+      displayName={displayName}
+      lifetimeConversions={lifetimeConversions}
+    />
+  );
 }

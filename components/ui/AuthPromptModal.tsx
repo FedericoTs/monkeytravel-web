@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
@@ -10,6 +11,13 @@ interface AuthPromptModalProps {
   redirectPath?: string;
 }
 
+// Benefit icons with translation keys
+const BENEFITS = [
+  { icon: "M13 10V3L4 14h7v7l9-11h-7z", key: "aiPowered" },
+  { icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", key: "saveEdit" },
+  { icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", key: "realTime" },
+] as const;
+
 export default function AuthPromptModal({
   isOpen,
   onClose,
@@ -17,6 +25,7 @@ export default function AuthPromptModal({
   redirectPath = "/trips/new",
 }: AuthPromptModalProps) {
   const router = useRouter();
+  const t = useTranslations("authPrompt");
   const [isNavigating, setIsNavigating] = useState(false);
 
   if (!isOpen) return null;
@@ -51,28 +60,23 @@ export default function AuthPromptModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Ready to Generate Your Trip!</h2>
+          <h2 className="text-2xl font-bold mb-2">{t("title")}</h2>
           <p className="text-white/80">
-            Create a free account to generate your personalized{" "}
-            <span className="font-semibold">{destination}</span> itinerary
+            {t("subtitle", { destination })}
           </p>
         </div>
 
         {/* Benefits */}
         <div className="px-6 py-6">
           <div className="space-y-3 mb-6">
-            {[
-              { icon: "M13 10V3L4 14h7v7l9-11h-7z", text: "AI-powered itinerary generation" },
-              { icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", text: "Save and edit your trips anytime" },
-              { icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", text: "Real-time travel information" },
-            ].map((benefit, index) => (
+            {BENEFITS.map((benefit, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={benefit.icon} />
                   </svg>
                 </div>
-                <span className="text-slate-700">{benefit.text}</span>
+                <span className="text-slate-700">{t(`benefits.${benefit.key}`)}</span>
               </div>
             ))}
           </div>
@@ -90,11 +94,11 @@ export default function AuthPromptModal({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Redirecting...
+                  {t("redirecting")}
                 </>
               ) : (
                 <>
-                  Create Free Account
+                  {t("createAccount")}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -107,7 +111,7 @@ export default function AuthPromptModal({
               disabled={isNavigating}
               className="w-full border border-slate-300 text-slate-700 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
-              Already have an account? Sign in
+              {t("hasAccount")}
             </button>
           </div>
 
@@ -118,19 +122,19 @@ export default function AuthPromptModal({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Secure
+                {t("trust.secure")}
               </div>
               <div className="flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Free to start
+                {t("trust.free")}
               </div>
               <div className="flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Takes 30 seconds
+                {t("trust.quick")}
               </div>
             </div>
           </div>

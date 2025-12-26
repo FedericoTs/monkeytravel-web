@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { InviteTokenRouteContext } from "@/lib/api/route-context";
+import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
 import type { CollaboratorRole } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ token: string }>;
-}
+import {
+  addCollaborationBananas,
+  checkAndUnlockTier,
+  getUserReferralTier,
+} from "@/lib/bananas";
 
 /**
  * GET /api/invites/[token] - Get invite details and trip preview (public, no auth required)
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: InviteTokenRouteContext) {
   try {
     const { token } = await context.params;
 
@@ -39,34 +43,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (inviteError || !invite) {
-      return NextResponse.json(
-        { error: "Invalid invite link", code: "INVALID_TOKEN" },
-        { status: 404 }
-      );
+      return errors.notFound("Invalid invite link");
     }
 
-    // Check if invite is still valid
-    // IMPORTANT: Check max_uses BEFORE is_active to show correct error message
-    // (used-up invites may have is_active=false, but "max uses" is more accurate)
-    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-      return NextResponse.json(
-        { error: "This invite link has already been used", code: "MAX_USES" },
-        { status: 410 }
-      );
-    }
-
-    if (!invite.is_active) {
-      return NextResponse.json(
-        { error: "This invite has been revoked by the trip owner", code: "REVOKED" },
-        { status: 410 }
-      );
-    }
-
-    if (new Date(invite.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: "This invite has expired", code: "EXPIRED" },
-        { status: 410 }
-      );
+    // Use shared validation (checks max_uses, is_active, expires_at in correct order)
+    const validation = validateInvite(invite as InviteData);
+    if (!validation.valid) {
+      return validation.errorResponse!;
     }
 
     // Fetch trip preview (limited info for non-authenticated users)
@@ -85,10 +68,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json(
-        { error: "Trip not found", code: "TRIP_NOT_FOUND" },
-        { status: 404 }
-      );
+      return errors.notFound("Trip not found");
     }
 
     // Fetch trip owner info from users table
@@ -136,7 +116,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const endDate = new Date(trip.end_date);
     const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       invite: {
         token: invite.token,
@@ -164,18 +144,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
       } : null,
     });
   } catch (error) {
-    console.error("Error in GET /api/invites/[token]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Invites] Error in GET /api/invites/[token]:", error);
+    return errors.internal("Internal server error", "Invites");
   }
 }
 
 /**
  * POST /api/invites/[token] - Accept invite and join trip (requires auth)
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
     const { token } = await context.params;
     const supabase = await createClient();
@@ -186,10 +163,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required", code: "AUTH_REQUIRED" },
-        { status: 401 }
-      );
+      return errors.unauthorized("Authentication required");
     }
 
     // Use admin client for invite operations
@@ -206,33 +180,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (inviteError || !invite) {
-      return NextResponse.json(
-        { error: "Invalid invite link", code: "INVALID_TOKEN" },
-        { status: 404 }
-      );
+      return errors.notFound("Invalid invite link");
     }
 
-    // Validate invite is still usable
-    // IMPORTANT: Check max_uses BEFORE is_active to show correct error message
-    if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-      return NextResponse.json(
-        { error: "This invite link has already been used", code: "MAX_USES" },
-        { status: 410 }
-      );
-    }
-
-    if (!invite.is_active) {
-      return NextResponse.json(
-        { error: "This invite has been revoked by the trip owner", code: "REVOKED" },
-        { status: 410 }
-      );
-    }
-
-    if (new Date(invite.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: "This invite has expired", code: "EXPIRED" },
-        { status: 410 }
-      );
+    // Use shared validation (checks max_uses, is_active, expires_at in correct order)
+    const validation = validateInvite(invite as InviteData);
+    if (!validation.valid) {
+      return validation.errorResponse!;
     }
 
     // Check if user is the trip owner
@@ -243,14 +197,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json(
-        { error: "Trip not found", code: "TRIP_NOT_FOUND" },
-        { status: 404 }
-      );
+      return errors.notFound("Trip not found");
     }
 
     if (trip.user_id === user.id) {
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: "You are the owner of this trip",
         tripId: trip.id,
@@ -267,7 +218,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (existingCollab) {
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: "You are already a collaborator on this trip",
         tripId: trip.id,
@@ -289,11 +240,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (collabError) {
-      console.error("Error adding collaborator:", collabError);
-      return NextResponse.json(
-        { error: "Failed to join trip", code: "JOIN_FAILED" },
-        { status: 500 }
-      );
+      console.error("[Invites] Error adding collaborator:", collabError);
+      return errors.internal("Failed to join trip", "Invites");
     }
 
     // Increment invite use count
@@ -305,19 +253,59 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .update({ use_count: invite.use_count + 1 })
       .eq("id", invite.id);
 
-    return NextResponse.json({
+    // Award bananas to the inviter (collaborator referral reward)
+    let bananasAwarded = false;
+    let tierUnlocked = false;
+    let newTier = 0;
+
+    if (invite.created_by && invite.is_referral_eligible !== false) {
+      try {
+        // Check if this is a new user who signed up via this invite
+        // Award bananas to the person who created the invite
+        const inviterTier = await getUserReferralTier(supabaseAdmin, invite.created_by);
+
+        const bananaResult = await addCollaborationBananas(
+          supabaseAdmin,
+          invite.created_by,
+          invite.id,
+          inviterTier
+        );
+
+        if (bananaResult.success) {
+          bananasAwarded = true;
+
+          // Check and unlock tier if eligible
+          const tierResult = await checkAndUnlockTier(supabaseAdmin, invite.created_by);
+          tierUnlocked = tierResult.tierUnlocked;
+          newTier = tierResult.tierInfo.currentTier;
+        }
+
+        // Track that this user joined via trip invite (for future referral attribution)
+        await supabaseAdmin
+          .from("users")
+          .update({ signed_up_via_trip_invite: invite.id })
+          .eq("id", user.id);
+      } catch (bananaError) {
+        console.error("[Invites] Error awarding collaboration bananas:", bananaError);
+        // Don't fail the join - it's already successful
+      }
+    }
+
+    return apiSuccess({
       success: true,
       message: "Successfully joined the trip!",
       tripId: trip.id,
       tripTitle: trip.title,
       role: invite.role,
       collaborator: newCollab,
+      bananas: {
+        awarded: bananasAwarded,
+        tierUnlocked,
+        newTier: tierUnlocked ? newTier : undefined,
+      },
     });
   } catch (error) {
-    console.error("Error in POST /api/invites/[token]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Invites] Error in POST /api/invites/[token]:", error);
+    return errors.internal("Internal server error", "Invites");
   }
 }

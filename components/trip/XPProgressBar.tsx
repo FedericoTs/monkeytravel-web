@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Trophy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AchievementId, XpGainEvent } from "@/types/timeline";
 import { ACHIEVEMENTS, STREAK_MULTIPLIERS } from "@/types/timeline";
 
@@ -16,17 +17,23 @@ interface XPProgressBarProps {
 }
 
 // Level thresholds for the XP bar
-const LEVELS = [
-  { level: 1, xpRequired: 0, name: "Traveler" },
-  { level: 2, xpRequired: 100, name: "Explorer" },
-  { level: 3, xpRequired: 250, name: "Adventurer" },
-  { level: 4, xpRequired: 500, name: "Voyager" },
-  { level: 5, xpRequired: 800, name: "Globetrotter" },
-  { level: 6, xpRequired: 1200, name: "Wayfarer" },
-  { level: 7, xpRequired: 1700, name: "Wanderer" },
-  { level: 8, xpRequired: 2300, name: "Pathfinder" },
-  { level: 9, xpRequired: 3000, name: "Pioneer" },
-  { level: 10, xpRequired: 4000, name: "Legend" },
+type LevelInfo = {
+  level: number;
+  xpRequired: number;
+  nameKey: string;
+};
+
+const LEVELS: LevelInfo[] = [
+  { level: 1, xpRequired: 0, nameKey: "traveler" },
+  { level: 2, xpRequired: 100, nameKey: "explorer" },
+  { level: 3, xpRequired: 250, nameKey: "adventurer" },
+  { level: 4, xpRequired: 500, nameKey: "voyager" },
+  { level: 5, xpRequired: 800, nameKey: "globetrotter" },
+  { level: 6, xpRequired: 1200, nameKey: "wayfarer" },
+  { level: 7, xpRequired: 1700, nameKey: "wanderer" },
+  { level: 8, xpRequired: 2300, nameKey: "pathfinder" },
+  { level: 9, xpRequired: 3000, nameKey: "pioneer" },
+  { level: 10, xpRequired: 4000, nameKey: "legend" },
 ];
 
 function getCurrentLevel(xp: number) {
@@ -56,6 +63,7 @@ export default function XPProgressBar({
   recentXpGain,
   className = "",
 }: XPProgressBarProps) {
+  const t = useTranslations("common.xp");
   const [showXpAnimation, setShowXpAnimation] = useState(false);
   const [animatedXp, setAnimatedXp] = useState(totalXp);
   const [showDayComplete, setShowDayComplete] = useState(false);
@@ -169,7 +177,7 @@ export default function XPProgressBar({
           </div>
 
           <div>
-            <div className="font-semibold text-slate-900">{levelInfo.currentLevel.name}</div>
+            <div className="font-semibold text-slate-900">{t(`levels.${levelInfo.currentLevel.nameKey}`)}</div>
             <div className="text-sm text-slate-500">
               <motion.span
                 key={animatedXp}
@@ -212,9 +220,9 @@ export default function XPProgressBar({
       <div className="relative mb-3">
         {/* Day Progress Label */}
         <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className="text-slate-600 font-medium">Today&apos;s Progress</span>
+          <span className="text-slate-600 font-medium">{t("todaysProgress")}</span>
           <span className={`font-bold ${isDayComplete ? "text-emerald-600" : "text-slate-700"}`}>
-            {todayProgress.completed}/{todayProgress.total} activities
+            {t("activitiesCount", { completed: todayProgress.completed, total: todayProgress.total })}
             {isDayComplete && " ✓"}
           </span>
         </div>
@@ -297,11 +305,13 @@ export default function XPProgressBar({
           <Zap className="w-4 h-4" />
           {levelInfo.nextLevel.level !== levelInfo.currentLevel.level ? (
             <span>
-              {levelInfo.xpForNextLevel - levelInfo.xpInCurrentLevel} XP to{" "}
-              <span className="font-medium text-slate-700">{levelInfo.nextLevel.name}</span>
+              {t("xpToNextLevel", {
+                xp: levelInfo.xpForNextLevel - levelInfo.xpInCurrentLevel,
+                levelName: t(`levels.${levelInfo.nextLevel.nameKey}`)
+              })}
             </span>
           ) : (
-            <span className="font-medium text-emerald-600">Max Level!</span>
+            <span className="font-medium text-emerald-600">{t("maxLevel")}</span>
           )}
         </div>
 
@@ -312,7 +322,7 @@ export default function XPProgressBar({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <span>Day Complete!</span>
+            <span>{t("dayComplete")}</span>
             <span className="text-lg">🎉</span>
           </motion.div>
         )}
@@ -349,6 +359,7 @@ interface AchievementToastProps {
 }
 
 export function AchievementToast({ achievementId, onDismiss }: AchievementToastProps) {
+  const t = useTranslations("common.xp.achievement");
   const achievement = ACHIEVEMENTS[achievementId];
 
   // Auto-dismiss after 5 seconds
@@ -390,7 +401,7 @@ export function AchievementToast({ achievementId, onDismiss }: AchievementToastP
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4" />
             <span className="text-xs uppercase tracking-wider opacity-80">
-              {achievement.rarity} Achievement
+              {t("unlocked", { rarity: t(`rarities.${achievement.rarity}`) })}
             </span>
           </div>
           <div className="font-bold text-lg">{achievement.name}</div>

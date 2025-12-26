@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay, Activity } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body: ApplyChangeRequest = await request.json();
@@ -35,32 +36,20 @@ export async function POST(request: NextRequest) {
 
     // Validate based on change type
     if (!tripId || !changeType || !dayNumber) {
-      return NextResponse.json(
-        { error: "Missing required fields: tripId, changeType, dayNumber" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing required fields: tripId, changeType, dayNumber");
     }
 
     // Specific validation per change type
     if ((changeType === "replace" || changeType === "add") && !newActivity) {
-      return NextResponse.json(
-        { error: "Missing newActivity for replace/add operation" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing newActivity for replace/add operation");
     }
 
     if (changeType === "adjust_duration" && (!activity || newDuration === undefined)) {
-      return NextResponse.json(
-        { error: "Missing activity or newDuration for adjust_duration operation" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing activity or newDuration for adjust_duration operation");
     }
 
     if (changeType === "reorder" && !activities) {
-      return NextResponse.json(
-        { error: "Missing activities for reorder operation" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing activities for reorder operation");
     }
 
     // Fetch current trip
@@ -72,14 +61,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const itinerary = (trip.itinerary || []) as ItineraryDay[];
     const dayIndex = dayNumber - 1;
 
     if (dayIndex < 0 || dayIndex >= itinerary.length) {
-      return NextResponse.json({ error: "Invalid day number" }, { status: 400 });
+      return errors.badRequest("Invalid day number");
     }
 
     // Deep clone for modification
@@ -92,10 +81,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return NextResponse.json(
-          { error: "Activity not found in itinerary" },
-          { status: 404 }
-        );
+        return errors.notFound("Activity not found in itinerary");
       }
 
       // Preserve original time slot and start time
@@ -118,10 +104,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return NextResponse.json(
-          { error: "Activity not found in itinerary" },
-          { status: 404 }
-        );
+        return errors.notFound("Activity not found in itinerary");
       }
 
       modifiedItinerary[dayIndex].activities.splice(activityIndex, 1);
@@ -133,10 +116,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return NextResponse.json(
-          { error: "Activity not found in itinerary" },
-          { status: 404 }
-        );
+        return errors.notFound("Activity not found in itinerary");
       }
 
       // Update the duration
@@ -199,13 +179,10 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error("[AI Assistant Apply] Database update failed:", updateError);
-      return NextResponse.json(
-        { error: "Failed to save changes" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to save changes", "AI Assistant Apply");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       modifiedItinerary,
       action: {
@@ -217,9 +194,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[AI Assistant Apply] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to apply change" },
-      { status: 500 }
-    );
+    return errors.internal("Failed to apply change", "AI Assistant Apply");
   }
 }

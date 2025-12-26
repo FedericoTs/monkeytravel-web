@@ -8,12 +8,13 @@
  * Includes database caching (90 days) since place details rarely change.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -119,10 +120,7 @@ export async function GET(request: NextRequest) {
   const placeId = searchParams.get("placeId");
 
   if (!placeId) {
-    return NextResponse.json(
-      { error: "placeId is required" },
-      { status: 400 }
-    );
+    return errors.badRequest("placeId is required");
   }
 
   try {
@@ -137,24 +135,17 @@ export async function GET(request: NextRequest) {
         status: 503,
         error: `BLOCKED: ${access.message}`,
       });
-      return NextResponse.json(
-        { error: access.message || "Place Details API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Place Details API is currently disabled");
     }
 
     // Check usage limits for authenticated users
     if (user) {
       const usageCheck = await checkUsageLimit(user.id, "placesDetails", user.email);
       if (!usageCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: usageCheck.message || "Daily place details limit reached.",
-            usage: usageCheck,
-            upgradeUrl: "/pricing",
-          },
-          { status: 429 }
-        );
+        return errors.rateLimit(usageCheck.message || "Daily place details limit reached.", {
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        });
       }
     }
 
@@ -163,10 +154,7 @@ export async function GET(request: NextRequest) {
         status: 500,
         error: "API key not configured or blocked",
       });
-      return NextResponse.json(
-        { error: "Google Places API key not configured" },
-        { status: 500 }
-      );
+      return errors.internal("Google Places API key not configured", "Place Details");
     }
     // Check cache first
     const cacheKey = generateCacheKey(placeId);
@@ -174,7 +162,7 @@ export async function GET(request: NextRequest) {
 
     if (cachedResult) {
       logDetailsApiRequest({ cacheHit: true });
-      return NextResponse.json(cachedResult);
+      return apiSuccess(cachedResult);
     }
 
     console.log("[Place Details] Cache MISS for:", placeId);
@@ -194,11 +182,8 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Places Details API error:", errorText);
-      return NextResponse.json(
-        { error: "Failed to fetch place details" },
-        { status: 500 }
-      );
+      console.error("[Place Details] API error:", errorText);
+      return errors.internal("Failed to fetch place details", "Place Details");
     }
 
     const data = await response.json();
@@ -232,12 +217,9 @@ export async function GET(request: NextRequest) {
       await incrementUsage(user.id, "placesDetails", 1);
     }
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
-    console.error("Place Details API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Place Details] Error:", error);
+    return errors.internal("Internal server error", "Place Details");
   }
 }

@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type {
   Activity,
-  ActivityProposal,
   ProposalVote,
   ProposalType,
   ProposalStatus,
@@ -15,15 +16,11 @@ import {
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
 
-interface RouteContext {
-  params: Promise<{ id: string; proposalId: string }>;
-}
-
 /**
  * GET /api/trips/[id]/proposals/[proposalId]
  * Get a specific proposal with votes and consensus status
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -34,7 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Fetch proposal
@@ -67,10 +64,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Fetch votes for this proposal
@@ -183,17 +177,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       current_user_vote: currentUserVote?.vote_type,
     };
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       proposal: transformedProposal,
       totalVoters,
     });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/proposals/[proposalId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposals] Error fetching proposal:", error);
+    return errors.internal("Failed to fetch proposal", "Proposals");
   }
 }
 
@@ -201,7 +192,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  * PATCH /api/trips/[id]/proposals/[proposalId]
  * Update proposal status (withdraw by proposer, force-resolve by owner)
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -212,7 +203,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Parse request body
@@ -223,10 +214,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     };
 
     if (!action || !['withdraw', 'approve', 'reject'].includes(action)) {
-      return NextResponse.json(
-        { error: "Invalid action. Must be 'withdraw', 'approve', or 'reject'" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid action. Must be 'withdraw', 'approve', or 'reject'");
     }
 
     // Get proposal and trip info
@@ -238,18 +226,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Check if proposal can be modified
     if (!['pending', 'voting'].includes(proposal.status)) {
-      return NextResponse.json(
-        { error: "This proposal has already been resolved" },
-        { status: 400 }
-      );
+      return errors.badRequest("This proposal has already been resolved");
     }
 
     // Get trip owner
@@ -265,18 +247,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Permission checks
     if (action === 'withdraw') {
       if (!isProposer) {
-        return NextResponse.json(
-          { error: "Only the proposer can withdraw a proposal" },
-          { status: 403 }
-        );
+        return errors.forbidden("Only the proposer can withdraw a proposal");
       }
     } else {
       // approve or reject requires owner
       if (!isOwner) {
-        return NextResponse.json(
-          { error: "Only the trip owner can force-approve or reject proposals" },
-          { status: 403 }
-        );
+        return errors.forbidden("Only the trip owner can force-approve or reject proposals");
       }
     }
 
@@ -298,10 +274,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         method = resolutionMethod || 'owner_override';
         break;
       default:
-        return NextResponse.json(
-          { error: "Invalid action" },
-          { status: 400 }
-        );
+        return errors.badRequest("Invalid action");
     }
 
     // Update proposal
@@ -318,24 +291,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (updateError) {
-      console.error("Error updating proposal:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update proposal" },
-        { status: 500 }
-      );
+      console.error("[Proposals] Error updating proposal:", updateError);
+      return errors.internal("Failed to update proposal", "Proposals");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       proposal: updatedProposal,
       action,
     });
   } catch (error) {
-    console.error("Error in PATCH /api/trips/[id]/proposals/[proposalId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposals] Error updating proposal:", error);
+    return errors.internal("Failed to update proposal", "Proposals");
   }
 }
 
@@ -343,7 +310,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  * DELETE /api/trips/[id]/proposals/[proposalId]
  * Delete a pending proposal (proposer only)
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -354,7 +321,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Get proposal
@@ -366,26 +333,17 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Check permissions (only proposer can delete)
     if (proposal.proposed_by !== user.id) {
-      return NextResponse.json(
-        { error: "Only the proposer can delete a proposal" },
-        { status: 403 }
-      );
+      return errors.forbidden("Only the proposer can delete a proposal");
     }
 
     // Can only delete pending proposals
     if (proposal.status !== 'pending') {
-      return NextResponse.json(
-        { error: "Only pending proposals can be deleted. Use withdraw for voting proposals." },
-        { status: 400 }
-      );
+      return errors.badRequest("Only pending proposals can be deleted. Use withdraw for voting proposals.");
     }
 
     // Delete proposal
@@ -395,22 +353,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("id", proposalId);
 
     if (deleteError) {
-      console.error("Error deleting proposal:", deleteError);
-      return NextResponse.json(
-        { error: "Failed to delete proposal" },
-        { status: 500 }
-      );
+      console.error("[Proposals] Error deleting proposal:", deleteError);
+      return errors.internal("Failed to delete proposal", "Proposals");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Proposal deleted",
     });
   } catch (error) {
-    console.error("Error in DELETE /api/trips/[id]/proposals/[proposalId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposals] Error deleting proposal:", error);
+    return errors.internal("Failed to delete proposal", "Proposals");
   }
 }

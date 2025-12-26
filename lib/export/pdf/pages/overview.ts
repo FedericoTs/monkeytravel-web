@@ -1,16 +1,6 @@
 import type { PageContext, PremiumTripForExport } from "../types";
 import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
-
-/**
- * Format date for display
- */
-function formatDateRange(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
-
-  return `${start.toLocaleDateString("en-US", options)} - ${end.toLocaleDateString("en-US", options)}`;
-}
+import { formatDateRangeWithWeekdays } from "@/lib/datetime";
 
 /**
  * Render the overview page with trip stats, highlights, and tips
@@ -53,7 +43,7 @@ export function renderOverviewPage(
   renderStatCard(ctx, margin, y, cardWidth, cardHeight, {
     label: "DAYS",
     value: String(trip.itinerary.length),
-    sublabel: formatDateRange(trip.startDate, trip.endDate),
+    sublabel: formatDateRangeWithWeekdays(trip.startDate, trip.endDate),
     accentColor: COLORS.primary,
   });
 

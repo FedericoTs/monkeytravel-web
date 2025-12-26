@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -59,26 +60,17 @@ export async function POST(request: NextRequest) {
         costUsd: 0,
         error: `BLOCKED: ${access.message}`,
       });
-      return NextResponse.json(
-        { error: access.message || "Geocoding API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Geocoding API is currently disabled");
     }
 
     const { addresses }: GeocodeRequest = await request.json();
 
     if (!addresses?.length) {
-      return NextResponse.json(
-        { error: "Addresses array is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Addresses array is required");
     }
 
     if (addresses.length > 50) {
-      return NextResponse.json(
-        { error: "Maximum 50 addresses per request" },
-        { status: 400 }
-      );
+      return errors.badRequest("Maximum 50 addresses per request");
     }
 
     if (!GOOGLE_MAPS_API_KEY || !access.shouldPassKey) {
@@ -91,10 +83,7 @@ export async function POST(request: NextRequest) {
         costUsd: 0,
         error: "API key not configured or blocked",
       });
-      return NextResponse.json(
-        { error: "Google Maps API key not configured" },
-        { status: 500 }
-      );
+      return errors.internal("Google Maps API key not configured", "Geocode");
     }
 
     const results: GeocodeResult[] = [];
@@ -116,7 +105,7 @@ export async function POST(request: NextRequest) {
       .gt("expires_at", new Date().toISOString());
 
     if (cacheError) {
-      console.error("Cache lookup error:", cacheError);
+      console.error("[Geocode] Cache lookup error:", cacheError);
     }
 
     // Build a map of cached results
@@ -210,7 +199,7 @@ export async function POST(request: NextRequest) {
                 expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
               })
               .then(({ error }) => {
-                if (error) console.error("Cache insert error:", error);
+                if (error) console.error("[Geocode] Cache insert error:", error);
               });
 
             // Log API usage for cost tracking using centralized gateway
@@ -234,12 +223,12 @@ export async function POST(request: NextRequest) {
               source: "api",
             } as GeocodeResult;
           } else if (data.status === "ZERO_RESULTS") {
-            console.warn(`No geocode results for: ${address}`);
+            console.warn(`[Geocode] No results for: ${address}`);
           } else {
-            console.error(`Geocoding error for ${address}:`, data.status, data.error_message);
+            console.error(`[Geocode] Error for ${address}:`, data.status, data.error_message);
           }
         } catch (error) {
-          console.error(`Geocoding request failed for: ${address}`, error);
+          console.error(`[Geocode] Request failed for: ${address}`, error);
         }
         return null;
       });
@@ -268,7 +257,7 @@ export async function POST(request: NextRequest) {
       return results.find((r) => r.address === addr) || null;
     }).filter((r): r is GeocodeResult => r !== null);
 
-    return NextResponse.json({
+    return apiSuccess({
       results: orderedResults,
       stats: {
         total: addresses.length,
@@ -278,10 +267,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Geocode API error:", error);
-    return NextResponse.json(
-      { error: "Failed to geocode addresses" },
-      { status: 500 }
-    );
+    console.error("[Geocode] API error:", error);
+    return errors.internal("Failed to geocode addresses", "Geocode");
   }
 }

@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       // Check if user profile exists
       const { data: existingProfile } = await supabase
         .from("users")
-        .select("id, onboarding_completed, welcome_completed")
+        .select("id, onboarding_completed, welcome_completed, login_count")
         .eq("id", data.user.id)
         .single();
 
@@ -41,6 +41,18 @@ export async function GET(request: Request) {
       const finalRedirect = next !== "/trips" ? next : "/trips/new"; // Prefer trips/new for new users
 
       if (existingProfile) {
+        // Increment login_count for returning users (email confirmation/magic link)
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({
+            login_count: ((existingProfile as { login_count?: number }).login_count || 0) + 1,
+          })
+          .eq("id", data.user.id);
+
+        if (updateError) {
+          console.error("[Auth Callback] Failed to increment login_count:", updateError.message);
+        }
+
         // Check welcome status first (new flow)
         if (!existingProfile.welcome_completed) {
           // New user needs to see welcome page first - preserve intended destination
@@ -85,7 +97,7 @@ export async function GET(request: Request) {
       // Check if user profile exists, if not create one (for OAuth users)
       const { data: existingProfile } = await supabase
         .from("users")
-        .select("id")
+        .select("id, login_count, profile_completed")
         .eq("id", data.user.id)
         .single();
 
@@ -155,7 +167,18 @@ export async function GET(request: Request) {
         }
       }
 
-      // Returning users go directly to their destination
+      // Returning users - increment login count and go to destination
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          login_count: ((existingProfile as { login_count?: number }).login_count || 0) + 1,
+        })
+        .eq("id", data.user.id);
+
+      if (updateError) {
+        console.error("[Auth Callback] Failed to increment login_count (OAuth):", updateError.message);
+      }
+
       const separator = next.includes("?") ? "&" : "?";
       const trackingParam = "auth_event=login_google";
       return NextResponse.redirect(`${origin}${next}${separator}${trackingParam}`);

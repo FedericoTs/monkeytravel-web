@@ -10,10 +10,14 @@
  * - Walking: Additional factor for pedestrian paths
  */
 
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
+import { type Coordinates } from "./geo";
+import {
+  calculateHaversineDistance as calcHaversine,
+  estimateRoadDistance,
+  getAverageSpeed,
+} from "@/lib/math/distance";
+
+export type { Coordinates };
 
 export interface TravelEstimate {
   mode: "WALKING" | "DRIVING";
@@ -32,46 +36,7 @@ export function calculateHaversineDistance(
   origin: Coordinates,
   destination: Coordinates
 ): number {
-  const R = 6371000; // Earth's radius in meters
-  const lat1Rad = (origin.lat * Math.PI) / 180;
-  const lat2Rad = (destination.lat * Math.PI) / 180;
-  const deltaLat = ((destination.lat - origin.lat) * Math.PI) / 180;
-  const deltaLng = ((destination.lng - origin.lng) * Math.PI) / 180;
-
-  const a =
-    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-/**
- * Estimate road distance from straight-line distance
- *
- * Research-based road factors:
- * - Very short (<500m): 1.2x (likely nearby streets)
- * - Short (<2km): 1.3x (urban grid, some turns)
- * - Medium (2-5km): 1.35x (more routing complexity)
- * - Long (>5km): 1.4x (major roads, intersections)
- */
-function estimateRoadDistance(straightLineMeters: number): number {
-  let factor: number;
-
-  if (straightLineMeters < 500) {
-    factor = 1.2;
-  } else if (straightLineMeters < 2000) {
-    factor = 1.3;
-  } else if (straightLineMeters < 5000) {
-    factor = 1.35;
-  } else {
-    factor = 1.4;
-  }
-
-  return Math.round(straightLineMeters * factor);
+  return calcHaversine(origin, destination, "m");
 }
 
 /**
@@ -84,36 +49,6 @@ function estimateWalkingDistance(straightLineMeters: number): number {
   // (can use shortcuts, pedestrian paths, etc.)
   const factor = straightLineMeters < 1000 ? 1.15 : 1.2;
   return Math.round(straightLineMeters * factor);
-}
-
-/**
- * Get realistic average speed based on mode and distance
- *
- * Walking:
- * - Comfortable walking: 4.5-5 km/h
- * - We use 4.8 km/h accounting for crossings/stops
- *
- * Driving (urban):
- * - Short trips (<2km): 15-20 km/h (parking, traffic lights)
- * - Medium trips (2-5km): 20-25 km/h (more traffic)
- * - Longer trips (>5km): 25-35 km/h (may include faster roads)
- */
-function getAverageSpeed(mode: "WALKING" | "DRIVING", distanceMeters: number): number {
-  if (mode === "WALKING") {
-    // 4.8 km/h = 1.33 m/s
-    return 4.8;
-  }
-
-  // Driving speeds vary by distance (km/h)
-  if (distanceMeters < 2000) {
-    return 18; // Short urban trips with parking
-  } else if (distanceMeters < 5000) {
-    return 22; // Medium urban trips
-  } else if (distanceMeters < 10000) {
-    return 28; // Longer trips, mix of roads
-  } else {
-    return 35; // May include highways/faster roads
-  }
 }
 
 /**

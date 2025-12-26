@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CachedDayTravelData, TripMeta } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 interface TravelCacheBody {
   travel_distances: CachedDayTravelData[];
@@ -16,7 +14,7 @@ interface TravelCacheBody {
  * Saves calculated travel distances to trip_meta for persistence
  * These are calculated locally using Haversine formula - no external API costs
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createClient();
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify trip ownership and get current trip_meta
@@ -39,17 +37,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (fetchError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Parse request body
     const body: TravelCacheBody = await request.json();
 
     if (!body.travel_distances || !body.travel_distances_hash) {
-      return NextResponse.json(
-        { error: "Missing travel_distances or travel_distances_hash" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing travel_distances or travel_distances_hash");
     }
 
     // Merge with existing trip_meta
@@ -71,22 +66,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .eq("user_id", user.id);
 
     if (updateError) {
-      console.error("Error updating travel cache:", updateError);
-      return NextResponse.json(
-        { error: "Failed to save travel cache" },
-        { status: 500 }
-      );
+      console.error("[Travel Cache] Error updating travel cache:", updateError);
+      return errors.internal("Failed to save travel cache", "Travel Cache");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Travel distances cached successfully",
     });
   } catch (error) {
-    console.error("Error in travel-cache API:", error);
-    return NextResponse.json(
-      { error: "Failed to save travel cache" },
-      { status: 500 }
-    );
+    console.error("[Travel Cache] Error in travel-cache API:", error);
+    return errors.internal("Failed to save travel cache", "Travel Cache");
   }
 }

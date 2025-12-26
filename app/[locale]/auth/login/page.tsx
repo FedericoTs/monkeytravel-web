@@ -55,9 +55,17 @@ function LoginForm() {
         // Check if user needs to complete welcome flow first
         const { data: profile } = await supabase
           .from("users")
-          .select("welcome_completed, onboarding_completed")
+          .select("welcome_completed, onboarding_completed, login_count")
           .eq("id", user.id)
           .single();
+
+        // Increment login count for returning users
+        if (profile) {
+          await supabase
+            .from("users")
+            .update({ login_count: (profile.login_count || 0) + 1 })
+            .eq("id", user.id);
+        }
 
         // New users need to see welcome page first (to enter beta code / join waitlist)
         if (profile && !profile.welcome_completed) {

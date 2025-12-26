@@ -39,6 +39,7 @@ function InlineProposalCardComponent({
   totalVoters = 5,
 }: InlineProposalCardProps) {
   const t = useTranslations("common.proposals");
+  const tv = useTranslations("common.voting"); // Voting type labels
   const activity = proposal.activity_data as Activity | null;
   const isActive = proposal.status === 'pending' || proposal.status === 'voting';
 
@@ -304,19 +305,19 @@ function InlineProposalCardComponent({
             {/* Vote breakdown - 4-level display */}
             {voteCount > 0 && (
               <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
-                <span className="flex items-center gap-0.5" title="Love it!">
+                <span className="flex items-center gap-0.5" title={tv(VOTE_INFO.love.labelKey)}>
                   <span>{VOTE_INFO.love.emoji}</span>
                   <span>{loveCount}</span>
                 </span>
-                <span className="flex items-center gap-0.5" title="Open to it">
+                <span className="flex items-center gap-0.5" title={tv(VOTE_INFO.flexible.labelKey)}>
                   <span>{VOTE_INFO.flexible.emoji}</span>
                   <span>{flexibleCount}</span>
                 </span>
-                <span className="flex items-center gap-0.5" title="Concerns">
+                <span className="flex items-center gap-0.5" title={tv(VOTE_INFO.concerns.labelKey)}>
                   <span>{VOTE_INFO.concerns.emoji}</span>
                   <span>{concernsCount}</span>
                 </span>
-                <span className="flex items-center gap-0.5" title="Skip this">
+                <span className="flex items-center gap-0.5" title={tv(VOTE_INFO.no.labelKey)}>
                   <span>{VOTE_INFO.no.emoji}</span>
                   <span>{noCount}</span>
                 </span>
@@ -331,7 +332,7 @@ function InlineProposalCardComponent({
             {hasVoted && userVoteInfo ? (
               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${userVoteInfo.color}`}>
                 <span>{userVoteInfo.emoji}</span>
-                <span>{t("voting.yourVote", { vote: userVoteInfo.label })}</span>
+                <span>{t("voting.yourVote", { vote: tv(userVoteInfo.labelKey) })}</span>
               </span>
             ) : (
               <span className="text-xs text-blue-600 font-medium animate-pulse">

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface SiteConfig {
   id: number;
@@ -28,9 +29,9 @@ export async function GET() {
       .single();
 
     if (error) {
-      console.error("Error fetching site config:", error);
+      console.error("[Admin Config] Error fetching site config:", error);
       // Return default config if table doesn't exist or is empty
-      return NextResponse.json({
+      return apiSuccess({
         maintenance_mode: false,
         maintenance_message: "We are currently performing scheduled maintenance.",
         maintenance_title: "Under Maintenance",
@@ -38,13 +39,10 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(data);
+    return apiSuccess(data);
   } catch (error) {
-    console.error("Site config error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch site config" },
-      { status: 500 }
-    );
+    console.error("[Admin Config] Site config error:", error);
+    return errors.internal("Failed to fetch site config", "Admin Config");
   }
 }
 
@@ -62,12 +60,12 @@ export async function PATCH(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check admin access
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     const body = await request.json();
@@ -115,28 +113,22 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Error updating site config:", error);
-      return NextResponse.json(
-        { error: "Failed to update site config" },
-        { status: 500 }
-      );
+      console.error("[Admin Config] Error updating site config:", error);
+      return errors.internal("Failed to update site config", "Admin Config");
     }
 
     // Log the action
-    console.log(`[Admin] Site config updated by ${user.email}:`, {
+    console.log(`[Admin Config] Site config updated by ${user.email}:`, {
       maintenance_mode: data.maintenance_mode,
       updated_at: data.updated_at,
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       config: data,
     });
   } catch (error) {
-    console.error("Site config update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update site config" },
-      { status: 500 }
-    );
+    console.error("[Admin Config] Site config update error:", error);
+    return errors.internal("Failed to update site config", "Admin Config");
   }
 }

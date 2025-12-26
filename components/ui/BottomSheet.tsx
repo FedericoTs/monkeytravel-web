@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -21,30 +21,8 @@ export default function BottomSheet({
 }: BottomSheetProps) {
   const dragControls = useDragControls();
 
-  // Prevent body scroll when sheet is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, onClose]);
+  // Unified modal behavior: escape key + scroll lock
+  useModalBehavior({ isOpen, onClose });
 
   const handleDragEnd = (_: unknown, info: { offset: { y: number }; velocity: { y: number } }) => {
     if (info.offset.y > 100 || info.velocity.y > 500) {

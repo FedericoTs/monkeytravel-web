@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ToastProvider } from "@/components/ui/Toast";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
+import { ProfileCompletionProvider } from "@/components/profile";
 import { routing } from "@/lib/i18n/routing";
 
 // Generate static params for all supported locales
@@ -35,7 +36,9 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <ToastProvider>
-        <MaintenanceWrapper>{children}</MaintenanceWrapper>
+        <ProfileCompletionProvider>
+          <MaintenanceWrapper>{children}</MaintenanceWrapper>
+        </ProfileCompletionProvider>
       </ToastProvider>
     </NextIntlClientProvider>
   );

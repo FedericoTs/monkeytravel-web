@@ -2,12 +2,15 @@
 
 import { useState, useMemo, useCallback, useEffect, Suspense } from "react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
-import { formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/datetime";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import CuratedEscapes from "@/components/templates/CuratedEscapes";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
+import ReferralProgressBanner from "@/components/bananas/ReferralProgressBanner";
+import ReferralModal from "@/components/referral/ReferralModal";
+import TripActionModal from "@/components/trips/TripActionModal";
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
 const DESTINATION_GRADIENTS: Record<string, { from: string; to: string; accent: string }> = {
@@ -38,49 +41,129 @@ interface Trip {
   status: string;
   cover_image_url?: string;
   created_at: string;
+  is_archived?: boolean;
 }
 
 interface TripsPageClientProps {
   trips: Trip[];
   displayName: string;
+  lifetimeConversions: number;
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
 type FilterStatus = "all" | "planning" | "confirmed" | "active" | "completed" | "cancelled";
 
-export default function TripsPageClient({ trips, displayName }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, displayName, lifetimeConversions }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
-  // Calculate trip statistics
+  // Action modal state
+  const [actionModal, setActionModal] = useState<{
+    isOpen: boolean;
+    tripId: string;
+    tripTitle: string;
+    action: "archive" | "delete" | "unarchive";
+  }>({
+    isOpen: false,
+    tripId: "",
+    tripTitle: "",
+    action: "archive",
+  });
+
+  // Handle trip actions
+  const handleArchive = async (tripId: string) => {
+    const response = await fetch(`/api/trips/${tripId}/archive`, {
+      method: "POST",
+    });
+    if (response.ok) {
+      router.refresh();
+    } else {
+      throw new Error("Failed to archive trip");
+    }
+  };
+
+  const handleUnarchive = async (tripId: string) => {
+    const response = await fetch(`/api/trips/${tripId}/archive`, {
+      method: "DELETE",
+    });
+    if (response.ok) {
+      router.refresh();
+    } else {
+      throw new Error("Failed to unarchive trip");
+    }
+  };
+
+  const handleDelete = async (tripId: string) => {
+    const response = await fetch(`/api/trips/${tripId}`, {
+      method: "DELETE",
+    });
+    if (response.ok) {
+      router.refresh();
+    } else {
+      throw new Error("Failed to delete trip");
+    }
+  };
+
+  const openActionModal = (tripId: string, tripTitle: string, action: "archive" | "delete" | "unarchive") => {
+    setActionModal({ isOpen: true, tripId, tripTitle, action });
+  };
+
+  const closeActionModal = () => {
+    setActionModal({ ...actionModal, isOpen: false });
+  };
+
+  const confirmAction = async () => {
+    const { tripId, action } = actionModal;
+    switch (action) {
+      case "archive":
+        await handleArchive(tripId);
+        break;
+      case "unarchive":
+        await handleUnarchive(tripId);
+        break;
+      case "delete":
+        await handleDelete(tripId);
+        break;
+    }
+  };
+
+  // Separate active and archived trips
+  const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
+  const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
+
+  // Calculate trip statistics (only for active, non-archived trips)
   const stats = useMemo(() => {
     const now = new Date();
-    const upcoming = trips.filter(t => new Date(t.start_date) > now).length;
-    const past = trips.filter(t => new Date(t.end_date) < now).length;
-    const active = trips.filter(t => {
+    const upcoming = activeTrips.filter(t => new Date(t.start_date) > now).length;
+    const past = activeTrips.filter(t => new Date(t.end_date) < now).length;
+    const active = activeTrips.filter(t => {
       const start = new Date(t.start_date);
       const end = new Date(t.end_date);
       return start <= now && end >= now;
     }).length;
 
     // Count unique destinations (extract from title)
-    const destinations = new Set(trips.map(t => t.title.replace(/ Trip$/, "")));
+    const destinations = new Set(activeTrips.map(t => t.title.replace(/ Trip$/, "")));
 
     return {
-      total: trips.length,
+      total: activeTrips.length,
       upcoming,
       past,
       active,
       destinations: destinations.size,
+      archived: archivedTrips.length,
     };
-  }, [trips]);
+  }, [activeTrips, archivedTrips]);
 
-  // Filter and sort trips
+  // Filter and sort trips (only non-archived trips)
   const filteredTrips = useMemo(() => {
-    let result = [...trips];
+    let result = [...activeTrips];
 
     // Search filter
     if (searchQuery) {
@@ -114,7 +197,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
     }
 
     return result;
-  }, [trips, searchQuery, sortBy, filterStatus]);
+  }, [activeTrips, searchQuery, sortBy, filterStatus]);
 
   // Group trips by timeline
   const groupedTrips = useMemo(() => {
@@ -143,8 +226,15 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
     planning: "bg-amber-100 text-amber-700",
     confirmed: "bg-green-100 text-green-700",
     active: "bg-blue-100 text-blue-700",
-    completed: "bg-slate-100 text-slate-700",
+    completed: "bg-purple-100 text-purple-700", // "Memories" - purple for nostalgia
     cancelled: "bg-red-100 text-red-700",
+  };
+
+  // Get translated status label - "completed" displays as "Memories"
+  const getStatusLabel = (status: string) => {
+    if (status === 'completed') return t('memories');
+    if (status === 'active') return t('active');
+    return t(status as 'planning' | 'confirmed' | 'cancelled');
   };
 
   // Enhanced TripCard with automatic image fetching
@@ -152,8 +242,10 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
     const [imageUrl, setImageUrl] = useState<string | null>(trip.cover_image_url || null);
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
+    const [menuOpen, setMenuOpen] = useState(false);
     const gradient = getDestinationGradient(trip.title);
     const destination = trip.title.replace(/ Trip$/i, "").replace(/Trip to /i, "");
+    const isArchived = trip.is_archived;
 
     // Fetch destination image if no cover_image_url
     useEffect(() => {
@@ -270,6 +362,84 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
               {destination}
             </span>
           </div>
+
+          {/* Action menu button */}
+          <div className="absolute top-3 right-3">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setMenuOpen(!menuOpen);
+              }}
+              className="p-1.5 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+
+            {/* Dropdown menu */}
+            {menuOpen && (
+              <>
+                {/* Backdrop to close menu */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                  }}
+                />
+                <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-200 py-1 min-w-[140px]">
+                  {isArchived ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        openActionModal(trip.id, trip.title, "unarchive");
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      {t('unarchiveTrip')}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        openActionModal(trip.id, trip.title, "archive");
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                      </svg>
+                      {t('archiveTrip')}
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                      openActionModal(trip.id, trip.title, "delete");
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    {t('deleteTrip')}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Trip Info */}
@@ -304,7 +474,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
                 statusColors[trip.status as keyof typeof statusColors] || statusColors.planning
               }`}
             >
-              {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+              {getStatusLabel(trip.status)}
             </span>
 
             {/* Arrow indicator on hover */}
@@ -393,7 +563,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Stats Cards */}
-        {trips.length > 0 && (
+        {activeTrips.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -445,8 +615,15 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
           </div>
         )}
 
-        {/* Curated Escapes Section - Pre-made templates */}
-        <CuratedEscapes />
+        {/* Referral Progress Banner - Encourage invitations (HIGH PRIORITY) */}
+        <ReferralProgressBanner
+          lifetimeConversions={lifetimeConversions}
+          className="mb-6 sm:mb-8"
+          onInvite={() => setReferralModalOpen(true)}
+        />
+
+        {/* For new users: Show templates first for inspiration */}
+        {activeTrips.length === 0 && archivedTrips.length === 0 && <CuratedEscapes />}
 
         {/* Page Header with Search */}
         <div className="flex flex-col gap-4 mb-6 sm:mb-8">
@@ -461,7 +638,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
             <Link
               href="/trips/new"
               className={`bg-[var(--primary)] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25 ${
-                trips.length === 0 ? "hidden sm:flex" : ""
+                activeTrips.length === 0 ? "hidden sm:flex" : ""
               }`}
             >
               <svg
@@ -482,7 +659,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
           </div>
 
           {/* Search and Filters */}
-          {trips.length > 0 && (
+          {activeTrips.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search */}
               <div className="relative flex-1">
@@ -634,7 +811,7 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
         )}
 
         {/* Trips Display */}
-        {trips.length > 0 ? (
+        {activeTrips.length > 0 ? (
           filterStatus === "all" && !searchQuery ? (
             // Grouped view (no filters active)
             <>
@@ -711,21 +888,15 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
           )
         ) : (
           /* Empty State */
-          <div className="text-center py-12 sm:py-16 px-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <svg
-                className="w-10 h-10 sm:w-12 sm:h-12 text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+          <div className="text-center py-8 sm:py-12 px-4">
+            <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 mx-auto mb-4 sm:mb-6">
+              <Image
+                src="/images/empty-state.png"
+                alt="No trips yet"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
               {t('noTripsYet')}
@@ -754,7 +925,66 @@ export default function TripsPageClient({ trips, displayName }: TripsPageClientP
             </Link>
           </div>
         )}
+
+        {/* Archived Trips Section */}
+        {archivedTrips.length > 0 && (
+          <div className="mt-8 sm:mt-12">
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors mb-4"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform ${showArchived ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="font-medium">
+                {showArchived ? t('hideArchived') : t('showArchived')}
+              </span>
+              <span className="text-sm text-slate-400">({archivedTrips.length})</span>
+            </button>
+
+            {showArchived && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('archivedSection')}</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 opacity-75">
+                  {archivedTrips.map((trip) => (
+                    <TripCard key={trip.id} trip={trip} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* For users WITH trips: Show templates at the bottom for inspiration */}
+        {activeTrips.length > 0 && <CuratedEscapes />}
       </main>
+
+      {/* Referral Modal */}
+      <ReferralModal
+        isOpen={referralModalOpen}
+        onClose={() => setReferralModalOpen(false)}
+      />
+
+      {/* Trip Action Modal */}
+      <TripActionModal
+        isOpen={actionModal.isOpen}
+        onClose={closeActionModal}
+        onConfirm={confirmAction}
+        tripTitle={actionModal.tripTitle}
+        action={actionModal.action}
+      />
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav activePage="trips" />

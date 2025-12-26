@@ -1,10 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import {
+  addReferralBananas,
+  checkAndUnlockTier,
+  getUserReferralTier,
+  getTierForConversions,
+} from "@/lib/bananas";
 
 /**
  * POST /api/referral/complete
  * Called when a referred user creates their first trip
- * Grants rewards to both referrer and referee
+ * Grants rewards to both referrer and referee (free trips + bananas)
  */
 export async function POST() {
   try {
@@ -14,10 +20,7 @@ export async function POST() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return errors.unauthorized();
     }
 
     // Get user's referral info
@@ -29,14 +32,14 @@ export async function POST() {
 
     // Check if user was referred and hasn't completed yet
     if (!currentUser?.referred_by_code) {
-      return NextResponse.json({
+      return apiSuccess({
         success: false,
         message: "User was not referred",
       });
     }
 
     if (currentUser.referral_completed_at) {
-      return NextResponse.json({
+      return apiSuccess({
         success: false,
         message: "Referral reward already claimed",
       });
@@ -50,7 +53,7 @@ export async function POST() {
       .single();
 
     if (!referralCode) {
-      return NextResponse.json({
+      return apiSuccess({
         success: false,
         message: "Referral code not found",
       });
@@ -77,10 +80,7 @@ export async function POST() {
 
     if (refereeError) {
       console.error("[Referral Complete] Error updating referee:", refereeError);
-      return NextResponse.json(
-        { error: "Failed to grant reward to referee" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to grant reward to referee", "Referral Complete");
     }
 
     // 2. Grant reward to referrer
@@ -111,25 +111,94 @@ export async function POST() {
       console.error("[Referral Complete] Error recording event:", eventError);
     }
 
-    // 4. Update conversion count
+    // 4. Update conversion count in referral_codes
+    const newConversionCount = (referralCode.total_conversions || 0) + 1;
     await supabase
       .from("referral_codes")
       .update({
-        total_conversions: (referralCode.total_conversions || 0) + 1,
+        total_conversions: newConversionCount,
       })
       .eq("id", referralCode.id);
 
-    return NextResponse.json({
+    // 5. Award bananas to referrer (new banana system)
+    let bananasAwarded = 0;
+    let tierUnlocked = false;
+    let newTier = 0;
+    let tierBonusBananas = 0;
+
+    try {
+      // Get referrer's current tier for bonus calculation
+      const referrerTier = await getUserReferralTier(supabase, referralCode.user_id);
+
+      // Get the referral event ID for reference
+      const { data: eventData } = await supabase
+        .from("referral_events")
+        .select("id")
+        .eq("referral_code_id", referralCode.id)
+        .eq("referee_id", user.id)
+        .eq("event_type", "conversion")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      // Award bananas to referrer
+      const bananaResult = await addReferralBananas(
+        supabase,
+        referralCode.user_id,
+        eventData?.id,
+        referrerTier
+      );
+
+      if (bananaResult.success) {
+        bananasAwarded = bananaResult.newBalance;
+      }
+
+      // Check and unlock tier if eligible
+      const tierResult = await checkAndUnlockTier(supabase, referralCode.user_id);
+      tierUnlocked = tierResult.tierUnlocked;
+      newTier = tierResult.tierInfo.currentTier;
+      tierBonusBananas = tierResult.bonusBananas;
+
+      // Calculate tier directly from conversions as fallback/verification
+      const calculatedTier = getTierForConversions(newConversionCount);
+      // Use the higher of calculated or RPC-returned tier (safety check)
+      const effectiveTier = Math.max(newTier, calculatedTier);
+
+      // 6. CRITICAL: Sync users table with updated conversion count and tier
+      // This ensures the usage limits check works correctly
+      const { error: syncError } = await supabase
+        .from("users")
+        .update({
+          lifetime_referral_conversions: newConversionCount,
+          referral_tier: effectiveTier,
+        })
+        .eq("id", referralCode.user_id);
+
+      if (syncError) {
+        console.error("[Referral Complete] Error syncing user stats:", syncError);
+      }
+
+      // Update newTier for response
+      newTier = effectiveTier;
+    } catch (bananaError) {
+      console.error("[Referral Complete] Error awarding bananas:", bananaError);
+      // Don't fail the request - free trips already granted
+    }
+
+    return apiSuccess({
       success: true,
       referrer_rewarded: !referrerError,
       referee_rewarded: true,
       message: "Congratulations! You and your friend each earned 1 free trip!",
+      bananas: {
+        awarded: bananasAwarded > 0,
+        tierUnlocked,
+        newTier: tierUnlocked ? newTier : undefined,
+        tierBonus: tierBonusBananas,
+      },
     });
   } catch (error) {
     console.error("[Referral Complete] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Referral Complete");
   }
 }

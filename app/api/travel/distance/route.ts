@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { estimateTravelTime, calculateHaversineDistance, determineOptimalMode } from "@/lib/utils/travel-estimation";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { Coordinates } from "@/lib/utils/geo";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
 
 interface DistancePair {
   index: number; // Index for matching results back to pairs
@@ -107,17 +104,11 @@ export async function POST(request: NextRequest) {
     const { pairs }: DistanceRequest = await request.json();
 
     if (!pairs?.length) {
-      return NextResponse.json(
-        { error: "Pairs array is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Pairs array is required");
     }
 
     if (pairs.length > 25) {
-      return NextResponse.json(
-        { error: "Maximum 25 pairs per request" },
-        { status: 400 }
-      );
+      return errors.badRequest("Maximum 25 pairs per request");
     }
 
     // If using local estimation (API disabled), calculate all results locally
@@ -172,7 +163,7 @@ export async function POST(request: NextRequest) {
         metadata: { estimated: true, pairs: pairs.length },
       });
 
-      return NextResponse.json({
+      return apiSuccess({
         results: results.sort((a, b) => a.index - b.index),
         stats: {
           total: pairs.length,
@@ -228,7 +219,7 @@ export async function POST(request: NextRequest) {
       .gt("expires_at", new Date().toISOString());
 
     if (cacheError) {
-      console.error("Distance cache lookup error:", cacheError);
+      console.error("[Distance API] Cache lookup error:", cacheError);
     }
 
     // Build a map of cached results
@@ -426,14 +417,14 @@ export async function POST(request: NextRequest) {
                       ).toISOString(), // 60 days - distances between fixed points are very stable
                     })
                     .then(({ error }) => {
-                      if (error) console.error("Distance cache insert error:", error);
+                      if (error) console.error("[Distance API] Cache insert error:", error);
                     });
                 }
               } else {
                 // Fallback: Use coordinate-based estimation when API returns ZERO_RESULTS
                 // This ensures we always have some distance data to display
                 console.warn(
-                  `Distance Matrix element status: ${element?.status} for pair ${i}, using coordinate estimation`
+                  `[Distance API] Element status: ${element?.status} for pair ${i}, using coordinate estimation`
                 );
 
                 // Only calculate fallback if we have coordinates
@@ -459,7 +450,7 @@ export async function POST(request: NextRequest) {
                   results.push(result);
                 } else {
                   // No coordinates available, use a default estimate (5km driving)
-                  console.warn(`No coordinates for fallback, using default estimate for pair ${i}`);
+                  console.warn(`[Distance API] No coordinates for fallback, using default estimate for pair ${i}`);
                   const result: DistanceResult & { index: number } = {
                     index: pair.index,
                     origin: { lat: 0, lng: 0 },
@@ -488,7 +479,7 @@ export async function POST(request: NextRequest) {
               metadata: { mode, pairs: validPairs.length },
             });
           } else {
-            console.error("Distance Matrix API error:", data.status, data.error_message);
+            console.error("[Distance API] Distance Matrix API error:", data.status, data.error_message);
             // Add fallback results for all pairs when API fails using coordinate estimation
             for (const pair of validPairs) {
               if (pair.origin && pair.destination) {
@@ -525,7 +516,7 @@ export async function POST(request: NextRequest) {
             }
           }
         } catch (error) {
-          console.error(`Distance Matrix request failed for mode: ${mode}`, error);
+          console.error(`[Distance API] Distance Matrix request failed for mode: ${mode}`, error);
           // Add fallback results when request fails completely using coordinate estimation
           for (const pair of validPairs) {
             if (pair.origin && pair.destination) {
@@ -574,7 +565,7 @@ export async function POST(request: NextRequest) {
       drivingResults: sortedResults.filter(r => r.mode === "DRIVING").length,
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       results: sortedResults,
       stats: {
         total: pairs.length,
@@ -584,10 +575,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Distance API error:", error);
-    return NextResponse.json(
-      { error: "Failed to calculate distances" },
-      { status: 500 }
-    );
+    console.error("[Distance] API error:", error);
+    return errors.internal("Failed to calculate distances", "Distance");
   }
 }

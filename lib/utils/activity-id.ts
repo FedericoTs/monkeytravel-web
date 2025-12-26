@@ -1,65 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Activity, ItineraryDay } from "@/types";
-
-// ============================================================
-// Travel Time Calculation (Haversine-based, no API calls)
-// ============================================================
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
-
-/**
- * Calculate straight-line distance using Haversine formula
- * @returns Distance in meters
- */
-function calculateHaversineDistance(
-  origin: Coordinates,
-  destination: Coordinates
-): number {
-  const R = 6371000; // Earth's radius in meters
-  const lat1Rad = (origin.lat * Math.PI) / 180;
-  const lat2Rad = (destination.lat * Math.PI) / 180;
-  const deltaLat = ((destination.lat - origin.lat) * Math.PI) / 180;
-  const deltaLng = ((destination.lng - origin.lng) * Math.PI) / 180;
-
-  const a =
-    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-/**
- * Estimate actual road distance from straight-line distance
- * Applies distance-based factors for urban navigation
- */
-function estimateRoadDistance(straightLineMeters: number): number {
-  let factor: number;
-  if (straightLineMeters < 500) factor = 1.2;
-  else if (straightLineMeters < 2000) factor = 1.3;
-  else if (straightLineMeters < 5000) factor = 1.35;
-  else factor = 1.4;
-  return Math.round(straightLineMeters * factor);
-}
-
-/**
- * Get average travel speed based on mode and distance
- * @returns Speed in km/h
- */
-function getAverageSpeed(mode: "WALKING" | "DRIVING", distanceMeters: number): number {
-  if (mode === "WALKING") return 4.8; // km/h - comfortable walking pace
-  // Driving speeds vary by distance (urban traffic)
-  if (distanceMeters < 2000) return 18;
-  if (distanceMeters < 5000) return 22;
-  if (distanceMeters < 10000) return 28;
-  return 35;
-}
+import type { Coordinates } from "@/lib/utils/geo";
+import {
+  calculateHaversineDistance,
+  estimateRoadDistance,
+  getAverageSpeed,
+} from "@/lib/math/distance";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 /**
  * Calculate travel time between two activities in minutes
@@ -75,7 +22,7 @@ export function calculateTravelMinutes(
 
   if (!origin || !destination) return null;
 
-  const straightLineDistance = calculateHaversineDistance(origin, destination);
+  const straightLineDistance = calculateHaversineDistance(origin, destination, "m");
   const mode = straightLineDistance < 1200 ? "WALKING" : "DRIVING";
 
   // Apply distance factor for actual road distance
@@ -513,16 +460,12 @@ export function calculateNextTimeSlot(day: ItineraryDay): string {
   // Calculate end time + 30 min buffer
   const endMinutes = startMinutes + duration + 30;
 
-  // Convert back to HH:MM
-  const endHours = Math.floor(endMinutes / 60);
-  const endMins = endMinutes % 60;
-
   // Cap at 22:00
-  if (endHours >= 22) {
+  if (endMinutes >= 22 * 60) {
     return "22:00";
   }
 
-  return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
+  return formatMinutesToTime(endMinutes);
 }
 
 /**
@@ -623,9 +566,7 @@ export function recalculateActivityTimes(
       let firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
 
       // Format the time
-      const hours = Math.floor(firstActivityMinutes / 60);
-      const mins = firstActivityMinutes % 60;
-      const time = `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+      const time = formatMinutesToTime(firstActivityMinutes);
 
       updatedActivities.push({
         ...activity,
@@ -672,9 +613,7 @@ export function recalculateActivityTimes(
     }
 
     // Format the new time
-    const nextHours = Math.floor(nextMinutes / 60);
-    const nextMins = nextMinutes % 60;
-    const newTime = `${nextHours.toString().padStart(2, "0")}:${nextMins.toString().padStart(2, "0")}`;
+    const newTime = formatMinutesToTime(nextMinutes);
 
     updatedActivities.push({
       ...activity,
@@ -718,10 +657,8 @@ export function recalculateActivityTimesWithWarnings(
     // First activity: apply type-aware scheduling from day start
     if (index === 0) {
       const defaultDayStart = 9 * 60; // 09:00
-      let firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
-      const hours = Math.floor(firstActivityMinutes / 60);
-      const mins = firstActivityMinutes % 60;
-      const time = `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+      const firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
+      const time = formatMinutesToTime(firstActivityMinutes);
 
       updatedActivities.push({
         ...activity,
@@ -783,9 +720,7 @@ export function recalculateActivityTimesWithWarnings(
       });
     }
 
-    const nextHours = Math.floor(nextMinutes / 60);
-    const nextMins = nextMinutes % 60;
-    const newTime = `${nextHours.toString().padStart(2, "0")}:${nextMins.toString().padStart(2, "0")}`;
+    const newTime = formatMinutesToTime(nextMinutes);
 
     updatedActivities.push({
       ...activity,

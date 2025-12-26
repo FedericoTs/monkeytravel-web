@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
-import { formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import TripDetailClient from "./TripDetailClient";
 

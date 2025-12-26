@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import {
   generateItinerary,
@@ -209,20 +210,13 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "generation", user.email);
     if (!earlyAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: "Early access required",
-          code: earlyAccess.error,
-          message: earlyAccess.message,
-        },
-        { status: 403 }
-      );
+      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
     }
 
     // Fetch user's profile preferences to include in trip generation
@@ -260,7 +254,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (err) {
       // Log but don't fail if profile fetch fails
-      console.warn("Could not fetch user preferences:", err);
+      console.warn("[AI Generate] Could not fetch user preferences:", err);
     }
 
     // Get user's preferred language for AI content localization
@@ -286,7 +280,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validation = validateTripParams(params);
     if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return errors.badRequest(validation.error);
     }
 
     // Check API access control first
@@ -302,10 +296,7 @@ export async function POST(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         metadata: { user_id: user.id },
       });
-      return NextResponse.json(
-        { error: access.message || "AI generation is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
     // Check usage limits (tier-based limits, admins bypass)
@@ -313,13 +304,9 @@ export async function POST(request: NextRequest) {
     const usageCheck = await checkUsageLimit(user.id, "aiGenerations", user.email);
 
     if (!usageCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: usageCheck.message || "Monthly trip generation limit reached.",
-          usage: usageCheck,
-          upgradeUrl: "/pricing",
-        },
-        { status: 429 }
+      return errors.rateLimit(
+        usageCheck.message || "Monthly trip generation limit reached.",
+        { usage: usageCheck, upgradeUrl: "/pricing" }
       );
     }
 
@@ -481,7 +468,7 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       itinerary,
       meta: {
@@ -503,7 +490,7 @@ export async function POST(request: NextRequest) {
       usage: updatedUsage,
     });
   } catch (error) {
-    console.error("Generation error:", error);
+    console.error("[AI Generate] Generation error:", error);
 
     // Log error using centralized gateway
     await logApiCall({
@@ -516,9 +503,6 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : "Unknown error",
     });
 
-    return NextResponse.json(
-      { error: "Failed to generate itinerary. Please try again." },
-      { status: 500 }
-    );
+    return errors.internal("Failed to generate itinerary. Please try again.", "AI Generate");
   }
 }

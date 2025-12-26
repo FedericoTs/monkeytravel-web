@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-interface RouteContext {
-  params: Promise<{ id: string; itemId: string }>;
-}
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripChecklistItemRouteContext } from "@/lib/api/route-context";
 
 /**
  * PATCH /api/trips/[id]/checklist/[itemId] - Update a checklist item
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: TripChecklistItemRouteContext) {
   try {
     const { id: tripId, itemId } = await context.params;
     const supabase = await createClient();
@@ -19,7 +17,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify item ownership
@@ -32,7 +30,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (fetchError || !existingItem) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+      return errors.notFound("Item not found");
     }
 
     // Parse request body
@@ -48,10 +46,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Handle text update
     if (body.text !== undefined) {
       if (typeof body.text !== "string" || body.text.trim().length === 0) {
-        return NextResponse.json(
-          { error: "Text cannot be empty" },
-          { status: 400 }
-        );
+        return errors.badRequest("Text cannot be empty");
       }
       updates.text = body.text.trim();
     }
@@ -60,10 +55,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (body.category !== undefined) {
       const validCategories = ["booking", "packing", "document", "custom"];
       if (!validCategories.includes(body.category)) {
-        return NextResponse.json(
-          { error: "Invalid category" },
-          { status: 400 }
-        );
+        return errors.badRequest("Invalid category");
       }
       updates.category = body.category;
     }
@@ -80,10 +72,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     // Check if there's anything to update
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: "No valid fields to update" },
-        { status: 400 }
-      );
+      return errors.badRequest("No valid fields to update");
     }
 
     // Update item
@@ -95,27 +84,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error) {
-      console.error("Error updating checklist item:", error);
-      return NextResponse.json(
-        { error: "Failed to update checklist item" },
-        { status: 500 }
-      );
+      console.error("[Checklist] Error updating item:", error);
+      return errors.internal("Failed to update checklist item", "Checklist");
     }
 
-    return NextResponse.json({ success: true, item });
+    return apiSuccess({ success: true, item });
   } catch (error) {
-    console.error("Error updating checklist item:", error);
-    return NextResponse.json(
-      { error: "Failed to update checklist item" },
-      { status: 500 }
-    );
+    console.error("[Checklist] Unexpected error in PATCH:", error);
+    return errors.internal("Failed to update checklist item", "Checklist");
   }
 }
 
 /**
  * DELETE /api/trips/[id]/checklist/[itemId] - Delete a checklist item
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripChecklistItemRouteContext) {
   try {
     const { id: tripId, itemId } = await context.params;
     const supabase = await createClient();
@@ -126,7 +109,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Delete item (RLS will ensure ownership)
@@ -138,19 +121,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Error deleting checklist item:", error);
-      return NextResponse.json(
-        { error: "Failed to delete checklist item" },
-        { status: 500 }
-      );
+      console.error("[Checklist] Error deleting item:", error);
+      return errors.internal("Failed to delete checklist item", "Checklist");
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Error deleting checklist item:", error);
-    return NextResponse.json(
-      { error: "Failed to delete checklist item" },
-      { status: 500 }
-    );
+    console.error("[Checklist] Unexpected error in DELETE:", error);
+    return errors.internal("Failed to delete checklist item", "Checklist");
   }
 }

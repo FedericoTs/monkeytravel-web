@@ -1,0 +1,86 @@
+{
+  "balance": {
+    "title": "Tus Bananas",
+    "bananas": "bananas",
+    "expiring": "{count} bananas expiran el {date}"
+  },
+  "tier": {
+    "currentTier": "Nivel Actual",
+    "referrals": "Referidos Totales",
+    "progressToNext": "Progreso hacia {tier}",
+    "remaining": "{count} referidos más para desbloquear el siguiente nivel",
+    "milestones": "Niveles",
+    "maxTierReached": "¡Nivel Champion Alcanzado!",
+    "maxTierDescription": "Has alcanzado el nivel máximo. ¡Disfruta todos los beneficios!",
+    "refs": "refs"
+  },
+  "tierNames": {
+    "traveler": "Viajero",
+    "explorer": "Explorador",
+    "ambassador": "Embajador",
+    "champion": "Campeón"
+  },
+  "errors": {
+    "loadFailed": "Error al cargar los datos de referidos"
+  },
+  "badges": {
+    "title": "Tus Insignias"
+  },
+  "stats": {
+    "referrals": "Referidos",
+    "pending": "Pendientes",
+    "earned": "Ganados"
+  },
+  "activity": {
+    "title": "Actividad Reciente",
+    "types": {
+      "referral": "Recompensa por referido",
+      "collaboration": "Bonus de colaboracion",
+      "tier_bonus": "Bonus por desbloqueo de nivel",
+      "spend": "Canje",
+      "trip_complete": "Viaje completado",
+      "signup_bonus": "Bonus de bienvenida",
+      "review": "Recompensa por resena",
+      "clawback": "Ajuste",
+      "expiration": "Expirado",
+      "admin": "Ajuste administrativo"
+    }
+  },
+  "cta": {
+    "inviteFriends": "Invita Amigos y Gana Bananas"
+  },
+  "catalog": {
+    "title": "Canjea tus Bananas",
+    "available": "Disponible Ahora",
+    "comingSoon": "Proximamente",
+    "cost": "{cost} bananas",
+    "outOfStock": "Agotado",
+    "limitReached": "Limite Alcanzado",
+    "cooldown": "Disponible de nuevo {date}",
+    "redeem": "Canjear"
+  },
+  "leaderboard": {
+    "title": "Tabla de Lideres",
+    "rank": "Posicion",
+    "you": "Tu",
+    "participants": "{count} participantes"
+  },
+  "benefits": {
+    "title": "Tus Limites de Generacion AI",
+    "currentLimit": "{count} generaciones de viajes AI por mes",
+    "bonusActive": "+{bonus} bonus del nivel {tier}!",
+    "inviteToUnlock": "Invita {count} amigos mas para desbloquear +{bonus} generaciones extra!",
+    "tierBenefits": "Beneficios de Referidos",
+    "unlocked": "Desbloqueado",
+    "explorer": "Explorer (3 refs): +2 generaciones AI/mes",
+    "ambassador": "Ambassador (6 refs): +5 generaciones AI/mes, soporte prioritario",
+    "champion": "Champion (10 refs): +12 generaciones AI/mes, regeneraciones ilimitadas"
+  },
+  "banner": {
+    "title": "Desbloquea Mas Viajes AI",
+    "progress": "{current}/{target} referidos para {tier}",
+    "benefit": "+{bonus} generaciones AI/mes",
+    "cta": "Invitar Amigos",
+    "maxTier": "Has desbloqueado todos los niveles!"
+  }
+}

@@ -552,6 +552,159 @@ function CollaborationAnalytics({ collaboration }: { collaboration: GrowthStats[
 }
 
 // ============================================
+// BANANAS ECONOMY COMPONENT
+// ============================================
+function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] }) {
+  const tierColors = ["bg-slate-400", "bg-amber-400", "bg-orange-500", "bg-purple-600"];
+  const tierNames = ["Traveler", "Explorer", "Ambassador", "Champion"];
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">Bananas Economy</h3>
+        <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+          Rewards System
+        </span>
+      </div>
+
+      {/* Overview Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">🍌</span>
+            <span className="text-xs text-amber-600">In Circulation</span>
+          </div>
+          <div className="text-2xl font-bold text-amber-700">{bananas.overview.totalInCirculation.toLocaleString()}</div>
+        </div>
+        <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+          <span className="text-xs text-green-600 block mb-1">Total Earned</span>
+          <div className="text-2xl font-bold text-green-700">{bananas.overview.totalEarned.toLocaleString()}</div>
+          <div className="text-xs text-green-500 mt-1">
+            {bananas.overview.velocity.changePercent > 0 ? "+" : ""}{bananas.overview.velocity.changePercent}% vs last week
+          </div>
+        </div>
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+          <span className="text-xs text-blue-600 block mb-1">Redemption Rate</span>
+          <div className="text-2xl font-bold text-blue-700">{bananas.redemptions.redemptionRate}%</div>
+          <div className="text-xs text-blue-500 mt-1">{bananas.redemptions.total} redemptions</div>
+        </div>
+        <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+          <span className="text-xs text-purple-600 block mb-1">Utilization</span>
+          <div className="text-2xl font-bold text-purple-700">{bananas.expiration.utilizationRate}%</div>
+          <div className="text-xs text-purple-500 mt-1">earned - expired</div>
+        </div>
+      </div>
+
+      {/* Tier Distribution Bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-slate-600">Tier Distribution</span>
+          <span className="text-xs text-slate-400">
+            {bananas.tierDistribution.tier0.count + bananas.tierDistribution.tier1.count + bananas.tierDistribution.tier2.count + bananas.tierDistribution.tier3.count} users
+          </span>
+        </div>
+        <div className="h-4 rounded-full overflow-hidden flex bg-slate-100">
+          {[0, 1, 2, 3].map((tier) => {
+            const tierData = bananas.tierDistribution[`tier${tier}` as keyof typeof bananas.tierDistribution] as { count: number; pct: number };
+            return (
+              <div
+                key={tier}
+                className={`${tierColors[tier]} h-full transition-all`}
+                style={{ width: `${tierData.pct || 0}%` }}
+                title={`${tierNames[tier]}: ${tierData.count}`}
+              />
+            );
+          })}
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-slate-500 flex-wrap gap-2">
+          {[0, 1, 2, 3].map((tier) => {
+            const tierData = bananas.tierDistribution[`tier${tier}` as keyof typeof bananas.tierDistribution] as { count: number; pct: number };
+            return (
+              <span key={tier} className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${tierColors[tier]}`} />
+                {tierNames[tier]}: {tierData.count}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Two Column: Earning Breakdown + Redemptions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Earning Breakdown */}
+        <div className="bg-slate-50 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-slate-700 mb-3">Earning Breakdown</h4>
+          {Object.keys(bananas.earningBreakdown.byType).length > 0 ? (
+            Object.entries(bananas.earningBreakdown.byType)
+              .sort((a, b) => b[1] - a[1])
+              .map(([type, amount]) => (
+                <div key={type} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
+                  <span className="text-xs text-slate-600 capitalize">{type.replace(/_/g, " ")}</span>
+                  <span className="text-xs font-medium text-amber-700">{amount.toLocaleString()} 🍌</span>
+                </div>
+              ))
+          ) : (
+            <p className="text-xs text-slate-400">No earnings yet</p>
+          )}
+        </div>
+
+        {/* Top Redeemed Items */}
+        <div className="bg-slate-50 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-slate-700 mb-3">Top Redeemed Items</h4>
+          {bananas.redemptions.topItems.length > 0 ? (
+            bananas.redemptions.topItems.map((item, i) => (
+              <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
+                <span className="text-xs text-slate-600">{item.name}</span>
+                <span className="text-xs font-medium text-blue-700">{item.count}x ({item.spent} 🍌)</span>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-slate-400">No redemptions yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Top Earners */}
+      {bananas.earningBreakdown.topEarners.length > 0 && (
+        <div className="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
+          <h4 className="text-sm font-medium text-amber-800 mb-3">Top Earners</h4>
+          <div className="flex flex-wrap gap-3">
+            {bananas.earningBreakdown.topEarners.map((earner, i) => (
+              <div key={i} className="bg-white rounded-lg px-3 py-2 border border-amber-200 flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-700">{earner.displayName}</span>
+                <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{earner.total} 🍌</span>
+                <span className={`w-2 h-2 rounded-full ${tierColors[earner.tier]}`} title={tierNames[earner.tier]} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Expiration Warning */}
+      {bananas.expiration.atRisk30d > 0 && (
+        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-600 text-lg">⚠️</span>
+            <span className="text-sm text-amber-700">
+              <strong>{bananas.expiration.atRisk30d.toLocaleString()}</strong> bananas expiring in 30 days
+              ({bananas.expiration.atRiskUsers} users affected)
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {bananas.overview.totalEarned === 0 && (
+        <div className="text-center py-6 text-slate-400 border-t border-slate-100 mt-4">
+          <p className="text-sm">No bananas activity yet</p>
+          <p className="text-xs mt-1">Users earn bananas through referrals and engagement!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // AHA MOMENT TABLE COMPONENT
 // ============================================
 function AhaMomentTable({ ahaMoments }: { ahaMoments: GrowthStats["ahaMoments"] }) {
@@ -792,6 +945,11 @@ export default function GrowthDashboard() {
       {/* Collaboration Analytics */}
       {stats.collaboration && (
         <CollaborationAnalytics collaboration={stats.collaboration} />
+      )}
+
+      {/* Bananas Economy Analytics */}
+      {stats.bananasEconomy && (
+        <BananasEconomy bananas={stats.bananasEconomy} />
       )}
 
       {/* Aha Moment Analysis */}

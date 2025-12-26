@@ -1,26 +1,6 @@
 import jsPDF from "jspdf";
-import type { ItineraryDay } from "@/types";
-
-interface TripForExport {
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  budget?: { total: number; currency: string } | null;
-  itinerary: ItineraryDay[];
-}
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import type { TripForExport } from "@/types";
+import { formatDateFull } from "@/lib/datetime";
 
 /**
  * Activity type configuration with colors and labels
@@ -87,7 +67,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
   // Date range
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`, margin, 50);
+  doc.text(`${formatDateFull(trip.startDate)} - ${formatDateFull(trip.endDate)}`, margin, 50);
 
   yPosition = 75;
 
@@ -142,7 +122,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
 
     // Date on right
     doc.setFontSize(10);
-    doc.text(formatDate(day.date), pageWidth - margin - 30, yPosition + 10);
+    doc.text(formatDateFull(day.date), pageWidth - margin - 30, yPosition + 10);
 
     yPosition += 25;
 

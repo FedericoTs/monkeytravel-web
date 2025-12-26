@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2 } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
@@ -124,6 +125,8 @@ export default function TripDetailClient({
   collaboratorCount = 0,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
+  const tTrips = useTranslations('common.trips');
+  const tButtons = useTranslations('common.buttons');
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
@@ -148,6 +151,11 @@ export default function TripDetailClient({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
+
+  // Status management
+  const router = useRouter();
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(trip.status);
 
   // Version counter to force re-render after AI updates
   const [itineraryVersion, setItineraryVersion] = useState(0);
@@ -201,6 +209,40 @@ export default function TripDetailClient({
 
   // Toast notifications
   const { addToast } = useToast();
+
+  // Handle status update
+  const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled") => {
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/trips/${trip.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update status");
+      }
+
+      setCurrentStatus(newStatus);
+      addToast(
+        newStatus === "confirmed"
+          ? tTrips("tripConfirmed")
+          : tTrips("tripCancelled"),
+        "success"
+      );
+      router.refresh();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      addToast(
+        error instanceof Error ? error.message : "Failed to update status",
+        "error"
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   // Activity timeline for live journey mode
   const activityTimeline = useActivityTimeline(trip.id);
@@ -1069,8 +1111,15 @@ export default function TripDetailClient({
     planning: "bg-amber-100 text-amber-700",
     confirmed: "bg-green-100 text-green-700",
     active: "bg-blue-100 text-blue-700",
-    completed: "bg-slate-100 text-slate-700",
+    completed: "bg-purple-100 text-purple-700",
     cancelled: "bg-red-100 text-red-700",
+  };
+
+  // Get translated status label
+  const getStatusLabel = (status: string) => {
+    if (status === "completed") return tTrips("memories");
+    if (status === "active") return tTrips("active"); // "Ongoing"
+    return tTrips(status as "planning" | "confirmed" | "cancelled");
   };
 
   return (
@@ -1101,15 +1150,64 @@ export default function TripDetailClient({
         <div className="absolute top-4 right-4">
           <span
             className={`px-3 py-1.5 rounded-full text-sm font-medium shadow-lg ${
-              statusColors[trip.status as keyof typeof statusColors] || statusColors.planning
+              statusColors[currentStatus as keyof typeof statusColors] || statusColors.planning
             }`}
           >
-            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+            {getStatusLabel(currentStatus)}
           </span>
         </div>
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Planning Phase - Confirm Trip Action */}
+        {currentStatus === "planning" && (
+          <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{tTrips("readyToConfirm")}</h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    {tTrips("confirmTripDescription")}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <button
+                  onClick={() => handleStatusUpdate("cancelled")}
+                  disabled={isUpdatingStatus}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  {tButtons("cancel")}
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate("confirmed")}
+                  disabled={isUpdatingStatus}
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isUpdatingStatus ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {tTrips("confirmTrip")}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Pre-Trip Phase - Countdown Hero and Checklist */}
         {isPreTripPhase && (
           <div className="space-y-4 mb-6">
@@ -1271,7 +1369,7 @@ export default function TripDetailClient({
               />
             )}
 
-            {/* Edit Mode Toggle */}
+            {/* Edit Mode Toggle - Acts as both enter and save/exit */}
             {!isEditMode ? (
               <button
                 onClick={handleEnterEditMode}
@@ -1284,12 +1382,49 @@ export default function TripDetailClient({
                 <span className="hidden sm:inline">{t('detail.editTrip')}</span>
               </button>
             ) : (
-              <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <span className="hidden sm:inline">{t('detail.editingMode')}</span>
-                <span className="sm:hidden">{t('detail.editing')}</span>
+              <div className="flex items-center gap-2">
+                {/* Cancel/Discard button */}
+                <button
+                  onClick={handleDiscardChanges}
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                  title={t('detail.discardChanges')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="hidden sm:inline">{t('detail.cancel')}</span>
+                </button>
+                {/* Save & Close button - Primary action */}
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className={`flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-lg text-sm font-medium transition-all ${
+                    hasChanges
+                      ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-600/25 animate-pulse-subtle'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  } disabled:opacity-50`}
+                  title={hasChanges ? t('detail.saveChanges') : t('detail.doneEditing')}
+                >
+                  {isSaving ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <span className="hidden sm:inline">{t('detail.saving')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="hidden sm:inline">
+                        {hasChanges ? t('detail.saveChanges') : t('detail.doneEditing')}
+                      </span>
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
@@ -1730,14 +1865,14 @@ export default function TripDetailClient({
         )}
       </main>
 
-      {/* Edit Mode Save/Discard Bar */}
+      {/* Edit Mode Undo/Redo Bar - Minimal, with status indicator */}
       {isEditMode && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between gap-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 z-50">
+          <div className="max-w-6xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Left: Undo/Redo and status */}
               <div className="flex items-center gap-3">
-                {/* Undo/Redo buttons */}
-                <div className="flex items-center gap-1 mr-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={undo}
                     disabled={undoStack.length === 0}
@@ -1756,7 +1891,7 @@ export default function TripDetailClient({
                   </button>
                 </div>
                 {hasChanges && (
-                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full animate-pulse">
                     {t('detail.unsavedChanges')}
                   </span>
                 )}
@@ -1764,36 +1899,16 @@ export default function TripDetailClient({
                   <span className="text-sm text-red-600">{saveError}</span>
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleDiscardChanges}
-                  disabled={isSaving}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {t('detail.discardChanges')}
-                </button>
-                <button
-                  onClick={handleSaveChanges}
-                  disabled={isSaving || !hasChanges}
-                  className="px-4 py-2 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      {t('detail.saving')}
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {t('detail.saveChanges')}
-                    </>
-                  )}
-                </button>
+              {/* Right: Keyboard hint */}
+              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘Z</kbd>
+                <span>undo</span>
+                <span className="mx-1">•</span>
+                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘⇧Z</kbd>
+                <span>redo</span>
+                <span className="mx-1">•</span>
+                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">Esc</kbd>
+                <span>exit</span>
               </div>
             </div>
           </div>
@@ -1810,22 +1925,15 @@ export default function TripDetailClient({
           className="fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group"
           title={t('detail.aiTripAssistant')}
         >
-          <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300 hover:scale-[1.02]">
-            {/* AI Icon with gradient background */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-md shadow-[var(--primary)]/20">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
+          <div className="flex items-center gap-2.5 px-3 py-2 sm:px-4 sm:py-3 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300 hover:scale-[1.02]">
+            {/* AI Agent Image */}
+            <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md">
+              <Image
+                src="/images/ai-agent.png"
+                alt="AI Assistant"
+                fill
+                className="object-cover"
+              />
             </div>
             {/* Label - hidden on very small screens */}
             <div className="hidden sm:flex flex-col items-start leading-none">
@@ -1847,21 +1955,14 @@ export default function TripDetailClient({
           className="fixed bottom-24 left-6 z-40 group"
           title={t('detail.aiTripAssistant')}
         >
-          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-sm">
-              <svg
-                className="w-4.5 h-4.5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300">
+            <div className="relative w-9 h-9 rounded-lg overflow-hidden shadow-sm">
+              <Image
+                src="/images/ai-agent.png"
+                alt="AI Assistant"
+                fill
+                className="object-cover"
+              />
             </div>
             <span className="text-sm font-medium text-slate-700 hidden sm:inline">{t('detail.aiHelp')}</span>
           </div>

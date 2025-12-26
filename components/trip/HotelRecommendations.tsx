@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import type { ItineraryDay } from "@/types";
 import { getHotelSearchCenter, type GeoCenter } from "@/lib/utils/geo";
 
@@ -158,6 +159,8 @@ function HotelCard({
   hotel: HotelResult;
   index: number;
 }) {
+  const t = useTranslations("common.booking.hotels");
+  const tc = useTranslations("common.buttons");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showBookingMenu, setShowBookingMenu] = useState(false);
 
@@ -220,7 +223,7 @@ function HotelCard({
         {/* Open now badge */}
         {hotel.isOpen === true && (
           <div className="absolute top-3 right-3 px-2 py-1 bg-emerald-500 text-white text-xs font-medium rounded-full">
-            Open Now
+            {t("openNow")}
           </div>
         )}
 
@@ -241,7 +244,7 @@ function HotelCard({
         <div className="flex items-center gap-2">
           <StarRating rating={hotel.rating} />
           <span className="text-xs text-slate-400">
-            ({hotel.reviewCount.toLocaleString()} reviews)
+            ({t("reviewCount", { count: hotel.reviewCount })})
           </span>
         </div>
 
@@ -272,7 +275,7 @@ function HotelCard({
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              Check Availability
+              {t("checkAvailability")}
               <svg
                 className={`w-4 h-4 transition-transform ${
                   showBookingMenu ? "rotate-180" : ""
@@ -309,8 +312,8 @@ function HotelCard({
                       </svg>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">Google Hotels</div>
-                      <div className="text-xs text-slate-500">Compare prices</div>
+                      <div className="text-sm font-medium text-slate-900">{t("googleHotels")}</div>
+                      <div className="text-xs text-slate-500">{t("comparePrices")}</div>
                     </div>
                   </a>
                   <a
@@ -324,7 +327,7 @@ function HotelCard({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-slate-900">Booking.com</div>
-                      <div className="text-xs text-slate-500">Book directly</div>
+                      <div className="text-xs text-slate-500">{t("bookDirectly")}</div>
                     </div>
                   </a>
                   <a
@@ -338,7 +341,7 @@ function HotelCard({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-slate-900">Hotels.com</div>
-                      <div className="text-xs text-slate-500">Collect rewards</div>
+                      <div className="text-xs text-slate-500">{t("collectRewards")}</div>
                     </div>
                   </a>
                   <a
@@ -352,7 +355,7 @@ function HotelCard({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-slate-900">Expedia</div>
-                      <div className="text-xs text-slate-500">Bundle & save</div>
+                      <div className="text-xs text-slate-500">{t("bundleSave")}</div>
                     </div>
                   </a>
                 </div>
@@ -372,6 +375,10 @@ export default function HotelRecommendations({
   endDate,
   disableApiCalls = false,
 }: HotelRecommendationsProps) {
+  // Hooks must be called before any early returns (React rules of hooks)
+  const t = useTranslations("common.booking.hotels");
+  const tc = useTranslations("common.buttons");
+
   // CRITICAL: If API calls are disabled, don't render the component at all.
   // This ensures saved trips NEVER incur external API costs for hotels.
   if (disableApiCalls) {
@@ -595,12 +602,12 @@ export default function HotelRecommendations({
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-900">
-                Curated Stays
+                {t("curatedStays")}
               </h3>
               <p className="text-sm text-slate-500">
                 {geoCenter
-                  ? `Hotels near your ${geoCenter.activityCount} planned activities`
-                  : `Hotels in ${destination}`}
+                  ? t("hotelsNearActivities", { count: geoCenter.activityCount })
+                  : t("hotelsIn", { destination })}
               </p>
             </div>
           </div>
@@ -612,7 +619,7 @@ export default function HotelRecommendations({
             <button
               onClick={scrollLeft}
               className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
-              aria-label="Scroll left"
+              aria-label={t("scrollLeft")}
             >
               <svg
                 className="w-5 h-5 text-slate-600"
@@ -631,7 +638,7 @@ export default function HotelRecommendations({
             <button
               onClick={scrollRight}
               className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
-              aria-label="Scroll right"
+              aria-label={t("scrollRight")}
             >
               <svg
                 className="w-5 h-5 text-slate-600"
@@ -671,7 +678,7 @@ export default function HotelRecommendations({
             {startDate} - {endDate}
           </span>
           <span className="text-slate-400">
-            ({nights} {nights === 1 ? "night" : "nights"})
+            ({nights} {nights === 1 ? t("night") : t("nights")})
           </span>
         </div>
         {geoCenter && (
@@ -695,7 +702,7 @@ export default function HotelRecommendations({
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <span>Within {Math.ceil(geoCenter.radius)}km of activities</span>
+            <span>{t("withinKmOfActivities", { distance: Math.ceil(geoCenter.radius) })}</span>
           </div>
         )}
       </div>
@@ -742,7 +749,7 @@ export default function HotelRecommendations({
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-red-800">
-              Couldn&apos;t load hotel recommendations
+              {t("couldntLoadHotels")}
             </p>
             <p className="text-xs text-red-600">{error}</p>
           </div>
@@ -750,7 +757,7 @@ export default function HotelRecommendations({
             onClick={fetchHotels}
             className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
           >
-            Retry
+            {tc("retry")}
           </button>
         </div>
       )}
@@ -794,10 +801,10 @@ export default function HotelRecommendations({
             </svg>
           </div>
           <h4 className="font-medium text-slate-900 mb-1">
-            No hotels found nearby
+            {t("noHotelsNearby")}
           </h4>
           <p className="text-sm text-slate-500 max-w-md mx-auto">
-            We couldn&apos;t find hotels near your planned activities. Try expanding your search on Google Maps or Booking.com.
+            {t("noHotelsNearbyDesc")}
           </p>
         </div>
       )}
@@ -805,8 +812,7 @@ export default function HotelRecommendations({
       {/* Disclaimer */}
       {hotels.length > 0 && (
         <p className="mt-4 text-xs text-slate-400 text-center">
-          Hotel data provided by Google Places. Prices and availability may vary.
-          Book directly with the hotel for best rates.
+          {t("disclaimer")}
         </p>
       )}
     </section>

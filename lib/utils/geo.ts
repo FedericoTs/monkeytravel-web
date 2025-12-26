@@ -6,6 +6,10 @@
  */
 
 import type { Activity, ItineraryDay } from '@/types';
+import {
+  calculateHaversineDistance,
+  toRadians as toRad,
+} from '@/lib/math/distance';
 
 export interface Coordinates {
   lat: number;
@@ -60,29 +64,17 @@ export function calculateCentroid(coordinates: Coordinates[]): Coordinates | nul
 /**
  * Calculate the distance between two coordinates using Haversine formula
  * Returns distance in kilometers
+ * @deprecated Use calculateHaversineDistance from '@/lib/math/distance' for new code
  */
 export function calculateDistance(
   coord1: Coordinates,
   coord2: Coordinates
 ): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = toRadians(coord2.lat - coord1.lat);
-  const dLng = toRadians(coord2.lng - coord1.lng);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(coord1.lat)) *
-      Math.cos(toRadians(coord2.lat)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return calculateHaversineDistance(coord1, coord2, 'km');
 }
 
-function toRadians(degrees: number): number {
-  return degrees * (Math.PI / 180);
-}
+// Re-export toRadians for any legacy imports
+export { toRad as toRadians };
 
 /**
  * Calculate the optimal search radius to cover all activities
@@ -195,7 +187,7 @@ export function generateNearbyCoordinates(
   // Convert radius to approximate degree offset (rough approximation)
   // 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
   const latOffset = radiusKm / 111;
-  const lngOffset = radiusKm / (111 * Math.cos(toRadians(center.lat)));
+  const lngOffset = radiusKm / (111 * Math.cos(toRad(center.lat)));
 
   // Random angle and distance
   const angle = Math.random() * 2 * Math.PI;

@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 /**
  * GET /api/referral/history
@@ -7,17 +7,8 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Get user's referral code
     const { data: referralCode } = await supabase
@@ -27,7 +18,7 @@ export async function GET() {
       .single();
 
     if (!referralCode) {
-      return NextResponse.json({
+      return apiSuccess({
         referrals: [],
         stats: {
           clicks: 0,
@@ -91,7 +82,7 @@ export async function GET() {
       .filter(e => e.event_type === "conversion" && e.reward_granted_at)
       .reduce((sum, e) => sum + (e.reward_amount || 0), 0);
 
-    return NextResponse.json({
+    return apiSuccess({
       code: referralCode.code,
       referrals,
       stats: {
@@ -103,9 +94,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[Referral History] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Referral History");
   }
 }

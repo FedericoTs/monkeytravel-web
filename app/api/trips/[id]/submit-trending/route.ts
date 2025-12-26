@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * POST /api/trips/[id]/submit-trending
@@ -17,10 +18,7 @@ export async function POST(
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return errors.unauthorized();
     }
 
     // Verify trip ownership
@@ -31,30 +29,21 @@ export async function POST(
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json(
-        { error: "Trip not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Trip not found");
     }
 
     if (trip.user_id !== user.id) {
-      return NextResponse.json(
-        { error: "Not authorized to modify this trip" },
-        { status: 403 }
-      );
+      return errors.forbidden("Not authorized to modify this trip");
     }
 
     // Trip must be shared first
     if (!trip.share_token) {
-      return NextResponse.json(
-        { error: "Trip must be shared before submitting to trending" },
-        { status: 400 }
-      );
+      return errors.badRequest("Trip must be shared before submitting to trending");
     }
 
     // Already submitted
     if (trip.submitted_to_trending_at) {
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: "Trip is already in trending",
         already_submitted: true,
@@ -73,25 +62,19 @@ export async function POST(
 
     if (updateError) {
       console.error("[Submit Trending] Update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to submit to trending" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to submit to trending", "Submit Trending");
     }
 
     // Update trending score
     await supabase.rpc("update_trip_trending_score", { p_trip_id: id });
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Trip submitted to trending!",
     });
   } catch (error) {
     console.error("[Submit Trending] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Submit Trending");
   }
 }
 
@@ -111,10 +94,7 @@ export async function DELETE(
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return errors.unauthorized();
     }
 
     // Verify trip ownership
@@ -125,17 +105,11 @@ export async function DELETE(
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json(
-        { error: "Trip not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Trip not found");
     }
 
     if (trip.user_id !== user.id) {
-      return NextResponse.json(
-        { error: "Not authorized to modify this trip" },
-        { status: 403 }
-      );
+      return errors.forbidden("Not authorized to modify this trip");
     }
 
     // Remove from trending
@@ -151,21 +125,15 @@ export async function DELETE(
 
     if (updateError) {
       console.error("[Remove Trending] Update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to remove from trending" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to remove from trending", "Remove Trending");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Trip removed from trending",
     });
   } catch (error) {
     console.error("[Remove Trending] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Remove Trending");
   }
 }

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * GET /api/templates/[id]
@@ -46,10 +47,7 @@ export async function GET(
       .single();
 
     if (error || !template) {
-      return NextResponse.json(
-        { error: "Template not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Template not found");
     }
 
     // Transform data for frontend
@@ -78,12 +76,9 @@ export async function GET(
       endDate: template.end_date,
     };
 
-    return NextResponse.json({ template: formattedTemplate });
+    return apiSuccess({ template: formattedTemplate });
   } catch (error) {
-    console.error("[Template API] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Template] Unexpected error:", error);
+    return errors.internal("Internal server error", "Template");
   }
 }

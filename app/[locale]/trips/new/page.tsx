@@ -35,6 +35,8 @@ import {
   trackUpgradePromptShown,
   trackLimitReached,
 } from "@/lib/analytics";
+import { captureTripCreated, captureItineraryGenerated } from "@/lib/posthog/events";
+import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -484,13 +486,24 @@ export default function NewTripPage() {
 
       // Track successful itinerary generation
       const generationTime = Date.now() - performance.now();
+      const durationDaysGenerated = Math.ceil(
+        (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+      ) + 1;
+
+      // GA4 tracking
       trackItineraryGenerated({
         destination,
-        duration: Math.ceil(
-          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-        ) + 1,
+        duration: durationDaysGenerated,
         budgetTier,
         generationTimeMs: Math.round(generationTime),
+      });
+
+      // PostHog tracking
+      captureItineraryGenerated({
+        destination,
+        duration_days: durationDaysGenerated,
+        budget_tier: budgetTier,
+        generation_time_ms: Math.round(generationTime),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -574,15 +587,29 @@ export default function NewTripPage() {
 
       if (tripError) throw tripError;
 
-      // Track trip creation
+      // Calculate trip duration
+      const durationDays = Math.ceil(
+        (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+      ) + 1;
+
+      // Track trip creation (GA4)
       trackTripCreated({
         tripId: trip.id,
         destination,
-        duration: Math.ceil(
-          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-        ) + 1,
+        duration: durationDays,
         budgetTier,
         isFromTemplate: false,
+      });
+
+      // Track in PostHog + Complete referral if eligible (async, non-blocking)
+      handleTripCreatedWithReferral(
+        trip.id,
+        destination,
+        durationDays,
+        budgetTier,
+        false // not from template
+      ).catch((err) => {
+        console.error("[Trip Save] Error in referral/tracking:", err);
       });
 
       // Clear draft on successful save

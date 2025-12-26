@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * DEBUG ENDPOINT: Discover what Google Cloud services are actually being tracked
@@ -66,14 +66,14 @@ async function getAccessToken(): Promise<string | null> {
     });
 
     if (!tokenResponse.ok) {
-      console.error("Token error:", await tokenResponse.text());
+      console.error("[Google Debug] Token error:", await tokenResponse.text());
       return null;
     }
 
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
-    console.error("Error getting access token:", error);
+    console.error("[Google Debug] Error getting access token:", error);
     return null;
   }
 }
@@ -83,18 +83,22 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return errors.unauthorized();
+    }
+
+    if (!isAdmin(user.email)) {
+      return errors.forbidden();
     }
 
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
     if (!projectId) {
-      return NextResponse.json({ error: "GOOGLE_CLOUD_PROJECT_ID not set" }, { status: 500 });
+      return errors.internal("GOOGLE_CLOUD_PROJECT_ID not set", "Google Debug");
     }
 
     const accessToken = await getAccessToken();
     if (!accessToken) {
-      return NextResponse.json({ error: "Failed to get access token" }, { status: 500 });
+      return errors.internal("Failed to get access token", "Google Debug");
     }
 
     const results: Record<string, unknown> = {
@@ -250,12 +254,12 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(results, { status: 200 });
+    return apiSuccess(results);
   } catch (error) {
-    console.error("Debug endpoint error:", error);
-    return NextResponse.json({
-      error: "Debug endpoint failed",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    console.error("[Google Debug] Error:", error);
+    return errors.internal(
+      `Debug endpoint failed: ${error instanceof Error ? error.message : String(error)}`,
+      "Google Debug"
+    );
   }
 }

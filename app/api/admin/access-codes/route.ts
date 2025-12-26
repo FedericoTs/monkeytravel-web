@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Generate a random code
 function generateCode(length: number = 8): string {
@@ -21,7 +21,7 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Get all codes with redemption count
@@ -64,13 +64,10 @@ export async function GET() {
       usage: usageByCode[code.id] || { generations: 0, regenerations: 0, assistant: 0 },
     }));
 
-    return NextResponse.json({ codes: enrichedCodes });
+    return apiSuccess({ codes: enrichedCodes });
   } catch (error) {
-    console.error("[AccessCodes] Error fetching codes:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch access codes" },
-      { status: 500 }
-    );
+    console.error("[Access Codes] Error fetching codes:", error);
+    return errors.internal("Failed to fetch access codes", "Access Codes");
   }
 }
 
@@ -83,7 +80,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body = await request.json();
@@ -103,10 +100,7 @@ export async function POST(request: Request) {
 
     // Validate code format
     if (!/^[A-Z0-9]{4,20}$/.test(code)) {
-      return NextResponse.json(
-        { error: "Code must be 4-20 alphanumeric characters" },
-        { status: 400 }
-      );
+      return errors.badRequest("Code must be 4-20 alphanumeric characters");
     }
 
     // Check if code already exists
@@ -117,10 +111,7 @@ export async function POST(request: Request) {
       .single();
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Code already exists" },
-        { status: 400 }
-      );
+      return errors.badRequest("Code already exists");
     }
 
     // Create the code
@@ -145,16 +136,13 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       code: newCode,
     });
   } catch (error) {
-    console.error("[AccessCodes] Error creating code:", error);
-    return NextResponse.json(
-      { error: "Failed to create access code" },
-      { status: 500 }
-    );
+    console.error("[Access Codes] Error creating code:", error);
+    return errors.internal("Failed to create access code", "Access Codes");
   }
 }
 
@@ -167,17 +155,14 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body = await request.json();
     const { id, ...updates } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Code ID required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Code ID required");
     }
 
     // Update the code
@@ -192,16 +177,13 @@ export async function PATCH(request: Request) {
       throw error;
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       code: updatedCode,
     });
   } catch (error) {
-    console.error("[AccessCodes] Error updating code:", error);
-    return NextResponse.json(
-      { error: "Failed to update access code" },
-      { status: 500 }
-    );
+    console.error("[Access Codes] Error updating code:", error);
+    return errors.internal("Failed to update access code", "Access Codes");
   }
 }
 
@@ -214,17 +196,14 @@ export async function DELETE(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Code ID required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Code ID required");
     }
 
     // Delete user access records first
@@ -243,12 +222,9 @@ export async function DELETE(request: Request) {
       throw error;
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("[AccessCodes] Error deleting code:", error);
-    return NextResponse.json(
-      { error: "Failed to delete access code" },
-      { status: 500 }
-    );
+    console.error("[Access Codes] Error deleting code:", error);
+    return errors.internal("Failed to delete access code", "Access Codes");
   }
 }

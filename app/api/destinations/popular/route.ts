@@ -9,8 +9,9 @@
  * Cost: $0 (local database query)
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Check cache first
     if (cachedPopular && Date.now() - cachedPopular.timestamp < CACHE_TTL) {
-      return NextResponse.json({
+      return apiSuccess({
         predictions: cachedPopular.data.slice(0, limit),
         source: "local",
         cached: true,
@@ -84,11 +85,8 @@ export async function GET(request: NextRequest) {
       .limit(20); // Fetch more for variety, return limit
 
     if (error) {
-      console.error("Failed to fetch popular destinations:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch destinations" },
-        { status: 500 }
-      );
+      console.error("[Destinations Popular] Failed to fetch popular destinations:", error);
+      return errors.internal("Failed to fetch destinations", "Destinations Popular");
     }
 
     // Transform to PlacePrediction format
@@ -113,16 +111,13 @@ export async function GET(request: NextRequest) {
     // Update cache
     cachedPopular = { data: predictions, timestamp: Date.now() };
 
-    return NextResponse.json({
+    return apiSuccess({
       predictions: predictions.slice(0, limit),
       source: "local",
       cached: false,
     });
   } catch (error) {
-    console.error("Popular destinations error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Destinations Popular] Popular destinations error:", error);
+    return errors.internal("Internal server error", "Destinations Popular");
   }
 }

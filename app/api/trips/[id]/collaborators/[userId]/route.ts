@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripCollaboratorRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ id: string; userId: string }>;
-}
 
 /**
  * PATCH /api/trips/[id]/collaborators/[userId] - Update a collaborator's role
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: TripCollaboratorRouteContext) {
   try {
     const { id: tripId, userId: targetUserId } = await context.params;
     const supabase = await createClient();
@@ -20,17 +18,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body = await request.json();
     const { role } = body as { role: CollaboratorRole };
 
     if (!role || !["owner", "editor", "voter", "viewer"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be owner, editor, voter, or viewer" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid role. Must be owner, editor, voter, or viewer");
     }
 
     // Verify user is the trip owner (only owners can change roles)
@@ -41,7 +36,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -57,26 +52,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const canChangeRoles = isOwner || requesterCollab?.role === "owner";
 
     if (!canChangeRoles) {
-      return NextResponse.json(
-        { error: "Only trip owners can change collaborator roles" },
-        { status: 403 }
-      );
+      return errors.forbidden("Only trip owners can change collaborator roles");
     }
 
     // Can't change own role to demote self from owner
     if (targetUserId === user.id && role !== "owner" && isOwner) {
-      return NextResponse.json(
-        { error: "Cannot demote yourself as the trip owner" },
-        { status: 400 }
-      );
+      return errors.badRequest("Cannot demote yourself as the trip owner");
     }
 
     // Can't promote someone to owner (ownership transfer not implemented yet)
     if (role === "owner" && targetUserId !== user.id) {
-      return NextResponse.json(
-        { error: "Cannot transfer ownership. This feature is not yet available." },
-        { status: 400 }
-      );
+      return errors.badRequest("Cannot transfer ownership. This feature is not yet available.");
     }
 
     // Update the collaborator's role
@@ -89,37 +75,28 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error) {
-      console.error("Error updating collaborator role:", error);
-      return NextResponse.json(
-        { error: "Failed to update role" },
-        { status: 500 }
-      );
+      console.error("[Collaborators] Error updating collaborator role:", error);
+      return errors.internal("Failed to update role", "Collaborators");
     }
 
     if (!updatedCollab) {
-      return NextResponse.json(
-        { error: "Collaborator not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Collaborator not found");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       collaborator: updatedCollab,
     });
   } catch (error) {
-    console.error("Error in PATCH /api/trips/[id]/collaborators/[userId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Collaborators] Error updating collaborator role:", error);
+    return errors.internal("Failed to update role", "Collaborators");
   }
 }
 
 /**
  * DELETE /api/trips/[id]/collaborators/[userId] - Remove a collaborator
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripCollaboratorRouteContext) {
   try {
     const { id: tripId, userId: targetUserId } = await context.params;
     const supabase = await createClient();
@@ -130,7 +107,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify trip exists and get owner
@@ -141,7 +118,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -149,10 +126,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     // Can't remove the trip owner
     if (targetUserId === trip.user_id) {
-      return NextResponse.json(
-        { error: "Cannot remove the trip owner" },
-        { status: 400 }
-      );
+      return errors.badRequest("Cannot remove the trip owner");
     }
 
     // Check if user is an owner collaborator
@@ -167,10 +141,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     // Users can remove themselves, owners can remove anyone
     if (!isSelfRemove && !canRemoveOthers) {
-      return NextResponse.json(
-        { error: "You don't have permission to remove this collaborator" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to remove this collaborator");
     }
 
     // Remove the collaborator
@@ -181,22 +152,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("user_id", targetUserId);
 
     if (error) {
-      console.error("Error removing collaborator:", error);
-      return NextResponse.json(
-        { error: "Failed to remove collaborator" },
-        { status: 500 }
-      );
+      console.error("[Collaborators] Error removing collaborator:", error);
+      return errors.internal("Failed to remove collaborator", "Collaborators");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: isSelfRemove ? "You have left the trip" : "Collaborator removed",
     });
   } catch (error) {
-    console.error("Error in DELETE /api/trips/[id]/collaborators/[userId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Collaborators] Error removing collaborator:", error);
+    return errors.internal("Failed to remove collaborator", "Collaborators");
   }
 }

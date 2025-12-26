@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * GET /api/explore/trips
@@ -72,11 +73,8 @@ export async function GET(request: NextRequest) {
     const { data: trips, error, count } = await query;
 
     if (error) {
-      console.error("[Explore API] Query error:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch trips" },
-        { status: 500 }
-      );
+      console.error("[Explore] Query error:", error);
+      return errors.internal("Failed to fetch trips", "Explore");
     }
 
     // Post-process trips to extract relevant info
@@ -131,7 +129,7 @@ export async function GET(request: NextRequest) {
       filteredTrips = filteredTrips.filter(t => t.durationDays <= parseInt(durationMax));
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       trips: filteredTrips,
       total: count || 0,
       page,
@@ -139,10 +137,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil((count || 0) / perPage),
     });
   } catch (error) {
-    console.error("[Explore API] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Explore] Unexpected error:", error);
+    return errors.internal("Internal server error", "Explore");
   }
 }

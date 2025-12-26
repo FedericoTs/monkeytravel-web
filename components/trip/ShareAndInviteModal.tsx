@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TrendingUp, Globe, Link2, Users, Copy, Check, Mail, Share2 } from "lucide-react";
+import { TrendingUp, Globe, Users, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   trackShareModalOpened,
@@ -12,6 +13,7 @@ import { RoleSelector } from "@/components/collaboration/RoleSelector";
 import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
 import { useToast } from "@/components/ui/Toast";
 import BottomSheet from "@/components/ui/BottomSheet";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
@@ -47,6 +49,8 @@ export default function ShareAndInviteModal({
   isLoading,
   initialTab = "share",
 }: ShareAndInviteModalProps) {
+  const t = useTranslations("share");
+  const tButtons = useTranslations("buttons");
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [copied, setCopied] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
@@ -125,22 +129,8 @@ export default function ShareAndInviteModal({
     }
   }, [tripId]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, onClose]);
+  // Unified modal behavior: escape key + scroll lock
+  useModalBehavior({ isOpen, onClose });
 
   // Handle trending toggle
   const handleTrendingToggle = async () => {
@@ -168,30 +158,32 @@ export default function ShareAndInviteModal({
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      addToast(t("toast.viewOnlyCopied"), "success");
       trackTripShared({ tripId, shareMethod: "link" });
       trackReferralLinkClicked({ code: tripId, medium: "copy" });
     } catch (error) {
       console.error("Failed to copy:", error);
+      addToast(t("toast.copyFailed"), "error");
     }
   };
 
   // Social sharing
   const handleShareTwitter = () => {
-    const text = encodeURIComponent(`Check out my trip to ${tripTitle} on MonkeyTravel!`);
+    const text = encodeURIComponent(t("socialText.twitterShare", { tripTitle }));
     const url = encodeURIComponent(shareUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`Check out my trip: ${tripTitle}\n${shareUrl}`);
+    const text = encodeURIComponent(`${t("socialText.whatsappShare", { tripTitle })}\n${shareUrl}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
   const handleShareEmail = () => {
-    const subject = encodeURIComponent(`Check out my trip: ${tripTitle}`);
-    const body = encodeURIComponent(`I planned this amazing trip using MonkeyTravel. Take a look!\n\n${shareUrl}`);
+    const subject = encodeURIComponent(t("socialText.emailSubject", { tripTitle }));
+    const body = encodeURIComponent(`${t("socialText.emailBody")}\n\n${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     trackTripShared({ tripId, shareMethod: "email" });
   };
@@ -209,15 +201,15 @@ export default function ShareAndInviteModal({
       if (response.ok) {
         const data = await response.json();
         setInviteUrl(data.invite.inviteUrl);
-        addToast("Invite link created!", "success");
+        addToast(t("toast.inviteCreated"), "success");
       } else {
         const error = await response.json();
         console.error("Failed to generate invite:", error);
-        addToast(error.error || "Failed to create invite link", "error");
+        addToast(error.error || t("toast.inviteCreateFailed"), "error");
       }
     } catch (error) {
       console.error("Failed to generate invite:", error);
-      addToast("Network error. Please try again.", "error");
+      addToast(t("toast.networkError"), "error");
     } finally {
       setIsGeneratingInvite(false);
     }
@@ -245,10 +237,10 @@ export default function ShareAndInviteModal({
       }
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 2000);
-      addToast("Link copied to clipboard!", "success");
+      addToast(t("toast.collaborationCopied"), "success");
     } catch (error) {
       console.error("Failed to copy:", error);
-      addToast("Failed to copy link", "error");
+      addToast(t("toast.copyFailed"), "error");
     }
   };
 
@@ -263,13 +255,13 @@ export default function ShareAndInviteModal({
 
       if (response.ok) {
         await fetchCollaborators();
-        addToast(`Role updated to ${newRole}`, "success");
+        addToast(t("toast.roleUpdated", { role: newRole }), "success");
       } else {
-        addToast("Failed to update role", "error");
+        addToast(t("toast.roleUpdateFailed"), "error");
       }
     } catch (error) {
       console.error("Failed to update role:", error);
-      addToast("Failed to update role", "error");
+      addToast(t("toast.roleUpdateFailed"), "error");
     }
   };
 
@@ -282,13 +274,13 @@ export default function ShareAndInviteModal({
 
       if (response.ok) {
         await fetchCollaborators();
-        addToast("Team member removed", "success");
+        addToast(t("toast.memberRemoved"), "success");
       } else {
-        addToast("Failed to remove member", "error");
+        addToast(t("toast.memberRemoveFailed"), "error");
       }
     } catch (error) {
       console.error("Failed to remove collaborator:", error);
-      addToast("Failed to remove member", "error");
+      addToast(t("toast.memberRemoveFailed"), "error");
     }
   };
 
@@ -298,35 +290,51 @@ export default function ShareAndInviteModal({
 
   // Tab buttons component (reused in both mobile and desktop)
   const TabButtons = ({ className = "" }: { className?: string }) => (
-    <div className={cn("flex", className)}>
+    <div className={cn("flex gap-2", className)}>
       <button
         onClick={() => setActiveTab("share")}
         className={cn(
-          "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+          "flex-1 flex flex-col items-center gap-1 px-4 py-3 rounded-xl border-2 transition-all",
           activeTab === "share"
-            ? "border-[var(--primary)] text-[var(--primary)]"
-            : "border-transparent text-slate-500 hover:text-slate-700"
+            ? "border-slate-300 bg-slate-50 shadow-sm"
+            : "border-transparent bg-slate-100/50 hover:bg-slate-100"
         )}
       >
-        <Link2 className="w-4 h-4" />
-        Share Link
+        <div className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center",
+          activeTab === "share" ? "bg-slate-200" : "bg-slate-200/50"
+        )}>
+          <Eye className={cn("w-4 h-4", activeTab === "share" ? "text-slate-700" : "text-slate-500")} />
+        </div>
+        <span className={cn("text-sm font-medium", activeTab === "share" ? "text-slate-900" : "text-slate-600")}>
+          {t("invite.viewOnlyLink")}
+        </span>
+        <span className="text-xs text-slate-400">{t("invite.anyoneCanView")}</span>
       </button>
       <button
         onClick={() => setActiveTab("invite")}
         className={cn(
-          "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+          "flex-1 flex flex-col items-center gap-1 px-4 py-3 rounded-xl border-2 transition-all",
           activeTab === "invite"
-            ? "border-[var(--primary)] text-[var(--primary)]"
-            : "border-transparent text-slate-500 hover:text-slate-700"
+            ? "border-[var(--primary)] bg-blue-50 shadow-sm"
+            : "border-transparent bg-blue-50/30 hover:bg-blue-50/60"
         )}
       >
-        <Users className="w-4 h-4" />
-        Invite Team
-        {hasCollaborators && (
-          <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
-            {collaborators.length - 1}
-          </span>
-        )}
+        <div className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center relative",
+          activeTab === "invite" ? "bg-[var(--primary)]" : "bg-blue-100"
+        )}>
+          <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary)]")} />
+          {hasCollaborators && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-amber-400 text-amber-900 rounded-full flex items-center justify-center">
+              {collaborators.length - 1}
+            </span>
+          )}
+        </div>
+        <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--primary)]" : "text-slate-600")}>
+          {t("invite.inviteToCollaborate")}
+        </span>
+        <span className="text-xs text-slate-400">{t("invite.editVoteSuggest")}</span>
       </button>
     </div>
   );
@@ -335,20 +343,28 @@ export default function ShareAndInviteModal({
   const ModalContent = () => (
     <>
       {activeTab === "share" ? (
-        // SHARE TAB
+        // SHARE TAB - View Only
         <div className="space-y-6">
+                {/* Context hint */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
+                  <Eye className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  <p className="text-xs text-slate-600">
+                    <span className="font-medium">{t("invite.viewOnlyLabel")}:</span> {t("invite.viewOnlyHint")}
+                  </p>
+                </div>
+
                 {/* Enable sharing if not shared */}
                 {!isShared && (
                   <div className="text-center py-4">
                     <p className="text-sm text-slate-600 mb-4">
-                      Enable sharing to get a public link for this trip
+                      {t("invite.enableSharing")}
                     </p>
                     <button
                       onClick={onEnableSharing}
                       disabled={isLoading}
                       className="px-6 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
                     >
-                      {isLoading ? "Enabling..." : "Enable Sharing"}
+                      {isLoading ? t("invite.enabling") : t("invite.enableSharingButton")}
                     </button>
                   </div>
                 )}
@@ -358,7 +374,7 @@ export default function ShareAndInviteModal({
                   <>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Public Link
+                        {t("invite.publicLink")}
                       </label>
                       <div className="flex items-center gap-2">
                         <input
@@ -377,18 +393,18 @@ export default function ShareAndInviteModal({
                           )}
                         >
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          {copied ? "Copied" : "Copy"}
+                          {copied ? tButtons("copied") : tButtons("copy")}
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-slate-500">
-                        Anyone with this link can view your trip (read-only)
+                        {t("invite.readOnlyNote")}
                       </p>
                     </div>
 
                     {/* Social Share */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Share via
+                        {t("shareVia")}
                       </label>
                       <div className="flex items-center gap-3">
                         <button onClick={handleShareTwitter} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors">
@@ -416,10 +432,10 @@ export default function ShareAndInviteModal({
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-slate-900">
-                              {trendingEnabled ? "Listed on Explore" : "Submit to Explore"}
+                              {trendingEnabled ? t("explore.listedOn") : t("explore.submitTo")}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {trendingEnabled ? "Visible in public gallery" : "Let others discover your itinerary"}
+                              {trendingEnabled ? t("explore.visibleInGallery") : t("explore.letOthersDiscover")}
                             </p>
                           </div>
                         </div>
@@ -441,19 +457,19 @@ export default function ShareAndInviteModal({
                     <div className="border-t border-slate-200 pt-4">
                       {!showStopConfirm ? (
                         <button onClick={() => setShowStopConfirm(true)} className="text-sm text-red-600 hover:text-red-700 font-medium">
-                          Stop sharing this trip
+                          {t("stopSharing.button")}
                         </button>
                       ) : (
                         <div className="bg-red-50 rounded-lg p-4">
                           <p className="text-sm text-red-800 mb-3">
-                            Are you sure? Anyone with the link will no longer be able to view this trip.
+                            {t("stopSharing.confirmMessage")}
                           </p>
                           <div className="flex items-center gap-2">
                             <button onClick={() => setShowStopConfirm(false)} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
-                              Cancel
+                              {tButtons("cancel")}
                             </button>
                             <button onClick={onStopSharing} disabled={isLoading} className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50">
-                              {isLoading ? "Stopping..." : "Stop Sharing"}
+                              {isLoading ? t("stopSharing.stopping") : t("stopSharing.stop")}
                             </button>
                           </div>
                         </div>
@@ -463,8 +479,16 @@ export default function ShareAndInviteModal({
                 )}
               </div>
             ) : (
-              // INVITE TAB
+              // INVITE TAB - Collaboration
               <div className="space-y-6">
+                {/* Context hint */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
+                  <UserPlus className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
+                  <p className="text-xs text-blue-700">
+                    <span className="font-medium">{t("invite.collaborateLabel")}:</span> {t("invite.collaborateHint")}
+                  </p>
+                </div>
+
                 {/* Role Selection */}
                 <RoleSelector
                   selectedRole={selectedRole}
@@ -485,19 +509,19 @@ export default function ShareAndInviteModal({
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Generating...
+                        {t("invite.generating")}
                       </>
                     ) : (
                       <>
                         <Users className="w-5 h-5" />
-                        Generate Invite Link
+                        {t("invite.generateLink")}
                       </>
                     )}
                   </button>
                 ) : (
                   <div className="p-4 bg-green-50 rounded-xl border border-green-200">
                     <p className="text-sm font-medium text-green-800 mb-3">
-                      Invite link created! Share it with your travel companions.
+                      {t("invite.inviteCreated")}
                     </p>
                     <div className="flex items-center gap-2">
                       <input
@@ -516,14 +540,14 @@ export default function ShareAndInviteModal({
                         )}
                       >
                         {inviteCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {inviteCopied ? "Copied!" : "Copy"}
+                        {inviteCopied ? tButtons("copied") : tButtons("copy")}
                       </button>
                     </div>
                     <button
                       onClick={() => setInviteUrl(null)}
                       className="mt-3 text-sm text-green-700 hover:text-green-800 font-medium"
                     >
-                      Generate another link
+                      {t("invite.generateAnother")}
                     </button>
                   </div>
                 )}
@@ -532,7 +556,7 @@ export default function ShareAndInviteModal({
                 {collaborators.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium text-slate-700 mb-3">
-                      Team Members ({collaborators.length})
+                      {t("invite.teamMembers", { count: collaborators.length })}
                     </h4>
                     {isLoadingCollaborators ? (
                       <div className="flex items-center justify-center py-8">
@@ -565,7 +589,7 @@ export default function ShareAndInviteModal({
   // Mobile: Use BottomSheet for better UX
   if (isMobile) {
     return (
-      <BottomSheet isOpen={isOpen} onClose={onClose} title="Share & Invite">
+      <BottomSheet isOpen={isOpen} onClose={onClose} title={t("titleWithInvite")}>
         <div className="px-4 pb-6">
           {/* Tabs */}
           <div className="border-b border-slate-200 mb-4">
@@ -607,7 +631,7 @@ export default function ShareAndInviteModal({
                 <Share2 className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-slate-900">Share & Invite</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{t("titleWithInvite")}</h3>
                 <p className="text-sm text-slate-500 truncate">{tripTitle}</p>
               </div>
             </div>

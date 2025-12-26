@@ -1,19 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type { ProposalVote, ProposalVoteType, Activity, ItineraryDay } from "@/types";
 import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 
-interface RouteContext {
-  params: Promise<{ id: string; proposalId: string }>;
-}
-
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
  * Get all votes for a specific proposal
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -24,7 +22,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify proposal exists and belongs to trip
@@ -36,10 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Fetch votes with user info
@@ -63,11 +58,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .order("voted_at", { ascending: true });
 
     if (error) {
-      console.error("Error fetching votes:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch votes" },
-        { status: 500 }
-      );
+      console.error("[Proposal Vote] Error fetching votes:", error);
+      return errors.internal("Failed to fetch votes", "Proposal Vote");
     }
 
     // Transform to include user info at top level
@@ -100,17 +92,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       (v) => v.user_id === user.id
     );
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       votes: transformedVotes,
       currentUserVote: currentUserVote || null,
     });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/proposals/[proposalId]/vote:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposal Vote] Unexpected error in GET:", error);
+    return errors.internal("Internal server error", "Proposal Vote");
   }
 }
 
@@ -118,7 +107,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  * POST /api/trips/[id]/proposals/[proposalId]/vote
  * Cast or update a vote on a proposal
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -129,7 +118,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Parse request body
@@ -142,18 +131,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Validate vote type - 4-level voting unified with activity voting
     const validVoteTypes: ProposalVoteType[] = ["love", "flexible", "concerns", "no"];
     if (!voteType || !validVoteTypes.includes(voteType)) {
-      return NextResponse.json(
-        { error: "Invalid vote type. Must be 'love', 'flexible', 'concerns', or 'no'" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid vote type. Must be 'love', 'flexible', 'concerns', or 'no'");
     }
 
     // Require comment for negative votes (concerns and no)
     if ((voteType === 'concerns' || voteType === 'no') && !comment?.trim()) {
-      return NextResponse.json(
-        { error: `A comment is required when voting '${voteType}' to help the group understand your perspective` },
-        { status: 400 }
-      );
+      return errors.badRequest(`A comment is required when voting '${voteType}' to help the group understand your perspective`);
     }
 
     // Verify proposal exists and is votable
@@ -165,18 +148,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Check if proposal is still open for voting
     if (!['pending', 'voting'].includes(proposal.status)) {
-      return NextResponse.json(
-        { error: "This proposal is no longer open for voting" },
-        { status: 400 }
-      );
+      return errors.badRequest("This proposal is no longer open for voting");
     }
 
     // Check if user has permission to vote
@@ -187,7 +164,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -206,10 +183,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     if (!canVote) {
-      return NextResponse.json(
-        { error: "You don't have permission to vote on this trip" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to vote on this trip");
     }
 
     // Check if user already voted (upsert)
@@ -243,11 +217,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         .single();
 
       if (updateError) {
-        console.error("Error updating vote:", updateError);
-        return NextResponse.json(
-          { error: "Failed to update vote" },
-          { status: 500 }
-        );
+        console.error("[Proposal Vote] Error updating vote:", updateError);
+        return errors.internal("Failed to update vote", "Proposal Vote");
       }
       vote = updatedVote;
     } else {
@@ -273,11 +244,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         .single();
 
       if (insertError) {
-        console.error("Error inserting vote:", insertError);
-        return NextResponse.json(
-          { error: "Failed to cast vote" },
-          { status: 500 }
-        );
+        console.error("[Proposal Vote] Error inserting vote:", insertError);
+        return errors.internal("Failed to cast vote", "Proposal Vote");
       }
       vote = newVote;
     }
@@ -406,17 +374,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       console.error("Error checking consensus:", consensusError);
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       vote,
       isUpdate: !!existingVote,
     });
   } catch (error) {
-    console.error("Error in POST /api/trips/[id]/proposals/[proposalId]/vote:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposal Vote] Unexpected error in POST:", error);
+    return errors.internal("Internal server error", "Proposal Vote");
   }
 }
 
@@ -424,7 +389,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
  * DELETE /api/trips/[id]/proposals/[proposalId]/vote
  * Remove user's vote from a proposal
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripProposalRouteContext) {
   try {
     const { id: tripId, proposalId } = await context.params;
     const supabase = await createClient();
@@ -435,7 +400,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify proposal exists
@@ -447,18 +412,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .single();
 
     if (proposalError || !proposal) {
-      return NextResponse.json(
-        { error: "Proposal not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Proposal not found");
     }
 
     // Check if proposal is still open
     if (!['pending', 'voting'].includes(proposal.status)) {
-      return NextResponse.json(
-        { error: "Cannot remove vote from a resolved proposal" },
-        { status: 400 }
-      );
+      return errors.badRequest("Cannot remove vote from a resolved proposal");
     }
 
     // Delete the user's vote
@@ -469,22 +428,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Error deleting vote:", error);
-      return NextResponse.json(
-        { error: "Failed to remove vote" },
-        { status: 500 }
-      );
+      console.error("[Proposal Vote] Error deleting vote:", error);
+      return errors.internal("Failed to remove vote", "Proposal Vote");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Vote removed",
     });
   } catch (error) {
-    console.error("Error in DELETE /api/trips/[id]/proposals/[proposalId]/vote:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposal Vote] Unexpected error in DELETE:", error);
+    return errors.internal("Internal server error", "Proposal Vote");
   }
 }

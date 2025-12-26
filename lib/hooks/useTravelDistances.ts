@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { ItineraryDay, CachedDayTravelData } from "@/types";
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
+import type { Coordinates } from "@/lib/utils/geo";
 
 export interface TravelSegment {
   fromActivityId: string;

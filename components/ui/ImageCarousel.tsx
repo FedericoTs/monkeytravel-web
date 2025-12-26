@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface CarouselImage {
   url: string;
@@ -23,6 +25,8 @@ export default function ImageCarousel({
   onClose,
   placeName,
 }: ImageCarouselProps) {
+  const t = useTranslations("common.gallery");
+  const tc = useTranslations("common.buttons");
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
@@ -46,13 +50,11 @@ export default function ImageCarousel({
   const initialZoomScale = useRef(1);
   const isPinching = useRef(false);
 
+  // Unified modal behavior: escape key + scroll lock (always open when rendered)
+  useModalBehavior({ isOpen: true, onClose });
+
   useEffect(() => {
     setMounted(true);
-    // Prevent body scroll when carousel is open
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, []);
 
   // Reset state when image changes
@@ -91,12 +93,10 @@ export default function ImageCarousel({
     return () => clearTimeout(timer);
   }, []);
 
-  // Keyboard navigation
+  // Keyboard navigation (escape handled by useModalBehavior)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      } else if (e.key === "ArrowRight" && !isZoomed) {
+      if (e.key === "ArrowRight" && !isZoomed) {
         goToNext();
       } else if (e.key === "ArrowLeft" && !isZoomed) {
         goToPrev();
@@ -105,7 +105,8 @@ export default function ImageCarousel({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isZoomed, onClose]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isZoomed]);
 
   const goToNext = useCallback(() => {
     if (currentIndex < images.length - 1) {
@@ -278,13 +279,13 @@ export default function ImageCarousel({
         <button
           onClick={onClose}
           className="group flex items-center gap-2 px-3 py-2 -ml-2 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 backdrop-blur-xl border border-white/10 transition-all duration-200"
-          aria-label="Close gallery"
+          aria-label={t("closeGallery")}
         >
           <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
           <span className="hidden sm:inline text-sm font-medium text-white/80 group-hover:text-white">
-            Close
+            {tc("close")}
           </span>
         </button>
 
@@ -296,7 +297,7 @@ export default function ImageCarousel({
             </h2>
             {currentImage.attribution && (
               <p className="text-[10px] text-white/40 mt-0.5 truncate max-w-[180px] sm:max-w-none">
-                Photo: {currentImage.attribution}
+                {t("photoBy", { attribution: currentImage.attribution })}
               </p>
             )}
           </div>
@@ -334,7 +335,7 @@ export default function ImageCarousel({
               className={`hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 transition-all duration-200 ${
                 currentIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:scale-105"
               }`}
-              aria-label="Previous image"
+              aria-label={t("previousImage")}
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -349,7 +350,7 @@ export default function ImageCarousel({
               className={`hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 transition-all duration-200 ${
                 currentIndex === images.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:scale-105"
               }`}
-              aria-label="Next image"
+              aria-label={t("nextImage")}
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -447,7 +448,7 @@ export default function ImageCarousel({
                     : "scale-100 opacity-60 hover:opacity-90 active:scale-95"
                 }`}
                 style={{ scrollSnapAlign: "center" }}
-                aria-label={`View photo ${idx + 1}`}
+                aria-label={t("viewPhoto", { index: idx + 1 })}
               >
                 {/* Thumbnail container */}
                 <div
@@ -460,7 +461,7 @@ export default function ImageCarousel({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image.thumbnailUrl || image.url}
-                    alt={`Thumbnail ${idx + 1}`}
+                    alt={t("thumbnail", { index: idx + 1 })}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"
                   />

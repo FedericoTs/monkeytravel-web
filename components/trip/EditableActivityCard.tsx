@@ -10,6 +10,7 @@ import {
   formatEstimatedPrice,
   type VerifiedPriceData,
 } from "@/lib/utils/pricing";
+import { getActivityTypeColors } from "@/lib/constants/activityColors";
 
 interface EditableActivityCardProps {
   activity: Activity;
@@ -161,37 +162,7 @@ function EditableActivityCard({
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
   const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
 
-  const typeColors: Record<string, { bg: string; text: string; border: string }> = {
-    // Food & Drink
-    restaurant: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-    food: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-    cafe: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
-    bar: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
-    foodie: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-    "wine bar": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
-    // Attractions & Culture
-    attraction: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-    cultural: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-    museum: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-    landmark: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-    // Activities & Nature
-    activity: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
-    nature: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-    park: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-    // Shopping & Entertainment
-    shopping: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
-    market: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
-    entertainment: { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200" },
-    nightlife: { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200" },
-    // Wellness
-    spa: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
-    wellness: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
-    // Transport & Other
-    transport: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
-    event: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200" },
-  };
-
-  const colors = typeColors[activity.type] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
+  const colors = getActivityTypeColors(activity.type);
 
   const handleSaveEdit = () => {
     onUpdate({
@@ -236,7 +207,7 @@ function EditableActivityCard({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <span>Regenerating activity with AI...</span>
+            <span>{t('editActivity.regenerating')}</span>
           </div>
         </div>
       </div>

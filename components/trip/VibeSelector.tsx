@@ -193,6 +193,7 @@ function VibeCard({
   onClick,
   getPriorityLabel,
 }: VibeCardProps) {
+  const t = useTranslations("common.vibes");
   return (
     <button
       onClick={onClick}
@@ -225,7 +226,7 @@ function VibeCard({
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
           }} />
           <div className="px-2 py-1 rounded-full bg-white/80 border border-slate-200 shadow-sm">
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Max reached</span>
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{t("maxReached")}</span>
           </div>
         </div>
       )}

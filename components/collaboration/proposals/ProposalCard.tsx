@@ -290,7 +290,7 @@ export function ProposalCard({
                                 {vote.user?.display_name || 'Unknown'}
                               </span>
                               <span className={`text-xs ${voteInfo?.color || 'text-gray-500'}`}>
-                                {voteInfo?.label || vote.vote_type}
+                                {voteInfo?.labelKey ? t(voteInfo.labelKey) : vote.vote_type}
                               </span>
                               {vote.comment && (
                                 <span className="text-gray-500 text-xs truncate">

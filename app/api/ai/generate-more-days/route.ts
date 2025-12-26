@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * Generate additional days for an existing trip
@@ -24,20 +25,13 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "generation", user.email);
     if (!earlyAccess.allowed) {
-      return NextResponse.json(
-        {
-          error: "Early access required",
-          code: earlyAccess.error,
-          message: earlyAccess.message,
-        },
-        { status: 403 }
-      );
+      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
     }
 
     // Parse request body
@@ -68,10 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!destination || !startDate || !endDate || !existingDays || !startFromDay || !daysToGenerate) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing required fields");
     }
 
     // Check API access control
@@ -87,10 +78,7 @@ export async function POST(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         metadata: { user_id: user.id },
       });
-      return NextResponse.json(
-        { error: access.message || "AI generation is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
     // Check usage limits (tier-based monthly limits)
@@ -98,13 +86,9 @@ export async function POST(request: NextRequest) {
     // as it's part of the trip generation flow
     const usageCheck = await checkUsageLimit(user.id, "aiGenerations", user.email);
     if (!usageCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: usageCheck.message || "Monthly trip generation limit reached.",
-          usage: usageCheck,
-          upgradeUrl: "/pricing",
-        },
-        { status: 429 }
+      return errors.rateLimit(
+        usageCheck.message || "Monthly trip generation limit reached.",
+        { usage: usageCheck, upgradeUrl: "/pricing" }
       );
     }
 
@@ -195,7 +179,7 @@ export async function POST(request: NextRequest) {
     const nextStartDay = hasMoreDays ? generatedSoFar + 1 : null;
     const remainingDays = hasMoreDays ? totalDays - generatedSoFar : 0;
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       days: newDays,
       meta: {
@@ -212,7 +196,7 @@ export async function POST(request: NextRequest) {
       usage: updatedUsage,
     });
   } catch (error) {
-    console.error("Generate more days error:", error);
+    console.error("[AI Generate More] Generation error:", error);
 
     // Log error
     await logApiCall({
@@ -225,9 +209,6 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : "Unknown error",
     });
 
-    return NextResponse.json(
-      { error: "Failed to generate additional days. Please try again." },
-      { status: 500 }
-    );
+    return errors.internal("Failed to generate additional days. Please try again.", "AI Generate More Days");
   }
 }

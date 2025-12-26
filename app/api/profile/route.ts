@@ -1,17 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Fetch user profile
     const { data: profile, error } = await supabase
@@ -37,8 +30,8 @@ export async function GET() {
       .single();
 
     if (error) {
-      console.error("Error fetching profile:", error);
-      return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+      console.error("[Profile] Error fetching profile:", error);
+      return errors.internal("Failed to fetch profile", "Profile");
     }
 
     // Fetch trip statistics
@@ -60,24 +53,17 @@ export async function GET() {
       }, 0) || 0,
     };
 
-    return NextResponse.json({ profile, stats });
+    return apiSuccess({ profile, stats });
   } catch (error) {
-    console.error("Error in profile API:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("[Profile] Error in profile API:", error);
+    return errors.internal("Internal server error", "Profile");
   }
 }
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const updates = await request.json();
 
@@ -103,7 +89,7 @@ export async function PATCH(request: Request) {
     }
 
     if (Object.keys(filteredUpdates).length === 0) {
-      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+      return errors.badRequest("No valid fields to update");
     }
 
     // Add updated_at timestamp
@@ -113,10 +99,7 @@ export async function PATCH(request: Request) {
     if (filteredUpdates.display_name) {
       const displayName = String(filteredUpdates.display_name).trim();
       if (displayName.length < 1 || displayName.length > 50) {
-        return NextResponse.json(
-          { error: "Display name must be between 1 and 50 characters" },
-          { status: 400 }
-        );
+        return errors.badRequest("Display name must be between 1 and 50 characters");
       }
       filteredUpdates.display_name = displayName;
     }
@@ -124,7 +107,7 @@ export async function PATCH(request: Request) {
     if (filteredUpdates.bio) {
       const bio = String(filteredUpdates.bio).trim();
       if (bio.length > 200) {
-        return NextResponse.json({ error: "Bio must be 200 characters or less" }, { status: 400 });
+        return errors.badRequest("Bio must be 200 characters or less");
       }
       filteredUpdates.bio = bio;
     }
@@ -138,28 +121,21 @@ export async function PATCH(request: Request) {
       .single();
 
     if (error) {
-      console.error("Error updating profile:", error);
-      return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+      console.error("[Profile] Error updating profile:", error);
+      return errors.internal("Failed to update profile", "Profile");
     }
 
-    return NextResponse.json({ success: true, profile });
+    return apiSuccess({ success: true, profile });
   } catch (error) {
-    console.error("Error in profile PATCH:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("[Profile] Error in profile PATCH:", error);
+    return errors.internal("Internal server error", "Profile");
   }
 }
 
 export async function DELETE() {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Note: Full account deletion would require admin privileges
     // For now, we'll just sign out the user and mark for deletion
@@ -174,9 +150,9 @@ export async function DELETE() {
     // Sign out
     await supabase.auth.signOut();
 
-    return NextResponse.json({ success: true, message: "Account scheduled for deletion" });
+    return apiSuccess({ success: true, message: "Account scheduled for deletion" });
   } catch (error) {
-    console.error("Error deleting account:", error);
-    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+    console.error("[Profile] Error deleting account:", error);
+    return errors.internal("Failed to delete account", "Profile");
   }
 }

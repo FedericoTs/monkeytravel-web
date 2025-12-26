@@ -4,6 +4,7 @@ import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import EditableActivityCard from "./EditableActivityCard";
 
@@ -38,6 +39,7 @@ function SortableActivityCard({
   activity,
   ...props
 }: SortableActivityCardProps) {
+  const t = useTranslations("common.drag");
   const {
     attributes,
     listeners,
@@ -116,8 +118,8 @@ function SortableActivityCard({
             // Large touch target for mobile (>44px)
             minHeight: "100%",
           }}
-          title="Hold and drag to reorder"
-          aria-label="Drag handle - hold and drag to reorder activities"
+          title={t("title")}
+          aria-label={t("ariaLabel")}
         >
           {/* Grip icon with subtle animation */}
           <div className={`
@@ -135,7 +137,7 @@ function SortableActivityCard({
             hidden sm:block text-[10px] font-medium uppercase tracking-wider
             ${isDragging ? "text-white/80" : "text-slate-400"}
           `}>
-            Drag
+            {t("hint")}
           </span>
         </div>
 

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import fs from "fs/promises";
 import path from "path";
 
@@ -20,7 +21,7 @@ async function readTranslations(): Promise<Record<SupportedLanguage, Record<stri
       const content = await fs.readFile(filePath, "utf-8");
       translations[lang] = JSON.parse(content);
     } catch (error) {
-      console.error(`Failed to read ${lang}/common.json:`, error);
+      console.error(`[Admin Translations] Failed to read ${lang}/common.json:`, error);
       translations[lang] = {};
     }
   }
@@ -73,18 +74,19 @@ export async function GET() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return errors.unauthorized();
+    }
+
+    if (!isAdmin(user.email)) {
+      return errors.forbidden();
     }
 
     const translations = await readTranslations();
-    return NextResponse.json({ translations });
+    return apiSuccess({ translations });
   } catch (error) {
-    console.error("Failed to read translations:", error);
-    return NextResponse.json(
-      { error: "Failed to read translations" },
-      { status: 500 }
-    );
+    console.error("[Admin Translations] Error reading translations:", error);
+    return errors.internal("Failed to read translations", "Admin Translations");
   }
 }
 
@@ -99,8 +101,12 @@ export async function PUT(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return errors.unauthorized();
+    }
+
+    if (!isAdmin(user.email)) {
+      return errors.forbidden();
     }
 
     const body = await request.json();
@@ -111,17 +117,11 @@ export async function PUT(request: NextRequest) {
     };
 
     if (!SUPPORTED_LANGUAGES.includes(language)) {
-      return NextResponse.json(
-        { error: "Invalid language" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid language");
     }
 
     if (!key || typeof value !== "string") {
-      return NextResponse.json(
-        { error: "Invalid key or value" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid key or value");
     }
 
     // Read current translations
@@ -135,15 +135,12 @@ export async function PUT(request: NextRequest) {
 
     // Log the change
     console.log(
-      `[Translations] ${user.email} updated ${language}:${key} = "${value.substring(0, 50)}..."`
+      `[Admin Translations] ${user.email} updated ${language}:${key} = "${value.substring(0, 50)}..."`
     );
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Failed to update translation:", error);
-    return NextResponse.json(
-      { error: "Failed to update translation" },
-      { status: 500 }
-    );
+    console.error("[Admin Translations] Error updating translation:", error);
+    return errors.internal("Failed to update translation", "Admin Translations");
   }
 }

@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
 
 /**
  * GET /api/trips/[id]/activities - Get all activity timelines for a trip
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -19,7 +17,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify trip ownership
@@ -31,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Fetch all activity timelines for this trip
@@ -43,19 +41,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .order("day_number", { ascending: true });
 
     if (error) {
-      console.error("Error fetching activity timelines:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch activity timelines" },
-        { status: 500 }
-      );
+      console.error("[Activities] Error fetching activity timelines:", error);
+      return errors.internal("Failed to fetch activity timelines", "Activities");
     }
 
-    return NextResponse.json({ success: true, timelines: timelines || [] });
+    return apiSuccess({ success: true, timelines: timelines || [] });
   } catch (error) {
-    console.error("Error fetching activity timelines:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch activity timelines" },
-      { status: 500 }
-    );
+    console.error("[Activities] Error fetching activity timelines:", error);
+    return errors.internal("Failed to fetch activity timelines", "Activities");
   }
 }

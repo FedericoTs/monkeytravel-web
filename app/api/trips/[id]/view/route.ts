@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { headers } from "next/headers";
+import { apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * POST /api/trips/[id]/view
@@ -43,10 +44,10 @@ export async function POST(
       console.error("[Trip View] Insert error:", error);
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     console.error("[Trip View] Unexpected error:", error);
     // Don't fail the request for view tracking errors
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   }
 }

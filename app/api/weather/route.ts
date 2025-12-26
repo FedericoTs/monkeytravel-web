@@ -15,10 +15,11 @@
  * CACHING: Uses Supabase cache for 7-day TTL since historical weather doesn't change
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Cache TTL: 7 days (historical weather data doesn't change)
 const WEATHER_CACHE_DAYS = 7;
@@ -91,7 +92,35 @@ function getWeatherCacheKey(lat: string, lng: string, startDate: string, endDate
 }
 
 /**
+ * Type guard to validate weather data structure from cache
+ */
+function isValidWeatherData(data: unknown): data is WeatherData {
+  if (typeof data !== "object" || data === null) return false;
+  const w = data as Record<string, unknown>;
+
+  // Check required fields exist and have correct types
+  if (typeof w.temperature !== "object" || w.temperature === null) return false;
+  if (typeof w.precipitation !== "object" || w.precipitation === null) return false;
+  if (typeof w.conditions !== "string") return false;
+  if (typeof w.humidity !== "number") return false;
+  if (typeof w.icon !== "string") return false;
+
+  const temp = w.temperature as Record<string, unknown>;
+  if (typeof temp.min !== "number" || typeof temp.max !== "number" || typeof temp.avg !== "number") {
+    return false;
+  }
+
+  const precip = w.precipitation as Record<string, unknown>;
+  if (typeof precip.totalMm !== "number" || typeof precip.rainyDays !== "number") {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Get cached weather data from Supabase
+ * Note: Using metadata column to store weather data (not coordinates which is for lat/lng)
  */
 async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
   try {
@@ -114,7 +143,18 @@ async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
       .eq("id", data.id)
       .then(() => {});
 
-    return data.coordinates as unknown as WeatherData;
+    // Weather data is stored in metadata.weather field
+    const cachedData = (data.metadata as Record<string, unknown>)?.weather;
+    if (isValidWeatherData(cachedData)) {
+      return cachedData;
+    }
+
+    // Legacy fallback: check coordinates field (old format)
+    if (isValidWeatherData(data.coordinates)) {
+      return data.coordinates as WeatherData;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -122,16 +162,22 @@ async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
 
 /**
  * Cache weather data in Supabase
+ * Stores weather data in metadata.weather field (proper JSONB usage)
  */
-async function cacheWeather(cacheKey: string, weatherData: WeatherData, metadata: object): Promise<void> {
+async function cacheWeather(cacheKey: string, weatherData: WeatherData, requestMetadata: object): Promise<void> {
   try {
     const expiresAt = new Date(Date.now() + WEATHER_CACHE_DAYS * 24 * 60 * 60 * 1000);
 
     await supabase.from("geocode_cache").upsert(
       {
         address: `weather:${cacheKey}`,
-        coordinates: weatherData as unknown as { lat: number; lng: number },
-        metadata,
+        // Use null for coordinates - not applicable for weather cache
+        coordinates: null,
+        // Store weather data inside metadata.weather for proper typing
+        metadata: {
+          ...requestMetadata,
+          weather: weatherData,
+        },
         cached_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         hit_count: 0,
@@ -153,10 +199,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
 
     if (!latitude || !longitude || !startDate || !endDate) {
-      return NextResponse.json(
-        { error: "Missing required parameters: latitude, longitude, startDate, endDate" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing required parameters: latitude, longitude, startDate, endDate");
     }
 
     // Check cache first (7-day TTL for historical weather data)
@@ -164,8 +207,8 @@ export async function GET(request: NextRequest) {
     const cachedWeather = await getCachedWeather(cacheKey);
 
     if (cachedWeather) {
-      console.log(`[Weather API] Cache HIT for ${latitude},${longitude}`);
-      return NextResponse.json({
+      console.log(`[Weather] Cache HIT for ${latitude},${longitude}`);
+      return apiSuccess({
         weather: cachedWeather,
         source: "open-meteo",
         cached: true,
@@ -173,7 +216,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`[Weather API] Cache MISS for ${latitude},${longitude}`);
+    console.log(`[Weather] Cache MISS for ${latitude},${longitude}`);
 
     // Get historical date range (same dates from previous year)
     const historicalDates = getHistoricalDateRange(startDate, endDate);
@@ -207,18 +250,12 @@ export async function GET(request: NextRequest) {
     );
 
     if (!response.ok) {
-      console.error("[Weather API] Open-Meteo error:", response.status);
-      return NextResponse.json(
-        { error: "Failed to fetch weather data" },
-        { status: 502 }
-      );
+      console.error("[Weather] Open-Meteo error:", response.status);
+      return errors.internal("Failed to fetch weather data", "Weather");
     }
 
     if (!data.daily || !data.daily.time || data.daily.time.length === 0) {
-      return NextResponse.json(
-        { error: "No historical data available for this location and date range" },
-        { status: 404 }
-      );
+      return errors.notFound("No historical data available for this location and date range");
     }
 
     // Calculate aggregates
@@ -291,7 +328,7 @@ export async function GET(request: NextRequest) {
       historicalDates,
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       weather: weatherData,
       source: "open-meteo",
       cached: false,
@@ -300,17 +337,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Handle circuit breaker open state
     if (error instanceof CircuitOpenError) {
-      console.warn("[Weather API] Circuit breaker open:", error.message);
-      return NextResponse.json(
-        { error: "Weather service temporarily unavailable" },
-        { status: 503 }
-      );
+      console.warn("[Weather] Circuit breaker open:", error.message);
+      return errors.serviceUnavailable("Weather service temporarily unavailable");
     }
 
-    console.error("[Weather API] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch weather data" },
-      { status: 500 }
-    );
+    console.error("[Weather] Error:", error);
+    return errors.internal("Failed to fetch weather data", "Weather");
   }
 }

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 interface UndoRequest {
   tripId: string;
@@ -18,17 +19,14 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body: UndoRequest = await request.json();
     const { tripId, previousItinerary } = body;
 
     if (!tripId || !previousItinerary) {
-      return NextResponse.json(
-        { error: "Missing tripId or previousItinerary" },
-        { status: 400 }
-      );
+      return errors.badRequest("Missing tripId or previousItinerary");
     }
 
     // Verify the trip belongs to the user
@@ -40,7 +38,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     // Restore the previous itinerary
@@ -54,23 +52,17 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error("[AI Assistant Undo] Database update failed:", updateError);
-      return NextResponse.json(
-        { error: "Failed to undo changes" },
-        { status: 500 }
-      );
+      return errors.internal("Failed to undo changes", "AI Assistant Undo");
     }
 
     console.log(`[AI Assistant Undo] Successfully restored previous itinerary for trip ${tripId}`);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       restoredItinerary: previousItinerary,
     });
   } catch (error) {
     console.error("[AI Assistant Undo] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to undo change" },
-      { status: 500 }
-    );
+    return errors.internal("Failed to undo change", "AI Assistant Undo");
   }
 }

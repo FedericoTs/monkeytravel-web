@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Twitter, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface ReferralStats {
   clicks: number;
@@ -87,14 +88,8 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  // Unified modal behavior: escape key only (no scroll lock for this modal)
+  useModalBehavior({ isOpen, onClose, lockScroll: false });
 
   // Don't render on server or if not open
   if (!mounted || !isOpen) return null;

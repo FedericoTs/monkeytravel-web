@@ -125,9 +125,79 @@ Recommended size: 1170 x 2532 pixels (iPhone 14 Pro)
 Required in `.env.local` and Vercel:
 
 ```bash
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# PostHog (Analytics, Feature Flags, A/B Testing)
+NEXT_PUBLIC_POSTHOG_KEY=phc_xxxxxxxxxxxxx
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 ```
+
+## PostHog (Analytics & Feature Flags)
+
+PostHog provides analytics, feature flags, and A/B testing.
+
+### Architecture (Next.js 15.3+)
+
+PostHog is initialized in `instrumentation-client.ts` using the official Next.js pattern:
+
+```
+instrumentation-client.ts  # PostHog + Sentry init (auto-loaded by Next.js)
+
+lib/posthog/
+├── client.ts      # PostHog instance export + legacy init fallback
+├── server.ts      # Server-side (API routes, RSC)
+├── identify.ts    # User identification
+├── events.ts      # Type-safe event capture
+├── flags.ts       # Feature flag definitions
+├── hooks.ts       # React hooks (useFlag, useExperiment)
+└── index.ts       # Main exports
+```
+
+### Usage Examples
+
+**Feature Flags:**
+```tsx
+import { useFlag, useExperiment } from '@/lib/posthog'
+
+function Component() {
+  const { enabled } = useFlag('new-feature')
+  const { variant } = useExperiment('pricing-test')
+
+  return enabled ? <NewFeature /> : <OldFeature />
+}
+```
+
+**Event Tracking:**
+```tsx
+import { captureTripCreated } from '@/lib/posthog/events'
+
+captureTripCreated({
+  trip_id: tripId,
+  destination: 'Paris',
+  duration_days: 5,
+  budget_tier: 'balanced',
+})
+```
+
+**User Identification:**
+```tsx
+import { identifyUser } from '@/lib/posthog'
+
+identifyUser(user, {
+  subscription_tier: 'free',
+  trips_created: 3,
+})
+```
+
+### Current Experiments
+
+| Flag | Purpose |
+|------|---------|
+| `share-modal-delay` | Test modal timing (immediate/delayed/on-scroll) |
+| `pricing-tier-test` | Test price points ($29/$39/$49) |
+| `trial-duration` | Test trial length (3/7/14 days) |
 
 ## MCP Servers
 

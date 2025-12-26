@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
     const { query, maxPhotos = 5 } = await request.json();
 
     if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 });
+      return errors.badRequest("Query is required");
     }
 
     // Check API access control
@@ -158,10 +159,7 @@ export async function POST(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         userId: user?.id,
       });
-      return NextResponse.json(
-        { error: access.message || "Places API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Places API is currently disabled");
     }
 
     // Check usage limits for authenticated users
@@ -169,14 +167,10 @@ export async function POST(request: NextRequest) {
     if (user) {
       usageCheck = await checkUsageLimit(user.id, "placesSearch", user.email);
       if (!usageCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: usageCheck.message || "Daily place search limit reached.",
-            usage: usageCheck,
-            upgradeUrl: "/pricing",
-          },
-          { status: 429 }
-        );
+        return errors.rateLimit(usageCheck.message || "Daily place search limit reached.", {
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        });
       }
     }
 
@@ -186,10 +180,7 @@ export async function POST(request: NextRequest) {
         error: "API key not configured or blocked",
         userId: user?.id,
       });
-      return NextResponse.json(
-        { error: "Google Places API key not configured" },
-        { status: 500 }
-      );
+      return errors.internal("Google Places API key not configured", "Places Search");
     }
 
     // Check cache first
@@ -197,12 +188,12 @@ export async function POST(request: NextRequest) {
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
-      console.log("[Places API] Cache HIT for:", query);
+      console.log("[Places Search] Cache HIT for:", query);
       await logPlacesApiRequest("/places:searchText", { cacheHit: true, userId: user?.id });
-      return NextResponse.json(cachedResult);
+      return apiSuccess(cachedResult);
     }
 
-    console.log("[Places API] Cache MISS for:", query);
+    console.log("[Places Search] Cache MISS for:", query);
 
     // Use Text Search to find the place with request deduplication
     // This prevents duplicate concurrent API calls for the same query
@@ -228,7 +219,7 @@ export async function POST(request: NextRequest) {
 
       if (!searchResponse.ok) {
         const errorText = await searchResponse.text();
-        console.error("Places API error:", errorText);
+        console.error("[Places Search] Places API error:", errorText);
         throw new Error("Failed to search for place");
       }
 
@@ -237,15 +228,12 @@ export async function POST(request: NextRequest) {
 
     // Handle dedup errors
     if (searchData instanceof Error) {
-      return NextResponse.json(
-        { error: searchData.message },
-        { status: 500 }
-      );
+      return errors.internal(searchData.message, "Places Search");
     }
     const place: PlaceResult | undefined = searchData.places?.[0];
 
     if (!place) {
-      return NextResponse.json({ error: "Place not found" }, { status: 404 });
+      return errors.notFound("Place not found");
     }
 
     // Construct photo URLs
@@ -308,9 +296,9 @@ export async function POST(request: NextRequest) {
       await incrementUsage(user.id, "placesSearch", 1);
     }
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
-    console.error("Places API error:", error);
+    console.error("[Places Search] Error:", error);
 
     // Log the failure (user may be undefined if auth failed)
     await logPlacesApiRequest("/places:searchText", {
@@ -320,10 +308,7 @@ export async function POST(request: NextRequest) {
       userId: undefined, // User context lost in catch block - need to capture earlier
     });
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Places Search");
   }
 }
 
@@ -334,10 +319,7 @@ export async function GET(request: NextRequest) {
   const destination = searchParams.get("destination");
 
   if (!destination) {
-    return NextResponse.json(
-      { error: "Destination is required" },
-      { status: 400 }
-    );
+    return errors.badRequest("Destination is required");
   }
 
   try {
@@ -353,24 +335,17 @@ export async function GET(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
         userId: user?.id,
       });
-      return NextResponse.json(
-        { error: access.message || "Places API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Places API is currently disabled");
     }
 
     // Check usage limits for authenticated users
     if (user) {
       const usageCheck = await checkUsageLimit(user.id, "placesSearch", user.email);
       if (!usageCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: usageCheck.message || "Daily place search limit reached.",
-            usage: usageCheck,
-            upgradeUrl: "/pricing",
-          },
-          { status: 429 }
-        );
+        return errors.rateLimit(usageCheck.message || "Daily place search limit reached.", {
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        });
       }
     }
 
@@ -380,10 +355,7 @@ export async function GET(request: NextRequest) {
         error: "API key not configured or blocked",
         userId: user?.id,
       });
-      return NextResponse.json(
-        { error: "Google Places API key not configured" },
-        { status: 500 }
-      );
+      return errors.internal("Google Places API key not configured", "Places Destination");
     }
 
     // Check cache first
@@ -391,12 +363,12 @@ export async function GET(request: NextRequest) {
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
-      console.log("[Places API] Cache HIT for destination:", destination);
+      console.log("[Places Destination] Cache HIT for:", destination);
       await logPlacesApiRequest("/places:searchText (destination)", { cacheHit: true, userId: user?.id });
-      return NextResponse.json(cachedResult);
+      return apiSuccess(cachedResult);
     }
 
-    console.log("[Places API] Cache MISS for destination:", destination);
+    console.log("[Places Destination] Cache MISS for:", destination);
 
     // Search for the destination (city/landmark) with request deduplication
     const dedupKey = generateKey("places_destination", { destination: destination.toLowerCase().trim() });
@@ -428,18 +400,12 @@ export async function GET(request: NextRequest) {
 
     // Handle dedup errors
     if (searchData instanceof Error) {
-      return NextResponse.json(
-        { error: searchData.message },
-        { status: 500 }
-      );
+      return errors.internal(searchData.message, "Places Destination");
     }
     const place = searchData.places?.[0];
 
     if (!place) {
-      return NextResponse.json(
-        { error: "Destination not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Destination not found");
     }
 
     // Get cover image (first photo, high resolution)
@@ -477,9 +443,9 @@ export async function GET(request: NextRequest) {
       await incrementUsage(user.id, "placesSearch", 1);
     }
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
-    console.error("Destination API error:", error);
+    console.error("[Places Destination] Error:", error);
 
     // Log the failure (user may be undefined if auth failed)
     await logPlacesApiRequest("/places:searchText (destination)", {
@@ -489,9 +455,6 @@ export async function GET(request: NextRequest) {
       userId: undefined, // User context lost in catch block
     });
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Places Destination");
   }
 }

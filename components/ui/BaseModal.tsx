@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
 export interface BaseModalProps {
@@ -80,6 +81,7 @@ export default function BaseModal({
   className = "",
   animation = "scale",
 }: BaseModalProps) {
+  const t = useTranslations("common.buttons");
   const [mounted, setMounted] = useState(false);
 
   // Client-side only mounting for portal
@@ -170,7 +172,7 @@ export default function BaseModal({
             <button
               onClick={onClose}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors z-10"
-              aria-label="Close modal"
+              aria-label={t("closeModal")}
             >
               <X className="w-5 h-5" />
             </button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { DayProgress, ActivityStatus } from "@/types/timeline";
 
 interface CurrentActivity {
@@ -32,6 +33,7 @@ export default function LiveJourneyHeader({
   nextActivity,
   destination,
 }: LiveJourneyHeaderProps) {
+  const t = useTranslations("common.liveJourney");
   const [timeUntilNext, setTimeUntilNext] = useState<string>("");
 
   // Calculate time until next activity
@@ -54,7 +56,7 @@ export default function LiveJourneyHeader({
 
       // If target time is in the past, activity may be in progress
       if (targetTime <= now && currentActivity?.status === "in_progress") {
-        setTimeUntilNext("Now");
+        setTimeUntilNext(t("now"));
         return;
       }
 
@@ -66,11 +68,11 @@ export default function LiveJourneyHeader({
 
       const diffMins = Math.floor(diffMs / 60000);
       if (diffMins < 60) {
-        setTimeUntilNext(`in ${diffMins}m`);
+        setTimeUntilNext(t("inMinutes", { minutes: diffMins }));
       } else {
         const diffHours = Math.floor(diffMins / 60);
         const remainingMins = diffMins % 60;
-        setTimeUntilNext(`in ${diffHours}h ${remainingMins}m`);
+        setTimeUntilNext(t("inHoursMinutes", { hours: diffHours, minutes: remainingMins }));
       }
     };
 
@@ -78,7 +80,7 @@ export default function LiveJourneyHeader({
     const interval = setInterval(calculateTimeUntil, 60000); // Update every minute
 
     return () => clearInterval(interval);
-  }, [currentActivity, nextActivity]);
+  }, [currentActivity, nextActivity, t]);
 
   // Calculate day completion percentage
   const currentDayProgress = dayProgress.find(d => d.is_current);
@@ -93,7 +95,7 @@ export default function LiveJourneyHeader({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              Day {currentDay} of {totalDays}
+              {t("dayOfTotal", { current: currentDay, total: totalDays })}
             </h2>
             {destination && (
               <p className="text-sm text-slate-600">{destination}</p>
@@ -143,7 +145,7 @@ export default function LiveJourneyHeader({
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                  In Progress
+                  {t("inProgress")}
                 </span>
                 <span className="text-sm text-slate-500">{currentActivity.start_time}</span>
               </div>
@@ -173,7 +175,7 @@ export default function LiveJourneyHeader({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                  Up Next
+                  {t("upNext")}
                 </span>
                 <span className="text-sm text-slate-500">{nextActivity.start_time}</span>
                 {timeUntilNext && (
@@ -201,7 +203,7 @@ export default function LiveJourneyHeader({
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>All activities for today are complete!</span>
+            <span>{t("allComplete")}</span>
           </div>
         )}
       </div>
@@ -209,9 +211,12 @@ export default function LiveJourneyHeader({
       {/* Day progress bar */}
       <div className="px-4 pb-3">
         <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-          <span>Today&apos;s Progress</span>
+          <span>{t("todaysProgress")}</span>
           <span>
-            {currentDayProgress?.completed_activities || 0} / {currentDayProgress?.total_activities || 0} activities
+            {t("activitiesCount", {
+              completed: currentDayProgress?.completed_activities || 0,
+              total: currentDayProgress?.total_activities || 0
+            })}
           </span>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">

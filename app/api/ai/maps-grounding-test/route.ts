@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 const GEMINI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 const MAPS_GROUNDING_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -105,17 +106,11 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user || !(await isAdmin(user.id))) {
-      return NextResponse.json(
-        { error: "Admin access required for testing" },
-        { status: 403 }
-      );
+      return errors.forbidden("Admin access required for testing");
     }
 
     if (!GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: "GOOGLE_AI_API_KEY not configured" },
-        { status: 500 }
-      );
+      return errors.internal("GOOGLE_AI_API_KEY not configured", "Maps Grounding Test");
     }
 
     const body: MapsGroundingRequest = await request.json();
@@ -129,10 +124,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!destination || !destinationCoordinates) {
-      return NextResponse.json(
-        { error: "destination and destinationCoordinates required" },
-        { status: 400 }
-      );
+      return errors.badRequest("destination and destinationCoordinates required");
     }
 
     // Select query type based on test
@@ -201,10 +193,7 @@ export async function POST(request: NextRequest) {
     const candidate = result.candidates?.[0];
 
     if (!candidate) {
-      return NextResponse.json(
-        { error: "No response generated", result },
-        { status: 500 }
-      );
+      return errors.internal("No response generated", "Maps Grounding Test");
     }
 
     const text = candidate.content?.parts?.[0]?.text || "";
@@ -235,7 +224,7 @@ export async function POST(request: NextRequest) {
 
     const elapsedMs = Date.now() - startTime;
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       testType,
       destination,
@@ -279,19 +268,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("[Maps Grounding Test] Error:", error);
-    return NextResponse.json(
-      {
-        error: "Test failed",
-        message: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
+    return errors.internal(
+      `Test failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      "Maps Grounding Test"
     );
   }
 }
 
 // GET endpoint for quick health check
 export async function GET() {
-  return NextResponse.json({
+  return apiSuccess({
     endpoint: "/api/ai/maps-grounding-test",
     description: "Tests Google Gemini Maps Grounding for travel planning",
     usage: {

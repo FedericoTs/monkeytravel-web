@@ -7,7 +7,7 @@
  * Includes caching and rate limiting.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
   searchFlights,
@@ -19,6 +19,7 @@ import {
   normalizeIATACode,
 } from '@/lib/amadeus';
 import type { FlightSearchParams, TravelClass } from '@/lib/amadeus/types';
+import { errors, apiSuccess, apiError, getErrorStatus } from "@/lib/api/response-wrapper";
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -26,10 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     // Check if Amadeus is configured
     if (!isAmadeusConfigured()) {
-      return NextResponse.json(
-        { error: 'Amadeus API not configured' },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable('Amadeus API not configured');
     }
 
     // Auth check (optional for now, can be enforced later)
@@ -58,75 +56,47 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (!origin || !destination || !departureDate) {
-      return NextResponse.json(
-        {
-          error: 'Missing required parameters',
-          required: ['origin', 'destination', 'departureDate'],
-          received: { origin, destination, departureDate },
-        },
-        { status: 400 }
-      );
+      return errors.badRequest('Missing required parameters', {
+        required: ['origin', 'destination', 'departureDate'],
+        received: { origin, destination, departureDate },
+      });
     }
 
     // Validate IATA codes
     if (!isValidIATACode(origin)) {
-      return NextResponse.json(
-        { error: `Invalid origin IATA code: ${origin}. Must be 3 letters.` },
-        { status: 400 }
-      );
+      return errors.badRequest(`Invalid origin IATA code: ${origin}. Must be 3 letters.`);
     }
 
     if (!isValidIATACode(destination)) {
-      return NextResponse.json(
-        { error: `Invalid destination IATA code: ${destination}. Must be 3 letters.` },
-        { status: 400 }
-      );
+      return errors.badRequest(`Invalid destination IATA code: ${destination}. Must be 3 letters.`);
     }
 
     // Validate dates
     if (!isValidDate(departureDate)) {
-      return NextResponse.json(
-        { error: `Invalid departure date format: ${departureDate}. Use YYYY-MM-DD.` },
-        { status: 400 }
-      );
+      return errors.badRequest(`Invalid departure date format: ${departureDate}. Use YYYY-MM-DD.`);
     }
 
     if (!isFutureDate(departureDate)) {
-      return NextResponse.json(
-        { error: 'Departure date must be in the future' },
-        { status: 400 }
-      );
+      return errors.badRequest('Departure date must be in the future');
     }
 
     if (returnDate) {
       if (!isValidDate(returnDate)) {
-        return NextResponse.json(
-          { error: `Invalid return date format: ${returnDate}. Use YYYY-MM-DD.` },
-          { status: 400 }
-        );
+        return errors.badRequest(`Invalid return date format: ${returnDate}. Use YYYY-MM-DD.`);
       }
 
       if (new Date(returnDate) < new Date(departureDate)) {
-        return NextResponse.json(
-          { error: 'Return date must be after departure date' },
-          { status: 400 }
-        );
+        return errors.badRequest('Return date must be after departure date');
       }
     }
 
     // Validate traveler counts
     if (adults < 1 || adults > 9) {
-      return NextResponse.json(
-        { error: 'Adults must be between 1 and 9' },
-        { status: 400 }
-      );
+      return errors.badRequest('Adults must be between 1 and 9');
     }
 
     if (infants > adults) {
-      return NextResponse.json(
-        { error: 'Number of infants cannot exceed number of adults' },
-        { status: 400 }
-      );
+      return errors.badRequest('Number of infants cannot exceed number of adults');
     }
 
     // Build search params
@@ -172,7 +142,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       data: result.data,
       display: displayOffers,
       dictionaries: result.dictionaries,
@@ -187,24 +157,15 @@ export async function GET(request: NextRequest) {
     console.error('[Amadeus Flights] Search error:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const statusCode = getErrorStatus(errorMessage);
 
-    // Determine appropriate status code
-    let statusCode = 500;
-    if (errorMessage.includes('rate limit')) {
-      statusCode = 429;
-    } else if (errorMessage.includes('authentication')) {
-      statusCode = 401;
-    } else if (errorMessage.includes('request error')) {
-      statusCode = 400;
-    }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to search flights',
+    return apiError('Failed to search flights', {
+      status: statusCode,
+      context: {
         details: errorMessage,
         responseTime: Date.now() - startTime,
       },
-      { status: statusCode }
-    );
+      category: 'Amadeus Flights',
+    });
   }
 }

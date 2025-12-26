@@ -6,6 +6,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import SessionTracker from "@/components/analytics/SessionTracker";
+import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -159,11 +160,13 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LocaleProvider>
-          <PlaceCacheProvider>
-            {children}
-          </PlaceCacheProvider>
-        </LocaleProvider>
+        <PostHogProviderWrapper>
+          <LocaleProvider>
+            <PlaceCacheProvider>
+              {children}
+            </PlaceCacheProvider>
+          </LocaleProvider>
+        </PostHogProviderWrapper>
         <Analytics />
         <SpeedInsights />
         {/* Session tracking for retention analytics */}

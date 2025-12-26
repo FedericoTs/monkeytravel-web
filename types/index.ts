@@ -1,3 +1,6 @@
+// Bananas currency system types
+export * from './bananas';
+
 // User types
 export interface User {
   id: string;
@@ -13,6 +16,33 @@ export interface UserPreferences {
   interests?: string[];
 }
 
+// ============================================================================
+// CENTRALIZED CONSTANTS
+// Use these arrays for validation; use the types for TypeScript
+// ============================================================================
+
+/** All valid trip statuses */
+export const TRIP_STATUSES = ['planning', 'confirmed', 'active', 'completed', 'cancelled'] as const;
+export type TripStatus = (typeof TRIP_STATUSES)[number];
+
+/** All valid time slots for activities */
+export const TIME_SLOTS = ['morning', 'afternoon', 'evening'] as const;
+export type TimeSlot = (typeof TIME_SLOTS)[number];
+
+/** All valid collaborator roles */
+export const COLLABORATOR_ROLES = ['owner', 'editor', 'voter', 'viewer'] as const;
+
+/** Roles that can be assigned via invite (excludes owner) */
+export const INVITABLE_ROLES = ['editor', 'voter', 'viewer'] as const;
+
+/** All valid proposal statuses */
+export const PROPOSAL_STATUSES = ['pending', 'voting', 'approved', 'rejected', 'withdrawn', 'expired'] as const;
+
+/** All valid activity voting statuses */
+export const ACTIVITY_VOTING_STATUSES = ['proposed', 'voting', 'confirmed', 'rejected', 'deadlock', 'completed', 'skipped'] as const;
+
+// ============================================================================
+
 // Trip types
 export interface Trip {
   id: string;
@@ -21,7 +51,7 @@ export interface Trip {
   description?: string;
   start_date: string;
   end_date: string;
-  status: "planning" | "confirmed" | "active" | "completed" | "cancelled";
+  status: TripStatus;
   visibility: "private" | "shared" | "public";
   cover_image_url?: string;
   tags?: string[];
@@ -30,6 +60,8 @@ export interface Trip {
   itinerary?: ItineraryDay[];
   share_token?: string;
   shared_at?: string;
+  is_archived?: boolean;
+  archived_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -54,7 +86,7 @@ export interface ItineraryDay {
 
 export interface Activity {
   id?: string;
-  time_slot: "morning" | "afternoon" | "evening";
+  time_slot: TimeSlot;
   start_time: string;
   duration_minutes: number;
   name: string;
@@ -121,6 +153,22 @@ export interface BookingLink {
   label: string;
 }
 
+// Place autocomplete prediction (Google Places API)
+export interface PlacePrediction {
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+  fullText: string;
+  countryCode: string | null;
+  flag: string;
+  types: string[];
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  source?: "local" | "google"; // Track where result came from
+}
+
 // Travel segment for cached travel distances
 export interface CachedTravelSegment {
   fromActivityId: string;
@@ -156,6 +204,55 @@ export interface TripMeta {
   travel_distances?: CachedDayTravelData[];
   travel_distances_hash?: string;  // Hash of itinerary used to validate cache
 }
+
+// ============================================================================
+// EXPORT TYPES (PDF, Calendar)
+// ============================================================================
+
+/**
+ * Base trip data structure for export (PDF, calendar, ICS)
+ * Used by both basic and premium PDF generators
+ */
+export interface TripForExport {
+  // Required fields
+  title: string;
+  startDate: string;
+  endDate: string;
+  itinerary: ItineraryDay[];
+  // Optional fields (used by PDF exports)
+  description?: string;
+  budget?: { total: number; currency: string } | null;
+}
+
+/**
+ * Extended trip data for premium PDF export
+ * Includes all base fields plus cover images, gallery, and meta
+ */
+export interface PremiumTripForExport extends TripForExport {
+  // Required for premium
+  destination: string;
+  // Optional premium features
+  meta?: TripMeta;
+  coverImageUrl?: string;
+  galleryPhotos?: { url: string; thumbnailUrl: string }[];
+}
+
+/**
+ * RGB color tuple for PDF styling
+ */
+export type RGB = [number, number, number];
+
+/**
+ * Activity type display configuration for PDF exports
+ */
+export interface ActivityTypeConfig {
+  label: string;
+  color: RGB;
+  icon: string;
+  bgLight: RGB;
+}
+
+// ============================================================================
 
 // Trip vibe types (12 options: 8 practical + 4 fantasy/whimsical)
 export type TripVibe =
@@ -347,7 +444,8 @@ export interface StructuredAssistantResponse {
 // Collaboration Types
 // =====================================================
 
-export type CollaboratorRole = 'owner' | 'editor' | 'voter' | 'viewer';
+export type CollaboratorRole = (typeof COLLABORATOR_ROLES)[number];
+export type InvitableRole = (typeof INVITABLE_ROLES)[number];
 
 export interface TripCollaborator {
   id: string;
@@ -366,7 +464,7 @@ export interface TripInvite {
   id: string;
   trip_id: string;
   token: string;
-  role: Exclude<CollaboratorRole, 'owner'>; // Can't invite as owner
+  role: InvitableRole; // Can't invite as owner
   created_by: string | null;
   created_at: string;
   expires_at: string;
@@ -434,14 +532,7 @@ export const ROLE_INFO: Record<CollaboratorRole, {
 
 export type VoteType = 'love' | 'flexible' | 'concerns' | 'no';
 
-export type ActivityVotingStatus =
-  | 'proposed'   // Newly suggested by a collaborator
-  | 'voting'     // Active voting in progress
-  | 'confirmed'  // Approved by consensus
-  | 'rejected'   // Rejected by vote
-  | 'deadlock'   // No consensus reached after timeout
-  | 'completed'  // Activity has been done
-  | 'skipped';   // Activity was skipped
+export type ActivityVotingStatus = (typeof ACTIVITY_VOTING_STATUSES)[number];
 
 export type ReactionEmoji = 'fire' | 'money' | 'walking' | 'camera' | 'food' | 'clock' | 'heart' | 'star' | 'warning';
 
@@ -462,7 +553,11 @@ export interface ActivityVote {
   };
 }
 
-export interface ActivityStatus {
+/**
+ * Activity confirmation/voting record from database
+ * Renamed from ActivityStatus to avoid collision with ActivityStatus in types/timeline.ts
+ */
+export interface ActivityConfirmationRecord {
   id: string;
   trip_id: string;
   activity_id: string;
@@ -508,45 +603,46 @@ export const VOTE_WEIGHTS: Record<VoteType, number> = {
 };
 
 // Vote display information - unified for both activities and proposals
+// Uses translation keys for labels/descriptions (translate at render time with common.voting namespace)
 export const VOTE_INFO: Record<VoteType, {
-  label: string;
+  labelKey: string;
   emoji: string;
   color: string;
   bgColor: string;
   requiresComment: boolean;
-  description: string;
+  descriptionKey: string;
 }> = {
   love: {
-    label: 'Love it!',
+    labelKey: 'types.love.label',
     emoji: '😍',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     requiresComment: false,
-    description: 'This is a must-do!',
+    descriptionKey: 'types.love.description',
   },
   flexible: {
-    label: 'Open to it',
+    labelKey: 'types.flexible.label',
     emoji: '👌',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     requiresComment: false,
-    description: "I'm flexible on this",
+    descriptionKey: 'types.flexible.description',
   },
   concerns: {
-    label: 'Concerns',
+    labelKey: 'types.concerns.label',
     emoji: '🤔',
     color: 'text-amber-600',
     bgColor: 'bg-amber-100',
     requiresComment: true,
-    description: 'I have some reservations',
+    descriptionKey: 'types.concerns.description',
   },
   no: {
-    label: 'Skip this',
+    labelKey: 'types.no.label',
     emoji: '👎',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     requiresComment: true,
-    description: "This isn't for me",
+    descriptionKey: 'types.no.description',
   },
 };
 
@@ -589,7 +685,7 @@ export const VOTING_TIMING = {
 export type ProposalType = 'new' | 'replacement';
 
 /**
- * Proposal lifecycle status
+ * Proposal lifecycle status (derived from PROPOSAL_STATUSES constant)
  * - 'pending': Just created, awaiting votes
  * - 'voting': Has at least one vote, voting in progress
  * - 'approved': Approved by consensus or owner
@@ -597,13 +693,7 @@ export type ProposalType = 'new' | 'replacement';
  * - 'withdrawn': Withdrawn by proposer
  * - 'expired': Expired without resolution
  */
-export type ProposalStatus =
-  | 'pending'
-  | 'voting'
-  | 'approved'
-  | 'rejected'
-  | 'withdrawn'
-  | 'expired';
+export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
 
 /**
  * Proposal resolution method (how it was resolved)

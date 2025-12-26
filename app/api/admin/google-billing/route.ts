@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface GoogleBillingData {
   configured: boolean;
@@ -114,7 +114,7 @@ async function getAccessToken(): Promise<string | null> {
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
-    console.error("Error getting BigQuery access token:", error);
+    console.error("[Google Billing] Error getting BigQuery access token:", error);
     return null;
   }
 }
@@ -146,13 +146,13 @@ async function queryBigQuery(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("BigQuery error:", errorText);
+      console.error("[Google Billing] BigQuery error:", errorText);
       return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error("BigQuery query error:", error);
+    console.error("[Google Billing] BigQuery query error:", error);
     return null;
   }
 }
@@ -170,11 +170,11 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     if (!isAdmin(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errors.forbidden();
     }
 
     // Check if BigQuery is configured
@@ -184,7 +184,7 @@ export async function GET() {
     const billingTable = process.env.GOOGLE_CLOUD_BILLING_TABLE;
 
     if (!serviceAccountKey || !projectId || !billingDataset || !billingTable) {
-      return NextResponse.json<GoogleBillingData>({
+      return apiSuccess<GoogleBillingData>({
         configured: false,
         error: "BigQuery billing export not configured. Required: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_BILLING_DATASET, GOOGLE_CLOUD_BILLING_TABLE",
         summary: {
@@ -205,7 +205,7 @@ export async function GET() {
     const accessToken = await getAccessToken();
 
     if (!accessToken) {
-      return NextResponse.json<GoogleBillingData>({
+      return apiSuccess<GoogleBillingData>({
         configured: false,
         error: "Failed to authenticate with Google Cloud",
         summary: {
@@ -362,7 +362,7 @@ export async function GET() {
       unit: row.f[5]?.v || "",
     }));
 
-    return NextResponse.json<GoogleBillingData>({
+    return apiSuccess<GoogleBillingData>({
       configured: true,
       summary,
       byService,
@@ -371,10 +371,7 @@ export async function GET() {
       bySkU,
     });
   } catch (error) {
-    console.error("Google billing error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch billing data" },
-      { status: 500 }
-    );
+    console.error("[Google Billing] Error:", error);
+    return errors.internal("Failed to fetch billing data", "Google Billing");
   }
 }

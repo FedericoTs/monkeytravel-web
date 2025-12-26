@@ -21,6 +21,7 @@
     "create": "Create",
     "submit": "Submit",
     "close": "Close",
+    "closeModal": "Close modal",
     "confirm": "Confirm",
     "tryFree": "Try It Free",
     "planTrip": "Plan My Trip",
@@ -40,6 +41,11 @@
     "website": "Website",
     "more": "More",
     "less": "Less"
+  },
+  "drag": {
+    "title": "Hold and drag to reorder",
+    "ariaLabel": "Drag handle - hold and drag to reorder activities",
+    "hint": "Drag"
   },
   "validation": {
     "required": "This field is required",
@@ -131,6 +137,34 @@
     "loadingPhotos": "Loading photos...",
     "noPhotos": "No photos available",
     "regeneratingActivity": "Regenerating activity with AI..."
+  },
+  "xp": {
+    "todaysProgress": "Today's Progress",
+    "activitiesCount": "{completed}/{total} activities",
+    "xpToNextLevel": "{xp} XP to {levelName}",
+    "maxLevel": "Max Level!",
+    "dayComplete": "Day Complete!",
+    "levels": {
+      "traveler": "Traveler",
+      "explorer": "Explorer",
+      "adventurer": "Adventurer",
+      "voyager": "Voyager",
+      "globetrotter": "Globetrotter",
+      "wayfarer": "Wayfarer",
+      "wanderer": "Wanderer",
+      "pathfinder": "Pathfinder",
+      "pioneer": "Pioneer",
+      "legend": "Legend"
+    },
+    "achievement": {
+      "unlocked": "{rarity} Achievement",
+      "rarities": {
+        "common": "Common",
+        "rare": "Rare",
+        "epic": "Epic",
+        "legendary": "Legendary"
+      }
+    }
   },
   "trip": {
     "cards": "Cards",
@@ -239,6 +273,10 @@
     "submitting": "Submitting...",
     "submitVote": "Submit Vote",
     "changeMyVote": "Change my vote",
+    "undo": "Undo",
+    "concernsPrompt": "Please share your concerns so the group can address them:",
+    "noPrompt": "Please share why this doesn't work for you:",
+    "shareThoughts": "Share your thoughts...",
     "votingSplit": "Voting is split",
     "tripOrganizerCall": "As the trip organizer, you can make the final call.",
     "addToPlan": "Add to Plan",
@@ -323,16 +361,39 @@
     "allStatus": "All Status",
     "planning": "Planning",
     "confirmed": "Confirmed",
-    "active": "Active",
+    "active": "Ongoing",
     "completed": "Completed",
+    "memories": "Memories",
     "cancelled": "Cancelled",
+    "archived": "Archived",
     "total": "Total",
     "destinations": "Destinations",
     "showing": "Showing:",
     "tripsCount": "trips",
     "noUpcomingTrips": "No upcoming trips planned. Start planning your next adventure!",
     "signOut": "Sign out",
-    "hi": "Hi"
+    "hi": "Hi",
+    "confirmTrip": "Confirm Trip",
+    "cancelTrip": "Cancel Trip",
+    "restoreTrip": "Restore Trip",
+    "archiveTrip": "Archive Trip",
+    "unarchiveTrip": "Restore from Archive",
+    "deleteTrip": "Delete Trip",
+    "archivedSection": "Archived Trips",
+    "noArchivedTrips": "No archived trips",
+    "showArchived": "Show archived",
+    "hideArchived": "Hide archived",
+    "confirmArchive": "Archive this trip?",
+    "confirmArchiveMessage": "This will hide the trip from your main view. You can restore it anytime.",
+    "confirmDelete": "Delete this trip?",
+    "confirmDeleteMessage": "This action cannot be undone. The trip will be permanently deleted.",
+    "tripArchived": "Trip archived",
+    "tripRestored": "Trip restored",
+    "tripDeleted": "Trip deleted",
+    "tripConfirmed": "Trip confirmed",
+    "tripCancelled": "Trip cancelled",
+    "readyToConfirm": "Ready to confirm your trip?",
+    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
   },
   "booking": {
     "hotels": {
@@ -377,7 +438,25 @@
       "perNight": "per night",
       "total": "total",
       "forNights": "for {count} nights",
-      "forNight": "for {count} night"
+      "forNight": "for {count} night",
+      "curatedStays": "Curated Stays",
+      "hotelsNearActivities": "Hotels near your {count} planned activities",
+      "hotelsIn": "Hotels in {destination}",
+      "checkAvailability": "Check Availability",
+      "googleHotels": "Google Hotels",
+      "comparePrices": "Compare prices",
+      "bookDirectly": "Book directly",
+      "collectRewards": "Collect rewards",
+      "bundleSave": "Bundle & save",
+      "noHotelsNearby": "No hotels found nearby",
+      "noHotelsNearbyDesc": "We couldn't find hotels near your planned activities. Try expanding your search on Google Maps or Booking.com.",
+      "disclaimer": "Hotel data provided by Google Places. Prices and availability may vary. Book directly with the hotel for best rates.",
+      "couldntLoadHotels": "Couldn't load hotel recommendations",
+      "withinKmOfActivities": "Within {distance}km of activities",
+      "scrollLeft": "Scroll left",
+      "scrollRight": "Scroll right",
+      "openNow": "Open Now",
+      "reviewCount": "{count, plural, =1 {# review} other {# reviews}}"
     },
     "flights": {
       "findFlightsTo": "Find Flights to {destination}",
@@ -407,6 +486,13 @@
       "first": "First",
       "seatsLeft": "{count} left",
       "via": "Via"
+    },
+    "links": {
+      "title": "Book Your Trip",
+      "subtitle": "Compare prices across platforms",
+      "flights": "Flights",
+      "hotels": "Hotels",
+      "disclaimer": "Prices and availability may vary. Click to compare on each platform."
     }
   },
   "destination": {
@@ -429,7 +515,13 @@
     "openNow": "Open Now",
     "closed": "Closed",
     "website": "Website",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "closeGallery": "Close gallery",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "viewPhoto": "View photo {index}",
+    "photoBy": "Photo: {attribution}",
+    "thumbnail": "Thumbnail {index}"
   },
   "map": {
     "failedToLoad": "Failed to load map",
@@ -474,6 +566,7 @@
     "selected": "selected",
     "yourBlend": "Your trip vibe blend:",
     "influence": "{percent}% influence",
+    "maxReached": "Max reached",
     "categories": {
       "classic": "Classic Vibes",
       "fantasy": "Fantasy & Whimsical",
@@ -633,6 +726,17 @@
     "adding": "Adding...",
     "add": "Add Activity",
     "error": "Failed to add activity. Please try again.",
+    "activityName": "Activity Name",
+    "activityNameRequired": "Activity Name *",
+    "type": "Type",
+    "duration": "Duration",
+    "descriptionOptional": "Description (optional)",
+    "descriptionPlaceholder": "Add any notes or details...",
+    "back": "Back",
+    "searchPlaceholder": "Search activities in {destination}...",
+    "noResults": "No activities found for \"{query}\"",
+    "addManually": "Add it manually",
+    "searchOrSelect": "Search for activities or select a category",
     "categories": {
       "restaurant": "Restaurant",
       "cafe": "Café",
@@ -641,6 +745,9 @@
       "park": "Park",
       "shopping": "Shopping",
       "entertainment": "Entertainment",
+      "nature": "Nature",
+      "transport": "Transport",
+      "activity": "Activity",
       "other": "Other"
     },
     "durations": {
@@ -649,6 +756,7 @@
       "1.5hr": "1.5 hours",
       "2hr": "2 hours",
       "3hr": "3 hours",
+      "4hr": "4 hours",
       "halfDay": "Half day"
     }
   },
@@ -658,9 +766,104 @@
     "tryDifferent": "Try Different Version",
     "samePreferences": "Same preferences, new ideas"
   },
+  "duplicateTrip": {
+    "tripSaved": "Trip saved! Redirecting...",
+    "makeItYours": "Make this trip yours",
+    "saveAndCustomize": "Save to your account and customize every detail",
+    "saving": "Saving...",
+    "saveToMyTrips": "Save to My Trips",
+    "signUpToSave": "Sign Up to Save",
+    "alreadyHaveAccount": "Already have an account?",
+    "logIn": "Log in",
+    "trustBadges": {
+      "freeForever": "Free forever",
+      "fullyEditable": "Fully editable",
+      "shareWithFriends": "Share with friends"
+    }
+  },
+  "personalization": {
+    "title": "Personalize your trip",
+    "subtitleWithDestination": "Help us create a perfect itinerary for {destination}",
+    "subtitleGeneric": "Help us create the perfect itinerary for you",
+    "infoBanner": {
+      "required": "Only travel style is required.",
+      "optional": "Other preferences are optional and help us suggest better restaurants and activities."
+    },
+    "sections": {
+      "travelStyle": "Travel style",
+      "dietary": "Dietary preferences",
+      "accessibility": "Accessibility needs",
+      "activeHours": "Active hours"
+    },
+    "badges": {
+      "required": "Required",
+      "optional": "Optional",
+      "selected": "{count} selected",
+      "selectAtLeastOne": "Select at least one",
+      "noRestrictions": "No restrictions",
+      "noSpecificNeeds": "No specific needs"
+    },
+    "travelStyles": {
+      "adventure": "Adventure",
+      "cultural": "Culture",
+      "foodie": "Foodie",
+      "relaxation": "Wellness",
+      "nightlife": "Nightlife",
+      "photography": "Photography"
+    },
+    "dietary": {
+      "none": "No restrictions",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "halal": "Halal",
+      "kosher": "Kosher",
+      "gluten-free": "Gluten-free"
+    },
+    "accessibility": {
+      "none": "No needs",
+      "wheelchair": "Wheelchair accessible",
+      "limited-mobility": "Limited mobility",
+      "visual": "Visual assistance",
+      "hearing": "Hearing assistance",
+      "rest-stops": "Frequent rest stops"
+    },
+    "hours": {
+      "earlyBird": "Early Bird",
+      "standard": "Standard",
+      "nightOwl": "Night Owl",
+      "customSchedule": "Custom schedule",
+      "startActivities": "Start activities",
+      "windDownBy": "Wind down by"
+    }
+  },
+  "liveJourney": {
+    "dayOfTotal": "Day {current} of {total}",
+    "now": "Now",
+    "inMinutes": "in {minutes}m",
+    "inHoursMinutes": "in {hours}h {minutes}m",
+    "inProgress": "In Progress",
+    "upNext": "Up Next",
+    "allComplete": "All activities for today are complete!",
+    "todaysProgress": "Today's Progress",
+    "activitiesCount": "{completed} / {total} activities"
+  },
+  "destinationSearch": {
+    "placeholder": "Search destinations...",
+    "clearInput": "Clear input",
+    "cityBadge": "City",
+    "popularDestinations": "Popular destinations",
+    "typeToSearch": "Type 3+ chars to search",
+    "fromCuratedList": "From our curated list",
+    "notInListYet": "Not in our list yet",
+    "typeAndEnter": "Type the full destination name and press Enter"
+  },
   "startOver": {
     "title": "Start Over?",
-    "warning": "This will clear your current trip and start fresh. Your preferences will be saved.",
+    "warning": "This action cannot be undone",
+    "discardMessage": "You're about to discard your generated itinerary for {destination}.",
+    "youllLose": "You'll lose:",
+    "daysPlanned": "{count} days planned",
+    "activities": "{count} activities",
     "tip": "Tip: You can always come back to this trip from your trip history.",
     "cancel": "Keep Current Trip",
     "confirm": "Start Fresh"
@@ -676,6 +879,90 @@
   "shareButton": {
     "share": "Share",
     "shared": "Shared"
+  },
+  "share": {
+    "title": "Share Trip",
+    "titleWithInvite": "Share & Invite",
+    "shareLink": "Share Link",
+    "shareVia": "Share via",
+    "platforms": {
+      "twitter": "Twitter",
+      "whatsapp": "WhatsApp",
+      "email": "Email"
+    },
+    "explore": {
+      "listedOn": "Listed on Explore",
+      "submitTo": "Submit to Explore",
+      "visibleInGallery": "Your trip is visible in the public gallery",
+      "letOthersDiscover": "Let others discover your itinerary"
+    },
+    "stopSharing": {
+      "button": "Stop sharing this trip",
+      "confirmMessage": "Are you sure? Anyone with the link will no longer be able to view this trip.",
+      "stopping": "Stopping...",
+      "stop": "Stop Sharing"
+    },
+    "socialText": {
+      "twitterShare": "Check out my trip to {tripTitle} on MonkeyTravel!",
+      "whatsappShare": "Check out my trip: {tripTitle}",
+      "emailSubject": "Check out my trip: {tripTitle}",
+      "emailBody": "I planned this amazing trip using MonkeyTravel. Take a look!"
+    },
+    "invite": {
+      "viewOnlyLink": "View-Only Link",
+      "anyoneCanView": "Anyone can view",
+      "inviteToCollaborate": "Invite to Collaborate",
+      "editVoteSuggest": "Edit, vote & suggest",
+      "viewOnlyLabel": "View-only",
+      "viewOnlyHint": "Recipients can see your itinerary but cannot make changes",
+      "enableSharing": "Enable sharing to get a public link for this trip",
+      "enabling": "Enabling...",
+      "enableSharingButton": "Enable Sharing",
+      "publicLink": "Public Link",
+      "readOnlyNote": "Anyone with this link can view your trip (read-only)",
+      "collaborateLabel": "Collaborate",
+      "collaborateHint": "Team members can edit activities, vote on options, and suggest changes",
+      "generateLink": "Generate Invite Link",
+      "generating": "Generating...",
+      "inviteCreated": "Invite link created! Share it with your travel companions.",
+      "generateAnother": "Generate another link",
+      "teamMembers": "Team Members ({count})"
+    },
+    "toast": {
+      "viewOnlyCopied": "View-only link copied!",
+      "collaborationCopied": "Collaboration invite copied!",
+      "copyFailed": "Failed to copy link",
+      "inviteCreated": "Invite link created!",
+      "inviteCreateFailed": "Failed to create invite link",
+      "networkError": "Network error. Please try again.",
+      "roleUpdated": "Role updated to {role}",
+      "roleUpdateFailed": "Failed to update role",
+      "memberRemoved": "Team member removed",
+      "memberRemoveFailed": "Failed to remove member"
+    },
+    "afterSave": {
+      "tripSaved": "Trip Saved!",
+      "daysInDestination": "{tripDays} days in {destination}",
+      "travelingWithFriends": "Traveling with friends?",
+      "inviteToCollaborate": "Invite them to collaborate on your trip!",
+      "inviteTripBuddies": "Invite Trip Buddies",
+      "maybeLater": "Maybe Later",
+      "collaboratorStats": "Trips with collaborators have 3x more activities planned"
+    },
+    "collaborationBenefits": {
+      "planTogether": {
+        "title": "Plan Together",
+        "description": "Invite friends to view and edit the itinerary"
+      },
+      "voteOnActivities": {
+        "title": "Vote on Activities",
+        "description": "Let everyone vote on what to do each day"
+      },
+      "suggestIdeas": {
+        "title": "Suggest Ideas",
+        "description": "Collaborators can propose new activities"
+      }
+    }
   },
   "proposals": {
     "votesNeeded": "{count, plural, =1 {1 vote needed} other {# votes needed}}",
@@ -1187,6 +1474,8 @@
   },
   "tour": {
     "skip": "Skip",
+    "seeHowItWorks": "See How It Works",
+    "newBadge": "New",
     "aiChat": {
       "header": {
         "title": "MonkeyTravel AI",
@@ -1260,6 +1549,7 @@
     "sections": {
       "personalInfo": "Personal Info",
       "travelPreferences": "Travel Preferences",
+      "referrals": "Referrals & Rewards",
       "betaAccess": "Beta Access",
       "account": "Account"
     },
@@ -1349,6 +1639,67 @@
       "version": "MonkeyTravel v1.0",
       "privacyPolicy": "Privacy Policy",
       "termsOfService": "Terms of Service"
+    }
+  },
+  "profileCompletion": {
+    "title": "Complete Your Travel Profile",
+    "subtitle": "Help us personalize your trips! Just a few quick details.",
+    "complete": "Complete Profile",
+    "skip": "I'll do this later",
+    "saving": "Saving...",
+    "fields": {
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "How should we call you?",
+      "homeCountry": "Home Country",
+      "selectCountry": "Select country...",
+      "homeCity": "Home City",
+      "homeCityPlaceholder": "Your city",
+      "languages": "Languages You Speak",
+      "languagesHint": "Select up to 5 languages",
+      "bio": "Short Bio (Optional)",
+      "bioPlaceholder": "Tell us a bit about yourself..."
+    },
+    "errors": {
+      "nameRequired": "Please enter your display name",
+      "saveFailed": "Failed to save. Please try again."
+    }
+  },
+  "authPrompt": {
+    "title": "Ready to Generate Your Trip!",
+    "subtitle": "Create a free account to generate your personalized {destination} itinerary",
+    "benefits": {
+      "aiPowered": "AI-powered itinerary generation",
+      "saveEdit": "Save and edit your trips anytime",
+      "realTime": "Real-time travel information"
+    },
+    "redirecting": "Redirecting...",
+    "createAccount": "Create Free Account",
+    "hasAccount": "Already have an account? Sign in",
+    "trust": {
+      "secure": "Secure",
+      "free": "Free to start",
+      "quick": "Takes 30 seconds"
+    }
+  },
+  "saveTrip": {
+    "selectDate": "Please select a start date",
+    "saveFailed": "Failed to save trip",
+    "tripSaved": "Trip Saved!",
+    "redirecting": "Redirecting to your new trip...",
+    "whenStart": "When does your trip start?",
+    "adjustDates": "We'll adjust all dates in the itinerary",
+    "start": "Start",
+    "end": "End",
+    "days": "{count} days",
+    "daysInfo": "{days} days · {title}",
+    "creating": "Creating Your Trip...",
+    "signUpToSave": "Sign Up to Save",
+    "saveToTrips": "Save to My Trips",
+    "hasAccount": "Already have an account?",
+    "logIn": "Log in",
+    "trust": {
+      "freeForever": "Free forever",
+      "fullyEditable": "Fully editable"
     }
   }
 }

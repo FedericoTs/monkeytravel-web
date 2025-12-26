@@ -18,63 +18,64 @@ import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
  * Now stores actual vote type in database (no more mapping)
  * Unified with activity voting for consistency
  */
+// Vote options with styling - labels/descriptions resolved at render time via translations
 const PROPOSAL_VOTE_OPTIONS: Array<{
   id: VoteType;
-  label: string;
+  labelKey: string;
   emoji: string;
   color: string;
   bgColor: string;
   ringColor: string;
   hoverBg: string;
-  description: string;
+  descriptionKey: string;
   requiresComment: boolean;
   isPositive: boolean;
 }> = [
   {
     id: 'love',
-    label: VOTE_INFO.love.label,
+    labelKey: VOTE_INFO.love.labelKey,
     emoji: VOTE_INFO.love.emoji,
     color: VOTE_INFO.love.color,
     bgColor: VOTE_INFO.love.bgColor,
     ringColor: 'ring-green-500',
     hoverBg: 'hover:bg-green-100',
-    description: VOTE_INFO.love.description,
+    descriptionKey: VOTE_INFO.love.descriptionKey,
     requiresComment: VOTE_INFO.love.requiresComment,
     isPositive: true,
   },
   {
     id: 'flexible',
-    label: VOTE_INFO.flexible.label,
+    labelKey: VOTE_INFO.flexible.labelKey,
     emoji: VOTE_INFO.flexible.emoji,
     color: VOTE_INFO.flexible.color,
     bgColor: VOTE_INFO.flexible.bgColor,
     ringColor: 'ring-blue-500',
     hoverBg: 'hover:bg-blue-100',
-    description: VOTE_INFO.flexible.description,
+    descriptionKey: VOTE_INFO.flexible.descriptionKey,
     requiresComment: VOTE_INFO.flexible.requiresComment,
     isPositive: true,
   },
   {
     id: 'concerns',
-    label: VOTE_INFO.concerns.label,
+    labelKey: VOTE_INFO.concerns.labelKey,
     emoji: VOTE_INFO.concerns.emoji,
     color: VOTE_INFO.concerns.color,
     bgColor: VOTE_INFO.concerns.bgColor,
     ringColor: 'ring-amber-500',
     hoverBg: 'hover:bg-amber-100',
-    description: VOTE_INFO.concerns.description,
+    descriptionKey: VOTE_INFO.concerns.descriptionKey,
     requiresComment: VOTE_INFO.concerns.requiresComment,
     isPositive: false,
   },
   {
     id: 'no',
-    label: VOTE_INFO.no.label,
+    labelKey: VOTE_INFO.no.labelKey,
     emoji: VOTE_INFO.no.emoji,
     color: VOTE_INFO.no.color,
     bgColor: VOTE_INFO.no.bgColor,
     ringColor: 'ring-red-500',
     hoverBg: 'hover:bg-red-100',
-    description: VOTE_INFO.no.description,
+    descriptionKey: VOTE_INFO.no.descriptionKey,
     requiresComment: VOTE_INFO.no.requiresComment,
     isPositive: false,
   },
@@ -479,19 +480,19 @@ export function VotingBottomSheet({
             </div>
             {/* 4-Level Vote Breakdown */}
             <div className="flex items-center justify-center gap-4 text-sm">
-              <span className="flex items-center gap-1" title="Love it!">
+              <span className="flex items-center gap-1" title={t(VOTE_INFO.love.labelKey)}>
                 <span>{VOTE_INFO.love.emoji}</span>
                 <span className="font-medium text-gray-600">{loveCount}</span>
               </span>
-              <span className="flex items-center gap-1" title="Open to it">
+              <span className="flex items-center gap-1" title={t(VOTE_INFO.flexible.labelKey)}>
                 <span>{VOTE_INFO.flexible.emoji}</span>
                 <span className="font-medium text-gray-600">{flexibleCount}</span>
               </span>
-              <span className="flex items-center gap-1" title="Concerns">
+              <span className="flex items-center gap-1" title={t(VOTE_INFO.concerns.labelKey)}>
                 <span>{VOTE_INFO.concerns.emoji}</span>
                 <span className="font-medium text-gray-600">{concernsCount}</span>
               </span>
-              <span className="flex items-center gap-1" title="Skip this">
+              <span className="flex items-center gap-1" title={t(VOTE_INFO.no.labelKey)}>
                 <span>{VOTE_INFO.no.emoji}</span>
                 <span className="font-medium text-gray-600">{noCount}</span>
               </span>
@@ -503,7 +504,7 @@ export function VotingBottomSheet({
             <div className="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl">
               <span className="text-sm text-gray-600">{t('yourVote')}</span>
               <span className={`text-sm font-medium ${VOTE_INFO[userVote as VoteType]?.color || 'text-gray-600'}`}>
-                {VOTE_INFO[userVote as VoteType]?.emoji} {VOTE_INFO[userVote as VoteType]?.label}
+                {VOTE_INFO[userVote as VoteType]?.emoji} {t(VOTE_INFO[userVote as VoteType]?.labelKey)}
               </span>
             </div>
           )}
@@ -533,8 +534,8 @@ export function VotingBottomSheet({
                     `}
                   >
                     <span className="text-2xl">{option.emoji}</span>
-                    <span className="font-semibold">{option.label}</span>
-                    <span className="text-xs text-gray-400 font-normal">{option.description}</span>
+                    <span className="font-semibold">{t(option.labelKey)}</span>
+                    <span className="text-xs text-gray-400 font-normal">{t(option.descriptionKey)}</span>
                   </motion.button>
                 );
               })}
@@ -678,7 +679,7 @@ export function VotingBottomSheet({
                         </span>
                       )}
                       <span className="flex-1 text-gray-700">{vote.user?.display_name || t('unknown')}</span>
-                      <span title={voteInfo?.label}>{voteInfo?.emoji || '❓'}</span>
+                      <span title={voteInfo?.labelKey ? t(voteInfo.labelKey) : undefined}>{voteInfo?.emoji || '❓'}</span>
                     </div>
                   );
                 })}

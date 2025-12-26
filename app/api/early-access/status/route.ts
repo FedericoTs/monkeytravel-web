@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEarlyAccessStatus } from "@/lib/early-access";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function GET() {
   try {
@@ -10,20 +10,14 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return errors.unauthorized();
     }
 
     const status = await getEarlyAccessStatus(user.id, user.email);
 
-    return NextResponse.json(status);
+    return apiSuccess(status);
   } catch (error) {
     console.error("[EarlyAccess] Error getting status:", error);
-    return NextResponse.json(
-      { error: "Failed to get early access status" },
-      { status: 500 }
-    );
+    return errors.internal("Failed to get early access status", "EarlyAccess");
   }
 }

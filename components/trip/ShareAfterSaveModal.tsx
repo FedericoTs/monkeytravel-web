@@ -11,7 +11,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
+import { captureSharePromptShown, captureSharePromptAction } from "@/lib/posthog/events";
+import { useExperiment } from "@/lib/posthog/hooks";
+import { FLAG_SHARE_MODAL_TIMING_EXP, type ShareModalTimingVariant } from "@/lib/posthog/flags";
 
 interface ShareAfterSaveModalProps {
   isOpen: boolean;
@@ -26,18 +30,15 @@ interface ShareAfterSaveModalProps {
 const COLLABORATION_BENEFITS = [
   {
     icon: Users,
-    title: "Plan Together",
-    description: "Invite friends to view and edit the itinerary",
+    titleKey: "planTogether",
   },
   {
     icon: Vote,
-    title: "Vote on Activities",
-    description: "Let everyone vote on what to do each day",
+    titleKey: "voteOnActivities",
   },
   {
     icon: MessageSquare,
-    title: "Suggest Ideas",
-    description: "Collaborators can propose new activities",
+    titleKey: "suggestIdeas",
   },
 ];
 
@@ -50,20 +51,85 @@ export default function ShareAfterSaveModal({
   tripDays,
   destination,
 }: ShareAfterSaveModalProps) {
+  const t = useTranslations("share");
+  const tButtons = useTranslations("buttons");
   const [isExiting, setIsExiting] = useState(false);
+  const [showDelayed, setShowDelayed] = useState(false);
   const hasTrackedView = useRef(false);
+
+  // A/B Test: Share modal timing experiment
+  // Variants: control (0s), delayed-2s (2s), delayed-5s (5s)
+  const { variant: timingVariant, isLoading: isVariantLoading } = useExperiment(FLAG_SHARE_MODAL_TIMING_EXP);
+  const experimentVariant = (timingVariant as ShareModalTimingVariant) || "control";
+
+  // Timeout to prevent modal from being blocked if PostHog is slow/fails
+  const [posthogTimedOut, setPosthogTimedOut] = useState(false);
+
+  // Apply delay based on experiment variant
+  useEffect(() => {
+    if (!isOpen) {
+      setShowDelayed(false);
+      setPosthogTimedOut(false);
+      return;
+    }
+
+    // Start a timeout - if PostHog doesn't load within 1.5s, show modal anyway
+    const posthogTimeout = setTimeout(() => {
+      if (isVariantLoading) {
+        console.warn("[ShareAfterSaveModal] PostHog timed out, using default variant");
+        setPosthogTimedOut(true);
+      }
+    }, 1500);
+
+    // Wait for variant to load OR timeout (prevents infinite blocking)
+    if (isVariantLoading && !posthogTimedOut) {
+      return () => clearTimeout(posthogTimeout);
+    }
+
+    // Clear the timeout since PostHog loaded
+    clearTimeout(posthogTimeout);
+
+    // Determine delay based on variant (use "control" if timed out)
+    const activeVariant = posthogTimedOut ? "control" : experimentVariant;
+    const delayMap: Record<ShareModalTimingVariant, number> = {
+      "control": 0,        // Immediate
+      "delayed-2s": 2000,  // 2 second delay
+      "delayed-5s": 5000,  // 5 second delay
+    };
+    const delay = delayMap[activeVariant] ?? 0;
+
+    if (delay > 0) {
+      const timer = setTimeout(() => setShowDelayed(true), delay);
+      return () => clearTimeout(timer);
+    } else {
+      setShowDelayed(true);
+    }
+  }, [isOpen, experimentVariant, isVariantLoading, posthogTimedOut]);
+
+  // Active variant (use "control" if PostHog timed out)
+  const activeVariant = posthogTimedOut ? "control" : experimentVariant;
 
   // Track prompt shown (only once)
   useEffect(() => {
-    if (isOpen && !hasTrackedView.current) {
+    if (isOpen && showDelayed && !hasTrackedView.current) {
+      // Track in GA4 (existing)
       trackSharePromptShown({
         tripId,
         tripDestination: destination,
         tripDays,
       });
+      // Track in PostHog with experiment variant for A/B analysis
+      captureSharePromptShown({
+        trip_id: tripId,
+        trip_destination: destination,
+        trip_days: tripDays,
+        location: "post_save",
+        experiment_variant: activeVariant,
+        delay_ms: activeVariant === "control" ? 0 : activeVariant === "delayed-2s" ? 2000 : 5000,
+      });
       hasTrackedView.current = true;
     }
-  }, [isOpen, tripId, destination, tripDays]);
+  }, [isOpen, showDelayed, tripId, destination, tripDays, activeVariant]);
 
   // Handle escape key
   useEffect(() => {
@@ -82,7 +148,14 @@ export default function ShareAfterSaveModal({
   }, [isOpen, tripId, onClose]);
 
   const handleSkip = () => {
+    // Track in GA4
     trackSharePromptAction({ tripId, action: "skip" });
+    // Track in PostHog with experiment variant
+    captureSharePromptAction({
+      trip_id: tripId,
+      action: "skip",
+      experiment_variant: activeVariant,
+    });
     setIsExiting(true);
     setTimeout(() => {
       setIsExiting(false);
@@ -91,15 +164,23 @@ export default function ShareAfterSaveModal({
   };
 
   const handleInvite = () => {
+    // Track in GA4
     trackSharePromptAction({ tripId, action: "invite" });
+    // Track in PostHog with experiment variant
+    captureSharePromptAction({
+      trip_id: tripId,
+      action: "invite",
+      experiment_variant: activeVariant,
+    });
     onInvite();
   };
 
-  if (!isOpen) return null;
+  // Don't render until delay has passed (for experiment variants)
+  if (!isOpen || !showDelayed) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && !isExiting && (
+      {!isExiting && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -141,26 +222,26 @@ export default function ShareAfterSaveModal({
                 </motion.div>
               </motion.div>
 
-              <h2 className="text-xl font-bold text-center mb-1">Trip Saved!</h2>
+              <h2 className="text-xl font-bold text-center mb-1">{t("afterSave.tripSaved")}</h2>
               <p className="text-white/80 text-center text-sm">
-                {tripDays} days in {destination}
+                {t("afterSave.daysInDestination", { tripDays, destination })}
               </p>
             </div>
 
             {/* Collaboration CTA */}
             <div className="p-6">
               <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
-                Traveling with friends?
+                {t("afterSave.travelingWithFriends")}
               </h3>
               <p className="text-slate-500 text-center text-sm mb-6">
-                Invite them to collaborate on your trip!
+                {t("afterSave.inviteToCollaborate")}
               </p>
 
               {/* Benefits */}
               <div className="space-y-3 mb-6">
                 {COLLABORATION_BENEFITS.map((benefit, index) => (
                   <motion.div
-                    key={benefit.title}
+                    key={benefit.titleKey}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
@@ -171,10 +252,10 @@ export default function ShareAfterSaveModal({
                     </div>
                     <div>
                       <p className="font-medium text-slate-900 text-sm">
-                        {benefit.title}
+                        {t(`collaborationBenefits.${benefit.titleKey}.title`)}
                       </p>
                       <p className="text-slate-500 text-xs">
-                        {benefit.description}
+                        {t(`collaborationBenefits.${benefit.titleKey}.description`)}
                       </p>
                     </div>
                   </motion.div>
@@ -190,7 +271,7 @@ export default function ShareAfterSaveModal({
                   className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors"
                 >
                   <Users className="w-5 h-5" />
-                  Invite Trip Buddies
+                  {t("afterSave.inviteTripBuddies")}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </motion.button>
 
@@ -198,13 +279,13 @@ export default function ShareAfterSaveModal({
                   onClick={handleSkip}
                   className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl font-medium transition-colors text-sm"
                 >
-                  Maybe Later
+                  {t("afterSave.maybeLater")}
                 </button>
               </div>
 
               {/* Social proof hint */}
               <p className="text-center text-xs text-slate-400 mt-4">
-                Trips with collaborators have 3x more activities planned
+                {t("afterSave.collaboratorStats")}
               </p>
             </div>
           </motion.div>

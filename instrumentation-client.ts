@@ -1,11 +1,18 @@
 /**
- * Sentry Client-Side Configuration
+ * Client-Side Instrumentation
  *
- * This file initializes Sentry for browser-side error tracking and performance monitoring.
- * It runs in the browser context and captures client-side errors, performance data, and user sessions.
+ * This file initializes client-side monitoring tools:
+ * - Sentry: Error tracking and performance monitoring
+ * - PostHog: Analytics, feature flags, and A/B testing
+ *
+ * Runs automatically in the browser context (Next.js 15.3+).
+ *
+ * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
+ * @see https://posthog.com/docs/libraries/next-js
  */
 
 import * as Sentry from "@sentry/nextjs";
+import posthog from "posthog-js";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -84,3 +91,37 @@ Sentry.init({
 
 // Export for router transition tracking (Next.js App Router)
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
+/**
+ * PostHog Initialization
+ *
+ * Initialize PostHog for analytics, feature flags, and A/B testing.
+ * Uses the recommended defaults for 2025.
+ */
+if (
+  typeof window !== "undefined" &&
+  process.env.NEXT_PUBLIC_POSTHOG_KEY &&
+  process.env.NEXT_PUBLIC_POSTHOG_HOST
+) {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    // Use recommended defaults for 2025 (includes pageview, autocapture, session recording)
+    defaults: "2025-05-24",
+    // Enable debug mode to see what's happening
+    debug: true,
+    // Callback when loaded
+    loaded: (ph) => {
+      // Expose on window for debugging and React hooks
+      if (typeof window !== "undefined") {
+        (window as typeof window & { posthog: typeof posthog }).posthog = ph;
+      }
+      console.log("[PostHog] Initialized with distinct_id:", ph.get_distinct_id());
+    },
+  });
+
+  // Also set immediately for synchronous access
+  (window as typeof window & { posthog: typeof posthog }).posthog = posthog;
+}
+
+// Export PostHog instance for use in other files
+export { posthog };

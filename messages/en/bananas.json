@@ -1,0 +1,86 @@
+{
+  "balance": {
+    "title": "Your Bananas",
+    "bananas": "bananas",
+    "expiring": "{count} bananas expiring on {date}"
+  },
+  "tier": {
+    "currentTier": "Current Tier",
+    "referrals": "Total Referrals",
+    "progressToNext": "Progress to {tier}",
+    "remaining": "{count} more referrals to unlock next tier",
+    "milestones": "Tier Milestones",
+    "maxTierReached": "Champion Status Achieved!",
+    "maxTierDescription": "You've reached the highest tier. Enjoy all the benefits!",
+    "refs": "refs"
+  },
+  "tierNames": {
+    "traveler": "Traveler",
+    "explorer": "Explorer",
+    "ambassador": "Ambassador",
+    "champion": "Champion"
+  },
+  "errors": {
+    "loadFailed": "Failed to load referral data"
+  },
+  "badges": {
+    "title": "Your Badges"
+  },
+  "stats": {
+    "referrals": "Referrals",
+    "pending": "Pending",
+    "earned": "Earned"
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "types": {
+      "referral": "Referral reward",
+      "collaboration": "Collaboration bonus",
+      "tier_bonus": "Tier unlock bonus",
+      "spend": "Redemption",
+      "trip_complete": "Trip completed",
+      "signup_bonus": "Welcome bonus",
+      "review": "Review reward",
+      "clawback": "Adjustment",
+      "expiration": "Expired",
+      "admin": "Admin adjustment"
+    }
+  },
+  "cta": {
+    "inviteFriends": "Invite Friends & Earn Bananas"
+  },
+  "catalog": {
+    "title": "Redeem Your Bananas",
+    "available": "Available Now",
+    "comingSoon": "Coming Soon",
+    "cost": "{cost} bananas",
+    "outOfStock": "Out of Stock",
+    "limitReached": "Limit Reached",
+    "cooldown": "Available again {date}",
+    "redeem": "Redeem"
+  },
+  "leaderboard": {
+    "title": "Referral Leaderboard",
+    "rank": "Rank",
+    "you": "You",
+    "participants": "{count} participants"
+  },
+  "benefits": {
+    "title": "Your AI Generation Limits",
+    "currentLimit": "{count} AI trip generations per month",
+    "bonusActive": "+{bonus} bonus from {tier} tier!",
+    "inviteToUnlock": "Invite {count} more friends to unlock +{bonus} extra generations!",
+    "tierBenefits": "Referral Benefits",
+    "unlocked": "Unlocked",
+    "explorer": "Explorer (3 refs): +2 AI generations/month",
+    "ambassador": "Ambassador (6 refs): +5 AI generations/month, priority support",
+    "champion": "Champion (10 refs): +12 AI generations/month, unlimited regenerations"
+  },
+  "banner": {
+    "title": "Unlock More AI Trips",
+    "progress": "{current}/{target} referrals to {tier}",
+    "benefit": "+{bonus} AI generations/month",
+    "cta": "Invite Friends",
+    "maxTier": "You've unlocked all tiers!"
+  }
+}

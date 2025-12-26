@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Check, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PersonalizationStepProps {
   // Travel styles
@@ -22,42 +23,42 @@ interface PersonalizationStepProps {
   destination?: string;
 }
 
-// Travel styles data
+// Travel styles data - use translation keys
 const TRAVEL_STYLES = [
-  { id: "adventure", label: "Adventure", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-  { id: "cultural", label: "Culture", icon: "M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" },
-  { id: "foodie", label: "Foodie", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" },
-  { id: "relaxation", label: "Wellness", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
-  { id: "nightlife", label: "Nightlife", icon: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" },
-  { id: "photography", label: "Photography", icon: "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z" },
-];
+  { id: "adventure", labelKey: "adventure", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { id: "cultural", labelKey: "cultural", icon: "M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" },
+  { id: "foodie", labelKey: "foodie", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" },
+  { id: "relaxation", labelKey: "relaxation", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
+  { id: "nightlife", labelKey: "nightlife", icon: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" },
+  { id: "photography", labelKey: "photography", icon: "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z" },
+] as const;
 
-// Dietary data
+// Dietary data - use translation keys
 const DIETARY_OPTIONS = [
-  { id: "none", label: "No restrictions" },
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "vegan", label: "Vegan" },
-  { id: "halal", label: "Halal" },
-  { id: "kosher", label: "Kosher" },
-  { id: "gluten-free", label: "Gluten-free" },
-];
+  { id: "none", labelKey: "none" },
+  { id: "vegetarian", labelKey: "vegetarian" },
+  { id: "vegan", labelKey: "vegan" },
+  { id: "halal", labelKey: "halal" },
+  { id: "kosher", labelKey: "kosher" },
+  { id: "gluten-free", labelKey: "gluten-free" },
+] as const;
 
-// Accessibility data
+// Accessibility data - use translation keys
 const ACCESSIBILITY_OPTIONS = [
-  { id: "none", label: "No needs" },
-  { id: "wheelchair", label: "Wheelchair accessible" },
-  { id: "limited-mobility", label: "Limited mobility" },
-  { id: "visual", label: "Visual assistance" },
-  { id: "hearing", label: "Hearing assistance" },
-  { id: "rest-stops", label: "Frequent rest stops" },
-];
+  { id: "none", labelKey: "none" },
+  { id: "wheelchair", labelKey: "wheelchair" },
+  { id: "limited-mobility", labelKey: "limited-mobility" },
+  { id: "visual", labelKey: "visual" },
+  { id: "hearing", labelKey: "hearing" },
+  { id: "rest-stops", labelKey: "rest-stops" },
+] as const;
 
-// Active hours presets
+// Active hours presets - use translation keys
 const HOUR_PRESETS = [
-  { label: "Early Bird", start: 6, end: 20, time: "6 AM - 8 PM" },
-  { label: "Standard", start: 8, end: 22, time: "8 AM - 10 PM" },
-  { label: "Night Owl", start: 10, end: 24, time: "10 AM - 12 AM" },
-];
+  { labelKey: "earlyBird", start: 6, end: 20, time: "6 AM - 8 PM" },
+  { labelKey: "standard", start: 8, end: 22, time: "8 AM - 10 PM" },
+  { labelKey: "nightOwl", start: 10, end: 24, time: "10 AM - 12 AM" },
+] as const;
 
 const formatHour = (hour: number): string => {
   if (hour === 0 || hour === 24) return "12 AM";
@@ -125,6 +126,7 @@ export default function PersonalizationStep({
   onActiveHoursEndChange,
   destination,
 }: PersonalizationStepProps) {
+  const t = useTranslations("common.personalization");
   // Track which section is open (only one at a time for cleaner UX)
   const [openSection, setOpenSection] = useState<string | null>("travel");
 
@@ -175,12 +177,12 @@ export default function PersonalizationStep({
           <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
             <Sparkles className="w-5 h-5 text-[var(--primary)]" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">Personalize your trip</h1>
+          <h1 className="text-3xl font-bold text-slate-900">{t("title")}</h1>
         </div>
         <p className="text-slate-600">
           {destination
-            ? `Help us create a perfect itinerary for ${destination}`
-            : "Help us create the perfect itinerary for you"}
+            ? t("subtitleWithDestination", { destination })
+            : t("subtitleGeneric")}
         </p>
       </div>
 
@@ -191,7 +193,7 @@ export default function PersonalizationStep({
         </svg>
         <div>
           <p className="text-sm text-amber-800">
-            <span className="font-medium">Only travel style is required.</span> Other preferences are optional and help us suggest better restaurants and activities.
+            <span className="font-medium">{t("infoBanner.required")}</span> {t("infoBanner.optional")}
           </p>
         </div>
       </div>
@@ -200,8 +202,8 @@ export default function PersonalizationStep({
       <div className="space-y-3">
         {/* Travel Style - Required */}
         <AccordionSection
-          title="Travel style"
-          subtitle={travelStyles.length > 0 ? `${travelStyles.length} selected` : "Select at least one"}
+          title={t("sections.travelStyle")}
+          subtitle={travelStyles.length > 0 ? t("badges.selected", { count: travelStyles.length }) : t("badges.selectAtLeastOne")}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -209,7 +211,7 @@ export default function PersonalizationStep({
           }
           isOpen={openSection === "travel"}
           onToggle={() => setOpenSection(openSection === "travel" ? null : "travel")}
-          badge="Required"
+          badge={t("badges.required")}
         >
           <div className="grid grid-cols-3 gap-2">
             {TRAVEL_STYLES.map((style) => {
@@ -233,7 +235,7 @@ export default function PersonalizationStep({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={style.icon} />
                     </svg>
                   </div>
-                  <div className="text-xs font-medium text-slate-700 text-center">{style.label}</div>
+                  <div className="text-xs font-medium text-slate-700 text-center">{t(`travelStyles.${style.labelKey}`)}</div>
                 </button>
               );
             })}
@@ -242,13 +244,13 @@ export default function PersonalizationStep({
 
         {/* Dietary - Optional */}
         <AccordionSection
-          title="Dietary preferences"
+          title={t("sections.dietary")}
           subtitle={
             dietaryPreferences.length > 0
               ? dietaryPreferences.includes("none")
-                ? "No restrictions"
-                : `${dietaryPreferences.length} selected`
-              : "Optional"
+                ? t("badges.noRestrictions")
+                : t("badges.selected", { count: dietaryPreferences.length })
+              : t("badges.optional")
           }
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +279,7 @@ export default function PersonalizationStep({
                   }`}
                 >
                   {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
-                  {diet.label}
+                  {t(`dietary.${diet.labelKey}`)}
                 </button>
               );
             })}
@@ -286,13 +288,13 @@ export default function PersonalizationStep({
 
         {/* Accessibility - Optional */}
         <AccordionSection
-          title="Accessibility needs"
+          title={t("sections.accessibility")}
           subtitle={
             accessibilityNeeds.length > 0
               ? accessibilityNeeds.includes("none")
-                ? "No specific needs"
-                : `${accessibilityNeeds.length} selected`
-              : "Optional"
+                ? t("badges.noSpecificNeeds")
+                : t("badges.selected", { count: accessibilityNeeds.length })
+              : t("badges.optional")
           }
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,7 +323,7 @@ export default function PersonalizationStep({
                   }`}
                 >
                   {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
-                  {option.label}
+                  {t(`accessibility.${option.labelKey}`)}
                 </button>
               );
             })}
@@ -330,7 +332,7 @@ export default function PersonalizationStep({
 
         {/* Active Hours - Optional */}
         <AccordionSection
-          title="Active hours"
+          title={t("sections.activeHours")}
           subtitle={`${formatHour(activeHoursStart)} - ${formatHour(activeHoursEnd)}`}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +354,7 @@ export default function PersonalizationStep({
                 const isSelected = activeHoursStart === preset.start && activeHoursEnd === preset.end;
                 return (
                   <button
-                    key={preset.label}
+                    key={preset.labelKey}
                     onClick={() => applyHourPreset(preset.start, preset.end)}
                     className={`p-3 rounded-xl border-2 text-center transition-all ${
                       isSelected
@@ -360,7 +362,7 @@ export default function PersonalizationStep({
                         : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-medium text-slate-900 text-sm">{preset.label}</div>
+                    <div className="font-medium text-slate-900 text-sm">{t(`hours.${preset.labelKey}`)}</div>
                     <div className="text-xs text-slate-500 mt-0.5">{preset.time}</div>
                   </button>
                 );
@@ -369,10 +371,10 @@ export default function PersonalizationStep({
 
             {/* Custom sliders */}
             <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-4">
-              <div className="text-xs text-slate-500 text-center">Custom schedule</div>
+              <div className="text-xs text-slate-500 text-center">{t("hours.customSchedule")}</div>
               <div>
                 <div className="flex justify-between text-sm text-slate-600 mb-2">
-                  <span>Start activities</span>
+                  <span>{t("hours.startActivities")}</span>
                   <span className="font-medium">{formatHour(activeHoursStart)}</span>
                 </div>
                 <input
@@ -386,7 +388,7 @@ export default function PersonalizationStep({
               </div>
               <div>
                 <div className="flex justify-between text-sm text-slate-600 mb-2">
-                  <span>Wind down by</span>
+                  <span>{t("hours.windDownBy")}</span>
                   <span className="font-medium">{formatHour(activeHoursEnd)}</span>
                 </div>
                 <input

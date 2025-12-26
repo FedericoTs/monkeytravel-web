@@ -1,11 +1,4 @@
-import type { ItineraryDay, Activity } from "@/types";
-
-interface TripForExport {
-  title: string;
-  startDate: string;
-  endDate: string;
-  itinerary: ItineraryDay[];
-}
+import type { Activity, TripForExport } from "@/types";
 
 /**
  * Format date and time for ICS (YYYYMMDDTHHmmss format)

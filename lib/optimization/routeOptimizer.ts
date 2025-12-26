@@ -6,11 +6,11 @@
  */
 
 import type { Activity } from "@/types";
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
+import type { Coordinates } from "@/lib/utils/geo";
+import {
+  calculateHaversineDistance,
+  estimateRoadDistance,
+} from "@/lib/math/distance";
 
 export interface OptimizationResult {
   originalOrder: Activity[];
@@ -38,50 +38,8 @@ export interface OptimizationConstraints {
 }
 
 // ============================================================
-// DISTANCE CALCULATION (Haversine)
+// DISTANCE CALCULATION (uses unified lib/math/distance)
 // ============================================================
-
-/**
- * Calculate straight-line distance using Haversine formula
- * @returns Distance in meters
- */
-function calculateHaversineDistance(
-  origin: Coordinates,
-  destination: Coordinates
-): number {
-  const R = 6371000; // Earth's radius in meters
-  const lat1Rad = (origin.lat * Math.PI) / 180;
-  const lat2Rad = (destination.lat * Math.PI) / 180;
-  const deltaLat = ((destination.lat - origin.lat) * Math.PI) / 180;
-  const deltaLng = ((destination.lng - origin.lng) * Math.PI) / 180;
-
-  const a =
-    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-/**
- * Estimate road distance from straight-line (accounts for urban grid)
- */
-function estimateRoadDistance(straightLineMeters: number): number {
-  let factor: number;
-  if (straightLineMeters < 500) {
-    factor = 1.2;
-  } else if (straightLineMeters < 2000) {
-    factor = 1.3;
-  } else if (straightLineMeters < 5000) {
-    factor = 1.35;
-  } else {
-    factor = 1.4;
-  }
-  return Math.round(straightLineMeters * factor);
-}
 
 /**
  * Get distance between two activities in meters
@@ -90,7 +48,7 @@ function getDistanceBetween(a: Activity, b: Activity): number {
   if (!a.coordinates?.lat || !a.coordinates?.lng || !b.coordinates?.lat || !b.coordinates?.lng) {
     return 0; // Can't calculate without coordinates
   }
-  const straightLine = calculateHaversineDistance(a.coordinates, b.coordinates);
+  const straightLine = calculateHaversineDistance(a.coordinates, b.coordinates, "m");
   return estimateRoadDistance(straightLine);
 }
 

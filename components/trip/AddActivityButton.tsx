@@ -195,13 +195,13 @@ export default function AddActivityButton({
         <form onSubmit={handleCustomSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Activity Name *
+              {t("activityNameRequired")}
             </label>
             <input
               type="text"
               value={customActivity.name}
               onChange={(e) => setCustomActivity({ ...customActivity, name: e.target.value })}
-              placeholder="e.g., Visit the local market"
+              placeholder={t("activityPlaceholder")}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               autoFocus
             />
@@ -209,46 +209,46 @@ export default function AddActivityButton({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t("type")}</label>
               <select
                 value={customActivity.type}
                 onChange={(e) => setCustomActivity({ ...customActivity, type: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               >
-                <option value="activity">Activity</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="attraction">Attraction</option>
-                <option value="nature">Nature</option>
-                <option value="shopping">Shopping</option>
-                <option value="entertainment">Entertainment</option>
-                <option value="transport">Transport</option>
+                <option value="activity">{t("categories.activity")}</option>
+                <option value="restaurant">{t("categories.restaurant")}</option>
+                <option value="attraction">{t("categories.attraction")}</option>
+                <option value="nature">{t("categories.nature")}</option>
+                <option value="shopping">{t("categories.shopping")}</option>
+                <option value="entertainment">{t("categories.entertainment")}</option>
+                <option value="transport">{t("categories.transport")}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Duration</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t("duration")}</label>
               <select
                 value={customActivity.duration}
                 onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               >
-                <option value={30}>30 min</option>
-                <option value={60}>1 hour</option>
-                <option value={90}>1.5 hours</option>
-                <option value={120}>2 hours</option>
-                <option value={180}>3 hours</option>
-                <option value={240}>4 hours</option>
+                <option value={30}>{t("durations.30min")}</option>
+                <option value={60}>{t("durations.1hr")}</option>
+                <option value={90}>{t("durations.1.5hr")}</option>
+                <option value={120}>{t("durations.2hr")}</option>
+                <option value={180}>{t("durations.3hr")}</option>
+                <option value={240}>{t("durations.4hr")}</option>
               </select>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Description (optional)
+              {t("descriptionOptional")}
             </label>
             <textarea
               value={customActivity.description}
               onChange={(e) => setCustomActivity({ ...customActivity, description: e.target.value })}
-              placeholder="Add any notes or details..."
+              placeholder={t("descriptionPlaceholder")}
               rows={2}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none"
             />
@@ -260,14 +260,14 @@ export default function AddActivityButton({
               onClick={() => setShowCustomForm(false)}
               className="flex-1 py-2 px-4 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
             >
-              Back
+              {t("back")}
             </button>
             <button
               type="submit"
               disabled={!customActivity.name.trim()}
               className="flex-1 py-2 px-4 text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:opacity-50"
             >
-              Add Activity
+              {t("add")}
             </button>
           </div>
         </form>
@@ -282,7 +282,7 @@ export default function AddActivityButton({
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder={`Search activities in ${destination}...`}
+              placeholder={t("searchPlaceholder", { destination })}
               className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
             />
             {isSearching && (
@@ -365,17 +365,17 @@ export default function AddActivityButton({
               ))
             ) : !isSearching && searchQuery.length >= 2 ? (
               <div className="text-center py-6 text-slate-500">
-                <p>No activities found for &quot;{searchQuery}&quot;</p>
+                <p>{t("noResults", { query: searchQuery })}</p>
                 <button
                   onClick={() => setShowCustomForm(true)}
                   className="mt-2 text-[var(--primary)] hover:underline text-sm"
                 >
-                  Add it manually
+                  {t("addManually")}
                 </button>
               </div>
             ) : !isSearching && results.length === 0 ? (
               <div className="text-center py-6 text-slate-400 text-sm">
-                Search for activities or select a category
+                {t("searchOrSelect")}
               </div>
             ) : null}
           </div>

@@ -10,22 +10,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { MCPActivity, MCPDay } from "@/lib/mcp/schema";
 
-interface MCPActivity {
-  name: string;
-  time: string;
-  type: string;
-  description: string;
-  location?: string;
-  tip?: string;
-}
-
-interface MCPDay {
-  day: number;
-  theme: string;
-  activities: MCPActivity[];
-}
-
+/**
+ * MCP Itinerary from database (includes DB-specific fields)
+ * Extends the core MCP types with storage metadata
+ */
 interface MCPItinerary {
   id: string;
   ref_id: string;

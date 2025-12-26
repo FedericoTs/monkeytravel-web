@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createHash } from "crypto";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * POST /api/referral/click
@@ -11,10 +12,7 @@ export async function POST(request: NextRequest) {
     const { code, utm_source, utm_medium, utm_campaign } = await request.json();
 
     if (!code) {
-      return NextResponse.json(
-        { error: "Referral code is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Referral code is required");
     }
 
     const supabase = await createClient();
@@ -27,10 +25,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (codeError || !referralCode) {
-      return NextResponse.json(
-        { error: "Invalid referral code" },
-        { status: 404 }
-      );
+      return errors.notFound("Invalid referral code");
     }
 
     // Get referrer's display name
@@ -76,16 +71,13 @@ export async function POST(request: NextRequest) {
       // Fallback: RPC doesn't exist, the direct update above handles it
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       referrer_name: referrer?.display_name || "A friend",
       referrer_avatar: referrer?.avatar_url,
     });
   } catch (error) {
     console.error("[Referral Click] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errors.internal("Internal server error", "Referral Click");
   }
 }

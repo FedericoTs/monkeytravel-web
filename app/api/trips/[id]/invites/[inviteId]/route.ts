@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-interface RouteContext {
-  params: Promise<{ id: string; inviteId: string }>;
-}
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripInviteRouteContext } from "@/lib/api/route-context";
 
 /**
  * DELETE /api/trips/[id]/invites/[inviteId] - Revoke an invite
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: TripInviteRouteContext) {
   try {
     const { id: tripId, inviteId } = await context.params;
     const supabase = await createClient();
@@ -19,7 +17,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify user has permission (owner or editor)
@@ -30,7 +28,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -46,10 +44,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const canRevokeInvites = isOwner || userCollab?.role === "editor";
 
     if (!canRevokeInvites) {
-      return NextResponse.json(
-        { error: "You don't have permission to revoke invites" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to revoke invites");
     }
 
     // Verify the invite belongs to this trip
@@ -61,7 +56,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!invite) {
-      return NextResponse.json({ error: "Invite not found" }, { status: 404 });
+      return errors.notFound("Invite not found");
     }
 
     // Deactivate the invite (soft delete)
@@ -71,22 +66,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       .eq("id", inviteId);
 
     if (error) {
-      console.error("Error revoking invite:", error);
-      return NextResponse.json(
-        { error: "Failed to revoke invite" },
-        { status: 500 }
-      );
+      console.error("[Invites] Error revoking invite:", error);
+      return errors.internal("Failed to revoke invite", "Invites");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Invite revoked successfully",
     });
   } catch (error) {
-    console.error("Error in DELETE /api/trips/[id]/invites/[inviteId]:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Invites] Error revoking invite:", error);
+    return errors.internal("Failed to revoke invite", "Invites");
   }
 }

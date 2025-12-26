@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { redeemTesterCode, validateCode } from "@/lib/early-access";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const {
@@ -10,74 +11,53 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "You must be logged in to redeem a code" },
-        { status: 401 }
-      );
+      return errors.unauthorized("You must be logged in to redeem a code");
     }
 
     const body = await request.json();
     const { code } = body;
 
     if (!code || typeof code !== "string") {
-      return NextResponse.json(
-        { error: "Please enter a valid code" },
-        { status: 400 }
-      );
+      return errors.badRequest("Please enter a valid code");
     }
 
     // Validate code format (alphanumeric, 4-20 chars)
     const normalizedCode = code.trim().toUpperCase();
     if (!/^[A-Z0-9]{4,20}$/.test(normalizedCode)) {
-      return NextResponse.json(
-        { error: "Invalid code format" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid code format");
     }
 
     const result = await redeemTesterCode(user.id, normalizedCode);
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
+      return errors.badRequest(result.error);
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: "Code redeemed successfully! You now have early access.",
       access: result.access,
     });
   } catch (error) {
-    console.error("[EarlyAccess] Error redeeming code:", error);
-    return NextResponse.json(
-      { error: "Failed to redeem code. Please try again." },
-      { status: 500 }
-    );
+    console.error("[Early Access] Error redeeming code:", error);
+    return errors.internal("Failed to redeem code. Please try again.", "Early Access");
   }
 }
 
 // Validate a code without redeeming
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
 
     if (!code) {
-      return NextResponse.json(
-        { valid: false, error: "No code provided" },
-        { status: 400 }
-      );
+      return errors.badRequest("No code provided");
     }
 
     const result = await validateCode(code);
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
-    console.error("[EarlyAccess] Error validating code:", error);
-    return NextResponse.json(
-      { valid: false, error: "Failed to validate code" },
-      { status: 500 }
-    );
+    console.error("[Early Access] Error validating code:", error);
+    return errors.internal("Failed to validate code", "Early Access");
   }
 }

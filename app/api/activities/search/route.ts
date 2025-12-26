@@ -9,8 +9,9 @@
  * Cost: $0 (local) or $0.032 (Google Places Text Search)
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { Activity } from "@/types";
 
 // Activity type categories for filtering
@@ -57,10 +58,7 @@ export async function POST(request: NextRequest) {
     const { destination, query = "", types = [], limit = 10, includeGoogle = true } = body;
 
     if (!destination) {
-      return NextResponse.json(
-        { error: "Destination is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Destination is required");
     }
 
     const supabase = await createClient();
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // If we have enough local results, return them
     if (localResults.length >= 3 || !includeGoogle) {
-      return NextResponse.json({
+      return apiSuccess({
         results: localResults.slice(0, limit),
         source: "local",
         hasMore: localResults.length >= limit,
@@ -95,24 +93,21 @@ export async function POST(request: NextRequest) {
         ...googleResults.filter(r => !seenNames.has(r.name.toLowerCase()))
       ];
 
-      return NextResponse.json({
+      return apiSuccess({
         results: combinedResults.slice(0, limit),
         source: "hybrid",
         hasMore: false,
       });
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       results: localResults.slice(0, limit),
       source: "local",
       hasMore: localResults.length >= limit,
     });
   } catch (error) {
-    console.error("Activity search error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Activities Search] Activity search error:", error);
+    return errors.internal("Internal server error", "Activities Search");
   }
 }
 
@@ -135,7 +130,7 @@ async function searchLocalActivities(
     .limit(100); // Get recent trips to mine activities from
 
   if (error || !trips) {
-    console.error("Error fetching trips for activity search:", error);
+    console.error("[Activity Search] Error fetching trips:", error);
     return [];
   }
 
@@ -241,7 +236,7 @@ async function searchGooglePlaces(
 ): Promise<ActivitySearchResult[]> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
-    console.warn("Google Places API key not configured");
+    console.warn("[Activity Search] Google Places API key not configured");
     return [];
   }
 
@@ -258,7 +253,7 @@ async function searchGooglePlaces(
     );
 
     if (!response.ok) {
-      console.error("Google Places search failed:", response.status);
+      console.error("[Activity Search] Google Places search failed:", response.status);
       return [];
     }
 
@@ -300,7 +295,7 @@ async function searchGooglePlaces(
 
     return results;
   } catch (error) {
-    console.error("Google Places search error:", error);
+    console.error("[Activity Search] Google Places search error:", error);
     return [];
   }
 }

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * Escape special characters for PostgREST ilike queries
@@ -103,11 +104,8 @@ export async function GET(request: NextRequest) {
     const { data: templates, error } = await query;
 
     if (error) {
-      console.error("[Templates API] Error fetching templates:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch templates" },
-        { status: 500 }
-      );
+      console.error("[Templates] Error fetching templates:", error);
+      return errors.internal("Failed to fetch templates", "Templates");
     }
 
     // Transform data for frontend
@@ -132,15 +130,12 @@ export async function GET(request: NextRequest) {
       packingList: template.packing_list,
     }));
 
-    return NextResponse.json({
+    return apiSuccess({
       templates: formattedTemplates,
       count: formattedTemplates.length,
     });
   } catch (error) {
-    console.error("[Templates API] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Templates] Unexpected error:", error);
+    return errors.internal("Internal server error", "Templates");
   }
 }

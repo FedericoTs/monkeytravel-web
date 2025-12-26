@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { VoteType } from "@/types";
 import { VOTE_INFO } from "@/types";
 
@@ -24,6 +25,7 @@ export function ProposalVoteButtons({
   size = 'md',
   layout = 'grid',
 }: ProposalVoteButtonsProps) {
+  const t = useTranslations("common.voting");
   const [isLoading, setIsLoading] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [pendingVote, setPendingVote] = useState<VoteType | null>(null);
@@ -144,7 +146,7 @@ export function ProposalVoteButtons({
             >
               <span className={iconSize[size]}>{info.emoji}</span>
               {layout !== 'compact' && (
-                <span>{isSelected ? info.label : info.label}</span>
+                <span>{t(info.labelKey)}</span>
               )}
             </motion.button>
           );
@@ -168,7 +170,7 @@ export function ProposalVoteButtons({
             `}
           >
             <span>↩️</span>
-            {layout !== 'compact' && <span>Undo</span>}
+            {layout !== 'compact' && <span>{t("undo")}</span>}
           </motion.button>
         )}
       </div>
@@ -191,7 +193,7 @@ export function ProposalVoteButtons({
           `}
         >
           <span>↩️</span>
-          <span>Change my vote</span>
+          <span>{t("changeMyVote")}</span>
         </motion.button>
       )}
 
@@ -207,13 +209,13 @@ export function ProposalVoteButtons({
             <div className="bg-gray-50 rounded-lg p-3 space-y-2">
               <p className="text-xs text-gray-600">
                 {pendingVote === 'concerns'
-                  ? 'Please share your concerns so the group can address them:'
-                  : 'Please share why this doesn\'t work for you:'}
+                  ? t("concernsPrompt")
+                  : t("noPrompt")}
               </p>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Share your thoughts..."
+                placeholder={t("shareThoughts")}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                            resize-none"
@@ -229,7 +231,7 @@ export function ProposalVoteButtons({
                   }}
                   className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={handleCommentSubmit}
@@ -241,7 +243,7 @@ export function ProposalVoteButtons({
                                : 'bg-red-500 hover:bg-red-600'
                              }`}
                 >
-                  {isLoading ? 'Submitting...' : 'Submit Vote'}
+                  {isLoading ? t("submitting") : t("submitVote")}
                 </button>
               </div>
             </div>

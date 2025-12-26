@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay, Activity } from "@/types";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
  * Backfill Coordinates API
@@ -24,7 +25,7 @@ export async function POST(
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Fetch the trip
@@ -35,26 +36,17 @@ export async function POST(
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json(
-        { error: "Trip not found" },
-        { status: 404 }
-      );
+      return errors.notFound("Trip not found");
     }
 
     // Verify ownership
     if (trip.user_id !== user.id) {
-      return NextResponse.json(
-        { error: "Not authorized to modify this trip" },
-        { status: 403 }
-      );
+      return errors.forbidden("Not authorized to modify this trip");
     }
 
     const itinerary = trip.itinerary as ItineraryDay[];
     if (!itinerary || !Array.isArray(itinerary)) {
-      return NextResponse.json(
-        { error: "Invalid itinerary format" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid itinerary format");
     }
 
     // Extract destination from title (e.g., "Trieste Trip" -> "Trieste")
@@ -85,7 +77,7 @@ export async function POST(
     }
 
     if (activitiesToGeocode.length === 0) {
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         message: "All activities already have coordinates",
         updated: 0,
@@ -106,10 +98,7 @@ export async function POST(
     if (!geocodeResponse.ok) {
       const errorText = await geocodeResponse.text();
       console.error("[Backfill] Geocoding failed:", errorText);
-      return NextResponse.json(
-        { error: "Geocoding service unavailable" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable("Geocoding service unavailable");
     }
 
     const geocodeData = await geocodeResponse.json();
@@ -143,16 +132,13 @@ export async function POST(
 
       if (updateError) {
         console.error("[Backfill] Update error:", updateError);
-        return NextResponse.json(
-          { error: "Failed to update trip" },
-          { status: 500 }
-        );
+        return errors.internal("Failed to update trip", "Backfill");
       }
     }
 
     console.log(`[Backfill] Trip ${tripId}: Updated ${updatedCount}/${activitiesToGeocode.length} activities`);
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: `Updated ${updatedCount} activities with coordinates`,
       updated: updatedCount,
@@ -161,9 +147,6 @@ export async function POST(
     });
   } catch (error) {
     console.error("[Backfill] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to backfill coordinates" },
-      { status: 500 }
-    );
+    return errors.internal("Failed to backfill coordinates", "Backfill");
   }
 }

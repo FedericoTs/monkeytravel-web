@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
 import type {
   Activity,
   ActivityProposal,
@@ -14,15 +16,11 @@ import {
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
 
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
-
 /**
  * GET /api/trips/[id]/proposals
  * Get all proposals for a trip with votes and consensus status
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -33,7 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Parse query params for filtering
@@ -91,15 +89,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { data: proposals, error: proposalsError } = await query;
 
     if (proposalsError) {
-      console.error("Error fetching proposals:", proposalsError);
-      return NextResponse.json(
-        { error: "Failed to fetch proposals" },
-        { status: 500 }
-      );
+      console.error("[Proposals] Error fetching proposals:", proposalsError);
+      return errors.internal("Failed to fetch proposals", "Proposals");
     }
 
     if (!proposals || proposals.length === 0) {
-      return NextResponse.json({
+      return apiSuccess({
         success: true,
         proposals: [],
         totalVoters: 0,
@@ -232,17 +227,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       };
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       proposals: transformedProposals,
       totalVoters,
     });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/proposals:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposals] Error fetching proposals:", error);
+    return errors.internal("Failed to fetch proposals", "Proposals");
   }
 }
 
@@ -250,7 +242,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  * POST /api/trips/[id]/proposals
  * Create a new activity proposal
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -261,7 +253,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Parse request body
@@ -284,31 +276,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Validate required fields
     if (!type || !['new', 'replacement'].includes(type)) {
-      return NextResponse.json(
-        { error: "Invalid proposal type. Must be 'new' or 'replacement'" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid proposal type. Must be 'new' or 'replacement'");
     }
 
     if (!activityData || !activityData.name) {
-      return NextResponse.json(
-        { error: "Activity data with name is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Activity data with name is required");
     }
 
     if (typeof targetDay !== 'number' || targetDay < 0) {
-      return NextResponse.json(
-        { error: "Valid target day (0 or greater) is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Valid target day (0 or greater) is required");
     }
 
     if (type === 'replacement' && !targetActivityId) {
-      return NextResponse.json(
-        { error: "Target activity ID is required for replacement proposals" },
-        { status: 400 }
-      );
+      return errors.badRequest("Target activity ID is required for replacement proposals");
     }
 
     // Check trip exists and user has permission
@@ -319,7 +299,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -339,10 +319,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     if (!canPropose) {
-      return NextResponse.json(
-        { error: "You don't have permission to propose activities on this trip" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to propose activities on this trip");
     }
 
     // Ensure activity has an ID
@@ -387,11 +364,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (insertError) {
-      console.error("Error creating proposal:", insertError);
-      return NextResponse.json(
-        { error: "Failed to create proposal" },
-        { status: 500 }
-      );
+      console.error("[Proposals] Error creating proposal:", insertError);
+      return errors.internal("Failed to create proposal", "Proposals");
     }
 
     // Transform response
@@ -422,15 +396,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
         : undefined,
     };
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       proposal: transformedProposal,
     });
   } catch (error) {
-    console.error("Error in POST /api/trips/[id]/proposals:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Proposals] Error creating proposal:", error);
+    return errors.internal("Failed to create proposal", "Proposals");
   }
 }

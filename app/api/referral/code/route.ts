@@ -1,23 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import {
+  getBananaBalance,
+  getReferralTierInfo,
+  getReferralBananasEarned,
+  TIER_NAMES,
+  TIER_EMOJIS,
+} from "@/lib/bananas";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 /**
  * GET /api/referral/code
- * Returns the current user's referral code (creates one if doesn't exist)
+ * Returns the current user's referral code with banana stats (creates code if doesn't exist)
  */
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Use shared auth helper
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Check if user already has a referral code
     const { data: existingCode } = await supabase
@@ -27,12 +26,34 @@ export async function GET() {
       .single();
 
     if (existingCode) {
-      return NextResponse.json({
+      // Fetch banana stats in parallel
+      const [balance, tierInfo, bananasEarned] = await Promise.all([
+        getBananaBalance(supabase, user.id),
+        getReferralTierInfo(supabase, user.id),
+        getReferralBananasEarned(supabase, user.id),
+      ]);
+
+      return apiSuccess({
         code: existingCode.code,
         stats: {
           clicks: existingCode.total_clicks,
           signups: existingCode.total_signups,
           conversions: existingCode.total_conversions,
+        },
+        bananas: {
+          balance: balance.available,
+          expiringSoon: balance.expiringSoon,
+          lifetimeEarned: bananasEarned,
+        },
+        tier: {
+          level: tierInfo.currentTier,
+          name: TIER_NAMES[tierInfo.currentTier],
+          emoji: TIER_EMOJIS[tierInfo.currentTier],
+          progress: {
+            current: tierInfo.lifetimeConversions,
+            nextAt: tierInfo.nextTierAt,
+            remaining: tierInfo.conversionsToNextTier,
+          },
         },
       });
     }
@@ -42,26 +63,35 @@ export async function GET() {
       .rpc("get_or_create_referral_code", { p_user_id: user.id });
 
     if (createError) {
-      console.error("[Referral Code] Error creating code:", createError);
-      return NextResponse.json(
-        { error: "Failed to create referral code" },
-        { status: 500 }
-      );
+      console.error("[Referral] Error creating code:", createError);
+      return errors.internal("Failed to create referral code", "Referral");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       code: newCode,
       stats: {
         clicks: 0,
         signups: 0,
         conversions: 0,
       },
+      bananas: {
+        balance: 0,
+        expiringSoon: 0,
+        lifetimeEarned: 0,
+      },
+      tier: {
+        level: 0,
+        name: TIER_NAMES[0],
+        emoji: TIER_EMOJIS[0],
+        progress: {
+          current: 0,
+          nextAt: 3,
+          remaining: 3,
+        },
+      },
     });
   } catch (error) {
-    console.error("[Referral Code] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Referral] Unexpected error:", error);
+    return errors.internal("Internal server error", "Referral");
   }
 }

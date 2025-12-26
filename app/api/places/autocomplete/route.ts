@@ -10,11 +10,13 @@
  * @see https://developers.google.com/maps/documentation/places/web-service/place-autocomplete
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { PlacePrediction } from "@/types";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -161,15 +163,8 @@ function extractCountryCode(structuredFormat: {
   return null;
 }
 
-export interface PlacePrediction {
-  placeId: string;
-  mainText: string;
-  secondaryText: string;
-  fullText: string;
-  countryCode: string | null;
-  flag: string;
-  types: string[];
-}
+// Re-export PlacePrediction for API consumers
+export type { PlacePrediction } from "@/types";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -186,10 +181,7 @@ export async function POST(request: NextRequest) {
         status: 503,
         error: `BLOCKED: ${access.message}`,
       });
-      return NextResponse.json(
-        { error: access.message || "Places Autocomplete API is currently disabled" },
-        { status: 503 }
-      );
+      return errors.serviceUnavailable(access.message || "Places Autocomplete API is currently disabled");
     }
 
     // Check usage limits for authenticated users
@@ -197,21 +189,17 @@ export async function POST(request: NextRequest) {
     if (user) {
       usageCheck = await checkUsageLimit(user.id, "placesAutocomplete", user.email);
       if (!usageCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: usageCheck.message || "Daily autocomplete limit reached.",
-            usage: usageCheck,
-            upgradeUrl: "/pricing",
-          },
-          { status: 429 }
-        );
+        return errors.rateLimit(usageCheck.message || "Daily autocomplete limit reached.", {
+          usage: usageCheck,
+          upgradeUrl: "/pricing",
+        });
       }
     }
 
     const { input, sessionToken } = await request.json();
 
     if (!input || input.length < 2) {
-      return NextResponse.json({ predictions: [] });
+      return apiSuccess({ predictions: [] });
     }
 
     if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
@@ -219,10 +207,7 @@ export async function POST(request: NextRequest) {
         status: 500,
         error: "API key not configured or blocked",
       });
-      return NextResponse.json(
-        { error: "Google Places API key not configured" },
-        { status: 500 }
-      );
+      return errors.internal("Google Places API key not configured", "Places Autocomplete");
     }
 
     // Check cache first (for inputs >= 3 chars to allow common prefixes to cache)
@@ -230,13 +215,13 @@ export async function POST(request: NextRequest) {
     if (input.length >= 3) {
       const cached = getFromCache(cacheKey);
       if (cached) {
-        console.log("[Autocomplete] Cache HIT for:", input);
+        console.log("[Places Autocomplete] Cache HIT for:", input);
         logAutocompleteApiRequest({ cacheHit: true });
-        return NextResponse.json(cached);
+        return apiSuccess(cached);
       }
     }
 
-    console.log("[Autocomplete] Cache MISS for:", input);
+    console.log("[Places Autocomplete] Cache MISS for:", input);
 
     // Call Google Places Autocomplete (New) API with field masking
     // Field mask reduces response size by ~20%, saving $0.57/1000 calls
@@ -261,11 +246,8 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Places Autocomplete API error:", errorText);
-      return NextResponse.json(
-        { error: "Failed to fetch suggestions" },
-        { status: 500 }
-      );
+      console.error("[Places Autocomplete] API error:", errorText);
+      return errors.internal("Failed to fetch suggestions", "Places Autocomplete");
     }
 
     const data = await response.json();
@@ -314,12 +296,9 @@ export async function POST(request: NextRequest) {
       await incrementUsage(user.id, "placesAutocomplete", 1);
     }
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (error) {
-    console.error("Places Autocomplete error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Places Autocomplete] Error:", error);
+    return errors.internal("Internal server error", "Places Autocomplete");
   }
 }

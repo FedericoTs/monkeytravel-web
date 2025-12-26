@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole, TripInvite } from "@/types";
-
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
 
 /**
  * GET /api/trips/[id]/invites - List all active invites for a trip
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -21,7 +19,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify user has access (owner or editor)
@@ -32,7 +30,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -48,27 +46,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const canViewInvites = isOwner || userCollab?.role === "editor";
 
     if (!canViewInvites) {
-      return NextResponse.json(
-        { error: "You don't have permission to view invites" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to view invites");
     }
 
-    // Fetch active invites
+    // Fetch active invites (no expiration filter - invites are essentially permanent)
     const { data: invites, error } = await supabase
       .from("trip_invites")
       .select("*")
       .eq("trip_id", tripId)
       .eq("is_active", true)
-      .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching invites:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch invites" },
-        { status: 500 }
-      );
+      console.error("[Invites] Error fetching invites:", error);
+      return errors.internal("Failed to fetch invites", "Invites");
     }
 
     // Transform invites to include invite URLs
@@ -78,23 +69,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
       inviteUrl: `${baseUrl}/invite/${invite.token}`,
     }));
 
-    return NextResponse.json({
-      success: true,
-      invites: invitesWithUrls,
-    });
+    return apiSuccess({ success: true, invites: invitesWithUrls });
   } catch (error) {
-    console.error("Error in GET /api/trips/[id]/invites:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Invites] Error fetching invites:", error);
+    return errors.internal("Failed to fetch invites", "Invites");
   }
 }
 
 /**
  * POST /api/trips/[id]/invites - Create a new invite link
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: TripRouteContext) {
   try {
     const { id: tripId } = await context.params;
     const supabase = await createClient();
@@ -105,14 +90,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const body = await request.json();
     const {
       role = "voter",
       maxUses = 1,
-      expiresInDays = 7,
+      expiresInDays = 3650, // ~10 years, effectively never expires
     } = body as {
       role?: Exclude<CollaboratorRole, "owner">;
       maxUses?: number;
@@ -121,10 +106,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Validate role
     if (!["editor", "voter", "viewer"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be editor, voter, or viewer" },
-        { status: 400 }
-      );
+      return errors.badRequest("Invalid role. Must be editor, voter, or viewer");
     }
 
     // Verify user has permission to create invites (owner or editor)
@@ -135,7 +117,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const isOwner = trip.user_id === user.id;
@@ -151,10 +133,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const canCreateInvites = isOwner || userCollab?.role === "editor";
 
     if (!canCreateInvites) {
-      return NextResponse.json(
-        { error: "You don't have permission to create invites" },
-        { status: 403 }
-      );
+      return errors.forbidden("You don't have permission to create invites");
     }
 
     // Generate invite token (URL-safe, short)
@@ -181,17 +160,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error) {
-      console.error("Error creating invite:", error);
-      return NextResponse.json(
-        { error: "Failed to create invite" },
-        { status: 500 }
-      );
+      console.error("[Invites] Error creating invite:", error);
+      return errors.internal("Failed to create invite", "Invites");
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
     const inviteUrl = `${baseUrl}/invite/${token}`;
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       invite: {
         ...invite,
@@ -199,10 +175,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    console.error("Error in POST /api/trips/[id]/invites:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[Invites] Error creating invite:", error);
+    return errors.internal("Failed to create invite", "Invites");
   }
 }

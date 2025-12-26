@@ -3,6 +3,8 @@
  * Magazine-style design system with sophisticated colors and typography
  */
 
+import type { RGB, ActivityTypeConfig } from "@/types";
+
 // ============================================================================
 // COLOR PALETTE - Sophisticated, premium travel magazine aesthetic
 // ============================================================================
@@ -105,14 +107,8 @@ export const LAYOUT = {
 
 // ============================================================================
 // ACTIVITY TYPE CONFIGURATION
+// ActivityTypeConfig is imported from @/types for consistency
 // ============================================================================
-export interface ActivityTypeConfig {
-  label: string;
-  color: [number, number, number];
-  icon: string;
-  bgLight: [number, number, number];
-}
-
 export const ACTIVITY_TYPES: Record<string, ActivityTypeConfig> = {
   eat: {
     label: "EAT",

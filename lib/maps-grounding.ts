@@ -9,6 +9,7 @@
  */
 
 import type { TripCreationParams, Activity, ItineraryDay, GeneratedItinerary } from "@/types";
+import type { Coordinates } from "@/lib/utils/geo";
 import { generateActivityId } from "./utils/activity-id";
 
 // Maps Grounding API endpoint
@@ -54,11 +55,6 @@ export interface GroundedPlace {
   dayNumber?: number;
   description?: string;
   duration?: number;
-}
-
-interface Coordinates {
-  lat: number;
-  lng: number;
 }
 
 // Map TripCreationParams.budgetTier to Activity.estimated_cost.tier

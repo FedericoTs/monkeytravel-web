@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-interface RouteContext {
-  params: Promise<{ id: string; activityId: string }>;
-}
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { TripActivityRouteContext } from "@/lib/api/route-context";
 
 /**
  * GET /api/trips/[id]/activities/[activityId] - Get timeline for a specific activity
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: TripActivityRouteContext) {
   try {
     const { id: tripId, activityId } = await context.params;
     const supabase = await createClient();
@@ -18,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     const { data: timeline, error } = await supabase
@@ -31,30 +29,24 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     if (error && error.code !== "PGRST116") {
       // PGRST116 = no rows returned
-      console.error("Error fetching activity timeline:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch activity timeline" },
-        { status: 500 }
-      );
+      console.error("[Activity Timeline] Error fetching:", error);
+      return errors.internal("Failed to fetch activity timeline", "Activity Timeline");
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       timeline: timeline || null,
     });
   } catch (error) {
-    console.error("Error fetching activity timeline:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch activity timeline" },
-      { status: 500 }
-    );
+    console.error("[Activity Timeline] Unexpected error in GET:", error);
+    return errors.internal("Failed to fetch activity timeline", "Activity Timeline");
   }
 }
 
 /**
  * PATCH /api/trips/[id]/activities/[activityId] - Update activity timeline (status, rating, notes)
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: TripActivityRouteContext) {
   try {
     const { id: tripId, activityId } = await context.params;
     const supabase = await createClient();
@@ -64,7 +56,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errors.unauthorized();
     }
 
     // Verify trip ownership
@@ -76,7 +68,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (tripError || !trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return errors.notFound("Trip not found");
     }
 
     const body = await request.json();
@@ -86,10 +78,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (body.status !== undefined) {
       const validStatuses = ["upcoming", "in_progress", "completed", "skipped"];
       if (!validStatuses.includes(body.status)) {
-        return NextResponse.json(
-          { error: "Invalid status" },
-          { status: 400 }
-        );
+        return errors.badRequest("Invalid status");
       }
       updates.status = body.status;
 
@@ -104,10 +93,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Handle rating
     if (body.rating !== undefined) {
       if (body.rating < 1 || body.rating > 5) {
-        return NextResponse.json(
-          { error: "Rating must be between 1 and 5" },
-          { status: 400 }
-        );
+        return errors.badRequest("Rating must be between 1 and 5");
       }
       updates.rating = body.rating;
     }
@@ -148,10 +134,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: "No valid fields to update" },
-        { status: 400 }
-      );
+      return errors.badRequest("No valid fields to update");
     }
 
     // Upsert: create if not exists, update if exists
@@ -173,19 +156,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (error) {
-      console.error("Error updating activity timeline:", error);
-      return NextResponse.json(
-        { error: "Failed to update activity timeline" },
-        { status: 500 }
-      );
+      console.error("[Activity Timeline] Error updating:", error);
+      return errors.internal("Failed to update activity timeline", "Activity Timeline");
     }
 
-    return NextResponse.json({ success: true, timeline });
+    return apiSuccess({ success: true, timeline });
   } catch (error) {
-    console.error("Error updating activity timeline:", error);
-    return NextResponse.json(
-      { error: "Failed to update activity timeline" },
-      { status: 500 }
-    );
+    console.error("[Activity Timeline] Unexpected error in PATCH:", error);
+    return errors.internal("Failed to update activity timeline", "Activity Timeline");
   }
 }

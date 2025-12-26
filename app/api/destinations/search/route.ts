@@ -10,8 +10,9 @@
  * Cost: $0 (local database query)
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
     const { input, limit = 8 } = await request.json();
 
     if (!input || input.length < 2) {
-      return NextResponse.json({ predictions: [], source: "local" });
+      return apiSuccess({ predictions: [], source: "local" });
     }
 
     const supabase = await createClient();
@@ -199,11 +200,8 @@ export async function POST(request: NextRequest) {
       .limit(limit);
 
     if (error) {
-      console.error("Local destinations search error:", error);
-      return NextResponse.json(
-        { error: "Failed to search destinations", source: "local" },
-        { status: 500 }
-      );
+      console.error("[Destinations Search] Local destinations search error:", error);
+      return errors.internal("Failed to search destinations", "Destinations Search");
     }
 
     // Transform to PlacePrediction format
@@ -256,16 +254,13 @@ export async function POST(request: NextRequest) {
       return 0;
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       predictions,
       source: "local",
       hasMore: (destinations?.length || 0) >= limit,
     });
   } catch (error) {
-    console.error("Local destinations search error:", error);
-    return NextResponse.json(
-      { error: "Internal server error", source: "local" },
-      { status: 500 }
-    );
+    console.error("[Destinations Search] Local destinations search error:", error);
+    return errors.internal("Internal server error", "Destinations Search");
   }
 }
