@@ -36,6 +36,8 @@ export interface ApiSuccessOptions<T> {
   meta?: Record<string, unknown>;
   /** Wrap response in { success: true, data: ... } format */
   wrap?: boolean;
+  /** Custom response headers (e.g., Cache-Control) */
+  headers?: Record<string, string>;
 }
 
 export interface TimingContext {
@@ -107,6 +109,14 @@ export const errors = {
   notFound: (message = "Resource not found") =>
     apiError(message, { status: 404 }),
 
+  /** 409 Conflict (duplicate resource) */
+  conflict: (message = "Resource already exists") =>
+    apiError(message, { status: 409 }),
+
+  /** 410 Gone (resource expired or no longer available) */
+  gone: (message = "Resource is no longer available", code?: string) =>
+    apiError(message, { status: 410, code }),
+
   /** 429 Too Many Requests (rate limit) */
   rateLimit: (message = "Rate limit exceeded", context?: Record<string, unknown>) =>
     apiError(message, { status: 429, code: "RATE_LIMIT", context }),
@@ -146,14 +156,20 @@ export function apiSuccess<T>(
   data: T,
   options: ApiSuccessOptions<T> = {}
 ): NextResponse {
-  const { status = 200, meta, wrap = false } = options;
+  const { status = 200, meta, wrap = false, headers } = options;
+
+  // Build response options with optional headers
+  const responseOptions: { status: number; headers?: Record<string, string> } = { status };
+  if (headers) {
+    responseOptions.headers = headers;
+  }
 
   if (wrap) {
     const body: Record<string, unknown> = { success: true, data };
     if (meta) {
       body.meta = meta;
     }
-    return NextResponse.json(body, { status });
+    return NextResponse.json(body, responseOptions);
   }
 
   if (meta) {
@@ -161,10 +177,10 @@ export function apiSuccess<T>(
     const body = typeof data === "object" && data !== null
       ? { ...data, meta }
       : { data, meta };
-    return NextResponse.json(body, { status });
+    return NextResponse.json(body, responseOptions);
   }
 
-  return NextResponse.json(data, { status });
+  return NextResponse.json(data, responseOptions);
 }
 
 // ============================================================================
