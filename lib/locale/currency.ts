@@ -5,9 +5,10 @@
 
 import type { CurrencyCode, ExchangeRates, FormattedCurrency } from "./types";
 import { CURRENCY_SYMBOLS } from "./types";
+import { FRANKFURTER_API_BASE } from "@/lib/constants/externalApis";
 
 // Frankfurter API endpoint
-const FRANKFURTER_API = "https://api.frankfurter.dev/v1";
+const FRANKFURTER_API = FRANKFURTER_API_BASE;
 
 // Cache key for localStorage
 const RATES_CACHE_KEY = "monkeytravel-exchange-rates";

@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
 
 // Pexels API endpoint
-const PEXELS_API_URL = "https://api.pexels.com/v1/search";
+const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
 
 // Cache for destination images (in-memory, per-instance)
 // In production, you'd use Redis or similar
@@ -150,7 +152,7 @@ async function fetchFromPexels(destination: string): Promise<string | null> {
   const apiKey = process.env.PEXELS_API_KEY;
 
   if (!apiKey) {
-    console.warn("PEXELS_API_KEY not configured");
+    console.warn("[Images Destination] PEXELS_API_KEY not configured");
     return null;
   }
 
@@ -166,7 +168,7 @@ async function fetchFromPexels(destination: string): Promise<string | null> {
     );
 
     if (!response.ok) {
-      console.error("Pexels API error:", response.status);
+      console.error("[Images Destination] Pexels API error:", response.status);
       return null;
     }
 
@@ -183,7 +185,7 @@ async function fetchFromPexels(destination: string): Promise<string | null> {
 
     return null;
   } catch (error) {
-    console.error("Error fetching from Pexels:", error);
+    console.error("[Images Destination] Error fetching from Pexels:", error);
     return null;
   }
 }
@@ -193,10 +195,7 @@ export async function GET(request: NextRequest) {
   const destination = searchParams.get("destination");
 
   if (!destination) {
-    return NextResponse.json(
-      { error: "Destination parameter is required" },
-      { status: 400 }
-    );
+    return errors.badRequest("Destination parameter is required");
   }
 
   const cacheKey = normalizeDestination(destination);
@@ -210,7 +209,7 @@ export async function GET(request: NextRequest) {
   // Check cache first
   const cached = imageCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return NextResponse.json({
+    return apiSuccess({
       url: cached.url,
       source: "cache",
       destination: cacheKey
@@ -221,7 +220,7 @@ export async function GET(request: NextRequest) {
   const curatedUrl = findCuratedImage(destination);
   if (curatedUrl) {
     imageCache.set(cacheKey, { url: curatedUrl, timestamp: Date.now() });
-    return NextResponse.json({
+    return apiSuccess({
       url: curatedUrl,
       source: "curated",
       destination: cacheKey
@@ -232,7 +231,7 @@ export async function GET(request: NextRequest) {
   const pexelsUrl = await fetchFromPexels(destination);
   if (pexelsUrl) {
     imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
-    return NextResponse.json({
+    return apiSuccess({
       url: pexelsUrl,
       source: "pexels",
       destination: cacheKey
@@ -240,7 +239,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Fallback to generic travel image
-  return NextResponse.json({
+  return apiSuccess({
     url: FALLBACK_IMAGE,
     source: "fallback",
     destination: cacheKey
@@ -252,10 +251,7 @@ export async function POST(request: NextRequest) {
     const { destination } = await request.json();
 
     if (!destination) {
-      return NextResponse.json(
-        { error: "Destination is required" },
-        { status: 400 }
-      );
+      return errors.badRequest("Destination is required");
     }
 
     // Redirect to GET with destination as query param
@@ -264,9 +260,6 @@ export async function POST(request: NextRequest) {
 
     return GET(new NextRequest(url));
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 }
-    );
+    return errors.badRequest("Invalid request body");
   }
 }

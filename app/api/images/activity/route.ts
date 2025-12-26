@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
 
 /**
  * Activity Image API - Uses FREE Pexels API
@@ -7,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns a relevant image URL for an activity
  */
 
-const PEXELS_API_URL = "https://api.pexels.com/v1/search";
+const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
 
 // In-memory cache (per-instance)
 const imageCache = new Map<string, { url: string; timestamp: number }>();
@@ -191,7 +193,7 @@ export async function GET(request: NextRequest) {
   const cacheKey = generateCacheKey(name, type, destination);
   const cached = imageCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return NextResponse.json({ url: cached.url, source: "cache" }, { headers: cacheHeaders });
+    return apiSuccess({ url: cached.url, source: "cache" }, { headers: cacheHeaders });
   }
 
   // Try Pexels search with activity name + destination
@@ -199,7 +201,7 @@ export async function GET(request: NextRequest) {
     const pexelsUrl = await fetchFromPexels(`${name} ${destination}`);
     if (pexelsUrl) {
       imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
-      return NextResponse.json({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
+      return apiSuccess({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
     }
   }
 
@@ -208,7 +210,7 @@ export async function GET(request: NextRequest) {
     const pexelsUrl = await fetchFromPexels(name);
     if (pexelsUrl) {
       imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
-      return NextResponse.json({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
+      return apiSuccess({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
     }
   }
 
@@ -218,7 +220,7 @@ export async function GET(request: NextRequest) {
   const curatedUrl = getCuratedImage(type, hashIndex);
 
   imageCache.set(cacheKey, { url: curatedUrl, timestamp: Date.now() });
-  return NextResponse.json({ url: curatedUrl, source: "curated" }, { headers: cacheHeaders });
+  return apiSuccess({ url: curatedUrl, source: "curated" }, { headers: cacheHeaders });
 }
 
 /**
@@ -233,7 +235,7 @@ export async function POST(request: NextRequest) {
     const { activities, destination } = await request.json();
 
     if (!activities || !Array.isArray(activities)) {
-      return NextResponse.json({ error: "activities array is required" }, { status: 400 });
+      return errors.badRequest("activities array is required");
     }
 
     const images: Record<string, string> = {};
@@ -275,9 +277,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ images, count: Object.keys(images).length });
+    return apiSuccess({ images, count: Object.keys(images).length });
   } catch (error) {
     console.error("[Activity Images] Batch error:", error);
-    return NextResponse.json({ error: "Failed to fetch images" }, { status: 500 });
+    return errors.internal("Failed to fetch images", "Activity Images");
   }
 }

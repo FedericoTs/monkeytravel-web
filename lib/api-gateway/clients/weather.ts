@@ -6,8 +6,9 @@
  */
 
 import { apiGateway } from "../client";
+import { OPEN_METEO_API_BASE } from "@/lib/constants/externalApis";
 
-const OPEN_METEO_BASE = "https://api.open-meteo.com/v1";
+const OPEN_METEO_BASE = OPEN_METEO_API_BASE;
 
 /**
  * Open-Meteo Weather API

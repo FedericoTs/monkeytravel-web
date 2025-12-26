@@ -6,8 +6,9 @@
  */
 
 import { apiGateway } from "../client";
+import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
 
-const PEXELS_BASE = "https://api.pexels.com/v1";
+const PEXELS_BASE = PEXELS_API_BASE;
 
 /**
  * Pexels Image API

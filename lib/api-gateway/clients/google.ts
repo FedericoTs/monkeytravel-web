@@ -7,9 +7,13 @@
 
 import { apiGateway } from "../client";
 import { API_COSTS } from "../config";
+import {
+  GOOGLE_MAPS_API_BASE,
+  GOOGLE_PLACES_API_BASE,
+} from "@/lib/constants/externalApis";
 
-const GOOGLE_API_BASE = "https://maps.googleapis.com/maps/api";
-const GOOGLE_PLACES_BASE = "https://places.googleapis.com/v1";
+const GOOGLE_API_BASE = GOOGLE_MAPS_API_BASE;
+const GOOGLE_PLACES_BASE = GOOGLE_PLACES_API_BASE;
 
 /**
  * Google Places API (New)
