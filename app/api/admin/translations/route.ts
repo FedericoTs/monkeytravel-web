@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import fs from "fs/promises";
 import path from "path";
@@ -69,18 +68,8 @@ function setNestedValue(
  */
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const translations = await readTranslations();
     return apiSuccess({ translations });
@@ -96,18 +85,8 @@ export async function GET() {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { user, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { language, key, value } = body as {

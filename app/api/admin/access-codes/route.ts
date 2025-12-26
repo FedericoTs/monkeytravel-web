@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Generate a random code
@@ -15,14 +14,8 @@ function generateCode(length: number = 8): string {
 // GET - List all access codes
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     // Get all codes with redemption count
     const { data: codes, error } = await supabase
@@ -74,14 +67,8 @@ export async function GET() {
 // POST - Create a new access code
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const {
@@ -149,14 +136,8 @@ export async function POST(request: Request) {
 // PATCH - Update an access code
 export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { id, ...updates } = body;
@@ -190,14 +171,8 @@ export async function PATCH(request: Request) {
 // DELETE - Delete an access code
 export async function DELETE(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

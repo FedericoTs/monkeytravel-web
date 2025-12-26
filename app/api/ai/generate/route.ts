@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   generateItinerary,
   validateTripParams,
@@ -30,7 +31,7 @@ type SupportedLanguage = "en" | "es" | "it";
  * Get the user's preferred language from cookies or profile
  */
 async function getUserLanguage(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<SupportedLanguage> {
   // First check for locale cookie (set by next-intl middleware)
@@ -76,7 +77,7 @@ function hashDestination(destination: string): string {
  * Matches by destination, vibes, budget tier, and language
  */
 async function getCachedItinerary(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   destination: string,
   vibes: string[],
   budgetTier: string,
@@ -125,7 +126,7 @@ async function getCachedItinerary(
  * Cache the generated itinerary for future users with similar queries
  */
 async function cacheItinerary(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   destination: string,
   vibes: string[],
   budgetTier: string,
@@ -203,15 +204,8 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Check authentication
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Check early access (during early access period)
     const earlyAccess = await checkEarlyAccess(user.id, "generation", user.email);

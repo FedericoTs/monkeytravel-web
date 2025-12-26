@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { API_COSTS } from "@/lib/api-gateway/config";
 import { circuitBreakerManager } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -161,21 +160,8 @@ function calculatePercentile(values: number[], percentile: number): number {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Check admin access
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();

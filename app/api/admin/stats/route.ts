@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Cohort retention data for matrix visualization
 export interface CohortData {
@@ -94,21 +94,8 @@ export interface AdminStats {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Check admin access
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     // Fetch all metrics in parallel
     const [
@@ -312,7 +299,7 @@ export async function GET() {
 }
 
 // Direct query fallbacks if RPC functions don't exist
-async function fetchUserMetricsDirect(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchUserMetricsDirect(supabase: SupabaseClient) {
   const { data: users } = await supabase.from("users").select("id, created_at, last_sign_in_at");
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -326,7 +313,7 @@ async function fetchUserMetricsDirect(supabase: Awaited<ReturnType<typeof create
   };
 }
 
-async function fetchTripMetricsDirect(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchTripMetricsDirect(supabase: SupabaseClient) {
   const { data: trips } = await supabase.from("trips").select("id, created_at, share_token");
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -340,7 +327,7 @@ async function fetchTripMetricsDirect(supabase: Awaited<ReturnType<typeof create
   };
 }
 
-async function fetchAiMetricsDirect(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchAiMetricsDirect(supabase: SupabaseClient) {
   const { data: usage } = await supabase.from("ai_usage").select("id, created_at");
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -353,7 +340,7 @@ async function fetchAiMetricsDirect(supabase: Awaited<ReturnType<typeof createCl
   };
 }
 
-async function fetchSubscriberMetricsDirect(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchSubscriberMetricsDirect(supabase: SupabaseClient) {
   const { data: subs } = await supabase.from("email_subscribers").select("id, subscribed_at, verified, unsubscribed_at");
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -368,7 +355,7 @@ async function fetchSubscriberMetricsDirect(supabase: Awaited<ReturnType<typeof 
   };
 }
 
-async function fetchRecentActivity(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchRecentActivity(supabase: SupabaseClient) {
   const activities: AdminStats["recentActivity"] = [];
 
   // Recent users
@@ -423,7 +410,7 @@ async function fetchRecentActivity(supabase: Awaited<ReturnType<typeof createCli
 }
 
 // Cohort retention matrix - tracks weekly user retention
-async function fetchCohortRetention(supabase: Awaited<ReturnType<typeof createClient>>): Promise<CohortData[]> {
+async function fetchCohortRetention(supabase: SupabaseClient): Promise<CohortData[]> {
   // Get all users with their signup and last activity dates
   const { data: users } = await supabase
     .from("users")
@@ -565,7 +552,7 @@ function getCountryName(code: string): string {
 
 // Fetch geo metrics from page_views table using proper SQL COUNT queries
 // This avoids the Supabase 1000 row default limit
-async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["geo"]> {
+async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["geo"]> {
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -657,7 +644,7 @@ async function fetchGeoMetrics(supabase: Awaited<ReturnType<typeof createClient>
 }
 
 // Fetch daily user registration trend for the last 90 days
-async function fetchUserTrend(supabase: Awaited<ReturnType<typeof createClient>>): Promise<AdminStats["userTrend"]> {
+async function fetchUserTrend(supabase: SupabaseClient): Promise<AdminStats["userTrend"]> {
   const { data: users } = await supabase
     .from("users")
     .select("created_at")

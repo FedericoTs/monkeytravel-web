@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { cookies } from "next/headers";
 import {
@@ -35,7 +36,7 @@ type SupportedLanguage = "en" | "es" | "it";
  * Get the user's preferred language from cookies or profile
  */
 async function getUserLanguage(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<SupportedLanguage> {
   const cookieStore = await cookies();
@@ -774,15 +775,8 @@ export async function POST(request: NextRequest) {
   console.log("[AI Assistant] POST request received");
 
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     // Get user's preferred language for AI content localization
     const userLanguage = await getUserLanguage(supabase, user.id);
@@ -1647,15 +1641,8 @@ Respond with valid JSON only.`;
 // GET endpoint to fetch conversation history
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const tripId = searchParams.get("tripId");

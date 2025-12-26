@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
@@ -80,16 +79,8 @@ async function getAccessToken(): Promise<string | null> {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
     if (!projectId) {

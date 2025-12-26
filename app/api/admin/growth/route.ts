@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Growth metrics for Sean Ellis framework
@@ -160,21 +159,8 @@ export interface GrowthStats {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Check admin access
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const now = new Date();
     const nowISO = now.toISOString();

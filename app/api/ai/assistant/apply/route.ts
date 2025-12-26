@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -21,15 +21,8 @@ export async function POST(request: NextRequest) {
   console.log("[AI Assistant Apply] POST request received");
 
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const body: ApplyChangeRequest = await request.json();
     const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities } = body;

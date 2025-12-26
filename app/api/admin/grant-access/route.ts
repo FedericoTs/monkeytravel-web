@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 /**
@@ -8,14 +7,8 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { user_email, code } = body;
@@ -141,14 +134,8 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !isAdmin(user.email)) {
-      return errors.unauthorized();
-    }
+    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");

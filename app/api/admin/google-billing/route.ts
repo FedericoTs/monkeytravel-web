@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface GoogleBillingData {
@@ -162,20 +161,8 @@ async function queryBigQuery(
  */
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     // Check if BigQuery is configured
     const serviceAccountKey = process.env.GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY;

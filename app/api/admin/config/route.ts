@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
+import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { createClient } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export interface SiteConfig {
@@ -52,21 +52,8 @@ export async function GET() {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return errors.unauthorized();
-    }
-
-    // Check admin access
-    if (!isAdmin(user.email)) {
-      return errors.forbidden();
-    }
+    const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const updates: Record<string, unknown> = {
