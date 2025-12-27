@@ -28,6 +28,8 @@ export interface PartnerConfig {
   commission: string;
   regions?: string[];
   icon?: string;
+  /** Whether this partner is currently active/approved in Travelpayouts */
+  isActive?: boolean;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface PartnerConfig {
  * Omio, Yesim, CheapOair, AirHelp, VRBO, Saily
  */
 export const PARTNERS = {
-  // Hotels
+  // Hotels - PENDING APPROVAL
   booking: {
     name: "Booking.com",
     subdomain: "c84",
@@ -47,6 +49,7 @@ export const PARTNERS = {
     baseUrl: "https://www.booking.com",
     commission: "4%",
     icon: "🏨",
+    isActive: false, // Pending approval
   },
   agoda: {
     name: "Agoda",
@@ -57,6 +60,7 @@ export const PARTNERS = {
     commission: "6%",
     regions: ["asia", "global"],
     icon: "🏨",
+    isActive: false, // Pending approval
   },
   vrbo: {
     name: "VRBO",
@@ -66,9 +70,10 @@ export const PARTNERS = {
     baseUrl: "https://www.vrbo.com",
     commission: "4%",
     icon: "🏠",
+    isActive: false, // Pending approval
   },
 
-  // Flights
+  // Flights - PENDING APPROVAL
   tripcom: {
     name: "Trip.com",
     subdomain: "c125",
@@ -78,6 +83,7 @@ export const PARTNERS = {
     commission: "3-5%",
     regions: ["asia", "global"],
     icon: "✈️",
+    isActive: false, // Pending approval
   },
   cheapoair: {
     name: "CheapOair",
@@ -88,6 +94,7 @@ export const PARTNERS = {
     commission: "Up to $25",
     regions: ["americas"],
     icon: "✈️",
+    isActive: false, // Pending approval
   },
   expedia: {
     name: "Expedia",
@@ -98,9 +105,23 @@ export const PARTNERS = {
     commission: "6%",
     regions: ["americas", "global"],
     icon: "🌐",
+    isActive: false, // Pending approval
   },
 
   // Activities & Attractions
+  // WeGoTrip is ACTIVE - the only approved partner currently
+  wegotrip: {
+    name: "WeGoTrip",
+    subdomain: "wegotrip",
+    promo_id: "cG2oKoAL", // From active link: https://wegotrip.tpm.li/cG2oKoAL
+    category: "activities" as const,
+    baseUrl: "https://www.wegotrip.com",
+    commission: "5%",
+    regions: ["europe", "global"],
+    icon: "🎧", // Audio guides and self-guided tours
+    isActive: true,
+  },
+  // PENDING APPROVAL - These won't track until approved
   getyourguide: {
     name: "GetYourGuide",
     subdomain: "gyg",
@@ -110,6 +131,7 @@ export const PARTNERS = {
     commission: "8%",
     regions: ["europe", "global"],
     icon: "🎭",
+    isActive: false, // Pending approval
   },
   klook: {
     name: "Klook",
@@ -120,6 +142,7 @@ export const PARTNERS = {
     commission: "2-5%",
     regions: ["asia", "global"],
     icon: "🎟️",
+    isActive: false, // Pending approval
   },
   tiqets: {
     name: "Tiqets",
@@ -130,9 +153,10 @@ export const PARTNERS = {
     commission: "8%",
     regions: ["europe", "global"],
     icon: "🎫",
+    isActive: false, // Pending approval
   },
 
-  // Transport
+  // Transport - PENDING APPROVAL
   omio: {
     name: "Omio",
     subdomain: "c91",
@@ -142,9 +166,10 @@ export const PARTNERS = {
     commission: "6%",
     regions: ["europe"],
     icon: "🚆",
+    isActive: false, // Pending approval
   },
 
-  // Travel Services
+  // Travel Services - PENDING APPROVAL
   yesim: {
     name: "Yesim",
     subdomain: "c152",
@@ -153,6 +178,7 @@ export const PARTNERS = {
     baseUrl: "https://yesim.app",
     commission: "18%",
     icon: "📱",
+    isActive: false, // Pending approval
   },
   saily: {
     name: "Saily",
@@ -162,6 +188,7 @@ export const PARTNERS = {
     baseUrl: "https://saily.com",
     commission: "20%",
     icon: "📶",
+    isActive: false, // Pending approval
   },
   airhelp: {
     name: "AirHelp",
@@ -171,6 +198,7 @@ export const PARTNERS = {
     baseUrl: "https://www.airhelp.com",
     commission: "15%+",
     icon: "⚖️",
+    isActive: false, // Pending approval
   },
 } as const;
 
@@ -221,10 +249,19 @@ export function getFlightPartners(): PartnerKey[] {
 }
 
 /**
- * Get activity partners
+ * Get activity partners (includes WeGoTrip - the only ACTIVE partner)
  */
 export function getActivityPartners(): PartnerKey[] {
-  return ["getyourguide", "klook", "tiqets"];
+  return ["wegotrip", "getyourguide", "klook", "tiqets"];
+}
+
+/**
+ * Get only ACTIVE partners (approved in Travelpayouts)
+ */
+export function getActivePartners(): PartnerKey[] {
+  return (Object.keys(PARTNERS) as PartnerKey[]).filter(
+    (key) => PARTNERS[key].isActive === true
+  );
 }
 
 /**

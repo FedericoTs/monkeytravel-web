@@ -26,6 +26,7 @@ export {
   getFlightPartners,
   getActivityPartners,
   getEsimPartners,
+  getActivePartners, // Only partners that are approved in Travelpayouts
   type PartnerKey,
   type PartnerCategory,
   type PartnerConfig,
@@ -46,6 +47,7 @@ export {
   generateExpediaFlightLink,
   generateAllFlightLinks,
   // Activities
+  generateWeGoTripLink, // ACTIVE - the only approved partner
   generateGetYourGuideLink,
   generateKlookLink,
   generateTiqetsLink,

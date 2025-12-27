@@ -2,13 +2,41 @@
  * Travelpayouts Deep Link Generator
  *
  * Generates affiliate deep links for all Travelpayouts partners.
- * Uses SIMPLE DIRECT LINK FORMAT with ?marker= parameter.
+ * Uses Travelpayouts click-tracking redirect format for proper attribution.
  *
- * This format works immediately without Travelpayouts dashboard configuration.
- * Partners receive tracking via the marker ID appended to URLs.
+ * Link format: https://c{XX}.travelpayouts.com/click?shmarker={MARKER}&promo_id={ID}&...
+ *
+ * IMPORTANT: For tracking to work:
+ * 1. Partner program must be ACTIVE in your Travelpayouts dashboard
+ * 2. promo_id must match your dashboard configuration
+ * 3. Your account must be approved for each partner
  */
 
 import { PARTNERS, MARKER, type PartnerKey } from "./partners";
+
+// Base domain for Travelpayouts click tracking
+const TP_BASE = "travelpayouts.com/click";
+
+/**
+ * Create a Travelpayouts tracking URL
+ * This is the proper format that Travelpayouts can track
+ */
+function createTravelpayoutsLink(
+  subdomain: string,
+  promo_id: string,
+  targetUrl: string,
+  subId?: string
+): string {
+  const params = new URLSearchParams({
+    shmarker: subId ? `${MARKER}.${subId}` : MARKER,
+    promo_id: promo_id,
+    source_type: "searchform",
+    type: "click",
+    u: targetUrl,
+  });
+
+  return `https://${subdomain}.${TP_BASE}?${params.toString()}`;
+}
 
 // ============================================================================
 // Hotel Links
@@ -23,54 +51,67 @@ export interface HotelSearchParams {
 }
 
 /**
- * Generate Booking.com hotel search link
- * Uses direct Booking.com URL with aid parameter for tracking
+ * Generate Booking.com hotel search link via Travelpayouts tracking
  */
 export function generateBookingLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests, rooms = 1 } = params;
 
-  const url = new URL("https://www.booking.com/searchresults.html");
-  url.searchParams.set("ss", destination);
-  url.searchParams.set("checkin", checkIn);
-  url.searchParams.set("checkout", checkOut);
-  url.searchParams.set("group_adults", String(guests));
-  url.searchParams.set("no_rooms", String(rooms));
-  url.searchParams.set("aid", MARKER); // Booking.com uses 'aid' parameter
+  // Build the target URL for Booking.com
+  const targetUrl = new URL("https://www.booking.com/searchresults.html");
+  targetUrl.searchParams.set("ss", destination);
+  targetUrl.searchParams.set("checkin", checkIn);
+  targetUrl.searchParams.set("checkout", checkOut);
+  targetUrl.searchParams.set("group_adults", String(guests));
+  targetUrl.searchParams.set("no_rooms", String(rooms));
 
-  return url.toString();
+  // Wrap with Travelpayouts tracking
+  return createTravelpayoutsLink(
+    PARTNERS.booking.subdomain,
+    PARTNERS.booking.promo_id,
+    targetUrl.toString(),
+    "hotels"
+  );
 }
 
 /**
- * Generate Agoda hotel search link
+ * Generate Agoda hotel search link via Travelpayouts tracking
  */
 export function generateAgodaLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests, rooms = 1 } = params;
 
-  const url = new URL("https://www.agoda.com/search");
-  url.searchParams.set("city", destination);
-  url.searchParams.set("checkIn", checkIn);
-  url.searchParams.set("los", String(calculateNights(checkIn, checkOut)));
-  url.searchParams.set("adults", String(guests));
-  url.searchParams.set("rooms", String(rooms));
-  url.searchParams.set("cid", MARKER); // Agoda uses 'cid' parameter
+  const targetUrl = new URL("https://www.agoda.com/search");
+  targetUrl.searchParams.set("city", destination);
+  targetUrl.searchParams.set("checkIn", checkIn);
+  targetUrl.searchParams.set("los", String(calculateNights(checkIn, checkOut)));
+  targetUrl.searchParams.set("adults", String(guests));
+  targetUrl.searchParams.set("rooms", String(rooms));
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.agoda.subdomain,
+    PARTNERS.agoda.promo_id,
+    targetUrl.toString(),
+    "hotels"
+  );
 }
 
 /**
- * Generate VRBO vacation rental search link
+ * Generate VRBO vacation rental search link via Travelpayouts tracking
  */
 export function generateVrboLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests } = params;
 
-  const url = new URL("https://www.vrbo.com/search");
-  url.searchParams.set("destination", destination);
-  url.searchParams.set("startDate", checkIn);
-  url.searchParams.set("endDate", checkOut);
-  url.searchParams.set("adults", String(guests));
-  url.searchParams.set("affcid", MARKER); // VRBO uses 'affcid' parameter
+  const targetUrl = new URL("https://www.vrbo.com/search");
+  targetUrl.searchParams.set("destination", destination);
+  targetUrl.searchParams.set("startDate", checkIn);
+  targetUrl.searchParams.set("endDate", checkOut);
+  targetUrl.searchParams.set("adults", String(guests));
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.vrbo.subdomain,
+    PARTNERS.vrbo.promo_id,
+    targetUrl.toString(),
+    "hotels"
+  );
 }
 
 /**
@@ -101,56 +142,60 @@ export interface FlightSearchParams {
 }
 
 /**
- * Generate Trip.com flight search link
+ * Generate Trip.com flight search link via Travelpayouts tracking
  */
 export function generateTripComLink(params: FlightSearchParams): string {
   const { origin, destination, departDate, returnDate, passengers } = params;
 
-  // Trip.com uses city names in the path
   const originSlug = origin.toLowerCase().replace(/\s+/g, "-");
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
 
-  const url = new URL(`https://www.trip.com/flights/${originSlug}-to-${destSlug}`);
-  url.searchParams.set("departure", departDate);
-  url.searchParams.set("adult", String(passengers));
+  const targetUrl = new URL(`https://www.trip.com/flights/${originSlug}-to-${destSlug}`);
+  targetUrl.searchParams.set("departure", departDate);
+  targetUrl.searchParams.set("adult", String(passengers));
   if (returnDate) {
-    url.searchParams.set("return", returnDate);
+    targetUrl.searchParams.set("return", returnDate);
   }
-  url.searchParams.set("allianceid", MARKER); // Trip.com uses 'allianceid'
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.tripcom.subdomain,
+    PARTNERS.tripcom.promo_id,
+    targetUrl.toString(),
+    "flights"
+  );
 }
 
 /**
- * Generate CheapOair flight search link
+ * Generate CheapOair flight search link via Travelpayouts tracking
  */
 export function generateCheapOairLink(params: FlightSearchParams): string {
   const { origin, destination, departDate, returnDate, passengers } = params;
 
   const tripType = returnDate ? "roundtrip" : "oneway";
-  const url = new URL("https://www.cheapoair.com/flights");
-  url.searchParams.set("origin", origin);
-  url.searchParams.set("destination", destination);
-  url.searchParams.set("departDate", departDate);
-  url.searchParams.set("tripType", tripType);
-  url.searchParams.set("numAdults", String(passengers));
+  const targetUrl = new URL("https://www.cheapoair.com/flights");
+  targetUrl.searchParams.set("origin", origin);
+  targetUrl.searchParams.set("destination", destination);
+  targetUrl.searchParams.set("departDate", departDate);
+  targetUrl.searchParams.set("tripType", tripType);
+  targetUrl.searchParams.set("numAdults", String(passengers));
   if (returnDate) {
-    url.searchParams.set("returnDate", returnDate);
+    targetUrl.searchParams.set("returnDate", returnDate);
   }
-  url.searchParams.set("utm_source", "travelpayouts");
-  url.searchParams.set("utm_medium", "affiliate");
-  url.searchParams.set("utm_campaign", MARKER);
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.cheapoair.subdomain,
+    PARTNERS.cheapoair.promo_id,
+    targetUrl.toString(),
+    "flights"
+  );
 }
 
 /**
- * Generate Expedia flight search link
+ * Generate Expedia flight search link via Travelpayouts tracking
  */
 export function generateExpediaFlightLink(params: FlightSearchParams): string {
   const { origin, destination, departDate, returnDate, passengers } = params;
 
-  // Expedia format: /Flights-Search?leg1=from:NYC,to:PAR,departure:2025-03-15
   let searchPath = `leg1=from:${encodeURIComponent(origin)},to:${encodeURIComponent(destination)},departure:${departDate}`;
 
   if (returnDate) {
@@ -159,10 +204,14 @@ export function generateExpediaFlightLink(params: FlightSearchParams): string {
 
   searchPath += `&passengers=adults:${passengers}`;
 
-  const url = new URL(`https://www.expedia.com/Flights-Search?${searchPath}`);
-  url.searchParams.set("affcid", MARKER); // Expedia uses 'affcid'
+  const targetUrl = `https://www.expedia.com/Flights-Search?${searchPath}`;
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.expedia.subdomain,
+    PARTNERS.expedia.promo_id,
+    targetUrl,
+    "flights"
+  );
 }
 
 /**
@@ -191,8 +240,33 @@ export interface ActivitySearchParams {
 }
 
 /**
+ * Generate WeGoTrip activity search link via Travelpayouts
+ * WeGoTrip specializes in audio guides and self-guided tours
+ * THIS IS THE ONLY ACTIVE PARTNER - use this for testing!
+ */
+export function generateWeGoTripLink(params: ActivitySearchParams): string {
+  const { destination, activityName } = params;
+
+  const searchQuery = activityName
+    ? `${activityName} ${destination}`
+    : destination;
+
+  const targetUrl = new URL("https://www.wegotrip.com/search/");
+  targetUrl.searchParams.set("q", searchQuery);
+
+  // WeGoTrip uses tpm.li short links format
+  // Their promo_id is cG2oKoAL from: https://wegotrip.tpm.li/cG2oKoAL
+  return createTravelpayoutsLink(
+    PARTNERS.wegotrip.subdomain,
+    PARTNERS.wegotrip.promo_id,
+    targetUrl.toString(),
+    "activities"
+  );
+}
+
+/**
  * Generate GetYourGuide activity search link
- * This is the primary activity partner with 8% commission
+ * NOTE: PENDING APPROVAL - clicks won't be tracked until approved
  */
 export function generateGetYourGuideLink(params: ActivitySearchParams): string {
   const { destination, activityName, date } = params;
@@ -201,9 +275,9 @@ export function generateGetYourGuideLink(params: ActivitySearchParams): string {
     ? `${activityName} ${destination}`
     : destination;
 
+  // Direct link without Travelpayouts tracking (pending approval)
   const url = new URL("https://www.getyourguide.com/s/");
   url.searchParams.set("q", searchQuery);
-  url.searchParams.set("partner_id", MARKER); // GetYourGuide uses 'partner_id'
 
   if (date) {
     url.searchParams.set("date_from", date);
@@ -213,7 +287,7 @@ export function generateGetYourGuideLink(params: ActivitySearchParams): string {
 }
 
 /**
- * Generate Klook activity search link
+ * Generate Klook activity search link via Travelpayouts tracking
  */
 export function generateKlookLink(params: ActivitySearchParams): string {
   const { destination, activityName } = params;
@@ -222,40 +296,51 @@ export function generateKlookLink(params: ActivitySearchParams): string {
     ? `${activityName} ${destination}`
     : destination;
 
-  const url = new URL("https://www.klook.com/search/");
-  url.searchParams.set("query", searchQuery);
-  url.searchParams.set("aid", MARKER); // Klook uses 'aid' parameter
+  const targetUrl = new URL("https://www.klook.com/search/");
+  targetUrl.searchParams.set("query", searchQuery);
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.klook.subdomain,
+    PARTNERS.klook.promo_id,
+    targetUrl.toString(),
+    "activities"
+  );
 }
 
 /**
- * Generate Tiqets attraction search link
+ * Generate Tiqets attraction search link via Travelpayouts tracking
  */
 export function generateTiqetsLink(params: ActivitySearchParams): string {
   const { destination, activityName } = params;
 
   const searchQuery = activityName || destination;
 
-  const url = new URL("https://www.tiqets.com/search/");
-  url.searchParams.set("q", searchQuery);
-  url.searchParams.set("partner", MARKER); // Tiqets uses 'partner'
+  const targetUrl = new URL("https://www.tiqets.com/search/");
+  targetUrl.searchParams.set("q", searchQuery);
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.tiqets.subdomain,
+    PARTNERS.tiqets.promo_id,
+    targetUrl.toString(),
+    "activities"
+  );
 }
 
 /**
  * Generate all activity partner links
+ * Note: Only WeGoTrip is currently ACTIVE for tracking
  */
 export function generateAllActivityLinks(params: ActivitySearchParams): {
+  wegotrip: string;
   getyourguide: string;
   klook: string;
   tiqets: string;
 } {
   return {
-    getyourguide: generateGetYourGuideLink(params),
-    klook: generateKlookLink(params),
-    tiqets: generateTiqetsLink(params),
+    wegotrip: generateWeGoTripLink(params), // ACTIVE - use for testing!
+    getyourguide: generateGetYourGuideLink(params), // Pending
+    klook: generateKlookLink(params), // Pending
+    tiqets: generateTiqetsLink(params), // Pending
   };
 }
 
@@ -271,20 +356,23 @@ export interface TransportSearchParams {
 }
 
 /**
- * Generate Omio train/bus search link
+ * Generate Omio train/bus search link via Travelpayouts tracking
  */
 export function generateOmioLink(params: TransportSearchParams): string {
   const { origin, destination, date, passengers = 1 } = params;
 
-  const url = new URL("https://www.omio.com/search");
-  url.searchParams.set("from", origin);
-  url.searchParams.set("to", destination);
-  url.searchParams.set("date", date);
-  url.searchParams.set("passengers", String(passengers));
-  url.searchParams.set("utm_medium", "affiliate");
-  url.searchParams.set("utm_source", MARKER);
+  const targetUrl = new URL("https://www.omio.com/search");
+  targetUrl.searchParams.set("from", origin);
+  targetUrl.searchParams.set("to", destination);
+  targetUrl.searchParams.set("date", date);
+  targetUrl.searchParams.set("passengers", String(passengers));
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.omio.subdomain,
+    PARTNERS.omio.promo_id,
+    targetUrl.toString(),
+    "transport"
+  );
 }
 
 // ============================================================================
@@ -292,25 +380,33 @@ export function generateOmioLink(params: TransportSearchParams): string {
 // ============================================================================
 
 /**
- * Generate Yesim eSIM link for a destination
+ * Generate Yesim eSIM link via Travelpayouts tracking
  */
 export function generateYesimLink(destination: string): string {
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
-  const url = new URL(`https://yesim.app/destinations/${destSlug}`);
-  url.searchParams.set("ref", MARKER);
+  const targetUrl = `https://yesim.app/destinations/${destSlug}`;
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.yesim.subdomain,
+    PARTNERS.yesim.promo_id,
+    targetUrl,
+    "esim"
+  );
 }
 
 /**
- * Generate Saily eSIM link for a destination
+ * Generate Saily eSIM link via Travelpayouts tracking
  */
 export function generateSailyLink(destination: string): string {
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
-  const url = new URL(`https://saily.com/esim/${destSlug}`);
-  url.searchParams.set("ref", MARKER);
+  const targetUrl = `https://saily.com/esim/${destSlug}`;
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.saily.subdomain,
+    PARTNERS.saily.promo_id,
+    targetUrl,
+    "esim"
+  );
 }
 
 /**
@@ -327,79 +423,50 @@ export function generateAllEsimLinks(destination: string): {
 }
 
 /**
- * Generate AirHelp flight compensation link
+ * Generate AirHelp flight compensation link via Travelpayouts tracking
  */
 export function generateAirHelpLink(): string {
-  const url = new URL("https://www.airhelp.com/en/claim/");
-  url.searchParams.set("utm_source", "travelpayouts");
-  url.searchParams.set("utm_medium", "affiliate");
-  url.searchParams.set("utm_campaign", MARKER);
+  const targetUrl = "https://www.airhelp.com/en/claim/";
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    PARTNERS.airhelp.subdomain,
+    PARTNERS.airhelp.promo_id,
+    targetUrl,
+    "compensation"
+  );
 }
 
 // ============================================================================
-// Legacy Compatibility - createDeepLink (now uses simple format)
+// Legacy/Direct Link Creation
 // ============================================================================
 
 /**
- * Create a simple affiliate link for any partner
- * Uses direct URL format instead of Travelpayouts click tracking
+ * Create an affiliate link for any partner
+ * Uses Travelpayouts click tracking format for proper attribution
  *
  * @param partner - Partner key (e.g., "booking", "klook")
  * @param targetUrl - The destination URL on the partner site
  * @param subId - Optional SubID for tracking (appended to marker)
- * @returns Affiliate tracking URL with marker parameter
+ * @returns Travelpayouts tracking URL
  */
 export function createDeepLink(
   partner: PartnerKey,
   targetUrl: string,
   subId?: string
 ): string {
-  // Parse the target URL and add marker parameter
-  const url = new URL(targetUrl);
-  const markerValue = subId ? `${MARKER}_${subId}` : MARKER;
+  const config = PARTNERS[partner];
 
-  // Different partners use different affiliate parameter names
-  switch (partner) {
-    case "booking":
-      url.searchParams.set("aid", markerValue);
-      break;
-    case "agoda":
-      url.searchParams.set("cid", markerValue);
-      break;
-    case "tripcom":
-      url.searchParams.set("allianceid", markerValue);
-      break;
-    case "expedia":
-    case "vrbo":
-      url.searchParams.set("affcid", markerValue);
-      break;
-    case "klook":
-      url.searchParams.set("aid", markerValue);
-      break;
-    case "tiqets":
-      url.searchParams.set("partner", markerValue);
-      break;
-    case "getyourguide":
-      url.searchParams.set("partner_id", markerValue);
-      break;
-    case "omio":
-      url.searchParams.set("utm_source", markerValue);
-      break;
-    case "yesim":
-    case "saily":
-      url.searchParams.set("ref", markerValue);
-      break;
-    case "airhelp":
-    case "cheapoair":
-      url.searchParams.set("utm_campaign", markerValue);
-      break;
-    default:
-      url.searchParams.set("marker", markerValue);
+  // GetYourGuide uses direct affiliate, not Travelpayouts
+  if (partner === "getyourguide") {
+    return targetUrl; // No tracking for GYG until partner_id is configured
   }
 
-  return url.toString();
+  return createTravelpayoutsLink(
+    config.subdomain,
+    config.promo_id,
+    targetUrl,
+    subId
+  );
 }
 
 // ============================================================================
