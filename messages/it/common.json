@@ -503,7 +503,26 @@
       "flights": "Voli",
       "hotels": "Hotel",
       "disclaimer": "Prezzi e disponibilità potrebbero variare. Clicca per confrontare su ogni piattaforma."
-    }
+    },
+    "travelers": "viaggiatori",
+    "activitiesAttractions": "Attività e Attrazioni",
+    "trainsBuses": "Treni e Autobus",
+    "flightsNeedOrigin": "Imposta la tua città di partenza per cercare voli",
+    "setOriginCity": "Imposta Città di Partenza",
+    "whereFlying": "Da dove parti?",
+    "enterCityOrAirport": "Inserisci città o aeroporto",
+    "recent": "Recenti:",
+    "searchFlightsTo": "Cerca Voli per {destination}",
+    "externalSiteNote": "Sarai reindirizzato al sito del nostro partner per completare la prenotazione",
+    "bookNow": "Prenota Ora",
+    "dismiss": "Chiudi",
+    "tripConfirmedTitle": "Il tuo viaggio è confermato!",
+    "tripConfirmedSubtitle": "Non dimenticare questi elementi essenziali per il viaggio",
+    "esimTitle": "Resta Connesso",
+    "esimDescription": "Ottieni un piano dati eSIM per la tua destinazione. Funziona in oltre 150 paesi.",
+    "flightIssuesTitle": "Problemi con il Volo?",
+    "flightIssuesDescription": "Volo in ritardo o cancellato? Potresti avere diritto a un risarcimento fino a 700€.",
+    "checkAirHelp": "Verifica Risarcimento"
   },
   "destination": {
     "back": "Indietro",

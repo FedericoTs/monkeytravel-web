@@ -503,7 +503,26 @@
       "flights": "Vuelos",
       "hotels": "Hoteles",
       "disclaimer": "Los precios y disponibilidad pueden variar. Haz clic para comparar en cada plataforma."
-    }
+    },
+    "travelers": "viajeros",
+    "activitiesAttractions": "Actividades y Atracciones",
+    "trainsBuses": "Trenes y Autobuses",
+    "flightsNeedOrigin": "Configura tu ciudad de salida para buscar vuelos",
+    "setOriginCity": "Configurar Ciudad de Salida",
+    "whereFlying": "¿Desde dónde vuelas?",
+    "enterCityOrAirport": "Introduce ciudad o aeropuerto",
+    "recent": "Recientes:",
+    "searchFlightsTo": "Buscar Vuelos a {destination}",
+    "externalSiteNote": "Serás redirigido al sitio de nuestro partner para completar tu reserva",
+    "bookNow": "Reservar Ahora",
+    "dismiss": "Cerrar",
+    "tripConfirmedTitle": "¡Tu viaje está confirmado!",
+    "tripConfirmedSubtitle": "No olvides estos elementos esenciales para tu viaje",
+    "esimTitle": "Mantente Conectado",
+    "esimDescription": "Obtén un plan de datos eSIM para tu destino. Funciona en más de 150 países.",
+    "flightIssuesTitle": "¿Problemas con el Vuelo?",
+    "flightIssuesDescription": "¿Vuelo retrasado o cancelado? Podrías tener derecho a hasta 700€ de compensación.",
+    "checkAirHelp": "Verificar Compensación"
   },
   "destination": {
     "back": "Volver",

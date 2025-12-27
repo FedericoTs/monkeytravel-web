@@ -503,7 +503,26 @@
       "flights": "Flights",
       "hotels": "Hotels",
       "disclaimer": "Prices and availability may vary. Click to compare on each platform."
-    }
+    },
+    "travelers": "travelers",
+    "activitiesAttractions": "Activities & Attractions",
+    "trainsBuses": "Trains & Buses",
+    "flightsNeedOrigin": "Set your departure city to search flights",
+    "setOriginCity": "Set Departure City",
+    "whereFlying": "Where are you flying from?",
+    "enterCityOrAirport": "Enter city or airport",
+    "recent": "Recent:",
+    "searchFlightsTo": "Search Flights to {destination}",
+    "externalSiteNote": "You'll be redirected to our partner site to complete your booking",
+    "bookNow": "Book Now",
+    "dismiss": "Dismiss",
+    "tripConfirmedTitle": "Your trip is confirmed!",
+    "tripConfirmedSubtitle": "Don't forget these travel essentials",
+    "esimTitle": "Stay Connected",
+    "esimDescription": "Get an eSIM data plan for your destination. Works in 150+ countries.",
+    "flightIssuesTitle": "Flight Issues?",
+    "flightIssuesDescription": "Delayed or cancelled flight? You may be entitled to up to $700 compensation.",
+    "checkAirHelp": "Check Compensation"
   },
   "destination": {
     "back": "Back",
