@@ -1439,27 +1439,6 @@ export default function TripDetailClient({
           </div>
         </div>
 
-        {/* Affiliate Booking Panel - Flights, Hotels, Activities */}
-        {useEnhancedBooking ? (
-          <EnhancedBookingPanel
-            tripId={trip.id}
-            destination={destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-            travelers={collaboratorCount || 2}
-            className="mb-8"
-          />
-        ) : (
-          <BookingPanel
-            tripId={trip.id}
-            destination={destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-            travelers={collaboratorCount || 2}
-            className="mb-8"
-          />
-        )}
-
         {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
         <PostConfirmationBanner
           destination={destination}
@@ -1490,6 +1469,28 @@ export default function TripDetailClient({
               disableApiCalls={true}
             />
           </div>
+        )}
+
+        {/* Affiliate Booking Panel - After Map */}
+        {useEnhancedBooking ? (
+          <EnhancedBookingPanel
+            tripId={trip.id}
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            travelers={collaboratorCount || 2}
+            onSetOrigin={() => setIsBookingDrawerOpen(true)}
+            className="mb-8"
+          />
+        ) : (
+          <BookingPanel
+            tripId={trip.id}
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            travelers={collaboratorCount || 2}
+            className="mb-8"
+          />
         )}
 
         {/* Hotel Recommendations - After Map */}

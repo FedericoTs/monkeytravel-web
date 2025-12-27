@@ -280,20 +280,22 @@ export function getTravelerCount(collaboratorCount: number | undefined): number 
  * Determine best activity partner for a destination
  *
  * @param destination - City name
- * @returns "klook" for Asia, "tiqets" for Europe, "klook" for others
+ * @returns "getyourguide" for Europe/Americas, "klook" for Asia
  */
 export function getBestActivityPartner(
   destination: string
-): "klook" | "tiqets" {
+): "getyourguide" | "klook" | "tiqets" {
   const region = getCityRegion(destination);
 
   switch (region) {
     case "asia":
       return "klook"; // Klook has best Asian coverage
     case "europe":
-      return "tiqets"; // Tiqets excels at European museums/attractions
+      return "getyourguide"; // GetYourGuide excels at European tours (8% commission)
+    case "americas":
+      return "getyourguide"; // GetYourGuide has good Americas coverage
     default:
-      return "klook"; // Klook has broader global coverage
+      return "getyourguide"; // GetYourGuide is globally strong with highest commission
   }
 }
 

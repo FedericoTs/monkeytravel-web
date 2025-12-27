@@ -46,6 +46,7 @@ export {
   generateExpediaFlightLink,
   generateAllFlightLinks,
   // Activities
+  generateGetYourGuideLink,
   generateKlookLink,
   generateTiqetsLink,
   generateAllActivityLinks,

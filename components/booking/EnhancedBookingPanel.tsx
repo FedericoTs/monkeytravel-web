@@ -31,6 +31,8 @@ interface EnhancedBookingPanelProps {
   className?: string;
   /** Show expanded partner options or just best picks */
   variant?: "compact" | "expanded";
+  /** Callback when user wants to set their origin city for flights */
+  onSetOrigin?: () => void;
 }
 
 interface PartnerLinkProps {
@@ -86,6 +88,7 @@ export default function EnhancedBookingPanel({
   travelers = 2,
   className = "",
   variant = "compact",
+  onSetOrigin,
 }: EnhancedBookingPanelProps) {
   const t = useTranslations("common.booking");
   const [isExpanded, setIsExpanded] = useState(variant === "expanded");
@@ -244,7 +247,7 @@ export default function EnhancedBookingPanel({
               <button
                 onClick={() => {
                   capture("booking_drawer_request", { trip_id: tripId, type: "flights" });
-                  // This should trigger a drawer - parent component handles this
+                  onSetOrigin?.();
                 }}
                 className="mt-2 px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90"
               >
@@ -260,7 +263,15 @@ export default function EnhancedBookingPanel({
             <Ticket className="w-4 h-4 text-slate-600" />
             <span className="text-sm font-medium text-slate-700">{t("activitiesAttractions")}</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <PartnerLink
+              partner="getyourguide"
+              href={links.activities.getyourguide}
+              isPrimary={bestActivity === "getyourguide"}
+              tripId={tripId}
+              destination={destination}
+              category="activities"
+            />
             <PartnerLink
               partner="klook"
               href={links.activities.klook}

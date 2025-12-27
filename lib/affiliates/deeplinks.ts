@@ -2,37 +2,13 @@
  * Travelpayouts Deep Link Generator
  *
  * Generates affiliate deep links for all Travelpayouts partners.
- * Uses the official Travelpayouts click tracking format.
+ * Uses SIMPLE DIRECT LINK FORMAT with ?marker= parameter.
+ *
+ * This format works immediately without Travelpayouts dashboard configuration.
+ * Partners receive tracking via the marker ID appended to URLs.
  */
 
 import { PARTNERS, MARKER, type PartnerKey } from "./partners";
-
-/**
- * Create a Travelpayouts deep link for any partner
- *
- * @param partner - Partner key (e.g., "booking", "klook")
- * @param targetUrl - The destination URL on the partner site
- * @param subId - Optional SubID for tracking (e.g., "hotels", "activities")
- * @returns Affiliate tracking URL
- */
-export function createDeepLink(
-  partner: PartnerKey,
-  targetUrl: string,
-  subId?: string
-): string {
-  const config = PARTNERS[partner];
-  const shmarker = subId ? `${MARKER}.${subId}` : MARKER;
-
-  const params = new URLSearchParams({
-    shmarker,
-    promo_id: config.promo_id,
-    source_type: "customlink",
-    type: "click",
-    custom_url: targetUrl,
-  });
-
-  return `https://${config.subdomain}.travelpayouts.com/click?${params.toString()}`;
-}
 
 // ============================================================================
 // Hotel Links
@@ -48,17 +24,20 @@ export interface HotelSearchParams {
 
 /**
  * Generate Booking.com hotel search link
+ * Uses direct Booking.com URL with aid parameter for tracking
  */
 export function generateBookingLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests, rooms = 1 } = params;
 
-  const targetUrl =
-    `https://www.booking.com/searchresults.html?` +
-    `ss=${encodeURIComponent(destination)}&` +
-    `checkin=${checkIn}&checkout=${checkOut}&` +
-    `group_adults=${guests}&no_rooms=${rooms}`;
+  const url = new URL("https://www.booking.com/searchresults.html");
+  url.searchParams.set("ss", destination);
+  url.searchParams.set("checkin", checkIn);
+  url.searchParams.set("checkout", checkOut);
+  url.searchParams.set("group_adults", String(guests));
+  url.searchParams.set("no_rooms", String(rooms));
+  url.searchParams.set("aid", MARKER); // Booking.com uses 'aid' parameter
 
-  return createDeepLink("booking", targetUrl, "hotels");
+  return url.toString();
 }
 
 /**
@@ -67,13 +46,15 @@ export function generateBookingLink(params: HotelSearchParams): string {
 export function generateAgodaLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests, rooms = 1 } = params;
 
-  const targetUrl =
-    `https://www.agoda.com/search?` +
-    `city=${encodeURIComponent(destination)}&` +
-    `checkIn=${checkIn}&los=${calculateNights(checkIn, checkOut)}&` +
-    `adults=${guests}&rooms=${rooms}`;
+  const url = new URL("https://www.agoda.com/search");
+  url.searchParams.set("city", destination);
+  url.searchParams.set("checkIn", checkIn);
+  url.searchParams.set("los", String(calculateNights(checkIn, checkOut)));
+  url.searchParams.set("adults", String(guests));
+  url.searchParams.set("rooms", String(rooms));
+  url.searchParams.set("cid", MARKER); // Agoda uses 'cid' parameter
 
-  return createDeepLink("agoda", targetUrl, "hotels");
+  return url.toString();
 }
 
 /**
@@ -82,13 +63,14 @@ export function generateAgodaLink(params: HotelSearchParams): string {
 export function generateVrboLink(params: HotelSearchParams): string {
   const { destination, checkIn, checkOut, guests } = params;
 
-  const targetUrl =
-    `https://www.vrbo.com/search?` +
-    `destination=${encodeURIComponent(destination)}&` +
-    `startDate=${checkIn}&endDate=${checkOut}&` +
-    `adults=${guests}`;
+  const url = new URL("https://www.vrbo.com/search");
+  url.searchParams.set("destination", destination);
+  url.searchParams.set("startDate", checkIn);
+  url.searchParams.set("endDate", checkOut);
+  url.searchParams.set("adults", String(guests));
+  url.searchParams.set("affcid", MARKER); // VRBO uses 'affcid' parameter
 
-  return createDeepLink("vrbo", targetUrl, "vacation_rentals");
+  return url.toString();
 }
 
 /**
@@ -128,15 +110,15 @@ export function generateTripComLink(params: FlightSearchParams): string {
   const originSlug = origin.toLowerCase().replace(/\s+/g, "-");
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
 
-  let targetUrl =
-    `https://www.trip.com/flights/${originSlug}-to-${destSlug}?` +
-    `departure=${departDate}&adult=${passengers}`;
-
+  const url = new URL(`https://www.trip.com/flights/${originSlug}-to-${destSlug}`);
+  url.searchParams.set("departure", departDate);
+  url.searchParams.set("adult", String(passengers));
   if (returnDate) {
-    targetUrl += `&return=${returnDate}`;
+    url.searchParams.set("return", returnDate);
   }
+  url.searchParams.set("allianceid", MARKER); // Trip.com uses 'allianceid'
 
-  return createDeepLink("tripcom", targetUrl, "flights");
+  return url.toString();
 }
 
 /**
@@ -146,18 +128,20 @@ export function generateCheapOairLink(params: FlightSearchParams): string {
   const { origin, destination, departDate, returnDate, passengers } = params;
 
   const tripType = returnDate ? "roundtrip" : "oneway";
-  let targetUrl =
-    `https://www.cheapoair.com/flights?` +
-    `origin=${encodeURIComponent(origin)}&` +
-    `destination=${encodeURIComponent(destination)}&` +
-    `departDate=${departDate}&tripType=${tripType}&` +
-    `numAdults=${passengers}`;
-
+  const url = new URL("https://www.cheapoair.com/flights");
+  url.searchParams.set("origin", origin);
+  url.searchParams.set("destination", destination);
+  url.searchParams.set("departDate", departDate);
+  url.searchParams.set("tripType", tripType);
+  url.searchParams.set("numAdults", String(passengers));
   if (returnDate) {
-    targetUrl += `&returnDate=${returnDate}`;
+    url.searchParams.set("returnDate", returnDate);
   }
+  url.searchParams.set("utm_source", "travelpayouts");
+  url.searchParams.set("utm_medium", "affiliate");
+  url.searchParams.set("utm_campaign", MARKER);
 
-  return createDeepLink("cheapoair", targetUrl, "flights");
+  return url.toString();
 }
 
 /**
@@ -167,17 +151,18 @@ export function generateExpediaFlightLink(params: FlightSearchParams): string {
   const { origin, destination, departDate, returnDate, passengers } = params;
 
   // Expedia format: /Flights-Search?leg1=from:NYC,to:PAR,departure:2025-03-15
-  let targetUrl =
-    `https://www.expedia.com/Flights-Search?` +
-    `leg1=from:${encodeURIComponent(origin)},to:${encodeURIComponent(destination)},departure:${departDate}`;
+  let searchPath = `leg1=from:${encodeURIComponent(origin)},to:${encodeURIComponent(destination)},departure:${departDate}`;
 
   if (returnDate) {
-    targetUrl += `&leg2=from:${encodeURIComponent(destination)},to:${encodeURIComponent(origin)},departure:${returnDate}`;
+    searchPath += `&leg2=from:${encodeURIComponent(destination)},to:${encodeURIComponent(origin)},departure:${returnDate}`;
   }
 
-  targetUrl += `&passengers=adults:${passengers}`;
+  searchPath += `&passengers=adults:${passengers}`;
 
-  return createDeepLink("expedia", targetUrl, "flights");
+  const url = new URL(`https://www.expedia.com/Flights-Search?${searchPath}`);
+  url.searchParams.set("affcid", MARKER); // Expedia uses 'affcid'
+
+  return url.toString();
 }
 
 /**
@@ -206,6 +191,28 @@ export interface ActivitySearchParams {
 }
 
 /**
+ * Generate GetYourGuide activity search link
+ * This is the primary activity partner with 8% commission
+ */
+export function generateGetYourGuideLink(params: ActivitySearchParams): string {
+  const { destination, activityName, date } = params;
+
+  const searchQuery = activityName
+    ? `${activityName} ${destination}`
+    : destination;
+
+  const url = new URL("https://www.getyourguide.com/s/");
+  url.searchParams.set("q", searchQuery);
+  url.searchParams.set("partner_id", MARKER); // GetYourGuide uses 'partner_id'
+
+  if (date) {
+    url.searchParams.set("date_from", date);
+  }
+
+  return url.toString();
+}
+
+/**
  * Generate Klook activity search link
  */
 export function generateKlookLink(params: ActivitySearchParams): string {
@@ -215,9 +222,11 @@ export function generateKlookLink(params: ActivitySearchParams): string {
     ? `${activityName} ${destination}`
     : destination;
 
-  const targetUrl = `https://www.klook.com/search/?query=${encodeURIComponent(searchQuery)}`;
+  const url = new URL("https://www.klook.com/search/");
+  url.searchParams.set("query", searchQuery);
+  url.searchParams.set("aid", MARKER); // Klook uses 'aid' parameter
 
-  return createDeepLink("klook", targetUrl, "activities");
+  return url.toString();
 }
 
 /**
@@ -228,19 +237,23 @@ export function generateTiqetsLink(params: ActivitySearchParams): string {
 
   const searchQuery = activityName || destination;
 
-  const targetUrl = `https://www.tiqets.com/search/?q=${encodeURIComponent(searchQuery)}`;
+  const url = new URL("https://www.tiqets.com/search/");
+  url.searchParams.set("q", searchQuery);
+  url.searchParams.set("partner", MARKER); // Tiqets uses 'partner'
 
-  return createDeepLink("tiqets", targetUrl, "activities");
+  return url.toString();
 }
 
 /**
  * Generate all activity partner links
  */
 export function generateAllActivityLinks(params: ActivitySearchParams): {
+  getyourguide: string;
   klook: string;
   tiqets: string;
 } {
   return {
+    getyourguide: generateGetYourGuideLink(params),
     klook: generateKlookLink(params),
     tiqets: generateTiqetsLink(params),
   };
@@ -263,13 +276,15 @@ export interface TransportSearchParams {
 export function generateOmioLink(params: TransportSearchParams): string {
   const { origin, destination, date, passengers = 1 } = params;
 
-  const targetUrl =
-    `https://www.omio.com/search?` +
-    `from=${encodeURIComponent(origin)}&` +
-    `to=${encodeURIComponent(destination)}&` +
-    `date=${date}&passengers=${passengers}`;
+  const url = new URL("https://www.omio.com/search");
+  url.searchParams.set("from", origin);
+  url.searchParams.set("to", destination);
+  url.searchParams.set("date", date);
+  url.searchParams.set("passengers", String(passengers));
+  url.searchParams.set("utm_medium", "affiliate");
+  url.searchParams.set("utm_source", MARKER);
 
-  return createDeepLink("omio", targetUrl, "transport");
+  return url.toString();
 }
 
 // ============================================================================
@@ -281,9 +296,10 @@ export function generateOmioLink(params: TransportSearchParams): string {
  */
 export function generateYesimLink(destination: string): string {
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
-  const targetUrl = `https://yesim.app/destinations/${destSlug}`;
+  const url = new URL(`https://yesim.app/destinations/${destSlug}`);
+  url.searchParams.set("ref", MARKER);
 
-  return createDeepLink("yesim", targetUrl, "esim");
+  return url.toString();
 }
 
 /**
@@ -291,9 +307,10 @@ export function generateYesimLink(destination: string): string {
  */
 export function generateSailyLink(destination: string): string {
   const destSlug = destination.toLowerCase().replace(/\s+/g, "-");
-  const targetUrl = `https://saily.com/esim/${destSlug}`;
+  const url = new URL(`https://saily.com/esim/${destSlug}`);
+  url.searchParams.set("ref", MARKER);
 
-  return createDeepLink("saily", targetUrl, "esim");
+  return url.toString();
 }
 
 /**
@@ -313,8 +330,76 @@ export function generateAllEsimLinks(destination: string): {
  * Generate AirHelp flight compensation link
  */
 export function generateAirHelpLink(): string {
-  const targetUrl = "https://www.airhelp.com/en/claim/";
-  return createDeepLink("airhelp", targetUrl, "compensation");
+  const url = new URL("https://www.airhelp.com/en/claim/");
+  url.searchParams.set("utm_source", "travelpayouts");
+  url.searchParams.set("utm_medium", "affiliate");
+  url.searchParams.set("utm_campaign", MARKER);
+
+  return url.toString();
+}
+
+// ============================================================================
+// Legacy Compatibility - createDeepLink (now uses simple format)
+// ============================================================================
+
+/**
+ * Create a simple affiliate link for any partner
+ * Uses direct URL format instead of Travelpayouts click tracking
+ *
+ * @param partner - Partner key (e.g., "booking", "klook")
+ * @param targetUrl - The destination URL on the partner site
+ * @param subId - Optional SubID for tracking (appended to marker)
+ * @returns Affiliate tracking URL with marker parameter
+ */
+export function createDeepLink(
+  partner: PartnerKey,
+  targetUrl: string,
+  subId?: string
+): string {
+  // Parse the target URL and add marker parameter
+  const url = new URL(targetUrl);
+  const markerValue = subId ? `${MARKER}_${subId}` : MARKER;
+
+  // Different partners use different affiliate parameter names
+  switch (partner) {
+    case "booking":
+      url.searchParams.set("aid", markerValue);
+      break;
+    case "agoda":
+      url.searchParams.set("cid", markerValue);
+      break;
+    case "tripcom":
+      url.searchParams.set("allianceid", markerValue);
+      break;
+    case "expedia":
+    case "vrbo":
+      url.searchParams.set("affcid", markerValue);
+      break;
+    case "klook":
+      url.searchParams.set("aid", markerValue);
+      break;
+    case "tiqets":
+      url.searchParams.set("partner", markerValue);
+      break;
+    case "getyourguide":
+      url.searchParams.set("partner_id", markerValue);
+      break;
+    case "omio":
+      url.searchParams.set("utm_source", markerValue);
+      break;
+    case "yesim":
+    case "saily":
+      url.searchParams.set("ref", markerValue);
+      break;
+    case "airhelp":
+    case "cheapoair":
+      url.searchParams.set("utm_campaign", markerValue);
+      break;
+    default:
+      url.searchParams.set("marker", markerValue);
+  }
+
+  return url.toString();
 }
 
 // ============================================================================
@@ -349,7 +434,7 @@ export interface TripBookingParams {
 export function generateTripBookingLinks(params: TripBookingParams): {
   hotels: { booking: string; agoda: string; vrbo: string };
   flights: { tripcom: string; cheapoair: string; expedia: string } | null;
-  activities: { klook: string; tiqets: string };
+  activities: { getyourguide: string; klook: string; tiqets: string };
   transport: { omio: string };
   services: { yesim: string; saily: string; airhelp: string };
 } {

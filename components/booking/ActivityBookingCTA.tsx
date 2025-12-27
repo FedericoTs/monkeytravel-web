@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Ticket, ExternalLink } from "lucide-react";
 import {
+  generateGetYourGuideLink,
   generateKlookLink,
   generateTiqetsLink,
   getBestActivityPartner,
@@ -15,12 +16,14 @@ interface ActivityBookingCTAProps {
   destination: string;
   tripId: string;
   activityId?: string;
-  /** Show single button or both Klook and Tiqets */
-  variant?: "single" | "dual";
+  /** Show single button or all activity partners */
+  variant?: "single" | "dual" | "triple";
   /** Button size */
   size?: "sm" | "md";
   className?: string;
 }
+
+type ActivityPartner = "getyourguide" | "klook" | "tiqets";
 
 export default function ActivityBookingCTA({
   activityName,
@@ -34,11 +37,12 @@ export default function ActivityBookingCTA({
   const t = useTranslations("common.booking");
 
   // Generate links
+  const getYourGuideLink = generateGetYourGuideLink({ destination, activityName });
   const klookLink = generateKlookLink({ destination, activityName });
   const tiqetsLink = generateTiqetsLink({ destination, activityName });
   const bestPartner = getBestActivityPartner(destination);
 
-  const handleClick = (partner: "klook" | "tiqets", url: string) => {
+  const handleClick = (partner: ActivityPartner, url: string) => {
     capture("activity_booking_click", {
       partner,
       partner_name: PARTNERS[partner].name,
@@ -49,6 +53,17 @@ export default function ActivityBookingCTA({
     });
   };
 
+  const getPartnerLink = (partner: ActivityPartner): string => {
+    switch (partner) {
+      case "getyourguide":
+        return getYourGuideLink;
+      case "klook":
+        return klookLink;
+      case "tiqets":
+        return tiqetsLink;
+    }
+  };
+
   const sizeClasses = {
     sm: "px-2.5 py-1.5 text-xs gap-1",
     md: "px-3 py-2 text-sm gap-1.5",
@@ -56,7 +71,7 @@ export default function ActivityBookingCTA({
 
   // Single button - shows the best partner
   if (variant === "single") {
-    const link = bestPartner === "klook" ? klookLink : tiqetsLink;
+    const link = getPartnerLink(bestPartner);
     const partner = bestPartner;
 
     return (
@@ -80,9 +95,68 @@ export default function ActivityBookingCTA({
     );
   }
 
-  // Dual buttons - show both Klook and Tiqets
+  // Dual buttons - show best partner + one alternative
+  if (variant === "dual") {
+    // For dual, show GetYourGuide and one regional partner (Klook for Asia, Tiqets for Europe)
+    const secondaryPartner: ActivityPartner = bestPartner === "klook" ? "klook" : "getyourguide";
+    const tertiaryPartner: ActivityPartner = bestPartner === "tiqets" ? "tiqets" : "getyourguide";
+
+    // If best is getyourguide, show klook as secondary
+    const showPartners: ActivityPartner[] = bestPartner === "getyourguide"
+      ? ["getyourguide", "klook"]
+      : [bestPartner, "getyourguide"];
+
+    return (
+      <div className={`flex gap-2 ${className}`}>
+        {showPartners.map((partner, index) => (
+          <a
+            key={partner}
+            href={getPartnerLink(partner)}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            onClick={() => handleClick(partner, getPartnerLink(partner))}
+            className={`
+              inline-flex items-center justify-center rounded-lg font-medium
+              transition-colors
+              ${index === 0
+                ? "bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }
+              ${sizeClasses[size]}
+            `}
+          >
+            <span>{PARTNERS[partner].icon}</span>
+            <span>{partner === "getyourguide" ? "GYG" : PARTNERS[partner].name}</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        ))}
+      </div>
+    );
+  }
+
+  // Triple buttons - show all three partners
   return (
     <div className={`flex gap-2 ${className}`}>
+      <a
+        href={getYourGuideLink}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        onClick={() => handleClick("getyourguide", getYourGuideLink)}
+        className={`
+          inline-flex items-center justify-center rounded-lg font-medium
+          transition-colors
+          ${bestPartner === "getyourguide"
+            ? "bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90"
+            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }
+          ${sizeClasses[size]}
+        `}
+      >
+        <span>{PARTNERS.getyourguide.icon}</span>
+        <span>GYG</span>
+        <ExternalLink className="w-3 h-3" />
+      </a>
+
       <a
         href={klookLink}
         target="_blank"

@@ -101,6 +101,16 @@ export const PARTNERS = {
   },
 
   // Activities & Attractions
+  getyourguide: {
+    name: "GetYourGuide",
+    subdomain: "gyg",
+    promo_id: "gyg",
+    category: "activities" as const,
+    baseUrl: "https://www.getyourguide.com",
+    commission: "8%",
+    regions: ["europe", "global"],
+    icon: "🎭",
+  },
   klook: {
     name: "Klook",
     subdomain: "c137",
@@ -214,7 +224,7 @@ export function getFlightPartners(): PartnerKey[] {
  * Get activity partners
  */
 export function getActivityPartners(): PartnerKey[] {
-  return ["klook", "tiqets"];
+  return ["getyourguide", "klook", "tiqets"];
 }
 
 /**

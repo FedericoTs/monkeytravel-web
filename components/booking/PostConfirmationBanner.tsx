@@ -1,9 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { X, Smartphone, Plane, Shield } from "lucide-react";
+import { X, Smartphone, Plane, Shield, Ticket } from "lucide-react";
 import { useState } from "react";
-import { generateYesimLink, generateSailyLink, generateAirHelpLink } from "@/lib/affiliates";
+import {
+  generateYesimLink,
+  generateSailyLink,
+  generateAirHelpLink,
+  generateGetYourGuideLink,
+} from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
 
 interface PostConfirmationBannerProps {
@@ -30,6 +35,7 @@ export default function PostConfirmationBanner({
   const yesimLink = generateYesimLink(destination);
   const sailyLink = generateSailyLink(destination);
   const airHelpLink = generateAirHelpLink();
+  const getYourGuideLink = generateGetYourGuideLink({ destination });
 
   const handleDismiss = () => {
     setIsDismissed(true);
@@ -72,7 +78,25 @@ export default function PostConfirmationBanner({
       </div>
 
       {/* Service Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Activities Card - GetYourGuide */}
+        <div className="bg-white rounded-lg p-3 border border-slate-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Ticket className="w-5 h-5 text-purple-600" />
+            <span className="font-medium text-slate-900">{t("activitiesTitle")}</span>
+          </div>
+          <p className="text-sm text-slate-600 mb-3">{t("activitiesDescription")}</p>
+          <a
+            href={getYourGuideLink}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            onClick={() => handleServiceClick("getyourguide", getYourGuideLink)}
+            className="block text-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            GetYourGuide
+          </a>
+        </div>
+
         {/* eSIM Card */}
         <div className="bg-white rounded-lg p-3 border border-slate-200">
           <div className="flex items-center gap-2 mb-2">
