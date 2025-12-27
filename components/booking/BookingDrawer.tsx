@@ -143,15 +143,15 @@ export default function BookingDrawer({
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 shadow-xl animate-in slide-in-from-bottom duration-300">
+      {/* Drawer - positioned above bottom nav on mobile */}
+      <div className="fixed left-0 right-0 bg-white rounded-t-2xl z-[60] shadow-xl animate-in slide-in-from-bottom duration-300 bottom-20 sm:bottom-0">
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
         </div>
 
         {/* Content */}
-        <div className="px-4 pb-6 max-h-[80vh] overflow-y-auto">
+        <div className="px-4 pb-6 pb-safe max-h-[60vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
