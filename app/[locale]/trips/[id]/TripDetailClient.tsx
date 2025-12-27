@@ -18,7 +18,9 @@ import ShareButton from "@/components/trip/ShareButton";
 import ExportMenu from "@/components/trip/ExportMenu";
 import AIAssistant from "@/components/ai/AIAssistant";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
-import { BookingPanel } from "@/components/booking";
+import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner, BookingDrawer } from "@/components/booking";
+import { useFlag } from "@/lib/posthog/hooks";
+import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
@@ -157,6 +159,12 @@ export default function TripDetailClient({
   const router = useRouter();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(trip.status);
+
+  // Booking drawer state (for collecting flight origin)
+  const [isBookingDrawerOpen, setIsBookingDrawerOpen] = useState(false);
+
+  // Feature flag for enhanced booking panel
+  const { enabled: useEnhancedBooking } = useFlag(FLAG_ENHANCED_BOOKING);
 
   // Version counter to force re-render after AI updates
   const [itineraryVersion, setItineraryVersion] = useState(0);
@@ -1432,13 +1440,43 @@ export default function TripDetailClient({
         </div>
 
         {/* Affiliate Booking Panel - Flights, Hotels, Activities */}
-        <BookingPanel
+        {useEnhancedBooking ? (
+          <EnhancedBookingPanel
+            tripId={trip.id}
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            travelers={collaboratorCount || 2}
+            className="mb-8"
+          />
+        ) : (
+          <BookingPanel
+            tripId={trip.id}
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            travelers={collaboratorCount || 2}
+            className="mb-8"
+          />
+        )}
+
+        {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
+        <PostConfirmationBanner
+          destination={destination}
           tripId={trip.id}
+          tripStatus={currentStatus as "planning" | "confirmed" | "active" | "completed"}
+          className="mb-8"
+        />
+
+        {/* Booking Drawer - Flight origin collection */}
+        <BookingDrawer
+          isOpen={isBookingDrawerOpen}
+          onClose={() => setIsBookingDrawerOpen(false)}
           destination={destination}
           startDate={trip.startDate}
           endDate={trip.endDate}
-          travelers={2}
-          className="mb-8"
+          travelers={collaboratorCount || 2}
+          tripId={trip.id}
         />
 
         {/* Interactive Map - First */}

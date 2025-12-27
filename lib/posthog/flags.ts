@@ -99,6 +99,13 @@ export const FLAG_ENHANCED_ANALYTICS = "enhanced-analytics";
  */
 export const FLAG_PREMIUM_TEMPLATES = "premium-templates";
 
+/**
+ * Enhanced Booking Panel
+ * Show Travelpayouts partners (Booking.com, Trip.com, Klook, etc.)
+ * instead of original affiliates (Aviasales, Hotellook)
+ */
+export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -119,6 +126,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_SESSION_REPLAY]: false,
   [FLAG_ENHANCED_ANALYTICS]: true,
   [FLAG_PREMIUM_TEMPLATES]: false,
+  [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
 };
 
 /**
