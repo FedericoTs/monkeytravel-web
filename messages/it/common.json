@@ -396,6 +396,16 @@
     "confirmTripDescription": "Una volta confermato, avrai un conto alla rovescia fino alla partenza e accesso alla tua lista di preparativi."
   },
   "booking": {
+    "bookYourTrip": "Prenota il Tuo Viaggio",
+    "bookFlight": "Prenota Voli",
+    "bookHotel": "Prenota Hotel",
+    "bookCar": "Noleggia Auto",
+    "bookActivity": "Prenota Attività",
+    "bookTrain": "Prenota Treno/Bus",
+    "bookTransfer": "Prenota Transfer",
+    "affiliateDisclosure": "Riceviamo una piccola commissione quando prenoti tramite i nostri link, senza costi aggiuntivi per te.",
+    "affiliateShort": "Link affiliato",
+    "poweredBy": "Powered by Travelpayouts",
     "hotels": {
       "findHotelsIn": "Cerca Hotel a {destination}",
       "night": "notte",

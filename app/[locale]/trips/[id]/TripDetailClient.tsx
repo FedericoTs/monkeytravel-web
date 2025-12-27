@@ -18,6 +18,7 @@ import ShareButton from "@/components/trip/ShareButton";
 import ExportMenu from "@/components/trip/ExportMenu";
 import AIAssistant from "@/components/ai/AIAssistant";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
+import { BookingPanel } from "@/components/booking";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
@@ -1430,10 +1431,15 @@ export default function TripDetailClient({
           </div>
         </div>
 
-        {/* Booking Links - Flights & Hotels (commented out for now) */}
-        {/* {trip.meta?.booking_links && (
-          <TripBookingLinks bookingLinks={trip.meta.booking_links} />
-        )} */}
+        {/* Affiliate Booking Panel - Flights, Hotels, Activities */}
+        <BookingPanel
+          tripId={trip.id}
+          destination={destination}
+          startDate={trip.startDate}
+          endDate={trip.endDate}
+          travelers={2}
+          className="mb-8"
+        />
 
         {/* Interactive Map - First */}
         {showMap && displayItinerary.length > 0 && (

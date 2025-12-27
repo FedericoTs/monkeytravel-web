@@ -396,6 +396,16 @@
     "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
   },
   "booking": {
+    "bookYourTrip": "Book Your Trip",
+    "bookFlight": "Book Flights",
+    "bookHotel": "Book Hotels",
+    "bookCar": "Rent a Car",
+    "bookActivity": "Book Activities",
+    "bookTrain": "Book Train/Bus",
+    "bookTransfer": "Book Transfer",
+    "affiliateDisclosure": "We earn a small commission when you book through our links, at no extra cost to you.",
+    "affiliateShort": "Affiliate link",
+    "poweredBy": "Powered by Travelpayouts",
     "hotels": {
       "findHotelsIn": "Find Hotels in {destination}",
       "night": "night",
