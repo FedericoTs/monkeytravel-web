@@ -433,8 +433,8 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
           "location": "Neighborhood name",
           "address": "Full street address",
           "coordinates": {
-            "lat": 48.8584,
-            "lng": 2.2945
+            "lat": 48.858370,
+            "lng": 2.294481
           },
           "official_website": "https://www.example-museum.com",
           "estimated_cost": {
@@ -473,7 +473,7 @@ Rules:
 4. Use REAL place names that exist on Google Maps
 5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
 6. Activities should flow logically through each day
-7. EVERY activity MUST have valid coordinates (lat/lng) - this is critical for map display`;
+7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display`;
 }
 
 /**
@@ -779,8 +779,8 @@ ${existingActivityNames.join(", ")}
   "location": "Neighborhood or area name",
   "address": "Full street address",
   "coordinates": {
-    "lat": 48.8584,
-    "lng": 2.2945
+    "lat": 48.858370,
+    "lng": 2.294481
   },
   "official_website": null,
   "estimated_cost": {
@@ -1137,8 +1137,8 @@ Return an array of days:
         "location": "Neighborhood",
         "address": "Full street address",
         "coordinates": {
-          "lat": 48.8584,
-          "lng": 2.2945
+          "lat": 48.858370,
+          "lng": 2.294481
         },
         "official_website": null,
         "estimated_cost": {
@@ -1157,7 +1157,8 @@ Rules:
 1. Return ONLY valid JSON array, no markdown
 2. Each day should have 3-5 activities based on ${params.pace} pace
 3. Avoid ALL places already visited
-4. Dates increment from ${generationStartDate}`;
+4. Use PRECISE coordinates with 6 decimal places (e.g., 48.858370) for exact locations
+5. Dates increment from ${generationStartDate}`;
 
   // Fetch continue generation prompt from database (with caching and fallback)
   const continueSystemPrompt = await getPrompt("continue_generation");

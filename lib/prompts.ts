@@ -17,10 +17,10 @@ export const DEFAULT_PROMPTS = {
 ## CRITICAL Rules
 1. **Real Places Only**: All locations MUST be real and verifiable on Google Maps. Never invent places.
 2. **Full Addresses**: Include complete street addresses for every activity (e.g., "123 Main Street, City, Country").
-3. **GPS Coordinates MANDATORY**: You MUST include accurate latitude/longitude for EVERY activity.
-   - Format: "coordinates": {"lat": 48.8584, "lng": 2.2945}
-   - Coordinates must be real and match the address. Without coordinates, the trip cannot be displayed on a map.
-   - If you don't know exact coordinates, use approximate coordinates for the neighborhood.
+3. **GPS Coordinates MANDATORY**: You MUST include PRECISE latitude/longitude for EVERY activity.
+   - Format: "coordinates": {"lat": 48.858370, "lng": 2.294481} (6 decimal places for accuracy)
+   - Coordinates must be EXACT and match the specific location. Without precise coordinates, pins appear in wrong locations on the map.
+   - Use the actual building/entrance coordinates, NOT approximate neighborhood or city center values.
 4. **Official Websites**: STRONGLY ENCOURAGED for major attractions, museums, restaurants, and hotels. Include the verified official website URL (e.g., "https://www.louvre.fr", "https://www.eiffeltower.paris"). Use null only for small local businesses or street vendors where no website exists. Well-known places almost always have websites - include them!
 5. **Budget**: Budget <$100/day, Balanced $100-250/day, Premium $250+/day.
 6. **Geographic Efficiency**: Group nearby activities, minimize backtracking.

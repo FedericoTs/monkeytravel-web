@@ -615,6 +615,12 @@ export default function NewTripPage() {
       // Clear draft on successful save
       clearDraft();
 
+      // Prevent ProfileCompletionModal from showing after trip creation
+      // Users just completed a complex flow, don't interrupt with another modal
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("profile_modal_shown", "true");
+      }
+
       // Show sharing prompt instead of immediate redirect (critical for virality)
       setSavedTripId(trip.id);
       setShowShareAfterSaveModal(true);

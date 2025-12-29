@@ -1,21 +1,131 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
 
 /**
- * Activity Image API - Uses FREE Pexels API
+ * Activity Image API - Uses Google Places API for REAL photos
+ *
+ * Priority:
+ * 1. Check cache (30 days)
+ * 2. Google Places API for real location photos
+ * 3. Fall back to curated images if API fails
  *
  * GET /api/images/activity?name=...&type=...&destination=...
  * Returns a relevant image URL for an activity
  */
 
-const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
-// In-memory cache (per-instance)
+// Database cache duration: 30 days for place photos
+const DB_CACHE_DURATION_DAYS = 30;
+
+// In-memory cache (per-instance, for speed)
 const imageCache = new Map<string, { url: string; timestamp: number }>();
-const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days - images rarely change
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in-memory
 
-// Curated images by activity type - high-quality Pexels URLs
+/**
+ * Generate cache key hash for an activity
+ */
+function generateCacheKey(name: string, destination: string): string {
+  const normalized = `${name}|${destination}`.toLowerCase().trim();
+  return crypto.createHash("md5").update(normalized).digest("hex");
+}
+
+/**
+ * Check database cache for existing image
+ */
+async function getFromDbCache(cacheKey: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("google_places_cache")
+      .select("data")
+      .eq("place_id", `activity_img_${cacheKey}`)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (error || !data) return null;
+    return (data.data as { imageUrl?: string })?.imageUrl || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save image URL to database cache
+ */
+async function saveToDbCache(cacheKey: string, imageUrl: string): Promise<void> {
+  try {
+    const expiresAt = new Date(Date.now() + DB_CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
+
+    await supabase.from("google_places_cache").upsert(
+      {
+        place_id: `activity_img_${cacheKey}`,
+        cache_type: "activity_image",
+        data: { imageUrl },
+        request_hash: cacheKey,
+        cached_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+        hit_count: 0,
+        last_accessed_at: new Date().toISOString(),
+      },
+      { onConflict: "place_id" }
+    );
+  } catch (error) {
+    console.error("[Activity Images] Cache save error:", error);
+  }
+}
+
+/**
+ * Fetch image from Google Places API
+ */
+async function fetchFromGooglePlaces(query: string): Promise<string | null> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.warn("[Activity Images] GOOGLE_PLACES_API_KEY not configured");
+    return null;
+  }
+
+  try {
+    // Use Text Search to find the place
+    const searchResponse = await fetch(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+          "X-Goog-FieldMask": "places.photos",
+        },
+        body: JSON.stringify({
+          textQuery: query,
+          maxResultCount: 1,
+        }),
+      }
+    );
+
+    if (!searchResponse.ok) {
+      console.error("[Activity Images] Google Places API error:", searchResponse.status);
+      return null;
+    }
+
+    const data = await searchResponse.json();
+    const place = data.places?.[0];
+    const photo = place?.photos?.[0];
+
+    if (!photo?.name) {
+      return null;
+    }
+
+    // Construct the photo URL
+    const photoUrl = `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=400&maxWidthPx=600&key=${GOOGLE_PLACES_API_KEY}`;
+    return photoUrl;
+  } catch (error) {
+    console.error("[Activity Images] Google Places fetch error:", error);
+    return null;
+  }
+}
+
+// Curated fallback images by activity type
 const CURATED_BY_TYPE: Record<string, string[]> = {
   // Food & Drink
   restaurant: [
@@ -111,13 +221,6 @@ const FALLBACK_IMAGES = [
 ];
 
 /**
- * Generate cache key for activity
- */
-function generateCacheKey(name: string, type: string, destination: string): string {
-  return `${name}|${type}|${destination}`.toLowerCase().trim();
-}
-
-/**
  * Get curated image for activity type
  */
 function getCuratedImage(type: string, index: number = 0): string {
@@ -126,48 +229,6 @@ function getCuratedImage(type: string, index: number = 0): string {
     return images[index % images.length];
   }
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
-}
-
-/**
- * Fetch image from Pexels API
- */
-async function fetchFromPexels(query: string): Promise<string | null> {
-  const apiKey = process.env.PEXELS_API_KEY;
-
-  if (!apiKey) {
-    console.warn("[Activity Images] PEXELS_API_KEY not configured");
-    return null;
-  }
-
-  try {
-    const response = await fetch(
-      `${PEXELS_API_URL}?query=${encodeURIComponent(query)}&per_page=3&orientation=landscape`,
-      {
-        headers: {
-          Authorization: apiKey,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.error("[Activity Images] Pexels API error:", response.status);
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (data.photos && data.photos.length > 0) {
-      // Get random from top 3 for variety
-      const randomIndex = Math.floor(Math.random() * Math.min(data.photos.length, 3));
-      const photo = data.photos[randomIndex];
-      return photo.src.medium || photo.src.large || photo.src.original;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("[Activity Images] Pexels fetch error:", error);
-    return null;
-  }
 }
 
 /**
@@ -189,33 +250,42 @@ export async function GET(request: NextRequest) {
     "Cache-Control": "public, s-maxage=172800, stale-while-revalidate=86400", // 48h CDN, 24h stale
   };
 
-  // Check in-memory cache
-  const cacheKey = generateCacheKey(name, type, destination);
-  const cached = imageCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return apiSuccess({ url: cached.url, source: "cache" }, { headers: cacheHeaders });
+  const cacheKey = generateCacheKey(name, destination);
+
+  // 1. Check in-memory cache first (fastest)
+  const memCached = imageCache.get(cacheKey);
+  if (memCached && Date.now() - memCached.timestamp < CACHE_TTL) {
+    return apiSuccess({ url: memCached.url, source: "memory_cache" }, { headers: cacheHeaders });
   }
 
-  // Try Pexels search with activity name + destination
+  // 2. Check database cache (persisted across deployments)
+  const dbCached = await getFromDbCache(cacheKey);
+  if (dbCached) {
+    imageCache.set(cacheKey, { url: dbCached, timestamp: Date.now() });
+    return apiSuccess({ url: dbCached, source: "db_cache" }, { headers: cacheHeaders });
+  }
+
+  // 3. Try Google Places API for real location photos
   if (name && destination) {
-    const pexelsUrl = await fetchFromPexels(`${name} ${destination}`);
-    if (pexelsUrl) {
-      imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
-      return apiSuccess({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
+    const googleUrl = await fetchFromGooglePlaces(`${name} ${destination}`);
+    if (googleUrl) {
+      imageCache.set(cacheKey, { url: googleUrl, timestamp: Date.now() });
+      await saveToDbCache(cacheKey, googleUrl);
+      return apiSuccess({ url: googleUrl, source: "google_places" }, { headers: cacheHeaders });
     }
   }
 
-  // Try Pexels search with just activity name
+  // 4. Try Google Places with just activity name
   if (name) {
-    const pexelsUrl = await fetchFromPexels(name);
-    if (pexelsUrl) {
-      imageCache.set(cacheKey, { url: pexelsUrl, timestamp: Date.now() });
-      return apiSuccess({ url: pexelsUrl, source: "pexels" }, { headers: cacheHeaders });
+    const googleUrl = await fetchFromGooglePlaces(name);
+    if (googleUrl) {
+      imageCache.set(cacheKey, { url: googleUrl, timestamp: Date.now() });
+      await saveToDbCache(cacheKey, googleUrl);
+      return apiSuccess({ url: googleUrl, source: "google_places" }, { headers: cacheHeaders });
     }
   }
 
-  // Fall back to curated image by type
-  // Use a hash of the name to get consistent but varied images
+  // 5. Fall back to curated image by type
   const hashIndex = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const curatedUrl = getCuratedImage(type, hashIndex);
 
@@ -240,35 +310,46 @@ export async function POST(request: NextRequest) {
 
     const images: Record<string, string> = {};
 
-    // Process activities in parallel (max 5 concurrent for rate limiting)
-    const batchSize = 5;
+    // Process activities in parallel (max 3 concurrent for Google API rate limiting)
+    const batchSize = 3;
     for (let i = 0; i < activities.length; i += batchSize) {
       const batch = activities.slice(i, i + batchSize);
 
       await Promise.all(
         batch.map(async (activity: { name: string; type: string }) => {
-          const cacheKey = generateCacheKey(activity.name, activity.type, destination || "");
+          const cacheKey = generateCacheKey(activity.name, destination || "");
 
-          // Check cache first
-          const cached = imageCache.get(cacheKey);
-          if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-            images[activity.name] = cached.url;
+          // 1. Check in-memory cache
+          const memCached = imageCache.get(cacheKey);
+          if (memCached && Date.now() - memCached.timestamp < CACHE_TTL) {
+            images[activity.name] = memCached.url;
             return;
           }
 
-          // Try Pexels
-          let url: string | null = null;
-          if (destination) {
-            url = await fetchFromPexels(`${activity.name} ${destination}`);
-          }
-          if (!url) {
-            url = await fetchFromPexels(activity.name);
+          // 2. Check database cache
+          const dbCached = await getFromDbCache(cacheKey);
+          if (dbCached) {
+            images[activity.name] = dbCached;
+            imageCache.set(cacheKey, { url: dbCached, timestamp: Date.now() });
+            return;
           }
 
-          // Fall back to curated
+          // 3. Try Google Places API
+          let url: string | null = null;
+          if (destination) {
+            url = await fetchFromGooglePlaces(`${activity.name} ${destination}`);
+          }
+          if (!url) {
+            url = await fetchFromGooglePlaces(activity.name);
+          }
+
+          // 4. Fall back to curated if Google fails
           if (!url) {
             const hashIndex = activity.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
             url = getCuratedImage(activity.type, hashIndex);
+          } else {
+            // Only cache Google results to DB (not curated)
+            await saveToDbCache(cacheKey, url);
           }
 
           images[activity.name] = url;
