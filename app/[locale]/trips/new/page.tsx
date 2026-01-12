@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
@@ -59,44 +60,31 @@ const VIBE_TO_INTERESTS: Record<string, string[]> = {
   urban: ["nightlife", "shopping", "art"],
 };
 
-const BUDGET_TIERS = [
-  {
-    id: "budget" as const,
-    label: "Budget",
-    description: "Free attractions, street food, public transport",
-    range: "< $100/day",
+// Budget tier styling - labels/descriptions come from translations
+const BUDGET_TIER_STYLES = {
+  budget: {
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-500",
   },
-  {
-    id: "balanced" as const,
-    label: "Balanced",
-    description: "Mix of experiences, local restaurants, some tours",
-    range: "$100-250/day",
+  balanced: {
     color: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-500",
   },
-  {
-    id: "premium" as const,
-    label: "Premium",
-    description: "Skip-the-line, fine dining, private tours",
-    range: "$250+/day",
+  premium: {
     color: "text-amber-600",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-500",
   },
-];
+} as const;
 
-const PACE_OPTIONS = [
-  { id: "relaxed" as const, label: "Relaxed", description: "2-3 activities/day" },
-  { id: "moderate" as const, label: "Moderate", description: "3-4 activities/day" },
-  { id: "active" as const, label: "Active", description: "5+ activities/day" },
-];
+const BUDGET_TIER_IDS = ["budget", "balanced", "premium"] as const;
+const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
 export default function NewTripPage() {
   const router = useRouter();
+  const t = useTranslations("trips");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -1295,48 +1283,51 @@ export default function NewTripPage() {
 
             {/* Budget */}
             <div>
-              <div className="text-sm font-medium text-slate-700 mb-3">Budget preference</div>
+              <div className="text-sm font-medium text-slate-700 mb-3">{t("budget.title")}</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {BUDGET_TIERS.map((tier) => (
-                  <button
-                    key={tier.id}
-                    onClick={() => setBudgetTier(tier.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      budgetTier === tier.id
-                        ? `${tier.borderColor} ${tier.bgColor}`
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between sm:block">
-                      <div>
-                        <div className={`font-semibold ${tier.color}`}>{tier.label}</div>
-                        <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 hidden sm:block">{tier.description}</div>
+                {BUDGET_TIER_IDS.map((tierId) => {
+                  const styles = BUDGET_TIER_STYLES[tierId];
+                  return (
+                    <button
+                      key={tierId}
+                      onClick={() => setBudgetTier(tierId)}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        budgetTier === tierId
+                          ? `${styles.borderColor} ${styles.bgColor}`
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between sm:block">
+                        <div>
+                          <div className={`font-semibold ${styles.color}`}>{t(`budget.${tierId}.label`)}</div>
+                          <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 hidden sm:block">{t(`budget.${tierId}.description`)}</div>
+                        </div>
+                        <div className="text-sm text-slate-600 sm:hidden">{t(`budget.${tierId}.range`)}</div>
                       </div>
-                      <div className="text-sm text-slate-600 sm:hidden">{tier.range}</div>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1 hidden sm:block">{tier.range}</div>
-                  </button>
-                ))}
+                      <div className="text-xs text-slate-500 mt-1 hidden sm:block">{t(`budget.${tierId}.range`)}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Pace */}
             <div>
-              <div className="text-sm font-medium text-slate-700 mb-3">Travel pace</div>
+              <div className="text-sm font-medium text-slate-700 mb-3">{t("pace.title")}</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {PACE_OPTIONS.map((option) => (
+                {PACE_OPTION_IDS.map((paceId) => (
                   <button
-                    key={option.id}
-                    onClick={() => setPace(option.id)}
+                    key={paceId}
+                    onClick={() => setPace(paceId)}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      pace === option.id
+                      pace === paceId
                         ? "border-[var(--primary)] bg-[var(--primary)]/5"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="flex items-center justify-between sm:block">
-                      <div className="font-semibold text-slate-900">{option.label}</div>
-                      <div className="text-xs text-slate-500 sm:mt-1">{option.description}</div>
+                      <div className="font-semibold text-slate-900">{t(`pace.${paceId}.label`)}</div>
+                      <div className="text-xs text-slate-500 sm:mt-1">{t(`pace.${paceId}.description`)}</div>
                     </div>
                   </button>
                 ))}
@@ -1346,12 +1337,12 @@ export default function NewTripPage() {
             {/* Special Requirements */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Special requirements (optional)
+                {t("requirements.title")} <span className="font-normal text-slate-400">({t("requirements.hint").split(" - ")[0]})</span>
               </label>
               <textarea
                 value={requirements}
                 onChange={(e) => setRequirements(e.target.value)}
-                placeholder="e.g., wheelchair accessible, kid-friendly, vegetarian restaurants..."
+                placeholder={t("requirements.placeholder")}
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none"
               />

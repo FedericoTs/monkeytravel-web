@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/lib/i18n/routing";
+import { useLocale } from "next-intl";
 import Image from "next/image";
 
 function ForgotPasswordForm() {
@@ -12,6 +13,16 @@ function ForgotPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
+  const locale = useLocale();
+
+  // Helper to get locale-prefixed URL for email redirects
+  const getLocaleUrl = (path: string) => {
+    const baseUrl = window.location.origin;
+    if (locale === "en") {
+      return `${baseUrl}${path}`;
+    }
+    return `${baseUrl}/${locale}${path}`;
+  };
 
   // Check for error params from auth callback
   useEffect(() => {
@@ -37,7 +48,7 @@ function ForgotPasswordForm() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+        redirectTo: `${window.location.origin}/auth/callback?type=recovery&locale=${locale}`,
       }
     );
 

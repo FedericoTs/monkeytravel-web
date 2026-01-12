@@ -11,6 +11,15 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") ?? "/trips";
   const fromOnboarding = searchParams.get("from_onboarding") === "true";
   const referralCode = searchParams.get("ref");
+  const locale = searchParams.get("locale") || "en";
+
+  // Helper to build locale-prefixed URLs
+  const getLocalePath = (path: string) => {
+    if (locale === "en") {
+      return path;
+    }
+    return `/${locale}${path}`;
+  };
 
   const supabase = await createClient();
 
@@ -25,7 +34,7 @@ export async function GET(request: Request) {
       // SPECIAL CASE: Password recovery - redirect to reset password page
       // The user is now authenticated with a session, so they can set a new password
       if (type === "recovery") {
-        return NextResponse.redirect(`${origin}/auth/reset-password`);
+        return NextResponse.redirect(`${origin}${getLocalePath("/auth/reset-password")}`);
       }
 
       // Check if user profile exists
@@ -56,22 +65,22 @@ export async function GET(request: Request) {
         // Check welcome status first (new flow)
         if (!existingProfile.welcome_completed) {
           // New user needs to see welcome page first - preserve intended destination
-          return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`);
+          return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`)}`);
         }
 
         if (existingProfile.onboarding_completed) {
           // Welcome and onboarding complete - go to intended destination
           const separator = finalRedirect.includes("?") ? "&" : "?";
-          return NextResponse.redirect(`${origin}${finalRedirect}${separator}auth_event=email_confirmed`);
+          return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
         } else {
           // Welcome done but needs onboarding - preserve destination for after onboarding
           const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`;
-          return NextResponse.redirect(`${origin}${onboardingUrl}`);
+          return NextResponse.redirect(`${origin}${getLocalePath(onboardingUrl)}`);
         }
       }
 
       // Fallback: profile doesn't exist yet (edge case) - go to welcome with destination
-      return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`);
+      return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`)}`);
     }
 
     // Token verification failed
@@ -86,7 +95,7 @@ export async function GET(request: Request) {
       ? `/auth/forgot-password?error=${encodeURIComponent(errorMessage)}`
       : `/auth/login?error=${encodeURIComponent(errorMessage)}`;
 
-    return NextResponse.redirect(`${origin}${redirectPath}`);
+    return NextResponse.redirect(`${origin}${getLocalePath(redirectPath)}`);
   }
 
   // Handle OAuth code exchange
@@ -159,11 +168,12 @@ export async function GET(request: Request) {
         if (fromOnboarding) {
           // User completed onboarding before signup - redirect to complete-profile first
           // to transfer localStorage preferences, then welcome
-          const completeProfileUrl = `/auth/complete-profile?redirect=/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`;
-          return NextResponse.redirect(`${origin}${completeProfileUrl}`);
+          const welcomeUrl = encodeURIComponent(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`);
+          const completeProfileUrl = `/auth/complete-profile?redirect=${welcomeUrl}`;
+          return NextResponse.redirect(`${origin}${getLocalePath(completeProfileUrl)}`);
         } else {
           // New user - redirect to welcome page with original destination preserved
-          return NextResponse.redirect(`${origin}/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`);
+          return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`)}`);
         }
       }
 
@@ -181,10 +191,10 @@ export async function GET(request: Request) {
 
       const separator = next.includes("?") ? "&" : "?";
       const trackingParam = "auth_event=login_google";
-      return NextResponse.redirect(`${origin}${next}${separator}${trackingParam}`);
+      return NextResponse.redirect(`${origin}${getLocalePath(next)}${separator}${trackingParam}`);
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/login?error=Could not authenticate`);
+  return NextResponse.redirect(`${origin}${getLocalePath("/auth/login?error=Could not authenticate")}`);
 }

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripOwnership, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 
@@ -11,6 +11,14 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
     const { id: tripId, activityId } = await context.params;
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+
+    // Verify user has access to this trip (owner or collaborator)
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
 
     const { data: timeline, error } = await supabase
       .from("activity_timelines")

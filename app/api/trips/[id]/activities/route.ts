@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 
@@ -12,8 +12,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Verify trip ownership
-    const { errorResponse: tripError } = await verifyTripOwnership(
+    // Verify user has access to this trip (owner or collaborator)
+    const { errorResponse: tripError } = await verifyTripAccess(
       supabase,
       tripId,
       user.id

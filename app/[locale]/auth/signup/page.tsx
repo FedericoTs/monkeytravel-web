@@ -2,8 +2,9 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter, Link } from "@/lib/i18n/routing";
+import { useLocale } from "next-intl";
 import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
 import { getTrialEndDate } from "@/lib/trial";
@@ -30,10 +31,20 @@ function SignupForm() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
 
   // Get redirect URL and check if coming from onboarding
   const redirectUrl = searchParams.get("redirect") || "/trips/new";
   const fromOnboarding = searchParams.get("from") === "onboarding";
+
+  // Helper to get locale-prefixed URL for OAuth redirects
+  const getLocaleUrl = (path: string) => {
+    const baseUrl = window.location.origin;
+    if (locale === "en") {
+      return `${baseUrl}${path}`;
+    }
+    return `${baseUrl}/${locale}${path}`;
+  };
 
   // Check for localStorage preferences and referral code on mount
   useEffect(() => {
@@ -61,6 +72,9 @@ function SignupForm() {
       ...(hasOnboardingPrefs && { from_onboarding: "true" }),
       ...(referralCode && { ref: referralCode }),
     });
+
+    // Add locale to callback params for locale-aware redirects
+    callbackParams.append("locale", locale);
 
     const supabase = createClient();
     const { error: authError } = await supabase.auth.signInWithOAuth({

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter, Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 
 function ResetPasswordForm() {

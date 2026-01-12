@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote } from "@/types";
@@ -13,6 +13,14 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
     const { id: tripId, activityId } = await context.params;
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+
+    // Verify user has access to this trip (owner or collaborator)
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
 
     // Fetch votes with user info
     const { data: votes, error } = await supabase
@@ -209,6 +217,14 @@ export async function DELETE(request: NextRequest, context: TripActivityRouteCon
     const { id: tripId, activityId } = await context.params;
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+
+    // Verify user has access to this trip (owner or collaborator)
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
 
     // Delete the user's vote
     const { error } = await supabase

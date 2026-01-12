@@ -41,11 +41,12 @@ export default async function ProfilePage() {
     .eq("id", user.id)
     .single();
 
-  // Fetch trip statistics
+  // Fetch trip statistics (excluding archived trips)
   const { data: trips } = await supabase
     .from("trips")
     .select("id, start_date, end_date, status, itinerary")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .or("is_archived.is.null,is_archived.eq.false");
 
   // Fetch beta access status
   const { data: betaAccess } = await supabase

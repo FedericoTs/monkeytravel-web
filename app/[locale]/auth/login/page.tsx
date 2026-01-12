@@ -2,8 +2,9 @@
 
 import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter, Link } from "@/lib/i18n/routing";
+import { useLocale } from "next-intl";
 import Image from "next/image";
 import { trackLogin, setUserId } from "@/lib/analytics";
 import {
@@ -20,8 +21,18 @@ function LoginForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
   const redirect = searchParams.get("redirect") || "/trips";
   const errorParam = searchParams.get("error");
+
+  // Helper to get locale-prefixed URL for OAuth redirects
+  const getLocaleUrl = (path: string) => {
+    const baseUrl = window.location.origin;
+    if (locale === "en") {
+      return `${baseUrl}${path}`;
+    }
+    return `${baseUrl}/${locale}${path}`;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +105,7 @@ function LoginForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${redirect}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${redirect}&locale=${locale}`,
       },
     });
 
