@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";

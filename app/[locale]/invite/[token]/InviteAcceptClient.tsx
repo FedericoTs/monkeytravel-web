@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, Link } from "@/lib/i18n/routing";
+import { useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
@@ -40,6 +41,7 @@ export default function InviteAcceptClient({
   inviter,
 }: InviteAcceptClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
@@ -47,6 +49,16 @@ export default function InviteAcceptClient({
 
   const roleInfo = ROLE_INFO[invite.role];
   const displayInviter = inviter || owner;
+
+  // Helper to get locale-prefixed URL for OAuth redirects
+  const getLocaleUrl = (path: string) => {
+    const baseUrl = window.location.origin;
+    // For default locale (en), no prefix needed
+    if (locale === "en") {
+      return `${baseUrl}${path}`;
+    }
+    return `${baseUrl}/${locale}${path}`;
+  };
 
   // Check authentication status
   useEffect(() => {
@@ -116,7 +128,7 @@ export default function InviteAcceptClient({
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/invite/${invite.token}`,
+          redirectTo: getLocaleUrl(`/invite/${invite.token}`),
         },
       });
 
@@ -141,7 +153,7 @@ export default function InviteAcceptClient({
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/invite/${invite.token}`,
+          emailRedirectTo: getLocaleUrl(`/invite/${invite.token}`),
         },
       });
 
@@ -168,12 +180,12 @@ export default function InviteAcceptClient({
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+          <Link href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             <span className="text-sm font-medium">MonkeyTravel</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -403,9 +415,9 @@ export default function InviteAcceptClient({
               {/* Already have account */}
               <p className="text-center text-sm text-slate-500 pt-2">
                 Already have an account?{" "}
-                <a href="/login" className="text-[var(--primary)] hover:underline font-medium">
+                <Link href="/auth/login" className="text-[var(--primary)] hover:underline font-medium">
                   Sign in
-                </a>
+                </Link>
               </p>
             </div>
           )}

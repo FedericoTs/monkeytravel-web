@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Gift, Sparkles, MapPin, Calendar, Zap, Check, ChevronRight } from "lucide-react";
 
