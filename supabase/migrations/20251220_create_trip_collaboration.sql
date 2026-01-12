@@ -90,29 +90,9 @@ CREATE POLICY "Trip owners can delete collaborators" ON trip_collaborators
 -- =====================================================
 -- Update trips table RLS for collaborator access
 -- =====================================================
--- Note: These policies were applied via Supabase MCP execute_sql
+-- Note: These policies are applied in 20260112_sync_referral_and_collaboration_fields migration
+-- to allow idempotent application (checks if collaborator access already exists)
 
 -- trips_select: Allow collaborators to view trips they're part of
--- DROP POLICY IF EXISTS "trips_select" ON trips;
--- CREATE POLICY "trips_select" ON trips FOR SELECT USING (
---   (user_id = auth.uid())
---   OR (share_token IS NOT NULL)
---   OR (is_template = true AND visibility = 'public')
---   OR EXISTS (
---     SELECT 1 FROM trip_collaborators
---     WHERE trip_collaborators.trip_id = trips.id
---     AND trip_collaborators.user_id = auth.uid()
---   )
--- );
-
 -- trips_update: Allow editors to update trips
--- DROP POLICY IF EXISTS "trips_update_own" ON trips;
--- CREATE POLICY "trips_update" ON trips FOR UPDATE USING (
---   (user_id = auth.uid())
---   OR EXISTS (
---     SELECT 1 FROM trip_collaborators
---     WHERE trip_collaborators.trip_id = trips.id
---     AND trip_collaborators.user_id = auth.uid()
---     AND trip_collaborators.role = 'editor'
---   )
--- );
+-- See: sync_referral_and_collaboration_fields migration for implementation
