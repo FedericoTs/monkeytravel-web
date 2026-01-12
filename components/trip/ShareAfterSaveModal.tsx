@@ -51,8 +51,9 @@ export default function ShareAfterSaveModal({
   tripDays,
   destination,
 }: ShareAfterSaveModalProps) {
-  const t = useTranslations("share");
-  const tButtons = useTranslations("buttons");
+  const t = useTranslations("common");
+  // Helper to access share translations with proper prefix
+  const ts = (key: string, params?: Record<string, string | number>) => t(`share.${key}`, params);
   const [isExiting, setIsExiting] = useState(false);
   const [showDelayed, setShowDelayed] = useState(false);
   const hasTrackedView = useRef(false);
@@ -222,19 +223,19 @@ export default function ShareAfterSaveModal({
                 </motion.div>
               </motion.div>
 
-              <h2 className="text-xl font-bold text-center mb-1">{t("afterSave.tripSaved")}</h2>
+              <h2 className="text-xl font-bold text-center mb-1">{ts("afterSave.tripSaved")}</h2>
               <p className="text-white/80 text-center text-sm">
-                {t("afterSave.daysInDestination", { tripDays, destination })}
+                {ts("afterSave.daysInDestination", { tripDays, destination })}
               </p>
             </div>
 
             {/* Collaboration CTA */}
             <div className="p-6">
               <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
-                {t("afterSave.travelingWithFriends")}
+                {ts("afterSave.travelingWithFriends")}
               </h3>
               <p className="text-slate-500 text-center text-sm mb-6">
-                {t("afterSave.inviteToCollaborate")}
+                {ts("afterSave.inviteToCollaborate")}
               </p>
 
               {/* Benefits */}
@@ -252,10 +253,10 @@ export default function ShareAfterSaveModal({
                     </div>
                     <div>
                       <p className="font-medium text-slate-900 text-sm">
-                        {t(`collaborationBenefits.${benefit.titleKey}.title`)}
+                        {ts(`collaborationBenefits.${benefit.titleKey}.title`)}
                       </p>
                       <p className="text-slate-500 text-xs">
-                        {t(`collaborationBenefits.${benefit.titleKey}.description`)}
+                        {ts(`collaborationBenefits.${benefit.titleKey}.description`)}
                       </p>
                     </div>
                   </motion.div>
@@ -271,7 +272,7 @@ export default function ShareAfterSaveModal({
                   className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors"
                 >
                   <Users className="w-5 h-5" />
-                  {t("afterSave.inviteTripBuddies")}
+                  {ts("afterSave.inviteTripBuddies")}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </motion.button>
 
@@ -279,13 +280,13 @@ export default function ShareAfterSaveModal({
                   onClick={handleSkip}
                   className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl font-medium transition-colors text-sm"
                 >
-                  {t("afterSave.maybeLater")}
+                  {ts("afterSave.maybeLater")}
                 </button>
               </div>
 
               {/* Social proof hint */}
               <p className="text-center text-xs text-slate-400 mt-4">
-                {t("afterSave.collaboratorStats")}
+                {ts("afterSave.collaboratorStats")}
               </p>
             </div>
           </motion.div>
