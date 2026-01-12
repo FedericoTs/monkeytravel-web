@@ -20,6 +20,8 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage, decrementFreeTrips } from "@/lib/early-access";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
+import { fetchActivityImages } from "@/lib/images/activity";
+import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import crypto from "crypto";
@@ -405,8 +407,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch activity images server-side (prevents race condition on client)
+    // This ensures all activities have images before the response is sent
+    if (!cacheHit) {
+      try {
+        await fetchActivityImages(itinerary.days, params.destination);
+        console.log(`[AI Generate] Activity images fetched for ${itinerary.days.length} days`);
+      } catch (imageError) {
+        console.error("[AI Generate] Error fetching activity images:", imageError);
+        // Continue without images - not critical
+      }
+    }
+
+    // Sanitize AI-generated content to prevent XSS
+    const sanitizedItinerary = sanitizeItinerary(itinerary);
+
     const generationTime = Date.now() - startTime;
-    const generatedDays = itinerary.days.length;
+    const generatedDays = sanitizedItinerary.days.length;
     const hasMoreDays = generatedDays < totalDays;
 
     // Calculate cost: Cache hit = $0, Maps Grounding = $0.025, Gemini partial = $0.002, Gemini full = $0.003
@@ -464,7 +481,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({
       success: true,
-      itinerary,
+      itinerary: sanitizedItinerary,
       meta: {
         generationTimeMs: generationTime,
         model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : "gemini-2.5-flash-lite",

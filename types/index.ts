@@ -254,7 +254,9 @@ export interface ActivityTypeConfig {
 
 // ============================================================================
 
-// Trip vibe types (12 options: 8 practical + 4 fantasy/whimsical)
+// Trip vibe types
+// UI shows 6 core vibes: adventure, cultural, foodie, romantic, nature, urban
+// Legacy vibes kept for backwards compatibility with existing trips
 export type TripVibe =
   | "adventure"    // Outdoor activities, hiking, water sports, adrenaline
   | "cultural"     // Museums, heritage sites, local traditions, history

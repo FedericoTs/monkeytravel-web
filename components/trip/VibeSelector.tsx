@@ -12,21 +12,15 @@ interface VibeConfig {
   detailCount: number; // Number of detail items to fetch from translations
 }
 
+// Streamlined to 6 core vibes for cleaner UX (reduced from 12)
+// Removed: wellness (overlap with pace), offbeat (confusing), fantasy vibes (too niche)
 const VIBE_CONFIGS: VibeConfig[] = [
-  // Practical Vibes (8)
   { id: "adventure", emoji: "🏔️", color: "var(--vibe-adventure)", category: "practical", detailCount: 3 },
   { id: "cultural", emoji: "🎭", color: "var(--vibe-cultural)", category: "practical", detailCount: 3 },
   { id: "foodie", emoji: "🍜", color: "var(--vibe-foodie)", category: "practical", detailCount: 3 },
-  { id: "wellness", emoji: "🧘", color: "var(--vibe-wellness)", category: "practical", detailCount: 3 },
   { id: "romantic", emoji: "💕", color: "var(--vibe-romantic)", category: "practical", detailCount: 3 },
-  { id: "urban", emoji: "🌃", color: "var(--vibe-urban)", category: "practical", detailCount: 3 },
   { id: "nature", emoji: "🌲", color: "var(--vibe-nature)", category: "practical", detailCount: 3 },
-  { id: "offbeat", emoji: "🗺️", color: "var(--vibe-offbeat)", category: "practical", detailCount: 3 },
-  // Fantasy/Whimsical Vibes (4)
-  { id: "wonderland", emoji: "🐇", color: "var(--vibe-wonderland)", category: "fantasy", detailCount: 3 },
-  { id: "movie-magic", emoji: "🎬", color: "var(--vibe-movie-magic)", category: "fantasy", detailCount: 3 },
-  { id: "fairytale", emoji: "🏰", color: "var(--vibe-fairytale)", category: "fantasy", detailCount: 3 },
-  { id: "retro", emoji: "🕰️", color: "var(--vibe-retro)", category: "fantasy", detailCount: 3 },
+  { id: "urban", emoji: "🌃", color: "var(--vibe-urban)", category: "practical", detailCount: 3 },
 ];
 
 interface VibeSelectorProps {
@@ -79,9 +73,6 @@ export default function VibeSelector({
     return t("priority.accent");
   };
 
-  const practicalVibes = vibes.filter((v) => v.category === "practical");
-  const fantasyVibes = vibes.filter((v) => v.category === "fantasy");
-
   return (
     <div className="space-y-6">
       {/* Selection Counter */}
@@ -96,53 +87,22 @@ export default function VibeSelector({
         </div>
       </div>
 
-      {/* Practical Vibes Section */}
-      <div>
-        <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">
-          {t("categories.classic")}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {practicalVibes.map((vibe) => (
-            <VibeCard
-              key={vibe.id}
-              vibe={vibe}
-              isSelected={selectedVibes.includes(vibe.id)}
-              selectionOrder={getSelectionOrder(vibe.id)}
-              isDisabled={
-                !selectedVibes.includes(vibe.id) &&
-                selectedVibes.length >= maxVibes
-              }
-              onClick={() => toggleVibe(vibe.id)}
-              getPriorityLabel={getPriorityLabel}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Fantasy Vibes Section */}
-      <div>
-        <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <span>{t("categories.fantasy")}</span>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-[var(--secondary)]/20 text-[var(--secondary-dark)]">
-            {t("categories.unique")}
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {fantasyVibes.map((vibe) => (
-            <VibeCard
-              key={vibe.id}
-              vibe={vibe}
-              isSelected={selectedVibes.includes(vibe.id)}
-              selectionOrder={getSelectionOrder(vibe.id)}
-              isDisabled={
-                !selectedVibes.includes(vibe.id) &&
-                selectedVibes.length >= maxVibes
-              }
-              onClick={() => toggleVibe(vibe.id)}
-              getPriorityLabel={getPriorityLabel}
-            />
-          ))}
-        </div>
+      {/* Vibes Grid - 6 core vibes in a clean 2x3 or 3x2 layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {vibes.map((vibe) => (
+          <VibeCard
+            key={vibe.id}
+            vibe={vibe}
+            isSelected={selectedVibes.includes(vibe.id)}
+            selectionOrder={getSelectionOrder(vibe.id)}
+            isDisabled={
+              !selectedVibes.includes(vibe.id) &&
+              selectedVibes.length >= maxVibes
+            }
+            onClick={() => toggleVibe(vibe.id)}
+            getPriorityLabel={getPriorityLabel}
+          />
+        ))}
       </div>
 
       {/* Selection Summary */}

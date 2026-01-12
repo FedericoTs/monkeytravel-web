@@ -19,12 +19,11 @@ import { buildSeasonalContext } from "@/lib/seasonal";
 import StartOverModal from "@/components/trip/StartOverModal";
 import RegenerateButton from "@/components/trip/RegenerateButton";
 import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
-import PersonalizationStep from "@/components/trip/PersonalizationStep";
 import ShareAfterSaveModal from "@/components/trip/ShareAfterSaveModal";
 import AuthPromptModal from "@/components/ui/AuthPromptModal";
 import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
 import { BetaCodeInput, WaitlistSignup } from "@/components/beta";
-import { useOnboardingPreferences, hasLocalOnboardingPreferences } from "@/hooks/useOnboardingPreferences";
+// Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
@@ -50,20 +49,14 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 
 // Vibe to interests mapping - automatically derives interests from selected vibes
 // This ensures the AI receives relevant interest signals based on vibe selection
+// Streamlined to 6 core vibes for cleaner UX
 const VIBE_TO_INTERESTS: Record<string, string[]> = {
   adventure: ["adventure", "nature", "photography"],
   cultural: ["culture", "history", "art"],
-  foodie: ["food"],
-  wellness: ["relaxation"],
+  foodie: ["food", "culture"],
   romantic: ["relaxation", "photography"],
-  urban: ["nightlife", "shopping", "art"],
   nature: ["nature", "photography", "adventure"],
-  offbeat: ["adventure", "culture"],
-  // Fantasy vibes
-  "time-traveler": ["history", "culture", "art"],
-  "photo-hunter": ["photography", "nature", "art"],
-  "local-life": ["food", "culture"],
-  "night-owl": ["nightlife", "food"],
+  urban: ["nightlife", "shopping", "art"],
 };
 
 const BUDGET_TIERS = [
@@ -116,14 +109,8 @@ export default function NewTripPage() {
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
 
-  // Onboarding preferences - inline in wizard instead of modal
-  const {
-    preferences: onboardingPrefs,
-    isLoaded: onboardingLoaded,
-    isCompleted: onboardingCompleted,
-    savePreferences: saveOnboardingPrefs,
-    completeOnboarding,
-  } = useOnboardingPreferences();
+  // Note: Onboarding/personalization preferences are now managed in profile settings
+  // The AI generation API fetches user preferences from the database instead
 
   // Early access gate
   const {
@@ -164,9 +151,9 @@ export default function NewTripPage() {
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
-  // Dynamic step count: 5 steps for new users (includes personalization), 4 for returning users
-  const needsOnboarding = onboardingLoaded && !onboardingCompleted;
-  const TOTAL_STEPS = needsOnboarding ? 5 : 4;
+  // Fixed 4-step wizard: Destination -> Dates -> Vibes -> Preferences
+  // Personalization moved to profile settings for cleaner onboarding
+  const TOTAL_STEPS = 4;
 
   // Check authentication status and existing trips on mount
   useEffect(() => {
@@ -345,12 +332,8 @@ export default function NewTripPage() {
       case 3:
         return selectedVibes.length > 0; // At least one vibe required
       case 4:
-        // For 5-step flow: step 4 is budget/pace (always valid)
-        // For 4-step flow: step 4 is final (always valid)
+        // Final step: budget/pace (always valid, has defaults)
         return true;
-      case 5:
-        // Personalization step - requires at least one travel style
-        return onboardingPrefs.travelStyles.length > 0;
       default:
         return false;
     }
@@ -369,11 +352,6 @@ export default function NewTripPage() {
   };
 
   const handleGenerate = async () => {
-    // Complete onboarding if we're in step 5 flow
-    if (needsOnboarding && onboardingPrefs.travelStyles.length > 0) {
-      completeOnboarding();
-    }
-
     // Check authentication first - show modal if not logged in
     if (!isAuthenticated) {
       // Save current form state to draft before prompting
@@ -447,42 +425,9 @@ export default function NewTripPage() {
         throw new Error(data.error || "Generation failed");
       }
 
-      // Fetch activity images in parallel (using FREE Pexels API)
-      const itinerary = data.itinerary;
-      try {
-        // Collect all activities
-        const allActivities = itinerary.days.flatMap((day: { activities: { name: string; type: string }[] }) =>
-          day.activities.map((a: { name: string; type: string }) => ({ name: a.name, type: a.type }))
-        );
-
-        // Batch fetch images
-        const imageResponse = await fetch("/api/images/activity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            activities: allActivities,
-            destination: itinerary.destination.name,
-          }),
-        });
-
-        if (imageResponse.ok) {
-          const { images } = await imageResponse.json();
-
-          // Inject image_url into each activity
-          for (const day of itinerary.days) {
-            for (const activity of day.activities) {
-              if (images[activity.name]) {
-                activity.image_url = images[activity.name];
-              }
-            }
-          }
-        }
-      } catch (imageError) {
-        console.error("Failed to fetch activity images:", imageError);
-        // Continue without images - not critical
-      }
-
-      setGeneratedItinerary(itinerary);
+      // Images are now fetched server-side in the API route
+      // The itinerary already has image_url populated on each activity
+      setGeneratedItinerary(data.itinerary);
 
       // Track successful itinerary generation
       const generationTime = Date.now() - performance.now();
@@ -1412,23 +1357,6 @@ export default function NewTripPage() {
               />
             </div>
           </div>
-        )}
-
-        {/* Step 5: Personalization (for new users only) */}
-        {step === 5 && needsOnboarding && (
-          <PersonalizationStep
-            destination={destination}
-            travelStyles={onboardingPrefs.travelStyles}
-            onTravelStylesChange={(styles) => saveOnboardingPrefs({ travelStyles: styles })}
-            dietaryPreferences={onboardingPrefs.dietaryPreferences}
-            onDietaryChange={(prefs) => saveOnboardingPrefs({ dietaryPreferences: prefs })}
-            accessibilityNeeds={onboardingPrefs.accessibilityNeeds}
-            onAccessibilityChange={(needs) => saveOnboardingPrefs({ accessibilityNeeds: needs })}
-            activeHoursStart={onboardingPrefs.activeHoursStart}
-            activeHoursEnd={onboardingPrefs.activeHoursEnd}
-            onActiveHoursStartChange={(hour) => saveOnboardingPrefs({ activeHoursStart: hour })}
-            onActiveHoursEndChange={(hour) => saveOnboardingPrefs({ activeHoursEnd: hour })}
-          />
         )}
 
         {/* Navigation */}
