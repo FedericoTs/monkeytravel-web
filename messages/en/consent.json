@@ -1,0 +1,44 @@
+{
+  "banner": {
+    "title": "We value your privacy",
+    "description": "We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. You can choose which cookies to accept.",
+    "learnMore": "Learn more",
+    "acceptAll": "Accept All",
+    "essentialOnly": "Essential Only",
+    "customize": "Customize",
+    "privacyNote": "For more details, see our",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "settings": {
+    "title": "Cookie Settings",
+    "description": "Manage your cookie preferences. Essential cookies are always enabled as they are necessary for the site to function properly.",
+    "required": "Required",
+    "moreInfo": "For more information about how we use your data, please see our",
+    "privacyPolicy": "Privacy Policy",
+    "acceptAll": "Accept All",
+    "rejectAll": "Essential Only",
+    "saveSettings": "Save Settings",
+    "close": "Close"
+  },
+  "categories": {
+    "essential": {
+      "title": "Essential Cookies",
+      "description": "These cookies are necessary for the website to function and cannot be switched off. They are usually set in response to actions you take such as logging in or setting your privacy preferences."
+    },
+    "analytics": {
+      "title": "Analytics Cookies",
+      "description": "These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our services."
+    },
+    "sessionRecording": {
+      "title": "Session Recording",
+      "description": "These cookies allow us to record your browsing sessions to understand how you use our site. This helps us identify and fix issues, improving your experience."
+    },
+    "marketing": {
+      "title": "Marketing Cookies",
+      "description": "These cookies are used to track visitors across websites and display relevant advertisements. They also help us measure the effectiveness of our marketing campaigns."
+    }
+  },
+  "footer": {
+    "cookieSettings": "Cookie Settings"
+  }
+}

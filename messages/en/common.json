@@ -1567,6 +1567,16 @@
       "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan amazing trips with AI, and I thought you'd love it too.\n\nJoin using my link and we'll both get a FREE AI-generated trip!\n\nHappy travels!"
     }
   },
+  "dataExport": {
+    "title": "Export Your Data",
+    "description": "Download all your personal data in JSON format (GDPR Article 20).",
+    "button": "Export My Data",
+    "downloading": "Preparing export...",
+    "success": "Your data has been exported successfully.",
+    "error": "Failed to export data. Please try again.",
+    "rateLimited": "You can only export your data once per day.",
+    "includes": "Includes: Profile, trips, conversations, preferences"
+  },
   "profile": {
     "title": "Profile",
     "back": "Back",

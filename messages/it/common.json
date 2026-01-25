@@ -1567,6 +1567,16 @@
       "emailBody": "Ciao!\n\nSto usando MonkeyTravel per pianificare viaggi incredibili con l'IA, e ho pensato che ti piacerebbe anche.\n\nUnisciti usando il mio link e entrambi otteniamo un viaggio generato dall'IA GRATIS!\n\nBuon viaggio!"
     }
   },
+  "dataExport": {
+    "title": "Esporta i Tuoi Dati",
+    "description": "Scarica tutti i tuoi dati personali in formato JSON (GDPR Articolo 20).",
+    "button": "Esporta i Miei Dati",
+    "downloading": "Preparazione esportazione...",
+    "success": "I tuoi dati sono stati esportati con successo.",
+    "error": "Errore nell'esportazione dei dati. Riprova.",
+    "rateLimited": "Puoi esportare i tuoi dati solo una volta al giorno.",
+    "includes": "Include: Profilo, viaggi, conversazioni, preferenze"
+  },
   "profile": {
     "title": "Profilo",
     "back": "Indietro",

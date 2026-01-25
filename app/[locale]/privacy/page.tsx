@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default function PrivacyPolicy() {
-  const lastUpdated = 'November 28, 2025';
+  const lastUpdated = 'January 25, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
   return (
@@ -92,71 +92,108 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">5. Third-Party Services</h2>
-              <p className="text-[var(--foreground-muted)] mb-4">Our Service may integrate with third-party services including:</p>
-              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2">
-                <li><strong>Google (Gemini AI):</strong> For generating personalized travel itineraries</li>
-                <li><strong>Supabase:</strong> For authentication and data storage</li>
-                <li><strong>Analytics Providers:</strong> To understand how our Service is used</li>
-              </ul>
-              <p className="text-[var(--foreground-muted)] mt-4">
-                These services have their own privacy policies, and we encourage you to review them.
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">5. Cookies and Tracking Technologies</h2>
+              <p className="text-[var(--foreground-muted)] mb-4">
+                We use cookies and similar tracking technologies to collect and track information about your activity on our Service. You can manage your cookie preferences at any time through our cookie settings banner or by clicking "Cookie Settings" in the footer.
               </p>
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Types of Cookies We Use:</h3>
+              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
+                <li><strong>Essential Cookies:</strong> Required for the Service to function (authentication, session management). These cannot be disabled.</li>
+                <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our Service. Requires your consent.</li>
+                <li><strong>Session Recording:</strong> Records your browsing sessions to help us improve the user experience. Requires your explicit consent.</li>
+                <li><strong>Marketing Cookies:</strong> Used for affiliate tracking and measuring marketing effectiveness. Requires your consent.</li>
+              </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">6. Data Retention</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">6. Third-Party Services</h2>
+              <p className="text-[var(--foreground-muted)] mb-4">Our Service integrates with the following third-party services. Each service has its own privacy policy.</p>
+
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.1 Core Services</h3>
+              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
+                <li><strong>Google (Gemini AI):</strong> For generating personalized travel itineraries. <a href="https://policies.google.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Supabase:</strong> For authentication and data storage (hosted in the EU). <a href="https://supabase.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Vercel:</strong> For hosting and content delivery. <a href="https://vercel.com/legal/privacy-policy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              </ul>
+
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.2 Analytics and Error Tracking</h3>
+              <p className="text-[var(--foreground-muted)] mb-2">These services require your consent (except essential error tracking):</p>
+              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
+                <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. <a href="https://posthog.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Google Analytics 4:</strong> Website analytics and user behavior tracking. <a href="https://policies.google.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Sentry:</strong> Error tracking and performance monitoring. May include session replay if you consent. <a href="https://sentry.io/privacy/" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              </ul>
+
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.3 Affiliate Partners</h3>
+              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2">
+                <li><strong>Travelpayouts:</strong> Travel affiliate program for flight and hotel recommendations. <a href="https://www.travelpayouts.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">7. Data Retention</h2>
+              <p className="text-[var(--foreground-muted)] mb-4">
+                We retain your personal information for as long as your account is active or as needed to provide you services. Specific retention periods:
+              </p>
+              <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
+                <li><strong>Account Data:</strong> Retained until you delete your account</li>
+                <li><strong>Trip Data:</strong> Retained until you delete your account or the specific trip</li>
+                <li><strong>Analytics Data:</strong> Anonymized after 26 months</li>
+                <li><strong>Session Recordings:</strong> Automatically deleted after 30 days</li>
+                <li><strong>Error Logs:</strong> Retained for 90 days for debugging purposes</li>
+              </ul>
               <p className="text-[var(--foreground-muted)]">
-                We retain your personal information for as long as your account is active or as needed to provide you services. You may request deletion of your account and associated data at any time by contacting us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>.
+                You may request deletion of your account and associated data at any time through your profile settings or by contacting us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">7. Your Rights and Choices</h2>
-              <p className="text-[var(--foreground-muted)] mb-4">Depending on your location, you may have the following rights:</p>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">8. Your Rights and Choices (GDPR)</h2>
+              <p className="text-[var(--foreground-muted)] mb-4">Under the General Data Protection Regulation (GDPR) and similar laws, you have the following rights:</p>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2">
-                <li><strong>Access:</strong> Request a copy of your personal data</li>
-                <li><strong>Correction:</strong> Request correction of inaccurate data</li>
-                <li><strong>Deletion:</strong> Request deletion of your personal data</li>
-                <li><strong>Portability:</strong> Request transfer of your data to another service</li>
-                <li><strong>Opt-out:</strong> Opt out of marketing communications</li>
-                <li><strong>Withdraw Consent:</strong> Withdraw consent for data processing</li>
+                <li><strong>Access (Art. 15):</strong> Request a copy of your personal data</li>
+                <li><strong>Correction (Art. 16):</strong> Request correction of inaccurate data</li>
+                <li><strong>Deletion (Art. 17):</strong> Request deletion of your personal data ("Right to be Forgotten")</li>
+                <li><strong>Portability (Art. 20):</strong> Export your data in a machine-readable format via your profile settings</li>
+                <li><strong>Restrict Processing (Art. 18):</strong> Request limitation of data processing</li>
+                <li><strong>Object (Art. 21):</strong> Object to processing based on legitimate interests</li>
+                <li><strong>Withdraw Consent (Art. 7):</strong> Withdraw consent at any time via cookie settings</li>
               </ul>
               <p className="text-[var(--foreground-muted)] mt-4">
-                To exercise these rights, contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>.
+                To exercise these rights, use the "Export My Data" button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>. We will respond within 30 days.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">8. Data Security</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">9. Data Security</h2>
               <p className="text-[var(--foreground-muted)]">
                 We implement appropriate technical and organizational security measures to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">9. Children's Privacy</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">10. Children's Privacy</h2>
               <p className="text-[var(--foreground-muted)]">
                 Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>, and we will delete such information.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">10. International Data Transfers</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">11. International Data Transfers</h2>
               <p className="text-[var(--foreground-muted)]">
                 Your information may be transferred to and processed in countries other than your country of residence. These countries may have different data protection laws. By using our Service, you consent to the transfer of your information to these countries.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">11. Changes to This Privacy Policy</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">12. Changes to This Privacy Policy</h2>
               <p className="text-[var(--foreground-muted)]">
                 We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy Policy periodically for any changes.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">12. Contact Us</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">13. Contact Us</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>

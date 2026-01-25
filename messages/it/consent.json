@@ -1,0 +1,44 @@
+{
+  "banner": {
+    "title": "La tua privacy e importante",
+    "description": "Utilizziamo i cookie per migliorare la tua esperienza di navigazione, analizzare il traffico del sito e personalizzare i contenuti. Puoi scegliere quali cookie accettare.",
+    "learnMore": "Scopri di piu",
+    "acceptAll": "Accetta tutti",
+    "essentialOnly": "Solo essenziali",
+    "customize": "Personalizza",
+    "privacyNote": "Per maggiori dettagli, consulta la nostra",
+    "privacyPolicy": "Informativa sulla Privacy"
+  },
+  "settings": {
+    "title": "Impostazioni cookie",
+    "description": "Gestisci le tue preferenze sui cookie. I cookie essenziali sono sempre abilitati perche necessari per il corretto funzionamento del sito.",
+    "required": "Obbligatorio",
+    "moreInfo": "Per maggiori informazioni su come utilizziamo i tuoi dati, consulta la nostra",
+    "privacyPolicy": "Informativa sulla Privacy",
+    "acceptAll": "Accetta tutti",
+    "rejectAll": "Solo essenziali",
+    "saveSettings": "Salva impostazioni",
+    "close": "Chiudi"
+  },
+  "categories": {
+    "essential": {
+      "title": "Cookie essenziali",
+      "description": "Questi cookie sono necessari per il funzionamento del sito web e non possono essere disattivati. Vengono generalmente impostati in risposta ad azioni come l'accesso o la configurazione delle preferenze sulla privacy."
+    },
+    "analytics": {
+      "title": "Cookie analitici",
+      "description": "Questi cookie ci aiutano a capire come i visitatori interagiscono con il nostro sito web raccogliendo e riportando informazioni in modo anonimo. Questo ci aiuta a migliorare i nostri servizi."
+    },
+    "sessionRecording": {
+      "title": "Registrazione sessioni",
+      "description": "Questi cookie ci permettono di registrare le tue sessioni di navigazione per capire come utilizzi il nostro sito. Questo ci aiuta a identificare e risolvere problemi, migliorando la tua esperienza."
+    },
+    "marketing": {
+      "title": "Cookie di marketing",
+      "description": "Questi cookie vengono utilizzati per tracciare i visitatori su diversi siti web e mostrare annunci pubblicitari pertinenti. Ci aiutano anche a misurare l'efficacia delle nostre campagne di marketing."
+    }
+  },
+  "footer": {
+    "cookieSettings": "Impostazioni cookie"
+  }
+}
