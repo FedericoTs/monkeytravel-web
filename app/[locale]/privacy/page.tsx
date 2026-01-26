@@ -1,13 +1,15 @@
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
   title: 'Privacy Policy - MonkeyTravel',
   description: 'Privacy Policy for MonkeyTravel - Learn how we collect, use, and protect your personal information.',
 };
 
-export default function PrivacyPolicy() {
+export default async function PrivacyPolicy() {
+  const t = await getTranslations('common');
   const lastUpdated = 'January 25, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
@@ -24,7 +26,7 @@ export default function PrivacyPolicy() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Home
+              {t('buttons.back')}
             </Link>
             <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-2">Privacy Policy</h1>
             <p className="text-[var(--foreground-muted)]">Last updated: {lastUpdated}</p>
