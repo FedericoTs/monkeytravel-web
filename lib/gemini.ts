@@ -158,8 +158,12 @@ function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePrefe
 
   // Only include if both values are set and reasonable
   if (activeHoursStart === undefined || activeHoursEnd === undefined) return "";
+  if (!Number.isInteger(activeHoursStart) || !Number.isInteger(activeHoursEnd)) return "";
   if (activeHoursStart < 0 || activeHoursStart > 23) return "";
   if (activeHoursEnd < 0 || activeHoursEnd > 23) return "";
+  // Ensure end is after start with at least a 4-hour window
+  if (activeHoursEnd <= activeHoursStart) return "";
+  if (activeHoursEnd - activeHoursStart < 4) return "";
 
   // Format hours nicely (e.g., 8 -> "8:00 AM", 22 -> "10:00 PM")
   const formatHour = (h: number) => {
@@ -295,7 +299,11 @@ function validateAndFixCoordinates(days: ItineraryDay[], destination: string): I
         !isNaN(activity.coordinates.lat) &&
         !isNaN(activity.coordinates.lng) &&
         activity.coordinates.lat !== 0 &&
-        activity.coordinates.lng !== 0;
+        activity.coordinates.lng !== 0 &&
+        activity.coordinates.lat >= -90 &&
+        activity.coordinates.lat <= 90 &&
+        activity.coordinates.lng >= -180 &&
+        activity.coordinates.lng <= 180;
 
       if (hasValidCoords) {
         return activity;
@@ -690,6 +698,7 @@ export interface RegenerateActivityParams {
     category?: "attraction" | "restaurant" | "activity" | "transport";
     similarTo?: boolean; // If true, generate something similar
   };
+  language?: "en" | "es" | "it";
 }
 
 // Activity regeneration prompt - now loaded from database via getPrompt()
@@ -742,7 +751,9 @@ async function regenerateSingleActivityInternal(
 
   const { activityToReplace, dayContext, existingActivityNames, preferences } = params;
 
-  const userPrompt = `Generate a replacement activity for a trip to ${params.destination}.
+  const languageInstruction = getLanguageInstruction(params.language);
+
+  const userPrompt = `${languageInstruction}Generate a replacement activity for a trip to ${params.destination}.
 
 ## Current Activity to Replace
 - Name: ${activityToReplace.name}
@@ -823,6 +834,18 @@ Return ONLY the JSON object, no extra text.`;
 
       // Add unique ID
       activity.id = generateActivityId();
+
+      // Validate coordinates range
+      if (
+        activity.coordinates &&
+        typeof activity.coordinates.lat === "number" &&
+        typeof activity.coordinates.lng === "number" &&
+        (activity.coordinates.lat < -90 || activity.coordinates.lat > 90 ||
+         activity.coordinates.lng < -180 || activity.coordinates.lng > 180 ||
+         activity.coordinates.lat === 0 && activity.coordinates.lng === 0)
+      ) {
+        activity.coordinates = undefined as unknown as typeof activity.coordinates;
+      }
 
       // Capture LLM analytics (fire and forget)
       captureLLMGeneration({
@@ -1033,6 +1056,7 @@ export interface GenerateMoreDaysParams {
   startFromDay: number; // Day number to start generating (1-indexed)
   daysToGenerate: number; // Number of days to generate
   profilePreferences?: UserProfilePreferences;
+  language?: "en" | "es" | "it";
 }
 
 // Continue generation prompt - now loaded from database via getPrompt()
@@ -1103,14 +1127,20 @@ async function generateMoreDaysInternal(
   startDateObj.setDate(startDateObj.getDate() + params.startFromDay - 1);
   const generationStartDate = startDateObj.toISOString().split("T")[0];
 
-  const userPrompt = `Continue the itinerary for ${params.destination}.
+  const languageInstruction = getLanguageInstruction(params.language);
+
+  // Build profile preferences sections for the prompt
+  const profileSection = buildProfilePreferencesSection(params.profilePreferences);
+  const schedulingSection = buildSchedulingPreferencesSection(params.profilePreferences);
+
+  const userPrompt = `${languageInstruction}Continue the itinerary for ${params.destination}.
 
 ## Existing Days (for context)
 ${existingContext}
 
 ## Do NOT include these places (already visited):
 ${existingActivities}
-
+${profileSection}${schedulingSection}
 ## Generate Days ${params.startFromDay} to ${params.startFromDay + params.daysToGenerate - 1}
 - First day date: ${generationStartDate}
 - Number of days: ${params.daysToGenerate}
@@ -1194,6 +1224,9 @@ Rules:
         }
       }
 
+      // Validate and fix coordinates for all activities
+      const validatedDays = validateAndFixCoordinates(days, params.destination);
+
       // Capture LLM analytics (fire and forget)
       captureLLMGeneration({
         distinctId: params.userId || "anonymous",
@@ -1212,7 +1245,7 @@ Rules:
         },
       }).catch(() => {});
 
-      return days;
+      return validatedDays;
     } catch (parseError) {
       console.error(
         `JSON parse error in generateMoreDays (attempt ${retryCount + 1}):`,

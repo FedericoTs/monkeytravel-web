@@ -1,11 +1,23 @@
 import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, UserProfilePreferences } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+
+type SupportedLanguage = "en" | "es" | "it";
+
+async function getUserLanguage(): Promise<SupportedLanguage> {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE");
+  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
+    return localeCookie.value as SupportedLanguage;
+  }
+  return "en";
+}
 
 /**
  * Generate additional days for an existing trip
@@ -90,6 +102,41 @@ export async function POST(request: NextRequest) {
       `[AI Generate More] Starting generation for ${destination}, days ${startFromDay}-${startFromDay + daysToGenerate - 1}`
     );
 
+    // Fetch user's profile preferences to maintain consistency with initial generation
+    let profilePreferences: UserProfilePreferences = {};
+    try {
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("preferences, notification_settings")
+        .eq("id", user.id)
+        .single();
+
+      if (userProfile?.preferences) {
+        const prefs = userProfile.preferences as Record<string, unknown>;
+        profilePreferences = {
+          dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
+          travelStyles: prefs.travelStyles as string[] | undefined,
+          accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
+        };
+      }
+
+      if (userProfile?.notification_settings) {
+        const notifSettings = userProfile.notification_settings as Record<string, unknown>;
+        const quietStart = notifSettings.quietHoursStart as number | undefined;
+        const quietEnd = notifSettings.quietHoursEnd as number | undefined;
+
+        if (quietStart !== undefined && quietEnd !== undefined) {
+          profilePreferences.activeHoursStart = quietEnd;
+          profilePreferences.activeHoursEnd = quietStart;
+        }
+      }
+    } catch (err) {
+      console.warn("[AI Generate More] Could not fetch user preferences:", err);
+    }
+
+    // Get user language for localized output
+    const language = await getUserLanguage();
+
     const newDays = await generateMoreDays({
       destination,
       startDate,
@@ -100,6 +147,8 @@ export async function POST(request: NextRequest) {
       existingDays,
       startFromDay,
       daysToGenerate,
+      profilePreferences,
+      language,
     });
 
     const generationTime = Date.now() - startTime;

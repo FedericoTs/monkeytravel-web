@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -96,6 +97,10 @@ function isDomainAllowed(hostname: string): boolean {
  * CACHING: Uses Supabase cache for 30-day TTL to reduce bandwidth
  */
 export async function GET(request: NextRequest) {
+  // Require authentication to prevent open proxy abuse
+  const { errorResponse } = await getAuthenticatedUser();
+  if (errorResponse) return errorResponse;
+
   const { searchParams } = new URL(request.url);
   const imageUrl = searchParams.get("url");
 
@@ -173,6 +178,10 @@ export async function GET(request: NextRequest) {
  * POST endpoint for batch image fetching with caching
  */
 export async function POST(request: NextRequest) {
+  // Require authentication to prevent open proxy abuse
+  const { errorResponse: authError } = await getAuthenticatedUser();
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { urls } = body as { urls: string[] };

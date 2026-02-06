@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 
 function ForgotPasswordForm() {
@@ -14,6 +14,7 @@ function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const locale = useLocale();
+  const t = useTranslations("auth.resetPassword");
 
   // Helper to get locale-prefixed URL for email redirects
   const getLocaleUrl = (path: string) => {
@@ -38,7 +39,7 @@ function ForgotPasswordForm() {
     setError(null);
 
     if (!email || !email.includes("@")) {
-      setError("Please enter a valid email address");
+      setError(t("invalidEmail"));
       setLoading(false);
       return;
     }
@@ -98,14 +99,13 @@ function ForgotPasswordForm() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Check your email
+                {t("successTitle")}
               </h1>
-              <p className="text-slate-600 mb-6">
-                If an account exists for <strong>{email}</strong>, we sent a
-                password reset link. Click the link to set a new password.
-              </p>
+              <p className="text-slate-600 mb-6"
+                dangerouslySetInnerHTML={{ __html: t("successMessage", { email }) }}
+              />
               <p className="text-sm text-slate-500 mb-6">
-                Didn&apos;t receive the email? Check your spam folder or try again.
+                {t("checkSpam")}
               </p>
               <div className="space-y-3">
                 <button
@@ -115,13 +115,13 @@ function ForgotPasswordForm() {
                   }}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
                 >
-                  Try another email
+                  {t("tryAnother")}
                 </button>
                 <Link
                   href="/auth/login"
                   className="block w-full px-4 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
                 >
-                  Back to login
+                  {t("backToLogin")}
                 </Link>
               </div>
             </div>
@@ -154,11 +154,10 @@ function ForgotPasswordForm() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Reset your password
+              {t("title")}
             </h1>
             <p className="text-slate-600 mb-6">
-              Enter your email address and we&apos;ll send you a link to reset your
-              password.
+              {t("subtitle")}
             </p>
 
             {error && (
@@ -173,7 +172,7 @@ function ForgotPasswordForm() {
                   htmlFor="email"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Email
+                  {t("emailLabel")}
                 </label>
                 <input
                   id="email"
@@ -182,7 +181,7 @@ function ForgotPasswordForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
 
@@ -213,10 +212,10 @@ function ForgotPasswordForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Sending...
+                    {t("sending")}
                   </>
                 ) : (
-                  "Send reset link"
+                  t("submitButton")
                 )}
               </button>
             </form>
@@ -226,7 +225,7 @@ function ForgotPasswordForm() {
                 href="/auth/login"
                 className="text-[var(--primary)] font-medium hover:underline"
               >
-                Back to login
+                {t("backToLogin")}
               </Link>
             </div>
           </div>

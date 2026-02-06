@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { useRouter, Link } from "@/lib/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
 import { getTrialEndDate } from "@/lib/trial";
@@ -32,6 +32,7 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
+  const t = useTranslations("auth.signup");
 
   // Get redirect URL and check if coming from onboarding
   const redirectUrl = searchParams.get("redirect") || "/trips/new";
@@ -257,17 +258,16 @@ function SignupForm() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Check your email
+                {t("checkEmailTitle")}
               </h1>
-              <p className="text-slate-600 mb-6">
-                We sent a confirmation link to <strong>{email}</strong>. Click
-                the link to activate your account.
-              </p>
+              <p className="text-slate-600 mb-6"
+                dangerouslySetInnerHTML={{ __html: t("checkEmailMessage", { email }) }}
+              />
               <Link
                 href="/auth/login"
                 className="text-[var(--primary)] font-medium hover:underline"
               >
-                Back to login
+                {t("backToLogin")}
               </Link>
             </div>
           </div>
@@ -299,12 +299,12 @@ function SignupForm() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              {hasOnboardingPrefs ? "Almost there!" : "Create your account"}
+              {hasOnboardingPrefs ? t("titleWithPrefs") : t("title")}
             </h1>
             <p className="text-slate-600 mb-6">
               {hasOnboardingPrefs
-                ? "Your preferences are saved. Create an account to start planning!"
-                : "Start planning AI-powered trips today"}
+                ? t("subtitleWithPrefs")
+                : t("subtitle")}
             </p>
 
             {/* Show referral banner if coming from referral link */}
@@ -318,10 +318,10 @@ function SignupForm() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-amber-800">
-                      You've been invited!
+                      {t("referralInvited")}
                     </p>
                     <p className="text-xs text-amber-700">
-                      Get 1 FREE AI trip when you sign up and create your first trip
+                      {t("referralBenefit")}
                     </p>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ function SignupForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span className="text-sm font-medium text-emerald-800">
-                    Your travel preferences are ready to use
+                    {t("prefsReady")}
                   </span>
                 </div>
               </div>
@@ -399,7 +399,7 @@ function SignupForm() {
                   />
                 </svg>
               )}
-              Continue with Google
+              {t("googleButton")}
             </button>
 
             <div className="relative my-6">
@@ -407,7 +407,7 @@ function SignupForm() {
                 <div className="w-full border-t border-slate-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">or continue with email</span>
+                <span className="px-4 bg-white text-slate-500">{t("orContinueWithEmail")}</span>
               </div>
             </div>
 
@@ -417,7 +417,7 @@ function SignupForm() {
                   htmlFor="displayName"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Display Name <span className="text-slate-400 font-normal">(optional)</span>
+                  {t("nameLabel")} <span className="text-slate-400 font-normal">{t("nameOptional")}</span>
                 </label>
                 <input
                   id="displayName"
@@ -426,7 +426,7 @@ function SignupForm() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={50}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                  placeholder="Your name"
+                  placeholder={t("namePlaceholder")}
                 />
               </div>
 
@@ -437,7 +437,7 @@ function SignupForm() {
                     error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
                   }`}
                 >
-                  Email
+                  {t("emailLabel")}
                 </label>
                 <input
                   id="email"
@@ -453,7 +453,7 @@ function SignupForm() {
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
 
@@ -464,7 +464,7 @@ function SignupForm() {
                     error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
                   }`}
                 >
-                  Password
+                  {t("passwordLabel")}
                 </label>
                 <input
                   id="password"
@@ -481,9 +481,9 @@ function SignupForm() {
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
                   }`}
-                  placeholder="At least 6 characters"
+                  placeholder={t("passwordPlaceholder")}
                 />
-                <p className="text-xs text-slate-500 mt-1">Must be at least 6 characters</p>
+                <p className="text-xs text-slate-500 mt-1">{t("passwordHint")}</p>
               </div>
 
               <button
@@ -513,10 +513,10 @@ function SignupForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Creating account...
+                    {t("creatingAccount")}
                   </>
                 ) : (
-                  "Create account"
+                  t("submitButton")
                 )}
               </button>
             </form>
@@ -524,20 +524,20 @@ function SignupForm() {
             {/* Free trip benefit reminder */}
             {hasOnboardingPrefs && (
               <div className="mt-4 text-center">
-                <p className="text-xs text-slate-500">
-                  You'll get <strong className="text-emerald-600">1 free personalized trip</strong> when you sign up!
-                </p>
+                <p className="text-xs text-slate-500"
+                  dangerouslySetInnerHTML={{ __html: t("freeTripBenefit") }}
+                />
               </div>
             )}
 
             <div className="mt-6 text-center">
               <p className="text-slate-600">
-                Already have an account?{" "}
+                {t("hasAccount")}{" "}
                 <Link
                   href="/auth/login"
                   className="text-[var(--primary)] font-medium hover:underline"
                 >
-                  Sign in
+                  {t("signInLink")}
                 </Link>
               </p>
             </div>

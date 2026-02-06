@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { useRouter, Link } from "@/lib/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { trackLogin, setUserId } from "@/lib/analytics";
 import {
@@ -22,6 +22,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
+  const t = useTranslations("auth.login");
   const redirect = searchParams.get("redirect") || "/trips";
   const errorParam = searchParams.get("error");
 
@@ -138,10 +139,10 @@ function LoginForm() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Welcome back
+              {t("title")}
             </h1>
             <p className="text-slate-600 mb-6">
-              Sign in to continue planning your trips
+              {t("subtitle")}
             </p>
 
             {(error || errorParam) && (
@@ -201,7 +202,7 @@ function LoginForm() {
                   />
                 </svg>
               )}
-              Continue with Google
+              {t("googleButton")}
             </button>
 
             <div className="relative my-6">
@@ -209,7 +210,7 @@ function LoginForm() {
                 <div className="w-full border-t border-slate-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">or continue with email</span>
+                <span className="px-4 bg-white text-slate-500">{t("orContinueWithEmail")}</span>
               </div>
             </div>
 
@@ -221,7 +222,7 @@ function LoginForm() {
                     error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
                   }`}
                 >
-                  Email
+                  {t("emailLabel")}
                 </label>
                 <input
                   id="email"
@@ -237,7 +238,7 @@ function LoginForm() {
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
 
@@ -249,13 +250,13 @@ function LoginForm() {
                       error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
                     }`}
                   >
-                    Password
+                    {t("passwordLabel")}
                   </label>
                   <Link
                     href="/auth/forgot-password"
                     className="text-sm text-[var(--primary)] hover:underline"
                   >
-                    Forgot password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
                 <input
@@ -272,7 +273,7 @@ function LoginForm() {
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
                   }`}
-                  placeholder="Your password"
+                  placeholder={t("passwordPlaceholder")}
                 />
               </div>
 
@@ -303,22 +304,22 @@ function LoginForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Signing in...
+                    {t("signingIn")}
                   </>
                 ) : (
-                  "Sign in"
+                  t("submitButton")
                 )}
               </button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-slate-600">
-                Don't have an account?{" "}
+                {t("noAccount")}{" "}
                 <Link
                   href="/auth/signup"
                   className="text-[var(--primary)] font-medium hover:underline"
                 >
-                  Sign up
+                  {t("signUpLink")}
                 </Link>
               </p>
             </div>

@@ -42,6 +42,7 @@ function getReferralTierBonus(
   limitType: UsageLimitType
 ): number {
   const benefits = TIER_BENEFITS[referralTier];
+  if (!benefits) return 0;
 
   switch (limitType) {
     case "aiGenerations":

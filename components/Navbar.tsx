@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/routing';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { isAdmin } from '@/lib/admin';

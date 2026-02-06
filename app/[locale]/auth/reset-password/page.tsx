@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { useRouter, Link } from "@/lib/i18n/routing";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 function ResetPasswordForm() {
@@ -16,6 +17,7 @@ function ResetPasswordForm() {
   const [hasValidSession, setHasValidSession] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("auth.resetPassword");
 
   // Check if user has a valid session (came from email link)
   useEffect(() => {
@@ -39,13 +41,13 @@ function ResetPasswordForm() {
 
     // Validation
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t("passwordTooShort"));
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("passwordMismatch"));
       setLoading(false);
       return;
     }
@@ -118,24 +120,23 @@ function ResetPasswordForm() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Invalid or expired link
+                {t("invalidLinkTitle")}
               </h1>
               <p className="text-slate-600 mb-6">
-                This password reset link is invalid or has expired. Please request
-                a new one.
+                {t("invalidLinkMessage")}
               </p>
               <div className="space-y-3">
                 <Link
                   href="/auth/forgot-password"
                   className="block w-full px-4 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
                 >
-                  Request new link
+                  {t("requestNewLink")}
                 </Link>
                 <Link
                   href="/auth/login"
                   className="block w-full px-4 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors text-center"
                 >
-                  Back to login
+                  {t("backToLogin")}
                 </Link>
               </div>
             </div>
@@ -183,11 +184,10 @@ function ResetPasswordForm() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Password updated!
+                {t("successUpdateTitle")}
               </h1>
               <p className="text-slate-600 mb-6">
-                Your password has been successfully changed. Redirecting you to
-                your trips...
+                {t("successUpdateMessage")}
               </p>
               <div className="animate-spin h-6 w-6 border-2 border-[var(--primary)] border-t-transparent rounded-full mx-auto" />
             </div>
@@ -220,10 +220,10 @@ function ResetPasswordForm() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Set new password
+              {t("setNewTitle")}
             </h1>
             <p className="text-slate-600 mb-6">
-              Enter your new password below.
+              {t("setNewSubtitle")}
             </p>
 
             {error && (
@@ -238,7 +238,7 @@ function ResetPasswordForm() {
                   htmlFor="password"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  New Password
+                  {t("newPasswordLabel")}
                 </label>
                 <input
                   id="password"
@@ -248,7 +248,7 @@ function ResetPasswordForm() {
                   required
                   minLength={6}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                  placeholder="At least 6 characters"
+                  placeholder={t("newPasswordPlaceholder")}
                 />
               </div>
 
@@ -257,7 +257,7 @@ function ResetPasswordForm() {
                   htmlFor="confirmPassword"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Confirm New Password
+                  {t("confirmPasswordLabel")}
                 </label>
                 <input
                   id="confirmPassword"
@@ -267,7 +267,7 @@ function ResetPasswordForm() {
                   required
                   minLength={6}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                  placeholder="Confirm your password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                 />
               </div>
 
@@ -298,10 +298,10 @@ function ResetPasswordForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Updating password...
+                    {t("updating")}
                   </>
                 ) : (
-                  "Update password"
+                  t("updateButton")
                 )}
               </button>
             </form>

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { regenerateSingleActivity } from "@/lib/gemini";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
@@ -7,6 +8,17 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+
+type SupportedLanguage = "en" | "es" | "it";
+
+async function getUserLanguage(): Promise<SupportedLanguage> {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE");
+  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
+    return localeCookie.value as SupportedLanguage;
+  }
+  return "en";
+}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -103,6 +115,9 @@ export async function POST(request: NextRequest) {
     // Determine budget tier from trip data (default to balanced)
     const budgetTier = trip.budget?.tier || "balanced";
 
+    // Get user language for localized output
+    const language = await getUserLanguage();
+
     // Generate new activity
     const newActivity = await regenerateSingleActivity({
       destination,
@@ -111,6 +126,7 @@ export async function POST(request: NextRequest) {
       budgetTier: budgetTier as "budget" | "balanced" | "premium",
       existingActivityNames,
       preferences,
+      language,
     });
 
     const generationTime = Date.now() - startTime;

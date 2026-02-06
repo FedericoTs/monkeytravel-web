@@ -99,8 +99,18 @@ export async function PUT(request: NextRequest) {
       return errors.badRequest("Invalid language");
     }
 
-    if (!key || typeof value !== "string") {
+    if (!key || typeof key !== "string" || typeof value !== "string") {
       return errors.badRequest("Invalid key or value");
+    }
+
+    // Validate key format: only allow alphanumeric, dots, and underscores
+    if (!/^[a-zA-Z][a-zA-Z0-9_.]*$/.test(key)) {
+      return errors.badRequest("Invalid key format. Use only letters, numbers, dots, and underscores.");
+    }
+
+    // Prevent excessively deep keys (max 5 levels)
+    if (key.split(".").length > 5) {
+      return errors.badRequest("Translation key too deeply nested (max 5 levels)");
     }
 
     // Read current translations

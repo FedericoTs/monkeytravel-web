@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/routing';
 import { ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';

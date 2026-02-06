@@ -5,7 +5,7 @@ import PhoneMockup from '@/components/PhoneMockup';
 import EmailSubscribe from '@/components/EmailSubscribe';
 import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 import { TourTrigger } from '@/components/tour';
 import { getTranslations } from 'next-intl/server';

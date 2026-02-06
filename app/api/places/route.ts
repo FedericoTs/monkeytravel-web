@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
@@ -141,9 +142,9 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Check authentication (optional - for usage tracking)
-    const supabaseAuth = await createClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    // Require authentication to prevent anonymous abuse
+    const { user, errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
 
     const { query, maxPhotos = 5 } = await request.json();
 
@@ -314,6 +315,10 @@ export async function POST(request: NextRequest) {
 
 // Get destination cover image and info
 export async function GET(request: NextRequest) {
+  // Require authentication to prevent anonymous abuse
+  const { errorResponse: authError } = await getAuthenticatedUser();
+  if (authError) return authError;
+
   const startTime = Date.now();
   const { searchParams } = new URL(request.url);
   const destination = searchParams.get("destination");

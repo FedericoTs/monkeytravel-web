@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 

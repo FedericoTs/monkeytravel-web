@@ -112,6 +112,27 @@ export async function PATCH(request: Request) {
       filteredUpdates.bio = bio;
     }
 
+    // Validate JSON object fields (must be plain objects, not arrays or primitives)
+    for (const jsonField of ["preferences", "notification_settings", "privacy_settings"]) {
+      if (filteredUpdates[jsonField] !== undefined) {
+        const val = filteredUpdates[jsonField];
+        if (val === null || typeof val !== "object" || Array.isArray(val)) {
+          return errors.badRequest(`${jsonField} must be a JSON object`);
+        }
+      }
+    }
+
+    // Validate languages field (must be string array)
+    if (filteredUpdates.languages !== undefined) {
+      const langs = filteredUpdates.languages;
+      if (!Array.isArray(langs) || !langs.every((l) => typeof l === "string")) {
+        return errors.badRequest("languages must be an array of strings");
+      }
+      if (langs.length > 20) {
+        return errors.badRequest("Too many languages (max 20)");
+      }
+    }
+
     // Update profile
     const { data: profile, error } = await supabase
       .from("users")
@@ -129,30 +150,5 @@ export async function PATCH(request: Request) {
   } catch (error) {
     console.error("[Profile] Error in profile PATCH:", error);
     return errors.internal("Internal server error", "Profile");
-  }
-}
-
-export async function DELETE() {
-  try {
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
-    if (errorResponse) return errorResponse;
-
-    // Note: Full account deletion would require admin privileges
-    // For now, we'll just sign out the user and mark for deletion
-    // A proper implementation would use Supabase Edge Functions with service role
-
-    // Delete user's trips first (cascade would handle this ideally)
-    await supabase.from("trips").delete().eq("user_id", user.id);
-
-    // Delete user profile
-    await supabase.from("users").delete().eq("id", user.id);
-
-    // Sign out
-    await supabase.auth.signOut();
-
-    return apiSuccess({ success: true, message: "Account scheduled for deletion" });
-  } catch (error) {
-    console.error("[Profile] Error deleting account:", error);
-    return errors.internal("Failed to delete account", "Profile");
   }
 }

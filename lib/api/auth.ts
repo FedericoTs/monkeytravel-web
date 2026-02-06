@@ -7,6 +7,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
+import { isAdmin as isAdminCheck } from "@/lib/admin";
 import type { User } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -113,15 +114,7 @@ export async function requireAuthenticatedUser(): Promise<{
  * @returns true if user is admin
  */
 export function isAdmin(user: User): boolean {
-  // Import the canonical admin list to avoid email mismatches
-  const adminEmails = [
-    "federicosciuca@gmail.com",
-    "azzolina.francesca@gmail.com",
-    "marinoenrico3@gmail.com",
-    "test@monkeytravel.app", // For testing
-  ];
-
-  return adminEmails.includes(user.email?.toLowerCase() || "");
+  return isAdminCheck(user.email);
 }
 
 /**
