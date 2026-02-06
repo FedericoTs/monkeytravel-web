@@ -25,7 +25,7 @@ export default function AuthPromptModal({
   redirectPath = "/trips/new",
 }: AuthPromptModalProps) {
   const router = useRouter();
-  const t = useTranslations("authPrompt");
+  const t = useTranslations("common.authPrompt");
   const [isNavigating, setIsNavigating] = useState(false);
 
   if (!isOpen) return null;

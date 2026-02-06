@@ -67,7 +67,7 @@ export default function SaveTripModal({
   onSuccess,
 }: SaveTripModalProps) {
   const router = useRouter();
-  const t = useTranslations("saveTrip");
+  const t = useTranslations("common.saveTrip");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
