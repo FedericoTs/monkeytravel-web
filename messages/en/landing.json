@@ -143,6 +143,7 @@
     "subtitle": "Free for up to 8 collaborators per trip"
   },
   "faq": {
+    "badge": "FAQ",
     "title": "Frequently Asked Questions",
     "items": {
       "free": {

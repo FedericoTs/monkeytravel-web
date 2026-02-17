@@ -65,7 +65,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/images/logo.png"
-              alt="MonkeyTravel Logo"
+              alt={t('logoAlt')}
               width={36}
               height={36}
               className="w-9 h-9 object-contain"
@@ -150,7 +150,7 @@ export default function Navbar() {
           <button
             className="md:hidden p-2 rounded-lg text-[var(--foreground)] hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
+            aria-label={t('navigation.toggleMenu')}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {mobileMenuOpen ? (

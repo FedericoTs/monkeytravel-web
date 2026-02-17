@@ -8,8 +8,10 @@
     "destinations": "Destinos",
     "signIn": "Iniciar Sesión",
     "signUp": "Registrarse",
-    "signOut": "Cerrar Sesión"
+    "signOut": "Cerrar Sesión",
+    "toggleMenu": "Abrir menú"
   },
+  "logoAlt": "Logo MonkeyTravel",
   "buttons": {
     "save": "Guardar",
     "cancel": "Cancelar",

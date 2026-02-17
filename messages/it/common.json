@@ -8,8 +8,10 @@
     "destinations": "Destinazioni",
     "signIn": "Accedi",
     "signUp": "Registrati",
-    "signOut": "Esci"
+    "signOut": "Esci",
+    "toggleMenu": "Apri menu"
   },
+  "logoAlt": "Logo MonkeyTravel",
   "buttons": {
     "save": "Salva",
     "cancel": "Annulla",
@@ -100,7 +102,7 @@
     "joinWaitlist": "Iscriviti alla Lista",
     "contact": "Contattaci",
     "sendFeedback": "Invia Feedback",
-    "privacyPolicy": "Privacy Policy",
+    "privacyPolicy": "Informativa sulla Privacy",
     "termsOfService": "Termini di Servizio",
     "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati."
   },

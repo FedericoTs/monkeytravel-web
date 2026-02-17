@@ -14,7 +14,7 @@
       "instant": "Accesso Istantaneo"
     },
     "floatingCards": {
-      "aiPowered": "AI Powered",
+      "aiPowered": "Potenziato dall'AI",
       "thirtySeconds": "30 Secondi",
       "webApp": "Web App",
       "liveNow": "Disponibile Ora"
@@ -140,9 +140,10 @@
       "roleAccess": "Accesso per Ruoli"
     },
     "cta": "Inizia a Pianificare Insieme",
-    "subtitle": "Gratis per fino a 8 collaboratori per viaggio"
+    "subtitle": "Gratis fino a 8 collaboratori per viaggio"
   },
   "faq": {
+    "badge": "FAQ",
     "title": "Domande Frequenti",
     "items": {
       "free": {

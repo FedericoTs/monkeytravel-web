@@ -14,7 +14,7 @@
       "instant": "Acceso Instantáneo"
     },
     "floatingCards": {
-      "aiPowered": "AI Powered",
+      "aiPowered": "Potenciado por AI",
       "thirtySeconds": "30 Segundos",
       "webApp": "Web App",
       "liveNow": "Disponible Ya"
@@ -143,6 +143,7 @@
     "subtitle": "Gratis para hasta 8 colaboradores por viaje"
   },
   "faq": {
+    "badge": "FAQ",
     "title": "Preguntas Frecuentes",
     "items": {
       "free": {

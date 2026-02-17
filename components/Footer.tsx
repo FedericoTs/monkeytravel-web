@@ -13,6 +13,7 @@ const socialLinks = [
 
 export default function Footer() {
   const t = useTranslations('common.footer');
+  const tCommon = useTranslations('common');
 
   const footerLinks = {
     product: [
@@ -42,7 +43,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2.5 mb-5">
               <Image
                 src="/images/logo.png"
-                alt="MonkeyTravel Logo"
+                alt={tCommon('logoAlt')}
                 width={36}
                 height={36}
                 className="w-9 h-9 object-contain"
