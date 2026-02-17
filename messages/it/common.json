@@ -89,7 +89,7 @@
     "unauthorized": "Non sei autorizzato ad accedere a questa pagina"
   },
   "footer": {
-    "description": "Pianificazione viaggi con IA che crea itinerari personalizzati giorno per giorno in pochi minuti.",
+    "description": "Pianificazione viaggi con AI che crea itinerari personalizzati giorno per giorno in pochi minuti.",
     "product": "Prodotto",
     "support": "Supporto",
     "legal": "Legale",
@@ -1743,6 +1743,25 @@
     "trust": {
       "freeForever": "Gratis per sempre",
       "fullyEditable": "Completamente modificabile"
+    }
+  },
+  "curatedEscapes": {
+    "title": "Fughe Selezionate",
+    "subtitle": "Itinerari selezionati pronti da esplorare",
+    "days": "{days} giorni",
+    "used": "{count} usati",
+    "explore": "Esplora",
+    "exploreAll": "Esplora Tutto",
+    "moreCuratedTrips": "Altri viaggi selezionati",
+    "browse": "Sfoglia",
+    "tryAgain": "Riprova",
+    "moods": {
+      "romantic": "Romantico",
+      "adventure": "Avventura",
+      "cultural": "Culturale",
+      "relaxation": "Relax",
+      "foodie": "Gastronomia",
+      "family": "Famiglia"
     }
   }
 }

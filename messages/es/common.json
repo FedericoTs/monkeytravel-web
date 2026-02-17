@@ -89,7 +89,7 @@
     "unauthorized": "No tienes permiso para acceder a esta página"
   },
   "footer": {
-    "description": "Planificación de viajes con IA que crea itinerarios personalizados día a día en minutos.",
+    "description": "Planificación de viajes con AI que crea itinerarios personalizados día a día en minutos.",
     "product": "Producto",
     "support": "Soporte",
     "legal": "Legal",
@@ -1743,6 +1743,25 @@
     "trust": {
       "freeForever": "Gratis para siempre",
       "fullyEditable": "Totalmente editable"
+    }
+  },
+  "curatedEscapes": {
+    "title": "Escapadas Seleccionadas",
+    "subtitle": "Itinerarios seleccionados listos para explorar",
+    "days": "{days} días",
+    "used": "{count} usados",
+    "explore": "Explorar",
+    "exploreAll": "Explorar Todo",
+    "moreCuratedTrips": "Más viajes seleccionados",
+    "browse": "Ver",
+    "tryAgain": "Intentar de nuevo",
+    "moods": {
+      "romantic": "Romántico",
+      "adventure": "Aventura",
+      "cultural": "Cultural",
+      "relaxation": "Relax",
+      "foodie": "Gastronomía",
+      "family": "Familiar"
     }
   }
 }

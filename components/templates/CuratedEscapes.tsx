@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface TemplateTrip {
   id: string;
@@ -20,14 +21,15 @@ interface TemplateTrip {
   copyCount: number;
 }
 
-// Mood tag configuration
-const MOOD_OPTIONS: Record<string, { label: string; emoji: string }> = {
-  romantic: { label: "Romantic", emoji: "💕" },
-  adventure: { label: "Adventure", emoji: "🏔️" },
-  cultural: { label: "Cultural", emoji: "🏛️" },
-  relaxation: { label: "Relaxation", emoji: "🌴" },
-  foodie: { label: "Foodie", emoji: "🍝" },
-  family: { label: "Family", emoji: "👨‍👩‍👧‍👦" },
+// Mood tag configuration (keys only — labels come from translations)
+const MOOD_KEYS = ["romantic", "adventure", "cultural", "relaxation", "foodie", "family"] as const;
+const MOOD_EMOJIS: Record<string, string> = {
+  romantic: "💕",
+  adventure: "🏔️",
+  cultural: "🏛️",
+  relaxation: "🌴",
+  foodie: "🍝",
+  family: "👨‍👩‍👧‍👦",
 };
 
 // Country code to flag emoji
@@ -64,9 +66,10 @@ function getGradient(destination: string) {
 interface TemplateCardProps {
   template: TemplateTrip;
   preventClick: boolean;
+  t: ReturnType<typeof useTranslations<"curatedEscapes">>;
 }
 
-function TemplateCard({ template, preventClick }: TemplateCardProps) {
+function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const gradient = getGradient(template.destination);
@@ -125,7 +128,7 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
         {/* Top badges */}
         <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
           <span className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 shadow-sm">
-            {template.durationDays} days
+            {t('days', { days: template.durationDays })}
           </span>
           <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400/95 backdrop-blur-sm text-amber-900 shadow-sm">
             {budgetLabel}
@@ -154,13 +157,13 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
         {/* Mood tags - max 2 shown */}
         <div className="flex gap-2 mb-3">
           {template.moodTags.slice(0, 2).map((mood) => {
-            const option = MOOD_OPTIONS[mood];
+            const emoji = MOOD_EMOJIS[mood];
             return (
               <span
                 key={mood}
                 className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600"
               >
-                {option?.emoji} {option?.label || mood}
+                {emoji} {t(`moods.${mood}` as Parameters<typeof t>[0])}
               </span>
             );
           })}
@@ -177,12 +180,12 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
             {template.copyCount > 0 && (
               <>
                 <Users className="w-4 h-4" />
-                {template.copyCount} used
+                {t('used', { count: template.copyCount })}
               </>
             )}
           </span>
           <span className="text-[var(--primary)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
-            Explore
+            {t('explore')}
             <ChevronRight className="w-4 h-4" />
           </span>
         </div>
@@ -192,7 +195,7 @@ function TemplateCard({ template, preventClick }: TemplateCardProps) {
 }
 
 // "See All" card - matches carousel card height
-function SeeAllCard({ preventClick }: { preventClick: boolean }) {
+function SeeAllCard({ preventClick, t }: { preventClick: boolean; t: ReturnType<typeof useTranslations<"curatedEscapes">> }) {
   const handleClick = (e: React.MouseEvent) => {
     if (preventClick) {
       e.preventDefault();
@@ -228,15 +231,15 @@ function SeeAllCard({ preventClick }: { preventClick: boolean }) {
 
         {/* Text */}
         <h3 className="text-white font-bold text-base md:text-lg mb-1">
-          Explore All
+          {t('exploreAll')}
         </h3>
         <p className="text-white/70 text-xs mb-4">
-          More curated trips
+          {t('moreCuratedTrips')}
         </p>
 
         {/* Arrow */}
         <div className="flex items-center gap-2 text-[var(--accent)] font-semibold text-sm group-hover:gap-3 transition-all">
-          <span>Browse</span>
+          <span>{t('browse')}</span>
           <ArrowRight className="w-4 h-4" />
         </div>
       </div>
@@ -262,6 +265,7 @@ function SkeletonCard() {
 }
 
 export default function CuratedEscapes() {
+  const t = useTranslations("curatedEscapes");
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -455,9 +459,9 @@ export default function CuratedEscapes() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Curated Escapes</h2>
+            <h2 className="text-xl font-bold text-slate-900">{t('title')}</h2>
             <p className="text-sm text-slate-500">
-              Hand-picked itineraries ready to explore
+              {t('subtitle')}
             </p>
           </div>
         </div>
@@ -497,7 +501,7 @@ export default function CuratedEscapes() {
             onClick={() => window.location.reload()}
             className="mt-2 text-sm text-red-700 font-medium hover:underline"
           >
-            Try again
+            {t('tryAgain')}
           </button>
         </div>
       )}
@@ -543,7 +547,7 @@ export default function CuratedEscapes() {
                   transition={{ delay: index * 0.1 }}
                   className="flex-shrink-0"
                 >
-                  <TemplateCard template={template} preventClick={hasDragged} />
+                  <TemplateCard template={template} preventClick={hasDragged} t={t} />
                 </motion.div>
               ))}
 
@@ -554,7 +558,7 @@ export default function CuratedEscapes() {
                 transition={{ delay: templates.length * 0.1 }}
                 className="flex-shrink-0"
               >
-                <SeeAllCard preventClick={hasDragged} />
+                <SeeAllCard preventClick={hasDragged} t={t} />
               </motion.div>
             </div>
           </div>

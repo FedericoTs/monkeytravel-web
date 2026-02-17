@@ -1744,5 +1744,24 @@
       "freeForever": "Free forever",
       "fullyEditable": "Fully editable"
     }
+  },
+  "curatedEscapes": {
+    "title": "Curated Escapes",
+    "subtitle": "Hand-picked itineraries ready to explore",
+    "days": "{days} days",
+    "used": "{count} used",
+    "explore": "Explore",
+    "exploreAll": "Explore All",
+    "moreCuratedTrips": "More curated trips",
+    "browse": "Browse",
+    "tryAgain": "Try again",
+    "moods": {
+      "romantic": "Romantic",
+      "adventure": "Adventure",
+      "cultural": "Cultural",
+      "relaxation": "Relaxation",
+      "foodie": "Foodie",
+      "family": "Family"
+    }
   }
 }
