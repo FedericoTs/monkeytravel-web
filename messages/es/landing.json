@@ -1,17 +1,17 @@
 {
   "hero": {
-    "badge": "Disponible Ahora — Pruébalo Gratis",
-    "titleLine1": "El Planificador de Viajes con AI",
-    "titleHighlight": "Que Realmente Funciona",
-    "subtitleStart": "Elige tu destino. Obtén un",
+    "badge": "Gratis para Ti y Tu Grupo",
+    "titleLine1": "Planifica Viajes con Amigos",
+    "titleHighlight": "en 30 Segundos",
+    "subtitleStart": "Elige un destino, invita a tu grupo y obtén un",
     "subtitleHighlight": "itinerario personalizado día a día",
-    "subtitleEnd": "en 30 segundos — adaptado a tu estilo de viaje, intereses y ritmo.",
-    "cta": "Planifica Mi Viaje Gratis",
+    "subtitleEnd": "en el que todos pueden votar, editar y hacer suyo.",
+    "cta": "Planifica un Viaje Juntos",
     "signIn": "Iniciar Sesión",
     "trustSignals": {
       "free": "100% Gratis",
-      "noCard": "Sin Tarjeta de Crédito",
-      "instant": "Acceso Instantáneo"
+      "noCard": "Hasta 8 Amigos",
+      "instant": "30 Segundos"
     },
     "floatingCards": {
       "aiPowered": "Potenciado por AI",
@@ -22,12 +22,13 @@
   },
   "stats": {
     "ideaToItinerary": "De la idea al itinerario",
-    "destinationsReady": "Destinos disponibles",
-    "personalizedToYou": "Personalizado para ti"
+    "destinationsReady": "Destinos en el mundo",
+    "personalizedToYou": "Personalizado para ti",
+    "friendsPerTrip": "Amigos por viaje"
   },
   "problem": {
-    "title": "Mereces algo mejor",
-    "subtitle": "Planificar un viaje no debería sentirse como un segundo trabajo",
+    "title": "Los viajes en grupo se caen antes de empezar",
+    "subtitle": "¿Te suena? No estás solo.",
     "points": {
       "tabs": "47 pestañas abiertas, tratando de unir blogs, reseñas y mapas",
       "copy": "Copiando itinerarios que no coinciden con tu estilo ni tu presupuesto",
@@ -35,23 +36,35 @@
     },
     "cards": {
       "research": {
-        "title": "Agujeros de Investigación",
-        "description": "\"Solo un blog más\" se convierte en 4 horas. Estás agotado antes de que empiece el viaje."
+        "title": "El Chat Grupal Interminable",
+        "description": "\"¿Dónde comemos?\" \"¿Y el martes?\" — 200 mensajes después, nada decidido."
       },
       "analysis": {
-        "title": "Parálisis por Análisis",
-        "description": "500 restaurantes, 200 atracciones, reseñas contradictorias. ¿Cómo eliges?"
+        "title": "Una Persona Hace Todo",
+        "description": "Siempre te toca a ti. Investigar, reservar, organizar — mientras los demás solo aparecen."
       },
       "copyPaste": {
-        "title": "Itinerarios de Copiar y Pegar",
-        "description": "Listas genéricas \"Top 10\" que ignoran tu ritmo, presupuesto y lo que realmente te emociona."
+        "title": "Nadie Se Pone de Acuerdo",
+        "description": "Ella quiere museos, él quiere playa, ellos quieren tours gastronómicos. Todos frustrados."
       }
     }
   },
+  "aiChatDemo": {
+    "badge": "Agente de Viajes AI",
+    "title": "Cambia lo que quieras con un mensaje",
+    "subtitle": "¿Algo no te convence? Díselo a nuestra AI. Es como escribirle a un amigo que conoce cada restaurante de la ciudad.",
+    "chat": {
+      "user1": "¿Puedes cambiar el museo del Día 2 por algo más al aire libre?",
+      "ai1": "¡Hecho! He reemplazado el Museo del Prado con un tour guiado en bici por el Parque del Retiro. ¿Quieres que ajuste el almuerzo cerca también?",
+      "user2": "Sí, algún sitio con terraza",
+      "ai2": "¡Actualizado! He añadido El Pabellón del Espejo — terraza al aire libre, 4.6 estrellas, a 5 minutos a pie del parque."
+    },
+    "cta": "Pruébalo Tú Mismo"
+  },
   "solution": {
-    "badge": "Generador de Itinerarios con AI",
-    "title": "Existe una forma mejor",
-    "subtitle": "Deja que la AI haga el trabajo pesado mientras tú te concentras en la emoción",
+    "badge": "Diferente de Verdad",
+    "title": "No es otro truco de AI",
+    "subtitle": "Lo sabemos — ya has visto el hype de \"planificador de viajes con AI\". Esto es lo que hace que este sea real.",
     "features": {
       "personalized": {
         "title": "Verdaderamente Personalizado",
@@ -69,30 +82,58 @@
     "cards": {
       "speed": {
         "title": "Itinerarios en 30 Segundos",
-        "description": "Elige un destino y obtén un plan de viaje personalizado completo. Nuestra AI hace en segundos lo que toma horas."
+        "description": "No 30 minutos. No \"próximamente\". Un plan completo día a día antes de que se enfríe tu café."
       },
       "agent": {
-        "title": "Agente de Viajes AI",
-        "description": "¿Necesitas ajustar algo? Chatea con nuestro asistente AI para cambiar actividades, horarios o recibir tips locales."
+        "title": "Una Conversación Real",
+        "description": "Pídele a nuestra AI que cambie, añada o elimine lo que sea — como escribirle a un amigo local que conoce la ciudad de verdad."
       },
       "dayByDay": {
-        "title": "Desglose Día a Día",
-        "description": "Cafés por la mañana, aventuras por la tarde, restaurantes por la noche — todo cronometrado y mapeado."
+        "title": "Detalle Hora a Hora",
+        "description": "Café a las 8:30, tour a pie a las 10, almuerzo en ese sitio con terraza a la 1. No sugerencias vagas."
       },
       "customizable": {
-        "title": "Totalmente Personalizable",
-        "description": "Cambia actividades, agrega tus imprescindibles, ajusta horarios — manualmente o con ayuda de nuestro Agente AI."
+        "title": "Tu Viaje, Tus Reglas",
+        "description": "Arrastra actividades, cambia horarios, añade tus propios sitios. La AI te da un punto de partida, no un horario rígido."
       },
       "collaborate": {
-        "title": "Planifica en Grupo",
-        "description": "Invita a tu grupo de viaje a colaborar. Todos pueden votar actividades, sugerir lugares y ver actualizaciones en tiempo real.",
-        "badge": "Nuevo"
+        "title": "Hecho para Grupos",
+        "description": "Todos votan. Todos pueden editar. Se acabó el \"yo me encargo de todo\".",
+        "badge": "Único"
       },
       "realData": {
-        "title": "Datos Reales, Lugares Reales",
-        "description": "Fotos reales, calificaciones genuinas, horarios oficiales. Nosotros verificamos para que tú no tengas que dudar."
+        "title": "Lugares Verificados",
+        "description": "Calificaciones reales de Google, fotos reales, horarios reales. Sin restaurantes inventados que cerraron en 2019."
       }
     }
+  },
+  "collaboration": {
+    "badge": "Planificación Grupal",
+    "title": "Por fin, planificar viajes que",
+    "titleHighlight": "todos disfrutan",
+    "description": "Se acabó que una persona haga todo el trabajo. Invita a tu grupo y planificad juntos en tiempo real.",
+    "pills": {
+      "inviteFriends": "Invitación con un Link",
+      "voteTogether": "Vota Actividades",
+      "realtimeSync": "Sincronización en Tiempo Real",
+      "roleAccess": "Todos Pueden Editar"
+    },
+    "features": {
+      "invite": {
+        "title": "Comparte un Link, Empieza a Planificar",
+        "description": "Sin descargas, sin muros de registro. Envía un link y tus amigos ya están dentro."
+      },
+      "vote": {
+        "title": "Planificación Democrática",
+        "description": "Todos votan las actividades. El grupo elige lo que gana. Se acabó la dictadura de una persona."
+      },
+      "sync": {
+        "title": "Ve los Cambios al Instante",
+        "description": "Cuando alguien añade un restaurante o cambia una actividad, todos lo ven en tiempo real."
+      }
+    },
+    "cta": "Empieza a Planificar Juntos",
+    "subtitle": "Gratis para hasta 8 colaboradores por viaje"
   },
   "howItWorks": {
     "badge": "Planificador de Viajes Gratis",
@@ -100,16 +141,16 @@
     "subtitle": "Tres simples pasos hacia tu viaje perfecto",
     "steps": {
       "destination": {
-        "title": "Elige Tu Destino",
-        "description": "Escribe a dónde quieres ir — París, Tokio o donde sea. Agrega fechas y viajeros."
+        "title": "Elige un Destino",
+        "description": "París, Tokio, Lisboa — donde sea. Añade tus fechas y quién viene."
       },
       "aiBuild": {
-        "title": "La AI Crea Tu Itinerario",
-        "description": "En 30 segundos, obtén un plan completo día a día adaptado a tu estilo de viaje, intereses y presupuesto."
+        "title": "Tu Plan en 30 Segundos",
+        "description": "Nuestra AI crea un itinerario completo día a día: restaurantes, actividades, rutas a pie — personalizado para tu grupo."
       },
       "customize": {
-        "title": "Personaliza y Comparte",
-        "description": "Ajusta lo que quieras, comparte con amigos de viaje, exporta a PDF. ¡Solo queda hacer las maletas!"
+        "title": "Hazlo Vuestro",
+        "description": "Edita lo que quieras, invita a tu grupo a colaborar, exporta a PDF. Luego, a vivir el viaje."
       }
     },
     "cta": "Pruébalo Gratis Ahora"
@@ -128,19 +169,32 @@
     },
     "cta": "Planifica Mi Primer Viaje"
   },
-  "collaboration": {
-    "badge": "Nueva Función",
-    "title": "Planifica",
-    "titleHighlight": "en Grupo",
-    "description": "Planificar viajes es mejor con amigos. Invita a tu grupo de viaje, vota actividades y mira cómo tu viaje perfecto toma forma.",
-    "pills": {
-      "inviteFriends": "Invitar Amigos",
-      "voteTogether": "Votar Juntos",
-      "realtimeSync": "Sincronización en Tiempo Real",
-      "roleAccess": "Acceso por Roles"
-    },
-    "cta": "Empieza a Planificar en Grupo",
-    "subtitle": "Gratis para hasta 8 colaboradores por viaje"
+  "antiFeatures": {
+    "badge": "Transparencia",
+    "title": "Lo que no vas a encontrar aquí",
+    "subtitle": "Algunas cosas que dejamos fuera a propósito.",
+    "items": {
+      "paywall": {
+        "title": "Sin Muro de Pago",
+        "description": "El planificador AI completo es gratis. No es una \"prueba gratis\" — es gratis de verdad."
+      },
+      "download": {
+        "title": "Sin Descarga de App",
+        "description": "Funciona en tu navegador. Celular, tablet, computadora — solo abre y planifica."
+      },
+      "hallucinations": {
+        "title": "Sin Lugares Falsos",
+        "description": "Cada restaurante, atracción y café está verificado con datos reales de Google."
+      },
+      "soloOnly": {
+        "title": "Sin Planificación Solo Individual",
+        "description": "Diseñado desde el día uno para grupos. Invita amigos, vota, planifica juntos."
+      },
+      "generic": {
+        "title": "Sin Listas Genéricas",
+        "description": "Cada itinerario está hecho para las fechas, ritmo e intereses de tu grupo."
+      }
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -148,7 +202,7 @@
     "items": {
       "free": {
         "question": "¿Este planificador de viajes con AI es realmente gratis?",
-        "answer": "Sí, MonkeyTravel es 100% gratis. Crea itinerarios de viaje ilimitados, personalízalos, exporta a PDF y comparte con amigos — todo sin pagar nada. Planeamos agregar funciones premium opcionales en el futuro, pero el planificador de viajes con AI siempre será gratis."
+        "answer": "Sí, MonkeyTravel es 100% gratis. Crea itinerarios de viaje ilimitados, personalízalos, exporta a PDF y comparte con amigos — todo sin pagar nada. La colaboración grupal también es gratis — invita hasta 8 amigos por viaje. Planeamos agregar funciones premium opcionales en el futuro, pero el planificador de viajes con AI siempre será gratis."
       },
       "noApp": {
         "question": "¿Necesito descargar una app?",
@@ -168,16 +222,16 @@
       },
       "planWithFriends": {
         "question": "¿Puedo planificar viajes con amigos?",
-        "answer": "¡Sí! MonkeyTravel está diseñado para viajes en grupo. Invita a tus compañeros de viaje como colaboradores — pueden votar actividades, sugerir nuevos lugares y ver actualizaciones en tiempo real. Se acabaron los chats interminables discutiendo dónde comer. Todos en la misma página."
+        "answer": "¡Por supuesto! La planificación grupal es lo que mejor hace MonkeyTravel. Comparte un solo enlace de invitación — tus amigos no necesitan descargar nada ni registrarse. Todos pueden votar actividades, sugerir nuevos lugares y ver cambios en tiempo real. Es como un Google Doc compartido para tu viaje, pero mucho más inteligente."
       }
     },
     "contact": "¿Tienes más preguntas? Nos encantaría saber de ti.",
     "emailSupport": "Soporte por Email"
   },
   "cta": {
-    "title": "¿Listo para planificar tu próxima aventura?",
-    "subtitle": "Únete a miles de viajeros que planifican de manera más inteligente.",
-    "button": "Empezar a Planificar — Es Gratis",
+    "title": "Tu próximo viaje merece 30 segundos",
+    "subtitle": "No 30 pestañas del navegador. No 30 mensajes en el chat grupal. No 30 horas planificando. Solo 30 segundos.",
+    "button": "Planifica Tu Viaje — Gratis",
     "referral": "¿Te encanta? Invita amigos y gana funciones premium gratis.",
     "mobileNotify": "Recibe una notificación cuando lancemos las apps móviles"
   },

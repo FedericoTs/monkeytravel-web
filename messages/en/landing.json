@@ -1,17 +1,17 @@
 {
   "hero": {
-    "badge": "Live Now — Try It Free",
-    "titleLine1": "The AI Travel Planner",
-    "titleHighlight": "That Actually Works",
-    "subtitleStart": "Drop a destination. Get a",
+    "badge": "Free for You and Your Crew",
+    "titleLine1": "Plan Trips With Friends",
+    "titleHighlight": "in 30 Seconds",
+    "subtitleStart": "Drop a destination, invite your crew, and get a",
     "subtitleHighlight": "personalized day-by-day itinerary",
-    "subtitleEnd": "in 30 seconds — tailored to your travel style, interests, and pace.",
-    "cta": "Plan My Trip Free",
+    "subtitleEnd": "everyone can vote on, edit, and make their own.",
+    "cta": "Plan a Trip Together",
     "signIn": "Sign In",
     "trustSignals": {
       "free": "100% Free",
-      "noCard": "No Credit Card",
-      "instant": "Instant Access"
+      "noCard": "Up to 8 Friends",
+      "instant": "30 Seconds"
     },
     "floatingCards": {
       "aiPowered": "AI Powered",
@@ -22,12 +22,13 @@
   },
   "stats": {
     "ideaToItinerary": "From idea to itinerary",
-    "destinationsReady": "Destinations ready",
-    "personalizedToYou": "Personalized to you"
+    "destinationsReady": "Destinations worldwide",
+    "personalizedToYou": "Personalized to you",
+    "friendsPerTrip": "Friends per trip"
   },
   "problem": {
-    "title": "You deserve better than this",
-    "subtitle": "Planning a trip shouldn't feel like a second job",
+    "title": "Group trips fall apart before they start",
+    "subtitle": "Sound familiar? You're not alone.",
     "points": {
       "tabs": "47 browser tabs open, trying to piece together blogs, reviews, and maps",
       "copy": "Copying itineraries that don't match your vibe or budget",
@@ -35,23 +36,35 @@
     },
     "cards": {
       "research": {
-        "title": "Research Rabbit Holes",
-        "description": "\"Just one more blog post\" turns into 4 hours. You're tired before the trip even starts."
+        "title": "The Endless Group Chat",
+        "description": "\"Where should we eat?\" \"What about Tuesday?\" — 200 messages later, nothing's decided."
       },
       "analysis": {
-        "title": "Analysis Paralysis",
-        "description": "500 restaurants, 200 attractions, conflicting reviews. How do you even choose?"
+        "title": "One Person Does Everything",
+        "description": "Somehow it's always you. Researching, booking, organizing — while everyone else just shows up."
       },
       "copyPaste": {
-        "title": "Copy-Paste Itineraries",
-        "description": "Generic \"Top 10\" lists that ignore your pace, budget, and what actually excites you."
+        "title": "Nobody Can Agree",
+        "description": "She wants museums, he wants beaches, they want food tours. Everyone's frustrated."
       }
     }
   },
+  "aiChatDemo": {
+    "badge": "AI Travel Agent",
+    "title": "Change anything with a message",
+    "subtitle": "Don't like something? Just tell our AI. It's like texting a friend who knows every restaurant in the city.",
+    "chat": {
+      "user1": "Can you swap the museum on Day 2 for something more outdoors?",
+      "ai1": "Done! I've replaced Museo del Prado with a guided bike tour through Retiro Park. Want me to adjust lunch nearby too?",
+      "user2": "Yes, somewhere with a terrace",
+      "ai2": "Updated! I've added El Pabellón del Espejo — outdoor terrace, 4.6 stars, 5-minute walk from the park."
+    },
+    "cta": "Try It Yourself"
+  },
   "solution": {
-    "badge": "AI Itinerary Generator",
-    "title": "There's a better way",
-    "subtitle": "Let AI do the heavy lifting while you focus on the excitement",
+    "badge": "Built Different",
+    "title": "Not another AI gimmick",
+    "subtitle": "We get it — you've seen the \"AI travel planner\" hype before. Here's what makes this one real.",
     "features": {
       "personalized": {
         "title": "Truly Personalized",
@@ -69,30 +82,58 @@
     "cards": {
       "speed": {
         "title": "30-Second Itineraries",
-        "description": "Pick a destination, get a complete personalized travel plan. Our AI does in seconds what takes hours."
+        "description": "Not 30 minutes. Not \"coming soon.\" A full day-by-day plan before your coffee gets cold."
       },
       "agent": {
-        "title": "AI Travel Agent",
-        "description": "Need to adjust something? Chat with our AI assistant to swap activities, change timing, or get local tips."
+        "title": "A Real Conversation",
+        "description": "Ask our AI to swap, add, or remove anything — like texting a local friend who actually knows the city."
       },
       "dayByDay": {
-        "title": "Day-by-Day Breakdown",
-        "description": "Morning coffee spots, afternoon adventures, evening restaurants — all timed and mapped out."
+        "title": "Hour-by-Hour Detail",
+        "description": "Morning coffee at 8:30, walking tour at 10, lunch at that place with the terrace at 1. Not vague suggestions."
       },
       "customizable": {
-        "title": "Fully Customizable",
-        "description": "Swap activities, add your must-sees, adjust timing — manually or with help from our AI Travel Agent."
+        "title": "Your Trip, Your Rules",
+        "description": "Drag activities, change timing, add your own spots. The AI gives you a head start, not a rigid schedule."
       },
       "collaborate": {
-        "title": "Plan Together",
-        "description": "Invite your travel group to collaborate. Everyone can vote on activities, suggest places, and see real-time updates.",
-        "badge": "New"
+        "title": "Built for Groups",
+        "description": "Everyone gets a vote. Everyone can edit. No more \"I'll just plan everything\" martyrdom.",
+        "badge": "Unique"
       },
       "realData": {
-        "title": "Real Data, Real Places",
-        "description": "Actual photos, genuine ratings, official hours. We verify so you don't have to second-guess."
+        "title": "Verified Places",
+        "description": "Real Google ratings, real photos, real hours. No hallucinated restaurants that closed in 2019."
       }
     }
+  },
+  "collaboration": {
+    "badge": "Group Planning",
+    "title": "Finally, trip planning",
+    "titleHighlight": "everyone enjoys",
+    "description": "No more one person doing all the work. Invite your crew and plan together in real time.",
+    "pills": {
+      "inviteFriends": "One-Link Invites",
+      "voteTogether": "Vote on Activities",
+      "realtimeSync": "Real-time Sync",
+      "roleAccess": "Everyone Can Edit"
+    },
+    "features": {
+      "invite": {
+        "title": "Share a Link, Start Planning",
+        "description": "No downloads, no sign-up walls. Send one link and your friends are in."
+      },
+      "vote": {
+        "title": "Democratic Trip Planning",
+        "description": "Everyone votes on activities. The group picks what wins. No more one-person dictatorship."
+      },
+      "sync": {
+        "title": "See Changes Instantly",
+        "description": "When someone adds a restaurant or swaps an activity, everyone sees it in real time."
+      }
+    },
+    "cta": "Start Planning Together",
+    "subtitle": "Free for up to 8 collaborators per trip"
   },
   "howItWorks": {
     "badge": "Free Trip Planner",
@@ -100,16 +141,16 @@
     "subtitle": "Three simple steps to your perfect trip",
     "steps": {
       "destination": {
-        "title": "Pick Your Destination",
-        "description": "Type where you want to go — Paris, Tokyo, or anywhere. Add dates and travelers."
+        "title": "Drop a Destination",
+        "description": "Paris, Tokyo, Lisbon — anywhere. Add your dates and who's coming."
       },
       "aiBuild": {
-        "title": "AI Builds Your Itinerary",
-        "description": "In 30 seconds, get a complete day-by-day plan tailored to your travel style, interests, and budget."
+        "title": "Get Your Plan in 30s",
+        "description": "Our AI creates a full day-by-day itinerary: restaurants, activities, walking routes — personalized to your group."
       },
       "customize": {
-        "title": "Customize & Share",
-        "description": "Tweak anything, share with travel buddies, export to PDF. Then pack your bags."
+        "title": "Make It Yours Together",
+        "description": "Edit anything, invite your crew to collaborate, export to PDF. Then go live your trip."
       }
     },
     "cta": "Try It Free Now"
@@ -128,19 +169,32 @@
     },
     "cta": "Plan My First Trip"
   },
-  "collaboration": {
-    "badge": "New Feature",
-    "title": "Plan",
-    "titleHighlight": "Together",
-    "description": "Trip planning is better with friends. Invite your travel group, vote on activities, and watch your perfect trip come together.",
-    "pills": {
-      "inviteFriends": "Invite Friends",
-      "voteTogether": "Vote Together",
-      "realtimeSync": "Real-time Sync",
-      "roleAccess": "Role-based Access"
-    },
-    "cta": "Start Planning Together",
-    "subtitle": "Free for up to 8 collaborators per trip"
+  "antiFeatures": {
+    "badge": "Transparency",
+    "title": "What you won't find here",
+    "subtitle": "Some things we deliberately left out.",
+    "items": {
+      "paywall": {
+        "title": "No Paywall",
+        "description": "The full AI planner is free. Not a \"free trial\" — actually free."
+      },
+      "download": {
+        "title": "No App Download",
+        "description": "Works in your browser. Phone, tablet, laptop — just open and plan."
+      },
+      "hallucinations": {
+        "title": "No Fake Places",
+        "description": "Every restaurant, attraction, and cafe is verified with real Google data."
+      },
+      "soloOnly": {
+        "title": "No Solo-Only Planning",
+        "description": "Built from day one for groups. Invite friends, vote, plan together."
+      },
+      "generic": {
+        "title": "No Generic Lists",
+        "description": "Every itinerary is built for your group's dates, pace, and interests."
+      }
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -148,7 +202,7 @@
     "items": {
       "free": {
         "question": "Is this AI travel planner really free?",
-        "answer": "Yes, MonkeyTravel is 100% free. Create unlimited trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. We plan to add optional premium features down the road, but the core AI trip planner will always be free."
+        "answer": "Yes, MonkeyTravel is 100% free. Create unlimited trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. Group collaboration is also free — invite up to 8 friends per trip. We plan to add optional premium features down the road, but the core AI trip planner will always be free."
       },
       "noApp": {
         "question": "Do I need to download an app?",
@@ -168,16 +222,16 @@
       },
       "planWithFriends": {
         "question": "Can I plan trips with friends?",
-        "answer": "Yes! MonkeyTravel is built for group travel. Invite your travel companions as collaborators — they can vote on activities, suggest new places, and see real-time updates. No more endless group chats debating where to eat. Everyone stays on the same page."
+        "answer": "Absolutely! Group planning is what MonkeyTravel does best. Share a single invite link — no downloads or sign-ups required for your friends. Everyone can vote on activities, suggest new places, and see changes in real time. It's like a shared Google Doc for your trip, but way smarter."
       }
     },
     "contact": "Still have questions? We'd love to hear from you.",
     "emailSupport": "Email Support"
   },
   "cta": {
-    "title": "Ready to plan your next adventure?",
-    "subtitle": "Join thousands of travelers who plan smarter, not harder.",
-    "button": "Start Planning — It's Free",
+    "title": "Your next trip deserves 30 seconds",
+    "subtitle": "Not 30 browser tabs. Not 30 group chat messages. Not 30 hours of planning. Just 30 seconds.",
+    "button": "Plan Your Trip — Free",
     "referral": "Love it? Invite friends and earn free premium features.",
     "mobileNotify": "Get notified when mobile apps launch"
   },

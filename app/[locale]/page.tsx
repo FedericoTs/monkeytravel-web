@@ -63,7 +63,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
       <main>
         {/* ================================================================
-            HERO SECTION - High Impact, Conversion Focused
+            1. HERO SECTION - Group Planning Angle
             ================================================================ */}
         <section className="relative min-h-screen pt-20 pb-12 overflow-hidden hero-gradient">
           {/* Subtle grid overlay */}
@@ -78,7 +78,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
               {/* Left - Content */}
               <div className="pt-8 lg:pt-0 text-center lg:text-left order-2 lg:order-1">
-                {/* Live Badge */}
+                {/* Badge */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -89,7 +89,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   </span>
                 </div>
 
-                {/* Main Headline - Primary keyword: AI travel planner */}
+                {/* Main Headline */}
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--foreground)] leading-[1.08] tracking-tight mb-6">
                   {t('hero.titleLine1')}
                   <br />
@@ -103,7 +103,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
                 {/* Primary CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-                  {/* Plan My Trip - triggers tour first, then auth */}
                   <TourTrigger
                     variant="primary-cta"
                     skipToAuthIfCompleted={true}
@@ -193,7 +192,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            SOCIAL PROOF - Quick Stats
+            2. SOCIAL PROOF - Quick Stats (4th stat added)
             ================================================================ */}
         <section className="py-8 bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -212,12 +211,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">100%</div>
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.personalizedToYou')}</div>
               </div>
+              <div className="hidden sm:block w-px h-12 bg-gray-200" />
+              <div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">8</div>
+                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.friendsPerTrip')}</div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* ================================================================
-            PROBLEM SECTION - Pain Points
+            3. PROBLEM SECTION - Group-specific Pain Points
             ================================================================ */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -235,24 +239,27 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {
                   key: 'research',
                   icon: (
+                    // Chat bubble with "..." — endless group chat
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   ),
                 },
                 {
                   key: 'analysis',
                   icon: (
+                    // Tired person with clipboard — one person does everything
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   ),
                 },
                 {
                   key: 'copyPaste',
                   icon: (
+                    // Two opposing arrows — nobody can agree
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
                   ),
                 },
@@ -270,9 +277,72 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            SOLUTION SECTION - How MonkeyTravel Solves It
+            4. AI CHAT DEMO — NEW SECTION
             ================================================================ */}
-        <section id="features" className="py-24 bg-[var(--background-alt)] relative overflow-hidden">
+        <section className="py-20 bg-[var(--background-alt)]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-6">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                {t('aiChatDemo.badge')}
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
+                {t('aiChatDemo.title')}
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                {t('aiChatDemo.subtitle')}
+              </p>
+            </div>
+
+            {/* Chat mockup */}
+            <div className="max-w-2xl mx-auto">
+              {/* User message 1 */}
+              <div className="flex justify-end mb-4">
+                <div className="bg-[var(--primary)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
+                  {t('aiChatDemo.chat.user1')}
+                </div>
+              </div>
+              {/* AI response 1 */}
+              <div className="flex justify-start mb-4">
+                <div className="bg-white text-gray-800 px-5 py-3 rounded-2xl rounded-bl-md max-w-md shadow-sm border border-gray-100 text-sm sm:text-base">
+                  {t('aiChatDemo.chat.ai1')}
+                </div>
+              </div>
+              {/* User message 2 */}
+              <div className="flex justify-end mb-4">
+                <div className="bg-[var(--primary)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
+                  {t('aiChatDemo.chat.user2')}
+                </div>
+              </div>
+              {/* AI response 2 */}
+              <div className="flex justify-start mb-6">
+                <div className="bg-white text-gray-800 px-5 py-3 rounded-2xl rounded-bl-md max-w-md shadow-sm border border-gray-100 text-sm sm:text-base">
+                  {t('aiChatDemo.chat.ai2')}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <TourTrigger
+                variant="button"
+                skipToAuthIfCompleted={true}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg"
+              >
+                {t('aiChatDemo.cta')}
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </TourTrigger>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            5. SOLUTION SECTION - Objection Handling
+            ================================================================ */}
+        <section id="features" className="py-24 bg-white relative overflow-hidden">
           <div className="absolute inset-0 bg-grid-pattern-accent opacity-30" />
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -352,7 +422,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               ] as const).map((feature, index) => (
                 <div
                   key={index}
-                  className="group relative p-8 rounded-3xl bg-white border border-gray-100 card-hover"
+                  className="group relative p-8 rounded-3xl bg-[var(--background-alt)] border border-gray-100 card-hover"
                 >
                   {'hasBadge' in feature && feature.hasBadge && (
                     <span className="absolute top-4 right-4 px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-rose-500 text-white rounded-full">
@@ -371,7 +441,78 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            HOW IT WORKS - Simple Steps
+            6. COLLABORATION SECTION - Expanded (moved up from position 8)
+            ================================================================ */}
+        <section className="py-20 bg-gradient-to-b from-purple-50/50 to-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                </span>
+                {t('collaboration.badge')}
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+                {t('collaboration.title')}{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">
+                  {t('collaboration.titleHighlight')}
+                </span>
+              </h2>
+              <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+                {t('collaboration.description')}
+              </p>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
+              {([
+                { icon: "👥", key: "inviteFriends" },
+                { icon: "🗳️", key: "voteTogether" },
+                { icon: "⚡", key: "realtimeSync" },
+                { icon: "✏️", key: "roleAccess" },
+              ] as const).map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-200 transition-all"
+                >
+                  <span className="text-xl">{item.icon}</span>
+                  <span className="font-medium text-gray-700">{t(`collaboration.pills.${item.key}`)}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Feature Sub-grid */}
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+              {(['invite', 'vote', 'sync'] as const).map((key) => (
+                <div key={key} className="p-6 rounded-2xl bg-white border border-purple-100 text-center shadow-sm">
+                  <h3 className="font-semibold text-gray-900 mb-2">{t(`collaboration.features.${key}.title`)}</h3>
+                  <p className="text-sm text-gray-600">{t(`collaboration.features.${key}.description`)}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <TourTrigger
+                variant="button"
+                skipToAuthIfCompleted={true}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
+              >
+                {t('collaboration.cta')}
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </TourTrigger>
+              <p className="mt-4 text-sm text-gray-500">
+                {t('collaboration.subtitle')}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            7. HOW IT WORKS - Simple Steps
             ================================================================ */}
         <section id="how-it-works" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -459,7 +600,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            CURATED ESCAPES - Template Trips Showcase
+            8. CURATED ESCAPES - Template Trips Showcase
             ================================================================ */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -468,9 +609,94 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            APP PREVIEW SECTION
+            9. WHAT YOU WON'T FIND HERE — NEW SECTION (Anti-Features)
             ================================================================ */}
-        <section className="py-24 bg-[var(--background-alt)] overflow-hidden">
+        <section className="py-20 bg-[var(--background-alt)]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-14">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold mb-6">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                {t('antiFeatures.badge')}
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
+                {t('antiFeatures.title')}
+              </h2>
+              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+                {t('antiFeatures.subtitle')}
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {([
+                {
+                  key: 'paywall',
+                  icon: (
+                    // Crossed-out dollar
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-12.728 12.728" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: 'download',
+                  icon: (
+                    // Crossed-out download arrow
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-12.728 12.728" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: 'hallucinations',
+                  icon: (
+                    // Crossed-out ghost/fake
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-12.728 12.728" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: 'soloOnly',
+                  icon: (
+                    // Crossed-out single person
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-12.728 12.728" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: 'generic',
+                  icon: (
+                    // Crossed-out list
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-12.728 12.728" />
+                    </svg>
+                  ),
+                },
+              ] as const).map((item, index) => (
+                <div key={index} className="relative p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-red-50 text-red-400 flex items-center justify-center mb-4">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{t(`antiFeatures.items.${item.key}.title`)}</h3>
+                  <p className="text-sm text-[var(--foreground-muted)] leading-relaxed">{t(`antiFeatures.items.${item.key}.description`)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            10. APP PREVIEW SECTION
+            ================================================================ */}
+        <section className="py-24 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Phone Mockups */}
@@ -542,70 +768,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            COLLABORATION SECTION - Plan Together Feature
+            11. POPULAR DESTINATIONS - SEO & Internal Linking
             ================================================================ */}
-        <section className="py-20 bg-gradient-to-b from-purple-50/50 to-white">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-                </span>
-                {t('collaboration.badge')}
-              </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-                {t('collaboration.title')}{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">
-                  {t('collaboration.titleHighlight')}
-                </span>
-              </h2>
-              <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-                {t('collaboration.description')}
-              </p>
-            </div>
-
-            {/* Feature Pills */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              {([
-                { icon: "👥", key: "inviteFriends" },
-                { icon: "🗳️", key: "voteTogether" },
-                { icon: "⚡", key: "realtimeSync" },
-                { icon: "🔐", key: "roleAccess" },
-              ] as const).map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-200 transition-all"
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium text-gray-700">{t(`collaboration.pills.${item.key}`)}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="text-center">
-              <TourTrigger
-                variant="button"
-                skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
-              >
-                {t('collaboration.cta')}
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </TourTrigger>
-              <p className="mt-4 text-sm text-gray-500">
-                {t('collaboration.subtitle')}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================
-            POPULAR DESTINATIONS - SEO & Internal Linking
-            ================================================================ */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
@@ -648,7 +813,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            FAQ SECTION
+            12. FAQ SECTION
             ================================================================ */}
         <section id="support" className="py-24 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -711,7 +876,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            FINAL CTA - High Converting
+            13. FINAL CTA - Emotional Closing
             ================================================================ */}
         <section className="py-24 bg-white">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
