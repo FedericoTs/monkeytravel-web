@@ -495,9 +495,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* CTA */}
             <div className="text-center">
               <TourTrigger
-                variant="button"
+                variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl cursor-pointer"
               >
                 {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -586,9 +586,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* CTA */}
             <div className="text-center mt-16">
               <TourTrigger
-                variant="button"
+                variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg cursor-pointer"
               >
                 {t('howItWorks.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -753,9 +753,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </ul>
 
                 <TourTrigger
-                  variant="button"
+                  variant="custom"
                   skipToAuthIfCompleted={true}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 cursor-pointer"
                 >
                   {t('appPreview.cta')}
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -863,7 +863,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
                   href="mailto:support@monkeytravel.app"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-light)] transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -911,9 +911,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                   <TourTrigger
-                    variant="button"
+                    variant="custom"
                     skipToAuthIfCompleted={true}
-                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2"
+                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>{t('cta.button')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
