@@ -104,15 +104,20 @@ async function getCachedItinerary(
     return null;
   }
 
-  // Update hit count asynchronously
-  supabase
-    .from("destination_activity_cache")
-    .update({
-      hit_count: (data.hit_count || 0) + 1,
-      last_accessed_at: new Date().toISOString(),
-    })
-    .eq("id", data.id)
-    .then(() => {});
+  // Update hit count atomically using raw SQL increment
+  Promise.resolve(
+    supabase.rpc("increment_cache_hit_count", { cache_id: data.id })
+  ).catch(() => {
+    // Fallback: non-atomic update if RPC not available
+    supabase
+      .from("destination_activity_cache")
+      .update({
+        hit_count: (data.hit_count || 0) + 1,
+        last_accessed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .then(() => {});
+  });
 
   console.log(`[AI Generate] Cache HIT for ${destination} (vibes: ${vibes.join(", ")}, language: ${language})`);
 

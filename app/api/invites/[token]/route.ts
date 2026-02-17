@@ -19,6 +19,11 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
   try {
     const { token } = await context.params;
 
+    // Validate token format before querying
+    if (!token || token.length < 8 || !/^[a-zA-Z0-9_-]+$/.test(token)) {
+      return errors.badRequest("Invalid invite token format");
+    }
+
     // Use admin client for public access to invite details
     const supabaseAdmin = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -156,6 +161,12 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
     const { token } = await context.params;
+
+    // Validate token format before querying
+    if (!token || token.length < 8 || !/^[a-zA-Z0-9_-]+$/.test(token)) {
+      return errors.badRequest("Invalid invite token format");
+    }
+
     const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errors.unauthorized("Authentication required");
 

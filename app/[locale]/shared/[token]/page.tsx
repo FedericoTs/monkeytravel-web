@@ -33,6 +33,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${trip.title} | MonkeyTravel`,
     description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+    alternates: {
+      canonical: `https://monkeytravel.app/shared/${token}`,
+    },
     openGraph: {
       title: `${trip.title} | MonkeyTravel`,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,

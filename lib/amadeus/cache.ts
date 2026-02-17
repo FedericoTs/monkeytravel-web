@@ -32,6 +32,7 @@ export const CACHE_TTL = {
 export type CacheType = keyof typeof CACHE_TTL;
 
 // In-memory cache store
+const MAX_MEMORY_ENTRIES = 500;
 const memoryCache = new Map<string, CacheEntry>();
 
 // Cache statistics
@@ -111,6 +112,22 @@ export function getFromCache<T>(key: string): T | null {
 export function setCache<T>(key: string, data: T, type: CacheType): void {
   const ttl = CACHE_TTL[type];
   const now = Date.now();
+
+  // LRU eviction when at capacity
+  if (memoryCache.size >= MAX_MEMORY_ENTRIES && !memoryCache.has(key)) {
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+    for (const [k, entry] of memoryCache.entries()) {
+      if (entry.timestamp < oldestTime) {
+        oldestTime = entry.timestamp;
+        oldestKey = k;
+      }
+    }
+    if (oldestKey) {
+      memoryCache.delete(oldestKey);
+      cacheStats.evictions++;
+    }
+  }
 
   memoryCache.set(key, {
     data,

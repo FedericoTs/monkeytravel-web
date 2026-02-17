@@ -97,22 +97,8 @@ export async function GET() {
     const { supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    // Fetch all metrics in parallel
-    const [
-      usersResult,
-      tripsResult,
-      aiUsageResult,
-      aiConversationsResult,
-      subscribersResult,
-      usersWithTripsResult,
-      tripStatusResult,
-      aiActionResult,
-      aiModelResult,
-      aiTokensResult,
-      generationCostsResult,
-      topDestinationsResult,
-      geoMetricsResult,
-    ] = await Promise.all([
+    // Fetch all metrics in parallel — use allSettled so one failure doesn't crash the dashboard
+    const settled = await Promise.allSettled([
       // User counts
       supabase.rpc("get_user_metrics"),
       // Trip counts
@@ -210,6 +196,28 @@ export async function GET() {
       // Geo metrics from page_views
       fetchGeoMetrics(supabase),
     ]);
+
+    // Safely extract results — failed queries return null instead of crashing
+    const safe = <T>(index: number, fallback: T): T => {
+      const result = settled[index];
+      if (result.status === "fulfilled") return result.value as T;
+      console.error(`[Admin Stats] Query ${index} failed:`, result.reason);
+      return fallback;
+    };
+
+    const usersResult = safe(0, { data: null });
+    const tripsResult = safe(1, { data: null });
+    const aiUsageResult = safe(2, { data: null });
+    const aiConversationsResult = safe(3, { data: null, count: 0 });
+    const subscribersResult = safe(4, { data: null });
+    const usersWithTripsResult = safe(5, { count: 0 });
+    const tripStatusResult = safe(6, { data: {} });
+    const aiActionResult = safe(7, { data: {} });
+    const aiModelResult = safe(8, { data: {} });
+    const aiTokensResult = safe(9, { data: { inputTokens: 0, outputTokens: 0, costCents: 0 } });
+    const generationCostsResult = safe(10, { data: { totalCostUsd: 0, generateCount: 0, regenerateCount: 0 } });
+    const topDestinationsResult = safe(11, [] as { destination: string; count: number }[]);
+    const geoMetricsResult = safe(12, null);
 
     // Fallback to direct queries if RPC doesn't exist
     const userMetrics = usersResult.data || (await fetchUserMetricsDirect(supabase));

@@ -86,7 +86,7 @@ async function cacheImage(cacheKey: string, dataUrl: string, contentType: string
  */
 function isDomainAllowed(hostname: string): boolean {
   return ALLOWED_DOMAINS.some(domain =>
-    hostname.includes(domain) || hostname.endsWith(domain)
+    hostname === domain || hostname.endsWith("." + domain)
   );
 }
 
