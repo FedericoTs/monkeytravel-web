@@ -239,7 +239,8 @@
     "deleteWord": "ELIMINA",
     "toConfirm": "per confermare",
     "typePlaceholder": "Scrivi ELIMINA",
-    "deleting": "Eliminazione..."
+    "deleting": "Eliminazione...",
+    "deleteError": "Impossibile eliminare l'account. Riprova."
   },
   "earlyAccess": {
     "title": "Funzionalità IA",
@@ -394,6 +395,10 @@
     "tripArchived": "Viaggio archiviato",
     "tripRestored": "Viaggio ripristinato",
     "tripDeleted": "Viaggio eliminato",
+    "archiveError": "Impossibile archiviare il viaggio. Riprova.",
+    "unarchiveError": "Impossibile ripristinare il viaggio. Riprova.",
+    "deleteError": "Impossibile eliminare il viaggio. Riprova.",
+    "tripActions": "Azioni viaggio",
     "tripConfirmed": "Viaggio confermato",
     "tripCancelled": "Viaggio annullato",
     "readyToConfirm": "Pronto a confermare il tuo viaggio?",
@@ -900,8 +905,9 @@
     "popularDestinations": "Destinazioni popolari",
     "typeToSearch": "Digita 3+ caratteri per cercare",
     "fromCuratedList": "Dalla nostra lista selezionata",
-    "notInListYet": "Non ancora nella nostra lista",
-    "typeAndEnter": "Digita il nome completo della destinazione e premi Invio"
+    "noResultsExciting": "Stai per esplorare nuovi orizzonti!",
+    "noResultsSupported": "Nessun problema — la nostra IA pianifica viaggi per qualsiasi destinazione al mondo.",
+    "continueWith": "Continua con {destination}"
   },
   "stagedLoading": {
     "stages": {
@@ -1505,6 +1511,17 @@
           "description": "Luoghi panoramici, monumenti iconici, ore dorate"
         }
       }
+    },
+    "modal": {
+      "personalizeTrip": "Personalizza il Tuo Viaggio",
+      "toDestination": "per {destination}",
+      "stepOf": "Passo {step} di {total}",
+      "back": "Indietro",
+      "next": "Avanti",
+      "skipForNow": "Salta per ora",
+      "createAccount": "Crea Account",
+      "closeLabel": "Chiudi",
+      "valueProposition": "Queste preferenze ci aiutano a creare un itinerario personalizzato per te"
     }
   },
   "tour": {

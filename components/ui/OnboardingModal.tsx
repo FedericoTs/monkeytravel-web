@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, ChevronRight, ChevronLeft, Sparkles, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   useOnboardingPreferences,
   hasLocalOnboardingPreferences,
@@ -30,23 +31,12 @@ interface OnboardingPreferences {
 
 const TOTAL_STEPS = 4;
 
-const STEP_TITLES: Record<number, { title: string; subtitle: string }> = {
-  1: {
-    title: "What's your travel style?",
-    subtitle: "Select all that apply - we'll personalize your trips",
-  },
-  2: {
-    title: "Any dietary preferences?",
-    subtitle: "We'll find restaurants that match your needs",
-  },
-  3: {
-    title: "Accessibility needs?",
-    subtitle: "We'll ensure your trip is comfortable",
-  },
-  4: {
-    title: "When are you most active?",
-    subtitle: "We'll schedule activities at your preferred times",
-  },
+// Step title keys mapped to existing onboarding translation namespace
+const STEP_KEYS: Record<number, { titleKey: string; subtitleKey: string }> = {
+  1: { titleKey: "travelStyle.title", subtitleKey: "travelStyle.subtitle" },
+  2: { titleKey: "dietary.title", subtitleKey: "dietary.subtitle" },
+  3: { titleKey: "accessibility.title", subtitleKey: "accessibility.subtitle" },
+  4: { titleKey: "activeHours.title", subtitleKey: "activeHours.subtitle" },
 };
 
 /**
@@ -60,6 +50,9 @@ export default function OnboardingModal({
   onComplete,
   destination,
 }: OnboardingModalProps) {
+  const tOnboarding = useTranslations("common.onboarding");
+  const tModal = useTranslations("common.onboarding.modal");
+
   // Use localStorage hook for persistence
   const {
     preferences: localPrefs,
@@ -204,7 +197,7 @@ export default function OnboardingModal({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
-          aria-label="Close"
+          aria-label={tModal("closeLabel")}
         >
           <X className="w-5 h-5 text-gray-500" />
         </button>
@@ -216,9 +209,9 @@ export default function OnboardingModal({
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Personalize Your Trip</h2>
+              <h2 className="text-lg font-bold">{tModal("personalizeTrip")}</h2>
               {destination && (
-                <p className="text-white/70 text-sm">to {destination}</p>
+                <p className="text-white/70 text-sm">{tModal("toDestination", { destination })}</p>
               )}
             </div>
           </div>
@@ -235,7 +228,7 @@ export default function OnboardingModal({
             ))}
           </div>
           <p className="text-white/70 text-xs mt-2">
-            Step {step} of {TOTAL_STEPS}
+            {tModal("stepOf", { step, total: TOTAL_STEPS })}
           </p>
         </div>
 
@@ -252,14 +245,14 @@ export default function OnboardingModal({
                 className="flex items-center gap-1 px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Back
+                {tModal("back")}
               </button>
             ) : (
               <button
                 onClick={handleSkip}
                 className="px-4 py-2 text-slate-500 hover:text-slate-700 text-sm transition-colors"
               >
-                Skip for now
+                {tModal("skipForNow")}
               </button>
             )}
 
@@ -272,11 +265,11 @@ export default function OnboardingModal({
               {step === TOTAL_STEPS ? (
                 <>
                   <Check className="w-4 h-4" />
-                  Create Account
+                  {tModal("createAccount")}
                 </>
               ) : (
                 <>
-                  Next
+                  {tModal("next")}
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
@@ -285,7 +278,7 @@ export default function OnboardingModal({
 
           {/* Value proposition */}
           <p className="text-center text-xs text-slate-500 mt-3">
-            These preferences help us create a personalized itinerary just for you
+            {tModal("valueProposition")}
           </p>
         </div>
       </div>

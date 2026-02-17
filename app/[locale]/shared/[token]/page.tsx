@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { data: trip } = await supabase
     .from("trips")
-    .select("title, description")
+    .select("title, description, cover_image_url")
     .eq("share_token", token)
     .single();
 
@@ -37,11 +37,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${trip.title} | MonkeyTravel`,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
       type: "website",
+      ...(trip.cover_image_url && {
+        images: [{ url: trip.cover_image_url, width: 1200, height: 630, alt: trip.title }],
+      }),
     },
     twitter: {
       card: "summary_large_image",
       title: `${trip.title} | MonkeyTravel`,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+      ...(trip.cover_image_url && { images: [trip.cover_image_url] }),
     },
   };
 }

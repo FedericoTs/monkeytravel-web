@@ -22,8 +22,8 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/destinations', label: t('navigation.destinations') },
-    { href: '#features', label: t('navigation.features') },
-    { href: '#how-it-works', label: t('navigation.howItWorks') },
+    { href: '/#features', label: t('navigation.features') },
+    { href: '/#how-it-works', label: t('navigation.howItWorks') },
   ];
 
   useEffect(() => {
@@ -151,6 +151,7 @@ export default function Navbar() {
             className="md:hidden p-2 rounded-lg text-[var(--foreground)] hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={t('navigation.toggleMenu')}
+            aria-expanded={mobileMenuOpen}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {mobileMenuOpen ? (

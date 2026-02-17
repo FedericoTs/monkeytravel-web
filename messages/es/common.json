@@ -239,7 +239,8 @@
     "deleteWord": "ELIMINAR",
     "toConfirm": "para confirmar",
     "typePlaceholder": "Escribe ELIMINAR",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "deleteError": "Error al eliminar la cuenta. Inténtalo de nuevo."
   },
   "earlyAccess": {
     "title": "Funciones de IA",
@@ -394,6 +395,10 @@
     "tripArchived": "Viaje archivado",
     "tripRestored": "Viaje restaurado",
     "tripDeleted": "Viaje eliminado",
+    "archiveError": "Error al archivar el viaje. Inténtalo de nuevo.",
+    "unarchiveError": "Error al restaurar el viaje. Inténtalo de nuevo.",
+    "deleteError": "Error al eliminar el viaje. Inténtalo de nuevo.",
+    "tripActions": "Acciones del viaje",
     "tripConfirmed": "Viaje confirmado",
     "tripCancelled": "Viaje cancelado",
     "readyToConfirm": "¿Listo para confirmar tu viaje?",
@@ -889,8 +894,9 @@
     "popularDestinations": "Destinos populares",
     "typeToSearch": "Escribe 3+ caracteres para buscar",
     "fromCuratedList": "De nuestra lista seleccionada",
-    "notInListYet": "No está en nuestra lista todavía",
-    "typeAndEnter": "Escribe el nombre completo del destino y presiona Enter"
+    "noResultsExciting": "¡Vas a explorar territorio nuevo!",
+    "noResultsSupported": "Tranquilo — nuestra IA planifica viajes a cualquier destino del mundo.",
+    "continueWith": "Continuar con {destination}"
   },
   "startOver": {
     "title": "¿Empezar de Nuevo?",
@@ -1505,6 +1511,17 @@
           "description": "Lugares pintorescos, monumentos icónicos, horas doradas"
         }
       }
+    },
+    "modal": {
+      "personalizeTrip": "Personaliza Tu Viaje",
+      "toDestination": "a {destination}",
+      "stepOf": "Paso {step} de {total}",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "skipForNow": "Omitir por ahora",
+      "createAccount": "Crear Cuenta",
+      "closeLabel": "Cerrar",
+      "valueProposition": "Estas preferencias nos ayudan a crear un itinerario personalizado para ti"
     }
   },
   "tour": {

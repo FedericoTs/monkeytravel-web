@@ -118,6 +118,8 @@
     "optimizingRoute": "Optimizando tus rutas diarias...",
     "almostDone": "Casi listo...",
     "error": "Error al generar el itinerario. Por favor, intentalo de nuevo.",
+    "errorTimeout": "La solicitud tardó demasiado. Esto puede pasar con viajes complejos — inténtalo de nuevo.",
+    "errorNetwork": "Problema de conexión. Verifica tu internet e inténtalo de nuevo.",
     "retry": "Reintentar"
   },
   "result": {

@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("longitude", longitude);
     url.searchParams.set("start_date", historicalDates.start);
     url.searchParams.set("end_date", historicalDates.end);
-    url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weathercode");
+    url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weathercode,relative_humidity_2m_mean");
     url.searchParams.set("timezone", "auto");
 
     const { response, data } = await apiGateway.fetch<OpenMeteoHistoricalResponse>(
@@ -305,6 +305,15 @@ export async function GET(request: NextRequest) {
       conditionDescription = "Cool weather expected";
     }
 
+    // Calculate average humidity from real data, fallback to 60%
+    const humidityValues = (data.daily.relative_humidity_2m_mean || []).filter(
+      (h): h is number => h !== null && h !== undefined
+    );
+    const avgHumidity =
+      humidityValues.length > 0
+        ? Math.round(humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length)
+        : 60;
+
     const weatherData: WeatherData = {
       temperature: {
         min: Math.round(minTemp),
@@ -316,7 +325,7 @@ export async function GET(request: NextRequest) {
         rainyDays,
       },
       conditions: conditionDescription,
-      humidity: 60, // Default estimate
+      humidity: avgHumidity,
       icon,
     };
 

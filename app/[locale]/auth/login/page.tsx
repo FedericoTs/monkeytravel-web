@@ -146,10 +146,15 @@ function LoginForm() {
             </p>
 
             {(error || errorParam) && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
                 <p className="font-medium">{error?.message || errorParam}</p>
                 {error?.suggestion && (
                   <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
+                )}
+                {error?.message?.includes("incorrect") && (
+                  <Link href="/auth/forgot-password" className="text-sm text-[var(--primary)] font-medium hover:underline mt-2 inline-block">
+                    {t("forgotPasswordLink")}
+                  </Link>
                 )}
               </div>
             )}

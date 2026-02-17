@@ -166,7 +166,7 @@ export interface PlacePrediction {
     latitude: number;
     longitude: number;
   };
-  source?: "local" | "google"; // Track where result came from
+  source?: "local" | "google" | "manual"; // Track where result came from
 }
 
 // Travel segment for cached travel distances

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/Toast";
 
 interface TripActionModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function TripActionModal({
 }: TripActionModalProps) {
   const t = useTranslations("common.trips");
   const tButtons = useTranslations("common.buttons");
+  const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -31,6 +33,12 @@ export default function TripActionModal({
       onClose();
     } catch (error) {
       console.error("Action failed:", error);
+      const message = action === "delete"
+        ? t("deleteError")
+        : action === "archive"
+        ? t("archiveError")
+        : t("unarchiveError");
+      addToast(message, "error");
     } finally {
       setIsLoading(false);
     }

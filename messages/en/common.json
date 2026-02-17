@@ -239,7 +239,8 @@
     "deleteWord": "DELETE",
     "toConfirm": "to confirm",
     "typePlaceholder": "Type DELETE",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "deleteError": "Failed to delete account. Please try again."
   },
   "earlyAccess": {
     "title": "AI Features",
@@ -394,6 +395,10 @@
     "tripArchived": "Trip archived",
     "tripRestored": "Trip restored",
     "tripDeleted": "Trip deleted",
+    "archiveError": "Failed to archive trip. Please try again.",
+    "unarchiveError": "Failed to restore trip. Please try again.",
+    "deleteError": "Failed to delete trip. Please try again.",
+    "tripActions": "Trip actions",
     "tripConfirmed": "Trip confirmed",
     "tripCancelled": "Trip cancelled",
     "readyToConfirm": "Ready to confirm your trip?",
@@ -889,8 +894,9 @@
     "popularDestinations": "Popular destinations",
     "typeToSearch": "Type 3+ chars to search",
     "fromCuratedList": "From our curated list",
-    "notInListYet": "Not in our list yet",
-    "typeAndEnter": "Type the full destination name and press Enter"
+    "noResultsExciting": "You're exploring new territory!",
+    "noResultsSupported": "No worries — our AI plans trips to any destination on Earth.",
+    "continueWith": "Continue with {destination}"
   },
   "startOver": {
     "title": "Start Over?",
@@ -1505,6 +1511,17 @@
           "description": "Scenic spots, iconic landmarks, golden hours"
         }
       }
+    },
+    "modal": {
+      "personalizeTrip": "Personalize Your Trip",
+      "toDestination": "to {destination}",
+      "stepOf": "Step {step} of {total}",
+      "back": "Back",
+      "next": "Next",
+      "skipForNow": "Skip for now",
+      "createAccount": "Create Account",
+      "closeLabel": "Close",
+      "valueProposition": "These preferences help us create a personalized itinerary just for you"
     }
   },
   "tour": {

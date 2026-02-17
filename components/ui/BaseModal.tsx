@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, type ReactNode } from "react";
+import { useEffect, useCallback, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
@@ -83,6 +83,7 @@ export default function BaseModal({
 }: BaseModalProps) {
   const t = useTranslations("common.buttons");
   const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Client-side only mounting for portal
   useEffect(() => {
@@ -118,6 +119,34 @@ export default function BaseModal({
       }
     };
   }, [isOpen, closeOnEscape, lockScroll, handleKeyDown]);
+
+  // Focus trap — keep Tab cycling within the modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !modalRef.current) return;
+
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [isOpen]);
 
   // Handle backdrop click
   const handleBackdropClick = useCallback(() => {
@@ -161,6 +190,7 @@ export default function BaseModal({
       <div className="relative min-h-screen flex items-center justify-center p-4">
         {/* Modal panel */}
         <div
+          ref={modalRef}
           className={`
             relative bg-white rounded-2xl shadow-xl w-full ${maxWidth}
             overflow-hidden ${animationClasses[animation]} ${className}

@@ -44,6 +44,20 @@ function deduplicatePredictions(predictions: PlacePrediction[]): PlacePrediction
   return Array.from(seen.values());
 }
 
+// Create a manual prediction for destinations not in our database
+function createManualPrediction(text: string): PlacePrediction {
+  return {
+    placeId: `manual_${text.toLowerCase().replace(/\s+/g, "_")}`,
+    mainText: text,
+    secondaryText: "",
+    fullText: text,
+    countryCode: null,
+    flag: "",
+    types: ["(cities)"],
+    source: "manual",
+  };
+}
+
 // Fallback popular destinations (used while loading from API)
 const FALLBACK_POPULAR: PlacePrediction[] = [
   { placeId: "popular_paris", mainText: "Paris", secondaryText: "France", fullText: "Paris, France", countryCode: "FR", flag: "🇫🇷", types: ["(cities)"], coordinates: { latitude: 48.8566, longitude: 2.3522 }, source: "local" },
@@ -503,16 +517,17 @@ export default function DestinationAutocomplete({
         </div>
       )}
 
-      {/* No Results State */}
+      {/* No Results State — encouraging CTA to continue with typed destination */}
       {isOpen && !isLoading && predictions.length === 0 && debouncedValue.length >= 3 && (
         <div
+          ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200
                      shadow-xl shadow-slate-200/50 overflow-hidden p-5 text-center
                      animate-in fade-in slide-in-from-top-2 duration-150"
         >
-          <div className="text-slate-400 mb-2">
+          <div className="w-12 h-12 rounded-full bg-[var(--accent)]/20 flex items-center justify-center mx-auto mb-3">
             <svg
-              className="w-8 h-8 mx-auto opacity-50"
+              className="w-6 h-6 text-[var(--accent)]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -520,15 +535,23 @@ export default function DestinationAutocomplete({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                strokeWidth={2}
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
               />
             </svg>
           </div>
-          <p className="text-slate-600 font-medium">{t("notInListYet")}</p>
-          <p className="text-sm text-slate-400 mt-1">
-            {t("typeAndEnter")}
+          <p className="text-slate-800 font-semibold">{t("noResultsExciting")}</p>
+          <p className="text-sm text-slate-500 mt-1 mb-4">
+            {t("noResultsSupported")}
           </p>
+          <button
+            type="button"
+            onClick={() => handleSelect(createManualPrediction(value))}
+            className="w-full py-3 px-4 rounded-xl bg-[var(--primary)] text-white font-medium
+                       hover:bg-[var(--primary)]/90 transition-colors shadow-md shadow-[var(--primary)]/25"
+          >
+            {t("continueWith", { destination: value })}
+          </button>
         </div>
       )}
     </div>

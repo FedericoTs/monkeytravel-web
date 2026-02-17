@@ -20,6 +20,21 @@ export const INITIAL_DAYS_TO_GENERATE = 14; // Max trip length
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
+// Timeout for AI requests (2 minutes — Vercel serverless limit is 60s for Hobby, 300s for Pro)
+const AI_REQUEST_TIMEOUT_MS = 120_000;
+
+/**
+ * Race a promise against a timeout. Throws if the timeout expires first.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
 /**
  * Log Gemini response usage metadata for cache monitoring
  * Tracks implicit caching stats to verify cost savings
@@ -298,8 +313,6 @@ function validateAndFixCoordinates(days: ItineraryDay[], destination: string): I
         typeof activity.coordinates.lng === "number" &&
         !isNaN(activity.coordinates.lat) &&
         !isNaN(activity.coordinates.lng) &&
-        activity.coordinates.lat !== 0 &&
-        activity.coordinates.lng !== 0 &&
         activity.coordinates.lat >= -90 &&
         activity.coordinates.lat <= 90 &&
         activity.coordinates.lng >= -180 &&
@@ -580,7 +593,11 @@ async function generateItineraryInternal(
   const userPrompt = buildUserPrompt(params, options);
 
   try {
-    const result = await chat.sendMessage(userPrompt);
+    const result = await withTimeout(
+      chat.sendMessage(userPrompt),
+      AI_REQUEST_TIMEOUT_MS,
+      "Itinerary generation"
+    );
     const response = result.response;
     const text = response.text();
     const latencyMs = performance.now() - startTime;
@@ -809,13 +826,17 @@ Return ONLY the JSON object, no extra text.`;
   const regenerateSystemPrompt = await getPrompt("activity_regeneration");
 
   try {
-    const result = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: regenerateSystemPrompt }] },
-        { role: "model", parts: [{ text: "Understood. I will generate a single replacement activity as valid JSON." }] },
-        { role: "user", parts: [{ text: userPrompt }] },
-      ],
-    });
+    const result = await withTimeout(
+      model.generateContent({
+        contents: [
+          { role: "user", parts: [{ text: regenerateSystemPrompt }] },
+          { role: "model", parts: [{ text: "Understood. I will generate a single replacement activity as valid JSON." }] },
+          { role: "user", parts: [{ text: userPrompt }] },
+        ],
+      }),
+      AI_REQUEST_TIMEOUT_MS,
+      "Activity regeneration"
+    );
 
     const response = result.response;
     const text = response.text();
@@ -1194,13 +1215,17 @@ Rules:
   const continueSystemPrompt = await getPrompt("continue_generation");
 
   try {
-    const result = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: continueSystemPrompt }] },
-        { role: "model", parts: [{ text: "Understood. I will generate continuation days as a valid JSON array." }] },
-        { role: "user", parts: [{ text: userPrompt }] },
-      ],
-    });
+    const result = await withTimeout(
+      model.generateContent({
+        contents: [
+          { role: "user", parts: [{ text: continueSystemPrompt }] },
+          { role: "model", parts: [{ text: "Understood. I will generate continuation days as a valid JSON array." }] },
+          { role: "user", parts: [{ text: userPrompt }] },
+        ],
+      }),
+      AI_REQUEST_TIMEOUT_MS,
+      "More days generation"
+    );
 
     const response = result.response;
     const text = response.text();

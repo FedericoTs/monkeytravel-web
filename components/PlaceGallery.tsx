@@ -261,6 +261,7 @@ export default function PlaceGallery({
               className={`${
                 compact ? "w-16 h-16" : "w-20 h-20 sm:w-24 sm:h-24"
               } flex-shrink-0 rounded-xl overflow-hidden relative group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 ring-1 ring-black/5`}
+              aria-label={`${placeName} photo ${idx + 1}`}
             >
               <img
                 src={photo.thumbnailUrl}

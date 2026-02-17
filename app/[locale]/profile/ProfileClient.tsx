@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import { useToast } from "@/components/ui/Toast";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
 import { BetaCodeInput } from "@/components/beta";
 import { ReferralDashboard } from "@/components/bananas";
@@ -226,6 +227,7 @@ const LANGUAGES = [
 export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess }: ProfileClientProps) {
   const router = useRouter();
   const t = useTranslations("common");
+  const { addToast } = useToast();
   const [profile, setProfile] = useState(initialProfile);
   const [savedProfile, setSavedProfile] = useState(initialProfile); // For rollback on error
   const [betaAccess, setBetaAccess] = useState(initialBetaAccess);
@@ -405,7 +407,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       console.error("Delete account error:", error);
       setIsDeleting(false);
       // Keep modal open to show error state
-      alert(error instanceof Error ? error.message : "Failed to delete account. Please try again.");
+      addToast(error instanceof Error ? error.message : t("deleteAccount.deleteError"), "error");
     }
   };
 
@@ -440,7 +442,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error("Data export error:", error);
-      alert(error instanceof Error ? error.message : t("dataExport.error"));
+      addToast(error instanceof Error ? error.message : t("dataExport.error"), "error");
     } finally {
       setIsExporting(false);
     }

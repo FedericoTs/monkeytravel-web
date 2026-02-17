@@ -27,6 +27,8 @@ function SignupForm() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
   const [hasOnboardingPrefs, setHasOnboardingPrefs] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
@@ -221,6 +223,23 @@ function SignupForm() {
     }
   };
 
+  const handleResendEmail = async () => {
+    setResending(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      });
+      if (error) throw error;
+      setResent(true);
+    } catch {
+      // Silently handle — don't expose whether email exists
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
@@ -263,12 +282,25 @@ function SignupForm() {
               <p className="text-slate-600 mb-6"
                 dangerouslySetInnerHTML={{ __html: t("checkEmailMessage", { email }) }}
               />
-              <Link
-                href="/auth/login"
-                className="text-[var(--primary)] font-medium hover:underline"
-              >
-                {t("backToLogin")}
-              </Link>
+              <div className="flex flex-col items-center gap-3">
+                <Link
+                  href="/auth/login"
+                  className="text-[var(--primary)] font-medium hover:underline"
+                >
+                  {t("backToLogin")}
+                </Link>
+                <button
+                  onClick={handleResendEmail}
+                  disabled={resending || resent}
+                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+                >
+                  {resent
+                    ? t("emailResent")
+                    : resending
+                    ? t("resendingEmail")
+                    : t("resendEmail")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -343,7 +375,7 @@ function SignupForm() {
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
                 <p className="font-medium">{error.message}</p>
                 {error.suggestion && (
                   <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>

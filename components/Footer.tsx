@@ -18,12 +18,12 @@ export default function Footer() {
   const footerLinks = {
     product: [
       { label: t('destinations'), href: '/destinations' },
-      { label: t('features'), href: '#features' },
-      { label: t('howItWorks'), href: '#how-it-works' },
-      { label: t('joinWaitlist'), href: '#hero' },
+      { label: t('features'), href: '/#features' },
+      { label: t('howItWorks'), href: '/#how-it-works' },
+      { label: t('joinWaitlist'), href: '/#hero' },
     ],
     support: [
-      { label: t('faq'), href: '#support' },
+      { label: t('faq'), href: '/#support' },
       { label: t('contact'), href: 'mailto:support@monkeytravel.app' },
       { label: t('sendFeedback'), href: 'mailto:feedback@monkeytravel.app' },
     ],
