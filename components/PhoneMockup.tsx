@@ -36,6 +36,7 @@ export default function PhoneMockup({
                 src={screenImage}
                 alt="App screenshot"
                 fill
+                sizes="(max-width: 768px) 60vw, 280px"
                 className="object-cover object-top"
               />
             ) : (

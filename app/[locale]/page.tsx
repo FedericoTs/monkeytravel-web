@@ -12,6 +12,49 @@ import { getTranslations } from 'next-intl/server';
 import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
 import type { Locale } from '@/lib/destinations/types';
+import type { Metadata } from 'next';
+
+const BASE_URL = 'https://monkeytravel.app';
+
+const META: Record<string, { title: string; description: string }> = {
+  en: {
+    title: 'MonkeyTravel - AI-Powered Trip Planning Made Easy',
+    description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
+  },
+  es: {
+    title: 'MonkeyTravel - Planificación de Viajes con IA',
+    description: 'Planifica tu viaje perfecto con itinerarios generados por IA día a día. Obtén planes de viaje personalizados en minutos — gratis, sin tarjeta de crédito.',
+  },
+  it: {
+    title: 'MonkeyTravel - Pianificazione Viaggi con IA',
+    description: 'Pianifica il tuo viaggio perfetto con itinerari generati dall\'IA giorno per giorno. Ottieni piani di viaggio personalizzati in pochi minuti — gratis, senza carta di credito.',
+  },
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = META[locale] || META.en;
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: locale === 'en' ? BASE_URL : `${BASE_URL}/${locale}`,
+      languages: {
+        en: BASE_URL,
+        es: `${BASE_URL}/es`,
+        it: `${BASE_URL}/it`,
+        'x-default': BASE_URL,
+      },
+    },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      type: 'website',
+      url: locale === 'en' ? BASE_URL : `${BASE_URL}/${locale}`,
+    },
+  };
+}
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION

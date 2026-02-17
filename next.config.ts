@@ -28,6 +28,21 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=(self)'
   },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https: http:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.googleapis.com https://*.vercel-insights.com https://*.open-meteo.com",
+      "frame-src 'self' https://accounts.google.com",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; "),
+  },
 ];
 
 const nextConfig: NextConfig = {

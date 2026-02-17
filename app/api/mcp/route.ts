@@ -75,7 +75,7 @@ function createSSEResponse(data: object, sessionId?: string, origin?: string): R
     "https://chat.openai.com",
     "https://platform.openai.com",
   ];
-  const corsOrigin = origin && allowedOrigins.includes(origin) ? origin : "*";
+  const corsOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
 
   const headers: Record<string, string> = {
     "Content-Type": "text/event-stream",

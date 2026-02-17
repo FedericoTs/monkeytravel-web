@@ -115,6 +115,26 @@ export async function GET(request: NextRequest) {
     // Validate URL
     const url = new URL(decodedUrl);
 
+    // Enforce HTTPS
+    if (url.protocol !== "https:") {
+      return errors.badRequest("Only HTTPS URLs are allowed");
+    }
+
+    // Reject private/internal IP ranges
+    const hostname = url.hostname;
+    if (
+      hostname === "localhost" ||
+      hostname.startsWith("127.") ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("169.254.") ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+      hostname === "0.0.0.0" ||
+      hostname === "[::1]"
+    ) {
+      return errors.forbidden("Internal addresses are not allowed");
+    }
+
     if (!isDomainAllowed(url.hostname)) {
       return errors.forbidden(`Domain not allowed: ${url.hostname}`);
     }

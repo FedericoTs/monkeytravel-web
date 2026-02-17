@@ -35,11 +35,16 @@ export async function GET() {
         maintenance_mode: false,
         maintenance_message: "We are currently performing scheduled maintenance.",
         maintenance_title: "Under Maintenance",
-        allowed_emails: [],
       });
     }
 
-    return apiSuccess(data);
+    // Public response: only expose maintenance info, never allowed_emails
+    return apiSuccess({
+      maintenance_mode: data.maintenance_mode,
+      maintenance_message: data.maintenance_message,
+      maintenance_title: data.maintenance_title,
+      maintenance_started_at: data.maintenance_started_at,
+    });
   } catch (error) {
     console.error("[Admin Config] Site config error:", error);
     return errors.internal("Failed to fetch site config", "Admin Config");

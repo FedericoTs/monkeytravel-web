@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Trips",
+  robots: { index: false, follow: false },
+};
 
 export default async function TripsPage() {
   const supabase = await createClient();

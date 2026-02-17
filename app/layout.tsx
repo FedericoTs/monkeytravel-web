@@ -19,7 +19,7 @@ import "./globals.css";
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "700"],
 });
 
 // Body font - clean sans-serif

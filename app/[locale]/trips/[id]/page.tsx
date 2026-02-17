@@ -2,7 +2,27 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
+import type { Metadata } from "next";
 import TripDetailClient from "./TripDetailClient";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: trip } = await supabase
+    .from("trips")
+    .select("title")
+    .eq("id", id)
+    .single();
+
+  return {
+    title: trip?.title || "Trip Details",
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function TripDetailPage({
   params,
