@@ -66,7 +66,7 @@ function getGradient(destination: string) {
 interface TemplateCardProps {
   template: TemplateTrip;
   preventClick: boolean;
-  t: ReturnType<typeof useTranslations<"curatedEscapes">>;
+  t: ReturnType<typeof useTranslations<"common.curatedEscapes">>;
 }
 
 function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
@@ -195,7 +195,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
 }
 
 // "See All" card - matches carousel card height
-function SeeAllCard({ preventClick, t }: { preventClick: boolean; t: ReturnType<typeof useTranslations<"curatedEscapes">> }) {
+function SeeAllCard({ preventClick, t }: { preventClick: boolean; t: ReturnType<typeof useTranslations<"common.curatedEscapes">> }) {
   const handleClick = (e: React.MouseEvent) => {
     if (preventClick) {
       e.preventDefault();
@@ -265,7 +265,7 @@ function SkeletonCard() {
 }
 
 export default function CuratedEscapes() {
-  const t = useTranslations("curatedEscapes");
+  const t = useTranslations("common.curatedEscapes");
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

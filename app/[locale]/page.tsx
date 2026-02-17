@@ -326,9 +326,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
             <div className="text-center">
               <TourTrigger
-                variant="button"
+                variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg cursor-pointer"
               >
                 {t('aiChatDemo.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
