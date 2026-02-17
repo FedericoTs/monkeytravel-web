@@ -263,6 +263,56 @@ export function generateBreadcrumbSchema(items: BreadcrumbItem[]): BreadcrumbSch
 }
 
 // ============================================================================
+// Tourist Destination Schema
+// ============================================================================
+
+export interface TouristDestinationSchemaInput {
+  name: string;
+  description: string;
+  url: string;
+  latitude: number;
+  longitude: number;
+  countryName: string;
+  image?: string;
+}
+
+export function generateTouristDestinationSchema(
+  input: TouristDestinationSchemaInput
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "TouristDestination",
+    name: input.name,
+    description: input.description,
+    url: input.url,
+    image: input.image,
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: input.latitude,
+      longitude: input.longitude,
+    },
+    containedInPlace: {
+      "@type": "Country",
+      name: input.countryName,
+    },
+    touristType: ["Leisure", "Cultural", "Adventure"],
+    potentialAction: {
+      "@type": "PlanAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: input.url,
+        actionPlatform: ["http://schema.org/DesktopWebPlatform"],
+      },
+      agent: {
+        "@type": "Organization",
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
+    },
+  };
+}
+
+// ============================================================================
 // Combined Schema for Homepage
 // ============================================================================
 

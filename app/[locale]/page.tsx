@@ -9,6 +9,9 @@ import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 import { TourTrigger } from '@/components/tour';
 import { getTranslations } from 'next-intl/server';
+import { destinations } from '@/lib/destinations/data';
+import { DestinationCard } from '@/components/destinations';
+import type { Locale } from '@/lib/destinations/types';
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
@@ -55,7 +58,9 @@ const FAQS = [
 // Generate FAQ structured data for SEO (rich snippets in Google)
 const faqSchema = generateFAQSchema(FAQS);
 
-export default async function Home() {
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   // Smart routing: Redirect authenticated users to their dashboard
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -67,6 +72,7 @@ export default async function Home() {
 
   // Get translations for landing page
   const t = await getTranslations('landing');
+  const tDest = await getTranslations('destinations');
 
   // New/anonymous user - show landing page
   return (
@@ -625,6 +631,45 @@ export default async function Home() {
               <p className="mt-4 text-sm text-gray-500">
                 Free for up to 8 collaborators per trip
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            POPULAR DESTINATIONS - SEO & Internal Linking
+            ================================================================ */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
+                {tDest('sections.popularDestinations')}
+              </h2>
+              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+                {tDest('index.subtitle')}
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {destinations.slice(0, 6).map((destination) => (
+                <DestinationCard
+                  key={destination.slug}
+                  destination={destination}
+                  locale={locale as Locale}
+                  planTripLabel={tDest('cta.planTrip')}
+                />
+              ))}
+            </div>
+
+            <div className="text-center mt-10">
+              <Link
+                href="/destinations"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
+              >
+                {tDest('cta.viewAllDestinations')}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
             </div>
           </div>
         </section>

@@ -21,6 +21,7 @@ export default function Navbar() {
   const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   const navLinks = [
+    { href: '/destinations', label: t('navigation.destinations') },
     { href: '#features', label: t('navigation.features') },
     { href: '#how-it-works', label: t('navigation.howItWorks') },
   ];

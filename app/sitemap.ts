@@ -1,5 +1,9 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { destinations } from "@/lib/destinations/data";
+
+const locales = ["en", "es", "it"] as const;
+const defaultLocale = "en";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://monkeytravel.app";
@@ -39,6 +43,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // Destination pages (index + detail × 3 locales)
+  const destinationPages: MetadataRoute.Sitemap = [];
+
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? "" : `/${locale}`;
+
+    // Index page per locale
+    destinationPages.push({
+      url: `${baseUrl}${prefix}/destinations`,
+      lastModified: currentDate,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+
+    // Detail page per destination per locale
+    for (const dest of destinations) {
+      destinationPages.push({
+        url: `${baseUrl}${prefix}/destinations/${dest.slug}`,
+        lastModified: currentDate,
+        changeFrequency: "monthly",
+        priority: 0.7,
+      });
+    }
+  }
+
   // Dynamically fetch shared trips from Supabase
   let sharedTripPages: MetadataRoute.Sitemap = [];
 
@@ -65,5 +94,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("Failed to fetch shared trips for sitemap:", e);
   }
 
-  return [...staticPages, ...sharedTripPages];
+  return [...staticPages, ...destinationPages, ...sharedTripPages];
 }

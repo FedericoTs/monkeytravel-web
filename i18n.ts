@@ -33,7 +33,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all translation namespaces
-  const [common, auth, trips, landing, profile, bananas, consent] = await Promise.all([
+  const [common, auth, trips, landing, profile, bananas, consent, destinations] = await Promise.all([
     import(`./messages/${locale}/common.json`),
     import(`./messages/${locale}/auth.json`),
     import(`./messages/${locale}/trips.json`),
@@ -41,6 +41,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./messages/${locale}/profile.json`),
     import(`./messages/${locale}/bananas.json`),
     import(`./messages/${locale}/consent.json`),
+    import(`./messages/${locale}/destinations.json`),
   ]);
 
   return {
@@ -53,6 +54,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       profile: profile.default,
       bananas: bananas.default,
       consent: consent.default,
+      destinations: destinations.default,
     },
   };
 });

@@ -5,6 +5,7 @@
     "myTrips": "My Trips",
     "profile": "Profile",
     "admin": "Admin",
+    "destinations": "Destinations",
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out"
@@ -92,6 +93,7 @@
     "product": "Product",
     "support": "Support",
     "legal": "Legal",
+    "destinations": "Destinations",
     "features": "Features",
     "howItWorks": "How It Works",
     "faq": "FAQ",

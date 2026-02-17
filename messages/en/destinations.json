@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "titleIndex": "Top Travel Destinations & AI Itineraries | MonkeyTravel",
+    "descriptionIndex": "Explore our curated travel destinations. Get AI-generated day-by-day itineraries for Paris, Rome, Tokyo, and 20+ cities worldwide.",
+    "titleDetail": "{city} Travel Guide & AI Itinerary | MonkeyTravel",
+    "descriptionDetail": "Plan your {city} trip with AI. Get a personalized day-by-day itinerary with restaurants, attractions, and hidden gems in {city}, {country}."
+  },
+  "index": {
+    "title": "Explore Destinations",
+    "subtitle": "Choose a city and get a personalized AI itinerary in 30 seconds",
+    "allDestinations": "All Destinations",
+    "filterByRegion": "Filter by region"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "destinations": "Destinations"
+  },
+  "stats": {
+    "avgStay": "{days} days avg. stay",
+    "bestMonths": "Best months",
+    "budget": "Budget level"
+  },
+  "budgetLabels": {
+    "1": "Budget-friendly",
+    "2": "Moderate",
+    "3": "Higher budget"
+  },
+  "months": {
+    "1": "Jan",
+    "2": "Feb",
+    "3": "Mar",
+    "4": "Apr",
+    "5": "May",
+    "6": "Jun",
+    "7": "Jul",
+    "8": "Aug",
+    "9": "Sep",
+    "10": "Oct",
+    "11": "Nov",
+    "12": "Dec"
+  },
+  "sections": {
+    "whyVisit": "Why Visit {city}",
+    "sampleDay": "Sample Day in {city}",
+    "sampleDayNote": "This is a sample day. MonkeyTravel AI creates a full multi-day itinerary personalized to your pace, budget, and interests.",
+    "faq": "Frequently Asked Questions",
+    "moreDestinations": "More Destinations to Explore",
+    "popularDestinations": "Popular Destinations"
+  },
+  "cta": {
+    "generateItinerary": "Generate My {city} Itinerary",
+    "freeIn30Seconds": "Free AI itinerary in 30 seconds",
+    "viewAllDestinations": "View All Destinations",
+    "planTrip": "Plan Trip"
+  },
+  "continents": {
+    "europe": "Europe",
+    "asia": "Asia",
+    "americas": "Americas",
+    "middle-east": "Middle East",
+    "africa": "Africa",
+    "oceania": "Oceania",
+    "all": "All"
+  }
+}

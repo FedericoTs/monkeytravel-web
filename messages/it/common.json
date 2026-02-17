@@ -5,6 +5,7 @@
     "myTrips": "I Miei Viaggi",
     "profile": "Profilo",
     "admin": "Admin",
+    "destinations": "Destinazioni",
     "signIn": "Accedi",
     "signUp": "Registrati",
     "signOut": "Esci"
@@ -92,6 +93,7 @@
     "product": "Prodotto",
     "support": "Supporto",
     "legal": "Legale",
+    "destinations": "Destinazioni",
     "features": "Funzionalità",
     "howItWorks": "Come Funziona",
     "faq": "Domande Frequenti",
