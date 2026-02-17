@@ -178,9 +178,9 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         <DestinationPageHero destination={destination} locale={loc} t={t} />
 
         {/* Description */}
-        <section className="py-12 bg-white">
+        <section className="py-16 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-lg text-[var(--foreground-muted)] leading-relaxed text-center">
+            <p className="text-lg text-[var(--foreground-muted)] leading-relaxed">
               {destination.content.description[loc]}
             </p>
           </div>
@@ -229,6 +229,12 @@ export default async function DestinationDetailPage({ params }: PageProps) {
                 destinations={relatedDestinations}
                 locale={loc}
                 planTripLabel={t("cta.planTrip")}
+                daysLabel={(days) => t("card.days", { days })}
+                tagLabels={Object.fromEntries(
+                  ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
+                    (tag) => [tag, t(`tags.${tag}`)]
+                  )
+                )}
               />
             </div>
           </section>

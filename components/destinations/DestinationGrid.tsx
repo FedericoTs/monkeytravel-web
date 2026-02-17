@@ -5,12 +5,16 @@ interface DestinationGridProps {
   destinations: Destination[];
   locale: Locale;
   planTripLabel: string;
+  daysLabel: (days: number) => string;
+  tagLabels: Record<string, string>;
 }
 
 export default function DestinationGrid({
   destinations,
   locale,
   planTripLabel,
+  daysLabel,
+  tagLabels,
 }: DestinationGridProps) {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -20,6 +24,8 @@ export default function DestinationGrid({
           destination={destination}
           locale={locale}
           planTripLabel={planTripLabel}
+          daysLabel={daysLabel(destination.stats.avgStayDays)}
+          tagLabels={tagLabels}
         />
       ))}
     </div>

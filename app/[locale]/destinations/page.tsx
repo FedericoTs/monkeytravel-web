@@ -126,6 +126,12 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
                   destinations={continentDestinations}
                   locale={loc}
                   planTripLabel={t("cta.planTrip")}
+                  daysLabel={(days) => t("card.days", { days })}
+                  tagLabels={Object.fromEntries(
+                    ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
+                      (tag) => [tag, t(`tags.${tag}`)]
+                    )
+                  )}
                 />
               </div>
             </section>

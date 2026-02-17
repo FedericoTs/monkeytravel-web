@@ -53,6 +53,32 @@
     "viewAllDestinations": "View All Destinations",
     "planTrip": "Plan Trip"
   },
+  "card": {
+    "days": "{days} days"
+  },
+  "tags": {
+    "romantic": "Romantic",
+    "cultural": "Cultural",
+    "foodie": "Foodie",
+    "urban": "Urban",
+    "historical": "Historical",
+    "beach": "Beach",
+    "nightlife": "Nightlife",
+    "adventure": "Adventure",
+    "nature": "Nature",
+    "spiritual": "Spiritual",
+    "shopping": "Shopping",
+    "modern": "Modern",
+    "traditional": "Traditional",
+    "architectural": "Architectural",
+    "artistic": "Artistic",
+    "exotic": "Exotic",
+    "luxury": "Luxury",
+    "family": "Family",
+    "wellness": "Wellness",
+    "photography": "Photography",
+    "offbeat": "Off the Beaten Path"
+  },
   "continents": {
     "europe": "Europe",
     "asia": "Asia",

@@ -1,13 +1,13 @@
 {
   "meta": {
-    "titleIndex": "Destinazioni di Viaggio & Itinerari con IA | MonkeyTravel",
-    "descriptionIndex": "Esplora le nostre destinazioni di viaggio selezionate. Ottieni itinerari giorno per giorno generati dall'IA per Parigi, Roma, Tokyo e oltre 20 città.",
-    "titleDetail": "Guida di Viaggio a {city} & Itinerario con IA | MonkeyTravel",
-    "descriptionDetail": "Pianifica il tuo viaggio a {city} con l'IA. Ottieni un itinerario personalizzato giorno per giorno con ristoranti, attrazioni e gemme nascoste a {city}, {country}."
+    "titleIndex": "Destinazioni di Viaggio & Itinerari con AI | MonkeyTravel",
+    "descriptionIndex": "Esplora le nostre destinazioni di viaggio selezionate. Ottieni itinerari giorno per giorno generati dall'AI per Parigi, Roma, Tokyo e oltre 20 città.",
+    "titleDetail": "Guida di Viaggio a {city} & Itinerario con AI | MonkeyTravel",
+    "descriptionDetail": "Pianifica il tuo viaggio a {city} con l'AI. Ottieni un itinerario personalizzato giorno per giorno con ristoranti, attrazioni e gemme nascoste a {city}, {country}."
   },
   "index": {
     "title": "Esplora Destinazioni",
-    "subtitle": "Scegli una città e ottieni un itinerario personalizzato con IA in 30 secondi",
+    "subtitle": "Scegli una città e ottieni un itinerario personalizzato con AI in 30 secondi",
     "allDestinations": "Tutte le Destinazioni",
     "filterByRegion": "Filtra per regione"
   },
@@ -42,16 +42,42 @@
   "sections": {
     "whyVisit": "Perché Visitare {city}",
     "sampleDay": "Un Giorno Tipo a {city}",
-    "sampleDayNote": "Questo è un giorno di esempio. L'IA di MonkeyTravel crea un itinerario completo di più giorni personalizzato al tuo ritmo, budget e interessi.",
+    "sampleDayNote": "Questo è un giorno di esempio. L'AI di MonkeyTravel crea un itinerario completo di più giorni personalizzato al tuo ritmo, budget e interessi.",
     "faq": "Domande Frequenti",
     "moreDestinations": "Altre Destinazioni da Esplorare",
     "popularDestinations": "Destinazioni Popolari"
   },
   "cta": {
     "generateItinerary": "Genera il Mio Itinerario di {city}",
-    "freeIn30Seconds": "Itinerario gratuito con IA in 30 secondi",
+    "freeIn30Seconds": "Itinerario gratuito con AI in 30 secondi",
     "viewAllDestinations": "Vedi Tutte le Destinazioni",
     "planTrip": "Pianifica Viaggio"
+  },
+  "card": {
+    "days": "{days} giorni"
+  },
+  "tags": {
+    "romantic": "Romantico",
+    "cultural": "Culturale",
+    "foodie": "Gastronomico",
+    "urban": "Urbano",
+    "historical": "Storico",
+    "beach": "Spiaggia",
+    "nightlife": "Vita notturna",
+    "adventure": "Avventura",
+    "nature": "Natura",
+    "spiritual": "Spirituale",
+    "shopping": "Shopping",
+    "modern": "Moderno",
+    "traditional": "Tradizionale",
+    "architectural": "Architettonico",
+    "artistic": "Artistico",
+    "exotic": "Esotico",
+    "luxury": "Lusso",
+    "family": "Famiglie",
+    "wellness": "Benessere",
+    "photography": "Fotografia",
+    "offbeat": "Fuori dai Sentieri"
   },
   "continents": {
     "europe": "Europa",

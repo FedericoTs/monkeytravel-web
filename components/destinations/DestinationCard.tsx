@@ -6,12 +6,16 @@ interface DestinationCardProps {
   destination: Destination;
   locale: Locale;
   planTripLabel: string;
+  daysLabel: string;
+  tagLabels: Record<string, string>;
 }
 
 export default function DestinationCard({
   destination,
   locale,
   planTripLabel,
+  daysLabel,
+  tagLabels,
 }: DestinationCardProps) {
   const { slug, name, country, countryCode, stats, tags } = destination;
 
@@ -62,14 +66,14 @@ export default function DestinationCard({
               key={tag}
               className="px-2 py-0.5 text-xs rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-medium"
             >
-              {tag}
+              {tagLabels[tag] ?? tag}
             </span>
           ))}
         </div>
 
         {/* Stats row */}
         <div className="flex items-center justify-between text-sm text-[var(--foreground-muted)]">
-          <span>{stats.avgStayDays} days</span>
+          <span>{daysLabel}</span>
           <span className="text-[var(--primary)] font-semibold group-hover:underline">
             {planTripLabel} →
           </span>

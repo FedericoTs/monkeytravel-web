@@ -656,6 +656,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   destination={destination}
                   locale={locale as Locale}
                   planTripLabel={tDest('cta.planTrip')}
+                  daysLabel={tDest('card.days', { days: destination.stats.avgStayDays })}
+                  tagLabels={Object.fromEntries(
+                    ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
+                      (tag) => [tag, tDest(`tags.${tag}`)]
+                    )
+                  )}
                 />
               ))}
             </div>
