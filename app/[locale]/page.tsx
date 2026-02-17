@@ -26,37 +26,9 @@ const APP_SCREENSHOTS = {
 };
 
 /* ============================================================================
-   FAQ DATA - Used for both display and structured data (SEO)
+   FAQ KEYS - Used to build FAQ data from translations
    ============================================================================ */
-const FAQS = [
-  {
-    question: 'Is this AI travel planner really free?',
-    answer: 'Yes, MonkeyTravel is 100% free. Create unlimited trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. We plan to add optional premium features down the road, but the core AI trip planner will always be free.',
-  },
-  {
-    question: 'Do I need to download an app?',
-    answer: 'Nope. MonkeyTravel works entirely in your browser — phone, tablet, or computer. Just visit monkeytravel.app and start planning. We\'re building iOS and Android apps for an even smoother experience, coming soon.',
-  },
-  {
-    question: 'How does the AI itinerary generator work?',
-    answer: 'Tell us where you\'re going, your travel dates, who\'s coming, and what you enjoy. Our AI creates one personalized day-by-day itinerary in about 30 seconds — tailored to your preferences, pace, and interests. Each plan includes restaurants, attractions, timing, and walking routes.',
-  },
-  {
-    question: 'Can I edit the itinerary?',
-    answer: 'Of course. Swap any activity, add your own spots, adjust timing, or ask our AI assistant for alternatives. It\'s a smart starting point, not a rigid schedule.',
-  },
-  {
-    question: 'What destinations can I plan?',
-    answer: 'We cover 180+ destinations worldwide — from Paris and Tokyo to Lisbon and Bali. More locations are being added regularly. If we don\'t have your destination yet, let us know.',
-  },
-  {
-    question: 'Can I plan trips with friends?',
-    answer: 'Yes! MonkeyTravel is built for group travel. Invite your travel companions as collaborators — they can vote on activities, suggest new places, and see real-time updates. No more endless group chats debating where to eat. Everyone stays on the same page.',
-  },
-];
-
-// Generate FAQ structured data for SEO (rich snippets in Google)
-const faqSchema = generateFAQSchema(FAQS);
+const FAQ_KEYS = ['free', 'noApp', 'howAiWorks', 'editItinerary', 'destinations', 'planWithFriends'] as const;
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -73,6 +45,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   // Get translations for landing page
   const t = await getTranslations('landing');
   const tDest = await getTranslations('destinations');
+
+  // Build FAQ data from translations for both display and structured data (SEO)
+  const faqs = FAQ_KEYS.map(key => ({
+    question: t(`faq.items.${key}.question`),
+    answer: t(`faq.items.${key}.answer`),
+  }));
+  const faqSchema = generateFAQSchema(faqs);
 
   // New/anonymous user - show landing page
   return (
@@ -184,8 +163,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-[var(--foreground-muted)]">AI Powered</div>
-                      <div className="text-sm font-semibold text-[var(--foreground)]">30 Seconds</div>
+                      <div className="text-xs text-[var(--foreground-muted)]">{t('hero.floatingCards.aiPowered')}</div>
+                      <div className="text-sm font-semibold text-[var(--foreground)]">{t('hero.floatingCards.thirtySeconds')}</div>
                     </div>
                   </div>
 
@@ -196,8 +175,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-[var(--foreground-muted)]">Web App</div>
-                      <div className="text-sm font-semibold text-emerald-600">Live Now</div>
+                      <div className="text-xs text-[var(--foreground-muted)]">{t('hero.floatingCards.webApp')}</div>
+                      <div className="text-sm font-semibold text-emerald-600">{t('hero.floatingCards.liveNow')}</div>
                     </div>
                   </div>
                 </div>
@@ -221,17 +200,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
               <div>
                 <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">30s</div>
-                <div className="text-sm text-[var(--foreground-muted)]">From idea to itinerary</div>
+                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.ideaToItinerary')}</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
                 <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">180+</div>
-                <div className="text-sm text-[var(--foreground-muted)]">Destinations ready</div>
+                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.destinationsReady')}</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
                 <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">100%</div>
-                <div className="text-sm text-[var(--foreground-muted)]">Personalized to you</div>
+                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.personalizedToYou')}</div>
               </div>
             </div>
           </div>
@@ -252,41 +231,38 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {[
+              {([
                 {
+                  key: 'research',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   ),
-                  title: 'Research Rabbit Holes',
-                  description: '"Just one more blog post" turns into 4 hours. You\'re tired before the trip even starts.',
                 },
                 {
+                  key: 'analysis',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   ),
-                  title: 'Analysis Paralysis',
-                  description: '500 restaurants, 200 attractions, conflicting reviews. How do you even choose?',
                 },
                 {
+                  key: 'copyPaste',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   ),
-                  title: 'Copy-Paste Itineraries',
-                  description: 'Generic "Top 10" lists that ignore your pace, budget, and what actually excites you.',
                 },
-              ].map((item, index) => (
+              ] as const).map((item, index) => (
                 <div key={index} className="text-center p-8 rounded-2xl bg-[var(--background-alt)] border border-gray-100">
                   <div className="w-14 h-14 rounded-2xl bg-red-50 text-[var(--error)] flex items-center justify-center mx-auto mb-5">
                     {item.icon}
                   </div>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{item.title}</h3>
-                  <p className="text-[var(--foreground-muted)] leading-relaxed">{item.description}</p>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{t(`problem.cards.${item.key}.title`)}</h3>
+                  <p className="text-[var(--foreground-muted)] leading-relaxed">{t(`problem.cards.${item.key}.description`)}</p>
                 </div>
               ))}
             </div>
@@ -305,7 +281,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
                 </svg>
-                AI Itinerary Generator
+                {t('solution.badge')}
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
                 {t('solution.title')}
@@ -317,83 +293,77 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
             {/* Feature Cards */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
+              {([
                 {
+                  key: 'speed',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   ),
-                  title: '30-Second Itineraries',
-                  description: 'Pick a destination, get a complete personalized travel plan. Our AI does in seconds what takes hours.',
                   color: 'bg-amber-50 text-amber-500',
                 },
                 {
+                  key: 'agent',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   ),
-                  title: 'AI Travel Agent',
-                  description: 'Need to adjust something? Chat with our AI assistant to swap activities, change timing, or get local tips.',
                   color: 'bg-emerald-50 text-emerald-500',
                 },
                 {
+                  key: 'dayByDay',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   ),
-                  title: 'Day-by-Day Breakdown',
-                  description: 'Morning coffee spots, afternoon adventures, evening restaurants — all timed and mapped out.',
                   color: 'bg-blue-50 text-blue-500',
                 },
                 {
+                  key: 'customizable',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   ),
-                  title: 'Fully Customizable',
-                  description: "Swap activities, add your must-sees, adjust timing — manually or with help from our AI Travel Agent.",
                   color: 'bg-violet-50 text-violet-500',
                 },
                 {
+                  key: 'collaborate',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   ),
-                  title: 'Plan Together',
-                  description: 'Invite your travel group to collaborate. Everyone can vote on activities, suggest places, and see real-time updates.',
                   color: 'bg-rose-50 text-rose-500',
-                  badge: 'New',
+                  hasBadge: true,
                 },
                 {
+                  key: 'realData',
                   icon: (
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   ),
-                  title: 'Real Data, Real Places',
-                  description: "Actual photos, genuine ratings, official hours. We verify so you don't have to second-guess.",
                   color: 'bg-cyan-50 text-cyan-500',
                 },
-              ].map((feature, index) => (
+              ] as const).map((feature, index) => (
                 <div
                   key={index}
                   className="group relative p-8 rounded-3xl bg-white border border-gray-100 card-hover"
                 >
-                  {'badge' in feature && feature.badge && (
+                  {'hasBadge' in feature && feature.hasBadge && (
                     <span className="absolute top-4 right-4 px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-rose-500 text-white rounded-full">
-                      {feature.badge}
+                      {t('solution.cards.collaborate.badge')}
                     </span>
                   )}
                   <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-[var(--foreground)] mb-3">{feature.title}</h3>
-                  <p className="text-[var(--foreground-muted)] leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-[var(--foreground)] mb-3">{t(`solution.cards.${feature.key}.title`)}</h3>
+                  <p className="text-[var(--foreground-muted)] leading-relaxed">{t(`solution.cards.${feature.key}.description`)}</p>
                 </div>
               ))}
             </div>
@@ -407,7 +377,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] text-sm font-semibold mb-6">
-                Free Trip Planner
+                {t('howItWorks.badge')}
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
                 {t('howItWorks.title')}
@@ -418,11 +388,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {[
+              {([
                 {
                   step: '1',
-                  title: 'Pick Your Destination',
-                  description: 'Type where you want to go — Paris, Tokyo, or anywhere. Add dates and travelers.',
+                  key: 'destination',
                   icon: (
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -432,8 +401,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 },
                 {
                   step: '2',
-                  title: 'AI Builds Your Itinerary',
-                  description: 'In 30 seconds, get a complete day-by-day plan tailored to your travel style, interests, and budget.',
+                  key: 'aiBuild',
                   icon: (
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -442,15 +410,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 },
                 {
                   step: '3',
-                  title: 'Customize & Share',
-                  description: 'Tweak anything, share with travel buddies, export to PDF. Then pack your bags.',
+                  key: 'customize',
                   icon: (
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   ),
                 },
-              ].map((item, index) => (
+              ] as const).map((item, index) => (
                 <div key={index} className="relative text-center">
                   {/* Connector line */}
                   {index < 2 && (
@@ -469,8 +436,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-[var(--foreground)] mb-3">{item.title}</h3>
-                  <p className="text-[var(--foreground-muted)] leading-relaxed max-w-xs mx-auto">{item.description}</p>
+                  <h3 className="text-xl font-bold text-[var(--foreground)] mb-3">{t(`howItWorks.steps.${item.key}.title`)}</h3>
+                  <p className="text-[var(--foreground-muted)] leading-relaxed max-w-xs mx-auto">{t(`howItWorks.steps.${item.key}.description`)}</p>
                 </div>
               ))}
             </div>
@@ -482,7 +449,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 skipToAuthIfCompleted={true}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg"
               >
-                Try It Free Now
+                {t('howItWorks.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -534,27 +501,27 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  Web App Live • Mobile Coming Soon
+                  {t('appPreview.badge')}
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                  Your free trip planner{' '}
-                  <span className="gradient-text">is ready</span>
+                  {t('appPreview.title')}{' '}
+                  <span className="gradient-text">{t('appPreview.titleHighlight')}</span>
                 </h2>
                 <p className="text-lg text-[var(--foreground-muted)] mb-10 leading-relaxed">
-                  No download needed. Start planning trips in your browser right now — it only takes 30 seconds to get your first personalized itinerary. Mobile apps are on the way.
+                  {t('appPreview.description')}
                 </p>
 
                 <ul className="space-y-5 mb-10">
-                  {[
-                    { text: 'Web app live now — completely free', icon: '✓', highlight: true },
-                    { text: 'Day-by-day itineraries with timing', icon: '📅' },
-                    { text: 'Real photos, ratings & hours', icon: '📷' },
-                    { text: 'Export to PDF, share with friends', icon: '📤' },
-                    { text: 'iOS & Android coming soon', icon: '📱' },
-                  ].map((item, index) => (
-                    <li key={index} className={`flex items-center gap-4 ${item.highlight ? 'p-3 -mx-3 rounded-xl bg-emerald-50 border border-emerald-100' : ''}`}>
-                      <span className={`text-xl ${item.highlight ? 'text-emerald-500' : ''}`}>{item.icon}</span>
-                      <span className={`font-medium ${item.highlight ? 'text-emerald-700' : 'text-[var(--foreground)]'}`}>{item.text}</span>
+                  {([
+                    { key: 'webApp', icon: '✓', highlight: true },
+                    { key: 'dayByDay', icon: '📅' },
+                    { key: 'realPhotos', icon: '📷' },
+                    { key: 'export', icon: '📤' },
+                    { key: 'mobile', icon: '📱' },
+                  ] as const).map((item, index) => (
+                    <li key={index} className={`flex items-center gap-4 ${'highlight' in item && item.highlight ? 'p-3 -mx-3 rounded-xl bg-emerald-50 border border-emerald-100' : ''}`}>
+                      <span className={`text-xl ${'highlight' in item && item.highlight ? 'text-emerald-500' : ''}`}>{item.icon}</span>
+                      <span className={`font-medium ${'highlight' in item && item.highlight ? 'text-emerald-700' : 'text-[var(--foreground)]'}`}>{t(`appPreview.features.${item.key}`)}</span>
                     </li>
                   ))}
                 </ul>
@@ -564,7 +531,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   skipToAuthIfCompleted={true}
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
                 >
-                  Plan My First Trip
+                  {t('appPreview.cta')}
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -585,33 +552,33 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                 </span>
-                New Feature
+                {t('collaboration.badge')}
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-                Plan{" "}
+                {t('collaboration.title')}{" "}
                 <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">
-                  Together
+                  {t('collaboration.titleHighlight')}
                 </span>
               </h2>
               <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-                Trip planning is better with friends. Invite your travel group, vote on activities, and watch your perfect trip come together.
+                {t('collaboration.description')}
               </p>
             </div>
 
             {/* Feature Pills */}
             <div className="flex flex-wrap justify-center gap-3 mb-12">
-              {[
-                { icon: "👥", text: "Invite Friends" },
-                { icon: "🗳️", text: "Vote Together" },
-                { icon: "⚡", text: "Real-time Sync" },
-                { icon: "🔐", text: "Role-based Access" },
-              ].map((item, index) => (
+              {([
+                { icon: "👥", key: "inviteFriends" },
+                { icon: "🗳️", key: "voteTogether" },
+                { icon: "⚡", key: "realtimeSync" },
+                { icon: "🔐", key: "roleAccess" },
+              ] as const).map((item, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-200 transition-all"
                 >
                   <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium text-gray-700">{item.text}</span>
+                  <span className="font-medium text-gray-700">{t(`collaboration.pills.${item.key}`)}</span>
                 </div>
               ))}
             </div>
@@ -623,13 +590,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 skipToAuthIfCompleted={true}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
               >
-                Start Planning Together
+                {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </TourTrigger>
               <p className="mt-4 text-sm text-gray-500">
-                Free for up to 8 collaborators per trip
+                {t('collaboration.subtitle')}
               </p>
             </div>
           </div>
@@ -698,7 +665,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
 
             <div className="space-y-4">
-              {FAQS.map((faq, index) => (
+              {faqs.map((faq, index) => (
                 <details
                   key={index}
                   className="group bg-[var(--background-alt)] rounded-2xl overflow-hidden"
@@ -726,7 +693,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* Contact */}
             <div className="mt-12 text-center p-8 bg-[var(--background-alt)] rounded-3xl">
               <p className="text-[var(--foreground-muted)] mb-6">
-                Still have questions? We'd love to hear from you.
+                {t('faq.contact')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
@@ -736,7 +703,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  Email Support
+                  {t('faq.emailSupport')}
                 </a>
               </div>
             </div>
@@ -773,7 +740,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {t('cta.subtitle')}
                 </p>
                 <p className="text-base text-white/50 mb-10 max-w-2xl mx-auto">
-                  Love it? Invite friends and earn free premium features.
+                  {t('cta.referral')}
                 </p>
 
                 {/* CTAs */}
@@ -799,7 +766,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {/* Newsletter signup (secondary) */}
                 <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
                   <p className="text-sm text-white/50 mb-4">
-                    Get notified when mobile apps launch
+                    {t('cta.mobileNotify')}
                   </p>
                   <EmailSubscribe variant="dark" source="cta" />
                 </div>

@@ -12,7 +12,18 @@
       "free": "100% Free",
       "noCard": "No Credit Card",
       "instant": "Instant Access"
+    },
+    "floatingCards": {
+      "aiPowered": "AI Powered",
+      "thirtySeconds": "30 Seconds",
+      "webApp": "Web App",
+      "liveNow": "Live Now"
     }
+  },
+  "stats": {
+    "ideaToItinerary": "From idea to itinerary",
+    "destinationsReady": "Destinations ready",
+    "personalizedToYou": "Personalized to you"
   },
   "problem": {
     "title": "You deserve better than this",
@@ -21,9 +32,24 @@
       "tabs": "47 browser tabs open, trying to piece together blogs, reviews, and maps",
       "copy": "Copying itineraries that don't match your vibe or budget",
       "hours": "Hours wasted on generic \"Top 10\" lists that all look the same"
+    },
+    "cards": {
+      "research": {
+        "title": "Research Rabbit Holes",
+        "description": "\"Just one more blog post\" turns into 4 hours. You're tired before the trip even starts."
+      },
+      "analysis": {
+        "title": "Analysis Paralysis",
+        "description": "500 restaurants, 200 attractions, conflicting reviews. How do you even choose?"
+      },
+      "copyPaste": {
+        "title": "Copy-Paste Itineraries",
+        "description": "Generic \"Top 10\" lists that ignore your pace, budget, and what actually excites you."
+      }
     }
   },
   "solution": {
+    "badge": "AI Itinerary Generator",
     "title": "There's a better way",
     "subtitle": "Let AI do the heavy lifting while you focus on the excitement",
     "features": {
@@ -39,59 +65,120 @@
         "title": "Local Insights",
         "description": "Hidden gems and local favorites, not just tourist traps."
       }
+    },
+    "cards": {
+      "speed": {
+        "title": "30-Second Itineraries",
+        "description": "Pick a destination, get a complete personalized travel plan. Our AI does in seconds what takes hours."
+      },
+      "agent": {
+        "title": "AI Travel Agent",
+        "description": "Need to adjust something? Chat with our AI assistant to swap activities, change timing, or get local tips."
+      },
+      "dayByDay": {
+        "title": "Day-by-Day Breakdown",
+        "description": "Morning coffee spots, afternoon adventures, evening restaurants — all timed and mapped out."
+      },
+      "customizable": {
+        "title": "Fully Customizable",
+        "description": "Swap activities, add your must-sees, adjust timing — manually or with help from our AI Travel Agent."
+      },
+      "collaborate": {
+        "title": "Plan Together",
+        "description": "Invite your travel group to collaborate. Everyone can vote on activities, suggest places, and see real-time updates.",
+        "badge": "New"
+      },
+      "realData": {
+        "title": "Real Data, Real Places",
+        "description": "Actual photos, genuine ratings, official hours. We verify so you don't have to second-guess."
+      }
     }
   },
   "howItWorks": {
+    "badge": "Free Trip Planner",
     "title": "How It Works",
     "subtitle": "Three simple steps to your perfect trip",
     "steps": {
       "destination": {
         "title": "Pick Your Destination",
-        "description": "Search for any city in the world"
+        "description": "Type where you want to go — Paris, Tokyo, or anywhere. Add dates and travelers."
       },
-      "preferences": {
-        "title": "Set Your Preferences",
-        "description": "Choose your travel style, budget, and pace"
+      "aiBuild": {
+        "title": "AI Builds Your Itinerary",
+        "description": "In 30 seconds, get a complete day-by-day plan tailored to your travel style, interests, and budget."
       },
-      "itinerary": {
-        "title": "Get Your Itinerary",
-        "description": "Receive a complete day-by-day plan in seconds"
+      "customize": {
+        "title": "Customize & Share",
+        "description": "Tweak anything, share with travel buddies, export to PDF. Then pack your bags."
       }
-    }
+    },
+    "cta": "Try It Free Now"
+  },
+  "appPreview": {
+    "badge": "Web App Live • Mobile Coming Soon",
+    "title": "Your free trip planner",
+    "titleHighlight": "is ready",
+    "description": "No download needed. Start planning trips in your browser right now — it only takes 30 seconds to get your first personalized itinerary. Mobile apps are on the way.",
+    "features": {
+      "webApp": "Web app live now — completely free",
+      "dayByDay": "Day-by-day itineraries with timing",
+      "realPhotos": "Real photos, ratings & hours",
+      "export": "Export to PDF, share with friends",
+      "mobile": "iOS & Android coming soon"
+    },
+    "cta": "Plan My First Trip"
+  },
+  "collaboration": {
+    "badge": "New Feature",
+    "title": "Plan",
+    "titleHighlight": "Together",
+    "description": "Trip planning is better with friends. Invite your travel group, vote on activities, and watch your perfect trip come together.",
+    "pills": {
+      "inviteFriends": "Invite Friends",
+      "voteTogether": "Vote Together",
+      "realtimeSync": "Real-time Sync",
+      "roleAccess": "Role-based Access"
+    },
+    "cta": "Start Planning Together",
+    "subtitle": "Free for up to 8 collaborators per trip"
   },
   "faq": {
     "title": "Frequently Asked Questions",
     "items": {
       "free": {
-        "question": "Is it really free?",
-        "answer": "Yes! You can create trips completely free. We offer premium features for power users, but the core trip planning is always free."
+        "question": "Is this AI travel planner really free?",
+        "answer": "Yes, MonkeyTravel is 100% free. Create unlimited trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. We plan to add optional premium features down the road, but the core AI trip planner will always be free."
       },
-      "accuracy": {
-        "question": "How accurate are the itineraries?",
-        "answer": "Our AI uses real-time data from Google Places, verified opening hours, and optimized routing to ensure accuracy. We continuously update our recommendations."
+      "noApp": {
+        "question": "Do I need to download an app?",
+        "answer": "Nope. MonkeyTravel works entirely in your browser — phone, tablet, or computer. Just visit monkeytravel.app and start planning. We're building iOS and Android apps for an even smoother experience, coming soon."
       },
-      "customize": {
-        "question": "Can I customize the itinerary?",
-        "answer": "Absolutely! You can regenerate specific activities, adjust timing, add your own stops, and share with travel companions who can vote on activities."
+      "howAiWorks": {
+        "question": "How does the AI itinerary generator work?",
+        "answer": "Tell us where you're going, your travel dates, who's coming, and what you enjoy. Our AI creates one personalized day-by-day itinerary in about 30 seconds — tailored to your preferences, pace, and interests. Each plan includes restaurants, attractions, timing, and walking routes."
+      },
+      "editItinerary": {
+        "question": "Can I edit the itinerary?",
+        "answer": "Of course. Swap any activity, add your own spots, adjust timing, or ask our AI assistant for alternatives. It's a smart starting point, not a rigid schedule."
       },
       "destinations": {
-        "question": "What destinations do you support?",
-        "answer": "We support any city in the world that Google Maps covers. From major cities like Paris and Tokyo to smaller towns and hidden gems."
+        "question": "What destinations can I plan?",
+        "answer": "We cover 180+ destinations worldwide — from Paris and Tokyo to Lisbon and Bali. More locations are being added regularly. If we don't have your destination yet, let us know."
       },
-      "save": {
-        "question": "Can I save my trips?",
-        "answer": "Yes! Create a free account to save unlimited trips, access them from any device, and share with friends."
-      },
-      "collaborate": {
-        "question": "Can I plan with friends?",
-        "answer": "Yes! Invite travel companions to collaborate on your trip. They can view the itinerary, vote on activities, and suggest new ones."
+      "planWithFriends": {
+        "question": "Can I plan trips with friends?",
+        "answer": "Yes! MonkeyTravel is built for group travel. Invite your travel companions as collaborators — they can vote on activities, suggest new places, and see real-time updates. No more endless group chats debating where to eat. Everyone stays on the same page."
       }
-    }
+    },
+    "contact": "Still have questions? We'd love to hear from you.",
+    "emailSupport": "Email Support"
   },
   "cta": {
     "title": "Ready to plan your next adventure?",
     "subtitle": "Join thousands of travelers who plan smarter, not harder.",
-    "button": "Start Planning — It's Free"
+    "button": "Start Planning — It's Free",
+    "referral": "Love it? Invite friends and earn free premium features.",
+    "mobileNotify": "Get notified when mobile apps launch"
   },
   "testimonials": {
     "title": "What travelers are saying"
