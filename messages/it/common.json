@@ -136,13 +136,13 @@
   "activity": {
     "booking": "Prenotazione",
     "free": "Gratis",
-    "aiEstimate": "Stima IA",
+    "aiEstimate": "Stima AI",
     "googleVerified": "Verificato da Google",
     "venueTierEstimate": "Stima per categoria",
     "insiderTips": "Consigli Locali",
     "loadingPhotos": "Caricamento foto...",
     "noPhotos": "Nessuna foto disponibile",
-    "regeneratingActivity": "Rigenerazione attività con IA..."
+    "regeneratingActivity": "Rigenerazione attività con AI..."
   },
   "xp": {
     "todaysProgress": "Progresso di Oggi",
@@ -232,7 +232,7 @@
     "warning": "Questo eliminerà permanentemente il tuo account e tutti i dati associati, inclusi:",
     "items": {
       "trips": "Tutti i tuoi viaggi e itinerari",
-      "conversations": "Cronologia conversazioni con IA",
+      "conversations": "Cronologia conversazioni con AI",
       "preferences": "Preferenze e impostazioni salvate",
       "checklists": "Liste di viaggio e ricordi"
     },
@@ -245,14 +245,14 @@
     "deleteError": "Impossibile eliminare l'account. Riprova."
   },
   "earlyAccess": {
-    "title": "Funzionalità IA",
+    "title": "Funzionalità AI",
     "earlyAccess": "Accesso Anticipato",
-    "description": "La nostra pianificazione viaggi con IA è attualmente disponibile per i tester. Stiamo aprendo l'accesso gradualmente per garantire la migliore esperienza.",
+    "description": "La nostra pianificazione viaggi con AI è attualmente disponibile per i tester. Stiamo aprendo l'accesso gradualmente per garantire la migliore esperienza.",
     "haveCode": "Hai un codice tester?",
     "enterCode": "Inserisci codice",
     "unlock": "Sblocca",
     "welcomeTitle": "Benvenuto nell'Accesso Anticipato!",
-    "welcomeMessage": "Ora hai accesso a tutte le funzionalità IA.",
+    "welcomeMessage": "Ora hai accesso a tutte le funzionalità AI.",
     "onListTitle": "Sei nella lista!",
     "onListMessage": "Ti invieremo un'email quando apriremo l'accesso anticipato.",
     "joinWaitlist": "Iscriviti alla Lista d'Attesa",
@@ -263,7 +263,7 @@
     "benefitsTitle": "Vantaggi dell'Accesso Anticipato",
     "benefits": {
       "saved": "Le tue preferenze vengono salvate",
-      "personalized": "Ottieni raccomandazioni IA personalizzate",
+      "personalized": "Ottieni raccomandazioni AI personalizzate",
       "proPlan": "14 giorni di accesso Pro per i tester"
     }
   },
@@ -349,11 +349,11 @@
     "upcoming": "In Arrivo",
     "pastAdventures": "Avventure Passate",
     "yourTrips": "I Tuoi Viaggi",
-    "manageItineraries": "Pianifica e gestisci i tuoi itinerari con IA",
+    "manageItineraries": "Pianifica e gestisci i tuoi itinerari con AI",
     "planNewTrip": "Pianifica Viaggio",
     "planFirstTrip": "Pianifica il Tuo Primo Viaggio",
     "noTripsYet": "Nessun viaggio ancora",
-    "noTripsDescription": "Crea il tuo primo viaggio con IA e lascia che MonkeyTravel pianifichi l'itinerario perfetto per te.",
+    "noTripsDescription": "Crea il tuo primo viaggio con AI e lascia che MonkeyTravel pianifichi l'itinerario perfetto per te.",
     "noTripsFound": "Nessun viaggio trovato",
     "adjustFilters": "Prova a modificare la ricerca o i filtri",
     "clearFilters": "Cancella tutti i filtri",
@@ -750,7 +750,7 @@
     "elapsed": "{seconds}s trascorsi",
     "estimatedTime": "Di solito ci vogliono 20-40 secondi per un itinerario personalizzato",
     "funFacts": {
-      "analyzing": "L'IA sta analizzando migliaia di recensioni e valutazioni",
+      "analyzing": "L'AI sta analizzando migliaia di recensioni e valutazioni",
       "hiddenGems": "Trovando gemme nascoste amate dai locali",
       "optimizingRoutes": "Ottimizzando i percorsi per farti risparmiare tempo",
       "checkingHours": "Verificando orari di apertura e disponibilità stagionale",
@@ -908,7 +908,7 @@
     "typeToSearch": "Digita 3+ caratteri per cercare",
     "fromCuratedList": "Dalla nostra lista selezionata",
     "noResultsExciting": "Stai per esplorare nuovi orizzonti!",
-    "noResultsSupported": "Nessun problema — la nostra IA pianifica viaggi per qualsiasi destinazione al mondo.",
+    "noResultsSupported": "Nessun problema — la nostra AI pianifica viaggi per qualsiasi destinazione al mondo.",
     "continueWith": "Continua con {destination}"
   },
   "stagedLoading": {
@@ -1288,7 +1288,7 @@
     "cards": {
       "addToTrip": "Aggiungi al viaggio",
       "viewDetails": "Vedi dettagli",
-      "suggested": "Suggerito dall'IA",
+      "suggested": "Suggerito dall'AI",
       "new": "NUOVO",
       "day": "Giorno {number}",
       "activityTypes": {
@@ -1347,7 +1347,7 @@
   "beta": {
     "codeInput": {
       "title": "Hai un Codice Beta Tester?",
-      "subtitle": "Inserisci il tuo codice per sbloccare funzionalità IA illimitate",
+      "subtitle": "Inserisci il tuo codice per sbloccare funzionalità AI illimitate",
       "placeholder": "Inserisci il tuo codice",
       "placeholderCompact": "Codice beta",
       "placeholderInline": "BETA-XXXX",
@@ -1361,11 +1361,11 @@
       "redeemFailed": "Impossibile riscattare il codice",
       "genericError": "Qualcosa è andato storto. Per favore riprova.",
       "successTitle": "Benvenuto nella beta!",
-      "successDescription": "Ora hai accesso illimitato a tutte le funzionalità IA.",
+      "successDescription": "Ora hai accesso illimitato a tutte le funzionalità AI.",
       "benefitsTitle": "I beta tester ottengono:",
       "benefits": {
-        "unlimitedGenerations": "Generazioni di viaggi con IA illimitate",
-        "unlimitedAssistant": "Rigenerazioni e assistente IA illimitati",
+        "unlimitedGenerations": "Generazioni di viaggi con AI illimitate",
+        "unlimitedAssistant": "Rigenerazioni e assistente AI illimitati",
         "prioritySupport": "Supporto prioritario",
         "earlyAccess": "Accesso anticipato alle nuove funzionalità"
       }
@@ -1534,11 +1534,11 @@
     "newBadge": "Nuovo",
     "aiChat": {
       "header": {
-        "title": "MonkeyTravel IA",
+        "title": "MonkeyTravel AI",
         "status": "Online • Pronto a pianificare"
       },
       "messages": {
-        "greeting": "Ciao! 👋 Sono il tuo assistente di viaggio IA. Dove vorresti andare?",
+        "greeting": "Ciao! 👋 Sono il tuo assistente di viaggio AI. Dove vorresti andare?",
         "userRequest": "Voglio visitare Barcellona per 5 giorni!",
         "aiResponse": "Ottima scelta! 🇪🇸 Barcellona è fantastica. Lasciami farti alcune domande per personalizzare il tuo viaggio...",
         "userSelection": "Cultura e Storia per favore!"
@@ -1557,14 +1557,14 @@
       "header": {
         "dayTitle": "Giorno 1 • Barcellona",
         "activitiesCount": "4 attività pianificate",
-        "aiAssistant": "✨ Assistente IA"
+        "aiAssistant": "✨ Assistente AI"
       },
       "messages": {
         "userRequest": "Puoi aggiungere un tour gastronomico dopo il Park Güell?",
         "aiResponse": "Certamente! 🍴 Aggiungerò il \"Tour Gastronomico di Barcellona\" alle 12:30, subito dopo il Park Güell...",
         "success": "Fatto! Ho regolato gli orari per te."
       },
-      "inputPlaceholder": "Chiedi all'IA di modificare il tuo piano..."
+      "inputPlaceholder": "Chiedi all'AI di modificare il tuo piano..."
     }
   },
   "referral": {
@@ -1575,7 +1575,7 @@
     "steps": {
       "step1": "Condividi il tuo link unico con gli amici",
       "step2": "Si registrano e creano il loro primo viaggio",
-      "step3": "Entrambi ricevete 1 viaggio IA gratis!"
+      "step3": "Entrambi ricevete 1 viaggio AI gratis!"
     },
     "yourReferralLink": "Il tuo link di referral",
     "copy": "Copia",
@@ -1586,10 +1586,10 @@
       "tripsEarned": "Viaggi guadagnati"
     },
     "share": {
-      "twitterText": "Sto usando MonkeyTravel per pianificare viaggi incredibili con l'IA! Unisciti e ottieni un viaggio GRATIS quando ti iscrivi:",
-      "whatsappText": "Ciao! Sto usando MonkeyTravel per pianificare viaggi fantastici con l'IA. Unisciti e entrambi otteniamo un viaggio GRATIS!",
-      "emailSubject": "Sei invitato a MonkeyTravel - Ottieni un viaggio IA GRATIS!",
-      "emailBody": "Ciao!\n\nSto usando MonkeyTravel per pianificare viaggi incredibili con l'IA, e ho pensato che ti piacerebbe anche.\n\nUnisciti usando il mio link e entrambi otteniamo un viaggio generato dall'IA GRATIS!\n\nBuon viaggio!"
+      "twitterText": "Sto usando MonkeyTravel per pianificare viaggi incredibili con l'AI! Unisciti e ottieni un viaggio GRATIS quando ti iscrivi:",
+      "whatsappText": "Ciao! Sto usando MonkeyTravel per pianificare viaggi fantastici con l'AI. Unisciti e entrambi otteniamo un viaggio GRATIS!",
+      "emailSubject": "Sei invitato a MonkeyTravel - Ottieni un viaggio AI GRATIS!",
+      "emailBody": "Ciao!\n\nSto usando MonkeyTravel per pianificare viaggi incredibili con l'AI, e ho pensato che ti piacerebbe anche.\n\nUnisciti usando il mio link e entrambi otteniamo un viaggio generato dall'AI GRATIS!\n\nBuon viaggio!"
     }
   },
   "dataExport": {
@@ -1667,7 +1667,7 @@
         "sensory": "Sensibile agli Stimoli"
       },
       "activitySchedule": "Orario Attività",
-      "activityScheduleHint": "Imposta le tue ore preferite per le attività giornaliere - l'IA pianificherà intorno alla tua routine",
+      "activityScheduleHint": "Imposta le tue ore preferite per le attività giornaliere - l'AI pianificherà intorno alla tua routine",
       "wakeUpTime": "Ora di sveglia",
       "windDownTime": "Ora di relax",
       "activityScheduleNote": "La prima attività inizierà vicino alla tua ora di sveglia, l'ultima finirà prima del relax"
@@ -1677,14 +1677,14 @@
       "code": "Codice: {code}",
       "activated": "Attivato {date}",
       "benefits": {
-        "generations": "Generazioni IA",
+        "generations": "Generazioni AI",
         "regenerations": "Rigenerazioni",
-        "assistant": "Assistente IA",
+        "assistant": "Assistente AI",
         "support": "Supporto Prioritario"
       },
       "unlimited": "Illimitato",
       "activeBadge": "Attivo",
-      "enterCodeHint": "Inserisci un codice beta per sbloccare funzioni IA illimitate e supporto prioritario.",
+      "enterCodeHint": "Inserisci un codice beta per sbloccare funzioni AI illimitate e supporto prioritario.",
       "noCodeHint": "Non hai un codice? Unisciti alla nostra",
       "waitlist": "lista d'attesa beta",
       "toGetAccess": "per ottenere accesso prioritario."
@@ -1734,7 +1734,7 @@
     "title": "Pronto a Generare il Tuo Viaggio!",
     "subtitle": "Crea un account gratuito per generare il tuo itinerario personalizzato per {destination}",
     "benefits": {
-      "aiPowered": "Generazione itinerari con IA",
+      "aiPowered": "Generazione itinerari con AI",
       "saveEdit": "Salva e modifica i tuoi viaggi in qualsiasi momento",
       "realTime": "Informazioni di viaggio in tempo reale"
     },

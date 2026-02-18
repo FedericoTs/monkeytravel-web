@@ -1,11 +1,11 @@
 {
   "meta": {
     "title": "Blog de Planificación de Viajes | MonkeyTravel",
-    "description": "Consejos prácticos para planificar viajes, herramientas de viaje con IA y guías de destinos. Sin relleno — solo lo que necesitas para planificar mejores viajes."
+    "description": "Consejos prácticos para planificar viajes, herramientas de viaje con AI y guías de destinos. Sin relleno — solo lo que necesitas para planificar mejores viajes."
   },
   "index": {
     "title": "Blog de Planificación de Viajes",
-    "subtitle": "Consejos prácticos, guías de destinos y opiniones honestas sobre cómo la IA está cambiando la planificación de viajes.",
+    "subtitle": "Consejos prácticos, guías de destinos y opiniones honestas sobre cómo la AI está cambiando la planificación de viajes.",
     "readMore": "Leer más",
     "minuteRead": "{minutes} min de lectura"
   },
@@ -15,7 +15,7 @@
     "updatedOn": "Actualizado el {date}",
     "backToBlog": "Volver al Blog",
     "planYourTrip": "¿Listo para planificar tu viaje?",
-    "planYourTripDescription": "Deja que la IA de MonkeyTravel cree un itinerario personalizado para ti — con lugares reales, precios actuales y rutas inteligentes.",
+    "planYourTripDescription": "Deja que la AI de MonkeyTravel cree un itinerario personalizado para ti — con lugares reales, precios actuales y rutas inteligentes.",
     "planYourTripCta": "Planifica Mi Viaje — Gratis"
   },
   "breadcrumbs": {
@@ -23,19 +23,19 @@
     "blog": "Blog"
   },
   "categories": {
-    "AI Travel": "Viajes con IA",
+    "AI Travel": "Viajes con AI",
     "Destination Guides": "Guías de Destinos",
     "Trip Planning": "Planificación de Viajes",
     "Budget Travel": "Viajes Económicos"
   },
   "posts": {
     "how-ai-is-changing-travel-planning": {
-      "title": "Cómo la IA Está Cambiando Realmente la Planificación de Viajes en 2026 (Sin Exageraciones)",
-      "description": "El 42% de los viajeros usó IA para planificar viajes en 2025. Esto es lo que los planificadores de IA hacen bien, dónde fallan y por qué los viajeros más inteligentes los usan de forma diferente."
+      "title": "Cómo la AI Está Cambiando Realmente la Planificación de Viajes en 2026 (Sin Exageraciones)",
+      "description": "El 42% de los viajeros usó AI para planificar viajes en 2025. Esto es lo que los planificadores de AI hacen bien, dónde fallan y por qué los viajeros más inteligentes los usan de forma diferente."
     },
     "ai-trip-planner-vs-travel-agent": {
-      "title": "Planificador de Viajes con IA vs. Agente de Viajes: Comparación Honesta 2026",
-      "description": "Planificamos el mismo viaje de 7 días a Portugal con un planificador de IA y un agente de viajes tradicional. Esto es lo que cada uno acertó, lo que falló y cuál ahorró más dinero."
+      "title": "Planificador de Viajes con AI vs. Agente de Viajes: Comparación Honesta 2026",
+      "description": "Planificamos el mismo viaje de 7 días a Portugal con un planificador de AI y un agente de viajes tradicional. Esto es lo que cada uno acertó, lo que falló y cuál ahorró más dinero."
     },
     "first-trip-to-japan-what-you-need-to-know": {
       "title": "Lo Que Necesitas Saber Antes de Tu Primer Viaje a Japón",

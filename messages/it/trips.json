@@ -151,7 +151,7 @@
     "moreInfo": "Altre Info",
     "booking": "Prenota",
     "insiderTips": "Consigli Locali",
-    "aiEstimate": "Stima IA",
+    "aiEstimate": "Stima AI",
     "googleVerified": "Verificato da Google",
     "venueTierEstimate": "Stima categoria"
   },
@@ -179,26 +179,26 @@
     "saving": "Salvataggio...",
     "changesSaved": "Modifiche salvate!",
     "tripUpdated": "Il tuo viaggio è stato aggiornato con successo.",
-    "aiGenerated": "Itinerario Generato con IA e Dati Verificati",
-    "aiGeneratedDescription": "Questo itinerario è stato creato dall'IA e arricchito con dati in tempo reale da Google Places.",
+    "aiGenerated": "Itinerario Generato con AI e Dati Verificati",
+    "aiGeneratedDescription": "Questo itinerario è stato creato dall'AI e arricchito con dati in tempo reale da Google Places.",
     "clickMoreInfo": "Clicca su \"Altro\" su qualsiasi attività per vedere dettagli e foto verificate.",
     "editModeActive": "Modalità Modifica Attiva",
     "editModeInstructions": "Trascina per riordinare, tocca per modificare, o usa il menu per eliminare attività. Clicca sul pulsante verde in alto quando hai finito.",
-    "aiAssistant": "Assistente IA",
+    "aiAssistant": "Assistente AI",
     "customizeTrip": "Personalizza il tuo viaggio",
-    "aiHelp": "Aiuto IA",
-    "aiTripAssistant": "Assistente Viaggio IA",
+    "aiHelp": "Aiuto AI",
+    "aiTripAssistant": "Assistente Viaggio AI",
     "suggestActivity": "+ Suggerisci un'attività per questo giorno",
     "proposalSubmitted": "Proposta inviata! Altri viaggiatori voteranno."
   },
   "editActivity": {
     "moveToDay": "Sposta al giorno",
     "editActivity": "Modifica attività",
-    "regenerateWithAI": "Rigenera con IA",
+    "regenerateWithAI": "Rigenera con AI",
     "deleteActivity": "Elimina attività",
     "deleteConfirmTitle": "Eliminare Attività?",
     "deleteConfirmMessage": "\"{name}\" sarà rimossa dal tuo itinerario.",
-    "regenerating": "Rigenerazione attività con IA..."
+    "regenerating": "Rigenerazione attività con AI..."
   },
   "addActivity": {
     "title": "Aggiungi Attività",
