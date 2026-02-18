@@ -33,7 +33,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all translation namespaces
-  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog] = await Promise.all([
+  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog, freeTripPlanner, groupTripPlanner] = await Promise.all([
     import(`./messages/${locale}/common.json`),
     import(`./messages/${locale}/auth.json`),
     import(`./messages/${locale}/trips.json`),
@@ -43,6 +43,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./messages/${locale}/consent.json`),
     import(`./messages/${locale}/destinations.json`),
     import(`./messages/${locale}/blog.json`),
+    import(`./messages/${locale}/freeTripPlanner.json`),
+    import(`./messages/${locale}/groupTripPlanner.json`),
   ]);
 
   return {
@@ -57,6 +59,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
       consent: consent.default,
       destinations: destinations.default,
       blog: blog.default,
+      freeTripPlanner: freeTripPlanner.default,
+      groupTripPlanner: groupTripPlanner.default,
     },
   };
 });

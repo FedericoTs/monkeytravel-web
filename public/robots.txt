@@ -12,8 +12,5 @@ Allow: /trips
 Allow: /privacy
 Allow: /terms
 
-# Sitemap location
+# Sitemap and feeds
 Sitemap: https://monkeytravel.app/sitemap.xml
-
-# Crawl delay (optional, be nice to servers)
-Crawl-delay: 1

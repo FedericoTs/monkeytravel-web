@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "title": "Pianificatore di Viaggi di Gruppo con AI — Pianifica, Vota, Decidi | MonkeyTravel",
+    "description": "L'unico pianificatore di viaggi con AI progettato per i gruppi. Genera itinerari, invita amici, vota le attivit\u00e0 e raggiungi il consenso — tutto in un unico posto. Gratis."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "groupTripPlanner": "Pianificatore di Viaggi di Gruppo"
+  },
+  "hero": {
+    "badge": "Progettato per i Gruppi — Gratis per Tutti",
+    "title": "Il Pianificatore di Viaggi di Gruppo con AI Che Accontenta Tutti",
+    "subtitle": "Basta affogare nelle chat di gruppo. MonkeyTravel genera itinerari con AI, permette a tutti di votare le attivit\u00e0 e costruisce il consenso automaticamente. Pianifica il tuo viaggio di gruppo in minuti, non in settimane.",
+    "cta": "Crea un Viaggio di Gruppo — Gratis",
+    "secondaryCta": "Scopri Come Funziona la Votazione"
+  },
+  "problem": {
+    "title": "I Viaggi di Gruppo Non Dovrebbero Essere Cos\u00ec Difficili",
+    "subtitle": "Il viaggio di gruppo medio richiede 53 giorni di pianificazione su 28 siti web. Ti suona familiare?",
+    "items": {
+      "chaos": {
+        "title": "Caos nella Chat di Gruppo",
+        "description": "I link si perdono, le idee vengono dimenticate e nessuno riesce a mettersi d'accordo. Pianificare un viaggio di gruppo su WhatsApp \u00e8 un incubo."
+      },
+      "opinions": {
+        "title": "Troppe Opinioni",
+        "description": "Ognuno vuole qualcosa di diverso. Un amico vuole i musei, un altro vuole le spiagge e c'\u00e8 sempre qualcuno che vuole \"andare a caso\"."
+      },
+      "money": {
+        "title": "Il Denaro Diventa Imbarazzante",
+        "description": "Budget diversi, aspettative diverse. Dividere le spese in modo equo \u00e8 la ragione #1 per cui i viaggi di gruppo diventano scomodi."
+      }
+    }
+  },
+  "features": {
+    "title": "Progettato per i Gruppi, Potenziato dall'AI",
+    "subtitle": "Tutto ci\u00f2 di cui hai bisogno per pianificare un viaggio di gruppo senza perdere amici.",
+    "items": {
+      "aiItineraries": {
+        "title": "Itinerari con AI per Gruppi",
+        "description": "La nostra AI genera itinerari che considerano le preferenze di tutti — non solo quelle dell'organizzatore. Tre livelli di budget per trovare il compromesso perfetto nei gruppi con disponibilit\u00e0 diverse."
+      },
+      "voting": {
+        "title": "Vota le Attivit\u00e0",
+        "description": "Sistema di voto a 4 livelli: Adoro, Flessibile, Ho dei dubbi, No. Consulta il consenso in tempo reale e i tassi di partecipazione. Democrazia, non dittatura."
+      },
+      "proposals": {
+        "title": "Proponi e Decidi",
+        "description": "Chiunque nel gruppo pu\u00f2 proporre attivit\u00e0. Le proposte appaiono come schede su cui tutti possono votare. Le idee migliori salgono in cima."
+      },
+      "roles": {
+        "title": "Accesso Basato sui Ruoli",
+        "description": "Proprietario, Editor, Votante, Spettatore — assegna a ogni persona il giusto livello di controllo. Non tutti devono poter modificare l'itinerario."
+      },
+      "invite": {
+        "title": "Invita con un Link",
+        "description": "Condividi un singolo link. Nessun download di app, nessuna creazione di account necessaria per gli spettatori. I tuoi amici si uniscono in pochi secondi."
+      },
+      "multilingual": {
+        "title": "Gruppi Multilingue",
+        "description": "Stai pianificando con amici internazionali? MonkeyTravel funziona in inglese, spagnolo e italiano. Ogni persona vede l'interfaccia nella propria lingua."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Come Funziona la Pianificazione di Viaggi di Gruppo",
+    "steps": {
+      "step1": {
+        "title": "Crea e Invita",
+        "description": "Avvia un viaggio, imposta la destinazione e le date, poi condividi un link di invito con il tuo gruppo. Tutti si uniscono con un solo clic."
+      },
+      "step2": {
+        "title": "Genera e Proponi",
+        "description": "Lascia che l'AI generi un itinerario, poi permetti a tutti di proporre modifiche e nuove attivit\u00e0. L'intero gruppo contribuisce."
+      },
+      "step3": {
+        "title": "Vota e Parti",
+        "description": "Vota ogni attivit\u00e0. MonkeyTravel mostra il consenso in tempo reale cos\u00ec il gruppo pu\u00f2 prendere decisioni insieme — velocemente."
+      }
+    }
+  },
+  "tripTypes": {
+    "title": "Perfetto per Ogni Tipo di Viaggio di Gruppo",
+    "items": {
+      "friends": {
+        "title": "Fuga con gli Amici",
+        "description": "Weekend fuori porta, vacanze estive o avventure spontanee. Pianificate insieme senza drammi."
+      },
+      "bachelorette": {
+        "title": "Addio al Nubilato e Celibato",
+        "description": "L'arma segreta della testimone della sposa. Pianifica la festa perfetta con il contributo di tutto il gruppo."
+      },
+      "family": {
+        "title": "Riunioni di Famiglia",
+        "description": "I viaggi multigenerazionali sono complessi. L'AI gestisce la logistica cos\u00ec tu puoi concentrarti sul tempo insieme."
+      },
+      "corporate": {
+        "title": "Ritiri Aziendali",
+        "description": "Offsite aziendali e viaggi di team building. Pianificazione professionale senza il costo di un pianificatore professionista."
+      }
+    }
+  },
+  "blogPosts": {
+    "title": "Guide per Pianificare Viaggi di Gruppo",
+    "subtitle": "Consigli di esperti e suggerimenti pratici per pianificare viaggi di gruppo che funzionano davvero.",
+    "readMore": "Leggi la guida completa"
+  },
+  "faq": {
+    "title": "Domande Frequenti",
+    "items": {
+      "howManyPeople": {
+        "question": "Quante persone possono unirsi a un viaggio di gruppo?",
+        "answer": "Non c'\u00e8 limite. MonkeyTravel supporta gruppi di qualsiasi dimensione — da un weekend con 3 amici a una riunione di famiglia con pi\u00f9 di 30 persone. Ogni collaboratore riceve un ruolo (Proprietario, Editor, Votante o Spettatore)."
+      },
+      "needAccount": {
+        "question": "Tutti devono avere un account?",
+        "answer": "Solo il creatore del viaggio ha bisogno di un account. Gli amici possono visualizzare e votare tramite un link condiviso senza creare un account. Creare un account gratuito sblocca i permessi di modifica e le preferenze salvate."
+      },
+      "votingWorks": {
+        "question": "Come funziona il sistema di votazione?",
+        "answer": "Ogni attivit\u00e0 pu\u00f2 essere votata con 4 livelli: Adoro, Flessibile, Ho dei dubbi o No. MonkeyTravel calcola un punteggio di consenso ponderato e mostra i tassi di partecipazione per vedere dove si posiziona il gruppo in un istante."
+      },
+      "differentBudgets": {
+        "question": "Cosa succede se i membri del gruppo hanno budget diversi?",
+        "answer": "MonkeyTravel genera tre livelli di budget (Economico, Equilibrato, Premium) per ogni itinerario. Il gruppo pu\u00f2 votare quale livello funziona meglio o combinare attivit\u00e0 di livelli diversi."
+      },
+      "isFree": {
+        "question": "La funzione di pianificazione di gruppo \u00e8 gratuita?",
+        "answer": "S\u00ec, tutte le funzioni di pianificazione di gruppo sono completamente gratuite — invitare collaboratori, votare, proposte e gestione dei ruoli. Nessun piano premium richiesto."
+      },
+      "splitCosts": {
+        "question": "MonkeyTravel pu\u00f2 aiutare a dividere le spese?",
+        "answer": "MonkeyTravel mostra i costi stimati a persona per ogni attivit\u00e0 e per l'intero viaggio. Per dividere le spese in dettaglio durante il viaggio, consigliamo di abbinare MonkeyTravel a Splitwise o Tricount."
+      }
+    }
+  },
+  "cta": {
+    "title": "Il Tuo Prossimo Viaggio di Gruppo Inizia Qui",
+    "subtitle": "Smetti di pianificare nelle chat di gruppo. Inizia a pianificare con l'AI che capisce i gruppi.",
+    "button": "Pianifica un Viaggio di Gruppo — Gratis"
+  }
+}

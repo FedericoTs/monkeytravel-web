@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "title": "AI Group Trip Planner — Plan Together, Vote, Decide | MonkeyTravel",
+    "description": "The only AI trip planner built for groups. Generate itineraries, invite friends, vote on activities, and reach consensus — all in one place. Free."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "groupTripPlanner": "Group Trip Planner"
+  },
+  "hero": {
+    "badge": "Built for Groups — Free for Everyone",
+    "title": "The AI Group Trip Planner That Keeps Everyone Happy",
+    "subtitle": "Stop drowning in group chats. MonkeyTravel generates AI itineraries, lets everyone vote on activities, and builds consensus automatically. Plan your group trip in minutes, not weeks.",
+    "cta": "Start a Group Trip — Free",
+    "secondaryCta": "See How Voting Works"
+  },
+  "problem": {
+    "title": "Group Trips Shouldn't Be This Hard",
+    "subtitle": "The average group trip takes 53 days to plan across 28 websites. Sound familiar?",
+    "items": {
+      "chaos": {
+        "title": "Group Chat Chaos",
+        "description": "Links get buried, ideas get lost, and nobody can agree on anything. Planning a group trip in WhatsApp is a nightmare."
+      },
+      "opinions": {
+        "title": "Too Many Opinions",
+        "description": "Everyone wants different things. One friend wants museums, another wants beaches, and someone always wants to \"just wing it.\""
+      },
+      "money": {
+        "title": "Money Gets Awkward",
+        "description": "Different budgets, different expectations. Splitting costs fairly is the #1 reason group trips get uncomfortable."
+      }
+    }
+  },
+  "features": {
+    "title": "Built for Groups, Powered by AI",
+    "subtitle": "Everything you need to plan a group trip without losing friends.",
+    "items": {
+      "aiItineraries": {
+        "title": "AI Itineraries for Groups",
+        "description": "Our AI generates itineraries that consider everyone's preferences — not just the organizer's. Three budget tiers so groups with mixed budgets can find middle ground."
+      },
+      "voting": {
+        "title": "Vote on Activities",
+        "description": "4-level voting system: Love, Flexible, Concerns, No. See real-time consensus and participation rates. Democracy, not dictatorship."
+      },
+      "proposals": {
+        "title": "Propose & Decide",
+        "description": "Anyone in the group can propose activities. Proposals appear as cards everyone can vote on. The best ideas rise to the top."
+      },
+      "roles": {
+        "title": "Role-Based Access",
+        "description": "Owner, Editor, Voter, Viewer — give each person the right level of control. Not everyone needs to edit the itinerary."
+      },
+      "invite": {
+        "title": "Invite with a Link",
+        "description": "Share a single link. No app downloads, no account creation required for viewers. Friends can join in seconds."
+      },
+      "multilingual": {
+        "title": "Multilingual Groups",
+        "description": "Planning with international friends? MonkeyTravel works in English, Spanish, and Italian. Each person sees the interface in their language."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How Group Trip Planning Works",
+    "steps": {
+      "step1": {
+        "title": "Create & Invite",
+        "description": "Start a trip, set the destination and dates, then share an invite link with your group. Everyone joins in one click."
+      },
+      "step2": {
+        "title": "Generate & Propose",
+        "description": "Let AI generate an itinerary, then let everyone propose changes and new activities. The whole group contributes."
+      },
+      "step3": {
+        "title": "Vote & Go",
+        "description": "Vote on every activity. MonkeyTravel shows real-time consensus so the group can make decisions together — fast."
+      }
+    }
+  },
+  "tripTypes": {
+    "title": "Perfect for Every Kind of Group Trip",
+    "items": {
+      "friends": {
+        "title": "Friends Getaway",
+        "description": "Weekend trips, summer vacations, or spontaneous adventures. Plan together without the drama."
+      },
+      "bachelorette": {
+        "title": "Bachelorette & Bachelor Parties",
+        "description": "The maid of honor's secret weapon. Plan the perfect celebration with input from the whole squad."
+      },
+      "family": {
+        "title": "Family Reunions",
+        "description": "Multigenerational trips are complex. AI handles the logistics so you can focus on quality time."
+      },
+      "corporate": {
+        "title": "Team Retreats",
+        "description": "Company offsites and team building trips. Professional planning without the professional planner price tag."
+      }
+    }
+  },
+  "blogPosts": {
+    "title": "Group Trip Planning Guides",
+    "subtitle": "Expert tips and real-world advice for planning group trips that actually work.",
+    "readMore": "Read the full guide"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "howManyPeople": {
+        "question": "How many people can join a group trip?",
+        "answer": "There's no limit. MonkeyTravel supports groups of any size — from a weekend trip with 3 friends to a family reunion with 30+ people. Every collaborator gets a role (Owner, Editor, Voter, or Viewer)."
+      },
+      "needAccount": {
+        "question": "Does everyone need an account?",
+        "answer": "Only the trip creator needs an account. Friends can view and vote via a shared link without creating an account. Creating a free account unlocks editing permissions and saved preferences."
+      },
+      "votingWorks": {
+        "question": "How does the voting system work?",
+        "answer": "Each activity can be voted on with 4 levels: Love it, Flexible, Have concerns, or No. MonkeyTravel calculates a weighted consensus score and shows participation rates so you can see where the group stands instantly."
+      },
+      "differentBudgets": {
+        "question": "What if group members have different budgets?",
+        "answer": "MonkeyTravel generates three budget tiers (Budget, Balanced, Premium) for every itinerary. The group can vote on which tier works best, or mix activities from different tiers."
+      },
+      "isFree": {
+        "question": "Is the group planning feature free?",
+        "answer": "Yes, all group planning features are completely free — inviting collaborators, voting, proposals, and role management. No premium tier required."
+      },
+      "splitCosts": {
+        "question": "Can MonkeyTravel help split costs?",
+        "answer": "MonkeyTravel shows estimated costs per person for each activity and the total trip. For detailed expense splitting during the trip, we recommend pairing MonkeyTravel with Splitwise or Tricount."
+      }
+    }
+  },
+  "cta": {
+    "title": "Your Next Group Trip Starts Here",
+    "subtitle": "Stop planning in group chats. Start planning with AI that understands groups.",
+    "button": "Plan a Group Trip — Free"
+  }
+}

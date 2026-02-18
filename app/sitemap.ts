@@ -44,6 +44,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // SEO landing pages (× 3 locales)
+  const landingPages: MetadataRoute.Sitemap = [];
+  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner'];
+
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? '' : `/${locale}`;
+    for (const path of seoLandingPaths) {
+      landingPages.push({
+        url: `${baseUrl}${prefix}${path}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      });
+    }
+  }
+
   // Destination pages (index + detail × 3 locales)
   const destinationPages: MetadataRoute.Sitemap = [];
 
@@ -122,5 +138,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("Failed to fetch shared trips for sitemap:", e);
   }
 
-  return [...staticPages, ...destinationPages, ...blogPages, ...sharedTripPages];
+  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages, ...sharedTripPages];
 }

@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "title": "Pianificatore di Viaggi con AI Gratis — Senza Carta di Credito, Senza Registrazione | MonkeyTravel",
+    "description": "Pianifica il tuo viaggio perfetto con AI in pochi secondi. Ottieni itinerari personalizzati giorno per giorno con luoghi reali e prezzi attuali. 100% gratis, senza carta di credito."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "freeTripPlanner": "Pianificatore di Viaggi con AI Gratis"
+  },
+  "hero": {
+    "badge": "100% Gratis — Senza Carta di Credito",
+    "title": "Il Pianificatore di Viaggi con AI Gratis Che Funziona Davvero",
+    "subtitle": "Scegli una destinazione e ottieni un itinerario personalizzato giorno per giorno in meno di 60 secondi. Luoghi reali, prezzi attuali, percorsi intelligenti — completamente gratis.",
+    "cta": "Pianifica il Mio Viaggio — Gratis",
+    "secondaryCta": "Scopri Come Funziona"
+  },
+  "features": {
+    "title": "Tutto Ciò Che Serve Per Pianificare Viaggi Migliori",
+    "subtitle": "Nessun costo nascosto, nessuna barriera con carta di credito. Tutte le funzionalità disponibili dal primo giorno.",
+    "items": {
+      "aiItineraries": {
+        "title": "Itinerari Generati con AI",
+        "description": "Ottieni piani personalizzati giorno per giorno in base alla tua destinazione, date, budget e stile di viaggio. Tre opzioni: Economico, Bilanciato e Premium."
+      },
+      "realVenues": {
+        "title": "Luoghi e Prezzi Reali",
+        "description": "Ogni ristorante, hotel e attrazione nel tuo itinerario è un luogo reale con prezzi e valutazioni attuali — non allucinazioni di AI."
+      },
+      "smartRouting": {
+        "title": "Percorsi Intelligenti",
+        "description": "Le attività sono ottimizzate per posizione così non devi attraversare la città da un capo all'altro. Meno tempo in viaggio, più tempo ad esplorare."
+      },
+      "multiLanguage": {
+        "title": "Pianifica Nella Tua Lingua",
+        "description": "MonkeyTravel funziona in inglese, spagnolo e italiano. Ricevi itinerari e consigli nella lingua che preferisci."
+      },
+      "groupPlanning": {
+        "title": "Pianificazione di Viaggi di Gruppo",
+        "description": "Invita amici, vota le attività e raggiungi un consenso con i nostri strumenti di collaborazione integrati. Basta con il caos nella chat di gruppo."
+      },
+      "noSignup": {
+        "title": "Nessuna Registrazione Necessaria",
+        "description": "Inizia a pianificare immediatamente. Nessuna creazione di account, nessuna carta di credito, nessuna verifica email. Solo tu e la tua prossima avventura."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Pianifica un Viaggio in 3 Semplici Passaggi",
+    "steps": {
+      "step1": {
+        "title": "Inserisci la Tua Destinazione",
+        "description": "Dicci dove vuoi andare, le tue date di viaggio, la fascia di budget e che tipo di viaggiatore sei."
+      },
+      "step2": {
+        "title": "Ottieni il Tuo Itinerario con AI",
+        "description": "La nostra AI genera un itinerario completo giorno per giorno in meno di 60 secondi. Tre livelli di budget per confrontare le opzioni."
+      },
+      "step3": {
+        "title": "Personalizza e Parti",
+        "description": "Scambia attività, modifica gli orari, invita compagni di viaggio. Il tuo itinerario, a modo tuo — e sempre gratis."
+      }
+    }
+  },
+  "comparison": {
+    "title": "Perché MonkeyTravel vs. ChatGPT?",
+    "subtitle": "ChatGPT può suggerire luoghi. MonkeyTravel costruisce itinerari reali e prenotabili.",
+    "items": {
+      "realData": {
+        "label": "Dati di luoghi reali",
+        "monkey": "Luoghi verificati con valutazioni e prezzi",
+        "chatgpt": "Spesso suggerisce luoghi chiusi o fittizi"
+      },
+      "routing": {
+        "label": "Percorsi intelligenti",
+        "monkey": "Attività raggruppate per posizione",
+        "chatgpt": "Ordine casuale, nessuna logica geografica"
+      },
+      "budget": {
+        "label": "Livelli di budget",
+        "monkey": "3 opzioni: Economico, Bilanciato, Premium",
+        "chatgpt": "Un solo suggerimento generico"
+      },
+      "collaboration": {
+        "label": "Pianificazione di gruppo",
+        "monkey": "Votazione e collaborazione integrate",
+        "chatgpt": "Copia e incolla nella chat di gruppo"
+      },
+      "updates": {
+        "label": "Aggiornamenti in tempo reale",
+        "monkey": "Prezzi e disponibilità verificati",
+        "chatgpt": "I dati di addestramento potrebbero essere obsoleti"
+      }
+    }
+  },
+  "faq": {
+    "title": "Domande Frequenti",
+    "items": {
+      "isFree": {
+        "question": "MonkeyTravel è davvero gratis?",
+        "answer": "Sì, MonkeyTravel è completamente gratis. Puoi creare itinerari illimitati, invitare amici e pianificare viaggi di gruppo senza pagare nulla. Nessuna carta di credito, nessun periodo di prova, nessun costo nascosto."
+      },
+      "needAccount": {
+        "question": "Devo creare un account?",
+        "answer": "Puoi iniziare a pianificare subito senza un account. Creare un account gratuito ti permette di salvare i tuoi itinerari, invitare collaboratori e accedere ai tuoi viaggi da qualsiasi dispositivo — ma è opzionale."
+      },
+      "howAccurate": {
+        "question": "Quanto sono precisi gli itinerari generati con AI?",
+        "answer": "MonkeyTravel utilizza dati reali dei luoghi, incluse valutazioni attuali, prezzi e orari di apertura. A differenza dei chatbot generici di AI, i nostri itinerari fanno riferimento a luoghi reali che puoi visitare e prenotare. Consigliamo di verificare i dettagli in prossimità della data del viaggio."
+      },
+      "languages": {
+        "question": "Quali lingue supporta MonkeyTravel?",
+        "answer": "MonkeyTravel è completamente disponibile in inglese, spagnolo e italiano — incluso il contenuto degli itinerari generati con AI, non solo l'interfaccia. Altre lingue saranno disponibili presto."
+      },
+      "groupTrips": {
+        "question": "Posso pianificare un viaggio di gruppo con MonkeyTravel?",
+        "answer": "Assolutamente. MonkeyTravel include strumenti di collaborazione: invita amici tramite link, vota le attività proposte e raggiungi un consenso come gruppo. È l'unico pianificatore di viaggi con AI gratis con processo decisionale di gruppo integrato."
+      },
+      "destinations": {
+        "question": "Quali destinazioni supporta MonkeyTravel?",
+        "answer": "MonkeyTravel può generare itinerari per praticamente qualsiasi città al mondo. Abbiamo dati arricchiti per oltre 20 destinazioni popolari tra cui Parigi, Tokyo, Roma, Barcellona e New York, e ne aggiungiamo costantemente di nuove."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto a Pianificare il Tuo Prossimo Viaggio?",
+    "subtitle": "Unisciti a migliaia di viaggiatori che pianificano meglio con AI. Gratis per sempre, senza vincoli.",
+    "button": "Inizia a Pianificare — È Gratis"
+  }
+}
