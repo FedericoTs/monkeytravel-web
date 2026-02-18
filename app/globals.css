@@ -976,6 +976,9 @@ h1, h2, h3 {
   border-collapse: collapse;
   margin-bottom: 1.5rem;
   font-size: 0.9375rem;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .blog-prose th,

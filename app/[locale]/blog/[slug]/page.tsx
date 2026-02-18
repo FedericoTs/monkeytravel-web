@@ -41,7 +41,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await getPostBySlug(slug, locale);
   if (!post) return {};
 
   const { frontmatter } = post;
@@ -111,7 +111,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const post = await getPostBySlug(slug);
+  const post = await getPostBySlug(slug, locale);
   if (!post) notFound();
 
   const t = await getTranslations("blog");
@@ -145,7 +145,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     schemas.push(generateFAQSchema(faqs));
   }
 
-  const related = await getRelatedPosts(slug, 3);
+  const related = await getRelatedPosts(slug, 3, locale);
 
   // Format date for display
   const publishedDate = new Date(frontmatter.publishedAt).toLocaleDateString(

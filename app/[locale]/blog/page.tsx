@@ -69,7 +69,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const t = await getTranslations("blog");
-  const posts = await getAllPosts();
+  const posts = await getAllPosts(locale);
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
