@@ -168,66 +168,74 @@ export default async function BlogDetailPage({ params }: PageProps) {
       <Navbar />
 
       <main className="pt-20">
-        {/* Breadcrumb */}
-        <div className="bg-white pt-4 pb-0">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] py-3">
-              <Link
-                href="/"
-                className="hover:text-[var(--primary)] transition-colors"
-              >
-                {t("breadcrumbs.home")}
-              </Link>
-              <span>/</span>
-              <Link
-                href="/blog"
-                className="hover:text-[var(--primary)] transition-colors"
-              >
-                {t("breadcrumbs.blog")}
-              </Link>
-              <span>/</span>
-              <span className="text-[var(--foreground)] font-medium truncate">
+        {/* Hero — full-bleed image with overlay */}
+        <section className="relative h-[340px] sm:h-[400px] md:h-[460px] overflow-hidden">
+          {/* Background image */}
+          <Image
+            src={frontmatter.image}
+            alt={frontmatter.imageAlt}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/20" />
+
+          {/* Content overlay */}
+          <div className="absolute inset-0 flex flex-col justify-end">
+            <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10">
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-2 text-sm text-white/60 mb-4">
+                <Link
+                  href="/"
+                  className="hover:text-white transition-colors"
+                >
+                  {t("breadcrumbs.home")}
+                </Link>
+                <span className="text-white/40">/</span>
+                <Link
+                  href="/blog"
+                  className="hover:text-white transition-colors"
+                >
+                  {t("breadcrumbs.blog")}
+                </Link>
+                <span className="text-white/40">/</span>
+                <span className="text-white/80 truncate max-w-[200px] sm:max-w-none">
+                  {t(`posts.${slug}.title`)}
+                </span>
+              </nav>
+
+              {/* Category badge */}
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium border border-white/20 mb-3">
+                {t(`categories.${frontmatter.category}`)}
+              </span>
+
+              {/* Title */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight drop-shadow-lg leading-tight">
                 {t(`posts.${slug}.title`)}
-              </span>
-            </nav>
-          </div>
-        </div>
+              </h1>
 
-        {/* Article header */}
-        <section className="py-8 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <span className="inline-block px-3 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium mb-4">
-              {t(`categories.${frontmatter.category}`)}
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-              {t(`posts.${slug}.title`)}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--foreground-muted)]">
-              <span>{t("detail.publishedOn", { date: publishedDate })}</span>
-              {updatedDate && (
-                <span>{t("detail.updatedOn", { date: updatedDate })}</span>
-              )}
-              <span>
-                {t("index.minuteRead", {
-                  minutes: frontmatter.readingTime,
-                })}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Featured image */}
-        <section className="bg-white pb-8">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative w-full aspect-[1200/630] rounded-2xl overflow-hidden">
-              <Image
-                src={frontmatter.image}
-                alt={frontmatter.imageAlt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 768px"
-                priority
-              />
+              {/* Meta chips */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-white/90 text-xs sm:text-sm border border-white/10">
+                  <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {publishedDate}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-white/90 text-xs sm:text-sm border border-white/10">
+                  <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {t("index.minuteRead", { minutes: frontmatter.readingTime })}
+                </span>
+                {updatedDate && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)]/90 text-slate-900 text-xs sm:text-sm font-medium">
+                    {t("detail.updatedOn", { date: updatedDate })}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -240,19 +248,34 @@ export default async function BlogDetailPage({ params }: PageProps) {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-[var(--primary)]">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+        <section className="relative py-20 overflow-hidden bg-[var(--primary)]">
+          {/* Background decorations */}
+          <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-[var(--accent)]/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
+
+          <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            {/* Icon */}
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+              <svg className="w-7 h-7 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
               {t("detail.planYourTrip")}
             </h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            <p className="text-white/70 mb-10 max-w-xl mx-auto text-lg leading-relaxed">
               {t("detail.planYourTripDescription")}
             </p>
             <a
               href="https://monkeytravel.app"
-              className="inline-block px-8 py-3 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)]/90 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)]/90 transition-all hover:shadow-lg hover:shadow-[var(--accent)]/20 hover:-translate-y-0.5"
             >
               {t("detail.planYourTripCta")}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
             </a>
           </div>
         </section>

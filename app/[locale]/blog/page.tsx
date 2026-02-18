@@ -86,26 +86,40 @@ export default async function BlogIndexPage({ params }: PageProps) {
 
       <main className="pt-20">
         {/* Hero */}
-        <section className="py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <section className="relative py-20 sm:py-24 overflow-hidden bg-[var(--primary)]">
+          {/* Background decorations */}
+          <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--primary)]" />
+          {/* Decorative blobs */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[var(--accent)]/10 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-white/5 blur-3xl" />
+
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {/* Breadcrumb */}
-            <nav className="flex items-center justify-center gap-2 text-sm text-[var(--foreground-muted)] mb-8">
+            <nav className="flex items-center justify-center gap-2 text-sm text-white/60 mb-8">
               <Link
                 href="/"
-                className="hover:text-[var(--primary)] transition-colors"
+                className="hover:text-white transition-colors"
               >
                 {t("breadcrumbs.home")}
               </Link>
-              <span>/</span>
-              <span className="text-[var(--foreground)] font-medium">
+              <span className="text-white/30">/</span>
+              <span className="text-white/90 font-medium">
                 {t("breadcrumbs.blog")}
               </span>
             </nav>
 
-            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
+            {/* Icon badge */}
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+              <svg className="w-7 h-7 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-5 tracking-tight leading-tight">
               {t("index.title")}
             </h1>
-            <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
               {t("index.subtitle")}
             </p>
           </div>
