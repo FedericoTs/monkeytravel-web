@@ -18,6 +18,7 @@ export default function Footer() {
   const footerLinks = {
     product: [
       { label: t('destinations'), href: '/destinations' },
+      { label: t('blog'), href: '/blog' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
       { label: t('joinWaitlist'), href: '/#hero' },
