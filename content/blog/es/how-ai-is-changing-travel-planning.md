@@ -39,7 +39,7 @@ Hay tres categorías de herramientas de viaje con AI, y funcionan de manera muy 
 
 Tampoco pueden crear itinerarios estructurados y reservables. Te dan un párrafo de sugerencias, no un plan día a día con horarios, precios y rutas a pie.
 
-### 2. Planificadores de viaje con AI dedicados (MonkeyTravel, Wonderplan, Layla, TripPlanner AI)
+### 2. Planificadores de viaje con AI dedicados ([MonkeyTravel](/es/free-ai-trip-planner), Wonderplan, Layla, TripPlanner AI)
 
 **Qué hacen diferente:** Estas herramientas están creadas específicamente para viajar. Se conectan a Google Places, bases de datos de reseñas y datos de precios reales. Cuando recomiendan un restaurante, existe, está abierto y la valoración es real.
 
@@ -105,7 +105,7 @@ Basándonos en cómo millones de personas están usando herramientas de viaje co
 
 3. **Verificas los detalles.** Comprueba que los restaurantes principales siguen abiertos. Confirma los horarios del museo para tus fechas. Revisa si hay requisitos de reserva anticipada. Esto lleva 20 minutos, no 20 horas.
 
-4. **Lo compartes con tu grupo.** El itinerario se convierte en un punto de partida para la discusión grupal, no en un plan definitivo. Todos votan sobre lo que les emociona. El plan evoluciona de forma colaborativa.
+4. **Lo compartes con tu grupo.** El itinerario se convierte en un punto de partida para la discusión grupal, no en un plan definitivo. Todos votan sobre lo que les emociona. El plan evoluciona de forma colaborativa — herramientas como el [planificador de viajes en grupo de MonkeyTravel](/es/group-trip-planner) están diseñadas exactamente para esto.
 
 Este flujo de trabajo — borrador del AI, edición humana, refinamiento en grupo — es cómo funcionan la mayoría de los viajes planificados con AI exitosos. No es automatización total. No es cero participación del AI. Es una colaboración.
 
@@ -117,7 +117,7 @@ Sin registro obligatorio. Sin restaurantes inventados. Sin consejos genéricos d
 
 Escribe un destino y mira lo que tu compañero de viaje AI te propone.
 
-[Planifica mi viaje — Gratis](https://monkeytravel.app)
+[Planifica mi viaje — Gratis](/es/free-ai-trip-planner)
 
 ---
 

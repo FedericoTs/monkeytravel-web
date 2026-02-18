@@ -120,11 +120,11 @@ Si es tu primera vez, esta ruta cubre lo esencial sin agotarte:
 
 ## Planifica tu viaje a Japón en 30 segundos
 
-El sistema de transporte de Japón, los pases regionales, la cultura gastronómica y las opciones de excursiones crean un rompecabezas de planificación que lleva horas resolver manualmente. El AI de MonkeyTravel se encarga de todo — generando un itinerario personalizado con lugares reales, valoraciones verificadas, estimaciones de presupuesto y rutas optimizadas entre barrios.
+El sistema de transporte de Japón, los pases regionales, la cultura gastronómica y las opciones de excursiones crean un rompecabezas de planificación que lleva horas resolver manualmente. El [AI de MonkeyTravel](/es/free-ai-trip-planner) se encarga de todo — generando un itinerario personalizado con lugares reales, valoraciones verificadas, estimaciones de presupuesto y rutas optimizadas entre barrios. Y si viajas con amigos, el [planificador de viajes en grupo](/es/group-trip-planner) permite que todos voten y propongan cambios al itinerario.
 
 Dile que quieres 7 días en Japón y qué te interesa. Recibe un plan completo antes de que se enfríe tu café.
 
-[Planifica mi viaje a Japón — Gratis](https://monkeytravel.app)
+[Planifica mi viaje a Japón — Gratis](/es/free-ai-trip-planner)
 
 ---
 

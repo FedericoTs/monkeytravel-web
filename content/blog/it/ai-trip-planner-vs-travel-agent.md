@@ -132,7 +132,7 @@ Dipende da cosa dai valore:
 - Non ti piace proprio pianificare (e $150-300 valgono la delega)
 - Vuoi qualcuno di responsabile se le cose vanno storte
 
-**L'approccio migliore?** Usali entrambi. Inizia con un pianificatore AI per costruire il tuo itinerario di base in pochi secondi. Poi consulta un agente per quelle una o due esperienze dove una raccomandazione fidata fa davvero la differenza — un corso di cucina specifico, una guida verificata per un'escursione complessa, un hotel boutique che non compare sui siti di prenotazione.
+**L'approccio migliore?** Usali entrambi. Inizia con un [pianificatore AI](/it/free-ai-trip-planner) per costruire il tuo itinerario di base in pochi secondi. Poi consulta un agente per quelle una o due esperienze dove una raccomandazione fidata fa davvero la differenza — un corso di cucina specifico, una guida verificata per un'escursione complessa, un hotel boutique che non compare sui siti di prenotazione.
 
 ## Provalo tu stesso
 
@@ -140,7 +140,7 @@ L'AI di MonkeyTravel costruisce itinerari personalizzati con locali reali verifi
 
 Guarda cosa pianifica l'AI per il tuo prossimo viaggio, poi decidi se ti serve anche un agente.
 
-[Pianifica il mio viaggio — Gratis](https://monkeytravel.app)
+[Pianifica il mio viaggio — Gratis](/it/free-ai-trip-planner)
 
 ---
 

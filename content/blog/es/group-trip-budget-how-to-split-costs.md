@@ -97,7 +97,7 @@ No necesitas una hoja de cálculo. Hay varias apps diseñadas específicamente p
 - **Tricount** — Muy popular en Europa. Funciona sin conexión (útil en el extranjero), soporta varias divisas y no requiere que todos se creen una cuenta.
 - **Settle Up** — Similar a Splitwise con mejor gestión de múltiples divisas y simplificación de deudas grupales.
 
-**Para presupuestar el viaje:** MonkeyTravel genera itinerarios con tres niveles de presupuesto — Económico, Equilibrado y Premium — con precios reales para cada actividad, restaurante y hotel. Todo el grupo puede ver exactamente cuánto cuesta cada día antes de comprometerse. Sin sorpresas.
+**Para presupuestar el viaje:** [MonkeyTravel](/es/group-trip-planner) genera itinerarios con tres niveles de presupuesto — Económico, Equilibrado y Premium — con precios reales para cada actividad, restaurante y hotel. Todo el grupo puede ver exactamente cuánto cuesta cada día antes de comprometerse. Sin sorpresas.
 
 **Para máxima transparencia:** Una hoja de Google compartida con tres columnas (fecha, gasto, quién pagó) funciona perfectamente si tu grupo prefiere algo manual. Actualizadla cada noche durante la cena.
 
@@ -133,9 +133,9 @@ Fodor's Travel recomienda abordar estas conversaciones durante la primera semana
 
 Planificar un viaje en grupo ya es bastante difícil. Calcular cuánto cuesta realmente cada día — entre distintas ciudades, divisas y niveles de actividad — no debería llevar horas de investigación.
 
-MonkeyTravel genera itinerarios grupales con tres niveles de presupuesto y precios reales obtenidos de Google. Todos ven los costes antes de comprometerse. Votad actividades, intercambiad alternativas y sabed exactamente cuánto vais a gastar antes de salir de casa. Sin hojas de cálculo.
+[MonkeyTravel](/es/group-trip-planner) genera itinerarios grupales con tres niveles de presupuesto y precios reales obtenidos de Google. El [planificador AI](/es/free-ai-trip-planner) se encarga de las cuentas para que tú no tengas que hacerlo. Todos ven los costes antes de comprometerse. Votad actividades, intercambiad alternativas y sabed exactamente cuánto vais a gastar antes de salir de casa. Sin hojas de cálculo.
 
-[Planifica un viaje en grupo — Gratis](https://monkeytravel.app)
+[Planifica un viaje en grupo — Gratis](/es/group-trip-planner)
 
 ---
 

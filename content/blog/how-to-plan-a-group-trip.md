@@ -115,7 +115,7 @@ What you actually need is a single place where:
 - Someone can propose alternatives without derailing the plan
 - Changes are visible to everyone instantly
 
-This is exactly why we built MonkeyTravel's collaborative trip planning. The AI generates a starting itinerary based on your group's destination, budget, and interests. Then every person in the group can:
+This is exactly why we built [MonkeyTravel's group trip planner](/group-trip-planner). The [AI generates a starting itinerary](/free-ai-trip-planner) based on your group's destination, budget, and interests. Then every person in the group can:
 
 - **Vote** on activities with a 4-level system (Love it / Flexible / Concerns / Skip)
 - **Propose** alternatives for any time slot
@@ -123,7 +123,7 @@ This is exactly why we built MonkeyTravel's collaborative trip planning. The AI 
 
 One link to share. No downloads. No "which version of the spreadsheet is current?"
 
-[Plan a Group Trip — Free](https://monkeytravel.app)
+[Plan a Group Trip — Free](/group-trip-planner)
 
 ## The Group Trip Planning Checklist
 

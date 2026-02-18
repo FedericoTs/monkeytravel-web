@@ -193,9 +193,9 @@ Le app dedicate alla pianificazione dei viaggi tengono tutto in un unico posto: 
 
 La parte più difficile di un itinerario di gruppo non è il template — è riempirlo. Cercare ristoranti, controllare gli orari di apertura, stimare i tempi di spostamento tra un'attività e l'altra, trovare cose da fare che rispettino il budget.
 
-MonkeyTravel genera un itinerario completo giorno per giorno con locali reali, prezzi effettivi e percorsi geografici intelligenti — in circa 30 secondi. Condividilo con il tuo gruppo, votate le àncore, sostituite quello che non va, e avrete un piano di viaggio che ha richiesto minuti invece di settimane.
+Il [pianificatore AI di MonkeyTravel](/it/free-ai-trip-planner) genera un itinerario completo giorno per giorno con locali reali, prezzi effettivi e percorsi geografici intelligenti — in circa 30 secondi. Condividilo con il tuo gruppo tramite il [pianificatore di viaggi di gruppo](/it/group-trip-planner), votate le àncore, sostituite quello che non va, e avrete un piano di viaggio che ha richiesto minuti invece di settimane.
 
-[Genera un Itinerario di Gruppo — Gratis](https://monkeytravel.app)
+[Genera un Itinerario di Gruppo — Gratis](/it/group-trip-planner)
 
 ---
 

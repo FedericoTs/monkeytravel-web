@@ -111,11 +111,11 @@ If you read through all ten mistakes, there's a pattern: most group trip problem
 
 AI-assisted planning solves a surprising number of these. Instead of starting from a blank spreadsheet, the group starts with a ready-made itinerary tailored to their destination, budget, and dates. That eliminates the "200 messages, zero decisions" problem entirely — you're reacting to a plan, not building one from scratch.
 
-MonkeyTravel generates the base itinerary in seconds, then your group votes on every activity, proposes alternatives, and sees budget breakdowns transparently. One person doesn't have to do all the research. Everyone has a voice without the chaos of a group chat. And because the AI builds in buffer time and flexible blocks by default, you avoid the over-scheduling trap automatically.
+[MonkeyTravel's group trip planner](/group-trip-planner) generates the base itinerary in seconds using our [free AI trip planner](/free-ai-trip-planner), then your group votes on every activity, proposes alternatives, and sees budget breakdowns transparently. One person doesn't have to do all the research. Everyone has a voice without the chaos of a group chat. And because the AI builds in buffer time and flexible blocks by default, you avoid the over-scheduling trap automatically.
 
 The best group trips aren't the ones with the most impressive itineraries. They're the ones where everyone felt heard, nobody felt trapped, and the planning didn't take longer than the trip itself.
 
-[Plan a Group Trip — Free](https://monkeytravel.app)
+[Plan a Group Trip — Free](/group-trip-planner)
 
 ---
 

@@ -97,7 +97,7 @@ Non ti serve un foglio Excel. Esistono diverse app pensate esattamente per quest
 - **Tricount** — Molto popolare in Europa. Funziona offline (utilissimo all'estero), supporta valute multiple e non richiede che tutti creino un account.
 - **Settle Up** — Simile a Splitwise con una migliore gestione multi-valuta e semplificazione dei debiti di gruppo.
 
-**Per la pianificazione del budget di viaggio:** MonkeyTravel genera itinerari con tre fasce di budget — Economico, Bilanciato e Premium — con prezzi reali per ogni attività, ristorante e hotel. Tutti nel gruppo possono vedere esattamente quanto costa ogni giorno prima di impegnarsi. Nessuna sorpresa.
+**Per la pianificazione del budget di viaggio:** Il [pianificatore AI di MonkeyTravel](/it/free-ai-trip-planner) genera itinerari con tre fasce di budget — Economico, Bilanciato e Premium — con prezzi reali per ogni attività, ristorante e hotel. Tutti nel gruppo possono vedere esattamente quanto costa ogni giorno prima di impegnarsi. Nessuna sorpresa.
 
 **Per la massima trasparenza:** Un foglio Google condiviso con tre colonne (data, spesa, chi ha pagato) funziona bene se il tuo gruppo preferisce qualcosa di manuale. Aggiornalo ogni sera a cena.
 
@@ -133,9 +133,9 @@ Fodor's Travel consiglia di affrontare queste conversazioni entro la prima setti
 
 Pianificare un viaggio di gruppo è già abbastanza complicato. Capire quanto costa davvero ogni giorno — tra città diverse, valute diverse e livelli di attività diversi — non dovrebbe richiedere ore di ricerche.
 
-MonkeyTravel genera itinerari di gruppo con tre fasce di budget e prezzi reali basati su dati di Google. Tutti vedono i costi prima di impegnarsi. Votate le attività, sostituite con alternative, e sapete esattamente quanto spendete prima ancora di partire. Nessun foglio Excel necessario.
+Il [pianificatore di viaggi di gruppo di MonkeyTravel](/it/group-trip-planner) genera itinerari con tre fasce di budget e prezzi reali basati su dati di Google. Tutti vedono i costi prima di impegnarsi. Votate le attività, sostituite con alternative, e sapete esattamente quanto spendete prima ancora di partire. Nessun foglio Excel necessario.
 
-[Pianifica un viaggio di gruppo — Gratis](https://monkeytravel.app)
+[Pianifica un viaggio di gruppo — Gratis](/it/group-trip-planner)
 
 ---
 

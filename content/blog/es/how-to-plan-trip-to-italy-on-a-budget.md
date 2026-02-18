@@ -126,9 +126,9 @@ Aquí tienes una ruta que equilibra los grandes clásicos con las joyas ocultas:
 
 Una comprobación de la realidad: juntar todos estos horarios de trenes, recomendaciones de restaurantes, estimaciones de presupuesto y plazos de reserva lleva horas. Hemos creado MonkeyTravel precisamente para esto.
 
-Dile a nuestro AI adónde quieres ir y tu presupuesto. Te monta un itinerario personalizado día a día con restaurantes reales valorados en Google, precios verificados y actividades adaptadas a lo que realmente te gusta. No son consejos genéricos de "visita el Coliseo" — son lugares, horarios y costes específicos.
+Dile a nuestro [AI](/es/free-ai-trip-planner) adónde quieres ir y tu presupuesto. Te monta un itinerario personalizado día a día con restaurantes reales valorados en Google, precios verificados y actividades adaptadas a lo que realmente te gusta. No son consejos genéricos de "visita el Coliseo" — son lugares, horarios y costes específicos. Y si viajas con amigos, el [planificador de viajes en grupo](/es/group-trip-planner) permite que todos opinen sobre el plan.
 
-[Planifica mi viaje a Italia — Gratis](https://monkeytravel.app)
+[Planifica mi viaje a Italia — Gratis](/es/free-ai-trip-planner)
 
 ---
 

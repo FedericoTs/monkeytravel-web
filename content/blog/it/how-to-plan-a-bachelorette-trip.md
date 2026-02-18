@@ -183,11 +183,11 @@ Il compito di tutte le altre: rispondere ai sondaggi entro 48 ore, pagare la pro
 
 Ed ecco dove tutto diventa più facile. Invece di passare ore a cercare ristoranti e attività per una destinazione che magari non hai mai visitato, lascia che l'AI faccia il lavoro pesante.
 
-MonkeyTravel genera un itinerario giorno per giorno per il tuo addio al nubilato in circa 30 secondi. Digli la destinazione, la dimensione del gruppo, il budget e l'atmosfera -- e crea un piano con ristoranti specifici, attività e fasce orarie. Condividi un solo link con il gruppo. Tutte possono vedere il piano, votare le attività e suggerire modifiche senza affogare nei messaggi.
+Il [pianificatore AI di MonkeyTravel](/it/free-ai-trip-planner) genera un itinerario giorno per giorno per il tuo addio al nubilato in circa 30 secondi. Digli la destinazione, la dimensione del gruppo, il budget e l'atmosfera -- e crea un piano con ristoranti specifici, attività e fasce orarie. Condividi un solo link con il gruppo tramite il nostro [strumento di pianificazione di gruppo](/it/group-trip-planner). Tutte possono vedere il piano, votare le attività e suggerire modifiche senza affogare nei messaggi.
 
 Niente fogli di calcolo. Niente 47 schede del browser aperte. Niente "avete visto il mio messaggio?"
 
-[Organizza un Addio al Nubilato -- Gratis](https://monkeytravel.app)
+[Organizza un Addio al Nubilato -- Gratis](/it/group-trip-planner)
 
 ---
 

@@ -183,11 +183,11 @@ El trabajo de las demás: responder las votaciones en 48 horas, pagar su parte a
 
 Aquí es donde todo esto se vuelve más fácil. En lugar de pasar horas investigando restaurantes y actividades en un destino que quizá nunca hayas visitado, deja que el AI haga el trabajo pesado.
 
-MonkeyTravel genera un itinerario de despedida de soltera día a día en unos 30 segundos. Dile el destino, el tamaño del grupo, el presupuesto y el ambiente — y crea un plan con restaurantes específicos, actividades y bloques de tiempo. Comparte un enlace con el grupo. Todas pueden ver el plan, votar actividades y sugerir cambios sin ahogarse en mensajes.
+[MonkeyTravel](/es/group-trip-planner) genera un itinerario de despedida de soltera día a día en unos 30 segundos. Dile al [planificador AI](/es/free-ai-trip-planner) el destino, el tamaño del grupo, el presupuesto y el ambiente — y crea un plan con restaurantes específicos, actividades y bloques de tiempo. Comparte un enlace con el grupo. Todas pueden ver el plan, votar actividades y sugerir cambios sin ahogarse en mensajes.
 
 Sin hojas de cálculo. Sin 47 pestañas del navegador. Sin "¿todas han visto mi mensaje?"
 
-[Organiza tu despedida de soltera — Gratis](https://monkeytravel.app)
+[Organiza tu despedida de soltera — Gratis](/es/group-trip-planner)
 
 ---
 

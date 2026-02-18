@@ -120,11 +120,11 @@ If it's your first time, this route hits the essentials without exhausting you:
 
 ## Plan Your Japan Trip in 30 Seconds
 
-Japan's transit system, regional passes, restaurant culture, and day-trip options create a planning puzzle that takes hours to solve manually. MonkeyTravel's AI handles it all — generating a personalized itinerary with real venues, verified ratings, budget estimates, and optimized routing between neighborhoods.
+Japan's transit system, regional passes, restaurant culture, and day-trip options create a planning puzzle that takes hours to solve manually. [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) handles it all — generating a personalized itinerary with real venues, verified ratings, budget estimates, and optimized routing between neighborhoods. Planning with friends? Our [group trip planner](/group-trip-planner) lets everyone vote on activities.
 
 Tell it you want 7 days in Japan and what you're interested in. Get a complete plan back before your coffee cools.
 
-[Plan My Japan Trip — Free](https://monkeytravel.app)
+[Plan My Japan Trip — Free](/free-ai-trip-planner)
 
 ---
 

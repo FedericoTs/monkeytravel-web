@@ -145,11 +145,11 @@ Anche i meno avventurosi non si annoieranno: sorgenti termali vicino ad Arenal (
 
 La destinazione è la parte facile. La parte difficile è coordinare i voli, dividere i costi, costruire un piano giorno per giorno che funzioni per tutti, e tenere allineato il gruppo senza 400 messaggi WhatsApp.
 
-È esattamente per questo che è nato MonkeyTravel. Il nostro AI trip planner permette a tutti nel gruppo di aggiungere le proprie preferenze — budget, interessi, cose imperdibili — e genera un itinerario collaborativo che bilancia quello che ognuno vuole. Niente fogli di calcolo, niente una sola persona che fa tutto il lavoro.
+È esattamente per questo che è nato MonkeyTravel. Il nostro [AI trip planner](/it/free-ai-trip-planner) permette a tutti nel gruppo di aggiungere le proprie preferenze — budget, interessi, cose imperdibili — e genera un itinerario collaborativo che bilancia quello che ognuno vuole. Niente fogli di calcolo, niente una sola persona che fa tutto il lavoro.
 
 Scegli una destinazione da questa lista, inseriscila su MonkeyTravel, invita il tuo gruppo, e lascia che l'AI gestisca la parte di coordinamento che nessuno si diverte a fare.
 
-[Pianifica un Viaggio di Gruppo — Gratis](https://monkeytravel.app)
+[Pianifica un Viaggio di Gruppo — Gratis](/it/group-trip-planner)
 
 ---
 

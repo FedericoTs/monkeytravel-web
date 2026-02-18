@@ -115,7 +115,7 @@ Lo que realmente necesitas es un solo lugar donde:
 - Alguien pueda proponer alternativas sin descarrilar el plan
 - Los cambios sean visibles para todos al instante
 
-Esto es exactamente por lo que creamos la planificación de viajes colaborativa de MonkeyTravel. El AI genera un itinerario inicial basado en el destino, presupuesto e intereses de tu grupo. Después, cada persona del grupo puede:
+Esto es exactamente por lo que creamos la [planificación de viajes colaborativa de MonkeyTravel](/es/group-trip-planner). El [AI genera un itinerario inicial](/es/free-ai-trip-planner) basado en el destino, presupuesto e intereses de tu grupo. Después, cada persona del grupo puede:
 
 - **Votar** actividades con un sistema de 4 niveles (Me encanta / Flexible / Dudas / Paso)
 - **Proponer** alternativas para cualquier franja horaria
@@ -123,7 +123,7 @@ Esto es exactamente por lo que creamos la planificación de viajes colaborativa 
 
 Un enlace para compartir. Sin descargas. Sin "¿cuál es la versión actual de la hoja de cálculo?"
 
-[Planifica un viaje en grupo — Gratis](https://monkeytravel.app)
+[Planifica un viaje en grupo — Gratis](/es/group-trip-planner)
 
 ## La lista de verificación para planificar un viaje en grupo
 

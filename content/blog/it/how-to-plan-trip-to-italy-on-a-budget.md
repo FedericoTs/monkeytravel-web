@@ -120,15 +120,15 @@ Ecco un percorso che bilancia le grandi mete con le gemme nascoste:
 - **L'acqua è gratis.** Chiedi *acqua del rubinetto* al ristorante. È perfettamente sicura e ti fa risparmiare $2-3 a pasto.
 - **Giorni di musei gratuiti.** La prima domenica di ogni mese, la maggior parte dei musei statali è gratuita. Pianifica in base a questo.
 - **Il Roma Pass** ($32 per 48 ore) include 1 museo gratuito + trasporti illimitati. Vale la pena se visiti i grandi musei.
-- **Salta Venezia** se hai un budget stretto. È la città più costosa d'Italia in assoluto. Bologna, Torino e Lecce offrono esperienze altrettanto memorabili a una frazione del costo.
+- **Salta Venezia** se hai un budget stretto. È la città più costosa d'Italia in assoluto. Bologna, Torino e Lecce offrono esperienze altrettanto memorabili a una frazione del costo. Se viaggi con amici, usa il nostro [pianificatore di viaggi di gruppo](/it/group-trip-planner) per coordinare budget e preferenze di tutti.
 
 ## Pianifica il tuo viaggio in Italia in 30 secondi
 
-Un dato di realtà: mettere insieme tutti questi orari dei treni, raccomandazioni sui ristoranti, stime di budget e finestre di prenotazione richiede ore. Abbiamo costruito MonkeyTravel esattamente per questo.
+Un dato di realtà: mettere insieme tutti questi orari dei treni, raccomandazioni sui ristoranti, stime di budget e finestre di prenotazione richiede ore. Abbiamo costruito il [pianificatore AI di MonkeyTravel](/it/free-ai-trip-planner) esattamente per questo.
 
 Di' alla nostra AI dove vuoi andare e il tuo budget. Costruirà un itinerario personalizzato giorno per giorno con ristoranti reali valutati su Google, prezzi verificati e attività adatte a ciò che ti piace davvero. Non consigli generici tipo "visita il Colosseo" — posti specifici, orari e costi.
 
-[Pianifica il mio viaggio in Italia — Gratis](https://monkeytravel.app)
+[Pianifica il mio viaggio in Italia — Gratis](/it/free-ai-trip-planner)
 
 ---
 

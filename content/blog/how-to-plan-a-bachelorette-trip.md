@@ -183,11 +183,11 @@ Everyone else's job: respond to polls within 48 hours, pay their share on time, 
 
 Here's where all of this gets easier. Instead of spending hours researching restaurants and activities for a destination you may have never visited, let AI do the heavy lifting.
 
-MonkeyTravel generates a day-by-day bachelorette itinerary in about 30 seconds. Tell it the destination, group size, budget, and vibe — it builds a plan with specific restaurants, activities, and time blocks. Share one link with the group. Everyone can see the plan, vote on activities, and suggest changes without drowning in messages.
+[MonkeyTravel's free AI trip planner](/free-ai-trip-planner) generates a day-by-day bachelorette itinerary in about 30 seconds. Tell it the destination, group size, budget, and vibe — it builds a plan with specific restaurants, activities, and time blocks. Share one link with the group via our [group trip planner](/group-trip-planner). Everyone can see the plan, vote on activities, and suggest changes without drowning in messages.
 
 No spreadsheet. No 47 browser tabs. No "did everyone see my message?"
 
-[Plan a Bachelorette Trip — Free](https://monkeytravel.app)
+[Plan a Bachelorette Trip — Free](/group-trip-planner)
 
 ---
 

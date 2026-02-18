@@ -145,11 +145,11 @@ Incluso los que no son de aventura no se aburrirán: aguas termales cerca de Are
 
 El destino es la parte fácil. Lo difícil es coordinar vuelos, dividir costes, armar un plan día a día que funcione para todos y mantener al grupo alineado sin 400 mensajes de WhatsApp.
 
-Para eso se creó MonkeyTravel. Nuestro planificador de viajes con AI permite que cada miembro del grupo añada sus preferencias — presupuesto, intereses, imprescindibles — y genera un itinerario colaborativo que equilibra lo que todos quieren. Sin hojas de cálculo, sin que una sola persona cargue con todo el trabajo.
+Para eso se creó MonkeyTravel. Nuestro [planificador de viajes con AI](/es/free-ai-trip-planner) permite que cada miembro del grupo añada sus preferencias — presupuesto, intereses, imprescindibles — y genera un itinerario colaborativo que equilibra lo que todos quieren. Sin hojas de cálculo, sin que una sola persona cargue con todo el trabajo.
 
 Elige un destino de esta lista, ponlo en MonkeyTravel, invita a tu grupo, y deja que el AI se encargue de la parte de coordinación que nadie disfruta.
 
-[Planifica un viaje en grupo — Gratis](https://monkeytravel.app)
+[Planifica un viaje en grupo — Gratis](/es/group-trip-planner)
 
 ---
 

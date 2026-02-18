@@ -145,11 +145,11 @@ Even non-adventure types won't be bored: hot springs near Arenal ($20/person), s
 
 The destination is the easy part. The hard part is coordinating flights, splitting costs, building a day-by-day plan that works for everyone, and keeping the group aligned without 400 WhatsApp messages.
 
-That's what MonkeyTravel is built for. Our AI trip planner lets everyone in the group add their preferences — budget, interests, must-dos — and generates a collaborative itinerary that balances what everybody wants. No spreadsheets, no one person doing all the work.
+That's what [MonkeyTravel's group trip planner](/group-trip-planner) is built for. Our [AI trip planner](/free-ai-trip-planner) lets everyone in the group add their preferences — budget, interests, must-dos — and generates a collaborative itinerary that balances what everybody wants. No spreadsheets, no one person doing all the work.
 
 Pick a destination from this list, drop it into MonkeyTravel, invite your group, and let the AI handle the coordination part nobody enjoys.
 
-[Plan a Group Trip — Free](https://monkeytravel.app)
+[Plan a Group Trip — Free](/group-trip-planner)
 
 ---
 

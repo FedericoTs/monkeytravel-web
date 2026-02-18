@@ -97,7 +97,7 @@ You don't need a spreadsheet. Several apps exist specifically for this problem:
 - **Tricount** — Popular in Europe. Works offline (useful abroad), supports multiple currencies, and doesn't require everyone to create an account.
 - **Settle Up** — Similar to Splitwise with better multi-currency handling and group debt simplification.
 
-**For trip-level budgeting:** MonkeyTravel generates itineraries with three budget tiers — Budget, Balanced, and Premium — with real prices for every activity, restaurant, and hotel. Everyone in the group can see exactly what each day costs before committing. No surprises.
+**For trip-level budgeting:** [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) generates itineraries with three budget tiers — Budget, Balanced, and Premium — with real prices for every activity, restaurant, and hotel. Everyone in the group can see exactly what each day costs before committing. No surprises.
 
 **For full transparency:** A shared Google Sheet with three columns (date, expense, who paid) works fine if your group prefers something manual. Update it each evening over dinner.
 
@@ -133,9 +133,9 @@ Fodor's Travel recommends addressing these conversations within the first week a
 
 Planning a group trip is already hard enough. Figuring out what each day actually costs — across different cities, currencies, and activity levels — shouldn't take hours of research.
 
-MonkeyTravel generates group itineraries with three budget tiers and real prices sourced from Google. Everyone sees the costs before committing. Vote on activities, swap in alternatives, and know exactly what you're spending before you leave. No spreadsheet required.
+[MonkeyTravel's group trip planner](/group-trip-planner) generates group itineraries with three budget tiers and real prices sourced from Google. Everyone sees the costs before committing. Vote on activities, swap in alternatives, and know exactly what you're spending before you leave. No spreadsheet required.
 
-[Plan a Group Trip — Free](https://monkeytravel.app)
+[Plan a Group Trip — Free](/group-trip-planner)
 
 ---
 

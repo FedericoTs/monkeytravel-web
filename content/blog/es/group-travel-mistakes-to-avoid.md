@@ -109,13 +109,13 @@ Pero un grupo con demasiados líderes es peor. Dos personalidades fuertes intent
 
 Si leíste los diez errores, hay un patrón: la mayoría de los problemas en viajes en grupo se reducen a expectativas poco claras, herramientas de comunicación inadecuadas y una sola persona cargando con todo el trabajo.
 
-La planificación asistida por AI resuelve un número sorprendente de estos problemas. En lugar de empezar desde una hoja de cálculo en blanco, el grupo arranca con un itinerario listo, adaptado a su destino, presupuesto y fechas. Eso elimina por completo el problema de "200 mensajes, cero decisiones" — estás reaccionando a un plan, no construyendo uno desde cero.
+La [planificación asistida por AI](/es/free-ai-trip-planner) resuelve un número sorprendente de estos problemas. En lugar de empezar desde una hoja de cálculo en blanco, el grupo arranca con un itinerario listo, adaptado a su destino, presupuesto y fechas. Eso elimina por completo el problema de "200 mensajes, cero decisiones" — estás reaccionando a un plan, no construyendo uno desde cero.
 
-MonkeyTravel genera el itinerario base en segundos, y después tu grupo vota cada actividad, propone alternativas y ve el desglose de presupuesto de forma transparente. Una sola persona no tiene que hacer toda la investigación. Todos tienen voz sin el caos de un chat grupal. Y como la AI incluye tiempos de descanso y bloques flexibles por defecto, evitas la trampa de la sobreplanificación automáticamente.
+[MonkeyTravel](/es/group-trip-planner) genera el itinerario base en segundos, y después tu grupo vota cada actividad, propone alternativas y ve el desglose de presupuesto de forma transparente. Una sola persona no tiene que hacer toda la investigación. Todos tienen voz sin el caos de un chat grupal. Y como la AI incluye tiempos de descanso y bloques flexibles por defecto, evitas la trampa de la sobreplanificación automáticamente.
 
 Los mejores viajes en grupo no son los que tienen los itinerarios más impresionantes. Son aquellos donde todos se sintieron escuchados, nadie se sintió atrapado y la planificación no duró más que el viaje en sí.
 
-[Planifica un Viaje en Grupo — Gratis](https://monkeytravel.app)
+[Planifica un Viaje en Grupo — Gratis](/es/group-trip-planner)
 
 ---
 

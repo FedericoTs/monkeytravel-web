@@ -115,16 +115,16 @@ Se è la tua prima volta, questo percorso tocca le tappe essenziali senza sfinit
 - **Non cercare di vedere tutto.** Il Giappone premia la profondità più dell'ampiezza. Passare 3 giorni pieni a Tokyo è meglio che passare 1 giorno ciascuno in 3 città.
 - **Non saltare i convenience store.** FamilyMart e 7-Eleven non sono solo per gli snack — sono sportelli ATM, biglietterie, stamperie, e uno dei migliori cibi economici del paese.
 - **Non affidarti solo a Google Maps per gli orari dei treni.** È accurato, ma usa Navitime o l'app Japan Travel per i dettagli sulle coincidenze e i numeri dei binari. Contano quando hai 3 minuti tra una coincidenza e l'altra.
-- **Non prenotare tutto l'alloggio in anticipo.** Prenota le prime 2-3 notti, poi resta flessibile. Potresti voler stare un giorno in più a Kyoto o scoprire che Osaka merita più tempo.
+- **Non prenotare tutto l'alloggio in anticipo.** Prenota le prime 2-3 notti, poi resta flessibile. Potresti voler stare un giorno in più a Kyoto o scoprire che Osaka merita più tempo. Se viaggi con amici, uno strumento di [pianificazione di gruppo](/it/group-trip-planner) può aiutarvi a decidere insieme in tempo reale.
 - **Non dimenticare l'assicurazione di viaggio.** La sanità giapponese è eccellente ma non gratuita per i turisti. Una semplice visita al pronto soccorso può costare $300-500 senza assicurazione.
 
 ## Pianifica il tuo viaggio in Giappone in 30 secondi
 
-Il sistema di trasporti del Giappone, i pass regionali, la cultura dei ristoranti e le opzioni per le gite giornaliere creano un puzzle di pianificazione che richiede ore da risolvere manualmente. L'AI di MonkeyTravel gestisce tutto — generando un itinerario personalizzato con locali reali, valutazioni verificate, stime di budget e percorsi ottimizzati tra i quartieri.
+Il sistema di trasporti del Giappone, i pass regionali, la cultura dei ristoranti e le opzioni per le gite giornaliere creano un puzzle di pianificazione che richiede ore da risolvere manualmente. Il [pianificatore AI di MonkeyTravel](/it/free-ai-trip-planner) gestisce tutto — generando un itinerario personalizzato con locali reali, valutazioni verificate, stime di budget e percorsi ottimizzati tra i quartieri.
 
 Digli che vuoi 7 giorni in Giappone e cosa ti interessa. Ricevi un piano completo prima che il tuo caffè si raffreddi.
 
-[Pianifica il mio viaggio in Giappone — Gratis](https://monkeytravel.app)
+[Pianifica il mio viaggio in Giappone — Gratis](/it/free-ai-trip-planner)
 
 ---
 

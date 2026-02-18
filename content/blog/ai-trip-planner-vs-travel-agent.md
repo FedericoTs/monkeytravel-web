@@ -29,7 +29,7 @@ Here's what happened.
 
 **The trip:** 7 days in Portugal — Lisbon, Sintra, and Porto. Two travelers, mid-range budget, interested in food, culture, and local experiences. Travel dates: October 2026.
 
-**The AI:** A dedicated AI trip planner (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data.
+**The AI:** A dedicated [AI trip planner](/free-ai-trip-planner) (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data.
 
 **The agent:** A well-reviewed independent travel advisor (not a discount agency, not a luxury concierge — a standard professional who charges a $150 planning fee).
 
@@ -140,7 +140,7 @@ MonkeyTravel's AI builds personalized itineraries with real Google-verified venu
 
 See what AI plans for your next trip, then decide if you need an agent on top of it.
 
-[Plan My Trip — Free](https://monkeytravel.app)
+[Plan My Trip — Free](/free-ai-trip-planner)
 
 ---
 
@@ -148,7 +148,7 @@ See what AI plans for your next trip, then decide if you need an agent on top of
 
 ### Can AI really replace a travel agent?
 
-For 80% of trips, yes. AI trip planners now use real-time venue data, ratings, and budget optimization to create detailed itineraries. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
+For 80% of trips, yes. [AI trip planners](/free-ai-trip-planner) now use real-time venue data, ratings, and budget optimization to create detailed itineraries. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
 
 ### How accurate are AI trip planner recommendations?
 

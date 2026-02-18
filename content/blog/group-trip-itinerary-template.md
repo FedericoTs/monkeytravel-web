@@ -193,9 +193,9 @@ Dedicated trip planning apps keep everything in one place: itinerary, cost estim
 
 The hardest part of making a group itinerary isn't the template — it's filling it in. Researching restaurants, checking opening hours, estimating travel times between activities, finding things to do that match your budget.
 
-MonkeyTravel generates a complete day-by-day itinerary with real venues, actual prices, and smart geographic routing — in about 30 seconds. Share it with your group, vote on anchors, swap out anything that doesn't fit, and you've got a trip plan that took minutes instead of weeks.
+[MonkeyTravel's free AI trip planner](/free-ai-trip-planner) generates a complete day-by-day itinerary with real venues, actual prices, and smart geographic routing — in about 30 seconds. Share it with your group via our [group trip planner](/group-trip-planner), vote on anchors, swap out anything that doesn't fit, and you've got a trip plan that took minutes instead of weeks.
 
-[Generate a Group Itinerary — Free](https://monkeytravel.app)
+[Generate a Group Itinerary — Free](/group-trip-planner)
 
 ---
 
