@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Blog di Pianificazione Viaggi | MonkeyTravel",
+    "description": "Consigli pratici per la pianificazione dei viaggi, strumenti di viaggio con IA e guide alle destinazioni. Niente fronzoli — solo ciò che ti serve per pianificare viaggi migliori."
+  },
+  "index": {
+    "title": "Blog di Pianificazione Viaggi",
+    "subtitle": "Consigli pratici, guide alle destinazioni e opinioni oneste su come l'IA sta cambiando la pianificazione dei viaggi.",
+    "readMore": "Leggi di più",
+    "minuteRead": "{minutes} min di lettura"
+  },
+  "detail": {
+    "relatedPosts": "Potrebbe interessarti anche",
+    "publishedOn": "Pubblicato il {date}",
+    "updatedOn": "Aggiornato il {date}",
+    "backToBlog": "Torna al Blog",
+    "planYourTrip": "Pronto a pianificare il tuo viaggio?",
+    "planYourTripDescription": "Lascia che l'IA di MonkeyTravel crei un itinerario personalizzato per te — con luoghi reali, prezzi attuali e percorsi intelligenti.",
+    "planYourTripCta": "Pianifica il Mio Viaggio — Gratis"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "blog": "Blog"
+  }
+}

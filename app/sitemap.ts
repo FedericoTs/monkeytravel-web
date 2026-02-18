@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { destinations } from "@/lib/destinations/data";
+import { getAllSlugs as getBlogSlugs } from "@/lib/blog/api";
 
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
@@ -68,6 +69,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
+  // Blog pages (index + detail × 3 locales)
+  const blogPages: MetadataRoute.Sitemap = [];
+  const blogSlugs = getBlogSlugs();
+
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? "" : `/${locale}`;
+
+    // Blog index page per locale
+    blogPages.push({
+      url: `${baseUrl}${prefix}/blog`,
+      lastModified: currentDate,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+
+    // Blog detail page per post per locale
+    for (const slug of blogSlugs) {
+      blogPages.push({
+        url: `${baseUrl}${prefix}/blog/${slug}`,
+        lastModified: currentDate,
+        changeFrequency: "monthly",
+        priority: 0.7,
+      });
+    }
+  }
+
   // Dynamically fetch shared trips from Supabase
   let sharedTripPages: MetadataRoute.Sitemap = [];
 
@@ -94,5 +121,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("Failed to fetch shared trips for sitemap:", e);
   }
 
-  return [...staticPages, ...destinationPages, ...sharedTripPages];
+  return [...staticPages, ...destinationPages, ...blogPages, ...sharedTripPages];
 }

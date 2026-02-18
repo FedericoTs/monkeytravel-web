@@ -24,6 +24,7 @@
     "amadeus": "^11.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.25",
+    "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.555.0",
@@ -34,6 +35,8 @@
     "posthog-node": "^5.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0"
   },

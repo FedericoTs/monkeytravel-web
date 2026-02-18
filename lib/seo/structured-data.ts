@@ -313,6 +313,51 @@ export function generateTouristDestinationSchema(
 }
 
 // ============================================================================
+// Blog Article Schema
+// ============================================================================
+
+export interface ArticleSchemaInput {
+  title: string;
+  description: string;
+  url: string;
+  image?: string;
+  datePublished: string;
+  dateModified: string;
+  author: string;
+}
+
+export function generateArticleSchema(input: ArticleSchemaInput) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: input.title,
+    description: input.description,
+    url: input.url,
+    image: input.image,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified,
+    author: {
+      "@type": "Organization",
+      name: input.author,
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: LOGO_URL,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": input.url,
+    },
+  };
+}
+
+// ============================================================================
 // Combined Schema for Homepage
 // ============================================================================
 

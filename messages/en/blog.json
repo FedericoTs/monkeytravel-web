@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Travel Planning Blog | MonkeyTravel",
+    "description": "Practical travel planning tips, AI travel tools, and destination guides. No fluff — just what you need to plan better trips."
+  },
+  "index": {
+    "title": "Travel Planning Blog",
+    "subtitle": "Practical tips, destination guides, and honest takes on how AI is changing travel planning.",
+    "readMore": "Read more",
+    "minuteRead": "{minutes} min read"
+  },
+  "detail": {
+    "relatedPosts": "You might also like",
+    "publishedOn": "Published on {date}",
+    "updatedOn": "Updated on {date}",
+    "backToBlog": "Back to Blog",
+    "planYourTrip": "Ready to plan your trip?",
+    "planYourTripDescription": "Let MonkeyTravel's AI create a personalized itinerary for you — with real venues, actual prices, and smart routing.",
+    "planYourTripCta": "Plan My Trip — Free"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "blog": "Blog"
+  }
+}

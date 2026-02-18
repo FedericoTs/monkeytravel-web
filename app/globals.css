@@ -885,3 +885,140 @@ h1, h2, h3 {
 .animate-spring-enter {
   animation: spring-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Blog prose typography
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.blog-prose {
+  color: var(--foreground);
+  line-height: 1.8;
+  font-size: 1.0625rem;
+}
+
+.blog-prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--foreground);
+}
+
+.blog-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--foreground);
+}
+
+.blog-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.blog-prose p {
+  margin-bottom: 1.25rem;
+}
+
+.blog-prose a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blog-prose a:hover {
+  color: var(--primary-dark);
+}
+
+.blog-prose strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.blog-prose ul,
+.blog-prose ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.blog-prose ul {
+  list-style-type: disc;
+}
+
+.blog-prose ol {
+  list-style-type: decimal;
+}
+
+.blog-prose li {
+  margin-bottom: 0.5rem;
+}
+
+.blog-prose blockquote {
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--foreground-muted);
+  font-style: italic;
+}
+
+.blog-prose hr {
+  border: none;
+  border-top: 1px solid var(--foreground-light);
+  margin: 2rem 0;
+}
+
+.blog-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.blog-prose th,
+.blog-prose td {
+  border: 1px solid var(--foreground-light);
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+}
+
+.blog-prose th {
+  background-color: var(--background-warm);
+  font-weight: 600;
+}
+
+.blog-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.blog-prose code {
+  background-color: var(--background-warm);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.blog-prose pre {
+  background-color: var(--background-dark);
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.blog-prose pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.blog-prose em {
+  color: var(--foreground-muted);
+}
