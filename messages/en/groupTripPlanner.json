@@ -12,7 +12,12 @@
     "title": "The AI Group Trip Planner That Keeps Everyone Happy",
     "subtitle": "Stop drowning in group chats. MonkeyTravel generates AI itineraries, lets everyone vote on activities, and builds consensus automatically. Plan your group trip in minutes, not weeks.",
     "cta": "Start a Group Trip — Free",
-    "secondaryCta": "See How Voting Works"
+    "secondaryCta": "See How Voting Works",
+    "trustSignals": {
+      "free": "Free forever",
+      "noCard": "No credit card",
+      "instant": "Unlimited group size"
+    }
   },
   "problem": {
     "title": "Group Trips Shouldn't Be This Hard",
@@ -137,6 +142,7 @@
   "cta": {
     "title": "Your Next Group Trip Starts Here",
     "subtitle": "Stop planning in group chats. Start planning with AI that understands groups.",
-    "button": "Plan a Group Trip — Free"
+    "button": "Plan a Group Trip — Free",
+    "mobileNotify": "Get notified when the mobile app launches"
   }
 }

@@ -12,7 +12,12 @@
     "title": "Il Pianificatore di Viaggi di Gruppo con AI Che Accontenta Tutti",
     "subtitle": "Basta affogare nelle chat di gruppo. MonkeyTravel genera itinerari con AI, permette a tutti di votare le attivit\u00e0 e costruisce il consenso automaticamente. Pianifica il tuo viaggio di gruppo in minuti, non in settimane.",
     "cta": "Crea un Viaggio di Gruppo — Gratis",
-    "secondaryCta": "Scopri Come Funziona la Votazione"
+    "secondaryCta": "Scopri Come Funziona la Votazione",
+    "trustSignals": {
+      "free": "Gratis per sempre",
+      "noCard": "Senza carta di credito",
+      "instant": "Nessun limite di gruppo"
+    }
   },
   "problem": {
     "title": "I Viaggi di Gruppo Non Dovrebbero Essere Cos\u00ec Difficili",
@@ -137,6 +142,7 @@
   "cta": {
     "title": "Il Tuo Prossimo Viaggio di Gruppo Inizia Qui",
     "subtitle": "Smetti di pianificare nelle chat di gruppo. Inizia a pianificare con l'AI che capisce i gruppi.",
-    "button": "Pianifica un Viaggio di Gruppo — Gratis"
+    "button": "Pianifica un Viaggio di Gruppo — Gratis",
+    "mobileNotify": "Ricevi una notifica quando lanceremo l'app mobile"
   }
 }

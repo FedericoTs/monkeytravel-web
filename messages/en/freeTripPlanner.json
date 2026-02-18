@@ -12,7 +12,12 @@
     "title": "The Free AI Trip Planner That Actually Works",
     "subtitle": "Drop a destination, get a personalized day-by-day itinerary in under 60 seconds. Real venues, actual prices, smart routing — completely free.",
     "cta": "Plan My Trip — Free",
-    "secondaryCta": "See How It Works"
+    "secondaryCta": "See How It Works",
+    "trustSignals": {
+      "free": "Free forever",
+      "noCard": "No credit card",
+      "instant": "Instant results"
+    }
   },
   "features": {
     "title": "Everything You Need to Plan Better Trips",
@@ -124,6 +129,7 @@
   "cta": {
     "title": "Ready to Plan Your Next Trip?",
     "subtitle": "Join thousands of travelers who plan smarter with AI. Free forever, no strings attached.",
-    "button": "Start Planning — It's Free"
+    "button": "Start Planning — It's Free",
+    "mobileNotify": "Get notified when the mobile app launches"
   }
 }

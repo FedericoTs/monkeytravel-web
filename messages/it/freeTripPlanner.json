@@ -12,7 +12,12 @@
     "title": "Il Pianificatore di Viaggi con AI Gratis Che Funziona Davvero",
     "subtitle": "Scegli una destinazione e ottieni un itinerario personalizzato giorno per giorno in meno di 60 secondi. Luoghi reali, prezzi attuali, percorsi intelligenti — completamente gratis.",
     "cta": "Pianifica il Mio Viaggio — Gratis",
-    "secondaryCta": "Scopri Come Funziona"
+    "secondaryCta": "Scopri Come Funziona",
+    "trustSignals": {
+      "free": "Gratis per sempre",
+      "noCard": "Senza carta di credito",
+      "instant": "Risultati istantanei"
+    }
   },
   "features": {
     "title": "Tutto Ciò Che Serve Per Pianificare Viaggi Migliori",
@@ -124,6 +129,7 @@
   "cta": {
     "title": "Pronto a Pianificare il Tuo Prossimo Viaggio?",
     "subtitle": "Unisciti a migliaia di viaggiatori che pianificano meglio con AI. Gratis per sempre, senza vincoli.",
-    "button": "Inizia a Pianificare — È Gratis"
+    "button": "Inizia a Pianificare — È Gratis",
+    "mobileNotify": "Ricevi una notifica quando lanceremo l'app mobile"
   }
 }
