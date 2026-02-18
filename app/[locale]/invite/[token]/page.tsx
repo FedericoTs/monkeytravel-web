@@ -1,9 +1,11 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import InviteAcceptClient from "./InviteAcceptClient";
 
 interface PageProps {
-  params: Promise<{ token: string }>;
+  params: Promise<{ token: string; locale: string }>;
 }
 
 async function getInviteData(token: string) {
@@ -21,20 +23,20 @@ async function getInviteData(token: string) {
     .single();
 
   if (inviteError || !invite) {
-    return { error: "INVALID_TOKEN" };
+    return { error: "INVALID_TOKEN" as const };
   }
 
   // Check if invite is still valid
   if (!invite.is_active) {
-    return { error: "REVOKED" };
+    return { error: "REVOKED" as const };
   }
 
   if (new Date(invite.expires_at) < new Date()) {
-    return { error: "EXPIRED" };
+    return { error: "EXPIRED" as const };
   }
 
   if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-    return { error: "MAX_USES" };
+    return { error: "MAX_USES" as const };
   }
 
   // Fetch trip
@@ -45,7 +47,7 @@ async function getInviteData(token: string) {
     .single();
 
   if (tripError || !trip) {
-    return { error: "TRIP_NOT_FOUND" };
+    return { error: "TRIP_NOT_FOUND" as const };
   }
 
   // Fetch owner profile from users table
@@ -136,10 +138,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function JoinPage({ params }: PageProps) {
-  const { token } = await params;
+  const { token, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("common.invitePage");
   const data = await getInviteData(token);
 
   if ("error" in data) {
+    const errorMap: Record<string, string> = {
+      INVALID_TOKEN: "invalidToken",
+      REVOKED: "revoked",
+      EXPIRED: "expired",
+      MAX_USES: "maxUses",
+      TRIP_NOT_FOUND: "tripNotFound",
+    };
+    const errorKey = errorMap[data.error as string] ?? "invalidToken";
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
@@ -149,27 +162,19 @@ export default async function JoinPage({ params }: PageProps) {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
-            {data.error === "INVALID_TOKEN" && "Invalid Invite Link"}
-            {data.error === "REVOKED" && "Invite Revoked"}
-            {data.error === "EXPIRED" && "Invite Expired"}
-            {data.error === "MAX_USES" && "Invite Already Used"}
-            {data.error === "TRIP_NOT_FOUND" && "Trip Not Found"}
+            {t(`errors.${errorKey}`)}
           </h1>
           <p className="text-slate-600 mb-8">
-            {data.error === "INVALID_TOKEN" && "This invite link doesn't exist or may have been deleted."}
-            {data.error === "REVOKED" && "The trip owner has revoked this invite."}
-            {data.error === "EXPIRED" && "This invite link has expired. Please ask for a new one."}
-            {data.error === "MAX_USES" && "This invite has already been used. Please ask for a new one."}
-            {data.error === "TRIP_NOT_FOUND" && "The trip associated with this invite no longer exists."}
+            {t(`errors.${errorKey}Desc`)}
           </p>
           <a
-            href="/"
+            href={locale === "en" ? "/" : `/${locale}`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            Create Your Own Trip
+            {t("createYourOwnTrip")}
           </a>
         </div>
       </div>

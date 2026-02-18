@@ -1144,7 +1144,9 @@
     "likelyApprovedDesc": "Tendencia positiva",
     "confirmedDesc": "Grupo aprobó",
     "rejectedDesc": "Grupo rechazó",
-    "deadlockDesc": "El propietario debe decidir"
+    "deadlockDesc": "El propietario debe decidir",
+    "expired": "Expirada",
+    "expiredDesc": "Período de votación terminó"
   },
   "votingSection": {
     "votedCount": "{voted}/{total} votaron",
@@ -1781,6 +1783,63 @@
       "relaxation": "Relax",
       "foodie": "Gastronomía",
       "family": "Familiar"
+    }
+  },
+  "collaborationOnboarding": {
+    "welcome": {
+      "title": "¡Bienvenido al Viaje!",
+      "description": "Has sido invitado a colaborar en este viaje. Te mostramos cómo aprovecharlo al máximo."
+    },
+    "voting": {
+      "title": "Vota las Actividades",
+      "description": "Toca cualquier actividad para votar con nuestro sistema de 4 niveles: Me encanta, Flexible, Dudas o Pasar. Tu voto ayuda al grupo a decidir."
+    },
+    "proposing": {
+      "title": "Propón Actividades",
+      "description": "¿Ves un espacio libre o tienes una idea mejor? Propón nuevas actividades para que el grupo vote."
+    },
+    "sharing": {
+      "title": "Invita Compañeros de Viaje",
+      "description": "¿Conoces a alguien que debería unirse? Comparte el enlace del viaje para invitar más colaboradores."
+    },
+    "back": "Atrás",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "getStarted": "¡Vamos!"
+  },
+  "invitePage": {
+    "invitedYouToJoin": "{name} te invitó a unirte",
+    "yourRole": "Tu Rol",
+    "days": "{count, plural, =1 {1 día} other {# días}}",
+    "travelers": "{count, plural, =1 {1 viajero} other {# viajeros}}",
+    "joinTrip": "Unirse al Viaje",
+    "joining": "Uniéndose...",
+    "signedInAs": "Conectado como {email}",
+    "checkYourEmail": "Revisa tu correo",
+    "magicLinkSent": "Enviamos un enlace mágico a <strong>{email}</strong>. ¡Haz clic para unirte al viaje!",
+    "useDifferentEmail": "Usar otro correo",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithApple": "Continuar con Apple",
+    "or": "o",
+    "enterYourEmail": "Ingresa tu correo",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión",
+    "createYourOwnTrip": "Crea Tu Propio Viaje",
+    "errors": {
+      "invalidToken": "Enlace de Invitación Inválido",
+      "revoked": "Invitación Revocada",
+      "expired": "Invitación Expirada",
+      "maxUses": "Invitación Ya Utilizada",
+      "tripNotFound": "Viaje No Encontrado",
+      "invalidTokenDesc": "Este enlace de invitación no existe o puede haber sido eliminado.",
+      "revokedDesc": "El propietario del viaje ha revocado esta invitación.",
+      "expiredDesc": "Este enlace de invitación ha expirado. Pide uno nuevo.",
+      "maxUsesDesc": "Esta invitación ya ha sido utilizada. Pide una nueva.",
+      "tripNotFoundDesc": "El viaje asociado con esta invitación ya no existe.",
+      "failedToJoin": "Error al unirse al viaje",
+      "somethingWentWrong": "Algo salió mal",
+      "signInFailed": "Error al iniciar sesión",
+      "failedToSendMagicLink": "Error al enviar el enlace mágico"
     }
   }
 }

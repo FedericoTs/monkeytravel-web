@@ -1144,7 +1144,9 @@
     "likelyApprovedDesc": "Trending positive",
     "confirmedDesc": "Group approved",
     "rejectedDesc": "Group decided against",
-    "deadlockDesc": "Owner needs to decide"
+    "deadlockDesc": "Owner needs to decide",
+    "expired": "Expired",
+    "expiredDesc": "Voting period ended"
   },
   "votingSection": {
     "votedCount": "{voted}/{total} voted",
@@ -1781,6 +1783,63 @@
       "relaxation": "Relaxation",
       "foodie": "Foodie",
       "family": "Family"
+    }
+  },
+  "collaborationOnboarding": {
+    "welcome": {
+      "title": "Welcome to the Trip!",
+      "description": "You've been invited to collaborate on this trip. Let's show you how to make the most of it."
+    },
+    "voting": {
+      "title": "Vote on Activities",
+      "description": "Tap any activity to vote with our 4-level system: Love it, Flexible, Concerns, or Skip. Your vote helps the group decide."
+    },
+    "proposing": {
+      "title": "Propose Activities",
+      "description": "See an empty slot or have a better idea? Propose new activities for the group to vote on."
+    },
+    "sharing": {
+      "title": "Invite Travel Companions",
+      "description": "Know someone who should join? Share the trip link to invite more collaborators."
+    },
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Let's Go!"
+  },
+  "invitePage": {
+    "invitedYouToJoin": "{name} invited you to join",
+    "yourRole": "Your Role",
+    "days": "{count, plural, =1 {1 day} other {# days}}",
+    "travelers": "{count, plural, =1 {1 traveler} other {# travelers}}",
+    "joinTrip": "Join Trip",
+    "joining": "Joining...",
+    "signedInAs": "Signed in as {email}",
+    "checkYourEmail": "Check your email",
+    "magicLinkSent": "We sent a magic link to <strong>{email}</strong>. Click it to join the trip!",
+    "useDifferentEmail": "Use a different email",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "or": "or",
+    "enterYourEmail": "Enter your email",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "createYourOwnTrip": "Create Your Own Trip",
+    "errors": {
+      "invalidToken": "Invalid Invite Link",
+      "revoked": "Invite Revoked",
+      "expired": "Invite Expired",
+      "maxUses": "Invite Already Used",
+      "tripNotFound": "Trip Not Found",
+      "invalidTokenDesc": "This invite link doesn't exist or may have been deleted.",
+      "revokedDesc": "The trip owner has revoked this invite.",
+      "expiredDesc": "This invite link has expired. Please ask for a new one.",
+      "maxUsesDesc": "This invite has already been used. Please ask for a new one.",
+      "tripNotFoundDesc": "The trip associated with this invite no longer exists.",
+      "failedToJoin": "Failed to join trip",
+      "somethingWentWrong": "Something went wrong",
+      "signInFailed": "Sign in failed",
+      "failedToSendMagicLink": "Failed to send magic link"
     }
   }
 }

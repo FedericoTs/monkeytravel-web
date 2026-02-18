@@ -1144,7 +1144,9 @@
     "likelyApprovedDesc": "Tendenza positiva",
     "confirmedDesc": "Gruppo ha approvato",
     "rejectedDesc": "Gruppo ha rifiutato",
-    "deadlockDesc": "Il proprietario deve decidere"
+    "deadlockDesc": "Il proprietario deve decidere",
+    "expired": "Scaduta",
+    "expiredDesc": "Periodo di votazione terminato"
   },
   "votingSection": {
     "votedCount": "{voted}/{total} hanno votato",
@@ -1781,6 +1783,63 @@
       "relaxation": "Relax",
       "foodie": "Gastronomia",
       "family": "Famiglia"
+    }
+  },
+  "collaborationOnboarding": {
+    "welcome": {
+      "title": "Benvenuto nel Viaggio!",
+      "description": "Sei stato invitato a collaborare a questo viaggio. Ti mostriamo come sfruttarlo al meglio."
+    },
+    "voting": {
+      "title": "Vota le Attività",
+      "description": "Tocca qualsiasi attività per votare con il nostro sistema a 4 livelli: Adoro, Flessibile, Dubbi o Passo. Il tuo voto aiuta il gruppo a decidere."
+    },
+    "proposing": {
+      "title": "Proponi Attività",
+      "description": "Vedi uno spazio vuoto o hai un'idea migliore? Proponi nuove attività su cui il gruppo potrà votare."
+    },
+    "sharing": {
+      "title": "Invita Compagni di Viaggio",
+      "description": "Conosci qualcuno che dovrebbe unirsi? Condividi il link del viaggio per invitare altri collaboratori."
+    },
+    "back": "Indietro",
+    "next": "Avanti",
+    "skip": "Salta",
+    "getStarted": "Iniziamo!"
+  },
+  "invitePage": {
+    "invitedYouToJoin": "{name} ti ha invitato a unirti",
+    "yourRole": "Il Tuo Ruolo",
+    "days": "{count, plural, =1 {1 giorno} other {# giorni}}",
+    "travelers": "{count, plural, =1 {1 viaggiatore} other {# viaggiatori}}",
+    "joinTrip": "Unisciti al Viaggio",
+    "joining": "Accesso in corso...",
+    "signedInAs": "Connesso come {email}",
+    "checkYourEmail": "Controlla la tua email",
+    "magicLinkSent": "Abbiamo inviato un link magico a <strong>{email}</strong>. Cliccalo per unirti al viaggio!",
+    "useDifferentEmail": "Usa un'altra email",
+    "continueWithGoogle": "Continua con Google",
+    "continueWithApple": "Continua con Apple",
+    "or": "o",
+    "enterYourEmail": "Inserisci la tua email",
+    "alreadyHaveAccount": "Hai già un account?",
+    "signIn": "Accedi",
+    "createYourOwnTrip": "Crea il Tuo Viaggio",
+    "errors": {
+      "invalidToken": "Link di Invito Non Valido",
+      "revoked": "Invito Revocato",
+      "expired": "Invito Scaduto",
+      "maxUses": "Invito Già Utilizzato",
+      "tripNotFound": "Viaggio Non Trovato",
+      "invalidTokenDesc": "Questo link di invito non esiste o potrebbe essere stato eliminato.",
+      "revokedDesc": "Il proprietario del viaggio ha revocato questo invito.",
+      "expiredDesc": "Questo link di invito è scaduto. Chiedi uno nuovo.",
+      "maxUsesDesc": "Questo invito è già stato utilizzato. Chiedi uno nuovo.",
+      "tripNotFoundDesc": "Il viaggio associato a questo invito non esiste più.",
+      "failedToJoin": "Impossibile unirsi al viaggio",
+      "somethingWentWrong": "Qualcosa è andato storto",
+      "signInFailed": "Accesso non riuscito",
+      "failedToSendMagicLink": "Impossibile inviare il link magico"
     }
   }
 }

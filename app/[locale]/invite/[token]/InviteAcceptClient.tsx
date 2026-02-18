@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, Link } from "@/lib/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
 
 interface InviteAcceptClientProps {
@@ -42,6 +41,8 @@ export default function InviteAcceptClient({
 }: InviteAcceptClientProps) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("common.invitePage");
+  const tRoles = useTranslations("common.roles");
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
@@ -49,6 +50,10 @@ export default function InviteAcceptClient({
 
   const roleInfo = ROLE_INFO[invite.role];
   const displayInviter = inviter || owner;
+
+  // Use ref to avoid stale closure in auth callback
+  const inviteTokenRef = useRef(invite.token);
+  inviteTokenRef.current = invite.token;
 
   // Helper to get locale-prefixed URL for OAuth redirects
   const getLocaleUrl = (path: string) => {
@@ -59,6 +64,35 @@ export default function InviteAcceptClient({
     }
     return `${baseUrl}/${locale}${path}`;
   };
+
+  // Accept invite - stable callback using ref
+  const handleAcceptInvite = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/invites/${inviteTokenRef.current}`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.code === "AUTH_REQUIRED") {
+          // User needs to sign in first
+          setIsLoading(false);
+          return;
+        }
+        throw new Error(data.error || t("errors.failedToJoin"));
+      }
+
+      // Success! Redirect to trip
+      router.push(`/trips/${data.tripId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errors.somethingWentWrong"));
+      setIsLoading(false);
+    }
+  }, [router, t]);
 
   // Check authentication status
   useEffect(() => {
@@ -79,7 +113,7 @@ export default function InviteAcceptClient({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         setUser({ id: session.user.id, email: session.user.email || "" });
-        // Auto-accept after sign in
+        // Auto-accept after sign in - handleAcceptInvite is stable via useCallback
         handleAcceptInvite();
       }
     });
@@ -87,36 +121,7 @@ export default function InviteAcceptClient({
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
-
-  // Accept invite
-  const handleAcceptInvite = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/invites/${invite.token}`, {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.code === "AUTH_REQUIRED") {
-          // User needs to sign in first
-          setIsLoading(false);
-          return;
-        }
-        throw new Error(data.error || "Failed to join trip");
-      }
-
-      // Success! Redirect to trip
-      router.push(`/trips/${data.tripId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setIsLoading(false);
-    }
-  };
+  }, [handleAcceptInvite]);
 
   // Sign in with provider
   const handleSignIn = async (provider: "google" | "apple") => {
@@ -134,7 +139,7 @@ export default function InviteAcceptClient({
 
       if (error) throw error;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed");
+      setError(err instanceof Error ? err.message : t("errors.signInFailed"));
       setIsLoading(false);
     }
   };
@@ -160,20 +165,26 @@ export default function InviteAcceptClient({
       if (error) throw error;
       setMagicLinkSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send magic link");
+      setError(err instanceof Error ? err.message : t("errors.failedToSendMagicLink"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Format date
+  // Format date using current locale
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    const localeMap: Record<string, string> = { en: "en-US", es: "es-ES", it: "it-IT" };
+    return new Date(dateStr).toLocaleDateString(localeMap[locale] || "en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
   };
+
+  // Get translated role permissions from common.roles namespace
+  const roleKey = invite.role as "editor" | "voter" | "viewer";
+  const translatedPermissions = tRoles.raw(`${roleKey}.permissions`) as string[];
+  const translatedRestrictions = tRoles.raw(`${roleKey}.restrictions`) as string[];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -221,7 +232,7 @@ export default function InviteAcceptClient({
             )}
             <div>
               <p className="text-sm text-slate-600">
-                <span className="font-medium text-slate-900">{displayInviter.displayName}</span> invited you to join
+                {t("invitedYouToJoin", { name: displayInviter.displayName })}
               </p>
             </div>
           </div>
@@ -250,13 +261,13 @@ export default function InviteAcceptClient({
               <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>{trip.durationDays} days</span>
+              <span>{t("days", { count: trip.durationDays })}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span>{trip.collaboratorCount} {trip.collaboratorCount === 1 ? "traveler" : "travelers"}</span>
+              <span>{t("travelers", { count: trip.collaboratorCount })}</span>
             </div>
           </div>
 
@@ -265,12 +276,12 @@ export default function InviteAcceptClient({
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">{roleInfo.emoji}</span>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide">Your Role</p>
-                <p className="font-semibold text-slate-900">{roleInfo.label}</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wide">{t("yourRole")}</p>
+                <p className="font-semibold text-slate-900">{tRoles(`${roleKey}.label`)}</p>
               </div>
             </div>
             <div className="space-y-1.5">
-              {roleInfo.permissions.map((permission, idx) => (
+              {translatedPermissions.map((permission, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-sm text-slate-600">
                   <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -278,7 +289,7 @@ export default function InviteAcceptClient({
                   <span>{permission}</span>
                 </div>
               ))}
-              {roleInfo.restrictions.slice(0, 2).map((restriction, idx) => (
+              {translatedRestrictions.slice(0, 2).map((restriction, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-sm text-slate-400">
                   <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -318,19 +329,19 @@ export default function InviteAcceptClient({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Joining...
+                    {t("joining")}
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Join Trip
+                    {t("joinTrip")}
                   </>
                 )}
               </button>
               <p className="text-center text-sm text-slate-500">
-                Signed in as {user.email}
+                {t("signedInAs", { email: user.email })}
               </p>
             </div>
           ) : magicLinkSent ? (
@@ -341,15 +352,16 @@ export default function InviteAcceptClient({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Check your email</h3>
-              <p className="text-sm text-slate-600 mb-4">
-                We sent a magic link to <strong>{email}</strong>. Click it to join the trip!
-              </p>
+              <h3 className="font-semibold text-slate-900 mb-2">{t("checkYourEmail")}</h3>
+              <p
+                className="text-sm text-slate-600 mb-4"
+                dangerouslySetInnerHTML={{ __html: t("magicLinkSent", { email }) }}
+              />
               <button
                 onClick={() => setMagicLinkSent(false)}
                 className="text-sm text-[var(--primary)] hover:underline"
               >
-                Use a different email
+                {t("useDifferentEmail")}
               </button>
             </div>
           ) : (
@@ -367,7 +379,7 @@ export default function InviteAcceptClient({
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Continue with Google
+                {t("continueWithGoogle")}
               </button>
 
               {/* Apple */}
@@ -379,7 +391,7 @@ export default function InviteAcceptClient({
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                 </svg>
-                Continue with Apple
+                {t("continueWithApple")}
               </button>
 
               {/* Divider */}
@@ -388,7 +400,7 @@ export default function InviteAcceptClient({
                   <div className="w-full border-t border-slate-200" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-white text-slate-400">or</span>
+                  <span className="px-3 bg-white text-slate-400">{t("or")}</span>
                 </div>
               </div>
 
@@ -396,7 +408,7 @@ export default function InviteAcceptClient({
               <div className="flex gap-2">
                 <input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t("enterYourEmail")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
@@ -414,9 +426,9 @@ export default function InviteAcceptClient({
 
               {/* Already have account */}
               <p className="text-center text-sm text-slate-500 pt-2">
-                Already have an account?{" "}
+                {t("alreadyHaveAccount")}{" "}
                 <Link href="/auth/login" className="text-[var(--primary)] hover:underline font-medium">
-                  Sign in
+                  {t("signIn")}
                 </Link>
               </p>
             </div>

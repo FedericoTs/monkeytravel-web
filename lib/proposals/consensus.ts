@@ -223,72 +223,78 @@ export function calculateProposalConsensus({
 
 /**
  * Get display information for a proposal consensus status
+ * Returns translation keys (labelKey/descriptionKey) matching the pattern
+ * used in lib/voting/consensus.ts for i18n consistency.
+ *
+ * Translation keys resolve against the `common.activityStatus` namespace.
  */
 export function getProposalConsensusDisplayInfo(result: ProposalConsensusResult): {
-  label: string;
+  labelKey: string;
   color: string;
   bgColor: string;
   icon: string;
-  description: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string | number>;
 } {
   switch (result.status) {
     case 'waiting':
       return {
-        label: 'Awaiting Votes',
+        labelKey: 'waiting',
         color: 'text-slate-600',
         bgColor: 'bg-slate-100',
         icon: 'clock',
-        description: `${Math.round(result.participation * 100)}% voted`,
+        descriptionKey: 'waitingDesc',
+        descriptionParams: { percent: Math.round(result.participation * 100) },
       };
     case 'voting':
       return {
-        label: 'Voting',
+        labelKey: 'voting',
         color: 'text-blue-600',
         bgColor: 'bg-blue-100',
         icon: 'vote',
-        description: result.hasStrongObjection
-          ? 'Has objections'
-          : 'Voting in progress',
+        descriptionKey: result.hasStrongObjection
+          ? 'votingConcerns'
+          : 'votingInProgress',
       };
     case 'likely_approve':
       return {
-        label: 'Likely Approved',
+        labelKey: 'likelyApproved',
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-100',
         icon: 'trending-up',
-        description: 'Trending positive',
+        descriptionKey: 'likelyApprovedDesc',
       };
     case 'approved':
       return {
-        label: 'Approved',
+        labelKey: 'confirmed',
         color: 'text-green-600',
         bgColor: 'bg-green-100',
         icon: 'check',
-        description: 'Group approved',
+        descriptionKey: 'confirmedDesc',
       };
     case 'rejected':
       return {
-        label: 'Rejected',
+        labelKey: 'rejected',
         color: 'text-red-600',
         bgColor: 'bg-red-100',
         icon: 'x',
-        description: 'Group rejected',
+        descriptionKey: 'rejectedDesc',
       };
     case 'deadlock':
       return {
-        label: 'Needs Decision',
+        labelKey: 'deadlock',
         color: 'text-amber-600',
         bgColor: 'bg-amber-100',
         icon: 'alert',
-        description: 'Owner needs to decide',
+        descriptionKey: 'deadlockDesc',
       };
     case 'expired':
       return {
-        label: 'Expired',
+        labelKey: 'expired',
         color: 'text-gray-500',
         bgColor: 'bg-gray-100',
         icon: 'clock',
-        description: 'Voting period ended',
+        descriptionKey: 'expiredDesc',
       };
   }
 }

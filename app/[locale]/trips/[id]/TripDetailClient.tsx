@@ -79,6 +79,9 @@ import {
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 
+// Collaborator onboarding for new non-owner collaborators
+import CollaboratorOnboarding from "@/components/collaboration/CollaboratorOnboarding";
+
 // Ongoing trip view with gamification
 import OngoingTripView from "@/components/trip/OngoingTripView";
 
@@ -2090,6 +2093,11 @@ export default function TripDetailClient({
           closeRouteOptimization();
         }}
       />
+
+      {/* Collaborator onboarding for new non-owner users */}
+      {isCollaborativeTrip && (
+        <CollaboratorOnboarding isOwner={userRole === "owner"} />
+      )}
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}
       {!isEditMode && <MobileBottomNav activePage="trip-detail" tripId={trip.id} />}

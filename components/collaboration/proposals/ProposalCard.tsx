@@ -283,19 +283,21 @@ export function ProposalCard({
                           return (
                             <div
                               key={vote.id}
-                              className="flex items-center gap-2 text-sm"
+                              className="space-y-0.5"
                             >
-                              <span>{voteInfo?.emoji || '❓'}</span>
-                              <span className="text-gray-700">
-                                {vote.user?.display_name || 'Unknown'}
-                              </span>
-                              <span className={`text-xs ${voteInfo?.color || 'text-gray-500'}`}>
-                                {voteInfo?.labelKey ? t(voteInfo.labelKey) : vote.vote_type}
-                              </span>
-                              {vote.comment && (
-                                <span className="text-gray-500 text-xs truncate">
-                                  - {vote.comment}
+                              <div className="flex items-center gap-2 text-sm">
+                                <span>{voteInfo?.emoji || '❓'}</span>
+                                <span className="text-gray-700">
+                                  {vote.user?.display_name || t("labels.unknown")}
                                 </span>
+                                <span className={`text-xs ${voteInfo?.color || 'text-gray-500'}`}>
+                                  {voteInfo?.labelKey ? t(voteInfo.labelKey) : vote.vote_type}
+                                </span>
+                              </div>
+                              {vote.comment && (
+                                <p className="text-xs text-gray-500 italic ml-6">
+                                  &ldquo;{vote.comment}&rdquo;
+                                </p>
                               )}
                             </div>
                           );

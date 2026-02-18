@@ -663,23 +663,30 @@ export function VotingBottomSheet({
                   return (
                     <div
                       key={vote.id}
-                      className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-2"
+                      className="bg-gray-50 rounded-lg p-2 space-y-1"
                     >
-                      {vote.user?.avatar_url ? (
-                        <Image
-                          src={vote.user.avatar_url}
-                          alt={vote.user.display_name}
-                          width={24}
-                          height={24}
-                          className="w-6 h-6 rounded-full"
-                        />
-                      ) : (
-                        <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
-                          👤
-                        </span>
+                      <div className="flex items-center gap-3 text-sm">
+                        {vote.user?.avatar_url ? (
+                          <Image
+                            src={vote.user.avatar_url}
+                            alt={vote.user.display_name}
+                            width={24}
+                            height={24}
+                            className="w-6 h-6 rounded-full"
+                          />
+                        ) : (
+                          <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                            👤
+                          </span>
+                        )}
+                        <span className="flex-1 text-gray-700">{vote.user?.display_name || t('unknown')}</span>
+                        <span title={voteInfo?.labelKey ? t(voteInfo.labelKey) : undefined}>{voteInfo?.emoji || '❓'}</span>
+                      </div>
+                      {vote.comment && (
+                        <p className="text-xs text-gray-500 italic ml-9">
+                          &ldquo;{vote.comment}&rdquo;
+                        </p>
                       )}
-                      <span className="flex-1 text-gray-700">{vote.user?.display_name || t('unknown')}</span>
-                      <span title={voteInfo?.labelKey ? t(voteInfo.labelKey) : undefined}>{voteInfo?.emoji || '❓'}</span>
                     </div>
                   );
                 })}
