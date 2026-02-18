@@ -21,5 +21,33 @@
   "breadcrumbs": {
     "home": "Home",
     "blog": "Blog"
+  },
+  "categories": {
+    "AI Travel": "Viaggi e IA",
+    "Destination Guides": "Guide alle Destinazioni",
+    "Trip Planning": "Pianificazione Viaggi",
+    "Budget Travel": "Viaggi Low Cost"
+  },
+  "posts": {
+    "how-ai-is-changing-travel-planning": {
+      "title": "Come l'IA Sta Davvero Cambiando la Pianificazione dei Viaggi nel 2026 (Niente Hype, Solo Fatti)",
+      "description": "Il 42% dei viaggiatori ha usato l'IA per pianificare viaggi nel 2025. Ecco cosa fanno bene i pianificatori IA, dove falliscono e perché i viaggiatori più smart li usano in modo diverso."
+    },
+    "ai-trip-planner-vs-travel-agent": {
+      "title": "Pianificatore di Viaggi IA vs. Agenzia di Viaggio: Confronto Onesto 2026",
+      "description": "Abbiamo pianificato lo stesso viaggio di 7 giorni in Portogallo con un pianificatore IA e un'agenzia tradizionale. Ecco cosa ha funzionato, cosa no e chi ha fatto risparmiare di più."
+    },
+    "first-trip-to-japan-what-you-need-to-know": {
+      "title": "Cosa Devi Sapere Prima del Tuo Primo Viaggio in Giappone",
+      "description": "Tutto ciò che chi visita il Giappone per la prima volta deve sapere nel 2026 — dal rail pass alla cultura del contante fino all'etichetta che conta davvero."
+    },
+    "how-to-plan-a-group-trip": {
+      "title": "Come Pianificare un Viaggio di Gruppo Senza Perdere gli Amici",
+      "description": "Il vero motivo per cui i viaggi di gruppo falliscono non è la destinazione — è la pianificazione. Ecco un sistema passo-passo che funziona davvero."
+    },
+    "how-to-plan-trip-to-italy-on-a-budget": {
+      "title": "Come Pianificare un Viaggio in Italia con Budget Limitato nel 2026",
+      "description": "Pianifica un viaggio incredibile in Italia senza svuotare il portafoglio. Prezzi reali, consigli locali e una strategia per visitare Roma, Firenze e la Costiera Amalfitana con meno di 100€/giorno."
+    }
   }
 }

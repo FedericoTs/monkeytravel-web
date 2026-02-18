@@ -119,6 +119,9 @@ export default async function BlogIndexPage({ params }: PageProps) {
                 <BlogCard
                   key={post.frontmatter.slug}
                   post={post.frontmatter}
+                  title={t(`posts.${post.frontmatter.slug}.title`)}
+                  description={t(`posts.${post.frontmatter.slug}.description`)}
+                  category={t(`categories.${post.frontmatter.category}`)}
                   readMoreLabel={t("index.readMore")}
                   minuteReadLabel={t("index.minuteRead", {
                     minutes: post.frontmatter.readingTime,

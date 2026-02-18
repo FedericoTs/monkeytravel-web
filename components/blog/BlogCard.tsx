@@ -4,12 +4,18 @@ import type { BlogFrontmatter } from "@/lib/blog/types";
 
 interface BlogCardProps {
   post: BlogFrontmatter;
+  title: string;
+  description: string;
+  category: string;
   readMoreLabel: string;
   minuteReadLabel: string;
 }
 
 export default function BlogCard({
   post,
+  title,
+  description,
+  category,
   readMoreLabel,
   minuteReadLabel,
 }: BlogCardProps) {
@@ -30,18 +36,18 @@ export default function BlogCard({
         />
         {/* Category badge */}
         <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary)] text-white text-xs font-medium">
-          {post.category}
+          {category}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-5">
         <h3 className="text-lg font-bold text-[var(--foreground)] mb-2 group-hover:text-[var(--primary)] transition-colors line-clamp-2">
-          {post.title}
+          {title}
         </h3>
 
         <p className="text-sm text-[var(--foreground-muted)] mb-4 line-clamp-2">
-          {post.description}
+          {description}
         </p>
 
         {/* Meta row */}

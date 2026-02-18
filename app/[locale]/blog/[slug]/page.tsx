@@ -45,8 +45,9 @@ export async function generateMetadata({
   if (!post) return {};
 
   const { frontmatter } = post;
-  const title = frontmatter.seo.title;
-  const description = frontmatter.seo.description;
+  const t = await getTranslations({ locale, namespace: "blog" });
+  const title = t(`posts.${slug}.title`);
+  const description = t(`posts.${slug}.description`);
 
   const languages: Record<string, string> = {};
   for (const l of routing.locales) {
@@ -186,7 +187,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium truncate">
-                {frontmatter.title}
+                {t(`posts.${slug}.title`)}
               </span>
             </nav>
           </div>
@@ -196,10 +197,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
         <section className="py-8 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <span className="inline-block px-3 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium mb-4">
-              {frontmatter.category}
+              {t(`categories.${frontmatter.category}`)}
             </span>
             <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-              {frontmatter.title}
+              {t(`posts.${slug}.title`)}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--foreground-muted)]">
               <span>{t("detail.publishedOn", { date: publishedDate })}</span>
@@ -268,6 +269,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   <BlogCard
                     key={relPost.frontmatter.slug}
                     post={relPost.frontmatter}
+                    title={t(`posts.${relPost.frontmatter.slug}.title`)}
+                    description={t(`posts.${relPost.frontmatter.slug}.description`)}
+                    category={t(`categories.${relPost.frontmatter.category}`)}
                     readMoreLabel={t("index.readMore")}
                     minuteReadLabel={t("index.minuteRead", {
                       minutes: relPost.frontmatter.readingTime,

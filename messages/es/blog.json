@@ -21,5 +21,33 @@
   "breadcrumbs": {
     "home": "Inicio",
     "blog": "Blog"
+  },
+  "categories": {
+    "AI Travel": "Viajes con IA",
+    "Destination Guides": "Guías de Destinos",
+    "Trip Planning": "Planificación de Viajes",
+    "Budget Travel": "Viajes Económicos"
+  },
+  "posts": {
+    "how-ai-is-changing-travel-planning": {
+      "title": "Cómo la IA Está Cambiando Realmente la Planificación de Viajes en 2026 (Sin Exageraciones)",
+      "description": "El 42% de los viajeros usó IA para planificar viajes en 2025. Esto es lo que los planificadores de IA hacen bien, dónde fallan y por qué los viajeros más inteligentes los usan de forma diferente."
+    },
+    "ai-trip-planner-vs-travel-agent": {
+      "title": "Planificador de Viajes con IA vs. Agente de Viajes: Comparación Honesta 2026",
+      "description": "Planificamos el mismo viaje de 7 días a Portugal con un planificador de IA y un agente de viajes tradicional. Esto es lo que cada uno acertó, lo que falló y cuál ahorró más dinero."
+    },
+    "first-trip-to-japan-what-you-need-to-know": {
+      "title": "Lo Que Necesitas Saber Antes de Tu Primer Viaje a Japón",
+      "description": "Todo lo que los visitantes primerizos de Japón necesitan saber en 2026 — desde pases de tren y cultura del efectivo hasta la etiqueta que realmente importa."
+    },
+    "how-to-plan-a-group-trip": {
+      "title": "Cómo Planificar un Viaje en Grupo Sin Perder a Tus Amigos",
+      "description": "La verdadera razón por la que los viajes en grupo fracasan no es el destino — es la planificación. Aquí tienes un sistema paso a paso que realmente funciona."
+    },
+    "how-to-plan-trip-to-italy-on-a-budget": {
+      "title": "Cómo Planificar un Viaje a Italia con Presupuesto Limitado en 2026",
+      "description": "Planifica un viaje increíble a Italia sin arruinarte. Precios reales, consejos locales y una estrategia para ver Roma, Florencia y la Costa Amalfitana por menos de $100/día."
+    }
   }
 }
