@@ -51,7 +51,7 @@ export default function Footer() {
               />
               <span className="text-lg font-bold">MonkeyTravel</span>
             </Link>
-            <p className="text-white/50 mb-6 max-w-xs leading-relaxed">
+            <p className="text-white/70 mb-6 max-w-xs leading-relaxed">
               {t('description')}
             </p>
             {/* Social Links */}
@@ -75,11 +75,11 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">{t('product')}</h4>
+            <h3 className="font-semibold mb-4 text-white/90">{t('product')}</h3>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-white/50 hover:text-[var(--accent)] transition-colors text-sm">
+                  <Link href={link.href} className="text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -89,11 +89,11 @@ export default function Footer() {
 
           {/* Support Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">{t('support')}</h4>
+            <h3 className="font-semibold mb-4 text-white/90">{t('support')}</h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-white/50 hover:text-[var(--accent)] transition-colors text-sm">
+                  <a href={link.href} className="text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm">
                     {link.label}
                   </a>
                 </li>
@@ -103,11 +103,11 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-white/90">{t('legal')}</h4>
+            <h3 className="font-semibold mb-4 text-white/90">{t('legal')}</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-white/50 hover:text-[var(--accent)] transition-colors text-sm">
+                  <Link href={link.href} className="text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -120,13 +120,13 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/60">
             <p>{t('copyright', { year: new Date().getFullYear() })}</p>
             <div className="flex items-center gap-6">
-              <Link href="/privacy" className="hover:text-[var(--accent)] transition-colors">{t('privacyPolicy')}</Link>
-              <Link href="/terms" className="hover:text-[var(--accent)] transition-colors">{t('termsOfService')}</Link>
+              <Link href="/privacy" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('privacyPolicy')}</Link>
+              <Link href="/terms" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('termsOfService')}</Link>
               <CookieSettingsButton />
-              <a href="mailto:support@monkeytravel.app" className="hover:text-[var(--accent)] transition-colors">{t('contact')}</a>
+              <a href="mailto:support@monkeytravel.app" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('contact')}</a>
             </div>
           </div>
         </div>

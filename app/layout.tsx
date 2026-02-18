@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -20,6 +21,7 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["500", "700"],
+  display: "swap",
 });
 
 // Body font - clean sans-serif
@@ -27,12 +29,14 @@ const sourceSans = Source_Sans_3({
   variable: "--font-source-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 // Keep mono for code blocks
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -135,7 +139,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
 };
 
@@ -157,12 +160,6 @@ export default function RootLayout({
         <script {...jsonLdScriptProps(webSiteSchema)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema)} />
 
-        {/* Travelpayouts Affiliate Network - Verification & Tracking */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldco.com/NDgzOTk3.js?t=483997";document.head.appendChild(s);})();`,
-          }}
-        />
       </head>
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
@@ -182,6 +179,11 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
+        {/* Travelpayouts Affiliate Network - deferred to after page load */}
+        <Script
+          src="https://emrldco.com/NDgzOTk3.js?t=483997"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

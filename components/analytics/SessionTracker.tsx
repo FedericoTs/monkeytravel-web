@@ -153,9 +153,15 @@ export default function SessionTracker() {
       identifyUser(user, posthogProperties);
     };
 
-    // Small delay to ensure the page is ready
-    const timeoutId = setTimeout(trackSession, 100);
-    return () => clearTimeout(timeoutId);
+    // Defer to idle time so session tracking doesn't compete with initial paint
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(trackSession, { timeout: 5000 });
+      return () => window.cancelIdleCallback(idleId);
+    } else {
+      // Fallback for Safari (no requestIdleCallback support)
+      const timeoutId = setTimeout(trackSession, 5000);
+      return () => clearTimeout(timeoutId);
+    }
   }, []);
 
   // This component doesn't render anything
