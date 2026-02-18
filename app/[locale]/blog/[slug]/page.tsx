@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -210,6 +211,22 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   minutes: frontmatter.readingTime,
                 })}
               </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured image */}
+        <section className="bg-white pb-8">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative w-full aspect-[1200/630] rounded-2xl overflow-hidden">
+              <Image
+                src={frontmatter.image}
+                alt={frontmatter.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 768px"
+                priority
+              />
             </div>
           </div>
         </section>
