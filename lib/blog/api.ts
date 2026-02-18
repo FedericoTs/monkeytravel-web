@@ -26,6 +26,15 @@ function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFront
   return { frontmatter: data as BlogFrontmatter, content };
 }
 
+export function getPostDates(slug: string): { publishedAt: string; updatedAt: string } | null {
+  const parsed = parseFrontmatter(slug);
+  if (!parsed) return null;
+  return {
+    publishedAt: parsed.frontmatter.publishedAt,
+    updatedAt: parsed.frontmatter.updatedAt,
+  };
+}
+
 export function getAllSlugs(): string[] {
   const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md"));
   return files.map((f) => f.replace(/\.md$/, ""));

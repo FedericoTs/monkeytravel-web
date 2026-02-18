@@ -324,10 +324,14 @@ export interface ArticleSchemaInput {
   datePublished: string;
   dateModified: string;
   author: string;
+  wordCount?: number;
+  articleSection?: string;
+  keywords?: string[];
+  inLanguage?: string;
 }
 
 export function generateArticleSchema(input: ArticleSchemaInput) {
-  return {
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: input.title,
@@ -353,6 +357,56 @@ export function generateArticleSchema(input: ArticleSchemaInput) {
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": input.url,
+    },
+  };
+
+  if (input.wordCount) {
+    schema.wordCount = input.wordCount;
+    schema.timeRequired = `PT${Math.max(1, Math.ceil(input.wordCount / 200))}M`;
+  }
+  if (input.articleSection) schema.articleSection = input.articleSection;
+  if (input.keywords?.length) schema.keywords = input.keywords;
+  if (input.inLanguage) schema.inLanguage = input.inLanguage;
+  if (input.image) schema.thumbnailUrl = input.image;
+
+  return schema;
+}
+
+// ============================================================================
+// Collection Page Schema (Blog Index)
+// ============================================================================
+
+export interface CollectionPageInput {
+  name: string;
+  description: string;
+  url: string;
+  posts: { url: string; name: string }[];
+}
+
+export function generateCollectionPageSchema(input: CollectionPageInput) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: input.name,
+    description: input.description,
+    url: input.url,
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: LOGO_URL,
+      },
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: input.posts.map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: post.url,
+        name: post.name,
+      })),
     },
   };
 }

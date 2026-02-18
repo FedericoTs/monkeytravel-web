@@ -13,6 +13,7 @@
     "relatedPosts": "También te puede interesar",
     "publishedOn": "Publicado el {date}",
     "updatedOn": "Actualizado el {date}",
+    "tableOfContents": "Tabla de Contenidos",
     "backToBlog": "Volver al Blog",
     "planYourTrip": "¿Listo para planificar tu viaje?",
     "planYourTripDescription": "Deja que la AI de MonkeyTravel cree un itinerario personalizado para ti — con lugares reales, precios actuales y rutas inteligentes.",
@@ -31,11 +32,11 @@
   "posts": {
     "how-ai-is-changing-travel-planning": {
       "title": "Cómo la AI Está Cambiando Realmente la Planificación de Viajes en 2026 (Sin Exageraciones)",
-      "description": "El 42% de los viajeros usó AI para planificar viajes en 2025. Esto es lo que los planificadores de AI hacen bien, dónde fallan y por qué los viajeros más inteligentes los usan de forma diferente."
+      "description": "El 42% de viajeros usó AI para planificar en 2025. Qué hacen bien los planificadores AI, dónde fallan y cómo los viajeros inteligentes los usan."
     },
     "ai-trip-planner-vs-travel-agent": {
       "title": "Planificador de Viajes con AI vs. Agente de Viajes: Comparación Honesta 2026",
-      "description": "Planificamos el mismo viaje de 7 días a Portugal con un planificador de AI y un agente de viajes tradicional. Esto es lo que cada uno acertó, lo que falló y cuál ahorró más dinero."
+      "description": "Planificamos el mismo viaje de 7 días a Portugal con AI y con un agente tradicional. Qué acertó cada uno y cuál ahorró más dinero."
     },
     "first-trip-to-japan-what-you-need-to-know": {
       "title": "Lo Que Necesitas Saber Antes de Tu Primer Viaje a Japón",
@@ -47,7 +48,7 @@
     },
     "how-to-plan-trip-to-italy-on-a-budget": {
       "title": "Cómo Planificar un Viaje a Italia con Presupuesto Limitado en 2026",
-      "description": "Planifica un viaje increíble a Italia sin arruinarte. Precios reales, consejos locales y una estrategia para ver Roma, Florencia y la Costa Amalfitana por menos de $100/día."
+      "description": "Planifica un viaje increíble a Italia sin arruinarte. Precios reales, consejos locales y una estrategia para Roma, Florencia y Amalfi por menos de $100/día."
     }
   }
 }

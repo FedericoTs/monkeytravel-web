@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { destinations } from "@/lib/destinations/data";
-import { getAllSlugs as getBlogSlugs } from "@/lib/blog/api";
+import { getAllSlugs as getBlogSlugs, getPostDates } from "@/lib/blog/api";
 
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
@@ -86,9 +86,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog detail page per post per locale
     for (const slug of blogSlugs) {
+      const dates = getPostDates(slug);
       blogPages.push({
         url: `${baseUrl}${prefix}/blog/${slug}`,
-        lastModified: currentDate,
+        lastModified: dates?.updatedAt ?? currentDate,
         changeFrequency: "monthly",
         priority: 0.7,
       });

@@ -13,7 +13,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogCard } from "@/components/blog";
+import { BlogContent, BlogCard, ReadingProgress } from "@/components/blog";
 import { Link } from "@/lib/i18n/routing";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -69,11 +69,24 @@ export async function generateMetadata({
       description,
       url: languages[locale],
       siteName: "MonkeyTravel",
-      images: [frontmatter.image],
+      images: [
+        {
+          url: `${SITE_URL}${frontmatter.image}`,
+          width: 1200,
+          height: 630,
+          alt: frontmatter.imageAlt,
+        },
+      ],
       type: "article",
       publishedTime: frontmatter.publishedAt,
       modifiedTime: frontmatter.updatedAt,
       authors: [frontmatter.author],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${SITE_URL}${frontmatter.image}`],
     },
   };
 }
@@ -121,6 +134,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const pageUrl = `${SITE_URL}${localePrefix}/blog/${slug}`;
 
   // Structured data
+  const wordCount = post.content.split(/\s+/).length;
   const articleSchema = generateArticleSchema({
     title: frontmatter.title,
     description: frontmatter.description,
@@ -131,6 +145,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
     datePublished: frontmatter.publishedAt,
     dateModified: frontmatter.updatedAt,
     author: frontmatter.author,
+    wordCount,
+    articleSection: frontmatter.category,
+    keywords: frontmatter.seo.keywords,
+    inLanguage: locale,
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -165,6 +183,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     <>
       <script {...jsonLdScriptProps(schemas)} />
 
+      <ReadingProgress />
       <Navbar />
 
       <main className="pt-20">
@@ -243,7 +262,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         {/* Article body */}
         <section className="pb-16 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <BlogContent html={html} />
+            <BlogContent html={html} tocLabel={t("detail.tableOfContents")} />
           </div>
         </section>
 

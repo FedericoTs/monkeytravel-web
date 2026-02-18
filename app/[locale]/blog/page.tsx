@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllPosts } from "@/lib/blog/api";
-import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
@@ -56,6 +56,20 @@ export async function generateMetadata({
       url: languages[locale],
       siteName: "MonkeyTravel",
       type: "website",
+      images: [
+        {
+          url: `${SITE_URL}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: "MonkeyTravel Blog",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${SITE_URL}/og-image.png`],
     },
   };
 }
@@ -73,14 +87,26 @@ export default async function BlogIndexPage({ params }: PageProps) {
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
+  const blogUrl = `${SITE_URL}${localePrefix}/blog`;
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: t("breadcrumbs.home"), url: `${SITE_URL}${localePrefix}` },
-    { name: t("breadcrumbs.blog"), url: `${SITE_URL}${localePrefix}/blog` },
+    { name: t("breadcrumbs.blog"), url: blogUrl },
   ]);
+
+  const collectionSchema = generateCollectionPageSchema({
+    name: t("index.title"),
+    description: t("meta.description"),
+    url: blogUrl,
+    posts: posts.map((post) => ({
+      url: `${blogUrl}/${post.frontmatter.slug}`,
+      name: t(`posts.${post.frontmatter.slug}.title`),
+    })),
+  });
 
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      <script {...jsonLdScriptProps([breadcrumbSchema, collectionSchema])} />
 
       <Navbar />
 

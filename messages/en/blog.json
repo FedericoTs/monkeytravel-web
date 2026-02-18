@@ -13,6 +13,7 @@
     "relatedPosts": "You might also like",
     "publishedOn": "Published on {date}",
     "updatedOn": "Updated on {date}",
+    "tableOfContents": "Table of Contents",
     "backToBlog": "Back to Blog",
     "planYourTrip": "Ready to plan your trip?",
     "planYourTripDescription": "Let MonkeyTravel's AI create a personalized itinerary for you — with real venues, actual prices, and smart routing.",
@@ -31,23 +32,23 @@
   "posts": {
     "how-ai-is-changing-travel-planning": {
       "title": "How AI Is Actually Changing Travel Planning in 2026 (No Hype, Just Facts)",
-      "description": "42% of travelers used AI for trip planning in 2025. Here's what AI planners actually do well, where they still fail, and why the smartest travelers use them differently than you'd expect."
+      "description": "42% of travelers used AI for trip planning in 2025. What AI planners do well, where they still fail, and how smart travelers actually use them."
     },
     "ai-trip-planner-vs-travel-agent": {
       "title": "AI Trip Planner vs. Travel Agent: An Honest 2026 Comparison",
-      "description": "We planned the same 7-day trip to Portugal using an AI trip planner and a traditional travel agent. Here's what each got right, what they missed, and which actually saved more money."
+      "description": "We planned the same 7-day Portugal trip with an AI planner and a travel agent. What each got right, what they missed, and which saved more."
     },
     "first-trip-to-japan-what-you-need-to-know": {
       "title": "What You Need to Know Before Your First Trip to Japan",
-      "description": "Everything first-time visitors to Japan need to know in 2026 — from rail passes and cash culture to etiquette that actually matters. No fluff, just the practical stuff."
+      "description": "Everything first-time Japan visitors need to know in 2026 — rail passes, cash culture, and etiquette that matters. No fluff, just practical."
     },
     "how-to-plan-a-group-trip": {
       "title": "How to Plan a Group Trip Without Losing Your Friends",
-      "description": "The real reason group trips fall apart isn't the destination — it's the planning. Here's a step-by-step system for organizing a trip with friends that actually works."
+      "description": "The real reason group trips fall apart isn't the destination — it's the planning. A step-by-step system for trips with friends that works."
     },
     "how-to-plan-trip-to-italy-on-a-budget": {
       "title": "How to Plan a Trip to Italy on a Budget in 2026",
-      "description": "Plan an incredible Italy trip without blowing your savings. Real prices, local tips, and a day-by-day strategy to see Rome, Florence, and the Amalfi Coast for under $100/day."
+      "description": "Plan an incredible Italy trip without blowing your savings. Real prices, local tips, and a strategy for Rome, Florence, and the Amalfi Coast under $100/day."
     }
   }
 }
