@@ -77,6 +77,25 @@ export interface AdminStats {
       conversionFunnel: { step: string; count: number }[];
     };
   };
+  // Acquisition - Traffic Sources
+  acquisition: {
+    referrers: { source: string; count: number }[];
+  };
+  // Engagement Metrics
+  engagement: {
+    dau: number;
+    wau: number;
+    mau: number;
+    stickinessPct: number;
+    timeToFirstTrip: {
+      avgHours: number;
+      medianHours: number;
+      usersCount: number;
+      within1h: number;
+      within24h: number;
+      within7d: number;
+    };
+  };
   // Top Destinations
   topDestinations: { destination: string; count: number }[];
   // Recent Activity Timeline
@@ -200,6 +219,12 @@ export async function GET() {
         }),
       // Geo metrics from page_views
       fetchGeoMetrics(supabase),
+      // Referrer breakdown
+      supabase.rpc("get_referrer_breakdown"),
+      // Engagement metrics (DAU/WAU/MAU)
+      supabase.rpc("get_engagement_metrics"),
+      // Time to first trip
+      supabase.rpc("get_time_to_first_trip"),
     ]);
 
     // Safely extract results — failed queries return null instead of crashing
@@ -223,6 +248,9 @@ export async function GET() {
     const generationCostsResult = safe(10, { data: { totalCostUsd: 0, generateCount: 0, regenerateCount: 0 } });
     const topDestinationsResult = safe(11, [] as { destination: string; count: number }[]);
     const geoMetricsResult = safe(12, null);
+    const referrerResult = safe(13, { data: [] as { source: string; count: number }[] });
+    const engagementResult = safe(14, { data: [{ dau: 0, wau: 0, mau: 0, stickiness_pct: 0, users_with_trips: 0, total_users: 0 }] });
+    const timeToTripResult = safe(15, { data: [{ avg_hours: 0, median_hours: 0, users_count: 0, within_1h: 0, within_24h: 0, within_7d: 0 }] });
 
     // Fallback to direct queries if RPC doesn't exist
     const userMetrics = usersResult.data || (await fetchUserMetricsDirect(supabase));
@@ -304,6 +332,30 @@ export async function GET() {
           conversionFunnel: [],
         },
       },
+      acquisition: {
+        referrers: (referrerResult.data || []).map((r: { source: string; count: number }) => ({
+          source: r.source,
+          count: Number(r.count),
+        })),
+      },
+      engagement: (() => {
+        const eng = engagementResult.data?.[0] || { dau: 0, wau: 0, mau: 0, stickiness_pct: 0 };
+        const ttt = timeToTripResult.data?.[0] || { avg_hours: 0, median_hours: 0, users_count: 0, within_1h: 0, within_24h: 0, within_7d: 0 };
+        return {
+          dau: Number(eng.dau) || 0,
+          wau: Number(eng.wau) || 0,
+          mau: Number(eng.mau) || 0,
+          stickinessPct: Number(eng.stickiness_pct) || 0,
+          timeToFirstTrip: {
+            avgHours: Number(ttt.avg_hours) || 0,
+            medianHours: Number(ttt.median_hours) || 0,
+            usersCount: Number(ttt.users_count) || 0,
+            within1h: Number(ttt.within_1h) || 0,
+            within24h: Number(ttt.within_24h) || 0,
+            within7d: Number(ttt.within_7d) || 0,
+          },
+        };
+      })(),
       topDestinations: topDestinationsResult || [],
       recentActivity: await fetchRecentActivity(supabase),
       userTrend: await fetchUserTrend(supabase),

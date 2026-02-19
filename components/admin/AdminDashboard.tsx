@@ -5,6 +5,7 @@ import type { AdminStats } from "@/app/api/admin/stats/route";
 import {
   LazyUserGrowthChart,
   LazyTrafficOverview,
+  LazyAcquisitionEngagement,
   LazyCostCommandCenter,
   LazyAccessControl,
   LazyApiControlPanel,
@@ -297,6 +298,9 @@ export default function AdminDashboard() {
 
       {/* Traffic Overview (daily trend, section breakdown, funnel) */}
       {stats.geo.traffic && <LazyTrafficOverview data={stats.geo.traffic} />}
+
+      {/* Acquisition & Engagement */}
+      <LazyAcquisitionEngagement acquisition={stats.acquisition} engagement={stats.engagement} />
 
       {/* User Growth Trend Chart */}
       <LazyUserGrowthChart data={stats.userTrend} />

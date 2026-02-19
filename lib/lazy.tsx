@@ -142,6 +142,14 @@ export const LazyTrafficOverview = dynamic(
   }
 );
 
+export const LazyAcquisitionEngagement = dynamic(
+  () => import("@/components/admin/AcquisitionEngagement"),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 export const LazyCostCommandCenter = dynamic(
   () => import("@/components/admin/CostCommandCenter"),
   {
