@@ -34,6 +34,10 @@
     "home": "Home",
     "blog": "Blog"
   },
+  "tips": {
+    "title": "Guide e Consigli di Viaggio",
+    "viewAll": "Vedi tutti gli articoli"
+  },
   "categories": {
     "AI Travel": "Viaggi e AI",
     "Destination Guides": "Guide alle Destinazioni",

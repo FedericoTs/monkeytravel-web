@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
+import { getAllPosts } from "@/lib/blog/api";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function TripsPage() {
+export default async function TripsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const supabase = await createClient();
 
   const {
@@ -37,11 +39,16 @@ export default async function TripsPage() {
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Traveler";
   const lifetimeConversions = profile?.lifetime_referral_conversions || 0;
 
+  // Fetch latest 3 blog posts for Travel Guides section
+  const allPosts = await getAllPosts(locale);
+  const blogPosts = allPosts.slice(0, 3).map((p) => p.frontmatter);
+
   return (
     <TripsPageClient
       trips={trips || []}
       displayName={displayName}
       lifetimeConversions={lifetimeConversions}
+      blogPosts={blogPosts}
     />
   );
 }

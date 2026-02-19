@@ -7,6 +7,8 @@ import Image from "next/image";
 import { formatDateRange } from "@/lib/datetime";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import CuratedEscapes from "@/components/templates/CuratedEscapes";
+import BlogTipsSection from "@/components/blog/BlogTipsSection";
+import type { BlogFrontmatter } from "@/lib/blog/types";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import ReferralProgressBanner from "@/components/bananas/ReferralProgressBanner";
 import ReferralModal from "@/components/referral/ReferralModal";
@@ -48,12 +50,13 @@ interface TripsPageClientProps {
   trips: Trip[];
   displayName: string;
   lifetimeConversions: number;
+  blogPosts?: BlogFrontmatter[];
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
 type FilterStatus = "all" | "planning" | "confirmed" | "active" | "completed" | "cancelled";
 
-export default function TripsPageClient({ trips, displayName, lifetimeConversions }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, displayName, lifetimeConversions, blogPosts = [] }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -967,6 +970,9 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
             )}
           </div>
         )}
+
+        {/* Travel Guides & Tips from blog */}
+        {blogPosts.length > 0 && <BlogTipsSection posts={blogPosts} />}
 
         {/* For users WITH trips: Show templates at the bottom for inspiration */}
         {activeTrips.length > 0 && <CuratedEscapes />}
