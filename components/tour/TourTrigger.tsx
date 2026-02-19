@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 
@@ -114,25 +113,22 @@ export default function TourTrigger({
 
   return (
     <>
-      <motion.button
+      <button
         onClick={handleOpenTour}
-        className={`${baseStyles[variant]} ${className}`}
-        whileHover={{ scale: variant === "button" ? 1.02 : 1 }}
-        whileTap={{ scale: 0.98 }}
+        className={`${baseStyles[variant]} ${className} transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]`}
       >
         {children || defaultContent}
 
         {/* "New" badge for users who haven't seen the tour - only for default button variant */}
         {isReady && hasSeenTour === false && variant === "button" && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary)] text-white text-xs font-bold rounded-full"
+          <span
+            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
+            style={{ transform: "scale(0)" }}
           >
             {t("newBadge")}
-          </motion.span>
+          </span>
         )}
-      </motion.button>
+      </button>
 
       <ProductTour isOpen={isTourOpen} onClose={handleCloseTour} />
     </>

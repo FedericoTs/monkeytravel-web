@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 interface TemplateTrip {
@@ -544,26 +543,22 @@ export default function CuratedEscapes() {
               onMouseLeave={handleMouseLeave}
             >
               {templates.map((template, index) => (
-                <motion.div
+                <div
                   key={template.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 animate-[card-fade-in_0.4s_ease-out_forwards]"
+                  style={{ opacity: 0, animationDelay: `${index * 100}ms` }}
                 >
                   <TemplateCard template={template} preventClick={hasDragged} t={t} />
-                </motion.div>
+                </div>
               ))}
 
               {/* See All Card */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: templates.length * 0.1 }}
-                className="flex-shrink-0"
+              <div
+                className="flex-shrink-0 animate-[card-fade-in_0.4s_ease-out_forwards]"
+                style={{ opacity: 0, animationDelay: `${templates.length * 100}ms` }}
               >
                 <SeeAllCard preventClick={hasDragged} t={t} />
-              </motion.div>
+              </div>
             </div>
           </div>
 

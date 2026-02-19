@@ -163,6 +163,8 @@ export default function RootLayout({
         {/* Preconnect to third-party origins for faster resource loading */}
         <link rel="preconnect" href="https://emrldco.com" />
         <link rel="dns-prefetch" href="https://emrldco.com" />
+        <link rel="preconnect" href="https://o4510503013122048.ingest.de.sentry.io" />
+        <link rel="dns-prefetch" href="https://o4510503013122048.ingest.de.sentry.io" />
       </head>
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
