@@ -95,8 +95,9 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
 
   // Protected routes - redirect to login if not authenticated
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
+  // Note: /trips/template/* is public so curated escapes can drive traffic & conversions
   const protectedPaths = ["/trips"];
-  const excludedFromProtection = ["/trips/new"];
+  const excludedFromProtection = ["/trips/new", "/trips/template"];
 
   // Strip locale prefix from pathname for path matching
   const locales = ["en", "es", "it"];
@@ -115,7 +116,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     pathWithoutLocale.startsWith(path)
   );
   const isExcluded = excludedFromProtection.some((path) =>
-    pathWithoutLocale === path
+    pathWithoutLocale.startsWith(path)
   );
 
   if (isProtectedPath && !isExcluded && !user) {
