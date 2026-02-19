@@ -9,6 +9,17 @@
     "readMore": "Leggi di più",
     "minuteRead": "{minutes} min di lettura"
   },
+  "filter": {
+    "all": "Tutti",
+    "showing": "Mostrando {count} di {total} articoli",
+    "noResults": "Nessun articolo trovato in questa categoria.",
+    "clearFilter": "Mostra tutti"
+  },
+  "pagination": {
+    "previous": "Pagina precedente",
+    "next": "Pagina successiva",
+    "page": "Pagina {page}"
+  },
   "detail": {
     "relatedPosts": "Potrebbe interessarti anche",
     "publishedOn": "Pubblicato il {date}",
@@ -27,7 +38,9 @@
     "AI Travel": "Viaggi e AI",
     "Destination Guides": "Guide alle Destinazioni",
     "Trip Planning": "Pianificazione Viaggi",
-    "Budget Travel": "Viaggi Low Cost"
+    "Budget Travel": "Viaggi Low Cost",
+    "Travel Tips": "Consigli di Viaggio",
+    "Group Travel": "Viaggi di Gruppo"
   },
   "posts": {
     "how-ai-is-changing-travel-planning": {
@@ -69,6 +82,26 @@
     "group-trip-itinerary-template": {
       "title": "Il Template per l'Itinerario di Gruppo Che Tiene Tutti Contenti",
       "description": "Un template collaudato giorno per giorno per viaggi di gruppo. Equilibra struttura e flessibilità così nessuno si sente perso."
+    },
+    "solo-travel-planning-with-ai": {
+      "title": "Come Pianificare un Viaggio da Soli con l'AI: La Guida Completa 2026",
+      "description": "Viaggiare da soli è ai massimi storici nel 2026. Scopri come i pianificatori AI eliminano la parte più difficile — fare tutto da soli."
+    },
+    "how-to-plan-a-trip-with-ai": {
+      "title": "Come Pianificare un Viaggio con l'AI: Guida Passo a Passo per Principianti",
+      "description": "Non hai mai usato l'AI per pianificare un viaggio? Questa guida ti accompagna passo dopo passo — dalla scelta della destinazione all'itinerario completo."
+    },
+    "can-you-trust-ai-travel-itinerary": {
+      "title": "Ci Si Può Fidare di un Itinerario di Viaggio Fatto dall'AI? Cosa Verificare Prima di Partire",
+      "description": "I pianificatori AI sono impressionanti, ma non perfetti. Ecco esattamente cosa verificare nel tuo itinerario generato dall'AI."
+    },
+    "travel-planning-stress-how-ai-helps": {
+      "title": "Stress da Pianificazione Viaggio? Come l'AI Elimina l'Ansia delle Vacanze",
+      "description": "Se pianificare un viaggio sembra un secondo lavoro, non sei solo. Ecco come l'AI elimina la fatica decisionale e trasforma ore di ricerca in minuti."
+    },
+    "plan-weekend-getaway-with-ai": {
+      "title": "Come Pianificare una Fuga del Weekend in 15 Minuti con l'AI",
+      "description": "Poco tempo ma hai bisogno di una pausa? Scopri come l'AI genera un itinerario di 3 giorni completo — con ristoranti, attività e orari."
     }
   }
 }

@@ -6,7 +6,7 @@ import { getAllPosts } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogCard } from "@/components/blog";
+import BlogGrid from "@/components/blog/BlogGrid";
 import { Link } from "@/lib/i18n/routing";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -151,24 +151,10 @@ export default async function BlogIndexPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* Post grid */}
+        {/* Post grid with filtering and pagination */}
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post) => (
-                <BlogCard
-                  key={post.frontmatter.slug}
-                  post={post.frontmatter}
-                  title={t(`posts.${post.frontmatter.slug}.title`)}
-                  description={t(`posts.${post.frontmatter.slug}.description`)}
-                  category={t(`categories.${post.frontmatter.category}`)}
-                  readMoreLabel={t("index.readMore")}
-                  minuteReadLabel={t("index.minuteRead", {
-                    minutes: post.frontmatter.readingTime,
-                  })}
-                />
-              ))}
-            </div>
+            <BlogGrid posts={posts.map((p) => p.frontmatter)} />
           </div>
         </section>
       </main>

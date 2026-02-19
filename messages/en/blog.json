@@ -9,6 +9,17 @@
     "readMore": "Read more",
     "minuteRead": "{minutes} min read"
   },
+  "filter": {
+    "all": "All Posts",
+    "showing": "Showing {count} of {total} posts",
+    "noResults": "No posts found in this category.",
+    "clearFilter": "Show all posts"
+  },
+  "pagination": {
+    "previous": "Previous page",
+    "next": "Next page",
+    "page": "Page {page}"
+  },
   "detail": {
     "relatedPosts": "You might also like",
     "publishedOn": "Published on {date}",
@@ -27,7 +38,9 @@
     "AI Travel": "AI Travel",
     "Destination Guides": "Destination Guides",
     "Trip Planning": "Trip Planning",
-    "Budget Travel": "Budget Travel"
+    "Budget Travel": "Budget Travel",
+    "Travel Tips": "Travel Tips",
+    "Group Travel": "Group Travel"
   },
   "posts": {
     "how-ai-is-changing-travel-planning": {
@@ -69,6 +82,26 @@
     "group-trip-itinerary-template": {
       "title": "The Group Trip Itinerary Template That Keeps Everyone Happy",
       "description": "A proven day-by-day itinerary template for group trips. Balances structure with flexibility so nobody feels trapped or lost."
+    },
+    "solo-travel-planning-with-ai": {
+      "title": "How to Plan a Solo Trip with AI: The Complete 2026 Guide",
+      "description": "Solo travel is at an all-time high in 2026. Learn how AI trip planners eliminate the hardest part of traveling alone — doing all the planning yourself."
+    },
+    "how-to-plan-a-trip-with-ai": {
+      "title": "How to Plan a Trip with AI: A Step-by-Step Guide for Beginners",
+      "description": "Never used AI to plan a trip? This beginner-friendly guide walks you through every step — from picking a destination to having a complete itinerary in minutes."
+    },
+    "can-you-trust-ai-travel-itinerary": {
+      "title": "Can You Trust an AI Travel Itinerary? What to Check Before You Go",
+      "description": "AI trip planners are impressive, but not perfect. Here's exactly what to verify in your AI-generated itinerary — and the common mistakes to watch for."
+    },
+    "travel-planning-stress-how-ai-helps": {
+      "title": "Travel Planning Overwhelm? How AI Takes the Stress Out of Vacation Planning",
+      "description": "If planning a trip feels like a second job, you're not alone. Here's how AI eliminates decision fatigue and turns hours of research into minutes."
+    },
+    "plan-weekend-getaway-with-ai": {
+      "title": "How to Plan a 3-Day Weekend Getaway in 15 Minutes with AI",
+      "description": "Short on time but need a break? Learn how AI can generate a complete 3-day itinerary — with restaurants, activities, and timing — in under 15 minutes."
     }
   }
 }
