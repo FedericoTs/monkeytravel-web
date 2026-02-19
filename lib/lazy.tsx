@@ -134,6 +134,14 @@ export const LazyUserGrowthChart = dynamic(
   }
 );
 
+export const LazyTrafficOverview = dynamic(
+  () => import("@/components/admin/TrafficOverview"),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 export const LazyCostCommandCenter = dynamic(
   () => import("@/components/admin/CostCommandCenter"),
   {

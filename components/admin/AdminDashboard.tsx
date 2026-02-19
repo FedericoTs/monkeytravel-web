@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import {
   LazyUserGrowthChart,
+  LazyTrafficOverview,
   LazyCostCommandCenter,
   LazyAccessControl,
   LazyApiControlPanel,
@@ -286,13 +287,16 @@ export default function AdminDashboard() {
           color="accent"
         />
         <MetricCard
-          title="Subscribers"
-          value={stats.subscribers.total}
-          subtitle={`+${stats.subscribers.last7Days} this week`}
-          icon="mail"
+          title="Page Views"
+          value={stats.geo.totalPageViews}
+          subtitle={`${stats.geo.last7Days.toLocaleString()} this week`}
+          icon="eye"
           color="navy"
         />
       </div>
+
+      {/* Traffic Overview (daily trend, section breakdown, funnel) */}
+      {stats.geo.traffic && <LazyTrafficOverview data={stats.geo.traffic} />}
 
       {/* User Growth Trend Chart */}
       <LazyUserGrowthChart data={stats.userTrend} />
@@ -541,8 +545,16 @@ export default function AdminDashboard() {
                   <span className="text-slate-600">${(stats.ai.totalCostCents / 100).toFixed(3)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
-                    Generation ({stats.ai.generationCosts?.tripGenerations || 0} trips)
+                  <span className="text-slate-500 flex items-center gap-1">
+                    Generation est. ({stats.ai.generationCosts?.tripGenerations || 0} trips)
+                    <span className="relative group">
+                      <svg className="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                        Estimated based on per-request averages
+                      </span>
+                    </span>
                   </span>
                   <span className="text-slate-600">${(stats.ai.generationCosts?.totalUsd || 0).toFixed(3)}</span>
                 </div>
@@ -868,6 +880,7 @@ function IconComponent({ name }: { name: string }) {
     map: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7",
     sparkles: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
     mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+    eye: "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
   };
 
   return (

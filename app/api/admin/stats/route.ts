@@ -71,6 +71,11 @@ export interface AdminStats {
     byCity: { city: string; country: string; count: number }[];
     topPages: { path: string; count: number }[];
     uniqueVisitors: number;
+    traffic: {
+      daily: { date: string; views: number; uniqueVisitors: number }[];
+      bySection: { section: string; count: number; uniqueVisitors: number }[];
+      conversionFunnel: { step: string; count: number }[];
+    };
   };
   // Top Destinations
   topDestinations: { destination: string; count: number }[];
@@ -293,6 +298,11 @@ export async function GET() {
         byCity: [],
         topPages: [],
         uniqueVisitors: 0,
+        traffic: {
+          daily: [],
+          bySection: [],
+          conversionFunnel: [],
+        },
       },
       topDestinations: topDestinationsResult || [],
       recentActivity: await fetchRecentActivity(supabase),
@@ -574,6 +584,9 @@ async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["ge
     byCountryResult,
     byCityResult,
     topPagesResult,
+    dailyTrendResult,
+    bySectionResult,
+    conversionFunnelResult,
   ] = await Promise.all([
     // Total page views count
     supabase.from("page_views").select("id", { count: "exact", head: true }),
@@ -590,7 +603,7 @@ async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["ge
       .select("id", { count: "exact", head: true })
       .gte("created_at", day30Ago),
 
-    // Unique visitors (count distinct session_id)
+    // Unique visitors (fingerprint-based approximation)
     supabase.rpc("count_unique_visitors"),
 
     // By country - use RPC function for aggregation
@@ -599,8 +612,17 @@ async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["ge
     // By city - use RPC function for aggregation
     supabase.rpc("get_page_views_by_city"),
 
-    // Top pages - use RPC function for aggregation
+    // Top pages - use RPC function (normalized paths)
     supabase.rpc("get_top_pages"),
+
+    // Daily traffic trend (last 90 days)
+    supabase.rpc("get_page_views_daily_trend"),
+
+    // Traffic by app section
+    supabase.rpc("get_page_views_by_section"),
+
+    // Conversion funnel
+    supabase.rpc("get_conversion_funnel"),
   ]);
 
   const totalPageViews = totalCountResult.count || 0;
@@ -640,6 +662,29 @@ async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["ge
       count: Number(p.count),
     }));
 
+  // Process daily traffic trend
+  const daily: AdminStats["geo"]["traffic"]["daily"] = (dailyTrendResult.data || [])
+    .map((d: { date: string; views: number; unique_visitors: number }) => ({
+      date: d.date,
+      views: Number(d.views),
+      uniqueVisitors: Number(d.unique_visitors),
+    }));
+
+  // Process section breakdown
+  const bySection: AdminStats["geo"]["traffic"]["bySection"] = (bySectionResult.data || [])
+    .map((s: { section: string; count: number; unique_visitors: number }) => ({
+      section: s.section,
+      count: Number(s.count),
+      uniqueVisitors: Number(s.unique_visitors),
+    }));
+
+  // Process conversion funnel
+  const conversionFunnel: AdminStats["geo"]["traffic"]["conversionFunnel"] = (conversionFunnelResult.data || [])
+    .map((f: { step: string; count: number }) => ({
+      step: f.step,
+      count: Number(f.count),
+    }));
+
   return {
     totalPageViews,
     last7Days,
@@ -648,6 +693,11 @@ async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["ge
     byCity,
     topPages,
     uniqueVisitors,
+    traffic: {
+      daily,
+      bySection,
+      conversionFunnel,
+    },
   };
 }
 
