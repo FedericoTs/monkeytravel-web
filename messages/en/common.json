@@ -563,7 +563,8 @@
     "nextImage": "Next image",
     "viewPhoto": "View photo {index}",
     "photoBy": "Photo: {attribution}",
-    "thumbnail": "Thumbnail {index}"
+    "thumbnail": "Thumbnail {index}",
+    "photosUnavailable": "Sign in to load Google Photos"
   },
   "map": {
     "failedToLoad": "Failed to load map",

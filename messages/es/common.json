@@ -563,7 +563,8 @@
     "nextImage": "Siguiente imagen",
     "viewPhoto": "Ver foto {index}",
     "photoBy": "Foto: {attribution}",
-    "thumbnail": "Miniatura {index}"
+    "thumbnail": "Miniatura {index}",
+    "photosUnavailable": "Inicia sesión para cargar fotos de Google"
   },
   "map": {
     "failedToLoad": "Error al cargar el mapa",
