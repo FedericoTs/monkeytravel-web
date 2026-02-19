@@ -166,10 +166,9 @@ export default function RootLayout({
         <script {...jsonLdScriptProps(webSiteSchema)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema)} />
 
-        {/* Preconnect to third-party origins for faster resource loading */}
-        <link rel="preconnect" href="https://emrldco.com" />
+        {/* DNS prefetch for deferred third-party origins (preconnect removed —
+            both scripts load after idle, so early connections expire unused) */}
         <link rel="dns-prefetch" href="https://emrldco.com" />
-        <link rel="preconnect" href="https://o4510503013122048.ingest.de.sentry.io" />
         <link rel="dns-prefetch" href="https://o4510503013122048.ingest.de.sentry.io" />
       </head>
       <body
