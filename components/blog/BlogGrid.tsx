@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { BlogCard } from "@/components/blog";
+import { trackContentInteraction } from "@/lib/analytics";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 
 const POSTS_PER_PAGE = 6;
@@ -39,6 +40,22 @@ export default function BlogGrid({ posts }: BlogGridProps) {
   const handleCategoryChange = (category: string | null) => {
     setActiveCategory(category);
     setCurrentPage(1);
+    trackContentInteraction({
+      action: "filter",
+      content_group: "blog",
+      filter_type: "category",
+      filter_value: category ?? "all",
+    });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    trackContentInteraction({
+      action: "paginate",
+      content_group: "blog",
+      page,
+      total_pages: totalPages,
+    });
   };
 
   return (
@@ -143,7 +160,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
         <nav className="flex items-center justify-center gap-2 mt-12" aria-label="Pagination">
           {/* Previous */}
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             className="px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
             aria-label={t("pagination.previous")}
@@ -157,7 +174,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
-              onClick={() => setCurrentPage(page)}
+              onClick={() => handlePageChange(page)}
               className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
                 currentPage === page
                   ? "bg-[var(--primary)] text-white"
@@ -172,7 +189,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
 
           {/* Next */}
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             className="px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
             aria-label={t("pagination.next")}

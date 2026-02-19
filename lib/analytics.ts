@@ -55,6 +55,45 @@ export function trackEvent(
 }
 
 // ============================================================================
+// CONTENT TRACKING — Semantic events for blog, destinations & landing pages
+// ============================================================================
+
+/**
+ * Track a content page view with semantic metadata.
+ * Fired by ContentTracker component on mount.
+ */
+export function trackContentViewed(params: {
+  content_type: string;
+  content_id: string;
+  content_group: string;
+  [key: string]: unknown;
+}): void {
+  trackEvent("content_viewed", params);
+}
+
+/**
+ * Track content interactions (filter, paginate, scroll milestones, CTA clicks).
+ */
+export function trackContentInteraction(params: {
+  action: string;
+  content_group: string;
+  [key: string]: unknown;
+}): void {
+  trackEvent("content_interaction", params);
+}
+
+/**
+ * Set the GA4 content group dimension for the current pageview.
+ */
+export function setContentGroup(group: string): void {
+  if (isAnalyticsAvailable()) {
+    window.gtag!("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "", {
+      content_group: group,
+    });
+  }
+}
+
+// ============================================================================
 // CONVERSION EVENTS - Key metrics for measuring success
 // ============================================================================
 

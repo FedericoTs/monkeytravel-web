@@ -7,6 +7,7 @@ import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptPro
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogGrid from "@/components/blog/BlogGrid";
+import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -108,6 +109,12 @@ export default async function BlogIndexPage({ params }: PageProps) {
     <>
       <script {...jsonLdScriptProps([breadcrumbSchema, collectionSchema])} />
 
+      <ContentTracker
+        contentType="blog_index"
+        contentId="blog"
+        contentGroup="blog"
+        metadata={{ total_posts: posts.length }}
+      />
       <Navbar />
 
       <main className="pt-20">

@@ -14,6 +14,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogContent, BlogCard, ReadingProgress } from "@/components/blog";
+import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -183,7 +184,17 @@ export default async function BlogDetailPage({ params }: PageProps) {
     <>
       <script {...jsonLdScriptProps(schemas)} />
 
-      <ReadingProgress />
+      <ContentTracker
+        contentType="blog_post"
+        contentId={slug}
+        contentGroup="blog"
+        metadata={{
+          category: frontmatter.category,
+          reading_time: frontmatter.readingTime,
+          author: frontmatter.author,
+        }}
+      />
+      <ReadingProgress slug={slug} />
       <Navbar />
 
       <main className="pt-20">

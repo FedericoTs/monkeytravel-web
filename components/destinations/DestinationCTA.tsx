@@ -33,6 +33,9 @@ export default function DestinationCTA({
             <Link
               href={`/trips/new?destination=${slug}`}
               className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 text-lg"
+              data-ph-capture-attribute-destination-slug={slug}
+              data-ph-capture-attribute-destination-city={cityName}
+              data-ph-capture-attribute-cta-type="generate_itinerary"
             >
               {t("cta.generateItinerary", { city: cityName })}
               <svg

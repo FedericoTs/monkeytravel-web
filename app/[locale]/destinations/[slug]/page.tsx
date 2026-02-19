@@ -13,6 +13,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ContentTracker from "@/components/analytics/ContentTracker";
 import {
   DestinationPageHero,
   DestinationHighlights,
@@ -146,6 +147,16 @@ export default async function DestinationDetailPage({ params }: PageProps) {
     <>
       <script {...jsonLdScriptProps([touristSchema, breadcrumbSchema, faqSchema])} />
 
+      <ContentTracker
+        contentType="destination"
+        contentId={slug}
+        contentGroup="destinations"
+        metadata={{
+          continent: destination.continent,
+          country: destination.country[loc],
+          budget_level: destination.stats.budgetLevel,
+        }}
+      />
       <Navbar />
 
       <main>

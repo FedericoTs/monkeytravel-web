@@ -12,6 +12,23 @@ import posthog from "posthog-js";
  */
 
 // ============================================================================
+// CONTENT TRACKING EVENTS
+// ============================================================================
+
+export interface ContentViewedEvent {
+  content_type: string;
+  content_id: string;
+  content_group: string;
+  [key: string]: unknown;
+}
+
+export interface ContentInteractionEvent {
+  action: string;
+  content_group: string;
+  [key: string]: unknown;
+}
+
+// ============================================================================
 // CONVERSION EVENTS
 // ============================================================================
 
@@ -341,6 +358,24 @@ export function captureActivityCompleted(event: ActivityCompletedEvent) {
  */
 export function captureAIAssistantUsed(event: AIAssistantUsedEvent) {
   posthog.capture("ai_assistant_used", event);
+}
+
+// ============================================================================
+// CONTENT TRACKING CAPTURE FUNCTIONS
+// ============================================================================
+
+/**
+ * Capture a semantic content view (blog post, destination, index page)
+ */
+export function captureContentViewed(event: ContentViewedEvent) {
+  posthog.capture("content_viewed", event);
+}
+
+/**
+ * Capture a content interaction (filter, paginate, scroll milestone)
+ */
+export function captureContentInteraction(event: ContentInteractionEvent) {
+  posthog.capture("content_interaction", event);
 }
 
 // ============================================================================

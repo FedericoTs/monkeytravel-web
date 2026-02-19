@@ -7,6 +7,7 @@ import { destinations } from "@/lib/destinations/data";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ContentTracker from "@/components/analytics/ContentTracker";
 import { DestinationGrid } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 
@@ -81,6 +82,12 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
     <>
       <script {...jsonLdScriptProps(breadcrumbSchema)} />
 
+      <ContentTracker
+        contentType="destination_index"
+        contentId="destinations"
+        contentGroup="destinations"
+        metadata={{ total_destinations: destinations.length }}
+      />
       <Navbar />
 
       <main className="pt-20">
