@@ -122,12 +122,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {/* Left - Content */}
               <div className="pt-8 lg:pt-0 text-center lg:text-left order-2 lg:order-1">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--success)]/10 border border-[var(--success)]/25 mb-8">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
                   </span>
-                  <span className="text-sm font-semibold text-emerald-700">
+                  <span className="text-sm font-semibold text-[var(--secondary-dark)]">
                     {t('hero.badge')}
                   </span>
                 </div>
@@ -166,19 +166,19 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {/* Trust Signals */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-[var(--foreground-muted)]">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[var(--success)]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{t('hero.trustSignals.free')}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[var(--success)]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{t('hero.trustSignals.noCard')}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[var(--success)]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{t('hero.trustSignals.instant')}</span>
@@ -211,14 +211,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   </div>
 
                   <div className="absolute -right-4 bottom-32 glass-card rounded-2xl p-4 shadow-lg hidden lg:flex items-center gap-3 animate-float" style={{ animationDelay: '1s' }}>
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--success)] flex items-center justify-center">
                       <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <div>
                       <div className="text-xs text-[var(--foreground-muted)]">{t('hero.floatingCards.webApp')}</div>
-                      <div className="text-sm font-semibold text-emerald-600">{t('hero.floatingCards.liveNow')}</div>
+                      <div className="text-sm font-semibold text-[var(--success)]">{t('hero.floatingCards.liveNow')}</div>
                     </div>
                   </div>
                 </div>
@@ -308,7 +308,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 },
               ] as const).map((item, index) => (
                 <div key={index} className="text-center p-8 rounded-2xl bg-[var(--background-alt)] border border-gray-100">
-                  <div className="w-14 h-14 rounded-2xl bg-red-50 text-[var(--error)] flex items-center justify-center mx-auto mb-5">
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--error)]/10 text-[var(--error)] flex items-center justify-center mx-auto mb-5">
                     {item.icon}
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{t(`problem.cards.${item.key}.title`)}</h3>
@@ -334,7 +334,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
                 {t('aiChatDemo.title')}
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
                 {t('aiChatDemo.subtitle')}
               </p>
             </div>
@@ -496,13 +496,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </span>
                 {t('collaboration.badge')}
               </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
                 {t('collaboration.title')}{" "}
-                <span className="bg-gradient-to-r from-[var(--secondary-dark)] to-[var(--primary)] bg-clip-text text-transparent">
+                <span className="text-[var(--secondary)]">
                   {t('collaboration.titleHighlight')}
                 </span>
               </h2>
-              <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+              <p className="text-lg text-[var(--foreground-muted)] max-w-xl mx-auto leading-relaxed">
                 {t('collaboration.description')}
               </p>
             </div>
@@ -520,7 +520,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-[var(--secondary)]/20 hover:shadow-lg hover:border-[var(--secondary)]/40 transition-all"
                 >
                   <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium text-gray-700">{t(`collaboration.pills.${item.key}`)}</span>
+                  <span className="font-medium text-[var(--foreground)]">{t(`collaboration.pills.${item.key}`)}</span>
                 </div>
               ))}
             </div>
@@ -529,8 +529,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
               {(['invite', 'vote', 'sync'] as const).map((key) => (
                 <div key={key} className="p-6 rounded-2xl bg-white border border-[var(--secondary)]/15 text-center shadow-sm">
-                  <h3 className="font-semibold text-gray-900 mb-2">{t(`collaboration.features.${key}.title`)}</h3>
-                  <p className="text-sm text-gray-600">{t(`collaboration.features.${key}.description`)}</p>
+                  <h3 className="font-semibold text-[var(--foreground)] mb-2">{t(`collaboration.features.${key}.title`)}</h3>
+                  <p className="text-sm text-[var(--foreground-muted)]">{t(`collaboration.features.${key}.description`)}</p>
                 </div>
               ))}
             </div>
@@ -547,7 +547,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </TourTrigger>
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-4 text-sm text-[var(--foreground-muted)]">
                 {t('collaboration.subtitle')}
               </p>
             </div>
@@ -631,7 +631,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg cursor-pointer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-dark)] transition-colors shadow-lg cursor-pointer"
               >
                 {t('howItWorks.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -725,7 +725,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 },
               ] as const).map((item, index) => (
                 <div key={index} className="relative p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
-                  <div className="w-12 h-12 rounded-xl bg-red-50 text-red-400 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--error)]/10 text-[var(--error)] flex items-center justify-center mb-4">
                     {item.icon}
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{t(`antiFeatures.items.${item.key}.title`)}</h3>
@@ -767,8 +767,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-6">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
                   </span>
                   {t('appPreview.badge')}
                 </div>
@@ -788,9 +788,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     { key: 'export', icon: '📤' },
                     { key: 'mobile', icon: '📱' },
                   ] as const).map((item, index) => (
-                    <li key={index} className={`flex items-center gap-4 ${'highlight' in item && item.highlight ? 'p-3 -mx-3 rounded-xl bg-emerald-50 border border-emerald-100' : ''}`}>
-                      <span className={`text-xl ${'highlight' in item && item.highlight ? 'text-emerald-500' : ''}`}>{item.icon}</span>
-                      <span className={`font-medium ${'highlight' in item && item.highlight ? 'text-emerald-700' : 'text-[var(--foreground)]'}`}>{t(`appPreview.features.${item.key}`)}</span>
+                    <li key={index} className={`flex items-center gap-4 ${'highlight' in item && item.highlight ? 'p-3 -mx-3 rounded-xl bg-[var(--success)]/10 border border-[var(--success)]/15' : ''}`}>
+                      <span className={`text-xl ${'highlight' in item && item.highlight ? 'text-[var(--success)]' : ''}`}>{item.icon}</span>
+                      <span className={`font-medium ${'highlight' in item && item.highlight ? 'text-[var(--secondary-dark)]' : 'text-[var(--foreground)]'}`}>{t(`appPreview.features.${item.key}`)}</span>
                     </li>
                   ))}
                 </ul>
@@ -935,8 +935,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {/* Live badge */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-white/90 mb-8">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
                   </span>
                   {t('hero.trustSignals.free')}
                 </div>
