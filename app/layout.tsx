@@ -160,6 +160,9 @@ export default function RootLayout({
         <script {...jsonLdScriptProps(webSiteSchema)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema)} />
 
+        {/* Preconnect to third-party origins for faster resource loading */}
+        <link rel="preconnect" href="https://emrldco.com" />
+        <link rel="dns-prefetch" href="https://emrldco.com" />
       </head>
       <body
         className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}

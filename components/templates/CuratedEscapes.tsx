@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -110,13 +111,16 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
         }}
       >
         {template.coverImageUrl && !imageError && (
-          <img
+          <Image
             src={template.coverImageUrl}
             alt={template.title}
+            fill
+            sizes="300px"
+            loading="lazy"
             draggable={false}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+            className={`object-cover transition-all duration-500 group-hover:scale-105 ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
           />
