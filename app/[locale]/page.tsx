@@ -486,19 +486,19 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* ================================================================
             6. COLLABORATION SECTION - Expanded (moved up from position 8)
             ================================================================ */}
-        <section className="py-20 bg-gradient-to-b from-[var(--secondary-light)]/20 to-white">
+        <section className="py-20 bg-gradient-to-b from-[var(--primary-light)]/15 to-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--secondary)]/10 text-[var(--secondary-dark)] text-sm font-semibold mb-4">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-4">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondary)] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--secondary)]"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
                 </span>
                 {t('collaboration.badge')}
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
                 {t('collaboration.title')}{" "}
-                <span className="text-[var(--secondary)]">
+                <span className="text-[var(--primary)]">
                   {t('collaboration.titleHighlight')}
                 </span>
               </h2>
@@ -517,7 +517,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               ] as const).map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-[var(--secondary)]/20 hover:shadow-lg hover:border-[var(--secondary)]/40 transition-all"
+                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-[var(--primary)]/20 hover:shadow-lg hover:border-[var(--primary)]/40 transition-all"
                 >
                   <span className="text-xl">{item.icon}</span>
                   <span className="font-medium text-[var(--foreground)]">{t(`collaboration.pills.${item.key}`)}</span>
@@ -528,7 +528,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* Feature Sub-grid */}
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
               {(['invite', 'vote', 'sync'] as const).map((key) => (
-                <div key={key} className="p-6 rounded-2xl bg-white border border-[var(--secondary)]/15 text-center shadow-sm">
+                <div key={key} className="p-6 rounded-2xl bg-white border border-[var(--primary)]/15 text-center shadow-sm">
                   <h3 className="font-semibold text-[var(--foreground)] mb-2">{t(`collaboration.features.${key}.title`)}</h3>
                   <p className="text-sm text-[var(--foreground-muted)]">{t(`collaboration.features.${key}.description`)}</p>
                 </div>
@@ -540,7 +540,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--secondary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--secondary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--primary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
               >
                 {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

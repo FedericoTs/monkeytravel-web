@@ -1784,7 +1784,11 @@
       "cultural": "Cultural",
       "relaxation": "Relaxation",
       "foodie": "Foodie",
-      "family": "Family"
+      "family": "Family",
+      "nature": "Nature",
+      "offbeat": "Offbeat",
+      "urban": "Urban",
+      "wellness": "Wellness"
     }
   },
   "collaborationOnboarding": {

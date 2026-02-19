@@ -1784,7 +1784,11 @@
       "cultural": "Cultural",
       "relaxation": "Relax",
       "foodie": "Gastronomía",
-      "family": "Familiar"
+      "family": "Familiar",
+      "nature": "Naturaleza",
+      "offbeat": "Alternativo",
+      "urban": "Urbano",
+      "wellness": "Bienestar"
     }
   },
   "collaborationOnboarding": {

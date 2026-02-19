@@ -22,7 +22,7 @@ interface TemplateTrip {
 }
 
 // Mood tag configuration (keys only — labels come from translations)
-const MOOD_KEYS = ["romantic", "adventure", "cultural", "relaxation", "foodie", "family"] as const;
+const MOOD_KEYS = ["romantic", "adventure", "cultural", "relaxation", "foodie", "family", "nature", "offbeat", "urban", "wellness"] as const;
 const MOOD_EMOJIS: Record<string, string> = {
   romantic: "💕",
   adventure: "🏔️",
@@ -30,6 +30,10 @@ const MOOD_EMOJIS: Record<string, string> = {
   relaxation: "🌴",
   foodie: "🍝",
   family: "👨‍👩‍👧‍👦",
+  nature: "🌿",
+  offbeat: "🧭",
+  urban: "🏙️",
+  wellness: "🧘",
 };
 
 // Country code to flag emoji
