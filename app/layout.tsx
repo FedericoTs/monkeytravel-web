@@ -6,7 +6,13 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
-import SessionTracker from "@/components/analytics/SessionTracker";
+import dynamic from "next/dynamic";
+
+// Dynamic import: moves SessionTracker + its dependencies (supabase, analytics, posthog/identify)
+// to a separate chunk that loads after initial paint
+const SessionTracker = dynamic(
+  () => import("@/components/analytics/SessionTracker")
+);
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
