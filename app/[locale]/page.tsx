@@ -325,7 +325,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--secondary)]/10 text-[var(--secondary-dark)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -414,7 +414,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   ),
-                  color: 'bg-amber-50 text-amber-500',
+                  color: 'bg-[var(--accent)]/15 text-[var(--accent-dark)]',
                 },
                 {
                   key: 'agent',
@@ -423,7 +423,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   ),
-                  color: 'bg-emerald-50 text-emerald-500',
+                  color: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
                 },
                 {
                   key: 'dayByDay',
@@ -432,7 +432,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   ),
-                  color: 'bg-blue-50 text-blue-500',
+                  color: 'bg-[var(--primary)]/10 text-[var(--primary)]',
                 },
                 {
                   key: 'customizable',
@@ -441,7 +441,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   ),
-                  color: 'bg-violet-50 text-violet-500',
+                  color: 'bg-[var(--accent)]/15 text-[var(--accent-dark)]',
                 },
                 {
                   key: 'collaborate',
@@ -450,7 +450,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   ),
-                  color: 'bg-rose-50 text-rose-500',
+                  color: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
                   hasBadge: true,
                 },
                 {
@@ -460,7 +460,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   ),
-                  color: 'bg-cyan-50 text-cyan-500',
+                  color: 'bg-[var(--primary)]/10 text-[var(--primary)]',
                 },
               ] as const).map((feature, index) => (
                 <div
@@ -468,7 +468,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   className="group relative p-8 rounded-3xl bg-[var(--background-alt)] border border-gray-100 card-hover"
                 >
                   {'hasBadge' in feature && feature.hasBadge && (
-                    <span className="absolute top-4 right-4 px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-rose-500 text-white rounded-full">
+                    <span className="absolute top-4 right-4 px-2.5 py-1 text-xs font-bold bg-[var(--secondary)] text-white rounded-full">
                       {t('solution.cards.collaborate.badge')}
                     </span>
                   )}
@@ -486,19 +486,19 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* ================================================================
             6. COLLABORATION SECTION - Expanded (moved up from position 8)
             ================================================================ */}
-        <section className="py-20 bg-gradient-to-b from-purple-50/50 to-white">
+        <section className="py-20 bg-gradient-to-b from-[var(--secondary-light)]/20 to-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--secondary)]/10 text-[var(--secondary-dark)] text-sm font-semibold mb-4">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondary)] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--secondary)]"></span>
                 </span>
                 {t('collaboration.badge')}
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
                 {t('collaboration.title')}{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[var(--secondary-dark)] to-[var(--primary)] bg-clip-text text-transparent">
                   {t('collaboration.titleHighlight')}
                 </span>
               </h2>
@@ -517,7 +517,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               ] as const).map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-200 transition-all"
+                  className="flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-md border border-[var(--secondary)]/20 hover:shadow-lg hover:border-[var(--secondary)]/40 transition-all"
                 >
                   <span className="text-xl">{item.icon}</span>
                   <span className="font-medium text-gray-700">{t(`collaboration.pills.${item.key}`)}</span>
@@ -528,7 +528,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* Feature Sub-grid */}
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
               {(['invite', 'vote', 'sync'] as const).map((key) => (
-                <div key={key} className="p-6 rounded-2xl bg-white border border-purple-100 text-center shadow-sm">
+                <div key={key} className="p-6 rounded-2xl bg-white border border-[var(--secondary)]/15 text-center shadow-sm">
                   <h3 className="font-semibold text-gray-900 mb-2">{t(`collaboration.features.${key}.title`)}</h3>
                   <p className="text-sm text-gray-600">{t(`collaboration.features.${key}.description`)}</p>
                 </div>
@@ -540,7 +540,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-rose-500 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--secondary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--secondary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
               >
                 {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
