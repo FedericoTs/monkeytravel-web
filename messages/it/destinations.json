@@ -81,6 +81,21 @@
     "photography": "Fotografia",
     "offbeat": "Fuori dai Sentieri"
   },
+  "bestTime": {
+    "title": "Periodo Migliore per Visitare {city}",
+    "subtitle": "Clima, affollamento e stagioni mese per mese a {city}",
+    "best": "Periodo migliore",
+    "good": "Buon periodo",
+    "offSeason": "Bassa stagione",
+    "crowds": "Affollamento",
+    "low": "Basso",
+    "moderate": "Moderato",
+    "high": "Alto",
+    "spring": "Primavera",
+    "summer": "Estate",
+    "autumn": "Autunno",
+    "winter": "Inverno"
+  },
   "continents": {
     "europe": "Europa",
     "asia": "Asia",

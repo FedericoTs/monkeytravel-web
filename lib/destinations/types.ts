@@ -49,6 +49,14 @@ export interface DestinationFAQ {
   answer: LocalizedString;
 }
 
+export type CrowdLevel = 1 | 2 | 3; // 1=low, 2=moderate, 3=high
+
+export interface MonthClimate {
+  high: number; // Celsius
+  low: number;
+  crowd: CrowdLevel;
+}
+
 export interface Destination {
   slug: string;
   name: LocalizedString;
@@ -63,6 +71,13 @@ export interface Destination {
     avgStayDays: number;
     bestMonths: number[];
     budgetLevel: BudgetLevel;
+  };
+  climate?: Record<number, MonthClimate>; // 1-12 → monthly climate data
+  seasonNotes?: {
+    spring?: LocalizedString;
+    summer?: LocalizedString;
+    autumn?: LocalizedString;
+    winter?: LocalizedString;
   };
   tags: string[];
   content: {

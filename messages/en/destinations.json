@@ -81,6 +81,21 @@
     "photography": "Photography",
     "offbeat": "Off the Beaten Path"
   },
+  "bestTime": {
+    "title": "Best Time to Visit {city}",
+    "subtitle": "Month-by-month weather, crowds, and season breakdown for {city}",
+    "best": "Best time",
+    "good": "Good time",
+    "offSeason": "Off-season",
+    "crowds": "Crowds",
+    "low": "Low",
+    "moderate": "Moderate",
+    "high": "High",
+    "spring": "Spring",
+    "summer": "Summer",
+    "autumn": "Autumn",
+    "winter": "Winter"
+  },
   "continents": {
     "europe": "Europe",
     "asia": "Asia",

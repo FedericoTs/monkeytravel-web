@@ -17,6 +17,7 @@ import Footer from "@/components/Footer";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import {
   DestinationPageHero,
+  BestTimeToVisit,
   DestinationHighlights,
   SampleDayPreview,
   DestinationFAQ,
@@ -81,6 +82,7 @@ export async function generateMetadata({
       `things to do in ${cityName}`,
       `${cityName} trip planner`,
       `AI itinerary ${cityName}`,
+      `best time to visit ${cityName}`,
     ],
     alternates: {
       canonical: languages[locale],
@@ -208,6 +210,9 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             </p>
           </div>
         </section>
+
+        {/* Best Time to Visit */}
+        <BestTimeToVisit destination={destination} locale={loc} t={t} />
 
         {/* Why Visit */}
         <DestinationHighlights

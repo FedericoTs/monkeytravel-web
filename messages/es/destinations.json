@@ -81,6 +81,21 @@
     "photography": "Fotografía",
     "offbeat": "Fuera de lo Común"
   },
+  "bestTime": {
+    "title": "Mejor Época para Visitar {city}",
+    "subtitle": "Clima, afluencia turística y temporadas mes a mes en {city}",
+    "best": "Mejor época",
+    "good": "Buena época",
+    "offSeason": "Temporada baja",
+    "crowds": "Afluencia",
+    "low": "Baja",
+    "moderate": "Moderada",
+    "high": "Alta",
+    "spring": "Primavera",
+    "summer": "Verano",
+    "autumn": "Otoño",
+    "winter": "Invierno"
+  },
   "continents": {
     "europe": "Europa",
     "asia": "Asia",

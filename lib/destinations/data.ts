@@ -12,6 +12,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 48.8566, lng: 2.3522 },
     stats: { avgStayDays: 4, bestMonths: [4, 5, 6, 9, 10], budgetLevel: 3 },
+    climate: {
+      1: { high: 7, low: 2, crowd: 1 }, 2: { high: 8, low: 2, crowd: 1 },
+      3: { high: 12, low: 4, crowd: 2 }, 4: { high: 16, low: 7, crowd: 2 },
+      5: { high: 20, low: 10, crowd: 2 }, 6: { high: 23, low: 13, crowd: 3 },
+      7: { high: 25, low: 15, crowd: 3 }, 8: { high: 25, low: 15, crowd: 2 },
+      9: { high: 21, low: 12, crowd: 2 }, 10: { high: 16, low: 9, crowd: 2 },
+      11: { high: 11, low: 5, crowd: 1 }, 12: { high: 8, low: 3, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Cherry blossoms in gardens, perfect outdoor café weather. Mild days and fewer crowds than summer.", es: "Cerezos en flor en los jardines, clima perfecto para cafés al aire libre. Días templados y menos multitudes que en verano.", it: "Ciliegi in fiore nei giardini, tempo perfetto per i caffè all'aperto. Giornate miti e meno folla rispetto all'estate." },
+      summer: { en: "Long warm days ideal for Seine-side strolls. July is peak tourist season; August is quieter as Parisians leave.", es: "Días largos y cálidos ideales para pasear junto al Sena. Julio es temporada alta; agosto es más tranquilo cuando los parisinos se van.", it: "Lunghe giornate calde ideali per passeggiate lungo la Senna. Luglio è alta stagione; agosto è più tranquillo quando i parigini partono." },
+      autumn: { en: "Golden leaves along the boulevards, harvest season brings food festivals. Comfortable temperatures and thinner crowds.", es: "Hojas doradas a lo largo de los bulevares, la temporada de cosecha trae festivales gastronómicos. Temperaturas agradables y menos gente.", it: "Foglie dorate lungo i boulevards, la stagione del raccolto porta festival gastronomici. Temperature confortevoli e meno folla." },
+      winter: { en: "Magical Christmas markets and holiday lights. Cold but charming; ideal for museums and cozy bistros.", es: "Mercados navideños mágicos y luces festivas. Frío pero encantador; ideal para museos y bistrós acogedores.", it: "Magici mercatini di Natale e luci festive. Freddo ma affascinante; ideale per musei e bistrot accoglienti." },
+    },
     tags: ["romantic", "cultural", "foodie", "urban"],
     content: {
       tagline: {
@@ -235,6 +249,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 41.9028, lng: 12.4964 },
     stats: { avgStayDays: 4, bestMonths: [4, 5, 9, 10], budgetLevel: 2 },
+    climate: {
+      1: { high: 12, low: 3, crowd: 1 }, 2: { high: 13, low: 4, crowd: 1 },
+      3: { high: 16, low: 6, crowd: 2 }, 4: { high: 19, low: 8, crowd: 2 },
+      5: { high: 24, low: 12, crowd: 3 }, 6: { high: 28, low: 16, crowd: 3 },
+      7: { high: 31, low: 19, crowd: 3 }, 8: { high: 31, low: 19, crowd: 3 },
+      9: { high: 27, low: 15, crowd: 2 }, 10: { high: 22, low: 12, crowd: 2 },
+      11: { high: 16, low: 7, crowd: 1 }, 12: { high: 13, low: 4, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Mild temperatures and blooming wisteria. Easter celebrations add festive atmosphere. Perfect for exploring ruins and piazzas.", es: "Temperaturas suaves y glicinas en flor. Las celebraciones de Semana Santa añaden ambiente festivo. Perfecto para explorar ruinas y plazas.", it: "Temperature miti e glicini in fiore. Le celebrazioni pasquali aggiungono atmosfera festiva. Perfetto per esplorare rovine e piazze." },
+      summer: { en: "Hot and sunny — Rome's peak season. Long evenings perfect for gelato walks. Book ahead; crowds are at their highest.", es: "Caluroso y soleado — temporada alta de Roma. Tardes largas perfectas para pasear con gelato. Reserva con antelación; las multitudes son máximas.", it: "Caldo e soleggiato — alta stagione di Roma. Serate lunghe perfette per passeggiate con gelato. Prenota in anticipo; la folla è al massimo." },
+      autumn: { en: "Golden light over ancient ruins, grape harvest season. Comfortable days with fewer tourists. October is ideal.", es: "Luz dorada sobre ruinas antiguas, temporada de vendimia. Días confortables con menos turistas. Octubre es ideal.", it: "Luce dorata sulle rovine antiche, stagione della vendemmia. Giornate confortevoli con meno turisti. Ottobre è ideale." },
+      winter: { en: "Mild winters by European standards. Christmas cribs and holiday markets. Fewer crowds mean easier access to Vatican and Colosseum.", es: "Inviernos suaves para los estándares europeos. Belenes navideños y mercados festivos. Menos gente significa acceso más fácil al Vaticano y al Coliseo.", it: "Inverni miti per gli standard europei. Presepi natalizi e mercatini festivi. Meno folla significa accesso più facile al Vaticano e al Colosseo." },
+    },
     tags: ["cultural", "foodie", "romantic", "historical"],
     content: {
       tagline: {
@@ -458,6 +486,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 41.3874, lng: 2.1686 },
     stats: { avgStayDays: 4, bestMonths: [5, 6, 9, 10], budgetLevel: 2 },
+    climate: {
+      1: { high: 14, low: 5, crowd: 1 }, 2: { high: 15, low: 6, crowd: 1 },
+      3: { high: 17, low: 8, crowd: 2 }, 4: { high: 19, low: 10, crowd: 2 },
+      5: { high: 22, low: 14, crowd: 2 }, 6: { high: 26, low: 18, crowd: 3 },
+      7: { high: 29, low: 21, crowd: 3 }, 8: { high: 29, low: 21, crowd: 3 },
+      9: { high: 26, low: 18, crowd: 2 }, 10: { high: 22, low: 14, crowd: 2 },
+      11: { high: 17, low: 9, crowd: 1 }, 12: { high: 14, low: 6, crowd: 1 },
+    },
+    seasonNotes: {
+      spring: { en: "Warm and sunny with Mediterranean breezes. La Mercè preparations begin. Great for beach and Gothic Quarter exploration.", es: "Cálido y soleado con brisas mediterráneas. Comienzan los preparativos de La Mercè. Ideal para playa y explorar el Barrio Gótico.", it: "Caldo e soleggiato con brezze mediterranee. Iniziano i preparativi de La Mercè. Ottimo per spiaggia ed esplorazione del Quartiere Gotico." },
+      summer: { en: "Hot beach weather and vibrant nightlife. Festivals like Sonar and Grec. Expect crowds at La Sagrada Família.", es: "Clima caluroso de playa y vida nocturna vibrante. Festivales como Sonar y Grec. Espera multitudes en La Sagrada Família.", it: "Clima caldo da spiaggia e vita notturna vibrante. Festival come Sonar e Grec. Aspettati folla alla Sagrada Família." },
+      autumn: { en: "Perfect balance of warm days and cultural events. La Mercè festival in September. Wine harvest season in nearby Penedès.", es: "Equilibrio perfecto de días cálidos y eventos culturales. Festival de La Mercè en septiembre. Temporada de vendimia en el cercano Penedès.", it: "Equilibrio perfetto di giornate calde ed eventi culturali. Festival de La Mercè a settembre. Stagione della vendemmia nel vicino Penedès." },
+      winter: { en: "Mild Mediterranean winters, rarely below 5°C. Christmas lights on Passeig de Gràcia. Fewer tourists and lower prices.", es: "Inviernos mediterráneos suaves, raramente bajo 5°C. Luces navideñas en Passeig de Gràcia. Menos turistas y precios más bajos.", it: "Inverni mediterranei miti, raramente sotto i 5°C. Luci natalizie sul Passeig de Gràcia. Meno turisti e prezzi più bassi." },
+    },
     tags: ["cultural", "foodie", "urban", "beach"],
     content: {
       tagline: {
@@ -681,6 +723,20 @@ export const destinations: Destination[] = [
     continent: "asia",
     coordinates: { lat: 35.6762, lng: 139.6503 },
     stats: { avgStayDays: 5, bestMonths: [3, 4, 10, 11], budgetLevel: 3 },
+    climate: {
+      1: { high: 10, low: 1, crowd: 1 }, 2: { high: 11, low: 2, crowd: 1 },
+      3: { high: 14, low: 5, crowd: 2 }, 4: { high: 19, low: 10, crowd: 3 },
+      5: { high: 24, low: 15, crowd: 2 }, 6: { high: 26, low: 19, crowd: 2 },
+      7: { high: 30, low: 23, crowd: 2 }, 8: { high: 31, low: 24, crowd: 2 },
+      9: { high: 27, low: 20, crowd: 2 }, 10: { high: 22, low: 14, crowd: 2 },
+      11: { high: 17, low: 9, crowd: 2 }, 12: { high: 12, low: 4, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Cherry blossom season (late March–April) is magical. Parks fill with hanami picnics. Mild weather ideal for temple visits.", es: "La temporada de cerezos en flor (finales de marzo–abril) es mágica. Los parques se llenan de pícnics hanami. Clima templado ideal para visitar templos.", it: "La stagione dei ciliegi in fiore (fine marzo–aprile) è magica. I parchi si riempiono di picnic hanami. Clima mite ideale per visitare i templi." },
+      summer: { en: "Hot and humid with spectacular fireworks festivals. Rainy season (tsuyu) in June. July–August bring summer matsuri celebrations.", es: "Caluroso y húmedo con espectaculares festivales de fuegos artificiales. Temporada de lluvias (tsuyu) en junio. Julio-agosto traen celebraciones de matsuri de verano.", it: "Caldo e umido con spettacolari festival di fuochi d'artificio. Stagione delle piogge (tsuyu) a giugno. Luglio-agosto portano celebrazioni di matsuri estivi." },
+      autumn: { en: "Stunning fall foliage (koyo) from October to December. Crisp air and clear skies. One of the best times to visit.", es: "Espectacular follaje otoñal (koyo) de octubre a diciembre. Aire fresco y cielos despejados. Una de las mejores épocas para visitar.", it: "Spettacolare fogliame autunnale (koyo) da ottobre a dicembre. Aria frizzante e cieli limpidi. Uno dei periodi migliori per visitare." },
+      winter: { en: "Cold but dry with clear skies. Perfect for hot springs (onsen). New Year celebrations are deeply traditional. Fewer tourists.", es: "Frío pero seco con cielos despejados. Perfecto para aguas termales (onsen). Las celebraciones de Año Nuevo son profundamente tradicionales. Menos turistas.", it: "Freddo ma secco con cieli limpidi. Perfetto per le sorgenti termali (onsen). Le celebrazioni di Capodanno sono profondamente tradizionali. Meno turisti." },
+    },
     tags: ["cultural", "foodie", "urban", "offbeat"],
     content: {
       tagline: {
@@ -908,6 +964,20 @@ export const destinations: Destination[] = [
     continent: "americas",
     coordinates: { lat: 40.7128, lng: -74.006 },
     stats: { avgStayDays: 5, bestMonths: [4, 5, 9, 10, 12], budgetLevel: 3 },
+    climate: {
+      1: { high: 4, low: -3, crowd: 1 }, 2: { high: 5, low: -2, crowd: 1 },
+      3: { high: 10, low: 2, crowd: 2 }, 4: { high: 18, low: 8, crowd: 2 },
+      5: { high: 22, low: 13, crowd: 2 }, 6: { high: 27, low: 19, crowd: 3 },
+      7: { high: 30, low: 22, crowd: 3 }, 8: { high: 29, low: 21, crowd: 3 },
+      9: { high: 25, low: 17, crowd: 2 }, 10: { high: 19, low: 11, crowd: 2 },
+      11: { high: 13, low: 6, crowd: 2 }, 12: { high: 6, low: 0, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "Central Park comes alive with blossoms. Mild weather perfect for walking the city. Restaurant week deals available.", es: "Central Park cobra vida con flores. Clima templado perfecto para recorrer la ciudad. Ofertas de la semana de restaurantes disponibles.", it: "Central Park si anima con i fiori. Clima mite perfetto per camminare in città. Offerte della settimana dei ristoranti disponibili." },
+      summer: { en: "Hot and humid but vibrant. Free outdoor concerts, Shakespeare in the Park, and rooftop bars. Peak tourist season.", es: "Caluroso y húmedo pero vibrante. Conciertos gratuitos al aire libre, Shakespeare en el parque y bares en azoteas. Temporada alta turística.", it: "Caldo e umido ma vibrante. Concerti gratuiti all'aperto, Shakespeare al parco e bar sui tetti. Alta stagione turistica." },
+      autumn: { en: "Iconic fall foliage in Central Park. Crisp air, Halloween parades, and holiday prep. Arguably the best time to visit.", es: "Icónico follaje otoñal en Central Park. Aire fresco, desfiles de Halloween y preparativos festivos. Posiblemente la mejor época para visitar.", it: "Iconico fogliame autunnale a Central Park. Aria frizzante, sfilate di Halloween e preparativi festivi. Probabilmente il periodo migliore per visitare." },
+      winter: { en: "Cold but magical with holiday lights, ice skating at Rockefeller Center, and Broadway shows. December is festive and busy.", es: "Frío pero mágico con luces navideñas, patinaje sobre hielo en el Rockefeller Center y espectáculos de Broadway. Diciembre es festivo y concurrido.", it: "Freddo ma magico con luci natalizie, pattinaggio sul ghiaccio al Rockefeller Center e spettacoli di Broadway. Dicembre è festivo e affollato." },
+    },
     tags: ["urban", "cultural", "foodie", "nightlife"],
     content: {
       tagline: {
@@ -1131,6 +1201,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 51.5074, lng: -0.1278 },
     stats: { avgStayDays: 4, bestMonths: [5, 6, 7, 9], budgetLevel: 3 },
+    climate: {
+      1: { high: 8, low: 2, crowd: 1 }, 2: { high: 9, low: 2, crowd: 1 },
+      3: { high: 12, low: 4, crowd: 2 }, 4: { high: 15, low: 6, crowd: 2 },
+      5: { high: 19, low: 9, crowd: 2 }, 6: { high: 22, low: 12, crowd: 3 },
+      7: { high: 24, low: 14, crowd: 3 }, 8: { high: 24, low: 14, crowd: 3 },
+      9: { high: 20, low: 11, crowd: 2 }, 10: { high: 16, low: 8, crowd: 2 },
+      11: { high: 11, low: 5, crowd: 1 }, 12: { high: 8, low: 3, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Parks bloom with daffodils and cherry trees. Comfortable for sightseeing with longer days. Chelsea Flower Show in May.", es: "Los parques florecen con narcisos y cerezos. Cómodo para hacer turismo con días más largos. Chelsea Flower Show en mayo.", it: "I parchi fioriscono con narcisi e ciliegi. Confortevole per visitare con giornate più lunghe. Chelsea Flower Show a maggio." },
+      summer: { en: "Warm and lively with outdoor festivals, Wimbledon, and Notting Hill Carnival. Long daylight hours until 9pm.", es: "Cálido y animado con festivales al aire libre, Wimbledon y el Carnaval de Notting Hill. Largas horas de luz hasta las 21h.", it: "Caldo e vivace con festival all'aperto, Wimbledon e il Carnevale di Notting Hill. Lunghe ore di luce fino alle 21." },
+      autumn: { en: "Crisp weather and beautiful fall colors in Hyde Park. Theater season kicks off. Bonfire Night in November.", es: "Clima fresco y hermosos colores otoñales en Hyde Park. Comienza la temporada de teatro. Noche de las Hogueras en noviembre.", it: "Clima frizzante e bellissimi colori autunnali a Hyde Park. Inizia la stagione teatrale. Bonfire Night a novembre." },
+      winter: { en: "Festive atmosphere with Christmas lights and markets. Cold and damp but magical. West End shows are perfect for rainy days.", es: "Ambiente festivo con luces navideñas y mercados. Frío y húmedo pero mágico. Los espectáculos del West End son perfectos para días lluviosos.", it: "Atmosfera festiva con luci natalizie e mercatini. Freddo e umido ma magico. Gli spettacoli del West End sono perfetti per i giorni di pioggia." },
+    },
     tags: ["cultural", "urban", "historical", "foodie"],
     content: {
       tagline: {
@@ -1180,6 +1264,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 52.3676, lng: 4.9041 },
     stats: { avgStayDays: 3, bestMonths: [4, 5, 6, 9], budgetLevel: 2 },
+    climate: {
+      1: { high: 6, low: 1, crowd: 1 }, 2: { high: 7, low: 1, crowd: 1 },
+      3: { high: 10, low: 3, crowd: 1 }, 4: { high: 14, low: 5, crowd: 2 },
+      5: { high: 18, low: 9, crowd: 2 }, 6: { high: 20, low: 12, crowd: 2 },
+      7: { high: 23, low: 14, crowd: 3 }, 8: { high: 22, low: 14, crowd: 3 },
+      9: { high: 19, low: 11, crowd: 2 }, 10: { high: 14, low: 8, crowd: 2 },
+      11: { high: 10, low: 4, crowd: 1 }, 12: { high: 7, low: 2, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Tulip season begins in April. Canal-side terraces open up. King's Day (April 27) is a citywide celebration.", es: "La temporada de tulipanes comienza en abril. Se abren las terrazas junto a los canales. El Día del Rey (27 de abril) es una celebración de toda la ciudad.", it: "La stagione dei tulipani inizia ad aprile. Si aprono le terrazze lungo i canali. Il Giorno del Re (27 aprile) è una celebrazione cittadina." },
+      summer: { en: "Long sunny days perfect for cycling and canal cruises. Open-air concerts and festivals. Peak tourist season in July–August.", es: "Largos días soleados perfectos para ciclismo y cruceros por los canales. Conciertos al aire libre y festivales. Temporada alta turística en julio-agosto.", it: "Lunghe giornate soleggiate perfette per ciclismo e crociere sui canali. Concerti all'aperto e festival. Alta stagione turistica in luglio-agosto." },
+      autumn: { en: "Golden leaves along canals, fewer tourists. Museum season picks up. Amsterdam Dance Event in October.", es: "Hojas doradas a lo largo de los canales, menos turistas. Comienza la temporada de museos. Amsterdam Dance Event en octubre.", it: "Foglie dorate lungo i canali, meno turisti. La stagione dei musei si intensifica. Amsterdam Dance Event a ottobre." },
+      winter: { en: "Cold but cozy with holiday lights and ice skating. Amsterdam Light Festival illuminates canals. Perfect for museum-hopping.", es: "Frío pero acogedor con luces festivas y patinaje sobre hielo. El Amsterdam Light Festival ilumina los canales. Perfecto para visitar museos.", it: "Freddo ma accogliente con luci festive e pattinaggio sul ghiaccio. L'Amsterdam Light Festival illumina i canali. Perfetto per visitare musei." },
+    },
     tags: ["cultural", "urban", "romantic", "offbeat"],
     content: {
       tagline: {
@@ -1227,6 +1325,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 50.0755, lng: 14.4378 },
     stats: { avgStayDays: 3, bestMonths: [4, 5, 9, 10], budgetLevel: 1 },
+    climate: {
+      1: { high: 2, low: -3, crowd: 1 }, 2: { high: 4, low: -2, crowd: 1 },
+      3: { high: 9, low: 1, crowd: 1 }, 4: { high: 15, low: 5, crowd: 2 },
+      5: { high: 20, low: 9, crowd: 2 }, 6: { high: 23, low: 13, crowd: 2 },
+      7: { high: 26, low: 15, crowd: 3 }, 8: { high: 25, low: 14, crowd: 3 },
+      9: { high: 20, low: 10, crowd: 2 }, 10: { high: 14, low: 6, crowd: 2 },
+      11: { high: 7, low: 2, crowd: 1 }, 12: { high: 3, low: -2, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Prague blooms with lilacs and cherry trees. Easter markets in Old Town Square. Comfortable walking weather.", es: "Praga florece con lilas y cerezos. Mercados de Pascua en la Plaza de la Ciudad Vieja. Clima cómodo para caminar.", it: "Praga fiorisce con lillà e ciliegi. Mercatini pasquali nella Piazza della Città Vecchia. Clima confortevole per camminare." },
+      summer: { en: "Warm days perfect for beer gardens and river cruises. Music festivals and outdoor events. July–August can be crowded.", es: "Días cálidos perfectos para cervecerías al aire libre y cruceros fluviales. Festivales de música y eventos al aire libre. Julio-agosto puede ser concurrido.", it: "Giornate calde perfette per birrerie all'aperto e crociere fluviali. Festival musicali ed eventi all'aperto. Luglio-agosto può essere affollato." },
+      autumn: { en: "Stunning fall colors along the Vltava. Wine harvest festivals and fewer crowds. Crisp air perfect for castle visits.", es: "Impresionantes colores otoñales a lo largo del Moldava. Festivales de vendimia y menos multitudes. Aire fresco perfecto para visitar castillos.", it: "Splendidi colori autunnali lungo la Moldava. Festival della vendemmia e meno folla. Aria frizzante perfetta per visitare i castelli." },
+      winter: { en: "Magical Christmas markets among the best in Europe. Cold and snowy but incredibly atmospheric. Hot wine and trdelník keep you warm.", es: "Mercados navideños mágicos entre los mejores de Europa. Frío y nevado pero increíblemente atmosférico. El vino caliente y el trdelník te mantienen caliente.", it: "Magici mercatini di Natale tra i migliori d'Europa. Freddo e innevato ma incredibilmente atmosferico. Vin brulé e trdelník ti tengono al caldo." },
+    },
     tags: ["cultural", "historical", "romantic", "nightlife"],
     content: {
       tagline: { en: "Fairy-tale architecture at unbeatable prices", es: "Arquitectura de cuento de hadas a precios inmejorables", it: "Architettura da fiaba a prezzi imbattibili" },
@@ -1267,6 +1379,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 38.7223, lng: -9.1393 },
     stats: { avgStayDays: 4, bestMonths: [4, 5, 6, 9, 10], budgetLevel: 1 },
+    climate: {
+      1: { high: 15, low: 8, crowd: 1 }, 2: { high: 16, low: 9, crowd: 1 },
+      3: { high: 19, low: 10, crowd: 2 }, 4: { high: 20, low: 12, crowd: 2 },
+      5: { high: 23, low: 14, crowd: 2 }, 6: { high: 27, low: 17, crowd: 3 },
+      7: { high: 29, low: 19, crowd: 3 }, 8: { high: 29, low: 19, crowd: 3 },
+      9: { high: 27, low: 18, crowd: 2 }, 10: { high: 23, low: 15, crowd: 2 },
+      11: { high: 18, low: 11, crowd: 1 }, 12: { high: 15, low: 9, crowd: 1 },
+    },
+    seasonNotes: {
+      spring: { en: "Warm and sunny with jacaranda trees blooming. Perfect for tram rides and miradouro visits. Festas dos Santos Populares in June.", es: "Cálido y soleado con jacarandas en flor. Perfecto para paseos en tranvía y visitas a miradores. Festas dos Santos Populares en junio.", it: "Caldo e soleggiato con jacarande in fiore. Perfetto per giri in tram e visite ai miradouro. Festas dos Santos Populares a giugno." },
+      summer: { en: "Hot and dry with Atlantic breezes. Beach days at nearby Costa da Caparica. Lively outdoor dining in Bairro Alto.", es: "Caluroso y seco con brisas atlánticas. Días de playa en la cercana Costa da Caparica. Animadas cenas al aire libre en Bairro Alto.", it: "Caldo e secco con brezze atlantiche. Giornate al mare nella vicina Costa da Caparica. Vivaci cene all'aperto nel Bairro Alto." },
+      autumn: { en: "Mild and pleasant with golden light. Wine harvest season in nearby Douro. Fewer crowds and great value.", es: "Templado y agradable con luz dorada. Temporada de vendimia en el cercano Douro. Menos multitudes y buena relación calidad-precio.", it: "Mite e piacevole con luce dorata. Stagione della vendemmia nel vicino Douro. Meno folla e ottimo rapporto qualità-prezzo." },
+      winter: { en: "Mild by European standards, rarely below 8°C. Rain is more frequent but short-lived. Great for pastel de nata and fado evenings.", es: "Suave para los estándares europeos, raramente bajo 8°C. La lluvia es más frecuente pero breve. Ideal para pasteles de nata y noches de fado.", it: "Mite per gli standard europei, raramente sotto gli 8°C. La pioggia è più frequente ma breve. Ottimo per pastel de nata e serate di fado." },
+    },
     tags: ["cultural", "foodie", "urban", "romantic"],
     content: {
       tagline: { en: "Sun-drenched hills, pastel tiles, and custard tarts", es: "Colinas bañadas de sol, azulejos pastel y pasteles de nata", it: "Colline baciate dal sole, piastrelle pastello e pastéis de nata" },
@@ -1307,6 +1433,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 48.2082, lng: 16.3738 },
     stats: { avgStayDays: 3, bestMonths: [4, 5, 6, 9, 10], budgetLevel: 2 },
+    climate: {
+      1: { high: 3, low: -2, crowd: 1 }, 2: { high: 5, low: -1, crowd: 1 },
+      3: { high: 10, low: 3, crowd: 1 }, 4: { high: 16, low: 7, crowd: 2 },
+      5: { high: 21, low: 11, crowd: 2 }, 6: { high: 25, low: 15, crowd: 2 },
+      7: { high: 27, low: 17, crowd: 3 }, 8: { high: 27, low: 16, crowd: 3 },
+      9: { high: 21, low: 12, crowd: 2 }, 10: { high: 15, low: 7, crowd: 2 },
+      11: { high: 8, low: 3, crowd: 1 }, 12: { high: 4, low: -1, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Blooming parks and outdoor café culture returns. Vienna Festival (Wiener Festwochen) begins in May. Perfect for Schönbrunn gardens.", es: "Florecen los parques y vuelve la cultura de cafés al aire libre. El Festival de Viena (Wiener Festwochen) comienza en mayo. Perfecto para los jardines de Schönbrunn.", it: "I parchi fioriscono e torna la cultura dei caffè all'aperto. Il Festival di Vienna (Wiener Festwochen) inizia a maggio. Perfetto per i giardini di Schönbrunn." },
+      summer: { en: "Warm days for Danube cycling and open-air cinema. Music Film Festival on Rathausplatz. Long evenings in wine taverns (Heurigen).", es: "Días cálidos para ciclismo por el Danubio y cine al aire libre. Festival de Cine Musical en Rathausplatz. Tardes largas en tabernas de vino (Heurigen).", it: "Giornate calde per ciclismo lungo il Danubio e cinema all'aperto. Festival del Cinema Musicale sulla Rathausplatz. Serate lunghe nelle taverne del vino (Heurigen)." },
+      autumn: { en: "Wine harvest season and stunning fall colors. Vienna's concert season begins. Crisp weather perfect for coffee house hopping.", es: "Temporada de vendimia y espectaculares colores otoñales. Comienza la temporada de conciertos de Viena. Clima fresco perfecto para recorrer cafeterías.", it: "Stagione della vendemmia e splendidi colori autunnali. Inizia la stagione dei concerti di Vienna. Clima frizzante perfetto per il giro delle caffetterie." },
+      winter: { en: "Enchanting Christmas markets and Viennese ball season. Cold but atmospheric with Advent concerts in historic churches. Hot punch and Sachertorte.", es: "Encantadores mercados navideños y temporada de bailes vieneses. Frío pero atmosférico con conciertos de Adviento en iglesias históricas. Ponche caliente y Sachertorte.", it: "Incantevoli mercatini di Natale e stagione dei balli viennesi. Freddo ma atmosferico con concerti dell'Avvento nelle chiese storiche. Punch caldo e Sachertorte." },
+    },
     tags: ["cultural", "romantic", "foodie", "historical"],
     content: {
       tagline: { en: "Imperial grandeur meets coffee house culture", es: "Grandeza imperial se encuentra con cultura de cafés", it: "Grandezza imperiale incontra la cultura dei caffè" },
@@ -1346,6 +1486,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 52.52, lng: 13.405 },
     stats: { avgStayDays: 4, bestMonths: [5, 6, 7, 9], budgetLevel: 1 },
+    climate: {
+      1: { high: 3, low: -2, crowd: 1 }, 2: { high: 4, low: -2, crowd: 1 },
+      3: { high: 9, low: 1, crowd: 1 }, 4: { high: 14, low: 5, crowd: 2 },
+      5: { high: 20, low: 10, crowd: 2 }, 6: { high: 23, low: 13, crowd: 2 },
+      7: { high: 25, low: 15, crowd: 3 }, 8: { high: 25, low: 15, crowd: 3 },
+      9: { high: 20, low: 11, crowd: 2 }, 10: { high: 14, low: 6, crowd: 2 },
+      11: { high: 8, low: 2, crowd: 1 }, 12: { high: 4, low: -1, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "The city awakens with street art festivals and outdoor markets. Cherry blossoms line the Landwehr Canal. Gallery Weekend in late April.", es: "La ciudad despierta con festivales de arte callejero y mercados al aire libre. Los cerezos en flor bordean el Canal Landwehr. Gallery Weekend a finales de abril.", it: "La città si risveglia con festival di street art e mercati all'aperto. I ciliegi in fiore costeggiano il Canale di Landwehr. Gallery Weekend a fine aprile." },
+      summer: { en: "Long warm days in beer gardens and parks. Open-air cinema, Fête de la Musique, and lake swimming. Berlin's best season.", es: "Largos días cálidos en cervecerías al aire libre y parques. Cine al aire libre, Fête de la Musique y natación en lagos. La mejor temporada de Berlín.", it: "Lunghe giornate calde nelle birrerie all'aperto e nei parchi. Cinema all'aperto, Fête de la Musique e nuoto nei laghi. La stagione migliore di Berlino." },
+      autumn: { en: "Festival of Lights illuminates landmarks. Vibrant gallery scene and harvest markets. Comfortable temperatures for exploring.", es: "El Festival de las Luces ilumina los monumentos. Vibrante escena de galerías y mercados de cosecha. Temperaturas cómodas para explorar.", it: "Il Festival delle Luci illumina i monumenti. Vivace scena delle gallerie e mercati del raccolto. Temperature confortevoli per esplorare." },
+      winter: { en: "Festive Christmas markets across the city. Cold but atmospheric with mulled wine and currywurst. World-class museums for indoor days.", es: "Festivos mercados navideños por toda la ciudad. Frío pero atmosférico con vino caliente y currywurst. Museos de clase mundial para días en interior.", it: "Festivi mercatini di Natale in tutta la città. Freddo ma atmosferico con vin brulé e currywurst. Musei di livello mondiale per le giornate al chiuso." },
+    },
     tags: ["cultural", "urban", "nightlife", "offbeat"],
     content: {
       tagline: { en: "History, art, and the world's best nightlife", es: "Historia, arte y la mejor vida nocturna del mundo", it: "Storia, arte e la migliore vita notturna del mondo" },
@@ -1386,6 +1540,20 @@ export const destinations: Destination[] = [
     continent: "asia",
     coordinates: { lat: 13.7563, lng: 100.5018 },
     stats: { avgStayDays: 4, bestMonths: [11, 12, 1, 2], budgetLevel: 1 },
+    climate: {
+      1: { high: 33, low: 21, crowd: 2 }, 2: { high: 34, low: 23, crowd: 2 },
+      3: { high: 35, low: 25, crowd: 2 }, 4: { high: 36, low: 26, crowd: 1 },
+      5: { high: 34, low: 26, crowd: 1 }, 6: { high: 34, low: 25, crowd: 1 },
+      7: { high: 33, low: 25, crowd: 1 }, 8: { high: 33, low: 25, crowd: 1 },
+      9: { high: 32, low: 25, crowd: 1 }, 10: { high: 32, low: 24, crowd: 1 },
+      11: { high: 32, low: 23, crowd: 2 }, 12: { high: 32, low: 21, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "Hot season — April is the hottest month. Songkran (Thai New Year) water festival in mid-April. Less crowded but very humid.", es: "Temporada calurosa — abril es el mes más caliente. Festival del agua Songkran (Año Nuevo tailandés) a mediados de abril. Menos concurrido pero muy húmedo.", it: "Stagione calda — aprile è il mese più caldo. Festival dell'acqua Songkran (Capodanno thailandese) a metà aprile. Meno affollato ma molto umido." },
+      summer: { en: "Monsoon season brings afternoon downpours but also lush greenery. Lowest prices and fewest tourists. Rain rarely lasts all day.", es: "La temporada del monzón trae lluvias por la tarde pero también vegetación exuberante. Precios más bajos y menos turistas. La lluvia rara vez dura todo el día.", it: "La stagione dei monsoni porta acquazzoni pomeridiani ma anche vegetazione lussureggiante. Prezzi più bassi e meno turisti. La pioggia raramente dura tutto il giorno." },
+      autumn: { en: "Monsoon eases by November. Loy Krathong lantern festival is magical. Weather improves through the season.", es: "El monzón cede en noviembre. El festival de faroles Loy Krathong es mágico. El clima mejora a lo largo de la temporada.", it: "Il monsone si attenua a novembre. Il festival delle lanterne Loy Krathong è magico. Il tempo migliora durante la stagione." },
+      winter: { en: "Best season — cooler, drier weather. Peak tourist season with Christmas and New Year celebrations. Perfect for temple visits and street food.", es: "Mejor temporada — clima más fresco y seco. Temporada alta turística con celebraciones de Navidad y Año Nuevo. Perfecto para visitar templos y comida callejera.", it: "Stagione migliore — clima più fresco e secco. Alta stagione turistica con celebrazioni di Natale e Capodanno. Perfetto per visitare templi e street food." },
+    },
     tags: ["cultural", "foodie", "urban", "adventure"],
     content: {
       tagline: { en: "Golden temples, street food heaven, and endless energy", es: "Templos dorados, paraíso de comida callejera y energía infinita", it: "Templi dorati, paradiso dello street food e energia infinita" },
@@ -1427,6 +1595,20 @@ export const destinations: Destination[] = [
     continent: "asia",
     coordinates: { lat: -8.3405, lng: 115.092 },
     stats: { avgStayDays: 7, bestMonths: [4, 5, 6, 7, 8, 9], budgetLevel: 1 },
+    climate: {
+      1: { high: 30, low: 24, crowd: 1 }, 2: { high: 30, low: 24, crowd: 1 },
+      3: { high: 31, low: 24, crowd: 1 }, 4: { high: 31, low: 24, crowd: 1 },
+      5: { high: 31, low: 24, crowd: 2 }, 6: { high: 30, low: 23, crowd: 2 },
+      7: { high: 29, low: 23, crowd: 3 }, 8: { high: 30, low: 23, crowd: 3 },
+      9: { high: 30, low: 23, crowd: 2 }, 10: { high: 31, low: 24, crowd: 1 },
+      11: { high: 31, low: 24, crowd: 1 }, 12: { high: 30, low: 24, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Dry season begins — ideal weather with clear skies. Nyepi (Balinese New Year) in March is a unique cultural experience. Rice terraces are lush green.", es: "Comienza la temporada seca — clima ideal con cielos despejados. Nyepi (Año Nuevo balinés) en marzo es una experiencia cultural única. Las terrazas de arroz son de un verde exuberante.", it: "Inizia la stagione secca — tempo ideale con cieli limpidi. Nyepi (Capodanno balinese) a marzo è un'esperienza culturale unica. Le terrazze di riso sono di un verde lussureggiante." },
+      summer: { en: "Peak dry season with the best weather. Cooler temperatures in Ubud's highlands. July–August are the busiest months — book ahead.", es: "Temporada seca máxima con el mejor clima. Temperaturas más frescas en las tierras altas de Ubud. Julio-agosto son los meses más concurridos — reserva con antelación.", it: "Piena stagione secca con il miglior tempo. Temperature più fresche nelle highlands di Ubud. Luglio-agosto sono i mesi più affollati — prenota in anticipo." },
+      autumn: { en: "Transition to wet season. October still mostly dry, November brings first rains. Good value with fewer tourists.", es: "Transición a la temporada húmeda. Octubre todavía mayormente seco, noviembre trae las primeras lluvias. Buena relación calidad-precio con menos turistas.", it: "Transizione alla stagione umida. Ottobre ancora prevalentemente secco, novembre porta le prime piogge. Buon rapporto qualità-prezzo con meno turisti." },
+      winter: { en: "Wet season with afternoon tropical showers. Lush landscapes and dramatic skies. Lowest prices and authentic local experiences.", es: "Temporada húmeda con lluvias tropicales por la tarde. Paisajes exuberantes y cielos dramáticos. Precios más bajos y experiencias locales auténticas.", it: "Stagione umida con piogge tropicali pomeridiane. Paesaggi lussureggianti e cieli drammatici. Prezzi più bassi ed esperienze locali autentiche." },
+    },
     tags: ["nature", "wellness", "cultural", "adventure"],
     content: {
       tagline: { en: "Rice terraces, temples, and tropical paradise", es: "Terrazas de arroz, templos y paraíso tropical", it: "Terrazze di riso, templi e paradiso tropicale" },
@@ -1468,6 +1650,20 @@ export const destinations: Destination[] = [
     continent: "asia",
     coordinates: { lat: 37.5665, lng: 126.978 },
     stats: { avgStayDays: 4, bestMonths: [3, 4, 5, 9, 10], budgetLevel: 2 },
+    climate: {
+      1: { high: 2, low: -6, crowd: 1 }, 2: { high: 5, low: -4, crowd: 1 },
+      3: { high: 11, low: 2, crowd: 1 }, 4: { high: 18, low: 8, crowd: 2 },
+      5: { high: 24, low: 13, crowd: 2 }, 6: { high: 28, low: 18, crowd: 2 },
+      7: { high: 30, low: 22, crowd: 2 }, 8: { high: 31, low: 22, crowd: 2 },
+      9: { high: 26, low: 17, crowd: 2 }, 10: { high: 20, low: 10, crowd: 3 },
+      11: { high: 12, low: 3, crowd: 2 }, 12: { high: 4, low: -4, crowd: 1 },
+    },
+    seasonNotes: {
+      spring: { en: "Cherry blossom season (April) rivals Kyoto's beauty. Perfect weather for palace visits and hanok village strolls. Lotus Lantern Festival.", es: "La temporada de cerezos en flor (abril) rivaliza con la belleza de Kioto. Clima perfecto para visitar palacios y pasear por aldeas hanok. Festival de Linternas de Loto.", it: "La stagione dei ciliegi in fiore (aprile) rivaleggia con la bellezza di Kyoto. Tempo perfetto per visitare palazzi e passeggiare nei villaggi hanok. Festival delle Lanterne di Loto." },
+      summer: { en: "Hot and humid with monsoon rains June–August. Korean summer festivals and vibrant nightlife. Great for indoor experiences like jjimjilbang spas.", es: "Caluroso y húmedo con lluvias monzónicas de junio a agosto. Festivales de verano coreanos y vida nocturna vibrante. Ideal para experiencias interiores como spas jjimjilbang.", it: "Caldo e umido con piogge monsoniche da giugno ad agosto. Festival estivi coreani e vita notturna vibrante. Ottimo per esperienze al chiuso come le spa jjimjilbang." },
+      autumn: { en: "Stunning fall foliage across the city. Clear skies and cool temperatures. Best season — Korea's 'golden autumn' is legendary.", es: "Espectacular follaje otoñal por toda la ciudad. Cielos despejados y temperaturas frescas. Mejor temporada — el 'otoño dorado' de Corea es legendario.", it: "Spettacolare fogliame autunnale in tutta la città. Cieli limpidi e temperature fresche. Stagione migliore — l''autunno dorato' della Corea è leggendario." },
+      winter: { en: "Cold and dry with occasional snow. Ski season nearby. Traditional winter foods like hotpot. Christmas lights in Gangnam and Myeongdong.", es: "Frío y seco con nieve ocasional. Temporada de esquí cercana. Comidas invernales tradicionales como hotpot. Luces navideñas en Gangnam y Myeongdong.", it: "Freddo e secco con neve occasionale. Stagione sciistica nelle vicinanze. Cibi invernali tradizionali come hotpot. Luci natalizie a Gangnam e Myeongdong." },
+    },
     tags: ["cultural", "foodie", "urban", "offbeat"],
     content: {
       tagline: { en: "K-culture, ancient palaces, and next-level food", es: "K-culture, palacios antiguos y comida del siguiente nivel", it: "K-culture, palazzi antichi e cibo di livello superiore" },
@@ -1509,6 +1705,20 @@ export const destinations: Destination[] = [
     continent: "asia",
     coordinates: { lat: 1.3521, lng: 103.8198 },
     stats: { avgStayDays: 3, bestMonths: [2, 3, 4, 7, 8], budgetLevel: 3 },
+    climate: {
+      1: { high: 30, low: 24, crowd: 2 }, 2: { high: 31, low: 24, crowd: 2 },
+      3: { high: 32, low: 24, crowd: 2 }, 4: { high: 32, low: 25, crowd: 2 },
+      5: { high: 32, low: 25, crowd: 2 }, 6: { high: 31, low: 25, crowd: 2 },
+      7: { high: 31, low: 25, crowd: 2 }, 8: { high: 31, low: 24, crowd: 2 },
+      9: { high: 31, low: 24, crowd: 2 }, 10: { high: 32, low: 24, crowd: 2 },
+      11: { high: 31, low: 24, crowd: 2 }, 12: { high: 30, low: 24, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "Dry season with less humidity. Chinese New Year celebrations (Jan/Feb) are spectacular. Best time for outdoor exploration.", es: "Temporada seca con menos humedad. Las celebraciones del Año Nuevo Chino (ene/feb) son espectaculares. Mejor época para exploración al aire libre.", it: "Stagione secca con meno umidità. Le celebrazioni del Capodanno Cinese (gen/feb) sono spettacolari. Periodo migliore per esplorazioni all'aperto." },
+      summer: { en: "Warm year-round. Great Sale season in June–July. Slightly less rain than monsoon months. Indoor attractions like Marina Bay Sands are always comfortable.", es: "Cálido todo el año. Temporada de Grandes Rebajas en junio-julio. Ligeramente menos lluvia que los meses de monzón. Atracciones interiores como Marina Bay Sands siempre son cómodas.", it: "Caldo tutto l'anno. Stagione dei Grandi Saldi in giugno-luglio. Leggermente meno pioggia dei mesi monsonici. Attrazioni al chiuso come Marina Bay Sands sono sempre confortevoli." },
+      autumn: { en: "Monsoon season begins in November with heavier rainfall. Singapore Grand Prix in September. Mid-Autumn Festival celebrations.", es: "La temporada del monzón comienza en noviembre con lluvias más intensas. Gran Premio de Singapur en septiembre. Celebraciones del Festival del Medio Otoño.", it: "La stagione dei monsoni inizia a novembre con piogge più intense. Gran Premio di Singapore a settembre. Celebrazioni del Festival di Metà Autunno." },
+      winter: { en: "Wettest months (Nov–Jan) but rain comes in short bursts. Christmas on Orchard Road is spectacular. Year-end festive atmosphere.", es: "Meses más lluviosos (nov-ene) pero la lluvia viene en ráfagas cortas. La Navidad en Orchard Road es espectacular. Ambiente festivo de fin de año.", it: "Mesi più piovosi (nov-gen) ma la pioggia arriva in brevi acquazzoni. Il Natale su Orchard Road è spettacolare. Atmosfera festiva di fine anno." },
+    },
     tags: ["urban", "foodie", "cultural", "nature"],
     content: {
       tagline: { en: "A futuristic garden city with the world's best hawker food", es: "Una ciudad jardín futurista con la mejor comida hawker del mundo", it: "Una città giardino futuristica con il miglior cibo hawker del mondo" },
@@ -1550,6 +1760,20 @@ export const destinations: Destination[] = [
     continent: "americas",
     coordinates: { lat: 21.1619, lng: -86.8515 },
     stats: { avgStayDays: 5, bestMonths: [12, 1, 2, 3, 4], budgetLevel: 2 },
+    climate: {
+      1: { high: 29, low: 21, crowd: 2 }, 2: { high: 30, low: 21, crowd: 2 },
+      3: { high: 31, low: 22, crowd: 3 }, 4: { high: 32, low: 23, crowd: 2 },
+      5: { high: 33, low: 25, crowd: 1 }, 6: { high: 33, low: 25, crowd: 1 },
+      7: { high: 34, low: 25, crowd: 2 }, 8: { high: 34, low: 25, crowd: 2 },
+      9: { high: 33, low: 25, crowd: 1 }, 10: { high: 31, low: 24, crowd: 1 },
+      11: { high: 30, low: 22, crowd: 1 }, 12: { high: 29, low: 21, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "End of dry season — March is peak Spring Break. Warm waters perfect for snorkeling. Whale shark season begins in May.", es: "Fin de la temporada seca — marzo es el pico del Spring Break. Aguas cálidas perfectas para snorkel. La temporada de tiburones ballena comienza en mayo.", it: "Fine della stagione secca — marzo è il picco dello Spring Break. Acque calde perfette per lo snorkeling. La stagione degli squali balena inizia a maggio." },
+      summer: { en: "Hurricane season begins (June–November) but storms are rare in June–July. Fewer tourists and lower prices. Sea turtle nesting season.", es: "La temporada de huracanes comienza (junio-noviembre) pero las tormentas son raras en junio-julio. Menos turistas y precios más bajos. Temporada de anidación de tortugas marinas.", it: "La stagione degli uragani inizia (giugno-novembre) ma le tempeste sono rare a giugno-luglio. Meno turisti e prezzi più bassi. Stagione di nidificazione delle tartarughe marine." },
+      autumn: { en: "Wettest months with occasional tropical storms. September–October see highest rainfall. Great deals on hotels and tours.", es: "Meses más lluviosos con tormentas tropicales ocasionales. Septiembre-octubre ven las mayores precipitaciones. Grandes ofertas en hoteles y tours.", it: "Mesi più piovosi con occasionali tempeste tropicali. Settembre-ottobre vedono le precipitazioni più alte. Grandi offerte su hotel e tour." },
+      winter: { en: "Perfect dry season with warm Caribbean waters. Peak season — Christmas and New Year are the busiest. Book well in advance.", es: "Perfecta temporada seca con aguas caribeñas cálidas. Temporada alta — Navidad y Año Nuevo son los más concurridos. Reserva con mucha antelación.", it: "Perfetta stagione secca con acque caraibiche calde. Alta stagione — Natale e Capodanno sono i periodi più affollati. Prenota con largo anticipo." },
+    },
     tags: ["beach", "adventure", "cultural", "nature"],
     content: {
       tagline: { en: "Caribbean beaches meet ancient Mayan ruins", es: "Playas caribeñas se encuentran con ruinas mayas antiguas", it: "Spiagge caraibiche incontrano antiche rovine Maya" },
@@ -1590,6 +1814,20 @@ export const destinations: Destination[] = [
     continent: "americas",
     coordinates: { lat: -22.9068, lng: -43.1729 },
     stats: { avgStayDays: 5, bestMonths: [3, 4, 5, 9, 10], budgetLevel: 2 },
+    climate: {
+      1: { high: 32, low: 24, crowd: 3 }, 2: { high: 32, low: 24, crowd: 3 },
+      3: { high: 31, low: 23, crowd: 2 }, 4: { high: 28, low: 22, crowd: 2 },
+      5: { high: 26, low: 20, crowd: 1 }, 6: { high: 25, low: 18, crowd: 1 },
+      7: { high: 25, low: 18, crowd: 2 }, 8: { high: 26, low: 19, crowd: 1 },
+      9: { high: 26, low: 19, crowd: 1 }, 10: { high: 27, low: 20, crowd: 2 },
+      11: { high: 29, low: 22, crowd: 2 }, 12: { high: 31, low: 23, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "Southern Hemisphere autumn — pleasant temperatures, fewer tourists. Easter celebrations are vibrant. Great for hiking Sugarloaf and Tijuca Forest.", es: "Otoño del hemisferio sur — temperaturas agradables, menos turistas. Las celebraciones de Semana Santa son vibrantes. Ideal para senderismo en el Pan de Azúcar y la Selva de Tijuca.", it: "Autunno dell'emisfero sud — temperature piacevoli, meno turisti. Le celebrazioni pasquali sono vibranti. Ottimo per escursioni al Pan di Zucchero e alla Foresta di Tijuca." },
+      summer: { en: "Southern Hemisphere winter — mild and dry, perfect for sightseeing. Cooler temperatures ideal for outdoor activities. Rio's 'best kept secret' season.", es: "Invierno del hemisferio sur — templado y seco, perfecto para hacer turismo. Temperaturas más frescas ideales para actividades al aire libre. La temporada 'mejor guardada' de Río.", it: "Inverno dell'emisfero sud — mite e secco, perfetto per il turismo. Temperature più fresche ideali per attività all'aperto. La stagione 'meglio custodita' di Rio." },
+      autumn: { en: "Southern Hemisphere spring — warming up with blooming ipê trees. Less crowded than summer. Great beach weather returns.", es: "Primavera del hemisferio sur — se calienta con ipês en flor. Menos concurrido que el verano. Vuelve el buen clima de playa.", it: "Primavera dell'emisfero sud — si scalda con gli ipê in fiore. Meno affollato dell'estate. Torna il bel tempo da spiaggia." },
+      winter: { en: "Southern Hemisphere summer — hot and humid with Carnival (Feb/Mar) being the ultimate event. Peak beach season. Book months ahead for Carnival.", es: "Verano del hemisferio sur — caluroso y húmedo con el Carnaval (feb/mar) siendo el evento máximo. Temporada alta de playa. Reserva con meses de antelación para el Carnaval.", it: "Estate dell'emisfero sud — caldo e umido con il Carnevale (feb/mar) come evento principale. Alta stagione balneare. Prenota con mesi di anticipo per il Carnevale." },
+    },
     tags: ["beach", "cultural", "nature", "nightlife"],
     content: {
       tagline: { en: "Beaches, mountains, and samba — the Marvelous City", es: "Playas, montañas y samba — la Ciudad Maravillosa", it: "Spiagge, montagne e samba — la Città Meravigliosa" },
@@ -1631,6 +1869,20 @@ export const destinations: Destination[] = [
     continent: "middle-east",
     coordinates: { lat: 25.2048, lng: 55.2708 },
     stats: { avgStayDays: 4, bestMonths: [11, 12, 1, 2, 3], budgetLevel: 3 },
+    climate: {
+      1: { high: 24, low: 14, crowd: 2 }, 2: { high: 26, low: 15, crowd: 2 },
+      3: { high: 29, low: 18, crowd: 2 }, 4: { high: 33, low: 21, crowd: 1 },
+      5: { high: 38, low: 25, crowd: 1 }, 6: { high: 40, low: 28, crowd: 1 },
+      7: { high: 42, low: 30, crowd: 1 }, 8: { high: 41, low: 30, crowd: 1 },
+      9: { high: 39, low: 27, crowd: 1 }, 10: { high: 35, low: 23, crowd: 1 },
+      11: { high: 30, low: 19, crowd: 2 }, 12: { high: 26, low: 16, crowd: 3 },
+    },
+    seasonNotes: {
+      spring: { en: "Warm and pleasant through March, getting hot from April. Dubai Shopping Festival often extends into January. Outdoor activities still comfortable.", es: "Cálido y agradable hasta marzo, se pone caluroso desde abril. El Dubai Shopping Festival a menudo se extiende hasta enero. Actividades al aire libre aún cómodas.", it: "Caldo e piacevole fino a marzo, diventa caldo da aprile. Il Dubai Shopping Festival spesso si estende fino a gennaio. Attività all'aperto ancora confortevoli." },
+      summer: { en: "Extreme heat (40°C+) makes outdoor activities difficult. Indoor attractions like malls and indoor ski slopes are popular. Lowest prices of the year.", es: "Calor extremo (40°C+) hace difíciles las actividades al aire libre. Atracciones interiores como centros comerciales y pistas de esquí cubiertas son populares. Precios más bajos del año.", it: "Calore estremo (40°C+) rende difficili le attività all'aperto. Attrazioni al chiuso come centri commerciali e piste da sci coperte sono popolari. Prezzi più bassi dell'anno." },
+      autumn: { en: "Heat eases from October. Dubai Design Week and art season begin. Beach weather returns by November.", es: "El calor cede desde octubre. Comienzan la Dubai Design Week y la temporada artística. El clima de playa regresa en noviembre.", it: "Il calore si attenua da ottobre. Iniziano la Dubai Design Week e la stagione artistica. Il tempo da spiaggia torna a novembre." },
+      winter: { en: "Perfect weather — warm days and cool evenings. Peak tourist season with New Year's Eve fireworks at Burj Khalifa. Desert safaris are ideal.", es: "Clima perfecto — días cálidos y tardes frescas. Temporada alta turística con fuegos artificiales de Nochevieja en el Burj Khalifa. Los safaris por el desierto son ideales.", it: "Tempo perfetto — giornate calde e serate fresche. Alta stagione turistica con fuochi d'artificio di Capodanno al Burj Khalifa. I safari nel deserto sono ideali." },
+    },
     tags: ["urban", "shopping", "adventure", "foodie"],
     content: {
       tagline: { en: "Where the future meets the desert", es: "Donde el futuro se encuentra con el desierto", it: "Dove il futuro incontra il deserto" },
@@ -1671,6 +1923,20 @@ export const destinations: Destination[] = [
     continent: "europe",
     coordinates: { lat: 41.0082, lng: 28.9784 },
     stats: { avgStayDays: 4, bestMonths: [4, 5, 9, 10], budgetLevel: 1 },
+    climate: {
+      1: { high: 9, low: 3, crowd: 1 }, 2: { high: 10, low: 3, crowd: 1 },
+      3: { high: 13, low: 5, crowd: 1 }, 4: { high: 17, low: 9, crowd: 2 },
+      5: { high: 22, low: 13, crowd: 2 }, 6: { high: 27, low: 18, crowd: 3 },
+      7: { high: 29, low: 20, crowd: 3 }, 8: { high: 29, low: 21, crowd: 3 },
+      9: { high: 26, low: 17, crowd: 2 }, 10: { high: 20, low: 13, crowd: 2 },
+      11: { high: 15, low: 9, crowd: 1 }, 12: { high: 11, low: 5, crowd: 1 },
+    },
+    seasonNotes: {
+      spring: { en: "Tulip season with millions blooming across the city. Warm days perfect for Bosphorus cruises. Ramadan may fall in spring — a unique cultural experience.", es: "Temporada de tulipanes con millones floreciendo por toda la ciudad. Días cálidos perfectos para cruceros por el Bósforo. El Ramadán puede caer en primavera — una experiencia cultural única.", it: "Stagione dei tulipani con milioni in fiore in tutta la città. Giornate calde perfette per crociere sul Bosforo. Il Ramadan può cadere in primavera — un'esperienza culturale unica." },
+      summer: { en: "Hot and humid but vibrant. Rooftop restaurants overlooking the Bosphorus are magical at sunset. Beach day trips to Princes' Islands.", es: "Caluroso y húmedo pero vibrante. Los restaurantes en azoteas con vista al Bósforo son mágicos al atardecer. Excursiones de playa a las Islas de los Príncipes.", it: "Caldo e umido ma vibrante. I ristoranti sui tetti con vista sul Bosforo sono magici al tramonto. Escursioni al mare alle Isole dei Principi." },
+      autumn: { en: "Golden light and comfortable temperatures. Perfect for Grand Bazaar shopping and mosque visits. Fewer crowds than summer.", es: "Luz dorada y temperaturas confortables. Perfecto para compras en el Gran Bazar y visitas a mezquitas. Menos multitudes que en verano.", it: "Luce dorata e temperature confortevoli. Perfetto per shopping al Gran Bazar e visite alle moschee. Meno folla rispetto all'estate." },
+      winter: { en: "Cold and occasionally snowy — Istanbul under snow is breathtaking. Turkish tea and hammam culture shine. Great deals on hotels.", es: "Frío y ocasionalmente nevado — Estambul bajo la nieve es impresionante. La cultura del té turco y el hammam brillan. Grandes ofertas en hoteles.", it: "Freddo e occasionalmente innevato — Istanbul sotto la neve è mozzafiato. La cultura del tè turco e dell'hammam risplende. Grandi offerte sugli hotel." },
+    },
     tags: ["cultural", "foodie", "historical", "romantic"],
     content: {
       tagline: { en: "Where East meets West across the Bosphorus", es: "Donde Oriente se encuentra con Occidente a través del Bósforo", it: "Dove Oriente incontra Occidente attraverso il Bosforo" },
@@ -1712,6 +1978,20 @@ export const destinations: Destination[] = [
     continent: "africa",
     coordinates: { lat: 31.6295, lng: -7.9811 },
     stats: { avgStayDays: 3, bestMonths: [3, 4, 5, 10, 11], budgetLevel: 1 },
+    climate: {
+      1: { high: 18, low: 5, crowd: 1 }, 2: { high: 20, low: 7, crowd: 1 },
+      3: { high: 23, low: 10, crowd: 2 }, 4: { high: 25, low: 12, crowd: 2 },
+      5: { high: 29, low: 15, crowd: 2 }, 6: { high: 34, low: 18, crowd: 1 },
+      7: { high: 38, low: 21, crowd: 1 }, 8: { high: 37, low: 21, crowd: 1 },
+      9: { high: 33, low: 18, crowd: 1 }, 10: { high: 27, low: 14, crowd: 2 },
+      11: { high: 22, low: 10, crowd: 2 }, 12: { high: 19, low: 6, crowd: 2 },
+    },
+    seasonNotes: {
+      spring: { en: "Perfect weather for exploring souks and gardens. Almond and orange trees in bloom. Ideal temperatures for day trips to the Atlas Mountains.", es: "Clima perfecto para explorar zocos y jardines. Almendros y naranjos en flor. Temperaturas ideales para excursiones de un día a las Montañas del Atlas.", it: "Tempo perfetto per esplorare i souk e i giardini. Mandorli e aranci in fiore. Temperature ideali per gite giornaliere sulle Montagne dell'Atlante." },
+      summer: { en: "Extreme heat (37°C+) makes midday exploration difficult. Early morning and late evening activities recommended. Pool and riad relaxation time.", es: "Calor extremo (37°C+) hace difícil la exploración al mediodía. Se recomiendan actividades temprano por la mañana y al atardecer. Tiempo de relajación en piscinas y riads.", it: "Calore estremo (37°C+) rende difficile l'esplorazione a mezzogiorno. Attività consigliate al mattino presto e in tarda serata. Relax in piscina e nei riad." },
+      autumn: { en: "Heat subsides and the medina comes alive. Date harvest season. October–November offer ideal conditions for souks, palaces, and gardens.", es: "El calor cede y la medina cobra vida. Temporada de cosecha de dátiles. Octubre-noviembre ofrecen condiciones ideales para zocos, palacios y jardines.", it: "Il calore si attenua e la medina si anima. Stagione della raccolta dei datteri. Ottobre-novembre offrono condizioni ideali per souk, palazzi e giardini." },
+      winter: { en: "Mild days and cool evenings — perfect for Jemaa el-Fna square. Snow-capped Atlas Mountains make stunning backdrops. Great value season.", es: "Días templados y tardes frescas — perfecto para la plaza Jemaa el-Fna. Las Montañas del Atlas cubiertas de nieve crean fondos impresionantes. Temporada de buena relación calidad-precio.", it: "Giornate miti e serate fresche — perfetto per la piazza Jemaa el-Fna. Le Montagne dell'Atlante innevate creano sfondi mozzafiato. Stagione con ottimo rapporto qualità-prezzo." },
+    },
     tags: ["cultural", "foodie", "offbeat", "romantic"],
     content: {
       tagline: { en: "Riads, souks, and Saharan magic", es: "Riads, zocos y magia sahariana", it: "Riad, souk e magia sahariana" },
