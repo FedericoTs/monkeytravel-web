@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Pianificatore di Viaggi in Solitaria — Itinerari AI per Viaggiatori Solitari | MonkeyTravel",
+    "description": "Pianifica la tua avventura in solitaria con AI in pochi secondi. Itinerari personalizzati con consigli di sicurezza, punti sociali, ristoranti solo-friendly ed esperienze locali. 100% gratuito."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "soloTripPlanner": "Pianificatore di Viaggi in Solitaria"
+  },
+  "hero": {
+    "badge": "Per Viaggiatori Solitari — 100% Gratuito",
+    "title": "Il Pianificatore AI di Viaggi in Solitaria per Esploratori Senza Paura",
+    "subtitle": "Viaggiare da soli non significa pianificare da soli. Ottieni un itinerario personalizzato giorno per giorno con consigli di sicurezza, punti sociali e locali solo-friendly — in meno di 60 secondi.",
+    "cta": "Pianifica il Mio Viaggio Solo — Gratis",
+    "secondaryCta": "Scopri Come Funziona",
+    "trustSignals": {
+      "free": "Gratis per sempre",
+      "noCard": "Senza carta di credito",
+      "instant": "Ottimizzato per viaggiatori solitari"
+    }
+  },
+  "features": {
+    "title": "Tutto Ciò Che un Viaggiatore Solitario Ha Bisogno",
+    "subtitle": "Pianificazione con AI progettata specificamente per viaggiatori indipendenti. Sicurezza, spontaneità e connessioni sociali incluse.",
+    "items": {
+      "soloSafety": {
+        "title": "Informazioni di Sicurezza per Solitari",
+        "description": "Ottieni valutazioni di sicurezza per quartiere, percorsi ben illuminati e consigli specifici per zona per esplorare con fiducia — di giorno o di notte."
+      },
+      "flexibleSchedule": {
+        "title": "Itinerari Flessibili e Spontanei",
+        "description": "Nessun programma rigido di gruppo. Il tuo itinerario AI si adatta al tuo ritmo — dormi fino a tardi, fermati in un caffè o cambia piani quando vuoi."
+      },
+      "socialSpots": {
+        "title": "Punti Sociali e di Incontro",
+        "description": "Scopri ostelli con aree comuni, tour di gruppo, pub crawl e caffè coworking — perfetti per incontrare altri viaggiatori quando desideri compagnia."
+      },
+      "soloFriendly": {
+        "title": "Ristoranti Solo-Friendly",
+        "description": "Basta con l'imbarazzo del \"tavolo per uno\". Raccomandiamo ristoranti con posti al bancone, tavoli condivisi e un'atmosfera accogliente per chi mangia da solo."
+      },
+      "localExperiences": {
+        "title": "Esperienze Locali Oltre le Trappole per Turisti",
+        "description": "Salta le attrazioni affollate. Ottieni esperienze locali curate — passeggiate nei quartieri, mercati nascosti e gemme culturali autentiche che solo i locali conoscono."
+      },
+      "soloBudget": {
+        "title": "Budget Ottimizzato per Uno",
+        "description": "Nessun costo da dividere significa calcoli diversi. Ottieni prezzi precisi per un singolo viaggiatore su tre livelli: Economico, Bilanciato e Premium."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Pianifica la Tua Avventura in Solitaria in 3 Passaggi",
+    "steps": {
+      "step1": {
+        "title": "Parlaci di Te",
+        "description": "Inserisci la tua destinazione, date di viaggio, budget e stile di viaggio in solitaria — che tu sia un esploratore introverso o una farfalla sociale."
+      },
+      "step2": {
+        "title": "L'AI Crea la Tua Avventura Solo",
+        "description": "La nostra AI genera un itinerario completo ottimizzato per solitari in meno di 60 secondi — con consigli di sicurezza, locali solo-friendly e orari flessibili."
+      },
+      "step3": {
+        "title": "Esplora con Fiducia",
+        "description": "Parti con un piano che si adatta a te. Scambia attività, scopri luoghi vicini e viaggia al tuo ritmo — sempre gratis."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Reddit + Forum di Viaggio",
+    "subtitle": "Smetti di scorrere anni di post obsoleti nei forum. Ottieni un piano di viaggio in solitaria personalizzato all'istante.",
+    "items": {
+      "personalization": {
+        "label": "Personalizzazione",
+        "monkey": "Itinerario AI su misura per le tue date, budget e stile",
+        "other": "Consigli generici che potrebbero non adattarsi alla tua situazione"
+      },
+      "safetyInfo": {
+        "label": "Informazioni di sicurezza",
+        "monkey": "Valutazioni di sicurezza per quartiere incluse",
+        "other": "Sparse, aneddotiche e spesso obsolete"
+      },
+      "planningTime": {
+        "label": "Tempo di pianificazione",
+        "monkey": "Itinerario completo in 60 secondi",
+        "other": "Ore a leggere thread e confrontare informazioni"
+      },
+      "soloVenues": {
+        "label": "Locali solo-friendly",
+        "monkey": "Ristoranti per mangiare da soli e ostelli sociali selezionati",
+        "other": "Devi ricercare ogni locale individualmente"
+      },
+      "currentData": {
+        "label": "Informazioni aggiornate",
+        "monkey": "Prezzi reali e locali verificati",
+        "other": "I post nei forum possono avere anni"
+      }
+    }
+  },
+  "faq": {
+    "title": "Domande Frequenti",
+    "items": {
+      "isSafe": {
+        "question": "È sicuro viaggiare da soli?",
+        "answer": "Viaggiare da soli è uno dei modi più gratificanti per esplorare il mondo, e milioni lo fanno in sicurezza ogni anno. MonkeyTravel aiuta includendo informazioni di sicurezza per quartiere, raccomandando zone frequentate e suggerendo locali solo-friendly in ogni itinerario."
+      },
+      "soloFriendly": {
+        "question": "Cosa rende un itinerario \"solo-friendly\"?",
+        "answer": "I nostri itinerari per solitari danno priorità a orari flessibili (nessun programma di gruppo rigido), ristoranti con posti al bancone o tavoli condivisi, ostelli sociali e punti di incontro, quartieri percorribili a piedi e attività godibili da soli — come tour gastronomici, musei e mercati locali."
+      },
+      "meetPeople": {
+        "question": "Posso incontrare altri viaggiatori con MonkeyTravel?",
+        "answer": "Sì! La nostra AI include punti sociali come aree comuni degli ostelli, tour di gruppo, pub crawl e caffè coworking nel tuo itinerario. Sono luoghi naturali per incontrare altri viaggiatori senza la pressione di eventi organizzati."
+      },
+      "isFree": {
+        "question": "MonkeyTravel è davvero gratuito per i viaggiatori solitari?",
+        "answer": "Assolutamente. MonkeyTravel è 100% gratuito — nessuna carta di credito, nessun periodo di prova, nessun costo nascosto. I viaggiatori solitari ottengono itinerari illimitati con tutte le funzionalità incluse."
+      },
+      "changePlans": {
+        "question": "E se volessi cambiare i miei piani durante il viaggio?",
+        "answer": "Questa è la bellezza del viaggiare da soli! Il tuo itinerario MonkeyTravel è completamente flessibile. Scambia attività, salta un giorno o rigenera un nuovo piano in qualsiasi momento. Non c'è nessun gruppo con cui coordinarsi — è la tua avventura."
+      },
+      "budgetSolo": {
+        "question": "Come funziona il budget per i viaggiatori solitari?",
+        "answer": "MonkeyTravel calcola prezzi precisi per una persona su tre livelli: Economico, Bilanciato e Premium. A differenza dei pianificatori di gruppo che dividono i costi, la nostra modalità solo ti dà costi realistici per persona per alloggio, cibo, attività e trasporti."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto per la Tua Avventura in Solitaria?",
+    "subtitle": "Unisciti a migliaia di viaggiatori indipendenti che pianificano meglio con AI. Il tuo prossimo viaggio in solitaria inizia qui — gratis per sempre.",
+    "button": "Pianifica il Mio Viaggio Solo — Gratis",
+    "mobileNotify": "Ricevi una notifica quando lanceremo l'app mobile"
+  }
+}

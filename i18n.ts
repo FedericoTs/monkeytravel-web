@@ -33,7 +33,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all translation namespaces
-  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog, freeTripPlanner, groupTripPlanner] = await Promise.all([
+  const [common, auth, trips, landing, profile, bananas, consent, destinations, blog, freeTripPlanner, groupTripPlanner, aiItineraryGenerator, weekendTripPlanner, familyTripPlanner, budgetTripPlanner, soloTripPlanner] = await Promise.all([
     import(`./messages/${locale}/common.json`),
     import(`./messages/${locale}/auth.json`),
     import(`./messages/${locale}/trips.json`),
@@ -45,6 +45,11 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./messages/${locale}/blog.json`),
     import(`./messages/${locale}/freeTripPlanner.json`),
     import(`./messages/${locale}/groupTripPlanner.json`),
+    import(`./messages/${locale}/aiItineraryGenerator.json`),
+    import(`./messages/${locale}/weekendTripPlanner.json`),
+    import(`./messages/${locale}/familyTripPlanner.json`),
+    import(`./messages/${locale}/budgetTripPlanner.json`),
+    import(`./messages/${locale}/soloTripPlanner.json`),
   ]);
 
   return {
@@ -61,6 +66,11 @@ export default getRequestConfig(async ({ requestLocale }) => {
       blog: blog.default,
       freeTripPlanner: freeTripPlanner.default,
       groupTripPlanner: groupTripPlanner.default,
+      aiItineraryGenerator: aiItineraryGenerator.default,
+      weekendTripPlanner: weekendTripPlanner.default,
+      familyTripPlanner: familyTripPlanner.default,
+      budgetTripPlanner: budgetTripPlanner.default,
+      soloTripPlanner: soloTripPlanner.default,
     },
   };
 });

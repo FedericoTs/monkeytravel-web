@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Solo Trip Planner — AI-Powered Itineraries for Solo Travelers | MonkeyTravel",
+    "description": "Plan your solo adventure with AI in seconds. Get personalized itineraries with safety tips, social spots, solo-friendly restaurants, and local experiences. 100% free."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "soloTripPlanner": "Solo Trip Planner"
+  },
+  "hero": {
+    "badge": "Built for Solo Travelers — 100% Free",
+    "title": "The AI Solo Trip Planner for Fearless Explorers",
+    "subtitle": "Traveling alone doesn't mean planning alone. Get a personalized day-by-day itinerary with safety tips, social spots, and solo-friendly venues — in under 60 seconds.",
+    "cta": "Plan My Solo Trip — Free",
+    "secondaryCta": "See How It Works",
+    "trustSignals": {
+      "free": "Free forever",
+      "noCard": "No credit card",
+      "instant": "Solo-optimized"
+    }
+  },
+  "features": {
+    "title": "Everything a Solo Traveler Needs",
+    "subtitle": "AI-powered planning designed specifically for independent travelers. Safety, spontaneity, and social connections built in.",
+    "items": {
+      "soloSafety": {
+        "title": "Solo Safety Insights",
+        "description": "Get neighborhood safety ratings, well-lit walking routes, and area-specific tips so you can explore with confidence — day or night."
+      },
+      "flexibleSchedule": {
+        "title": "Flexible, Spontaneous Itineraries",
+        "description": "No rigid group schedules. Your AI itinerary adapts to your pace — sleep in, linger at a cafe, or change plans on a whim."
+      },
+      "socialSpots": {
+        "title": "Social Spots & Meeting Points",
+        "description": "Discover hostels with social areas, group tours, pub crawls, and coworking cafes — perfect for meeting fellow travelers when you want company."
+      },
+      "soloFriendly": {
+        "title": "Solo-Friendly Restaurants",
+        "description": "No more awkward \"table for one.\" We recommend restaurants with bar seating, communal tables, and solo-diner-friendly vibes."
+      },
+      "localExperiences": {
+        "title": "Local Experiences Beyond Tourist Traps",
+        "description": "Skip the crowded attractions. Get curated local experiences — neighborhood walks, hidden markets, and authentic cultural gems only locals know."
+      },
+      "soloBudget": {
+        "title": "Budget Optimized for One",
+        "description": "No splitting costs means different math. Get accurate single-traveler pricing across three budget tiers: Budget, Balanced, and Premium."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Plan Your Solo Adventure in 3 Steps",
+    "steps": {
+      "step1": {
+        "title": "Tell Us About You",
+        "description": "Enter your destination, travel dates, budget, and solo travel style — whether you're an introvert explorer or a social butterfly."
+      },
+      "step2": {
+        "title": "AI Crafts Your Solo Adventure",
+        "description": "Our AI generates a complete solo-optimized itinerary in under 60 seconds — with safety tips, solo-friendly venues, and flexible timing."
+      },
+      "step3": {
+        "title": "Explore with Confidence",
+        "description": "Hit the road with a plan that adapts to you. Swap activities, discover nearby spots, and travel at your own pace — always free."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Reddit + Travel Forums",
+    "subtitle": "Stop scrolling through years of outdated forum posts. Get a personalized solo travel plan instantly.",
+    "items": {
+      "personalization": {
+        "label": "Personalization",
+        "monkey": "AI itinerary tailored to your dates, budget & style",
+        "other": "Generic advice that may not fit your situation"
+      },
+      "safetyInfo": {
+        "label": "Safety information",
+        "monkey": "Neighborhood safety ratings included",
+        "other": "Scattered, anecdotal, often outdated"
+      },
+      "planningTime": {
+        "label": "Planning time",
+        "monkey": "Complete itinerary in 60 seconds",
+        "other": "Hours of reading threads and cross-referencing"
+      },
+      "soloVenues": {
+        "label": "Solo-friendly venues",
+        "monkey": "Curated solo-diner restaurants & social hostels",
+        "other": "You research every venue individually"
+      },
+      "currentData": {
+        "label": "Up-to-date info",
+        "monkey": "Real prices and verified venues",
+        "other": "Forum posts may be years old"
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "isSafe": {
+        "question": "Is solo travel safe?",
+        "answer": "Solo travel is one of the most rewarding ways to explore the world, and millions do it safely every year. MonkeyTravel helps by including neighborhood safety insights, recommending well-traveled areas, and suggesting solo-friendly venues in every itinerary."
+      },
+      "soloFriendly": {
+        "question": "What makes an itinerary \"solo-friendly\"?",
+        "answer": "Our solo itineraries prioritize flexible timing (no strict group schedules), restaurants with bar seating or communal tables, social hostels and meetup spots, walkable neighborhoods, and activities that are enjoyable alone — like food tours, museums, and local markets."
+      },
+      "meetPeople": {
+        "question": "Can I meet other travelers with MonkeyTravel?",
+        "answer": "Yes! Our AI includes social spots like hostel common areas, group tours, pub crawls, and coworking cafes in your itinerary. These are natural places to meet fellow travelers without the pressure of organized events."
+      },
+      "isFree": {
+        "question": "Is MonkeyTravel really free for solo travelers?",
+        "answer": "Absolutely. MonkeyTravel is 100% free — no credit card, no trial period, no hidden fees. Solo travelers get unlimited itineraries with all features included."
+      },
+      "changePlans": {
+        "question": "What if I want to change my plans mid-trip?",
+        "answer": "That's the beauty of solo travel! Your MonkeyTravel itinerary is fully flexible. Swap activities, skip a day, or regenerate a new plan anytime. There's no group to coordinate with — it's your adventure."
+      },
+      "budgetSolo": {
+        "question": "How does budgeting work for solo travelers?",
+        "answer": "MonkeyTravel calculates accurate single-person pricing across three tiers: Budget, Balanced, and Premium. Unlike group planners that split costs, our solo mode gives you realistic per-person costs for accommodation, food, activities, and transport."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready for Your Solo Adventure?",
+    "subtitle": "Join thousands of independent travelers who plan smarter with AI. Your next solo trip starts here — free forever.",
+    "button": "Plan My Solo Trip — Free",
+    "mobileNotify": "Get notified when the mobile app launches"
+  }
+}

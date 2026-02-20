@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "title": "Generador de Itinerarios con AI — Planes de Viaje Día a Día | MonkeyTravel",
+    "description": "Genera itinerarios de viaje completos con AI en 30 segundos. Planes día a día con lugares reales, precios actuales y bloques de tiempo inteligentes. Gratis, sin registro."
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "aiItineraryGenerator": "Generador de Itinerarios con AI"
+  },
+  "hero": {
+    "badge": "Con AI — Genera Itinerarios en 30 Segundos",
+    "title": "El Generador de Itinerarios con AI Que Planifica Como un Profesional",
+    "subtitle": "Introduce un destino y obtén un itinerario completo día a día con lugares reales, precios actuales y bloques de tiempo optimizados — todo generado por AI en menos de 30 segundos.",
+    "cta": "Generar Mi Itinerario",
+    "secondaryCta": "Mira Cómo Funciona",
+    "trustSignals": {
+      "free": "Gratis para siempre",
+      "noCard": "Sin tarjeta de crédito",
+      "instant": "Listo en 30 segundos"
+    }
+  },
+  "stats": {
+    "generationTime": "Tiempo de Generación",
+    "destinations": "Destinos",
+    "free": "Gratis",
+    "budgetTiers": "Niveles de Presupuesto"
+  },
+  "features": {
+    "title": "Generación de Itinerarios con AI Potente",
+    "subtitle": "Nuestra AI no solo sugiere lugares — construye itinerarios completos y estructurados que realmente puedes seguir.",
+    "items": {
+      "smartItineraries": {
+        "title": "Itinerarios AI Inteligentes",
+        "description": "Algoritmos avanzados analizan miles de datos para crear planes día a día perfectamente estructurados con bloques de mañana, tarde y noche."
+      },
+      "realTimeData": {
+        "title": "Datos de Lugares en Tiempo Real",
+        "description": "Cada restaurante, atracción y hotel está verificado con valoraciones, precios y horarios actuales. Sin recomendaciones obsoletas ni ficticias."
+      },
+      "customizable": {
+        "title": "Planes Totalmente Personalizables",
+        "description": "Cambia actividades, ajusta horarios, modifica niveles de presupuesto. Tu itinerario generado con AI es un punto de partida que puedes hacer completamente tuyo."
+      },
+      "multiCity": {
+        "title": "Soporte para Viajes Multi-Ciudad",
+        "description": "¿Planeas un viaje con varias paradas? Genera itinerarios conectados entre múltiples ciudades con rutas lógicas entre destinos."
+      },
+      "offlineAccess": {
+        "title": "Acceso Sin Conexión",
+        "description": "Descarga tu itinerario generado a tu dispositivo. Accede a tus planes día a día incluso sin conexión a internet mientras viajas."
+      },
+      "exportShare": {
+        "title": "Exportar y Compartir",
+        "description": "Exporta tu itinerario como PDF, comparte un enlace con tus compañeros de viaje o sincroniza con tu calendario. Tus planes de viaje, donde los necesites."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Genera un Itinerario en 3 Pasos",
+    "steps": {
+      "step1": {
+        "title": "Introduce los Detalles de Tu Viaje",
+        "description": "Dinos tu destino, fechas de viaje, preferencia de presupuesto e intereses. Cuanto más detalle, mejor será tu itinerario."
+      },
+      "step2": {
+        "title": "La AI Genera Tu Itinerario",
+        "description": "Nuestro motor de AI construye un plan completo día a día en menos de 30 segundos — con lugares reales, bloques de tiempo y tres niveles de presupuesto para comparar."
+      },
+      "step3": {
+        "title": "Personaliza y Exporta",
+        "description": "Ajusta tu itinerario, expórtalo como PDF, compártelo con amigos o descárgalo para acceso sin conexión. Tu viaje perfecto, listo para disfrutar."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. AI Genérica",
+    "subtitle": "ChatGPT y Gemini dan listas de texto. MonkeyTravel genera itinerarios estructurados y accionables.",
+    "items": {
+      "dayByDay": {
+        "label": "Estructura día a día",
+        "monkey": "Organizado por día con bloques de mañana/tarde/noche",
+        "chatgpt": "Lista de texto sin estructura de sugerencias"
+      },
+      "realVenues": {
+        "label": "Lugares verificados",
+        "monkey": "Lugares reales con precios y valoraciones actuales",
+        "chatgpt": "A menudo incluye lugares cerrados o ficticios"
+      },
+      "timeBlocks": {
+        "label": "Optimización de tiempo",
+        "monkey": "Rutas inteligentes minimizan el desplazamiento entre actividades",
+        "chatgpt": "Sin lógica geográfica ni gestión del tiempo"
+      },
+      "budgetOptions": {
+        "label": "Niveles de presupuesto",
+        "monkey": "3 itinerarios completos: Económico, Equilibrado, Premium",
+        "chatgpt": "Una sugerencia genérica sin datos de precios"
+      },
+      "exportOptions": {
+        "label": "Exportar y compartir",
+        "monkey": "Exportar a PDF, enlaces compartibles, sincronización con calendario",
+        "chatgpt": "Solo copiar y pegar texto"
+      }
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "items": {
+      "whatIsIt": {
+        "question": "¿Qué es un generador de itinerarios con AI?",
+        "answer": "Un generador de itinerarios con AI utiliza inteligencia artificial para crear automáticamente planes de viaje completos día a día basados en tu destino, fechas, presupuesto y preferencias. El generador de MonkeyTravel va más allá al incluir datos reales de lugares, precios actuales, rutas inteligentes y múltiples opciones de presupuesto — no solo una lista genérica de sugerencias."
+      },
+      "howFast": {
+        "question": "¿Qué tan rápido genera un itinerario?",
+        "answer": "MonkeyTravel genera un itinerario completo día a día en menos de 30 segundos. Obtendrás tres niveles de presupuesto (Económico, Equilibrado, Premium) con lugares reales, precios y bloques de tiempo optimizados — todo listo para personalizar o exportar de inmediato."
+      },
+      "howAccurate": {
+        "question": "¿Qué tan precisos son los itinerarios generados?",
+        "answer": "MonkeyTravel utiliza datos de lugares en tiempo real, incluyendo valoraciones, precios y horarios de apertura de fuentes confiables. A diferencia de los chatbots genéricos de AI que pueden alucinar o sugerir lugares cerrados, nuestros itinerarios hacen referencia a lugares reales y verificados. Recomendamos confirmar detalles cerca de tu fecha de viaje."
+      },
+      "multiCity": {
+        "question": "¿Puede generar itinerarios multi-ciudad?",
+        "answer": "Sí. MonkeyTravel soporta la planificación de viajes multi-ciudad. Puedes generar itinerarios conectados que cubren múltiples destinos en un solo viaje, con rutas lógicas y días de transición entre ciudades."
+      },
+      "exportFormats": {
+        "question": "¿Puedo exportar o compartir mi itinerario?",
+        "answer": "Por supuesto. Puedes exportar tu itinerario generado como PDF, compartirlo mediante un enlace único con compañeros de viaje o sincronizarlo con tu calendario. También puedes descargarlo para acceso sin conexión mientras viajas."
+      },
+      "isFree": {
+        "question": "¿El generador de itinerarios con AI es gratis?",
+        "answer": "Sí, el generador de itinerarios con AI de MonkeyTravel es completamente gratis. Puedes generar itinerarios ilimitados sin tarjeta de crédito, sin período de prueba y sin costes ocultos. Todas las funciones — incluyendo exportación, compartir y soporte multi-ciudad — están incluidas sin coste."
+      }
+    }
+  },
+  "cta": {
+    "title": "¿Listo Para Generar Tu Itinerario?",
+    "subtitle": "Deja que la AI construya tu plan de viaje perfecto en 30 segundos. Lugares reales, rutas inteligentes, tres niveles de presupuesto — completamente gratis.",
+    "button": "Generar Mi Itinerario — Gratis",
+    "mobileNotify": "Recibe aviso cuando lance la app móvil"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Planificador de Viajes Familiares — Itinerarios con AI Para Todas las Edades | MonkeyTravel",
+    "description": "Planifica las vacaciones familiares perfectas con AI. Obtén itinerarios aptos para niños con actividades por edad, restaurantes familiares y horarios equilibrados. 100% gratis."
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "familyTripPlanner": "Planificador de Viajes Familiares"
+  },
+  "hero": {
+    "badge": "Hecho para Familias — 100% Gratis",
+    "title": "El Planificador de Viajes Familiares con AI Que Mantiene a Todos Felices",
+    "subtitle": "Introduce tu destino y los detalles de tu familia. Obtén un itinerario apto para niños y adaptado a su edad en menos de 60 segundos — con restaurantes familiares, actividades seguras y horarios equilibrados.",
+    "cta": "Planifica Nuestro Viaje Familiar — Gratis",
+    "secondaryCta": "Mira Cómo Funciona",
+    "trustSignals": {
+      "free": "Gratis para siempre",
+      "noCard": "Sin tarjeta de crédito",
+      "instant": "Resultados al instante"
+    }
+  },
+  "features": {
+    "title": "Todo Lo Que Tu Familia Necesita Para el Viaje Perfecto",
+    "subtitle": "Desde bebés hasta adolescentes, MonkeyTravel crea itinerarios que toda la familia disfrutará. Sin costes ocultos, sin estrés.",
+    "items": {
+      "kidFriendly": {
+        "title": "Actividades Aptas para Niños",
+        "description": "Cada actividad en tu itinerario está verificada para familias. Parques, museos con exposiciones interactivas, parques de atracciones y experiencias que los niños realmente disfrutan."
+      },
+      "ageAppropriate": {
+        "title": "Sugerencias Adaptadas por Edad",
+        "description": "Viajar con bebés es diferente a viajar con adolescentes. Nuestra AI adapta las actividades a la edad de tus hijos para que todos se mantengan entretenidos."
+      },
+      "familyBudget": {
+        "title": "Gestión del Presupuesto Familiar",
+        "description": "Los viajes familiares suman rápido. Obtén itinerarios en tres niveles de presupuesto — Económico, Equilibrado y Premium — con costes transparentes por persona incluyendo precios para niños."
+      },
+      "safeDestinations": {
+        "title": "Destinos Seguros y Verificados",
+        "description": "Cada lugar recomendado está verificado para la seguridad familiar. Priorizamos ubicaciones bien valoradas, que dan la bienvenida a familias y con buena accesibilidad."
+      },
+      "familySchedule": {
+        "title": "Horarios Familiares Equilibrados",
+        "description": "No más días sobrecargados que terminan en berrinches. Nuestra AI incluye pausas de descanso, tiempo para siestas y una mezcla de actividades activas y relajadas."
+      },
+      "familyDining": {
+        "title": "Restaurantes Aptos para Niños",
+        "description": "Encuentra restaurantes con menú infantil, tronas y ambiente acogedor para familias. No más buscar desesperadamente dónde comerán los niños."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Planifica un Viaje Familiar en 3 Simples Pasos",
+    "steps": {
+      "step1": {
+        "title": "Introduce los Detalles Familiares",
+        "description": "Dinos tu destino, fechas de viaje, edades de los niños y qué le gusta a tu familia. ¿Amantes de la playa? ¿Aficionados a la historia? ¿Fans de parques temáticos? Te tenemos."
+      },
+      "step2": {
+        "title": "La AI Crea Tu Itinerario Familiar",
+        "description": "Nuestra AI genera un plan completo día a día con actividades aptas para niños, restaurantes familiares y horarios realistas — todo en menos de 60 segundos."
+      },
+      "step3": {
+        "title": "Disfruten el Viaje Juntos",
+        "description": "Cambia actividades, ajusta horarios para las siestas y comparte el plan con tu pareja. Menos estrés planificando, más diversión en familia."
+      }
+    }
+  },
+  "comparison": {
+    "title": "¿Por Qué MonkeyTravel vs. Planificar Manualmente?",
+    "subtitle": "Deja de pasar noches buscando en Google \"cosas que hacer con niños en...\" — deja que la AI haga el trabajo pesado.",
+    "items": {
+      "kidFriendly": {
+        "label": "Lugares aptos para niños",
+        "monkey": "Cada lugar verificado para familias y niños",
+        "manual": "Horas leyendo reseñas y blogs"
+      },
+      "scheduling": {
+        "label": "Horarios equilibrados",
+        "monkey": "La AI incluye pausas de descanso y siestas",
+        "manual": "Días sobrecargados que agotan a todos"
+      },
+      "dining": {
+        "label": "Restaurantes familiares",
+        "monkey": "Restaurantes con menú infantil y tronas",
+        "manual": "Prueba y error en restaurantes al azar"
+      },
+      "budget": {
+        "label": "Transparencia de presupuesto",
+        "monkey": "Costes por persona incluyendo precios para niños",
+        "manual": "Costes sorpresa que revientan el presupuesto"
+      },
+      "routing": {
+        "label": "Rutas inteligentes",
+        "monkey": "Actividades cercanas para minimizar desplazamientos",
+        "manual": "Cruzar la ciudad de un lado a otro con niños cansados"
+      }
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "items": {
+      "whatAges": {
+        "question": "¿Para qué edades funciona el planificador de viajes familiares?",
+        "answer": "MonkeyTravel es compatible con familias con niños de todas las edades — desde bebés y niños pequeños hasta adolescentes. Solo introduce la edad de cada niño y nuestra AI adaptará las actividades en consecuencia, desde paseos aptos para cochecitos hasta actividades de aventura para adolescentes."
+      },
+      "isFree": {
+        "question": "¿El planificador de viajes familiares es gratis?",
+        "answer": "Sí, MonkeyTravel es completamente gratis para familias. Crea itinerarios familiares ilimitados, comparte planes con tu pareja y planifica en múltiples niveles de presupuesto — todo sin pagar nada ni introducir tarjeta de crédito."
+      },
+      "howSafe": {
+        "question": "¿Cómo aseguráis que las actividades son seguras para los niños?",
+        "answer": "Cada lugar en nuestra base de datos incluye valoraciones de aptitud familiar basadas en reseñas reales. Priorizamos ubicaciones bien establecidas y altamente valoradas, y señalamos cualquier lugar que pueda no ser adecuado para niños pequeños."
+      },
+      "specialNeeds": {
+        "question": "¿Puedo planificar para niños con necesidades dietéticas o alergias?",
+        "answer": "Sí. Puedes especificar requisitos dietéticos y la AI priorizará restaurantes que acomodan alergias y dietas especiales. Recomendamos confirmar directamente con los restaurantes antes de tu visita para obtener la información más actualizada."
+      },
+      "multiFamily": {
+        "question": "¿Puedo planificar un viaje con varias familias?",
+        "answer": "Por supuesto. MonkeyTravel incluye herramientas de colaboración grupal — invita a otras familias por enlace, voten juntos las actividades y construyan un itinerario compartido que funcione para todos."
+      },
+      "destinations": {
+        "question": "¿Qué destinos familiares soportáis?",
+        "answer": "MonkeyTravel genera itinerarios familiares para cualquier ciudad del mundo. Tenemos datos enriquecidos para más de 20 destinos familiares populares incluyendo Orlando, Barcelona, Tokio, Londres y Roma, y seguimos añadiendo más."
+      }
+    }
+  },
+  "cta": {
+    "title": "¿Listos Para Planificar Su Aventura Familiar?",
+    "subtitle": "Únete a miles de familias que planifican vacaciones sin estrés con AI. Gratis para siempre, sin compromisos.",
+    "button": "Planifica Nuestro Viaje Familiar — Gratis",
+    "mobileNotify": "Recibe aviso cuando lance la app móvil"
+  }
+}

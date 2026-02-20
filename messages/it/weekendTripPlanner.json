@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Pianificatore di Weekend — Fughe di 2-3 Giorni con AI | MonkeyTravel",
+    "description": "Pianifica la fuga del weekend perfetta in 15 minuti con AI. Itinerari personalizzati di 2-3 giorni con gemme locali, prezzi reali e programmazione intelligente. 100% gratis."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "weekendTripPlanner": "Pianificatore di Weekend"
+  },
+  "hero": {
+    "badge": "Pianifica un Weekend in 15 Minuti",
+    "title": "La Tua Fuga del Weekend Perfetta, Pianificata dall'AI",
+    "subtitle": "Scegli una destinazione e ottieni un itinerario completo di 2-3 giorni in pochi minuti. Gemme locali nascoste, opzioni economiche e orari intelligenti — tutto gratis.",
+    "cta": "Pianifica il Mio Weekend",
+    "secondaryCta": "Scopri Come Funziona",
+    "trustSignals": {
+      "free": "Gratis per sempre",
+      "noCard": "Senza carta di credito",
+      "instant": "Pronto in 15 min"
+    }
+  },
+  "features": {
+    "title": "Tutto Ciò Che Serve Per il Weekend Perfetto",
+    "subtitle": "Smetti di sprecare il tuo prezioso weekend a pianificare. Lascia che l'AI gestisca la logistica così tu puoi goderti il divertimento.",
+    "items": {
+      "quickPlanning": {
+        "title": "Pianificazione in 15 Minuti",
+        "description": "Dall'idea all'itinerario completo in 15 minuti. Perfetto per piani spontanei del weekend quando non hai tempo di fare ricerche per ore."
+      },
+      "shortTrips": {
+        "title": "Ottimizzato per 2-3 Giorni",
+        "description": "Ogni itinerario è progettato specificamente per viaggi brevi. Nessuna attività di riempimento — solo i punti salienti e le attrazioni imperdibili concentrati nel tuo weekend."
+      },
+      "localGems": {
+        "title": "Gemme Locali Nascoste",
+        "description": "Scopri i posti amati dalla gente del posto, non solo le trappole per turisti. La nostra AI trova i migliori bar, punti panoramici e quartieri che le guide non menzionano."
+      },
+      "budgetFriendly": {
+        "title": "Opzioni Economiche",
+        "description": "Le fughe del weekend non devono svuotare il portafoglio. Ottieni tre livelli di budget — da zaino in spalla a boutique — per spendere esattamente quanto vuoi."
+      },
+      "weatherSmart": {
+        "title": "Programmazione Meteo-Intelligente",
+        "description": "Attività all'aperto nelle giornate di sole, musei quando piove. La nostra AI considera le condizioni meteo così il tuo weekend non viene rovinato dal maltempo."
+      },
+      "lastMinute": {
+        "title": "Pronto all'Ultimo Minuto",
+        "description": "Hai deciso di partire questo venerdì? Nessun problema. Ottieni un itinerario completo per questo weekend con disponibilità in tempo reale e prezzi aggiornati."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Pianifica il Tuo Weekend in 3 Passaggi",
+    "steps": {
+      "step1": {
+        "title": "Scegli la Tua Destinazione",
+        "description": "Scegli una città, dicci le tue date e il budget. Che sia una fuga nelle vicinanze o un volo breve — ci pensiamo noi."
+      },
+      "step2": {
+        "title": "L'AI Pianifica il Tuo Viaggio di 2-3 Giorni",
+        "description": "La nostra AI costruisce un itinerario del weekend giorno per giorno con luoghi reali, percorsi a piedi e tempistiche intelligenti per sfruttare ogni ora al massimo."
+      },
+      "step3": {
+        "title": "Fai la Valigia e Parti",
+        "description": "Il tuo piano per il weekend è pronto. Cambia quello che vuoi, condividilo con gli amici e mettiti in viaggio. Semplice così."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Pianificazione Manuale del Weekend",
+    "subtitle": "Smetti di passare le sere infrasettimanali a fare ricerche. Lascia che l'AI faccia il lavoro pesante.",
+    "items": {
+      "planningTime": {
+        "label": "Tempo di pianificazione",
+        "monkey": "15 minuti, itinerario completo",
+        "chatgpt": "Ore tra schede e app diverse"
+      },
+      "localKnowledge": {
+        "label": "Conoscenza locale",
+        "monkey": "Gemme nascoste e preferiti dei locali inclusi",
+        "chatgpt": "Le solite liste top-10 turistiche ogni volta"
+      },
+      "scheduling": {
+        "label": "Programmazione intelligente",
+        "monkey": "Attività raggruppate per zona e orario",
+        "chatgpt": "La logistica la risolvi tu da solo"
+      },
+      "budgetControl": {
+        "label": "Controllo del budget",
+        "monkey": "3 livelli con prezzi reali fin dall'inizio",
+        "chatgpt": "Costi a sorpresa e nessuna stima dei prezzi"
+      },
+      "lastMinuteChanges": {
+        "label": "Viaggi dell'ultimo minuto",
+        "monkey": "Piano istantaneo per questo weekend",
+        "chatgpt": "Servono settimane di ricerca"
+      }
+    }
+  },
+  "faq": {
+    "title": "Domande Frequenti",
+    "items": {
+      "howQuick": {
+        "question": "Quanto velocemente posso pianificare un viaggio del weekend?",
+        "answer": "Puoi avere un itinerario completo per il weekend in circa 15 minuti. Inserisci semplicemente la tua destinazione, le date e il budget — la nostra AI si occupa del resto. Perfetto per quelle decisioni spontanee del venerdì pomeriggio."
+      },
+      "nearbyTrips": {
+        "question": "MonkeyTravel può suggerire destinazioni vicine per il weekend?",
+        "answer": "Sì! MonkeyTravel supporta oltre 180 destinazioni in tutto il mondo. Che tu voglia un viaggio in auto verso una città vicina o una fuga con un volo breve, otterrai un'esperienza del weekend completamente pianificata."
+      },
+      "tripLength": {
+        "question": "Funziona solo per weekend di 2 giorni?",
+        "answer": "Assolutamente no. MonkeyTravel funziona benissimo per weekend classici di 2 giorni, ponti di 3 giorni e anche fughe estese di 4 giorni. L'AI adatta l'itinerario per adattarsi alle tue date esatte."
+      },
+      "budgetWeekend": {
+        "question": "Come pianifico un weekend con un budget limitato?",
+        "answer": "MonkeyTravel offre tre livelli di budget per ogni viaggio: Economico, Bilanciato e Premium. Scegli il livello Economico per goderti un weekend fantastico con ristoranti accessibili, attrazioni gratuite e attività economiche."
+      },
+      "groupWeekend": {
+        "question": "Posso pianificare un weekend con gli amici?",
+        "answer": "Certamente. Condividi il tuo itinerario del weekend con gli amici, lascia che tutti votino le attività e raggiungete un consenso con gli strumenti di pianificazione di gruppo integrati. Basta con gli interminabili dibattiti nella chat di gruppo su cosa fare."
+      },
+      "isFree": {
+        "question": "Il pianificatore di weekend è davvero gratis?",
+        "answer": "Sì, MonkeyTravel è 100% gratis. Crea itinerari per il weekend illimitati, invita amici, confronta opzioni di budget — tutto senza pagare un centesimo. Nessuna carta di credito, nessun periodo di prova, nessun costo nascosto."
+      }
+    }
+  },
+  "cta": {
+    "title": "La Tua Prossima Avventura del Weekend Inizia Qui",
+    "subtitle": "Smetti di cercare, inizia ad esplorare. Pianifica la tua fuga del weekend perfetta in pochi minuti — gratis per sempre.",
+    "button": "Pianifica il Mio Weekend",
+    "mobileNotify": "Ricevi una notifica quando lanceremo l'app mobile"
+  }
+}

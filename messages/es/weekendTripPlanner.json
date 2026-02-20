@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Planificador de Escapadas de Fin de Semana — Viajes de 2-3 Dias con AI | MonkeyTravel",
+    "description": "Planifica la escapada de fin de semana perfecta en 15 minutos con AI. Itinerarios personalizados de 2-3 dias con joyas locales, precios reales y horarios inteligentes. 100% gratis."
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "weekendTripPlanner": "Planificador de Fin de Semana"
+  },
+  "hero": {
+    "badge": "Planifica un Fin de Semana en 15 Minutos",
+    "title": "Tu Escapada de Fin de Semana Perfecta, Planificada por AI",
+    "subtitle": "Elige un destino y obtén un itinerario completo de 2-3 días en minutos. Joyas locales ocultas, opciones económicas y horarios inteligentes — todo gratis.",
+    "cta": "Planifica Mi Fin de Semana",
+    "secondaryCta": "Mira Cómo Funciona",
+    "trustSignals": {
+      "free": "Gratis para siempre",
+      "noCard": "Sin tarjeta de crédito",
+      "instant": "Listo en 15 min"
+    }
+  },
+  "features": {
+    "title": "Todo Lo Que Necesitas Para el Fin de Semana Perfecto",
+    "subtitle": "Deja de desperdiciar tu preciado fin de semana planificando. Deja que la AI se encargue de la logística para que tú disfrutes.",
+    "items": {
+      "quickPlanning": {
+        "title": "Planificación en 15 Minutos",
+        "description": "De la idea al itinerario completo en 15 minutos. Perfecto para planes espontáneos de fin de semana cuando no tienes tiempo de investigar durante horas."
+      },
+      "shortTrips": {
+        "title": "Optimizado para 2-3 Días",
+        "description": "Cada itinerario está diseñado específicamente para viajes cortos. Sin actividades de relleno — solo los imprescindibles concentrados en tu fin de semana."
+      },
+      "localGems": {
+        "title": "Joyas Locales Ocultas",
+        "description": "Descubre los lugares que aman los locales, no solo trampas para turistas. Nuestra AI encuentra las mejores cafeterías, miradores y barrios que las guías no mencionan."
+      },
+      "budgetFriendly": {
+        "title": "Opciones Económicas",
+        "description": "Las escapadas de fin de semana no tienen que arruinarte. Obtén tres niveles de presupuesto — de mochilero a boutique — para gastar exactamente lo que quieras."
+      },
+      "weatherSmart": {
+        "title": "Horarios Según el Clima",
+        "description": "Actividades al aire libre en días soleados, museos cuando llueve. Nuestra AI considera los patrones climáticos para que tu fin de semana no se arruine por mal tiempo."
+      },
+      "lastMinute": {
+        "title": "Listo para Última Hora",
+        "description": "¿Decidiste irte este viernes? Sin problema. Obtén un itinerario pulido para este fin de semana con disponibilidad en tiempo real y precios actuales."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Planifica Tu Fin de Semana en 3 Pasos",
+    "steps": {
+      "step1": {
+        "title": "Elige Tu Destino",
+        "description": "Escoge una ciudad, cuéntanos tus fechas y presupuesto. Ya sea una escapada cercana o un vuelo rápido — te tenemos cubierto."
+      },
+      "step2": {
+        "title": "La AI Planifica Tu Viaje de 2-3 Días",
+        "description": "Nuestra AI construye un itinerario de fin de semana día a día con lugares reales, rutas a pie y horarios inteligentes para aprovechar cada hora."
+      },
+      "step3": {
+        "title": "Haz la Maleta y Sal",
+        "description": "Tu plan de fin de semana está listo. Cambia lo que quieras, compártelo con amigos y ponte en marcha. Así de fácil."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Planificación Manual del Fin de Semana",
+    "subtitle": "Deja de pasar las noches entre semana investigando. Deja que la AI haga el trabajo pesado.",
+    "items": {
+      "planningTime": {
+        "label": "Tiempo de planificación",
+        "monkey": "15 minutos, itinerario completo",
+        "chatgpt": "Horas entre múltiples pestañas y apps"
+      },
+      "localKnowledge": {
+        "label": "Conocimiento local",
+        "monkey": "Joyas ocultas y favoritos locales incluidos",
+        "chatgpt": "Las mismas listas de top-10 turísticas de siempre"
+      },
+      "scheduling": {
+        "label": "Horarios inteligentes",
+        "monkey": "Actividades agrupadas por zona y horario",
+        "chatgpt": "Tú resuelves la logística por tu cuenta"
+      },
+      "budgetControl": {
+        "label": "Control de presupuesto",
+        "monkey": "3 niveles con precios reales desde el inicio",
+        "chatgpt": "Costes sorpresa y sin estimaciones de precio"
+      },
+      "lastMinuteChanges": {
+        "label": "Viajes de última hora",
+        "monkey": "Plan instantáneo para este fin de semana",
+        "chatgpt": "Semanas de investigación necesarias"
+      }
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "items": {
+      "howQuick": {
+        "question": "¿Qué tan rápido puedo planificar un viaje de fin de semana?",
+        "answer": "Puedes tener un itinerario completo de fin de semana en unos 15 minutos. Solo introduce tu destino, fechas y presupuesto — nuestra AI se encarga del resto. Perfecto para esas decisiones espontáneas del viernes por la tarde."
+      },
+      "nearbyTrips": {
+        "question": "¿MonkeyTravel puede sugerir destinos cercanos para el fin de semana?",
+        "answer": "¡Sí! MonkeyTravel soporta más de 180 destinos en todo el mundo. Ya quieras un viaje por carretera a una ciudad cercana o una escapada en un vuelo corto, obtendrás una experiencia de fin de semana completamente planificada."
+      },
+      "tripLength": {
+        "question": "¿Solo funciona para fines de semana de 2 días?",
+        "answer": "Para nada. MonkeyTravel funciona genial para fines de semana clásicos de 2 días, puentes de 3 días e incluso escapadas extendidas de 4 días. La AI adapta el itinerario para ajustarse a tus fechas exactas."
+      },
+      "budgetWeekend": {
+        "question": "¿Cómo planifico un fin de semana con presupuesto ajustado?",
+        "answer": "MonkeyTravel ofrece tres niveles de presupuesto para cada viaje: Económico, Equilibrado y Premium. Elige el nivel Económico para disfrutar de un fin de semana increíble con restaurantes asequibles, atracciones gratuitas y actividades económicas."
+      },
+      "groupWeekend": {
+        "question": "¿Puedo planificar un fin de semana con amigos?",
+        "answer": "Por supuesto. Comparte tu itinerario de fin de semana con amigos, deja que todos voten por las actividades y lleguen a un consenso con las herramientas de planificación grupal integradas. Se acabaron los interminables debates en el chat grupal sobre qué hacer."
+      },
+      "isFree": {
+        "question": "¿El planificador de fin de semana es realmente gratis?",
+        "answer": "Sí, MonkeyTravel es 100% gratis. Crea itinerarios de fin de semana ilimitados, invita a amigos, compara opciones de presupuesto — todo sin pagar un centavo. Sin tarjeta de crédito, sin período de prueba, sin costes ocultos."
+      }
+    }
+  },
+  "cta": {
+    "title": "Tu Próxima Aventura de Fin de Semana Empieza Aquí",
+    "subtitle": "Deja de buscar, empieza a explorar. Planifica tu escapada de fin de semana perfecta en minutos — gratis para siempre.",
+    "button": "Planifica Mi Fin de Semana",
+    "mobileNotify": "Recibe aviso cuando lance la app móvil"
+  }
+}

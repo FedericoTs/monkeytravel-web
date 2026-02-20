@@ -49,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // SEO landing pages (× 3 locales)
   const landingPages: MetadataRoute.Sitemap = [];
-  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner'];
+  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner'];
 
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;

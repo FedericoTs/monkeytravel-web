@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Budget Trip Planner — Travel More, Spend Less | MonkeyTravel",
+    "description": "Plan affordable trips with AI. Get personalized itineraries with real prices across 3 budget tiers. Find cheap flights, affordable stays, and free activities. 100% free tool."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "budgetTripPlanner": "Budget Trip Planner"
+  },
+  "hero": {
+    "badge": "Smart Budget Travel — Powered by AI",
+    "title": "The Budget Trip Planner That Saves You Real Money",
+    "subtitle": "Set your daily budget, and our AI finds the best destinations, flights, stays, and activities that fit. Real prices, real savings — from $30/day.",
+    "cta": "Plan My Budget Trip",
+    "secondaryCta": "See How It Works",
+    "trustSignals": {
+      "free": "100% free tool",
+      "noCard": "Real price data",
+      "instant": "3 budget tiers"
+    }
+  },
+  "features": {
+    "title": "Budget Travel, Without the Compromise",
+    "subtitle": "Every itinerary includes actual costs so you know exactly what you'll spend before you go.",
+    "items": {
+      "priceComparison": {
+        "title": "Side-by-Side Price Comparison",
+        "description": "Every itinerary comes in 3 budget tiers — Budget, Balanced, and Premium — with real daily cost breakdowns so you can pick the right one."
+      },
+      "budgetTiers": {
+        "title": "3 Budget Tiers Per Trip",
+        "description": "See exactly what $30/day, $75/day, or $150+/day looks like in any destination. Compare accommodation, food, and activity costs across tiers."
+      },
+      "costBreakdown": {
+        "title": "Full Cost Breakdown",
+        "description": "Every activity, meal, and hotel shows real prices. Get a total trip estimate before you book anything — no surprises on the road."
+      },
+      "cheapFlights": {
+        "title": "Affordable Flight Tips",
+        "description": "AI suggests the cheapest times to fly and budget-friendly airports. Save hundreds by being flexible with your travel dates."
+      },
+      "affordableStays": {
+        "title": "Budget-Friendly Stays",
+        "description": "From hostels to guesthouses to budget hotels — each tier shows verified accommodations with real nightly rates and ratings."
+      },
+      "freeActivities": {
+        "title": "Free Activities & Hidden Gems",
+        "description": "Every Budget tier itinerary includes free walking tours, parks, viewpoints, and local experiences that cost nothing but are unforgettable."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Plan a Budget Trip in 3 Steps",
+    "steps": {
+      "step1": {
+        "title": "Set Your Budget",
+        "description": "Tell us your destination, travel dates, and daily budget. Not sure? We'll show you what's possible at every price point."
+      },
+      "step2": {
+        "title": "AI Finds the Best Deals",
+        "description": "Our AI builds a complete itinerary optimized for your budget — real hotels, real restaurants, real prices. Three tiers to compare."
+      },
+      "step3": {
+        "title": "Travel for Less",
+        "description": "Hit the road with a fully costed plan. Know exactly what you'll spend each day — and keep more money for souvenirs."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Budget Travel Blogs",
+    "subtitle": "Blogs give tips. MonkeyTravel gives you a complete, priced itinerary.",
+    "items": {
+      "pricing": {
+        "label": "Real pricing",
+        "monkey": "Actual costs for hotels, food, and activities",
+        "other": "Vague estimates like \"budget about $50/day\""
+      },
+      "personalized": {
+        "label": "Personalized plans",
+        "monkey": "Itinerary built for your dates and budget",
+        "other": "Generic advice for the average traveler"
+      },
+      "tiers": {
+        "label": "Budget tiers",
+        "monkey": "3 tiers with daily cost comparison",
+        "other": "Usually one \"budget\" suggestion only"
+      },
+      "upToDate": {
+        "label": "Up-to-date prices",
+        "monkey": "Current prices checked against real data",
+        "other": "Blog posts may be months or years old"
+      },
+      "complete": {
+        "label": "Complete itinerary",
+        "monkey": "Day-by-day plan with routing and timing",
+        "other": "Lists of places with no daily structure"
+      }
+    }
+  },
+  "faq": {
+    "title": "Budget Trip Planning FAQ",
+    "items": {
+      "howCheap": {
+        "question": "How cheap can I travel with MonkeyTravel?",
+        "answer": "Our Budget tier starts at around $30/day in affordable destinations like Southeast Asia, Eastern Europe, and Central America. This includes accommodation, meals, and activities. The exact cost depends on your destination and travel style."
+      },
+      "pricesReal": {
+        "question": "Are the prices in the itinerary accurate?",
+        "answer": "Yes. MonkeyTravel uses real venue data with current prices and ratings. We show actual hotel rates, restaurant price ranges, and activity costs — not rough estimates. We recommend double-checking closer to your travel date as prices can fluctuate."
+      },
+      "budgetTiers": {
+        "question": "What are the 3 budget tiers?",
+        "answer": "Every itinerary comes in Budget (hostels, street food, free activities), Balanced (mid-range hotels, local restaurants, paid attractions), and Premium (boutique hotels, fine dining, private tours). You see real costs for each tier so you can decide."
+      },
+      "saveMoney": {
+        "question": "How does MonkeyTravel help me save money?",
+        "answer": "We optimize your itinerary by grouping activities by location (less transport cost), suggesting free alternatives, highlighting affordable meal spots, and comparing budget tiers side-by-side so you can see exactly where your money goes."
+      },
+      "hiddenCosts": {
+        "question": "Are there hidden costs in the tool itself?",
+        "answer": "No. MonkeyTravel is 100% free to use. There are no premium tiers for the tool itself, no credit card required, and no hidden fees. The budget tiers refer to your travel budget, not our pricing."
+      },
+      "destinations": {
+        "question": "Which destinations are best for budget travel?",
+        "answer": "MonkeyTravel can plan budget trips for 180+ destinations worldwide. Popular budget-friendly destinations include Bangkok, Lisbon, Budapest, Mexico City, and Bali. Enter any destination and we'll show you what's possible at your price point."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to Travel More for Less?",
+    "subtitle": "See exactly what your dream trip costs — with real prices across 3 budget tiers. 100% free, always.",
+    "button": "Plan My Budget Trip — Free",
+    "mobileNotify": "Get notified when the mobile app launches"
+  }
+}

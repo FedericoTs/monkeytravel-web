@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Weekend Trip Planner — AI-Powered 2-3 Day Getaways | MonkeyTravel",
+    "description": "Plan the perfect weekend getaway in 15 minutes with AI. Get personalized 2-3 day itineraries with local gems, real prices, and smart scheduling. 100% free."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "weekendTripPlanner": "Weekend Trip Planner"
+  },
+  "hero": {
+    "badge": "Plan a Weekend Trip in 15 Minutes",
+    "title": "Your Perfect Weekend Getaway, Planned by AI",
+    "subtitle": "Pick a destination and get a complete 2-3 day itinerary in minutes. Local hidden gems, budget-friendly picks, and weather-smart scheduling — all free.",
+    "cta": "Plan My Weekend Trip",
+    "secondaryCta": "See How It Works",
+    "trustSignals": {
+      "free": "Free forever",
+      "noCard": "No credit card",
+      "instant": "Ready in 15 min"
+    }
+  },
+  "features": {
+    "title": "Everything You Need for the Perfect Weekend",
+    "subtitle": "Stop wasting your precious weekend planning. Let AI handle the logistics so you can focus on the fun.",
+    "items": {
+      "quickPlanning": {
+        "title": "15-Minute Planning",
+        "description": "From idea to complete itinerary in 15 minutes. Perfect for spontaneous weekend plans when you don't have time to research for hours."
+      },
+      "shortTrips": {
+        "title": "Optimized for 2-3 Days",
+        "description": "Every itinerary is designed specifically for short trips. No filler activities — just the highlights and must-sees packed into your weekend."
+      },
+      "localGems": {
+        "title": "Hidden Local Gems",
+        "description": "Discover spots the locals love, not just tourist traps. Our AI finds the best cafes, viewpoints, and neighborhoods that guidebooks miss."
+      },
+      "budgetFriendly": {
+        "title": "Budget-Friendly Options",
+        "description": "Weekend trips don't have to break the bank. Get three budget tiers — from backpacker to boutique — so you spend exactly what you want."
+      },
+      "weatherSmart": {
+        "title": "Weather-Smart Scheduling",
+        "description": "Outdoor activities on sunny days, museums when it rains. Our AI considers weather patterns so your weekend isn't ruined by bad timing."
+      },
+      "lastMinute": {
+        "title": "Last-Minute Ready",
+        "description": "Decided to go this Friday? No problem. Get a polished itinerary for this weekend with real-time availability and current prices."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Plan Your Weekend in 3 Steps",
+    "steps": {
+      "step1": {
+        "title": "Choose Your Destination",
+        "description": "Pick a city, tell us your dates and budget. Whether it's a nearby escape or a quick flight away — we've got you covered."
+      },
+      "step2": {
+        "title": "AI Plans Your 2-3 Day Trip",
+        "description": "Our AI builds a day-by-day weekend itinerary with real venues, walking routes, and smart timing so you make the most of every hour."
+      },
+      "step3": {
+        "title": "Pack Your Bag and Go",
+        "description": "Your weekend plan is ready. Swap anything you like, share with friends, and hit the road. It's that simple."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Manual Weekend Planning",
+    "subtitle": "Stop spending your weekday evenings researching. Let AI do the heavy lifting.",
+    "items": {
+      "planningTime": {
+        "label": "Planning time",
+        "monkey": "15 minutes, complete itinerary",
+        "chatgpt": "Hours across multiple tabs and apps"
+      },
+      "localKnowledge": {
+        "label": "Local knowledge",
+        "monkey": "Hidden gems and local favorites included",
+        "chatgpt": "Same top-10 tourist lists every time"
+      },
+      "scheduling": {
+        "label": "Smart scheduling",
+        "monkey": "Activities grouped by area and time",
+        "chatgpt": "You figure out the logistics yourself"
+      },
+      "budgetControl": {
+        "label": "Budget control",
+        "monkey": "3 tiers with real prices upfront",
+        "chatgpt": "Surprise costs and no price estimates"
+      },
+      "lastMinuteChanges": {
+        "label": "Last-minute trips",
+        "monkey": "Instant plan for this weekend",
+        "chatgpt": "Weeks of research needed"
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "howQuick": {
+        "question": "How quickly can I plan a weekend trip?",
+        "answer": "You can have a complete weekend itinerary in about 15 minutes. Just enter your destination, dates, and budget — our AI handles the rest. Perfect for those spontaneous Friday afternoon decisions."
+      },
+      "nearbyTrips": {
+        "question": "Can MonkeyTravel suggest nearby weekend destinations?",
+        "answer": "Yes! MonkeyTravel supports over 180 destinations worldwide. Whether you want a quick road trip to a nearby city or a short flight getaway, you'll get a fully planned weekend experience."
+      },
+      "tripLength": {
+        "question": "Does it only work for 2-day weekends?",
+        "answer": "Not at all. MonkeyTravel works great for classic 2-day weekends, long 3-day weekends, and even extended 4-day breaks. The AI adapts the itinerary to fit your exact dates."
+      },
+      "budgetWeekend": {
+        "question": "How do I plan a weekend trip on a budget?",
+        "answer": "MonkeyTravel offers three budget tiers for every trip: Budget, Balanced, and Premium. Choose the Budget tier to get an amazing weekend experience with affordable restaurants, free attractions, and wallet-friendly activities."
+      },
+      "groupWeekend": {
+        "question": "Can I plan a weekend trip with friends?",
+        "answer": "Absolutely. Share your weekend itinerary with friends, let everyone vote on activities, and reach consensus with built-in group planning tools. No more endless group chat debates about what to do."
+      },
+      "isFree": {
+        "question": "Is the weekend trip planner really free?",
+        "answer": "Yes, MonkeyTravel is 100% free. Create unlimited weekend itineraries, invite friends, compare budget options — all without paying a cent. No credit card, no trial period, no hidden fees."
+      }
+    }
+  },
+  "cta": {
+    "title": "Your Next Weekend Adventure Starts Here",
+    "subtitle": "Stop scrolling, start exploring. Plan your perfect weekend getaway in minutes — free forever.",
+    "button": "Plan My Weekend Trip",
+    "mobileNotify": "Get notified when the mobile app launches"
+  }
+}

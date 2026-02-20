@@ -45,7 +45,8 @@
     "Trip Planning": "Planificación de Viajes",
     "Budget Travel": "Viajes Económicos",
     "Travel Tips": "Consejos de Viaje",
-    "Group Travel": "Viajes en Grupo"
+    "Group Travel": "Viajes en Grupo",
+    "Seasonal Travel": "Viajes de Temporada"
   },
   "posts": {
     "how-ai-is-changing-travel-planning": {
@@ -127,6 +128,30 @@
     "barcelona-3-day-itinerary": {
       "title": "Itinerario de 3 Días en Barcelona: Guía Día a Día para 2026",
       "description": "Un itinerario práctico de Barcelona día a día con precios reales, lugares reales y rutas inteligentes. Sagrada Familia, Barrio Gótico, Park Güell y más."
+    },
+    "great-migration-africa-when-and-where": {
+      "title": "La Gran Migración en África: Cuándo y Dónde Verla en 2026",
+      "description": "Guía completa mes a mes de la Gran Migración en África Oriental. Dónde están las manadas, los mejores campamentos, cruces del río Mara, temporada de partos y presupuestos reales."
+    },
+    "monsoon-season-where-to-go-and-avoid": {
+      "title": "Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia",
+      "description": "Guía práctica de la temporada de monzones en Asia. Qué meses afectan a cada país, dónde evitar, dónde ir por ofertas de temporada verde y cómo ahorrar un 30-50%."
+    },
+    "midnight-sun-best-destinations": {
+      "title": "Mejores Destinos para Ver el Sol de Medianoche: Dónde Vivir 24 Horas de Luz en 2026",
+      "description": "Los mejores lugares para ver el sol de medianoche en 2026 — desde las Islas Lofoten en Noruega hasta Islandia, Laponia Sueca, Finlandia, Alaska y Svalbard. Cuándo ir, qué hacer y cuánto cuesta."
+    },
+    "japan-cherry-blossom-season-guide": {
+      "title": "Temporada de Cerezos en Flor en Japón 2026: La Guía Completa del Sakura",
+      "description": "Todo lo que necesitas para planificar un viaje a Japón durante la floración de los cerezos en 2026 — pronósticos de floración, mejores ciudades y parques, etiqueta del hanami y consejos de presupuesto."
+    },
+    "best-places-to-see-northern-lights": {
+      "title": "Los Mejores Lugares para Ver la Aurora Boreal en 2026: Guía Práctica",
+      "description": "Los 12 mejores destinos para ver la aurora boreal en 2026, con costes reales, mejores meses, probabilidades y consejos prácticos para cada lugar."
+    },
+    "best-fall-foliage-destinations": {
+      "title": "Los Mejores Destinos para Ver el Follaje de Otoño en el Mundo: Dónde Ver los Colores del Otoño en 2026",
+      "description": "Los 12 mejores destinos del mundo para ver el follaje de otoño, con fechas pico, rutas en coche, consejos de fotografía y comparación de presupuestos."
     }
   }
 }
