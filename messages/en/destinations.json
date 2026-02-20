@@ -45,7 +45,9 @@
     "sampleDayNote": "This is a sample day. MonkeyTravel AI creates a full multi-day itinerary personalized to your pace, budget, and interests.",
     "faq": "Frequently Asked Questions",
     "moreDestinations": "More Destinations to Explore",
-    "popularDestinations": "Popular Destinations"
+    "popularDestinations": "Popular Destinations",
+    "relatedArticles": "Travel Tips & Guides",
+    "exploreByStyle": "More {tag} Destinations"
   },
   "cta": {
     "generateItinerary": "Generate My {city} Itinerary",

@@ -4,7 +4,8 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import type { Locale } from "@/lib/destinations/types";
-import { destinations, getDestinationBySlug, getAllSlugs, getRelatedDestinations } from "@/lib/destinations/data";
+import { destinations, getDestinationBySlug, getAllSlugs, getRelatedDestinations, getDestinationsByTag } from "@/lib/destinations/data";
+import { getBlogPostsForDestination } from "@/lib/cross-links";
 import {
   generateTouristDestinationSchema,
   generateBreadcrumbSchema,
@@ -109,6 +110,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
+  const tBlog = await getTranslations("blog");
   const cityName = destination.name[loc];
 
   // Structured data
@@ -142,6 +144,16 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   );
 
   const relatedDestinations = getRelatedDestinations(slug, 6);
+  const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
+
+  // Get tag-based destination links (first 2 tags that have other destinations)
+  const tagLinks = destination.tags
+    .map((tag) => ({
+      tag,
+      destinations: getDestinationsByTag(tag, slug, 4),
+    }))
+    .filter((tl) => tl.destinations.length >= 2)
+    .slice(0, 2);
 
   return (
     <>
@@ -228,6 +240,67 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           locale={loc}
           t={t}
         />
+
+        {/* Related Blog Posts */}
+        {relatedBlogSlugs.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-8 text-center">
+                {t("sections.relatedArticles")}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedBlogSlugs.map((blogSlug) => (
+                  <Link
+                    key={blogSlug}
+                    href={`/blog/${blogSlug}`}
+                    className="group block rounded-xl border border-gray-100 hover:border-[var(--accent)]/30 hover:shadow-lg transition-all p-6 bg-white"
+                  >
+                    <span className="text-sm font-medium text-[var(--primary)] mb-2 block">
+                      Blog
+                    </span>
+                    <h3 className="text-lg font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors leading-snug">
+                      {tBlog(`posts.${blogSlug}.title`)}
+                    </h3>
+                    <span className="mt-3 text-sm text-[var(--primary)] font-medium inline-flex items-center gap-1">
+                      {tBlog("index.readMore")} →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Explore by Travel Style */}
+        {tagLinks.length > 0 && (
+          <section className="py-12 bg-[var(--background-alt)]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {tagLinks.map((tl) => (
+                <div key={tl.tag} className="mb-10 last:mb-0">
+                  <h3 className="text-xl font-bold text-[var(--foreground)] mb-5">
+                    {t("sections.exploreByStyle", { tag: t(`tags.${tl.tag}`) })}
+                  </h3>
+                  <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+                    {tl.destinations.map((dest) => (
+                      <Link
+                        key={dest.slug}
+                        href={`/destinations/${dest.slug}`}
+                        className="flex-shrink-0 group flex items-center gap-3 rounded-full border border-gray-200 hover:border-[var(--accent)] bg-white px-5 py-2.5 transition-all hover:shadow-md"
+                      >
+                        <span className="text-sm font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+                          {dest.name[loc]}
+                        </span>
+                        <span className="text-xs text-[var(--foreground-muted)]">
+                          {dest.country[loc]}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* More Destinations */}
         {relatedDestinations.length > 0 && (

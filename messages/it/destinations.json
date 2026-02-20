@@ -45,7 +45,9 @@
     "sampleDayNote": "Questo è un giorno di esempio. L'AI di MonkeyTravel crea un itinerario completo di più giorni personalizzato al tuo ritmo, budget e interessi.",
     "faq": "Domande Frequenti",
     "moreDestinations": "Altre Destinazioni da Esplorare",
-    "popularDestinations": "Destinazioni Popolari"
+    "popularDestinations": "Destinazioni Popolari",
+    "relatedArticles": "Consigli e Guide di Viaggio",
+    "exploreByStyle": "Più Destinazioni {tag}"
   },
   "cta": {
     "generateItinerary": "Genera il Mio Itinerario di {city}",

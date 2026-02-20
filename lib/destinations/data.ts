@@ -1766,13 +1766,27 @@ export function getRelatedDestinations(
   const current = getDestinationBySlug(slug);
   if (!current) return destinations.slice(0, limit);
 
-  // Same continent first, then others
-  const sameContinent = destinations.filter(
-    (d) => d.continent === current.continent && d.slug !== slug
-  );
-  const otherContinent = destinations.filter(
-    (d) => d.continent !== current.continent
-  );
+  const currentTags = new Set(current.tags);
 
-  return [...sameContinent, ...otherContinent].slice(0, limit);
+  return destinations
+    .filter((d) => d.slug !== slug)
+    .map((d) => {
+      const sharedTags = d.tags.filter((t) => currentTags.has(t)).length;
+      const sameContinent = d.continent === current.continent ? 2 : 0;
+      const similarBudget = d.stats.budgetLevel === current.stats.budgetLevel ? 1 : 0;
+      return { destination: d, score: sharedTags * 3 + sameContinent + similarBudget };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((r) => r.destination);
+}
+
+export function getDestinationsByTag(
+  tag: string,
+  excludeSlug?: string,
+  limit = 6
+): Destination[] {
+  return destinations
+    .filter((d) => d.tags.includes(tag) && d.slug !== excludeSlug)
+    .slice(0, limit);
 }

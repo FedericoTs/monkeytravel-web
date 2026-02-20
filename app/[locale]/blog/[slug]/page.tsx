@@ -5,6 +5,8 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllSlugs, getPostBySlug, getRelatedPosts } from "@/lib/blog/api";
+import { getDestinationsForBlogPost } from "@/lib/cross-links";
+import type { Locale } from "@/lib/destinations/types";
 import {
   generateArticleSchema,
   generateBreadcrumbSchema,
@@ -165,6 +167,8 @@ export default async function BlogDetailPage({ params }: PageProps) {
   }
 
   const related = await getRelatedPosts(slug, 3, locale);
+  const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
+  const loc = locale as Locale;
 
   // Format date for display
   const publishedDate = new Date(frontmatter.publishedAt).toLocaleDateString(
@@ -309,6 +313,45 @@ export default async function BlogDetailPage({ params }: PageProps) {
             </a>
           </div>
         </section>
+
+        {/* Related Destinations */}
+        {relatedDestinations.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-8 text-center">
+                {t("detail.exploreDestinations")}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedDestinations.map((dest) => (
+                  <Link
+                    key={dest.slug}
+                    href={`/destinations/${dest.slug}`}
+                    className="group block rounded-2xl overflow-hidden bg-white border border-gray-100 hover:border-[var(--accent)]/30 hover:shadow-xl transition-all"
+                  >
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20">
+                      <Image
+                        src={`/images/destinations/${dest.slug}.jpg`}
+                        alt={dest.name[loc]}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+                        {dest.name[loc]}
+                      </h3>
+                      <p className="text-sm text-[var(--foreground-muted)]">
+                        {dest.country[loc]}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Related posts */}
         {related.length > 0 && (
