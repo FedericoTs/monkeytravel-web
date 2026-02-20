@@ -584,6 +584,10 @@
   "features": {
     "learnMore": "Saber más"
   },
+  "fromTheBlog": {
+    "title": "Desde el Blog",
+    "readMore": "Leer artículo"
+  },
   "appStore": {
     "downloadOnThe": "Descarga en",
     "getItOn": "Disponible en",

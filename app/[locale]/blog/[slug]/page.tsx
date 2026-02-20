@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllSlugs, getPostBySlug, getRelatedPosts } from "@/lib/blog/api";
+import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts } from "@/lib/blog/api";
+import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost } from "@/lib/cross-links";
+import { getRegionForPost } from "@/lib/blog/regions";
 import type { Locale } from "@/lib/destinations/types";
 import {
   generateArticleSchema,
@@ -166,9 +168,19 @@ export default async function BlogDetailPage({ params }: PageProps) {
     schemas.push(generateFAQSchema(faqs));
   }
 
-  const related = await getRelatedPosts(slug, 3, locale);
+  const related = getRelatedPosts(slug, 3, locale);
   const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
+
+  // "More from Region" section — posts from the same region (excluding current + related)
+  const postRegion = getRegionForPost(slug);
+  const relatedSlugs = new Set([slug, ...related.map((r) => r.slug)]);
+  let regionPosts: BlogFrontmatter[] = [];
+  if (postRegion !== "Worldwide") {
+    regionPosts = getAllFrontmatter(locale)
+      .filter((fm) => !relatedSlugs.has(fm.slug) && getRegionForPost(fm.slug) === postRegion)
+      .slice(0, 3);
+  }
 
   // Format date for display
   const publishedDate = new Date(frontmatter.publishedAt).toLocaleDateString(
@@ -363,14 +375,40 @@ export default async function BlogDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {related.map((relPost) => (
                   <BlogCard
-                    key={relPost.frontmatter.slug}
-                    post={relPost.frontmatter}
-                    title={t(`posts.${relPost.frontmatter.slug}.title`)}
-                    description={t(`posts.${relPost.frontmatter.slug}.description`)}
-                    category={t(`categories.${relPost.frontmatter.category}`)}
+                    key={relPost.slug}
+                    post={relPost}
+                    title={t(`posts.${relPost.slug}.title`)}
+                    description={t(`posts.${relPost.slug}.description`)}
+                    category={t(`categories.${relPost.category}`)}
                     readMoreLabel={t("index.readMore")}
                     minuteReadLabel={t("index.minuteRead", {
-                      minutes: relPost.frontmatter.readingTime,
+                      minutes: relPost.readingTime,
+                    })}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* More from Region */}
+        {regionPosts.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-8 text-center">
+                {t("detail.moreFromRegion", { region: t(`regions.${postRegion}`) })}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {regionPosts.map((regPost) => (
+                  <BlogCard
+                    key={regPost.slug}
+                    post={regPost}
+                    title={t(`posts.${regPost.slug}.title`)}
+                    description={t(`posts.${regPost.slug}.description`)}
+                    category={t(`categories.${regPost.category}`)}
+                    readMoreLabel={t("index.readMore")}
+                    minuteReadLabel={t("index.minuteRead", {
+                      minutes: regPost.readingTime,
                     })}
                   />
                 ))}

@@ -6,7 +6,7 @@
  */
 
 import { destinations } from "@/lib/destinations/data";
-import { getAllSlugs as getBlogSlugs } from "@/lib/blog/api";
+import { getAllSlugs as getBlogSlugs, getPostTags } from "@/lib/blog/api";
 import type { Destination } from "@/lib/destinations/types";
 
 // ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export function getDestinationsForBlogPost(
 
 /**
  * Find blog post slugs relevant to a destination
- * Returns slugs that have matching keywords in their slug text
+ * Scores by slug text match + tag matches for better relevance
  */
 export function getBlogPostsForDestination(
   destSlug: string,
@@ -76,8 +76,14 @@ export function getBlogPostsForDestination(
 
   const scored = allBlogSlugs.map((blogSlug) => {
     const blogText = blogSlug.replace(/-/g, " ");
-    const matches = keywords.filter((kw) => blogText.includes(kw)).length;
-    return { slug: blogSlug, score: matches };
+    const slugMatches = keywords.filter((kw) => blogText.includes(kw)).length;
+
+    // Also check blog post tags for keyword matches
+    const tags = getPostTags(blogSlug);
+    const tagText = tags.map((t) => t.toLowerCase()).join(" ");
+    const tagMatches = keywords.filter((kw) => tagText.includes(kw)).length;
+
+    return { slug: blogSlug, score: slugMatches * 2 + tagMatches };
   });
 
   return scored

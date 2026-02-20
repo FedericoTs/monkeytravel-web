@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import FromTheBlog from '@/components/blog/FromTheBlog';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -487,6 +488,14 @@ export default async function FamilyTripPlannerPage({
             </div>
           </div>
         </section>
+
+        {/* ================================================================
+            FROM THE BLOG
+            ================================================================ */}
+        <FromTheBlog
+          slugs={['how-to-plan-a-group-trip', '5-day-italy-itinerary', 'best-group-trip-destinations-2026']}
+          locale={locale}
+        />
 
         {/* ================================================================
             FINAL CTA

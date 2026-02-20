@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import FromTheBlog from '@/components/blog/FromTheBlog';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -487,6 +488,14 @@ export default async function AIItineraryGeneratorPage({
             </div>
           </div>
         </section>
+
+        {/* ================================================================
+            FROM THE BLOG
+            ================================================================ */}
+        <FromTheBlog
+          slugs={['how-to-plan-a-trip-with-ai', 'can-you-trust-ai-travel-itinerary', 'ai-trip-planner-vs-travel-agent']}
+          locale={locale}
+        />
 
         {/* ================================================================
             FINAL CTA

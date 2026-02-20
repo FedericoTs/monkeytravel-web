@@ -12,8 +12,8 @@
   "filter": {
     "all": "All Posts",
     "showing": "Showing {count} of {total} posts",
-    "noResults": "No posts found in this category.",
-    "clearFilter": "Show all posts"
+    "noResults": "No posts found matching these filters.",
+    "clearFilter": "Clear all filters"
   },
   "pagination": {
     "previous": "Previous page",
@@ -29,7 +29,8 @@
     "planYourTrip": "Ready to plan your trip?",
     "planYourTripDescription": "Let MonkeyTravel's AI create a personalized itinerary for you — with real venues, actual prices, and smart routing.",
     "planYourTripCta": "Plan My Trip — Free",
-    "exploreDestinations": "Explore These Destinations"
+    "exploreDestinations": "Explore These Destinations",
+    "moreFromRegion": "More from {region}"
   },
   "breadcrumbs": {
     "home": "Home",
@@ -38,6 +39,14 @@
   "tips": {
     "title": "Travel Guides & Tips",
     "viewAll": "View all articles"
+  },
+  "regions": {
+    "all": "All Regions",
+    "Europe": "Europe",
+    "Asia": "Asia",
+    "Americas": "Americas",
+    "Africa": "Africa",
+    "Worldwide": "Worldwide"
   },
   "categories": {
     "AI Travel": "AI Travel",

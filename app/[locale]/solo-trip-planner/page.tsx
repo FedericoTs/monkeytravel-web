@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import FromTheBlog from '@/components/blog/FromTheBlog';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -488,6 +489,14 @@ export default async function SoloTripPlannerPage({
             </div>
           </div>
         </section>
+
+        {/* ================================================================
+            FROM THE BLOG
+            ================================================================ */}
+        <FromTheBlog
+          slugs={['solo-travel-planning-with-ai', 'first-trip-to-japan-what-you-need-to-know', 'travel-planning-stress-how-ai-helps']}
+          locale={locale}
+        />
 
         {/* ================================================================
             FINAL CTA

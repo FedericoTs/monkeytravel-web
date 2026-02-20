@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { BlogCard } from "@/components/blog";
 import { trackContentInteraction } from "@/lib/analytics";
+import { getRegionForPost, ALL_REGIONS } from "@/lib/blog/regions";
+import type { BlogRegion } from "@/lib/blog/regions";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 
 const POSTS_PER_PAGE = 6;
@@ -15,6 +17,7 @@ interface BlogGridProps {
 export default function BlogGrid({ posts }: BlogGridProps) {
   const t = useTranslations("blog");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeRegion, setActiveRegion] = useState<BlogRegion | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Extract unique categories from posts
@@ -23,11 +26,19 @@ export default function BlogGrid({ posts }: BlogGridProps) {
     return Array.from(cats).sort();
   }, [posts]);
 
-  // Filter posts by category
+  // Determine which regions are present in posts
+  const regions = useMemo(() => {
+    const present = new Set(posts.map((p) => getRegionForPost(p.slug)));
+    return ALL_REGIONS.filter((r) => present.has(r));
+  }, [posts]);
+
+  // Filter posts by category AND region
   const filteredPosts = useMemo(() => {
-    if (!activeCategory) return posts;
-    return posts.filter((p) => p.category === activeCategory);
-  }, [posts, activeCategory]);
+    let result = posts;
+    if (activeCategory) result = result.filter((p) => p.category === activeCategory);
+    if (activeRegion) result = result.filter((p) => getRegionForPost(p.slug) === activeRegion);
+    return result;
+  }, [posts, activeCategory, activeRegion]);
 
   // Pagination
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
@@ -48,6 +59,23 @@ export default function BlogGrid({ posts }: BlogGridProps) {
     });
   };
 
+  const handleRegionChange = (region: BlogRegion | null) => {
+    setActiveRegion(region);
+    setCurrentPage(1);
+    trackContentInteraction({
+      action: "filter",
+      content_group: "blog",
+      filter_type: "region",
+      filter_value: region ?? "all",
+    });
+  };
+
+  const handleClearFilters = () => {
+    setActiveCategory(null);
+    setActiveRegion(null);
+    setCurrentPage(1);
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     trackContentInteraction({
@@ -62,7 +90,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
     <div>
       {/* Category Filter */}
       {categories.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 mb-8">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <button
             onClick={() => handleCategoryChange(null)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -94,6 +122,38 @@ export default function BlogGrid({ posts }: BlogGridProps) {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* Region Filter */}
+      {regions.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+          </svg>
+          <button
+            onClick={() => handleRegionChange(null)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeRegion === null
+                ? "bg-[var(--accent)] text-[var(--foreground)]"
+                : "bg-amber-50 text-slate-600 hover:bg-amber-100"
+            }`}
+          >
+            {t("regions.all")}
+          </button>
+          {regions.map((region) => (
+            <button
+              key={region}
+              onClick={() => handleRegionChange(region)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeRegion === region
+                  ? "bg-[var(--accent)] text-[var(--foreground)]"
+                  : "bg-amber-50 text-slate-600 hover:bg-amber-100"
+              }`}
+            >
+              {t(`regions.${region}`)}
+            </button>
+          ))}
         </div>
       )}
 
@@ -147,7 +207,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
         <div className="text-center py-16">
           <p className="text-slate-500 text-lg">{t("filter.noResults")}</p>
           <button
-            onClick={() => handleCategoryChange(null)}
+            onClick={handleClearFilters}
             className="mt-4 text-[var(--primary)] font-medium hover:underline"
           >
             {t("filter.clearFilter")}

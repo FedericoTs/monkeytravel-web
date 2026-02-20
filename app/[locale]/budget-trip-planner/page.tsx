@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import FromTheBlog from '@/components/blog/FromTheBlog';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -487,6 +488,14 @@ export default async function BudgetTripPlannerPage({
             </div>
           </div>
         </section>
+
+        {/* ================================================================
+            FROM THE BLOG
+            ================================================================ */}
+        <FromTheBlog
+          slugs={['cheapest-destinations-in-europe', 'cheapest-destinations-in-asia', 'how-to-plan-trip-to-italy-on-a-budget']}
+          locale={locale}
+        />
 
         {/* ================================================================
             FINAL CTA

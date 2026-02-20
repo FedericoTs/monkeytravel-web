@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import FromTheBlog from '@/components/blog/FromTheBlog';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -497,6 +498,14 @@ export default async function WeekendTripPlannerPage({
             </div>
           </div>
         </section>
+
+        {/* ================================================================
+            FROM THE BLOG
+            ================================================================ */}
+        <FromTheBlog
+          slugs={['plan-weekend-getaway-with-ai', '3-day-paris-itinerary', 'barcelona-3-day-itinerary']}
+          locale={locale}
+        />
 
         {/* ================================================================
             FINAL CTA

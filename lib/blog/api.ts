@@ -26,6 +26,11 @@ function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFront
   return { frontmatter: data as BlogFrontmatter, content };
 }
 
+export function getPostTags(slug: string): string[] {
+  const parsed = parseFrontmatter(slug);
+  return parsed?.frontmatter.tags ?? [];
+}
+
 export function getPostDates(slug: string): { publishedAt: string; updatedAt: string } | null {
   const parsed = parseFrontmatter(slug);
   if (!parsed) return null;
@@ -38,6 +43,21 @@ export function getPostDates(slug: string): { publishedAt: string; updatedAt: st
 export function getAllSlugs(): string[] {
   const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md"));
   return files.map((f) => f.replace(/\.md$/, ""));
+}
+
+/**
+ * Lightweight: returns only frontmatter for all posts (no HTML rendering).
+ * Use this when you only need metadata, not full post content.
+ */
+export function getAllFrontmatter(locale = "en"): BlogFrontmatter[] {
+  const slugs = getAllSlugs();
+  return slugs
+    .map((slug) => parseFrontmatter(slug, locale)?.frontmatter)
+    .filter((fm): fm is BlogFrontmatter => fm !== undefined)
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
 }
 
 export async function getAllPosts(locale = "en"): Promise<BlogPost[]> {
@@ -64,26 +84,26 @@ export async function getPostBySlug(slug: string, locale = "en"): Promise<BlogPo
   };
 }
 
-export async function getRelatedPosts(
+export function getRelatedPosts(
   slug: string,
   limit = 3,
   locale = "en"
-): Promise<BlogPost[]> {
+): BlogFrontmatter[] {
   const current = parseFrontmatter(slug);
   if (!current) return [];
 
-  const all = await getAllPosts(locale);
+  const all = getAllFrontmatter(locale);
   const currentTags = new Set(current.frontmatter.tags);
 
   return all
-    .filter((p) => p.frontmatter.slug !== slug)
-    .map((p) => ({
-      post: p,
+    .filter((fm) => fm.slug !== slug)
+    .map((fm) => ({
+      fm,
       score:
-        p.frontmatter.tags.filter((t) => currentTags.has(t)).length +
-        (p.frontmatter.category === current.frontmatter.category ? 2 : 0),
+        fm.tags.filter((t) => currentTags.has(t)).length +
+        (fm.category === current.frontmatter.category ? 2 : 0),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map((r) => r.post);
+    .map((r) => r.fm);
 }

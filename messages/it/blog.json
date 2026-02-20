@@ -12,8 +12,8 @@
   "filter": {
     "all": "Tutti",
     "showing": "Mostrando {count} di {total} articoli",
-    "noResults": "Nessun articolo trovato in questa categoria.",
-    "clearFilter": "Mostra tutti"
+    "noResults": "Nessun articolo trovato con questi filtri.",
+    "clearFilter": "Rimuovi filtri"
   },
   "pagination": {
     "previous": "Pagina precedente",
@@ -29,7 +29,8 @@
     "planYourTrip": "Pronto a pianificare il tuo viaggio?",
     "planYourTripDescription": "Lascia che l'AI di MonkeyTravel crei un itinerario personalizzato per te — con luoghi reali, prezzi attuali e percorsi intelligenti.",
     "planYourTripCta": "Pianifica il Mio Viaggio — Gratis",
-    "exploreDestinations": "Esplora Queste Destinazioni"
+    "exploreDestinations": "Esplora Queste Destinazioni",
+    "moreFromRegion": "Altro da {region}"
   },
   "breadcrumbs": {
     "home": "Home",
@@ -38,6 +39,14 @@
   "tips": {
     "title": "Guide e Consigli di Viaggio",
     "viewAll": "Vedi tutti gli articoli"
+  },
+  "regions": {
+    "all": "Tutte le Regioni",
+    "Europe": "Europa",
+    "Asia": "Asia",
+    "Americas": "Americhe",
+    "Africa": "Africa",
+    "Worldwide": "Tutto il Mondo"
   },
   "categories": {
     "AI Travel": "Viaggi e AI",
