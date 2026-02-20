@@ -7,7 +7,6 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OGImage() {
-  // Read logo as base64 for embedding
   const logoData = readFileSync(
     join(process.cwd(), "public/images/logo.png")
   );
@@ -23,12 +22,12 @@ export default function OGImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0A4B73",
+          background: "linear-gradient(160deg, #2D3436 0%, #D94444 100%)",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Accent stripe at bottom */}
+        {/* Coral accent stripe at bottom */}
         <div
           style={{
             position: "absolute",
@@ -36,37 +35,37 @@ export default function OGImage() {
             left: 0,
             right: 0,
             height: 8,
-            backgroundColor: "#F2C641",
+            background: "linear-gradient(90deg, #FF6B6B, #FFD93D, #00B4A6)",
             display: "flex",
           }}
         />
 
-        {/* Decorative accent circle top-right */}
+        {/* Decorative teal circle top-right */}
         <div
           style={{
             position: "absolute",
             top: -80,
             right: -80,
-            width: 300,
-            height: 300,
+            width: 320,
+            height: 320,
             borderRadius: "50%",
-            backgroundColor: "#F2C641",
-            opacity: 0.1,
+            backgroundColor: "#00B4A6",
+            opacity: 0.12,
             display: "flex",
           }}
         />
 
-        {/* Decorative accent circle bottom-left */}
+        {/* Decorative gold circle bottom-left */}
         <div
           style={{
             position: "absolute",
             bottom: -60,
             left: -60,
-            width: 250,
-            height: 250,
+            width: 260,
+            height: 260,
             borderRadius: "50%",
-            backgroundColor: "#F2C641",
-            opacity: 0.08,
+            backgroundColor: "#FFD93D",
+            opacity: 0.1,
             display: "flex",
           }}
         />
@@ -85,12 +84,7 @@ export default function OGImage() {
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoBase64}
-            width={88}
-            height={88}
-            alt=""
-          />
+          <img src={logoBase64} width={88} height={88} alt="" />
         </div>
 
         {/* Brand name */}
@@ -105,7 +99,7 @@ export default function OGImage() {
           }}
         >
           Monkey
-          <span style={{ color: "#F2C641" }}>Travel</span>
+          <span style={{ color: "#FFD93D" }}>Travel</span>
         </div>
 
         {/* Tagline */}
@@ -113,7 +107,7 @@ export default function OGImage() {
           style={{
             display: "flex",
             fontSize: 28,
-            color: "rgba(255, 255, 255, 0.8)",
+            color: "rgba(255, 255, 255, 0.85)",
             marginBottom: 40,
           }}
         >
@@ -125,18 +119,17 @@ export default function OGImage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
             padding: "10px 24px",
             borderRadius: 999,
-            backgroundColor: "rgba(242, 198, 65, 0.15)",
-            border: "1.5px solid rgba(242, 198, 65, 0.3)",
+            backgroundColor: "rgba(255, 107, 107, 0.2)",
+            border: "1.5px solid rgba(255, 107, 107, 0.4)",
           }}
         >
           <div
             style={{
               display: "flex",
               fontSize: 20,
-              color: "#F2C641",
+              color: "#FFD93D",
               fontWeight: 600,
             }}
           >
