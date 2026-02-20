@@ -12,12 +12,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
+    // Homepage (all locales)
     {
       url: baseUrl,
       lastModified: currentDate,
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${baseUrl}/es`,
+      lastModified: currentDate,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/it`,
+      lastModified: currentDate,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    // Legal pages (English only — content is not translated)
     {
       url: `${baseUrl}/privacy`,
       lastModified: currentDate,
@@ -30,18 +44,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.3,
     },
-    {
-      url: `${baseUrl}/auth/login`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/auth/signup`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
+    // Auth pages (all locales — forms are translated)
+    ...locales.flatMap((locale) => {
+      const prefix = locale === defaultLocale ? "" : `/${locale}`;
+      return [
+        {
+          url: `${baseUrl}${prefix}/auth/login`,
+          lastModified: currentDate,
+          changeFrequency: "monthly" as const,
+          priority: 0.5,
+        },
+        {
+          url: `${baseUrl}${prefix}/auth/signup`,
+          lastModified: currentDate,
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+        },
+      ];
+    }),
   ];
 
   // SEO landing pages (× 3 locales)

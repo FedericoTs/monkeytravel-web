@@ -35,5 +35,18 @@
       "memory": 256
     }
   },
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "redirects": [
+    {
+      "source": "/:path(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.monkeytravel.app"
+        }
+      ],
+      "destination": "https://monkeytravel.app/:path",
+      "permanent": true
+    }
+  ]
 }

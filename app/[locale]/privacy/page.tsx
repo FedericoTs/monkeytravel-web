@@ -1,12 +1,20 @@
+import type { Metadata } from 'next';
 import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getTranslations } from 'next-intl/server';
 
-export const metadata = {
-  title: 'Privacy Policy - MonkeyTravel',
-  description: 'Privacy Policy for MonkeyTravel - Learn how we collect, use, and protect your personal information.',
-};
+const BASE_URL = 'https://monkeytravel.app';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Privacy Policy - MonkeyTravel',
+    description: 'Privacy Policy for MonkeyTravel - Learn how we collect, use, and protect your personal information.',
+    alternates: {
+      canonical: `${BASE_URL}/privacy`,
+    },
+  };
+}
 
 export default async function PrivacyPolicy() {
   const t = await getTranslations('common');

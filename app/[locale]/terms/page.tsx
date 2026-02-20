@@ -1,11 +1,19 @@
+import type { Metadata } from 'next';
 import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-export const metadata = {
-  title: 'Terms of Service - MonkeyTravel',
-  description: 'Terms of Service for MonkeyTravel - Read our terms and conditions for using the app.',
-};
+const BASE_URL = 'https://monkeytravel.app';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Terms of Service - MonkeyTravel',
+    description: 'Terms of Service for MonkeyTravel - Read our terms and conditions for using the app.',
+    alternates: {
+      canonical: `${BASE_URL}/terms`,
+    },
+  };
+}
 
 export default function TermsOfService() {
   const lastUpdated = 'November 28, 2025';

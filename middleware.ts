@@ -7,6 +7,14 @@ import { routing } from "@/lib/i18n/routing";
 const intlMiddleware = createIntlMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
+  // Redirect www to non-www (canonical domain consolidation for SEO)
+  const host = request.headers.get("host") || "";
+  if (host.startsWith("www.")) {
+    const url = request.nextUrl.clone();
+    url.host = host.replace("www.", "");
+    return NextResponse.redirect(url, 301);
+  }
+
   const { pathname } = request.nextUrl;
 
   // Skip i18n for API routes, static files, and special paths
