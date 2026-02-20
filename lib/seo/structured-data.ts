@@ -57,6 +57,7 @@ export interface WebSiteSchema {
   "@context": "https://schema.org";
   "@type": "WebSite";
   name: string;
+  alternateName: string;
   url: string;
   description: string;
   publisher: {
@@ -74,6 +75,7 @@ export function generateWebSiteSchema(): WebSiteSchema {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
+    alternateName: "Monkey Travel",
     url: SITE_URL,
     description: "AI-powered travel planning app that creates personalized day-by-day itineraries in seconds",
     publisher: {

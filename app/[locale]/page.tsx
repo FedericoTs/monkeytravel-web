@@ -99,7 +99,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   // New/anonymous user - show landing page
   return (
     <>
-      {/* FAQ Structured Data for rich snippets in Google Search */}
+      {/* FAQ Structured Data (Organization + WebSite + SoftwareApp rendered by root layout) */}
       <script {...jsonLdScriptProps(faqSchema)} />
 
       <Navbar />

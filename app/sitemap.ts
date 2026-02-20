@@ -44,24 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.3,
     },
-    // Auth pages (all locales — forms are translated)
-    ...locales.flatMap((locale) => {
-      const prefix = locale === defaultLocale ? "" : `/${locale}`;
-      return [
-        {
-          url: `${baseUrl}${prefix}/auth/login`,
-          lastModified: currentDate,
-          changeFrequency: "monthly" as const,
-          priority: 0.5,
-        },
-        {
-          url: `${baseUrl}${prefix}/auth/signup`,
-          lastModified: currentDate,
-          changeFrequency: "monthly" as const,
-          priority: 0.6,
-        },
-      ];
-    }),
+    // Auth pages excluded — noindexed by auth/layout.tsx
   ];
 
   // SEO landing pages (× 3 locales)
