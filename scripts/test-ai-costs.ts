@@ -35,9 +35,8 @@ const results: TestResult[] = [];
 
 // Gemini Flash pricing (per million tokens)
 const PRICING = {
-  "gemini-2.0-flash": { input: 0.075, output: 0.30 },
   "gemini-2.5-flash": { input: 0.075, output: 0.30 },
-  "gemini-2.0-flash-lite": { input: 0.0375, output: 0.15 },
+  "gemini-2.5-flash-lite": { input: 0.0375, output: 0.15 },
 };
 
 function calculateCost(
@@ -52,7 +51,7 @@ function calculateCost(
 }
 
 async function testStandardGemini(): Promise<TestResult> {
-  console.log("\n📊 Testing Standard Gemini (gemini-2.0-flash)...");
+  console.log("\n📊 Testing Standard Gemini (gemini-2.5-flash)...");
 
   const prompt = `Create a 3-day travel itinerary for Rome, Italy.
 For each day, provide 4 activities with:
@@ -63,7 +62,7 @@ Return as JSON array.`;
   const startTime = Date.now();
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -84,13 +83,13 @@ Return as JSON array.`;
   const activityMatches = text.match(/\"name\":/gi) || [];
 
   return {
-    name: "Standard Gemini (gemini-2.0-flash)",
+    name: "Standard Gemini (gemini-2.5-flash)",
     responseTimeMs: elapsed,
     inputTokens: usage.promptTokenCount || Math.ceil(prompt.length / 4),
     outputTokens: usage.candidatesTokenCount || Math.ceil(text.length / 4),
     totalTokens: usage.totalTokenCount || 0,
     estimatedCost: calculateCost(
-      "gemini-2.0-flash",
+      "gemini-2.5-flash",
       usage.promptTokenCount || 100,
       usage.candidatesTokenCount || 1000
     ),
@@ -229,7 +228,7 @@ Return as JSON array.`;
   const startTime = Date.now();
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -255,7 +254,7 @@ Return as JSON array.`;
     outputTokens: usage.candidatesTokenCount || Math.ceil(text.length / 4),
     totalTokens: usage.totalTokenCount || 0,
     estimatedCost: calculateCost(
-      "gemini-2.0-flash-lite",
+      "gemini-2.5-flash-lite",
       usage.promptTokenCount || 50,
       usage.candidatesTokenCount || 300
     ),
