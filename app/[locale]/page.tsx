@@ -22,12 +22,12 @@ const META: Record<string, { title: string; description: string }> = {
     description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
   },
   es: {
-    title: 'MonkeyTravel - Planificación de Viajes con IA',
-    description: 'Planifica tu viaje perfecto con itinerarios generados por IA día a día. Obtén planes de viaje personalizados en minutos — gratis, sin tarjeta de crédito.',
+    title: 'MonkeyTravel - Planificación de Viajes con AI',
+    description: 'Planifica tu viaje perfecto con itinerarios generados por AI día a día. Obtén planes de viaje personalizados en minutos — gratis, sin tarjeta de crédito.',
   },
   it: {
-    title: 'MonkeyTravel - Pianificazione Viaggi con IA',
-    description: 'Pianifica il tuo viaggio perfetto con itinerari generati dall\'IA giorno per giorno. Ottieni piani di viaggio personalizzati in pochi minuti — gratis, senza carta di credito.',
+    title: 'MonkeyTravel - Pianificazione Viaggi con AI',
+    description: 'Pianifica il tuo viaggio perfetto con itinerari generati con AI giorno per giorno. Ottieni piani di viaggio personalizzati in pochi minuti — gratis, senza carta di credito.',
   },
 };
 
