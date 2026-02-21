@@ -94,8 +94,9 @@ export async function POST(request: Request) {
         });
 
       if (directError) {
+        console.error("[Admin Grant Access] Direct insert error:", directError);
         return errors.internal(
-          `Failed to grant access. RLS may be blocking. Error: ${directError.message}`,
+          "Failed to grant access. Please contact support.",
           "Admin Grant Access"
         );
       }

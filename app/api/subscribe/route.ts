@@ -2,9 +2,19 @@ import { NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { errors, apiSuccess } from '@/lib/api/response-wrapper'
 import { isValidEmail, normalizeEmail } from '@/lib/validation'
+import { createRateLimiter } from '@/lib/api/rate-limit'
+
+// 5 subscriptions per IP per hour
+const limiter = createRateLimiter("subscribe", 5, 60 * 60 * 1000);
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit check
+    const { allowed } = limiter.check(request);
+    if (!allowed) {
+      return errors.rateLimit("Too many subscription attempts. Please try again later.");
+    }
+
     const body = await request.json()
     const { email, source = 'website' } = body
 

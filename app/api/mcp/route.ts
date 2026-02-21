@@ -150,12 +150,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const origin = request.headers.get("Origin") || "";
+    const allowedOrigins = [
+      "https://chatgpt.com",
+      "https://chat.openai.com",
+      "https://platform.openai.com",
+    ];
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
     return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": corsOrigin,
       },
     });
   }

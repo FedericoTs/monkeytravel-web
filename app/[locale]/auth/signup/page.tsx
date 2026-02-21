@@ -279,9 +279,12 @@ function SignupForm() {
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
                 {t("checkEmailTitle")}
               </h1>
-              <p className="text-slate-600 mb-6"
-                dangerouslySetInnerHTML={{ __html: t("checkEmailMessage", { email }) }}
-              />
+              <p className="text-slate-600 mb-6">
+                {t.rich("checkEmailMessage", {
+                  email,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
+              </p>
               <div className="flex flex-col items-center gap-3">
                 <Link
                   href="/auth/login"
@@ -556,9 +559,11 @@ function SignupForm() {
             {/* Free trip benefit reminder */}
             {hasOnboardingPrefs && (
               <div className="mt-4 text-center">
-                <p className="text-xs text-slate-500"
-                  dangerouslySetInnerHTML={{ __html: t("freeTripBenefit") }}
-                />
+                <p className="text-xs text-slate-500">
+                  {t.rich("freeTripBenefit", {
+                    strong: (chunks) => <strong>{chunks}</strong>,
+                  })}
+                </p>
               </div>
             )}
 

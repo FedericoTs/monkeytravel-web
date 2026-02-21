@@ -9,7 +9,9 @@ import type { BlogFrontmatter, BlogPost } from "./types";
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
 
 async function markdownToHtml(markdown: string): Promise<string> {
-  const result = await remark().use(remarkGfm).use(html).process(markdown);
+  // sanitize: true enables GitHub-style HTML sanitization, stripping
+  // dangerous tags (<script>, event handlers) while allowing safe HTML
+  const result = await remark().use(remarkGfm).use(html, { sanitize: true }).process(markdown);
   return result.toString();
 }
 

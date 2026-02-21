@@ -353,10 +353,12 @@ export default function InviteAcceptClient({
                 </svg>
               </div>
               <h3 className="font-semibold text-slate-900 mb-2">{t("checkYourEmail")}</h3>
-              <p
-                className="text-sm text-slate-600 mb-4"
-                dangerouslySetInnerHTML={{ __html: t("magicLinkSent", { email }) }}
-              />
+              <p className="text-sm text-slate-600 mb-4">
+                {t.rich("magicLinkSent", {
+                  email,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
+              </p>
               <button
                 onClick={() => setMagicLinkSent(false)}
                 className="text-sm text-[var(--primary)] hover:underline"

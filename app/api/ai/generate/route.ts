@@ -336,8 +336,8 @@ export async function POST(request: NextRequest) {
     );
 
     if (cachedItinerary && cachedItinerary.days.length >= 1) {
-      // Cache hit - adjust dates to user's requested range
-      itinerary = adjustItineraryDates(cachedItinerary, params.startDate, params.endDate);
+      // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
+      itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
       cacheHit = true;
       console.log(`[AI Generate] Using cached itinerary for ${params.destination}`);
     } else {

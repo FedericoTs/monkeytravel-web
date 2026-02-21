@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
     // Hash IP for privacy-conscious fraud detection
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded ? forwarded.split(",")[0] : "unknown";
-    const ipHash = createHash("sha256").update(ip + process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY).digest("hex").slice(0, 16);
+    const hashSalt = process.env.IP_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-salt";
+    const ipHash = createHash("sha256").update(ip + hashSalt).digest("hex").slice(0, 16);
 
     // Record the click event
     const { error: eventError } = await supabase

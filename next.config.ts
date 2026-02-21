@@ -35,7 +35,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https: http:",
+      "img-src 'self' data: blob: https:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.googleapis.com https://*.vercel-insights.com https://*.open-meteo.com",
       "frame-src 'self' https://accounts.google.com",
       "frame-ancestors 'self'",

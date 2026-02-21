@@ -15,10 +15,10 @@ async function getInviteData(token: string) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  // Fetch invite with trip details
+  // Fetch invite with only required fields (never select("*") with admin client)
   const { data: invite, error: inviteError } = await supabase
     .from("trip_invites")
-    .select("*")
+    .select("id, trip_id, token, role, created_by, created_at, expires_at, max_uses, use_count, is_active")
     .eq("token", token)
     .single();
 

@@ -949,34 +949,41 @@ Return ONLY the JSON object, no extra text.`;
   }
 }
 
-// Input validation
+// Input validation — defense-in-depth against prompt injection
 const DANGEROUS_PATTERNS = [
-  /ignore previous instructions/gi,
-  /disregard all prior/gi,
-  /you are now/gi,
-  /pretend to be/gi,
-  /system prompt/gi,
+  /ignore\s+(all\s+)?previous\s+instructions/gi,
+  /disregard\s+(all\s+)?prior/gi,
+  /you\s+are\s+now/gi,
+  /pretend\s+to\s+be/gi,
+  /system\s+prompt/gi,
   /\[INST\]/gi,
   /<<SYS>>/gi,
-  /new persona/gi,
-  /override your/gi,
-  /forget everything/gi,
+  /new\s+persona/gi,
+  /override\s+(your|the|all)/gi,
+  /forget\s+everything/gi,
+  /do\s+not\s+follow/gi,
+  /bypass\s+(the\s+)?filter/gi,
+  /act\s+as\s+(a|an|if)/gi,
+  /roleplay\s+as/gi,
+  /jailbreak/gi,
+  /DAN\s+mode/gi,
+  /developer\s+mode/gi,
+  /respond\s+as\s+if/gi,
+  /reveal\s+(your|the)\s+(system|instructions|prompt)/gi,
+  /what\s+are\s+your\s+instructions/gi,
 ];
 
 const BLACKLIST = [
-  "<script>",
+  "<script",
+  "</script",
   "javascript:",
   "eval(",
-  "SELECT ",
-  "DROP ",
-  "INSERT ",
-  "DELETE ",
-  "--",
-  "/*",
-  "*/",
-  "UNION ",
-  "OR 1=1",
+  "onerror=",
+  "onload=",
 ];
+
+// Destination must look like a geographic name — letters, spaces, hyphens, commas, dots, parentheses, apostrophes
+const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
 
 export function validateTripParams(
   params: TripCreationParams
@@ -990,7 +997,12 @@ export function validateTripParams(
     return { valid: false, error: "Destination name too long" };
   }
 
-  // Check for blacklisted content
+  // Whitelist: destination must contain only geographic-name characters
+  if (!DESTINATION_ALLOWLIST.test(params.destination)) {
+    return { valid: false, error: "Destination contains invalid characters" };
+  }
+
+  // Check for blacklisted content in destination
   const destLower = params.destination.toLowerCase();
   for (const blocked of BLACKLIST) {
     if (destLower.includes(blocked.toLowerCase())) {
@@ -998,10 +1010,27 @@ export function validateTripParams(
     }
   }
 
-  // Check for prompt injection
+  // Check for prompt injection in destination
   for (const pattern of DANGEROUS_PATTERNS) {
     if (pattern.test(params.destination)) {
       return { valid: false, error: "Invalid input detected" };
+    }
+  }
+
+  // Validate requirements field if present
+  if (params.requirements) {
+    if (params.requirements.length > 500) {
+      return { valid: false, error: "Requirements text too long (max 500 characters)" };
+    }
+    for (const blocked of BLACKLIST) {
+      if (params.requirements.toLowerCase().includes(blocked.toLowerCase())) {
+        return { valid: false, error: "Invalid characters in requirements" };
+      }
+    }
+    for (const pattern of DANGEROUS_PATTERNS) {
+      if (pattern.test(params.requirements)) {
+        return { valid: false, error: "Invalid input detected" };
+      }
     }
   }
 

@@ -2,9 +2,19 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { redeemTesterCode, validateCode } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// 5 redemption attempts per IP per hour
+const limiter = createRateLimiter("early-access-redeem", 5, 60 * 60 * 1000);
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit check
+    const { allowed } = limiter.check(request);
+    if (!allowed) {
+      return errors.rateLimit("Too many redemption attempts. Please try again later.");
+    }
+
     const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errors.unauthorized("You must be logged in to redeem a code");
 

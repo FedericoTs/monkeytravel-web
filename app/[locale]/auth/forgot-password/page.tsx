@@ -101,9 +101,12 @@ function ForgotPasswordForm() {
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
                 {t("successTitle")}
               </h1>
-              <p className="text-slate-600 mb-6"
-                dangerouslySetInnerHTML={{ __html: t("successMessage", { email }) }}
-              />
+              <p className="text-slate-600 mb-6">
+                {t.rich("successMessage", {
+                  email,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
+              </p>
               <p className="text-sm text-slate-500 mb-6">
                 {t("checkSpam")}
               </p>
