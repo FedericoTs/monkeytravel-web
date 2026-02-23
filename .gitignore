@@ -39,6 +39,9 @@ yarn-error.log*
 # whatsapp bridge databases
 /store/
 
+# supabase
+supabase/.temp/
+
 # vercel
 .vercel
 
