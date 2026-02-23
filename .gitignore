@@ -36,6 +36,9 @@ yarn-error.log*
 .env.*.local
 !.env.example
 
+# whatsapp bridge databases
+/store/
+
 # vercel
 .vercel
 

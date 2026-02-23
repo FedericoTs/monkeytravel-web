@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   // Canonical URL
   metadataBase: new URL("https://monkeytravel.app"),
   alternates: {
-    canonical: "/",
+    canonical: "./",
   },
 
   // Open Graph for social sharing (Facebook, LinkedIn, Teams, WhatsApp, etc.)

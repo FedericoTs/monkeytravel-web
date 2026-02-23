@@ -46,6 +46,15 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Enforce no trailing slashes — prevents /about vs /about/ duplication
+  trailingSlash: false,
+
+  // Force synchronous metadata rendering for search engine crawlers.
+  // Without this, generateMetadata() streams <link rel="canonical"> and hreflang
+  // tags asynchronously — Googlebot may not see them, causing
+  // "Duplicate without user-selected canonical" in Search Console.
+  htmlLimitedBots: /Googlebot|Google-InspectionTool|Bingbot|Yandex|Baiduspider|DuckDuckBot|Slurp|Twitterbot|facebookexternalhit|LinkedInBot|WhatsApp|Applebot/i,
+
   // Security headers
   async headers() {
     return [
