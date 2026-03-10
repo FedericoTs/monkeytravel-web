@@ -11,8 +11,8 @@ image: "/images/blog/paris-vs-rome.jpg"
 imageAlt: "Split image comparing the Eiffel Tower in Paris and the Colosseum in Rome"
 readingTime: 10
 seo:
-  title: "Paris vs Rome 2026: Honest Comparison | MonkeyTravel"
-  description: "Paris or Rome in 2026? Compare food, art, costs, romance, and nightlife side by side. Find out which city is best for your travel style and budget."
+  title: "Paris vs Rome 2026: Which City Should You Actually Visit First?"
+  description: "First-timer or returning traveler? We break down Paris vs Rome by cost, crowds, food, and vibe — so you can stop debating and start booking."
   keywords: ["paris vs rome", "paris or rome", "paris vs rome cost", "paris vs rome food", "paris vs rome 2026", "europe trip paris rome", "which is better paris or rome"]
 schema: "Article"
 ---

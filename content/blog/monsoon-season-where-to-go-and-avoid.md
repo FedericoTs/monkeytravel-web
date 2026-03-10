@@ -11,8 +11,8 @@ image: "/images/blog/monsoon-season-where-to-go-and-avoid.jpg"
 imageAlt: "Lush green rice terraces during monsoon season with dramatic rain clouds in Southeast Asia"
 readingTime: 7
 seo:
-  title: "Monsoon Season Travel 2026: Where to Go & Avoid in Asia | MonkeyTravel"
-  description: "Monsoon season in Asia explained month by month. Which countries to avoid, which are great during monsoon, and how to save 30-50% traveling in green season."
+  title: "Asia Monsoon Season 2026: Where to Go (and What to Avoid)"
+  description: "Monsoon doesn't mean ruined plans. Discover which Asian destinations thrive in rainy season 2026 — and which ones to skip entirely."
   keywords: ["monsoon season travel", "where to avoid monsoon", "monsoon season asia 2026", "green season asia", "best time to visit southeast asia"]
 schema: "Article"
 ---
