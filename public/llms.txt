@@ -1,0 +1,105 @@
+# MonkeyTravel
+
+> MonkeyTravel is a free AI-powered trip planner that generates personalized day-by-day travel itineraries with real venues, actual prices, and smart routing. Available in English, Spanish, and Italian. No signup required.
+
+## Core Pages
+
+- [Homepage](https://monkeytravel.app): Free AI trip planner — enter a destination, get a personalized day-by-day itinerary in minutes
+- [Free AI Trip Planner](https://monkeytravel.app/free-ai-trip-planner): Generate personalized itineraries with real venues and prices, 100% free, no credit card
+- [AI Itinerary Generator](https://monkeytravel.app/ai-itinerary-generator): AI-powered day-by-day travel itinerary generator with Budget, Balanced, and Premium options
+- [Group Trip Planner](https://monkeytravel.app/group-trip-planner): Plan group trips with AI — invite friends, vote on activities, reach consensus
+- [Solo Trip Planner](https://monkeytravel.app/solo-trip-planner): AI itineraries for solo travelers with safety tips, social spots, and local experiences
+- [Budget Trip Planner](https://monkeytravel.app/budget-trip-planner): AI trip planning optimized for budget travelers with real daily cost breakdowns
+- [Family Trip Planner](https://monkeytravel.app/family-trip-planner): Family-friendly AI itineraries with kid-appropriate activities and logistics
+- [Weekend Trip Planner](https://monkeytravel.app/weekend-trip-planner): AI-powered weekend getaway planning with 2-3 day optimized itineraries
+
+## Destination Guides
+
+- [Paris](https://monkeytravel.app/destinations/paris): AI-generated Paris travel guide with itineraries, costs, and local tips
+- [Rome](https://monkeytravel.app/destinations/rome): AI-generated Rome travel guide
+- [Barcelona](https://monkeytravel.app/destinations/barcelona): AI-generated Barcelona travel guide
+- [Tokyo](https://monkeytravel.app/destinations/tokyo): AI-generated Tokyo travel guide
+- [New York](https://monkeytravel.app/destinations/new-york): AI-generated New York travel guide
+- [London](https://monkeytravel.app/destinations/london): AI-generated London travel guide
+- [Lisbon](https://monkeytravel.app/destinations/lisbon): AI-generated Lisbon travel guide
+- [Bangkok](https://monkeytravel.app/destinations/bangkok): AI-generated Bangkok travel guide
+- [Bali](https://monkeytravel.app/destinations/bali): AI-generated Bali travel guide
+- [Seoul](https://monkeytravel.app/destinations/seoul): AI-generated Seoul travel guide
+- [Istanbul](https://monkeytravel.app/destinations/istanbul): AI-generated Istanbul travel guide
+- [Dubai](https://monkeytravel.app/destinations/dubai): AI-generated Dubai travel guide
+- [Marrakech](https://monkeytravel.app/destinations/marrakech): AI-generated Marrakech travel guide
+- [Amsterdam](https://monkeytravel.app/destinations/amsterdam): AI-generated Amsterdam travel guide
+- [Prague](https://monkeytravel.app/destinations/prague): AI-generated Prague travel guide
+- [Vienna](https://monkeytravel.app/destinations/vienna): AI-generated Vienna travel guide
+- [Berlin](https://monkeytravel.app/destinations/berlin): AI-generated Berlin travel guide
+- [Singapore](https://monkeytravel.app/destinations/singapore): AI-generated Singapore travel guide
+- [Cancun](https://monkeytravel.app/destinations/cancun): AI-generated Cancun travel guide
+- [Rio de Janeiro](https://monkeytravel.app/destinations/rio-de-janeiro): AI-generated Rio de Janeiro travel guide
+
+## Blog — AI Travel Planning
+
+- [Best AI Trip Planners 2026 Compared](https://monkeytravel.app/blog/best-ai-trip-planners-2026-compared): Honest comparison of 7 AI trip planning tools with real testing
+- [AI Trip Planner vs Travel Agent](https://monkeytravel.app/blog/ai-trip-planner-vs-travel-agent): Side-by-side test of AI planner vs travel agent for the same trip
+- [How AI is Changing Travel Planning](https://monkeytravel.app/blog/how-ai-is-changing-travel-planning): Overview of AI's impact on the travel planning industry in 2026
+- [How to Plan a Trip with AI](https://monkeytravel.app/blog/how-to-plan-a-trip-with-ai): Step-by-step beginner's guide to AI trip planning
+- [Can You Trust AI Travel Itineraries?](https://monkeytravel.app/blog/can-you-trust-ai-travel-itinerary): Honest assessment of AI itinerary accuracy and limitations
+
+## Blog — Destination Itineraries
+
+- [Seoul 5-Day Itinerary](https://monkeytravel.app/blog/seoul-5-day-itinerary): Day-by-day Seoul guide with K-beauty glow-cation, DMZ, real 2026 prices
+- [Tokyo 4-Day Itinerary](https://monkeytravel.app/blog/tokyo-4-day-itinerary): Day-by-day Tokyo guide with real 2026 prices and transit tips
+- [First Trip to Vietnam 2026](https://monkeytravel.app/blog/first-trip-to-vietnam-2026): Complete 10-day north-to-south Vietnam itinerary for first-timers
+- [Bali 7-Day Itinerary](https://monkeytravel.app/blog/bali-7-day-itinerary): Week-long Bali itinerary covering Ubud, Seminyak, Canggu, and Nusa Penida
+- [Bangkok 5-Day Itinerary](https://monkeytravel.app/blog/bangkok-5-day-itinerary): Day-by-day Bangkok guide with temples, street food, and markets
+- [3-Day Paris Itinerary](https://monkeytravel.app/blog/3-day-paris-itinerary): Optimized 3-day Paris guide with real prices
+- [5-Day Italy Itinerary](https://monkeytravel.app/blog/5-day-italy-itinerary): Rome, Florence, and Venice in 5 days
+- [Istanbul 3-Day Itinerary](https://monkeytravel.app/blog/istanbul-3-day-itinerary): Day-by-day Istanbul guide
+- [Lisbon 3-Day Itinerary](https://monkeytravel.app/blog/lisbon-3-day-itinerary): Day-by-day Lisbon guide with Sintra day trip
+- [London 4-Day Itinerary](https://monkeytravel.app/blog/london-4-day-itinerary): Day-by-day London guide
+- [New York 5-Day Itinerary](https://monkeytravel.app/blog/new-york-5-day-itinerary): Day-by-day NYC guide
+- [Barcelona 3-Day Itinerary](https://monkeytravel.app/blog/barcelona-3-day-itinerary): Day-by-day Barcelona guide
+
+## Blog — Seasonal & "Where to Go" Guides
+
+- [Where to Go in January](https://monkeytravel.app/blog/where-to-go-in-january): 12 best destinations for January travel with real costs and weather
+- [Where to Go in February](https://monkeytravel.app/blog/where-to-go-in-february): 12 best destinations — Carnival, Northern Lights, winter sun
+- [Where to Go in March](https://monkeytravel.app/blog/where-to-go-in-march): 12 best spring destinations
+- [Where to Go in April](https://monkeytravel.app/blog/where-to-go-in-april): 12 best destinations — cherry blossoms, dry-season escapes
+- [Where to Go in May](https://monkeytravel.app/blog/where-to-go-in-may): 12 best destinations — shoulder-season Europe, spring blooms
+- [Where to Go in June](https://monkeytravel.app/blog/where-to-go-in-june): 12 best summer travel destinations
+- [Where to Go in July](https://monkeytravel.app/blog/where-to-go-in-july): 12 best peak summer destinations
+- [Where to Go in August](https://monkeytravel.app/blog/where-to-go-in-august): 12 best destinations — festivals, smart alternatives
+- [Where to Go in September](https://monkeytravel.app/blog/where-to-go-in-september): 12 best shoulder season destinations
+- [Where to Go in October](https://monkeytravel.app/blog/where-to-go-in-october): 12 best fall destinations worldwide
+- [Where to Go in November](https://monkeytravel.app/blog/where-to-go-in-november): 12 best destinations before the holiday rush
+- [Where to Go in December](https://monkeytravel.app/blog/where-to-go-in-december): 12 best winter escape and holiday destinations
+- [Spring Break Destinations 2026](https://monkeytravel.app/blog/spring-break-destinations-2026): 12 trending picks backed by Google Flights data
+- [Best Summer Destinations 2026](https://monkeytravel.app/blog/best-summer-destinations-2026): 15 best summer destinations
+- [Monsoon Season Asia 2026](https://monkeytravel.app/blog/monsoon-season-where-to-go-and-avoid): Month-by-month guide to Asia's monsoon season
+
+## Blog — Budget Travel
+
+- [Cheapest Destinations in Europe 2026](https://monkeytravel.app/blog/cheapest-destinations-in-europe): 15 European cities under €50/day with real prices
+- [Cheapest Destinations in Asia 2026](https://monkeytravel.app/blog/cheapest-destinations-in-asia): 15 Asian destinations under $30/day with real prices
+- [Cheapest Flights 2026](https://monkeytravel.app/blog/cheapest-flights-2026-when-and-where-to-book): When and where to book for the best deals, with real route prices
+- [Italy on a Budget](https://monkeytravel.app/blog/how-to-plan-trip-to-italy-on-a-budget): How to plan a budget trip to Italy in 2026
+- [Honeymoon on a Budget 2026](https://monkeytravel.app/blog/honeymoon-on-a-budget-2026): 10 affordable alternatives to overpriced honeymoon destinations
+
+## Blog — Trip Planning & Travel Lifestyle
+
+- [Best Honeymoon Destinations 2026](https://monkeytravel.app/blog/best-honeymoon-destinations-2026): 12 honeymoon destinations for every budget and style
+- [Best Digital Nomad Destinations 2026](https://monkeytravel.app/blog/best-digital-nomad-destinations-2026): 12 cities for remote work — costs, visas, internet speeds
+- [Best Food Destinations 2026](https://monkeytravel.app/blog/best-food-destinations-2026): 12 culinary travel destinations worldwide
+- [Best Wellness Retreats 2026](https://monkeytravel.app/blog/best-wellness-retreats-2026): 10 wellness retreats from yoga to burnout recovery
+- [Sustainable Travel Guide 2026](https://monkeytravel.app/blog/sustainable-travel-guide-2026): 10 eco-tourism destinations leading the way
+- [Best Places to See Northern Lights](https://monkeytravel.app/blog/best-places-to-see-northern-lights): 12 aurora borealis destinations with real costs and peak dates
+- [Passport Power Index 2026](https://monkeytravel.app/blog/passport-power-index-2026): Henley & Arton rankings — strongest to weakest passports
+- [International Travel Checklist](https://monkeytravel.app/blog/international-travel-checklist): Complete checklist organized by timeline
+- [Group Trip Planning Guide](https://monkeytravel.app/blog/how-to-plan-a-group-trip): How to plan a group trip without the chaos
+
+## Optional
+
+- [Blog Index](https://monkeytravel.app/blog): Full list of all travel guides and articles
+- [Destinations Index](https://monkeytravel.app/destinations): Browse all destination guides
+- [Privacy Policy](https://monkeytravel.app/privacy): Privacy policy
+- [Terms of Service](https://monkeytravel.app/terms): Terms of service

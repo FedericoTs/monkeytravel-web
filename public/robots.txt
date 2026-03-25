@@ -14,3 +14,7 @@ Allow: /terms
 
 # Sitemap and feeds
 Sitemap: https://monkeytravel.app/sitemap.xml
+
+# LLMs.txt — Generative Engine Optimization
+# See https://llmstxt.org for specification
+# Provides structured site overview for AI models and LLM crawlers
