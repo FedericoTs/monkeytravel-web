@@ -148,7 +148,7 @@ See what AI plans for your next trip, then decide if you need an agent on top of
 
 ### Can AI really replace a travel agent?
 
-For 80% of trips, yes. [AI trip planners](/free-ai-trip-planner) now use real-time venue data, ratings, and budget optimization to create detailed itineraries. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
+For 80% of trips, yes. [AI trip planners](/free-ai-trip-planner) now use real-time venue data, ratings, and budget optimization to create detailed itineraries. See our [comparison of the best AI trip planners for 2026](/blog/best-ai-trip-planners-2026-compared) for a full breakdown. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
 
 ### How accurate are AI trip planner recommendations?
 

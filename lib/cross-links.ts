@@ -74,9 +74,9 @@ interface LandingPageLink {
 }
 
 const LANDING_PAGE_KEYWORDS: { path: string; labelKey: string; keywords: string[] }[] = [
-  { path: "/free-ai-trip-planner", labelKey: "freeTripPlanner", keywords: ["travel", "trip", "itinerary", "destinations", "where to go", "visa", "passport", "northern lights", "summer", "winter", "fall", "spring"] },
-  { path: "/budget-trip-planner", labelKey: "budgetTripPlanner", keywords: ["budget", "cheap", "affordable", "cheapest", "backpacking", "low cost"] },
-  { path: "/solo-trip-planner", labelKey: "soloTripPlanner", keywords: ["solo", "alone", "single"] },
+  { path: "/free-ai-trip-planner", labelKey: "freeTripPlanner", keywords: ["travel", "trip", "itinerary", "destinations", "where to go", "visa", "passport", "northern lights", "summer", "winter", "fall", "spring", "honeymoon", "romantic", "couples", "food", "culinary", "sustainable", "eco"] },
+  { path: "/budget-trip-planner", labelKey: "budgetTripPlanner", keywords: ["budget", "cheap", "affordable", "cheapest", "backpacking", "low cost", "flights"] },
+  { path: "/solo-trip-planner", labelKey: "soloTripPlanner", keywords: ["solo", "alone", "single", "nomad", "remote work", "digital nomad", "wellness", "retreat"] },
   { path: "/group-trip-planner", labelKey: "groupTripPlanner", keywords: ["group", "friends", "team", "together", "family trip"] },
   { path: "/family-trip-planner", labelKey: "familyTripPlanner", keywords: ["family", "kids", "children"] },
   { path: "/weekend-trip-planner", labelKey: "weekendTripPlanner", keywords: ["weekend", "short trip", "getaway", "3 day", "2 day"] },

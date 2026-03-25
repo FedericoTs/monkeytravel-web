@@ -339,7 +339,7 @@ Ubud is the most expensive destination on this list, and it still costs less per
 
 ## Let AI Plan Your Asia Trip on Any Budget
 
-Fifteen destinations, infinite possible routes. Maybe you want to combine Hanoi and Luang Prabang on a two-week overland trip. Maybe you're trying to figure out if Bali or Goa gives more beach for less cash. Maybe you've got $1,000 and three weeks and want to know exactly how far it'll stretch.
+Fifteen destinations, infinite possible routes. Maybe you want to combine Hanoi and Luang Prabang on a two-week overland trip — check our [first-timer's Vietnam guide](/blog/first-trip-to-vietnam-2026) for a complete 10-day itinerary. Maybe you're trying to figure out if Bali or Goa gives more beach for less cash. Maybe you've got $1,000 and three weeks and want to know exactly how far it'll stretch.
 
 MonkeyTravel's AI builds **personalized Asia itineraries in 30 seconds** — real daily budgets, actual restaurant recommendations, and smart routing so you're not backtracking across countries.
 

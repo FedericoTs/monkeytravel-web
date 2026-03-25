@@ -161,7 +161,7 @@ Other sunset options:
 
 ### Day 4: Canggu
 
-Canggu is 25 minutes north of Seminyak and has become Bali's digital nomad and surfer capital. It's more laid-back, slightly cheaper, and has better surf.
+Canggu is 25 minutes north of Seminyak and has become Bali's [digital nomad](/blog/best-digital-nomad-destinations-2026) and surfer capital. It's more laid-back, slightly cheaper, and has better surf. If you're considering a longer stay, Bali also ranks among the world's [best wellness retreats](/blog/best-wellness-retreats-2026).
 
 **Morning: Surf Lesson at Batu Bolong (8:00 AM)**
 
