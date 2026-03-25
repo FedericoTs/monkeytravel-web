@@ -106,7 +106,7 @@ If you're exploring [Lisbon](/destinations/lisbon) as your base, the Algarve is 
 
 **Insider tip:** Skip La Boqueria market (overrun with tourists, inflated prices). Walk 15 minutes to Mercat de Sant Antoni — reopened after a gorgeous renovation — where locals actually shop. Better food, half the price, zero selfie sticks.
 
-Use MonkeyTravel's AI trip planner to build a Barcelona itinerary that balances beach days, Gaudi visits, and Grec Festival shows without the scheduling headaches of peak July.
+Use MonkeyTravel's [free AI trip planner](/free-ai-trip-planner) to build a Barcelona itinerary that balances beach days, Gaudi visits, and Grec Festival shows without the scheduling headaches of peak July.
 
 ---
 
@@ -263,7 +263,7 @@ For every overcrowded July destination, there is a less-known alternative delive
 
 ### Use AI to Navigate Peak Season Complexity
 
-Peak season means more variables: sold-out attractions, reservation-only restaurants, timed-entry tickets, festival schedules, and transit bottlenecks. Building a July itinerary that accounts for all of these moving parts is genuinely time-consuming. MonkeyTravel's AI trip planner cross-references availability, transit times, weather patterns, and crowd levels to build day-by-day plans that would take hours to research manually.
+Peak season means more variables: sold-out attractions, reservation-only restaurants, timed-entry tickets, festival schedules, and transit bottlenecks. Building a July itinerary that accounts for all of these moving parts is genuinely time-consuming. MonkeyTravel's [AI itinerary generator](/ai-itinerary-generator) cross-references availability, transit times, weather patterns, and crowd levels to build day-by-day plans that would take hours to research manually.
 
 ---
 

@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts } from "@/lib/blog/api";
 import type { BlogFrontmatter } from "@/lib/blog/types";
-import { getDestinationsForBlogPost } from "@/lib/cross-links";
+import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
 import { getRegionForPost } from "@/lib/blog/regions";
 import type { Locale } from "@/lib/destinations/types";
 import {
@@ -170,6 +170,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
   const related = getRelatedPosts(slug, 3, locale);
   const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
+  const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
 
   // "More from Region" section — posts from the same region (excluding current + related)
@@ -314,17 +315,42 @@ export default async function BlogDetailPage({ params }: PageProps) {
             <p className="text-white/70 mb-10 max-w-xl mx-auto text-lg leading-relaxed">
               {t("detail.planYourTripDescription")}
             </p>
-            <a
-              href="https://monkeytravel.app"
+            <Link
+              href="/trips/new"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)]/90 transition-all hover:shadow-lg hover:shadow-[var(--accent)]/20 hover:-translate-y-0.5"
             >
               {t("detail.planYourTripCta")}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
-            </a>
+            </Link>
           </div>
         </section>
+
+        {/* Related Landing Pages (internal links for SEO) */}
+        {relatedLandingPages.length > 0 && (
+          <section className="py-12 bg-gray-50">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
+                {t("detail.relatedTools")}
+              </h2>
+              <div className="flex flex-wrap justify-center gap-3">
+                {relatedLandingPages.map((lp) => (
+                  <Link
+                    key={lp.path}
+                    href={lp.path}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all hover:shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    {t(`detail.relatedToolsLabels.${lp.labelKey}`)}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Related Destinations */}
         {relatedDestinations.length > 0 && (

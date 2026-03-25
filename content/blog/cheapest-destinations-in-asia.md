@@ -11,9 +11,9 @@ image: "/images/blog/cheapest-destinations-in-asia.jpg"
 imageAlt: "Colorful floating market with boats of fresh produce in Southeast Asia"
 readingTime: 12
 seo:
-  title: "15 Cheapest Asian Destinations 2026: Real Budgets | MonkeyTravel"
-  description: "Discover the 15 cheapest destinations in Asia for 2026 with real daily budgets, street food prices, and accommodation costs. From $15/day in Hanoi to $35/day in Bali."
-  keywords: ["cheapest destinations in asia", "budget travel asia 2026", "cheap countries in asia", "backpacking asia budget", "cheapest places to travel asia", "asia on a budget", "cheap asian travel destinations"]
+  title: "15 Cheapest Asian Destinations 2026 — Under $30/Day (Real Prices) | MonkeyTravel"
+  description: "Asia on a budget in 2026: 15 destinations where you can travel for under $30/day. Street food, hostels, and daily costs — all verified with real 2026 prices."
+  keywords: ["cheapest destinations in asia", "budget travel asia 2026", "cheap countries in asia", "backpacking asia budget", "cheapest places to travel asia", "asia on a budget", "cheap asian travel destinations", "cheapest country in southeast asia"]
 schema: "Article"
 ---
 
@@ -343,7 +343,7 @@ Fifteen destinations, infinite possible routes. Maybe you want to combine Hanoi 
 
 MonkeyTravel's AI builds **personalized Asia itineraries in 30 seconds** — real daily budgets, actual restaurant recommendations, and smart routing so you're not backtracking across countries.
 
-[Plan My Asia Trip — Free](https://monkeytravel.app)
+[Plan My Asia Trip — Free](/budget-trip-planner)
 
 ---
 

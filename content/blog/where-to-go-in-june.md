@@ -78,7 +78,7 @@ If you're planning a [Lisbon trip](/destinations/lisbon), June gives you the rar
 
 **Insider tip:** Visit Park Guell at 8 AM when the ticketed zone opens. By 10 AM the wait is 45 minutes. At 8 AM you'll share the mosaic terraces with maybe 50 people.
 
-[Barcelona](/destinations/barcelona) in June delivers the best version of the city — use MonkeyTravel's AI trip planner to build an itinerary that balances the beach days, Gaudi visits, and festival nights without the scheduling headaches.
+[Barcelona](/destinations/barcelona) in June delivers the best version of the city — use MonkeyTravel's [free AI trip planner](/free-ai-trip-planner) to build an itinerary that balances the beach days, Gaudi visits, and festival nights without the scheduling headaches.
 
 ---
 
@@ -242,7 +242,7 @@ June in the far north means one thing: endless light. The midnight sun transform
 
 **Don't skip travel insurance.** June is the start of hurricane season in the Caribbean and Atlantic, and monsoon season in South Asia. Weather disruptions happen. A good policy costs $50-100 and covers thousands in potential losses.
 
-**Use AI to optimize your itinerary.** With so many events, festivals, and seasonal windows converging in June, building a day-by-day plan that accounts for everything — opening hours, transit times, weather contingencies — is genuinely complex. MonkeyTravel's AI trip planner handles the logistics so you can focus on deciding where to go rather than how to organize it.
+**Use AI to optimize your itinerary.** With so many events, festivals, and seasonal windows converging in June, building a day-by-day plan that accounts for everything — opening hours, transit times, weather contingencies — is genuinely complex. MonkeyTravel's [AI itinerary generator](/ai-itinerary-generator) handles the logistics so you can focus on deciding where to go rather than how to organize it.
 
 ---
 

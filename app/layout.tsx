@@ -48,7 +48,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   // Core metadata
   title: {
-    default: "MonkeyTravel - AI-Powered Trip Planning Made Easy",
+    default: "MonkeyTravel — Free AI Trip Planner | Day-by-Day Itineraries in Minutes",
     template: "%s | MonkeyTravel",
   },
   description: "Plan your perfect trip with AI-generated day-by-day itineraries. Get Budget, Balanced, and Premium options tailored to your travel style. Create personalized travel plans in minutes!",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   // Canonical URL
   metadataBase: new URL("https://monkeytravel.app"),
   alternates: {
-    canonical: "./",
+    canonical: "https://monkeytravel.app",
   },
 
   // Open Graph for social sharing (Facebook, LinkedIn, Teams, WhatsApp, etc.)

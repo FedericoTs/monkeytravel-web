@@ -11,9 +11,9 @@ image: "/images/blog/monsoon-season-where-to-go-and-avoid.jpg"
 imageAlt: "Lush green rice terraces during monsoon season with dramatic rain clouds in Southeast Asia"
 readingTime: 7
 seo:
-  title: "Asia Monsoon Season 2026: Where to Go (and What to Avoid)"
-  description: "Monsoon doesn't mean ruined plans. Discover which Asian destinations thrive in rainy season 2026 — and which ones to skip entirely."
-  keywords: ["monsoon season travel", "where to avoid monsoon", "monsoon season asia 2026", "green season asia", "best time to visit southeast asia"]
+  title: "Monsoon Season Asia 2026: Month-by-Month Guide — Where to Go & Avoid | MonkeyTravel"
+  description: "Don't cancel your Asia trip. Complete 2026 monsoon calendar for Southeast Asia, India, and East Asia — which months to visit, which to skip, and where to go instead."
+  keywords: ["monsoon season asia 2026", "monsoon season travel", "where to avoid monsoon", "green season asia", "best time to visit southeast asia", "rain season asia", "monsoon season thailand 2026"]
 schema: "Article"
 ---
 
@@ -205,7 +205,7 @@ Planning around monsoon season requires juggling rainfall data, regional pattern
 
 MonkeyTravel's AI builds your itinerary around real weather patterns — routing you to the dry side of a country while others are fighting the rain. Drop in your dates, and get a personalized monsoon-smart itinerary in 30 seconds.
 
-[Plan My Monsoon Season Trip -- Free](https://monkeytravel.app)
+[Plan My Monsoon Season Trip — Free](/free-ai-trip-planner)
 
 ---
 

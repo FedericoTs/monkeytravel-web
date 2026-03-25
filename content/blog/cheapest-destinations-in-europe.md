@@ -11,9 +11,9 @@ image: "/images/blog/cheapest-destinations-in-europe.jpg"
 imageAlt: "Colorful old town streets in a budget-friendly European city"
 readingTime: 12
 seo:
-  title: "15 Cheapest European Destinations 2026: Real Budgets | MonkeyTravel"
-  description: "Discover the 15 cheapest destinations in Europe for 2026 with actual daily budgets, hostel prices, food costs, and money-saving tips for each city."
-  keywords: ["cheapest destinations in europe", "budget travel europe 2026", "cheap european cities", "backpacking europe budget", "affordable europe travel", "cheap places to visit in europe"]
+  title: "15 Cheapest European Destinations 2026 — Under €50/Day (Real Prices) | MonkeyTravel"
+  description: "Budget travel in Europe in 2026: 15 cities where you can eat, sleep, and explore for under €50/day. Hostel rates, meal costs, and daily budgets — all verified."
+  keywords: ["cheapest destinations in europe", "budget travel europe 2026", "cheap european cities", "backpacking europe budget", "affordable europe travel", "cheap places to visit in europe", "cheapest city for eating out in europe"]
 schema: "Article"
 ---
 
@@ -423,4 +423,4 @@ The hardest part of budget travel in Europe isn't the money — it's choosing wh
 
 Pick a destination from this list, set your dates, and let MonkeyTravel's AI build your day-by-day itinerary with real budget-friendly recommendations. No spreadsheets, no hours of research — just a plan that actually fits what you want to spend.
 
-**[Plan My Budget Trip Free →](/trips)**
+**[Plan My Budget Trip Free →](/budget-trip-planner)**

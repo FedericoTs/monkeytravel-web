@@ -30,7 +30,17 @@
     "planYourTripDescription": "Deja que la AI de MonkeyTravel cree un itinerario personalizado para ti — con lugares reales, precios actuales y rutas inteligentes.",
     "planYourTripCta": "Planifica Mi Viaje — Gratis",
     "exploreDestinations": "Explora Estos Destinos",
-    "moreFromRegion": "Más de {region}"
+    "moreFromRegion": "Más de {region}",
+    "relatedTools": "Planifica Tu Viaje con AI",
+    "relatedToolsLabels": {
+      "freeTripPlanner": "Planificador de Viajes AI Gratis",
+      "budgetTripPlanner": "Planificador de Viajes Económicos",
+      "soloTripPlanner": "Planificador de Viajes en Solitario",
+      "groupTripPlanner": "Planificador de Viajes en Grupo",
+      "familyTripPlanner": "Planificador de Viajes Familiares",
+      "weekendTripPlanner": "Planificador de Escapadas de Fin de Semana",
+      "aiItineraryGenerator": "Generador de Itinerarios AI"
+    }
   },
   "breadcrumbs": {
     "home": "Inicio",
@@ -143,8 +153,8 @@
       "description": "Guía completa mes a mes de la Gran Migración en África Oriental. Dónde están las manadas, los mejores campamentos, cruces del río Mara, temporada de partos y presupuestos reales."
     },
     "monsoon-season-where-to-go-and-avoid": {
-      "title": "Monzones en Asia 2026: Dónde Ir (y Qué Evitar)",
-      "description": "Los monzones no arruinan tus planes. Descubre qué destinos asiáticos brillan en temporada de lluvias 2026 — y cuáles evitar por completo."
+      "title": "Monzones Asia 2026: Guía Mes a Mes — Dónde Ir y Qué Evitar",
+      "description": "No canceles tu viaje a Asia. Calendario completo de monzones 2026 para el Sudeste Asiático, India y Asia Oriental — qué meses visitar, cuáles evitar y alternativas."
     },
     "midnight-sun-best-destinations": {
       "title": "Mejores Destinos para Ver el Sol de Medianoche: Dónde Vivir 24 Horas de Luz en 2026",
@@ -155,8 +165,8 @@
       "description": "Todo lo que necesitas para planificar un viaje a Japón durante la floración de los cerezos en 2026 — pronósticos de floración, mejores ciudades y parques, etiqueta del hanami y consejos de presupuesto."
     },
     "best-places-to-see-northern-lights": {
-      "title": "Los Mejores Lugares para Ver la Aurora Boreal en 2026: Guía Práctica",
-      "description": "Los 12 mejores destinos para ver la aurora boreal en 2026, con costes reales, mejores meses, probabilidades y consejos prácticos para cada lugar."
+      "title": "12 Mejores Lugares para Ver la Aurora Boreal (2026) — Costes y Fechas Clave",
+      "description": "Dónde ver la aurora boreal en 2026: 12 destinos clasificados por probabilidad, con fechas de máxima actividad, costes reales por noche y opciones económicas."
     },
     "best-fall-foliage-destinations": {
       "title": "Los Mejores Destinos para Ver el Follaje de Otoño en el Mundo: Dónde Ver los Colores del Otoño en 2026",
@@ -191,12 +201,12 @@
       "description": "¿Primera vez o viaje de vuelta? Comparamos París y Roma por coste, masificación, gastronomía y ambiente — para que dejes de dudar y reserves."
     },
     "cheapest-destinations-in-europe": {
-      "title": "Los 15 Destinos Más Baratos de Europa en 2026 (Presupuestos Diarios Reales)",
-      "description": "Los 15 lugares más baratos para viajar en Europa en 2026 con presupuestos diarios reales, precios de hostales y hoteles, costes de comida y lo que gastarás realmente."
+      "title": "15 Destinos Más Baratos de Europa 2026 — Menos de 50€/Día (Precios Reales)",
+      "description": "Viajar barato por Europa en 2026: 15 ciudades donde comer, dormir y explorar por menos de 50€/día. Precios de hostales, comidas y presupuestos verificados."
     },
     "cheapest-destinations-in-asia": {
-      "title": "Los 15 Destinos Más Baratos de Asia en 2026 (Presupuestos Diarios Reales)",
-      "description": "Los 15 lugares más baratos para viajar en Asia en 2026 con presupuestos diarios reales, costes de alojamiento, precios de comida callejera y gastos reales."
+      "title": "15 Destinos Más Baratos de Asia 2026 — Menos de $30/Día (Precios Reales)",
+      "description": "Asia con presupuesto en 2026: 15 destinos donde viajar por menos de $30/día. Street food, hostales y costes diarios verificados con precios reales de 2026."
     },
     "best-summer-destinations-2026": {
       "title": "15 Mejores Destinos de Verano para 2026 (Playa, Ciudad y Aventura)",
@@ -227,8 +237,8 @@
       "description": "El checklist completo para viajes internacionales organizado por cronograma. Pasaportes, visas, vacunas, seguros, banca y preparación digital para viajar sin estrés."
     },
     "passport-power-index-2026": {
-      "title": "Passport Power Index 2026: Ranking Completo y Qué Significa para Tu Viaje",
-      "description": "El Passport Power Index 2026 completo: los 10 pasaportes más fuertes y débiles, destinos sin visa, análisis regional y cómo el ranking afecta tus viajes."
+      "title": "Passport Power Index 2026: Rankings Henley y Arton — Del Más Fuerte al Más Débil",
+      "description": "Passport Power Index 2026 completo con rankings Henley y Arton Capital comparados. Top 10 pasaportes más fuertes y débiles, destinos sin visa y datos por país."
     },
     "visa-free-destinations-by-passport": {
       "title": "Destinos Sin Visa por Pasaporte: La Guía Completa 2026",
@@ -243,8 +253,8 @@
       "description": "Los 12 mejores lugares para viajar en enero 2026: sol invernal, esquí, joyas culturales y aventura. Presupuestos diarios reales, clima y ofertas post-festivas."
     },
     "where-to-go-in-april": {
-      "title": "Mejores Destinos en Abril 2026: 12 Elegidos por Clima y Presupuesto",
-      "description": "¿Viaje en abril? Descubre los mejores destinos para 2026 — desde cerezos en Japón hasta el sudeste asiático en temporada seca. Clasificados por clima y afluencia."
+      "title": "Dónde Ir en Abril 2026: 12 Mejores Destinos (Clima, Costes y Afluencia)",
+      "description": "Los 12 mejores destinos en abril 2026 — cerezos en flor, escapadas en temporada seca y ofertas de temporada baja. Presupuestos diarios, clima y nivel de afluencia."
     },
     "where-to-go-in-july": {
       "title": "Adonde Ir en Julio 2026: 12 Mejores Destinos para Viajar en Pleno Verano",
@@ -257,6 +267,18 @@
     "where-to-go-in-november": {
       "title": "Adonde Ir en Noviembre 2026: 12 Mejores Destinos Antes de las Fiestas",
       "description": "Los 12 mejores lugares para viajar en noviembre 2026: ofertas de temporada media, trópicos en estación seca, follaje otoñal y precios pre-festivos."
+    },
+    "where-to-go-in-february": {
+      "title": "Adonde Ir en Febrero 2026: 12 Mejores Destinos para Viajar en Invierno",
+      "description": "Los 12 mejores destinos de febrero 2026: Carnaval, auroras boreales, sol invernal y verano en el hemisferio sur. Presupuestos reales, clima y consejos prácticos."
+    },
+    "where-to-go-in-may": {
+      "title": "Adonde Ir en Mayo 2026: 12 Mejores Destinos del Mundo",
+      "description": "Los 12 mejores destinos para mayo 2026 con datos reales de clima, presupuesto diario y masificación. Europa en temporada media, Asia en temporada seca y primavera."
+    },
+    "where-to-go-in-august": {
+      "title": "Adonde Ir en Agosto 2026: 12 Mejores Destinos para Viajar en Verano con Cabeza",
+      "description": "Los 12 mejores destinos para visitar en agosto 2026 con costes diarios reales, datos meteorológicos y estrategias anti-masas. Festivales, fauna y escapadas al hemisferio sur."
     }
   }
 }

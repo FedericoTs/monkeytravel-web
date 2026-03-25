@@ -11,9 +11,9 @@ image: "/images/blog/best-places-to-see-northern-lights.jpg"
 imageAlt: "Vivid green and purple northern lights dancing over a snowy Arctic landscape with a frozen lake in the foreground"
 readingTime: 11
 seo:
-  title: "Best Places to See Northern Lights 2026: 12 Destinations Ranked | MonkeyTravel"
-  description: "Where to see the northern lights in 2026. 12 destinations ranked by probability, budget, and accessibility. Real costs, best months, and aurora forecast tools."
-  keywords: ["best places to see northern lights", "aurora borealis where to see", "northern lights destinations 2026", "where to see northern lights", "northern lights best time"]
+  title: "12 Best Places to See the Northern Lights (2026) — Real Costs & Peak Dates | MonkeyTravel"
+  description: "Where to see the aurora borealis in 2026: 12 destinations ranked by probability, with peak viewing dates, real costs per night, and budget-friendly options."
+  keywords: ["best places to see northern lights", "aurora borealis where to see", "northern lights destinations 2026", "where to see northern lights", "northern lights best time", "cheapest place to see northern lights", "aurora borealis 2026"]
 schema: "Article"
 ---
 
@@ -310,7 +310,7 @@ Choosing between 12 destinations, finding the right months, booking aurora lodge
 
 MonkeyTravel's AI builds a **personalized northern lights itinerary** in 30 seconds. Tell it your dates, budget, and interests, and get a day-by-day plan with real hotels, actual excursion prices, and backup plans for cloudy nights.
 
-[Plan My Northern Lights Trip — Free](https://monkeytravel.app)
+[Plan My Northern Lights Trip — Free](/free-ai-trip-planner)
 
 ---
 

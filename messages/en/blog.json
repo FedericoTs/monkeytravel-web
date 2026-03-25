@@ -30,7 +30,17 @@
     "planYourTripDescription": "Let MonkeyTravel's AI create a personalized itinerary for you — with real venues, actual prices, and smart routing.",
     "planYourTripCta": "Plan My Trip — Free",
     "exploreDestinations": "Explore These Destinations",
-    "moreFromRegion": "More from {region}"
+    "moreFromRegion": "More from {region}",
+    "relatedTools": "Plan Your Trip with AI",
+    "relatedToolsLabels": {
+      "freeTripPlanner": "Free AI Trip Planner",
+      "budgetTripPlanner": "Budget Trip Planner",
+      "soloTripPlanner": "Solo Trip Planner",
+      "groupTripPlanner": "Group Trip Planner",
+      "familyTripPlanner": "Family Trip Planner",
+      "weekendTripPlanner": "Weekend Trip Planner",
+      "aiItineraryGenerator": "AI Itinerary Generator"
+    }
   },
   "breadcrumbs": {
     "home": "Home",
@@ -143,8 +153,8 @@
       "description": "A complete month-by-month guide to the Great Migration in East Africa. Where the herds are, the best camps for each season, Mara River crossings, calving season, and real budget breakdowns."
     },
     "monsoon-season-where-to-go-and-avoid": {
-      "title": "Asia Monsoon Season 2026: Where to Go (and What to Avoid)",
-      "description": "Monsoon doesn't mean ruined plans. Discover which Asian destinations thrive in rainy season 2026 — and which ones to skip entirely."
+      "title": "Monsoon Season Asia 2026: Month-by-Month Guide — Where to Go & Avoid",
+      "description": "Don't cancel your Asia trip. Complete 2026 monsoon calendar for Southeast Asia, India, and East Asia — which months to visit, which to skip, and where to go instead."
     },
     "midnight-sun-best-destinations": {
       "title": "Midnight Sun Best Destinations: Where to Experience 24 Hours of Daylight in 2026",
@@ -155,8 +165,8 @@
       "description": "Everything you need to plan a cherry blossom trip to Japan in 2026 — bloom forecasts, best cities and parks, hanami etiquette, budget tips, and late-blooming alternatives in Hokkaido."
     },
     "best-places-to-see-northern-lights": {
-      "title": "Best Places to See the Northern Lights in 2026: A Practical Guide",
-      "description": "The 12 best destinations to see the aurora borealis in 2026, with real costs, best months, probability ratings, and practical tips for each location."
+      "title": "12 Best Places to See the Northern Lights (2026) — Real Costs & Peak Dates",
+      "description": "Where to see the aurora borealis in 2026: 12 destinations ranked by probability, with peak viewing dates, real costs per night, and how to book. Budget-friendly options included."
     },
     "best-fall-foliage-destinations": {
       "title": "Best Fall Foliage Destinations in the World: Where to See Autumn Colors in 2026",
@@ -191,12 +201,12 @@
       "description": "First-timer or returning traveler? We break down Paris vs Rome by cost, crowds, food, and vibe — so you can stop debating and start booking."
     },
     "cheapest-destinations-in-europe": {
-      "title": "15 Cheapest Destinations in Europe for 2026 (Real Daily Budgets)",
-      "description": "The 15 cheapest places to travel in Europe in 2026 with real daily budgets, hostel and hotel prices, food costs, and what you'll actually spend per day."
+      "title": "15 Cheapest European Destinations 2026 — Under €50/Day (Real Prices)",
+      "description": "Budget travel in Europe in 2026: 15 cities where you can eat, sleep, and explore for under €50/day. Hostel rates, meal costs, and daily budgets — all verified."
     },
     "cheapest-destinations-in-asia": {
-      "title": "15 Cheapest Destinations in Asia for 2026 (Real Daily Budgets)",
-      "description": "The 15 cheapest places to travel in Asia in 2026 with real daily budgets, accommodation costs, street food prices, and what you'll actually spend per day."
+      "title": "15 Cheapest Asian Destinations 2026 — Under $30/Day (Real Prices)",
+      "description": "Asia on a budget in 2026: 15 destinations where you can travel for under $30/day. Street food, hostels, and daily costs — all verified with real 2026 prices."
     },
     "best-summer-destinations-2026": {
       "title": "15 Best Summer Destinations for 2026 (Beach, City, and Adventure)",
@@ -227,8 +237,8 @@
       "description": "The complete international travel checklist organized by timeline. Covers passports, visas, vaccines, insurance, banking, and digital prep for stress-free travel."
     },
     "passport-power-index-2026": {
-      "title": "Passport Power Index 2026: Complete Ranking & What It Means for Your Travel",
-      "description": "The complete 2026 Passport Power Index: top 10 strongest & weakest passports, visa-free destinations, regional analysis, and how rankings affect your travel."
+      "title": "Passport Power Index 2026: Henley & Arton Rankings — Strongest to Weakest",
+      "description": "Full 2026 Passport Power Index with Henley & Arton Capital rankings compared. Top 10 strongest & weakest passports, visa-free counts, and country-by-country data."
     },
     "visa-free-destinations-by-passport": {
       "title": "Visa-Free Destinations by Passport: The Complete 2026 Guide",
@@ -243,8 +253,8 @@
       "description": "The 12 best places to travel in January 2026 — winter sun, skiing, cultural gems, and adventure. Real daily budgets, weather data, and post-holiday deals."
     },
     "where-to-go-in-april": {
-      "title": "Best Places to Visit in April 2026: 12 Picks Ranked by Weather",
-      "description": "Planning an April trip? Discover the best destinations for 2026 — from cherry blossom Japan to dry-season Southeast Asia. AI-curated and crowd-ranked."
+      "title": "Where to Go in April 2026: 12 Best Destinations (Weather, Costs & Crowds)",
+      "description": "The 12 best places to visit in April 2026 — cherry blossoms, dry-season escapes, and shoulder-season deals. Real daily budgets, weather data, and crowd ratings."
     },
     "where-to-go-in-july": {
       "title": "Where to Go in July 2026: 12 Best Destinations for Peak Summer Travel",
@@ -257,6 +267,18 @@
     "where-to-go-in-november": {
       "title": "Where to Go in November 2026: 12 Best Destinations Before the Holiday Rush",
       "description": "The 12 best places to travel in November 2026 — shoulder season deals, dry season tropics, fall foliage, and pre-holiday prices. Real costs and weather data."
+    },
+    "where-to-go-in-february": {
+      "title": "Where to Go in February 2026: 12 Best Destinations for Winter Travel",
+      "description": "The 12 best places to travel in February 2026 — Carnival, Northern Lights, winter sun, and Southern Hemisphere summer. Real daily budgets, weather data, and practical tips."
+    },
+    "where-to-go-in-may": {
+      "title": "Where to Go in May 2026: 12 Best Destinations Worldwide",
+      "description": "The 12 best places to visit in May 2026 with real weather data, daily budgets, and crowd levels. Shoulder-season Europe, dry-season Asia, and spring blooms before summer prices hit."
+    },
+    "where-to-go-in-august": {
+      "title": "Where to Go in August 2026: 12 Best Destinations for Smart Summer Travel",
+      "description": "The 12 best places to visit in August 2026 with real daily costs, weather data, and crowd-smart strategies. Festivals, wildlife, Southern Hemisphere escapes, and alternatives to overcrowded hotspots."
     }
   }
 }

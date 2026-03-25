@@ -11,9 +11,9 @@ image: "/images/blog/passport-power-index-2026.jpg"
 imageAlt: "World passports fanned out on a map next to a globe and boarding pass, representing the 2026 Passport Power Index"
 readingTime: 12
 seo:
-  title: "Passport Power Index 2026: Full Rankings & Visa-Free Destinations | MonkeyTravel"
-  description: "The complete 2026 Passport Power Index: top 10 strongest & weakest passports, visa-free destinations, regional analysis, and how rankings affect your travel."
-  keywords: ["passport power index 2026", "strongest passports", "visa-free destinations", "passport ranking", "Henley Passport Index 2026", "most powerful passports 2026"]
+  title: "Passport Power Index 2026: Henley & Arton Rankings — Strongest to Weakest | MonkeyTravel"
+  description: "Full 2026 Passport Power Index with Henley & Arton Capital rankings compared. Top 10 strongest & weakest passports, visa-free counts, and country-by-country data."
+  keywords: ["passport power index 2026", "strongest passports", "visa-free destinations", "passport ranking", "Henley Passport Index 2026", "Arton Capital Passport Index 2026", "most powerful passports 2026", "weakest passports 2026"]
 schema: "Article"
 ---
 
@@ -256,7 +256,7 @@ Programs like Global Entry (U.S.), NEXUS (U.S.-Canada), and the UK's Registered 
 
 With a lower-ranked passport, spontaneous travel is harder. Give yourself 2-3 months for visa processing and always have your documentation ready: bank statements, employment letters, hotel bookings, and travel insurance.
 
-**Regardless of your passport's ranking, MonkeyTravel's AI trip planner can help you build detailed itineraries tailored to your destinations.** It handles the logistics — optimal routing, local recommendations, budget planning — so you can focus on the experience.
+**Regardless of your passport's ranking, MonkeyTravel's AI trip planner can help you build detailed itineraries tailored to your destinations.** It handles the logistics — optimal routing, local recommendations, budget planning — so you can focus on the experience. Try the [free AI trip planner](/free-ai-trip-planner) to build your next visa-free itinerary.
 
 ---
 
