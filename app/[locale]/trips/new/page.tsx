@@ -35,7 +35,14 @@ import {
   trackUpgradePromptShown,
   trackLimitReached,
 } from "@/lib/analytics";
-import { captureTripCreated, captureItineraryGenerated } from "@/lib/posthog/events";
+import {
+  captureTripCreated,
+  captureItineraryGenerated,
+  captureTripWizardStepViewed,
+  captureTripWizardStepCompleted,
+  captureTripGenerationStarted,
+  captureTripGenerationCompleted,
+} from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -142,6 +149,15 @@ export default function NewTripPage() {
   // Fixed 4-step wizard: Destination -> Dates -> Vibes -> Preferences
   // Personalization moved to profile settings for cleaner onboarding
   const TOTAL_STEPS = 4;
+
+  // Track wizard step views
+  const STEP_NAMES = ["destination", "dates", "vibes", "preferences"] as const;
+  useEffect(() => {
+    captureTripWizardStepViewed({
+      step_number: step,
+      step_name: STEP_NAMES[step - 1],
+    });
+  }, [step]);
 
   // Check authentication status and existing trips on mount
   useEffect(() => {
@@ -363,6 +379,19 @@ export default function NewTripPage() {
     setGenerating(true);
     setError(null);
 
+    const generationStartTime = Date.now();
+    captureTripWizardStepCompleted({
+      step_number: 4,
+      step_name: "preferences",
+    });
+    captureTripGenerationStarted({
+      destination,
+      duration_days: startDate && endDate
+        ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0,
+      budget_tier: budgetTier,
+    });
+
     try {
       // Derive interests from vibes for API compatibility
       const derivedInterests = deriveInterestsFromVibes();
@@ -438,8 +467,27 @@ export default function NewTripPage() {
         budget_tier: budgetTier,
         generation_time_ms: Math.round(generationTime),
       });
+
+      // Activation funnel tracking
+      captureTripGenerationCompleted({
+        destination,
+        duration_days: durationDaysGenerated,
+        budget_tier: budgetTier,
+        generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
+        success: true,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      captureTripGenerationCompleted({
+        destination,
+        duration_days: startDate && endDate
+          ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
+          : 0,
+        budget_tier: budgetTier,
+        generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
+        success: false,
+        error_type: err instanceof Error ? err.message : "unknown",
+      });
     } finally {
       setGenerating(false);
     }
@@ -1390,7 +1438,13 @@ export default function NewTripPage() {
 
           {step < TOTAL_STEPS ? (
             <button
-              onClick={() => setStep(step + 1)}
+              onClick={() => {
+                captureTripWizardStepCompleted({
+                  step_number: step,
+                  step_name: STEP_NAMES[step - 1],
+                });
+                setStep(step + 1);
+              }}
               disabled={!canProceed()}
               className="bg-[var(--primary)] text-white px-8 py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

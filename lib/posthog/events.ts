@@ -150,6 +150,55 @@ export interface OnboardingCompletedEvent {
 }
 
 // ============================================================================
+// ACTIVATION FUNNEL EVENTS
+// ============================================================================
+
+export interface WelcomePageViewedEvent {
+  has_beta_access: boolean;
+  has_completed_onboarding: boolean;
+}
+
+export interface WelcomeCompletedEvent {
+  action: "continue" | "skip" | "beta_code_entered";
+  has_beta_code: boolean;
+}
+
+export interface TripWizardStepViewedEvent {
+  step_number: number;
+  step_name: "destination" | "dates" | "vibes" | "preferences";
+}
+
+export interface TripWizardStepCompletedEvent {
+  step_number: number;
+  step_name: "destination" | "dates" | "vibes" | "preferences";
+  /** Time spent on this step in seconds */
+  time_on_step_seconds?: number;
+}
+
+export interface TripWizardAbandonedEvent {
+  last_step_completed: number;
+  last_step_name: string;
+  /** Total time in wizard in seconds */
+  total_time_seconds: number;
+}
+
+export interface TripGenerationStartedEvent {
+  destination: string;
+  duration_days: number;
+  budget_tier: string;
+}
+
+export interface TripGenerationCompletedEvent {
+  destination: string;
+  duration_days: number;
+  budget_tier: string;
+  /** Generation time in seconds */
+  generation_time_seconds: number;
+  success: boolean;
+  error_type?: string;
+}
+
+// ============================================================================
 // AHA MOMENT & RETENTION EVENTS (Sean Ellis Framework)
 // ============================================================================
 
@@ -376,6 +425,38 @@ export function captureContentViewed(event: ContentViewedEvent) {
  */
 export function captureContentInteraction(event: ContentInteractionEvent) {
   posthog.capture("content_interaction", event);
+}
+
+// ============================================================================
+// ACTIVATION FUNNEL CAPTURE FUNCTIONS
+// ============================================================================
+
+export function captureWelcomePageViewed(event: WelcomePageViewedEvent) {
+  posthog.capture("welcome_page_viewed", event);
+}
+
+export function captureWelcomeCompleted(event: WelcomeCompletedEvent) {
+  posthog.capture("welcome_completed", event);
+}
+
+export function captureTripWizardStepViewed(event: TripWizardStepViewedEvent) {
+  posthog.capture("trip_wizard_step_viewed", event);
+}
+
+export function captureTripWizardStepCompleted(event: TripWizardStepCompletedEvent) {
+  posthog.capture("trip_wizard_step_completed", event);
+}
+
+export function captureTripWizardAbandoned(event: TripWizardAbandonedEvent) {
+  posthog.capture("trip_wizard_abandoned", event);
+}
+
+export function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
+  posthog.capture("trip_generation_started", event);
+}
+
+export function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {
+  posthog.capture("trip_generation_completed", event);
 }
 
 // ============================================================================

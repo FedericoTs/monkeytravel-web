@@ -29,6 +29,11 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
     .or("is_archived.is.null,is_archived.eq.false")
     .order("created_at", { ascending: false });
 
+  // Auto-redirect new users with 0 trips straight to trip creation
+  if (!trips || trips.length === 0) {
+    redirect("/trips/new");
+  }
+
   // Fetch user profile with referral data
   const { data: profile } = await supabase
     .from("users")

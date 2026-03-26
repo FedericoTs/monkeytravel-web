@@ -55,32 +55,23 @@ export async function GET(request: Request) {
           .from("users")
           .update({
             login_count: ((existingProfile as { login_count?: number }).login_count || 0) + 1,
+            // Auto-complete welcome and onboarding for users who haven't yet
+            ...(!existingProfile.welcome_completed && { welcome_completed: true }),
+            ...(!existingProfile.onboarding_completed && { onboarding_completed: true }),
           })
           .eq("id", data.user.id);
 
         if (updateError) {
-          console.error("[Auth Callback] Failed to increment login_count:", updateError.message);
+          console.error("[Auth Callback] Failed to update user:", updateError.message);
         }
 
-        // Check welcome status first (new flow)
-        if (!existingProfile.welcome_completed) {
-          // New user needs to see welcome page first - preserve intended destination
-          return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`)}`);
-        }
-
-        if (existingProfile.onboarding_completed) {
-          // Welcome and onboarding complete - go to intended destination
-          const separator = finalRedirect.includes("?") ? "&" : "?";
-          return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
-        } else {
-          // Welcome done but needs onboarding - preserve destination for after onboarding
-          const onboardingUrl = `/onboarding?redirect=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`;
-          return NextResponse.redirect(`${origin}${getLocalePath(onboardingUrl)}`);
-        }
+        // Skip welcome and onboarding — go straight to intended destination
+        const separator = finalRedirect.includes("?") ? "&" : "?";
+        return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
       }
 
-      // Fallback: profile doesn't exist yet (edge case) - go to welcome with destination
-      return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=email_confirmed`)}`);
+      // Fallback: profile doesn't exist yet (edge case) - go straight to trips/new
+      return NextResponse.redirect(`${origin}${getLocalePath(`${finalRedirect}?auth_event=email_confirmed`)}`);
     }
 
     // Token verification failed
@@ -132,9 +123,9 @@ export async function GET(request: Request) {
           display_name: displayName,
           avatar_url: data.user.user_metadata?.avatar_url || null,
           preferences: {}, // Will be filled by complete-profile page if from onboarding
-          onboarding_completed: onboardingCompleted,
+          onboarding_completed: true, // Skip onboarding — users can personalize later in profile settings
           free_trips_remaining: freeTripsRemaining,
-          welcome_completed: false, // New users need to see welcome page
+          welcome_completed: true, // Skip welcome gate — go straight to trip creation
           trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial for existing feature
           is_pro: false,
           privacy_settings: {
@@ -160,20 +151,18 @@ export async function GET(request: Request) {
           ...(referralCode && { referred_by_code: referralCode }),
         });
 
-        // NEW: All new users go to /welcome first to enter beta code or join waitlist
-        // The welcome page will then redirect to onboarding if needed
-        // IMPORTANT: Preserve the original redirect URL so user returns to their intended destination
-        const finalRedirect = next !== "/trips" ? next : "/trips/new"; // Prefer trips/new for new users
+        // Skip welcome gate and onboarding — go straight to trip creation
+        // Users can personalize their experience later in profile settings
+        const finalRedirect = next !== "/trips" ? next : "/trips/new";
 
         if (fromOnboarding) {
-          // User completed onboarding before signup - redirect to complete-profile first
-          // to transfer localStorage preferences, then welcome
-          const welcomeUrl = encodeURIComponent(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`);
-          const completeProfileUrl = `/auth/complete-profile?redirect=${welcomeUrl}`;
+          // User completed onboarding before signup - transfer preferences then go to trip creation
+          const completeProfileUrl = `/auth/complete-profile?redirect=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`;
           return NextResponse.redirect(`${origin}${getLocalePath(completeProfileUrl)}`);
         } else {
-          // New user - redirect to welcome page with original destination preserved
-          return NextResponse.redirect(`${origin}${getLocalePath(`/welcome?next=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`)}`);
+          // New user — straight to trip creation, no gates
+          const separator = finalRedirect.includes("?") ? "&" : "?";
+          return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=signup_google`);
         }
       }
 
