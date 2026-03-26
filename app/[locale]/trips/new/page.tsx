@@ -146,12 +146,15 @@ export default function NewTripPage() {
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
-  // Fixed 4-step wizard: Destination -> Dates -> Vibes -> Preferences
-  // Personalization moved to profile settings for cleaner onboarding
-  const TOTAL_STEPS = 4;
+  // Streamlined 2-step wizard: Destination+Dates -> Vibes+Preferences
+  // Reduced from 4 steps to cut drop-off by 50% (PostHog data: 76% activation drop-off)
+  const TOTAL_STEPS = 2;
 
   // Track wizard step views
-  const STEP_NAMES = ["destination", "dates", "vibes", "preferences"] as const;
+  const STEP_NAMES = ["destination_dates", "vibes_preferences"] as const;
+
+  // Collapsible preferences state (budget/pace/requirements shown on demand in step 2)
+  const [showAdvancedPrefs, setShowAdvancedPrefs] = useState(false);
   useEffect(() => {
     captureTripWizardStepViewed({
       step_number: step,
@@ -330,14 +333,11 @@ export default function NewTripPage() {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return destination.length >= 2;
+        // Step 1: Destination + Dates combined
+        return destination.length >= 2 && startDate && endDate && new Date(endDate) >= new Date(startDate);
       case 2:
-        return startDate && endDate && new Date(endDate) >= new Date(startDate);
-      case 3:
-        return selectedVibes.length > 0; // At least one vibe required
-      case 4:
-        // Final step: budget/pace (always valid, has defaults)
-        return true;
+        // Step 2: At least one vibe required, preferences have sensible defaults
+        return selectedVibes.length > 0;
       default:
         return false;
     }
@@ -381,8 +381,8 @@ export default function NewTripPage() {
 
     const generationStartTime = Date.now();
     captureTripWizardStepCompleted({
-      step_number: 4,
-      step_name: "preferences",
+      step_number: 2,
+      step_name: "vibes_preferences",
     });
     captureTripGenerationStarted({
       destination,
@@ -1230,193 +1230,192 @@ export default function NewTripPage() {
           </div>
         )}
 
-        {/* Step 1: Destination */}
+        {/* Step 1: Destination + Dates (combined for fewer drop-offs) */}
         {step === 1 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                Where do you want to go?
+                Where and when?
               </h1>
               <p className="text-slate-600">
-                Search for a city to start planning your trip
+                Pick a destination and your travel dates
               </p>
             </div>
 
-            <DestinationAutocomplete
-              value={destination}
-              onChange={setDestination}
-              onSelect={handleDestinationSelect}
-              placeholder="e.g., Paris, Tokyo, New York..."
-              autoFocus
-            />
-
-            {/* Popular destinations - with coordinates for accurate weather */}
+            {/* Destination */}
             <div>
-              <div className="text-sm text-slate-500 mb-3">Popular destinations</div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { name: "Paris, France", flag: "🇫🇷", coords: { latitude: 48.8566, longitude: 2.3522 } },
-                  { name: "Tokyo, Japan", flag: "🇯🇵", coords: { latitude: 35.6762, longitude: 139.6503 } },
-                  { name: "Rome, Italy", flag: "🇮🇹", coords: { latitude: 41.9028, longitude: 12.4964 } },
-                  { name: "Barcelona, Spain", flag: "🇪🇸", coords: { latitude: 41.3851, longitude: 2.1734 } },
-                  { name: "New York, USA", flag: "🇺🇸", coords: { latitude: 40.7128, longitude: -74.0060 } },
-                  { name: "Sydney, Australia", flag: "🇦🇺", coords: { latitude: -33.8688, longitude: 151.2093 } },
-                ].map((place) => (
-                  <button
-                    key={place.name}
-                    onClick={() => {
-                      setDestination(place.name);
-                      setDestinationCoords(place.coords);
-                      trackDestinationSelected({
-                        destination: place.name,
-                        source: "popular",
-                      });
-                    }}
-                    className="px-4 py-3 sm:py-2 rounded-full border border-slate-200 text-slate-700
-                               hover:border-[var(--primary)] hover:text-[var(--primary)]
-                               active:bg-[var(--primary)]/10
-                               hover:bg-[var(--primary)]/5 transition-all duration-200
-                               flex items-center gap-2 min-h-[44px]"
-                  >
-                    <span>{place.flag}</span>
-                    <span>{place.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+              <div className="text-sm font-medium text-slate-700 mb-2">Destination</div>
+              <DestinationAutocomplete
+                value={destination}
+                onChange={setDestination}
+                onSelect={handleDestinationSelect}
+                placeholder="e.g., Paris, Tokyo, New York..."
+                autoFocus
+              />
 
-        {/* Step 2: Dates */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                When are you traveling?
-              </h1>
-              <p className="text-slate-600">Select your trip dates (max 14 days)</p>
+              {/* Popular destinations - compact pills */}
+              {!destination && (
+                <div className="mt-3">
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { name: "Paris, France", flag: "🇫🇷", coords: { latitude: 48.8566, longitude: 2.3522 } },
+                      { name: "Tokyo, Japan", flag: "🇯🇵", coords: { latitude: 35.6762, longitude: 139.6503 } },
+                      { name: "Rome, Italy", flag: "🇮🇹", coords: { latitude: 41.9028, longitude: 12.4964 } },
+                      { name: "Barcelona, Spain", flag: "🇪🇸", coords: { latitude: 41.3851, longitude: 2.1734 } },
+                      { name: "New York, USA", flag: "🇺🇸", coords: { latitude: 40.7128, longitude: -74.0060 } },
+                      { name: "Sydney, Australia", flag: "🇦🇺", coords: { latitude: -33.8688, longitude: 151.2093 } },
+                    ].map((place) => (
+                      <button
+                        key={place.name}
+                        onClick={() => {
+                          setDestination(place.name);
+                          setDestinationCoords(place.coords);
+                          trackDestinationSelected({
+                            destination: place.name,
+                            source: "popular",
+                          });
+                        }}
+                        className="px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-slate-200 text-sm text-slate-700
+                                   hover:border-[var(--primary)] hover:text-[var(--primary)]
+                                   active:bg-[var(--primary)]/10
+                                   hover:bg-[var(--primary)]/5 transition-all duration-200
+                                   flex items-center gap-1.5 min-h-[40px]"
+                      >
+                        <span>{place.flag}</span>
+                        <span>{place.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Premium Date Range Picker */}
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-              maxDays={14}
-              minDate={new Date().toISOString().split("T")[0]}
-            />
+            {/* Dates — shown immediately below destination */}
+            <div>
+              <div className="text-sm font-medium text-slate-700 mb-2">Travel dates</div>
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                maxDays={14}
+                minDate={new Date().toISOString().split("T")[0]}
+              />
+            </div>
 
-            {/* Seasonal Context Card - Auto-displays when dates are set */}
+            {/* Seasonal Context Card - Auto-displays when both are set */}
             {destination && startDate && endDate && (
               <SeasonalContextCard
                 destination={destination}
                 startDate={startDate}
                 endDate={endDate}
                 coordinates={destinationCoords || undefined}
-                className="mt-6"
               />
             )}
           </div>
         )}
 
-        {/* Step 3: Vibe Selection (NEW) */}
-        {step === 3 && (
+        {/* Step 2: Vibes + Optional Preferences (combined) */}
+        {step === 2 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                What's your travel vibe?
+                Set your travel style
               </h1>
               <p className="text-slate-600">
-                Choose the mood that captures your ideal {destination} experience
+                Pick your vibe for {destination} — we&apos;ll tailor your itinerary
               </p>
             </div>
 
+            {/* Vibes — required */}
             <VibeSelector
               selectedVibes={selectedVibes}
               onVibesChange={setSelectedVibes}
               maxVibes={3}
             />
-          </div>
-        )}
 
-        {/* Step 4: Preferences */}
-        {step === 4 && (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                Final details
-              </h1>
-              <p className="text-slate-600">
-                Set your budget, pace, and any special requirements
-              </p>
-            </div>
+            {/* Collapsible Advanced Preferences */}
+            <div className="border-t border-slate-200 pt-4">
+              <button
+                onClick={() => setShowAdvancedPrefs(!showAdvancedPrefs)}
+                className="flex items-center justify-between w-full text-left py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors min-h-[44px]"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Customize budget, pace & preferences
+                  {!showAdvancedPrefs && (
+                    <span className="text-xs text-slate-400 font-normal">(defaults: Balanced budget, Moderate pace)</span>
+                  )}
+                </span>
+                <svg className={`w-5 h-5 transition-transform ${showAdvancedPrefs ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-            {/* Budget */}
-            <div>
-              <div className="text-sm font-medium text-slate-700 mb-3">{t("budget.title")}</div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {BUDGET_TIER_IDS.map((tierId) => {
-                  const styles = BUDGET_TIER_STYLES[tierId];
-                  return (
-                    <button
-                      key={tierId}
-                      onClick={() => setBudgetTier(tierId)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
-                        budgetTier === tierId
-                          ? `${styles.borderColor} ${styles.bgColor}`
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between sm:block">
-                        <div>
-                          <div className={`font-semibold ${styles.color}`}>{t(`budget.${tierId}.label`)}</div>
-                          <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 hidden sm:block">{t(`budget.${tierId}.description`)}</div>
-                        </div>
-                        <div className="text-sm text-slate-600 sm:hidden">{t(`budget.${tierId}.range`)}</div>
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1 hidden sm:block">{t(`budget.${tierId}.range`)}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Pace */}
-            <div>
-              <div className="text-sm font-medium text-slate-700 mb-3">{t("pace.title")}</div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {PACE_OPTION_IDS.map((paceId) => (
-                  <button
-                    key={paceId}
-                    onClick={() => setPace(paceId)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      pace === paceId
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between sm:block">
-                      <div className="font-semibold text-slate-900">{t(`pace.${paceId}.label`)}</div>
-                      <div className="text-xs text-slate-500 sm:mt-1">{t(`pace.${paceId}.description`)}</div>
+              {showAdvancedPrefs && (
+                <div className="space-y-6 mt-4 animate-in slide-in-from-top-2">
+                  {/* Budget */}
+                  <div>
+                    <div className="text-sm font-medium text-slate-700 mb-3">{t("budget.title")}</div>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                      {BUDGET_TIER_IDS.map((tierId) => {
+                        const styles = BUDGET_TIER_STYLES[tierId];
+                        return (
+                          <button
+                            key={tierId}
+                            onClick={() => setBudgetTier(tierId)}
+                            className={`p-3 sm:p-4 rounded-xl border-2 text-center sm:text-left transition-all min-h-[48px] ${
+                              budgetTier === tierId
+                                ? `${styles.borderColor} ${styles.bgColor}`
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className={`font-semibold text-sm sm:text-base ${styles.color}`}>{t(`budget.${tierId}.label`)}</div>
+                            <div className="text-xs text-slate-500 mt-0.5 hidden sm:block">{t(`budget.${tierId}.range`)}</div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+                  </div>
 
-            {/* Special Requirements */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("requirements.title")} <span className="font-normal text-slate-400">({t("requirements.hint").split(" - ")[0]})</span>
-              </label>
-              <textarea
-                value={requirements}
-                onChange={(e) => setRequirements(e.target.value)}
-                placeholder={t("requirements.placeholder")}
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none"
-              />
+                  {/* Pace */}
+                  <div>
+                    <div className="text-sm font-medium text-slate-700 mb-3">{t("pace.title")}</div>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                      {PACE_OPTION_IDS.map((paceId) => (
+                        <button
+                          key={paceId}
+                          onClick={() => setPace(paceId)}
+                          className={`p-3 sm:p-4 rounded-xl border-2 text-center sm:text-left transition-all min-h-[48px] ${
+                            pace === paceId
+                              ? "border-[var(--primary)] bg-[var(--primary)]/5"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="font-semibold text-sm sm:text-base text-slate-900">{t(`pace.${paceId}.label`)}</div>
+                          <div className="text-xs text-slate-500 mt-0.5 hidden sm:block">{t(`pace.${paceId}.description`)}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Special Requirements */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {t("requirements.title")} <span className="font-normal text-slate-400">({t("requirements.hint").split(" - ")[0]})</span>
+                    </label>
+                    <textarea
+                      value={requirements}
+                      onChange={(e) => setRequirements(e.target.value)}
+                      placeholder={t("requirements.placeholder")}
+                      rows={2}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none text-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -165,12 +165,12 @@ export interface WelcomeCompletedEvent {
 
 export interface TripWizardStepViewedEvent {
   step_number: number;
-  step_name: "destination" | "dates" | "vibes" | "preferences";
+  step_name: "destination" | "dates" | "vibes" | "preferences" | "destination_dates" | "vibes_preferences";
 }
 
 export interface TripWizardStepCompletedEvent {
   step_number: number;
-  step_name: "destination" | "dates" | "vibes" | "preferences";
+  step_name: "destination" | "dates" | "vibes" | "preferences" | "destination_dates" | "vibes_preferences";
   /** Time spent on this step in seconds */
   time_on_step_seconds?: number;
 }
