@@ -1158,8 +1158,8 @@ export default function NewTripPage() {
         </div>
       </header>
 
-      {/* Form Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      {/* Form Content — extra bottom padding on mobile for sticky nav */}
+      <main className="max-w-2xl mx-auto px-4 py-6 sm:py-8 pb-28 sm:pb-8">
         {/* Returning User Banner - shows on step 1 for authenticated users with trips */}
         {isAuthenticated && hasExistingTrips && showReturningUserBanner && step === 1 && (
           <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
@@ -1234,7 +1234,7 @@ export default function NewTripPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 Where do you want to go?
               </h1>
               <p className="text-slate-600">
@@ -1272,10 +1272,11 @@ export default function NewTripPage() {
                         source: "popular",
                       });
                     }}
-                    className="px-4 py-2 rounded-full border border-slate-200 text-slate-700
+                    className="px-4 py-3 sm:py-2 rounded-full border border-slate-200 text-slate-700
                                hover:border-[var(--primary)] hover:text-[var(--primary)]
+                               active:bg-[var(--primary)]/10
                                hover:bg-[var(--primary)]/5 transition-all duration-200
-                               flex items-center gap-2"
+                               flex items-center gap-2 min-h-[44px]"
                   >
                     <span>{place.flag}</span>
                     <span>{place.name}</span>
@@ -1290,7 +1291,7 @@ export default function NewTripPage() {
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 When are you traveling?
               </h1>
               <p className="text-slate-600">Select your trip dates (max 14 days)</p>
@@ -1323,7 +1324,7 @@ export default function NewTripPage() {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 What's your travel vibe?
               </h1>
               <p className="text-slate-600">
@@ -1343,7 +1344,7 @@ export default function NewTripPage() {
         {step === 4 && (
           <div className="space-y-8">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 Final details
               </h1>
               <p className="text-slate-600">
@@ -1420,12 +1421,12 @@ export default function NewTripPage() {
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+        {/* Navigation — sticky on mobile so users always see the CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto flex items-center justify-between">
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex items-center gap-2 px-4 py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors min-h-[44px]"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1446,7 +1447,7 @@ export default function NewTripPage() {
                 setStep(step + 1);
               }}
               disabled={!canProceed()}
-              className="bg-[var(--primary)] text-white px-8 py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
             >
               Continue →
             </button>
@@ -1454,7 +1455,7 @@ export default function NewTripPage() {
             <button
               onClick={handleGenerate}
               disabled={!canProceed()}
-              className="bg-[var(--accent)] text-slate-900 px-8 py-3 rounded-xl font-medium hover:bg-[var(--accent)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-[var(--accent)] text-slate-900 px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--accent)]/90 active:bg-[var(--accent)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[48px] sm:min-h-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

@@ -159,7 +159,7 @@ function VibeCard({
       onClick={onClick}
       disabled={isDisabled}
       className={`
-        relative p-4 rounded-xl text-left transition-all duration-300 overflow-hidden
+        relative p-4 rounded-xl text-left transition-all duration-300 overflow-hidden min-h-[80px]
         ${
           isSelected
             ? "ring-2 shadow-lg scale-[1.02] border-2"
