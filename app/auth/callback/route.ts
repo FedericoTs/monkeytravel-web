@@ -115,7 +115,10 @@ export async function GET(request: Request) {
         // Check if user already completed onboarding before signup
         // If from_onboarding=true, they completed anonymous onboarding first
         const onboardingCompleted = fromOnboarding;
-        const freeTripsRemaining = fromOnboarding ? 1 : 0;
+        // Give all new users 2 free generations so they experience value before
+        // hitting the beta code gate. Previously: 1 if from onboarding, 0 otherwise
+        // — meaning most users were blocked immediately on their first attempt.
+        const freeTripsRemaining = 2;
 
         await supabase.from("users").upsert({
           id: data.user.id,
