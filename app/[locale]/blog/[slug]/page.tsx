@@ -18,6 +18,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogContent, BlogCard, ReadingProgress } from "@/components/blog";
+import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 
@@ -294,7 +295,32 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* Inline CTA — appears between article body and bottom CTA */}
+        <section className="py-10 bg-gradient-to-r from-[var(--primary)]/5 via-[var(--accent)]/5 to-[var(--primary)]/5 border-y border-[var(--primary)]/10">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg font-bold text-slate-900 mb-1">
+                  {t("detail.inlineCta")}
+                </h3>
+                <p className="text-sm text-slate-600">
+                  {t("detail.inlineCtaDescription")}
+                </p>
+              </div>
+              <Link
+                href="/trips/new"
+                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold text-sm hover:bg-[var(--primary)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
+              >
+                {t("detail.inlineCtaButton")}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
         <section className="relative py-20 overflow-hidden bg-[var(--primary)]">
           {/* Background decorations */}
           <div className="absolute inset-0 bg-grid-pattern opacity-40" />
@@ -445,6 +471,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
       </main>
 
       <Footer />
+
+      {/* Sticky mobile CTA — appears on scroll, hides near bottom */}
+      <StickyBlogCta />
     </>
   );
 }
