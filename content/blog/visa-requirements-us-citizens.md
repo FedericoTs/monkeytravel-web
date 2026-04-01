@@ -11,9 +11,9 @@ image: "/images/blog/visa-requirements-us-citizens.jpg"
 imageAlt: "US passport on a world map with boarding passes and travel stamps"
 readingTime: 11
 seo:
-  title: "Visa Requirements for US Citizens 2026: Complete Country-by-Country Guide"
-  description: "Complete 2026 guide to visa requirements for US citizens. Visa-free countries, e-visas, costs, processing times, and the new ETIAS for Europe."
-  keywords: ["visa requirements us citizens", "us passport visa", "do i need visa", "american travel visa"]
+  title: "US Visa Requirements 2026: Visa-Free, ETA & E-Visa Countries (Full List + APEC) | MonkeyTravel"
+  description: "Which countries require a visa for US passport holders in 2026? Full list of 20+ visa-required countries, APEC visa rules, e-visas, ETAs, costs, and the new ETIAS & UK ETA changes."
+  keywords: ["visa requirements us citizens 2026", "us passport visa requirements", "visa free countries us passport", "apec visa requirements us citizens", "etias 2026", "uk eta us citizens", "e-visa countries us passport", "countries requiring visa us citizens"]
 schema: "Article"
 ---
 
@@ -196,6 +196,53 @@ About 34 countries offer visa on arrival for US citizens. You do not need to app
 | **Zimbabwe** | $30-55 | 30-90 days | Single or double entry |
 
 **Pro tip:** Always carry US dollars in small denominations when using visa on arrival. Many countries require exact payment and do not give change. ATMs may not be available before the immigration counter.
+
+---
+
+## APEC Countries: Visa Requirements for US Citizens
+
+APEC (Asia-Pacific Economic Cooperation) includes 21 member economies. Here is the visa status for US citizens traveling to each:
+
+| APEC Economy | Visa Status | Details |
+|-------------|-------------|---------|
+| **Australia** | ETA required | AUD $20, instant-24h processing |
+| **Brunei** | Visa-free | 90 days |
+| **Canada** | Visa-free | 6 months |
+| **Chile** | Visa-free | 90 days |
+| **China** | Visa required | $68, 10-year multi-entry |
+| **Hong Kong** | Visa-free | 90 days |
+| **Indonesia** | Visa on arrival | $35, 30 days (extendable) |
+| **Japan** | Visa-free | 90 days |
+| **Malaysia** | Visa-free | 90 days |
+| **Mexico** | Visa-free | 180 days |
+| **New Zealand** | NZeTA required | NZD $17-23 + $35 levy |
+| **Papua New Guinea** | Visa on arrival | Free, 60 days |
+| **Peru** | Visa-free | 183 days |
+| **Philippines** | Visa-free | 30 days |
+| **Russia** | Visa required | $198+, embassy only |
+| **Singapore** | Visa-free | 90 days |
+| **South Korea** | Visa-free | 90 days (K-ETA suspended through 2026) |
+| **Taiwan** | Visa-free | 90 days |
+| **Thailand** | Visa-free | 60 days |
+| **United States** | N/A | Home country |
+| **Vietnam** | E-visa | $25, 90 days |
+
+**Common misconception:** The APEC Business Travel Card (ABTC) does **not** grant US citizens visa-free access to other APEC economies. The US is a "transitional member" of the ABTC program, meaning the card only provides expedited immigration processing (fast-track lanes), not visa exemptions. US holders still need standard visas for countries that require them.
+
+**Bottom line:** Of 20 APEC destinations, US citizens can visit 14 visa-free, 2 with visa on arrival, 2 with quick electronic authorization, and only 2 (China and Russia) require a traditional visa application.
+
+---
+
+## What Changed for US Travelers in 2025-2026
+
+Several significant visa policy changes took effect recently:
+
+- **UK ETA (February 2026):** US citizens now must register online (GBP 10) before traveling to the UK. Airlines deny boarding without it.
+- **Brazil E-Visa (January 2026):** Brazil ended visa-free travel for Americans. An e-visa ($51, ~72 hours) is now required.
+- **ETIAS (Late 2026):** Europe's new electronic authorization system launches Q4 2026 for all Schengen Zone travel. EUR 7, valid 3 years.
+- **China COVA Platform (September 2025):** Simplified online visa application replaced the old paper system. 240-hour transit visa-free policy expanded.
+- **South Korea K-ETA Suspension:** Suspended through 2026, effectively making entry visa-free again for US citizens.
+- **Thailand 60-Day Extension:** Visa-free stays extended from 30 to 60 days (since 2024), making Thailand one of the most accessible countries in Asia.
 
 ---
 

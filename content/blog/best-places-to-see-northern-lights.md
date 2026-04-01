@@ -11,9 +11,9 @@ image: "/images/blog/best-places-to-see-northern-lights.jpg"
 imageAlt: "Vivid green and purple northern lights dancing over a snowy Arctic landscape with a frozen lake in the foreground"
 readingTime: 11
 seo:
-  title: "12 Best Places to See the Northern Lights (2026) — Real Costs & Peak Dates | MonkeyTravel"
-  description: "Where to see the aurora borealis in 2026: 12 destinations ranked by probability, with peak viewing dates, real costs per night, and budget-friendly options."
-  keywords: ["best places to see northern lights", "aurora borealis where to see", "northern lights destinations 2026", "where to see northern lights", "northern lights best time", "cheapest place to see northern lights", "aurora borealis 2026"]
+  title: "Northern Lights 2026: 12 Destinations Ranked by Cost & Probability (From $100/Night) | MonkeyTravel"
+  description: "See the aurora borealis before Solar Cycle 25 fades. 12 destinations from $100/night ranked by clear-sky probability (up to 90%), with best months, budget breakdowns, and hidden cheaper alternatives."
+  keywords: ["northern lights 2026", "best places to see northern lights", "cheapest place to see northern lights", "aurora borealis 2026", "northern lights destinations 2026", "northern lights best time", "solar maximum 2026", "northern lights on a budget"]
 schema: "Article"
 ---
 
@@ -24,6 +24,18 @@ The northern lights are one of those things that sound better than they often ar
 But when it works — when the sky cracks open in green and violet and you stand there with your mouth open like a child — it's the single most spectacular natural phenomenon you'll ever witness.
 
 This guide is about making sure it works. We've ranked 12 destinations by aurora probability, real costs, accessibility, and what else you can do if the lights don't show. Because even in the best locations, clear skies are never guaranteed — so you need a trip worth taking regardless.
+
+## Quick Budget Reference: Northern Lights Destinations by Price
+
+| Budget Tier | Destinations | Cost/Night | Aurora Probability |
+|-------------|-------------|:----------:|:------------------:|
+| **Under $120/night** | Senja (Norway), Abisko (Sweden), Scottish Highlands | $100-200 | 30-90% |
+| **$120-200/night** | Fairbanks (Alaska), Yellowknife (Canada), Finnish Lapland, Lofoten | $130-260 | 70-85% |
+| **$200+/night** | Iceland, Svalbard, Hurtigruten cruise | $180-400 | 60-85% |
+
+**Why 2026 matters:** We are near the peak of Solar Cycle 25 — the strongest aurora activity in over a decade. After late 2026, solar activity will decline steadily until approximately 2035. This is genuinely the best opportunity in 11 years. Not marketing hype — astrophysics.
+
+---
 
 ## How the Northern Lights Work (60-Second Version)
 
