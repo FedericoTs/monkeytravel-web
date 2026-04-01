@@ -70,6 +70,28 @@ const BLOG_QUERIES = {
   "where-to-go-in-july": "peak summer Greek island coast",
   "where-to-go-in-october": "fall foliage autumn destination travel",
   "where-to-go-in-november": "shoulder season temple warm travel",
+
+  // Phase 7 - AI/planning posts + group travel
+  "ai-trip-planner-vs-travel-agent": "AI technology travel planning laptop map",
+  "can-you-trust-ai-travel-itinerary": "trust technology AI travel smartphone map",
+  "how-ai-is-changing-travel-planning": "futuristic travel AI technology globe",
+  "how-to-plan-a-trip-with-ai": "person planning trip laptop coffee map",
+  "plan-weekend-getaway-with-ai": "weekend getaway couple suitcase road trip",
+  "solo-travel-planning-with-ai": "solo traveler backpack scenic landscape",
+  "travel-planning-stress-how-ai-helps": "stressed traveler overwhelmed luggage airport",
+  "how-to-plan-a-group-trip": "group friends planning trip together table",
+  "how-to-plan-a-bachelorette-trip": "bachelorette party celebration friends travel",
+  "group-travel-mistakes-to-avoid": "group travelers confused lost map",
+  "group-trip-budget-how-to-split-costs": "friends splitting bill money travel budget",
+  "best-group-trip-destinations-2026": "group friends beach vacation destination",
+
+  // Phase 8 - Destination-specific + budget
+  "first-trip-to-japan-what-you-need-to-know": "Japan Tokyo temple cherry blossom first visit",
+  "how-to-plan-trip-to-italy-on-a-budget": "Italy Tuscany vineyard budget travel",
+  "best-honeymoon-destinations-2026": "romantic couple honeymoon tropical sunset",
+
+  // Phase 9 - Trending/political
+  "is-it-safe-to-travel-to-the-us-2026": "United States American flag travel safety airport",
 };
 
 async function fetchPexels(query) {
