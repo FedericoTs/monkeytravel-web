@@ -39,8 +39,27 @@ export async function middleware(request: NextRequest) {
     return intlResponse;
   }
 
-  // For normal responses, chain Supabase session handling
-  // Pass the modified request from intl middleware (with locale info)
+  // Skip Supabase session refresh for public-only pages (saves serverless compute)
+  // These pages never need auth state — no point refreshing tokens for anonymous visitors
+  const strippedPath = pathname.replace(/^\/(en|es|it)/, '') || '/';
+  const isPublicOnly =
+    strippedPath === '/' ||
+    strippedPath.startsWith('/blog') ||
+    strippedPath.startsWith('/destinations') ||
+    strippedPath.startsWith('/privacy') ||
+    strippedPath.startsWith('/terms') ||
+    strippedPath.startsWith('/templates') ||
+    strippedPath.startsWith('/free-ai-trip-planner') ||
+    strippedPath.startsWith('/group-trip-planner') ||
+    strippedPath.startsWith('/budget-trip-planner') ||
+    strippedPath.startsWith('/family-trip-planner') ||
+    strippedPath.startsWith('/ai-itinerary-generator');
+
+  if (isPublicOnly) {
+    return intlResponse;
+  }
+
+  // For authenticated pages, chain Supabase session handling
   return await updateSession(request, intlResponse);
 }
 

@@ -95,9 +95,12 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Image optimization for Vercel
+  // Image optimization for Vercel — tuned to reduce transformation count
   images: {
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2592000, // 30 days (default 60s!) — prevents re-optimization
+    deviceSizes: [640, 828, 1200],  // 3 sizes instead of default 6
+    imageSizes: [128, 256, 384],    // 3 sizes instead of default 4
     remotePatterns: [
       {
         protocol: 'https',
