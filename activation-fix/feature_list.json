@@ -1,0 +1,348 @@
+{
+  "project": "MonkeyTravel Activation Fix",
+  "goal": "Reduce time-to-value from 8+ steps to under 90 seconds. Close the acquisition-activation gap.",
+  "created": "2026-03-10",
+  "instructions": "IMPORTANT: Only modify the 'passes' field. It is unacceptable to remove or edit test descriptions or steps — this could lead to missing or buggy functionality.",
+  "features": [
+    {
+      "id": "DEMO-01",
+      "category": "demo-mode",
+      "priority": 1,
+      "description": "Anonymous users can access /try route and browse pre-built sample itineraries without signup",
+      "steps": [
+        "Navigate to /try while logged out",
+        "Verify page loads without auth redirect",
+        "Verify no signup wall appears before viewing sample itineraries",
+        "Verify page has proper metadata and SEO tags",
+        "Verify navbar shows 'Sign Up' CTA instead of user menu"
+      ],
+      "passes": false
+    },
+    {
+      "id": "DEMO-02",
+      "category": "demo-mode",
+      "priority": 1,
+      "description": "Pre-built sample itineraries display full day-by-day plans with activities, images, times, and prices",
+      "steps": [
+        "Open /try as anonymous user",
+        "Verify at least 3 sample itineraries are available (e.g., Tokyo 5 days, Rome 3 days, Bali 7 days)",
+        "Click on a sample itinerary",
+        "Verify full day-by-day breakdown is visible",
+        "Verify each day shows activities with images, times, descriptions, and estimated costs",
+        "Verify itinerary is clearly labeled as 'Sample' or 'Example'",
+        "Verify itinerary is read-only (no edit capabilities)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "DEMO-03",
+      "category": "demo-mode",
+      "priority": 1,
+      "description": "Each sample itinerary has a prominent CTA to sign up and create a personalized version",
+      "steps": [
+        "View a sample itinerary on /try",
+        "Verify 'Create Your Own Personalized Trip' CTA is visible and prominent",
+        "Verify CTA appears both at top and bottom of itinerary",
+        "Click the CTA",
+        "Verify it navigates to /auth/signup (or shows AuthPromptModal)",
+        "Verify selected destination is preserved so it can pre-fill trip wizard after signup"
+      ],
+      "passes": false
+    },
+    {
+      "id": "DEMO-04",
+      "category": "demo-mode",
+      "priority": 2,
+      "description": "Landing page hero CTA links to /try instead of /auth/signup",
+      "steps": [
+        "Visit landing page as anonymous user",
+        "Verify primary hero CTA says 'See It In Action' or 'See Sample Trips'",
+        "Click the CTA",
+        "Verify redirect to /try (not /auth/signup)",
+        "Verify secondary CTA still allows direct signup"
+      ],
+      "passes": false
+    },
+    {
+      "id": "DEMO-05",
+      "category": "demo-mode",
+      "priority": 1,
+      "description": "No AI API calls or authenticated endpoints are triggered on /try page",
+      "steps": [
+        "Navigate /try as anonymous user",
+        "Verify no calls to /api/ai/generate in network tab",
+        "Verify no authenticated API calls are made",
+        "Verify no user tokens are generated or stored",
+        "Verify sample data is static (loaded from JSON/data files, not API)",
+        "Verify network tab shows no calls to /api/trips or /api/user"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WIZARD-01",
+      "category": "streamlined-wizard",
+      "priority": 1,
+      "description": "Trip wizard is reduced from 4 steps to 3 steps (destination, dates, vibes+budget combined)",
+      "steps": [
+        "Open trip creation wizard",
+        "Verify step 1 is Destination",
+        "Verify step 2 is Dates",
+        "Verify step 3 combines Vibes selection AND Budget/Pace selection",
+        "Verify progress indicator shows 3 steps total",
+        "Verify no separate step 4 exists"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WIZARD-02",
+      "category": "streamlined-wizard",
+      "priority": 1,
+      "description": "Vibes+Budget combined step has smart defaults so user can skip customization",
+      "steps": [
+        "Navigate to step 3 of wizard",
+        "Verify vibes has pre-selected defaults based on user preferences (if available)",
+        "Verify budget defaults to 'balanced'",
+        "Verify pace defaults to 'moderate'",
+        "Verify user CAN customize but doesn't HAVE to",
+        "Click 'Generate' without changing defaults",
+        "Verify generation works with defaults"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WIZARD-03",
+      "category": "streamlined-wizard",
+      "priority": 2,
+      "description": "Separate onboarding flow is removed for new users — preferences collected during first trip creation",
+      "steps": [
+        "Sign up as new user",
+        "Verify redirect goes to /trips (not /onboarding)",
+        "Verify welcome page is simplified or removed",
+        "Click 'Plan First Trip'",
+        "In vibes step, verify dietary/accessibility preferences are available as expandable options",
+        "Verify preferences are saved to user profile after first trip creation",
+        "Verify onboarding_completed is set to true after first trip"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMPTY-01",
+      "category": "rich-empty-state",
+      "priority": 1,
+      "description": "Empty trips dashboard shows a sample AI itinerary card instead of blank state",
+      "steps": [
+        "Sign up as new user",
+        "Navigate to /trips",
+        "Verify sample itinerary card is visible (e.g., '7 Days in Japan')",
+        "Verify sample shows real activities, images, and daily breakdown",
+        "Verify 'Create Your Own' CTA is prominent",
+        "Verify sample is clearly labeled as example (not user's trip)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMPTY-02",
+      "category": "rich-empty-state",
+      "priority": 2,
+      "description": "Empty state shows destination inspiration cards from popular destinations",
+      "steps": [
+        "Navigate to /trips as new user with no trips",
+        "Verify 3-5 destination inspiration cards are shown below sample itinerary",
+        "Each card shows destination image, name, and 'Plan this trip' CTA",
+        "Clicking a card opens /trips/new with destination pre-filled",
+        "Verify cards use existing destination data from lib/destinations"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMPTY-03",
+      "category": "rich-empty-state",
+      "priority": 3,
+      "description": "Empty state includes social proof element",
+      "steps": [
+        "Navigate to /trips as new user",
+        "Verify social proof text is visible (e.g., 'X travelers planned trips this week')",
+        "Verify number updates (can be approximate/cached)",
+        "Verify it doesn't show stale or zero numbers"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMAIL-01",
+      "category": "email-sequence",
+      "priority": 1,
+      "description": "Welcome email sent immediately after signup with visual showcase of app capabilities",
+      "steps": [
+        "Sign up with a new email",
+        "Verify welcome email is received within 2 minutes",
+        "Verify email contains app preview/GIF showing itinerary generation",
+        "Verify email has clear CTA: 'Plan Your First Trip'",
+        "Verify CTA links to /trips/new",
+        "Verify email renders correctly on mobile",
+        "Verify unsubscribe link is present"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMAIL-02",
+      "category": "email-sequence",
+      "priority": 1,
+      "description": "Day 2 re-engagement email sent to users who haven't created a trip",
+      "steps": [
+        "Sign up but do NOT create a trip",
+        "Wait 48 hours (or trigger manually via API)",
+        "Verify Day 2 email is received",
+        "Verify subject line: 'Your free AI trip plan is waiting'",
+        "Verify email contains direct link to trip creation",
+        "Verify email is NOT sent if user already created a trip",
+        "Verify unsubscribe link works"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMAIL-03",
+      "category": "email-sequence",
+      "priority": 2,
+      "description": "Day 5 social proof email sent to users who still haven't activated",
+      "steps": [
+        "Sign up but do NOT create a trip for 5 days",
+        "Verify Day 5 email is received",
+        "Verify email contains social proof (traveler count, popular destinations)",
+        "Verify email has compelling CTA",
+        "Verify email is NOT sent if user already created a trip",
+        "Verify email is NOT sent if user unsubscribed"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EMAIL-04",
+      "category": "email-sequence",
+      "priority": 2,
+      "description": "Email sequence infrastructure: Supabase Edge Function or cron-based trigger system",
+      "steps": [
+        "Verify email sending function exists (Supabase Edge Function or API route)",
+        "Verify scheduling mechanism works (pg_cron or external cron)",
+        "Verify user segmentation query correctly identifies non-activated users",
+        "Verify duplicate prevention (no double-sends)",
+        "Verify opt-out/unsubscribe updates user preferences in database"
+      ],
+      "passes": false
+    },
+    {
+      "id": "NUDGE-01",
+      "category": "in-app-nudges",
+      "priority": 2,
+      "description": "First login shows a 3-step tooltip walkthrough ending at trip creation",
+      "steps": [
+        "Log in for the first time after signup",
+        "Verify tooltip appears highlighting key UI element",
+        "Verify 3 sequential steps: welcome → explore → create trip",
+        "Verify tooltips can be dismissed individually or all at once",
+        "Verify tooltips don't appear on subsequent logins",
+        "Verify tooltip state is persisted (localStorage or database)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "NUDGE-02",
+      "category": "in-app-nudges",
+      "priority": 3,
+      "description": "Progress indicator on dashboard: 'Your first trip is 0% planned'",
+      "steps": [
+        "Log in as user with no trips",
+        "Verify progress card shows '0% — Start your first trip'",
+        "Start trip wizard, enter destination, leave",
+        "Return to dashboard",
+        "Verify progress updates to reflect partial completion",
+        "Create and save a trip",
+        "Verify progress card is replaced with trip card"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ANALYTICS-01",
+      "category": "analytics",
+      "priority": 1,
+      "description": "PostHog activation funnel tracks demo-to-signup conversion",
+      "steps": [
+        "Visit /try as anonymous user",
+        "Browse sample itineraries",
+        "Click 'Create Your Own' CTA and sign up",
+        "Verify PostHog events fired: demo_page_viewed, demo_itinerary_viewed, demo_signup_prompted, demo_signup_completed",
+        "Verify funnel can be built in PostHog dashboard from these events"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ANALYTICS-02",
+      "category": "analytics",
+      "priority": 1,
+      "description": "Time-to-value metric is tracked from signup to first trip save",
+      "steps": [
+        "Sign up as new user",
+        "Create and save a trip",
+        "Verify PostHog event 'first_trip_saved' includes time_to_value_minutes property",
+        "Verify time_to_value_minutes is calculated correctly (signup timestamp to save timestamp)",
+        "Verify metric is visible in PostHog dashboard"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ANALYTICS-03",
+      "category": "analytics",
+      "priority": 2,
+      "description": "Activation funnel dashboard exists in PostHog with key conversion steps",
+      "steps": [
+        "Open PostHog dashboard",
+        "Verify 'Activation Funnel' dashboard exists",
+        "Verify funnel steps: visit → demo_view → signup → first_trip_generated → first_trip_saved → first_trip_shared",
+        "Verify conversion rates are calculated between each step",
+        "Verify funnel can be filtered by signup method (email/google)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "I18N-01",
+      "category": "i18n",
+      "priority": 1,
+      "description": "All new UI strings in demo mode and streamlined wizard have translations in EN, ES, IT",
+      "steps": [
+        "Navigate to /try in English — verify no missing translation keys",
+        "Navigate to /es/try in Spanish — verify all text is translated",
+        "Navigate to /it/try in Italian — verify all text is translated",
+        "Check empty state on /trips in all 3 locales",
+        "Check tooltip walkthrough text in all 3 locales",
+        "Verify no hardcoded English strings in new components"
+      ],
+      "passes": false
+    },
+    {
+      "id": "I18N-02",
+      "category": "i18n",
+      "priority": 1,
+      "description": "Email templates support user's preferred language",
+      "steps": [
+        "Sign up with preferred_language set to 'es'",
+        "Verify welcome email is in Spanish",
+        "Sign up with preferred_language set to 'it'",
+        "Verify welcome email is in Italian",
+        "Verify email subject lines are also translated"
+      ],
+      "passes": false
+    },
+    {
+      "id": "PERF-01",
+      "category": "performance",
+      "priority": 2,
+      "description": "Demo mode /try page loads in under 2 seconds on 3G connection",
+      "steps": [
+        "Run Lighthouse on /try page",
+        "Verify LCP < 2.5s",
+        "Verify no render-blocking resources beyond critical CSS",
+        "Verify page is statically generated (no dynamic data fetching)",
+        "Verify images are optimized and lazy-loaded"
+      ],
+      "passes": false
+    }
+  ]
+}

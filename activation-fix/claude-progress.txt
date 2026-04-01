@@ -1,0 +1,53 @@
+============================================================
+ACTIVATION FIX — Progress Log
+============================================================
+Project: MonkeyTravel Activation Improvement
+Goal: Reduce time-to-value from 8+ steps to <90 seconds
+Framework: Anthropic Long-Running Agent Harness
+Created: 2026-03-10
+============================================================
+
+SESSION 0 — 2026-03-10 (Initializer)
+-------------------------------------
+Status: SETUP COMPLETE
+
+Actions taken:
+- Analyzed current post-signup flow (8+ steps to aha moment)
+- Identified 3 core problems:
+  1. Aha moment buried behind 8 steps (signup → welcome → onboarding 4 steps → empty dashboard → trip wizard 4 steps)
+  2. No post-signup email sequence (only Supabase confirmation)
+  3. Empty state on /trips is a dead end
+- Created feature_list.json with 25 features across 8 categories
+- Created this progress file
+- Created init.sh verification script
+
+Current state of codebase:
+- Auth flow: signup → /welcome → /onboarding (4 steps) → /trips (empty) → /trips/new (4 steps) → generate
+- Trip wizard: 4 separate steps (Destination, Dates, Vibes, Budget+Pace)
+- Empty state: "You haven't created any trips yet" + single CTA
+- Email: Zero post-signup emails (only Supabase auth confirmation)
+- Analytics: PostHog events exist for activation but no demo-mode events
+
+Key files:
+- Welcome page: app/[locale]/welcome/ (page.tsx, WelcomeClient.tsx)
+- Onboarding: app/[locale]/onboarding/page.tsx
+- Trip wizard: app/[locale]/trips/new/page.tsx
+- Trips dashboard: app/[locale]/trips/page.tsx, components/trips/TripsPageClient.tsx
+- AI generation API: app/api/ai/generate/route.ts
+- PostHog events: lib/posthog/events.ts
+- Early access: lib/early-access.ts
+- Usage limits: lib/usage-limits.ts
+- Email templates: email-templates/
+
+CONSTRAINT: Anonymous users NEVER call AI API. /try shows pre-built static samples only.
+
+Implementation order (by priority):
+  Phase 1 — Demo Mode: Pre-Built Samples (DEMO-01 to DEMO-05) — Sessions 1-2
+  Phase 2 — Streamlined Wizard (WIZARD-01 to WIZARD-03) — Sessions 3-4
+  Phase 3 — Rich Empty State (EMPTY-01 to EMPTY-03) — Session 5
+  Phase 4 — Email Sequence (EMAIL-01 to EMAIL-04) — Sessions 6-7
+  Phase 5 — Analytics & Nudges (ANALYTICS-01 to ANALYTICS-03, NUDGE-01, NUDGE-02) — Sessions 8-9
+  Phase 6 — i18n & Polish (I18N-01, I18N-02, PERF-01) — Session 10
+
+Features passing: 0/23
+============================================================
