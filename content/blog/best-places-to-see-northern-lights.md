@@ -11,7 +11,7 @@ image: "/images/blog/best-places-to-see-northern-lights.jpg"
 imageAlt: "Vivid green and purple northern lights dancing over a snowy Arctic landscape with a frozen lake in the foreground"
 readingTime: 11
 seo:
-  title: "Northern Lights 2026: 12 Destinations Ranked by Cost & Probability (From $100/Night) | MonkeyTravel"
+  title: "Best Places to See the Northern Lights in 2026 — Before the Solar Peak Ends ($100/Night) | MonkeyTravel"
   description: "See the aurora borealis before Solar Cycle 25 fades. 12 destinations from $100/night ranked by clear-sky probability (up to 90%), with best months, budget breakdowns, and hidden cheaper alternatives."
   keywords: ["northern lights 2026", "best places to see northern lights", "cheapest place to see northern lights", "aurora borealis 2026", "northern lights destinations 2026", "northern lights best time", "solar maximum 2026", "northern lights on a budget"]
 schema: "Article"

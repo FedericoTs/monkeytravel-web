@@ -11,7 +11,7 @@ image: "/images/blog/visa-requirements-us-citizens.jpg"
 imageAlt: "US passport on a world map with boarding passes and travel stamps"
 readingTime: 11
 seo:
-  title: "US Visa Requirements 2026: Visa-Free, ETA & E-Visa Countries (Full List + APEC) | MonkeyTravel"
+  title: "Do You Need a Visa? US Travel Requirements 2026 (Every Country, Including APEC) | MonkeyTravel"
   description: "Which countries require a visa for US passport holders in 2026? Full list of 20+ visa-required countries, APEC visa rules, e-visas, ETAs, costs, and the new ETIAS & UK ETA changes."
   keywords: ["visa requirements us citizens 2026", "us passport visa requirements", "visa free countries us passport", "apec visa requirements us citizens", "etias 2026", "uk eta us citizens", "e-visa countries us passport", "countries requiring visa us citizens"]
 schema: "Article"

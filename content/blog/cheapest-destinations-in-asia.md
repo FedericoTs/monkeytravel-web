@@ -11,7 +11,7 @@ image: "/images/blog/cheapest-destinations-in-asia.jpg"
 imageAlt: "Colorful floating market with boats of fresh produce in Southeast Asia"
 readingTime: 12
 seo:
-  title: "15 Cheapest Countries in Asia for Tourists 2026 (From $12/Day) | MonkeyTravel"
+  title: "Cheapest Countries in Asia 2026: Where $12/Day Gets You a Full Trip | MonkeyTravel"
   description: "How much does Asia really cost in 2026? Daily budgets for 15 countries — from $12/day in India to $35/day in Bali. Meal costs, hotel prices, and a country-by-country comparison table."
   keywords: ["cheapest countries in asia 2026", "cheapest countries in asia for tourists", "budget travel asia 2026", "cheapest countries to visit in asia", "asia on a budget", "cheapest country in southeast asia", "cheap countries in asia", "asia budget vacations"]
 schema: "Article"
