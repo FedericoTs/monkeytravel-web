@@ -31,6 +31,7 @@ export default function DestinationPageHero({
           src={`/images/destinations/${destination.slug}.jpg`}
           alt={name[locale]}
           fill
+          unoptimized
           className="object-cover"
           priority
           sizes="100vw"

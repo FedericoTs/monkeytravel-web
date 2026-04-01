@@ -286,6 +286,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                 alt="MonkeyTravel"
                 width={36}
                 height={36}
+                unoptimized
                 priority
                 className="w-9 h-9 object-contain drop-shadow-lg"
               />

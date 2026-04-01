@@ -120,6 +120,7 @@ export default function TourPhone({
               src={screenImage}
               alt="App screenshot"
               fill
+              unoptimized
               className="object-cover object-top"
               priority
               sizes="(max-width: 768px) 260px, 320px"
@@ -233,6 +234,7 @@ export function CascadePhone({ screenImage, index, className = "" }: CascadePhon
               src={screenImage}
               alt="Trip preview"
               fill
+              unoptimized
               className="object-cover object-top"
               sizes="(max-width: 768px) 200px, 260px"
             />

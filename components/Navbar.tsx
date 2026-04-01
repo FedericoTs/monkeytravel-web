@@ -69,6 +69,7 @@ export default function Navbar() {
               alt={t('logoAlt')}
               width={36}
               height={36}
+              unoptimized
               className="w-9 h-9 object-contain"
             />
             <span className="text-lg font-bold text-[var(--primary)]">MonkeyTravel</span>

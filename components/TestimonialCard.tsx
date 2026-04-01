@@ -44,7 +44,7 @@ export default function TestimonialCard({
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center overflow-hidden">
           {avatar ? (
-            <Image src={avatar} alt={author} width={48} height={48} className="object-cover" />
+            <Image src={avatar} alt={author} width={48} height={48} unoptimized className="object-cover" />
           ) : (
             <span className="text-[var(--primary)] font-bold text-lg">
               {author.charAt(0)}

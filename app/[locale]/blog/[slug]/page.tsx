@@ -223,6 +223,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             src={frontmatter.image}
             alt={frontmatter.imageAlt}
             fill
+            unoptimized
             className="object-cover"
             sizes="100vw"
             priority
@@ -397,6 +398,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                         src={`/images/destinations/${dest.slug}.jpg`}
                         alt={dest.name[loc]}
                         fill
+                        unoptimized
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                         sizes="(max-width: 768px) 100vw, 33vw"
                         loading="lazy"

@@ -118,6 +118,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
             src={template.coverImageUrl}
             alt={template.title}
             fill
+            unoptimized
             sizes="300px"
             loading="lazy"
             draggable={false}
