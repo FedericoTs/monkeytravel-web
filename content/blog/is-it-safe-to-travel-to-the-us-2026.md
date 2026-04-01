@@ -9,7 +9,7 @@ category: "Travel Tips"
 tags: ["united states", "travel safety", "travel advisory", "immigration", "visa requirements", "FIFA World Cup 2026"]
 image: "/images/blog/is-it-safe-to-travel-to-the-us-2026.jpg"
 imageAlt: "Aerial view of the Statue of Liberty and New York Harbor with an international traveler looking out from a plane window"
-readingTime: 16
+readingTime: 18
 seo:
   title: "Is It Safe to Travel to the US in 2026? Honest Guide for International Visitors | MonkeyTravel"
   description: "9 countries have issued travel advisories about the US. ICE is at airports. Tourism is down 10%. Here's what international travelers actually need to know before visiting America in 2026."
@@ -39,14 +39,20 @@ This guide is not political commentary. It is a practical travel resource for an
 
 ### ICE Deployment to US Airports (March 2026)
 
-In late March 2026, Immigration and Customs Enforcement (ICE) deployed agents to at least 14 major US airports. This is a significant operational shift — historically, airports were the domain of Customs and Border Protection (CBP), not ICE.
+In late March 2026, Immigration and Customs Enforcement (ICE) deployed agents to at least 14 major US airports, including JFK (New York), LAX (Los Angeles), O'Hare (Chicago), Miami International, and Hartsfield-Jackson Atlanta International. This is a significant operational shift — historically, airports were the domain of Customs and Border Protection (CBP), not ICE.
 
 **What this means for travelers:**
 - ICE agents can question travelers about their immigration status at domestic airports, not just international entry points
+- ICE's stated role is to support CBP operations, not to independently detain tourists — but the operational boundaries remain unclear in practice
 - This primarily affects undocumented individuals and those with immigration violations, **not typical tourists or valid visa holders**
 - However, the visible presence of immigration enforcement at airports has created anxiety for many travelers, including legal visitors
+- The March 2026 partial DHS shutdown left some TSA officers working without pay, compounding airport disruptions and causing hours-long security lines at some hubs
 
 **Practical impact for international tourists:** Low risk if your documentation is in order. But be prepared for the possibility of being asked about your immigration status at domestic terminals during connecting flights.
+
+**Practical tip:** Carry printed copies of your visa, return flight confirmation, hotel booking, and travel insurance policy. Having physical documentation readily available can speed up any encounter with immigration officers.
+
+**Note:** This situation is evolving rapidly. Travelers should check current conditions at their specific airports before flying, as ICE presence and its operational scope may change on short notice.
 
 ### Expanded Travel Ban (January 2026)
 
@@ -55,6 +61,22 @@ A presidential proclamation effective January 1, 2026 expanded travel restrictio
 **Countries affected include:** Chad, Eritrea, Iran, Libya, North Korea, Somalia, Sudan, Syria, Venezuela, Yemen, and additional nations added under expanded vetting categories.
 
 **What this means:** Citizens of affected countries are barred from obtaining most categories of US visas. Some exceptions exist for students and certain work visas, but tourist visas are broadly restricted. If you hold a passport from an affected country, check with the nearest US embassy before making any plans.
+
+### DHS Funding Crisis (March 2026)
+
+In March 2026, a partial shutdown of the Department of Homeland Security (DHS) left significant portions of the agency operating without full funding. The practical consequences for travelers have been immediate and disruptive.
+
+**What happened:**
+- TSA officers at some airports were required to work without pay during the funding gap
+- Hours-long security lines were reported at major hubs including JFK, O'Hare, LAX, and Atlanta
+- CBP staffing at ports of entry was reduced, leading to longer immigration processing times for arriving international passengers
+- The situation has been fluid, with temporary funding extensions providing partial relief
+
+**Practical advice for travelers:**
+- **Arrive at least 3 hours early** for international flights departing from or connecting through major US airports
+- **Consider enrolling in TSA PreCheck** ($78 for 5 years) or **Global Entry** ($100 for 5 years) to access expedited security and immigration lanes — these programs continued operating during the funding disruption
+- **Monitor your airline's app** for real-time security wait time estimates at your departure airport
+- **Build buffer time into connections** — if booking a connecting flight through a major US hub, allow at least 3 hours between flights rather than the usual 2
 
 ### $250 Visa Integrity and Border Security Fee (October 2025)
 
@@ -163,6 +185,19 @@ The 2026 FIFA World Cup, co-hosted by the US, Canada, and Mexico (June 11 - July
 ### Practical Tip
 
 Consider attending World Cup matches hosted in **Canada or Mexico** if visa complications make US entry difficult. Both countries have more accessible entry requirements for most nationalities, and the tournament is spread across all three nations.
+
+### FIFA World Cup 2026: Infrastructure and Planning Considerations
+
+The 2026 FIFA World Cup runs from June 11 to July 19 across 16 host cities in the United States, Canada, and Mexico. With over 5 million visitors expected, the tournament will place extraordinary strain on travel infrastructure.
+
+**Key considerations:**
+- **Scale:** This is the largest World Cup in history (48 teams, 104 matches). US host cities include New York/New Jersey, Los Angeles, Dallas, Houston, Atlanta, Miami, Philadelphia, Seattle, San Francisco, Boston, and Kansas City
+- **Airport capacity:** Major airports in host cities will face significantly higher passenger volumes during the tournament. Expect longer check-in, security, and immigration lines
+- **Special visa processing:** FIFA and US authorities may announce expedited visa processing for confirmed ticket holders — check [FIFA's official travel page](https://www.fifa.com/fifaplus/en/tournaments/mens/worldcup/canadamexicousa2026) for updates
+- **Accommodation:** Hotel prices in host cities are expected to surge 200-400% during match days. Book early or consider staying in nearby cities and commuting to matches
+- **Transportation:** Local transit systems in many US host cities are limited compared to European or Asian World Cup host cities. Plan for car rentals, ride-sharing, or shuttle services
+
+For a comprehensive breakdown of all 16 host cities, visa requirements by nationality, transportation guides, and accommodation tips, see our dedicated **[FIFA World Cup 2026 Travel Guide](/blog/fifa-world-cup-2026-travel-guide)**.
 
 ---
 

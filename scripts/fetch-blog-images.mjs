@@ -92,6 +92,11 @@ const BLOG_QUERIES = {
 
   // Phase 9 - Trending/political
   "is-it-safe-to-travel-to-the-us-2026": "United States American flag travel safety airport",
+
+  // Phase 10 - Tier 1 trending topics April 2026
+  "fifa-world-cup-2026-travel-guide": "football stadium crowd World Cup fans celebration",
+  "us-tariffs-impact-travel-costs-2026": "airport departure board prices expensive travel costs",
+  "coolcation-destinations-2026": "Norway fjord cool summer landscape blue water mountains",
 };
 
 async function fetchPexels(query) {
