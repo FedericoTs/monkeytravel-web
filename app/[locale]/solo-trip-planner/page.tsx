@@ -16,21 +16,21 @@ const PAGE_PATH = '/solo-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'Solo Trip Planner — AI-Powered Itineraries for Solo Travelers | MonkeyTravel',
+    title: 'Solo Trip Planner — Safe Routes, Smart Itineraries, 100% Free',
     description:
-      'Plan your solo adventure with AI in seconds. Get personalized itineraries with safety tips, social spots, solo-friendly restaurants, and local experiences. 100% free.',
+      'AI-powered solo travel plans with safety tips, solo-friendly restaurants, and social spots. Personalized day-by-day itinerary in 30 seconds. No signup needed.',
   },
   es: {
     title:
-      'Planificador de Viajes en Solitario — Itinerarios AI para Viajeros Solitarios | MonkeyTravel',
+      'Planificador de Viajes en Solitario — Rutas Seguras, Itinerarios Inteligentes, 100% Gratis',
     description:
-      'Planifica tu aventura en solitario con AI en segundos. Itinerarios personalizados con consejos de seguridad, puntos sociales, restaurantes solo-friendly y experiencias locales. 100% gratis.',
+      'Planes de viaje en solitario con IA con consejos de seguridad, restaurantes solo-friendly y puntos sociales. Itinerario personalizado en 30 segundos. Sin registro.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi in Solitaria — Itinerari AI per Viaggiatori Solitari | MonkeyTravel',
+      'Pianificatore di Viaggi in Solitaria — Percorsi Sicuri, Itinerari Smart, 100% Gratis',
     description:
-      'Pianifica la tua avventura in solitaria con AI in pochi secondi. Itinerari personalizzati con consigli di sicurezza, punti sociali, ristoranti solo-friendly ed esperienze locali. 100% gratuito.',
+      'Piani di viaggio in solitaria con IA con consigli di sicurezza, ristoranti solo-friendly e punti sociali. Itinerario personalizzato in 30 secondi. Senza registrazione.',
   },
 };
 

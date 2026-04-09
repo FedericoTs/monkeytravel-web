@@ -16,19 +16,19 @@ const PAGE_PATH = '/ai-itinerary-generator';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'AI Itinerary Generator — Smart Day-by-Day Travel Plans | MonkeyTravel',
+    title: 'AI Itinerary Generator — Smart Day-by-Day Travel Plans',
     description:
       'Generate complete travel itineraries with AI in 30 seconds. Day-by-day plans with real venues, current prices, and smart time blocks. Free, no signup required.',
   },
   es: {
     title:
-      'Generador de Itinerarios con AI — Planes de Viaje Día a Día | MonkeyTravel',
+      'Generador de Itinerarios con AI — Planes de Viaje Día a Día',
     description:
       'Genera itinerarios de viaje completos con AI en 30 segundos. Planes día a día con lugares reales, precios actuales y bloques de tiempo inteligentes. Gratis, sin registro.',
   },
   it: {
     title:
-      'Generatore di Itinerari con AI — Piani di Viaggio Giorno per Giorno | MonkeyTravel',
+      'Generatore di Itinerari con AI — Piani di Viaggio Giorno per Giorno',
     description:
       'Genera itinerari di viaggio completi con AI in 30 secondi. Piani giorno per giorno con luoghi reali, prezzi attuali e blocchi orari intelligenti. Gratuito, senza registrazione.',
   },

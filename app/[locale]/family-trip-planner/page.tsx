@@ -16,19 +16,19 @@ const PAGE_PATH = '/family-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'Family Trip Planner — AI-Powered Itineraries for All Ages | MonkeyTravel',
+    title: 'Family Trip Planner — AI-Powered Itineraries for All Ages',
     description:
       'Plan the perfect family vacation with AI. Get kid-friendly itineraries with age-appropriate activities, family restaurants, and balanced schedules. 100% free.',
   },
   es: {
     title:
-      'Planificador de Viajes Familiares — Itinerarios con AI Para Todas las Edades | MonkeyTravel',
+      'Planificador de Viajes Familiares — Itinerarios con AI Para Todas las Edades',
     description:
       'Planifica las vacaciones familiares perfectas con AI. Obtén itinerarios aptos para niños con actividades por edad, restaurantes familiares y horarios equilibrados. 100% gratis.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi per Famiglie — Itinerari con AI Per Tutte le Età | MonkeyTravel',
+      'Pianificatore di Viaggi per Famiglie — Itinerari con AI Per Tutte le Età',
     description:
       'Pianifica la vacanza in famiglia perfetta con AI. Ottieni itinerari adatti ai bambini con attività per età, ristoranti per famiglie e orari equilibrati. 100% gratis.',
   },

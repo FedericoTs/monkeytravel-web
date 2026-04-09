@@ -139,11 +139,13 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
   const pageUrl = `${SITE_URL}${localePrefix}/blog/${slug}`;
 
-  // Structured data
+  // Structured data — use blog.json translated titles for consistency with <title> tag
+  const seoTitle = t(`posts.${slug}.title`);
+  const seoDescription = t(`posts.${slug}.description`);
   const wordCount = post.content.split(/\s+/).length;
   const articleSchema = generateArticleSchema({
-    title: frontmatter.title,
-    description: frontmatter.description,
+    title: seoTitle,
+    description: seoDescription,
     url: pageUrl,
     image: frontmatter.image
       ? `${SITE_URL}${frontmatter.image}`
@@ -160,7 +162,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: t("breadcrumbs.home"), url: `${SITE_URL}${localePrefix}` },
     { name: t("breadcrumbs.blog"), url: `${SITE_URL}${localePrefix}/blog` },
-    { name: frontmatter.title, url: pageUrl },
+    { name: seoTitle, url: pageUrl },
   ]);
 
   const faqs = extractFAQs(html);

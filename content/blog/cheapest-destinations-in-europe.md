@@ -1,5 +1,5 @@
 ---
-title: "15 Cheapest Destinations in Europe for 2026 (Real Daily Budgets)"
+title: "15 Cheapest Countries in Europe for 2026 (Real Daily Budgets)"
 slug: "cheapest-destinations-in-europe"
 description: "The 15 cheapest places to travel in Europe in 2026 with real daily budgets, hostel and hotel prices, food costs, and what you'll actually spend per day."
 author: "MonkeyTravel Team"
@@ -17,7 +17,7 @@ seo:
 schema: "Article"
 ---
 
-# 15 Cheapest Destinations in Europe for 2026 (Real Daily Budgets)
+# 15 Cheapest Countries in Europe for 2026 (Real Daily Budgets)
 
 Everyone says Europe is expensive. And sure, if your idea of Europe is Paris hotel suites and Santorini infinity pools, it absolutely is. But step off the well-worn tourist trail and you'll find cities where $40 a day covers a clean bed, three solid meals, a couple of beers, and enough left over for a museum.
 

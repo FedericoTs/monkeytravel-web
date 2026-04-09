@@ -16,19 +16,19 @@ const PAGE_PATH = '/budget-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'Budget Trip Planner — Travel More, Spend Less | MonkeyTravel',
+    title: 'Budget Trip Planner — Travel More, Spend Less',
     description:
       'Plan affordable trips with AI. Get personalized itineraries with real prices across 3 budget tiers. Find cheap flights, affordable stays, and free activities. 100% free tool.',
   },
   es: {
     title:
-      'Planificador de Viajes Económicos — Viaja Más, Gasta Menos | MonkeyTravel',
+      'Planificador de Viajes Económicos — Viaja Más, Gasta Menos',
     description:
       'Planifica viajes asequibles con AI. Obtén itinerarios personalizados con precios reales en 3 niveles de presupuesto. Encuentra vuelos baratos, alojamientos económicos y actividades gratis. Herramienta 100% gratuita.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi Economici — Viaggia di Più, Spendi di Meno | MonkeyTravel',
+      'Pianificatore di Viaggi Economici — Viaggia di Più, Spendi di Meno',
     description:
       'Pianifica viaggi accessibili con AI. Ottieni itinerari personalizzati con prezzi reali su 3 livelli di budget. Trova voli economici, alloggi convenienti e attività gratuite. Strumento 100% gratuito.',
   },

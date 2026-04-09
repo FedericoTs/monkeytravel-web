@@ -15,21 +15,21 @@ const PAGE_PATH = '/free-ai-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'Free AI Trip Planner — No Credit Card, No Signup | MonkeyTravel',
+    title: 'Free AI Trip Planner — No Signup, No Card, Unlimited Plans',
     description:
-      'Plan your perfect trip with AI in seconds. Get personalized day-by-day itineraries with real venues and actual prices. 100% free, no credit card needed.',
+      'Create personalized day-by-day itineraries with real venues and 3 budget tiers in 30 seconds. Works in English, Spanish & Italian. No account required, ever.',
   },
   es: {
     title:
-      'Planificador de Viajes AI Gratis — Sin Tarjeta, Sin Registro | MonkeyTravel',
+      'Planificador de Viajes AI Gratis — Sin Registro, Sin Tarjeta, Planes Ilimitados',
     description:
-      'Planifica tu viaje perfecto con AI en segundos. Itinerarios personalizados día a día con lugares reales y precios actuales. 100% gratis, sin tarjeta de crédito.',
+      'Crea itinerarios personalizados día a día con lugares reales y 3 niveles de presupuesto en 30 segundos. Sin cuenta necesaria, nunca.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi AI Gratuito — Senza Carta, Senza Registrazione | MonkeyTravel',
+      'Pianificatore di Viaggi AI Gratis — Senza Registrazione, Senza Carta, Piani Illimitati',
     description:
-      'Pianifica il viaggio perfetto con l\'AI in pochi secondi. Itinerari personalizzati giorno per giorno con luoghi reali e prezzi attuali. 100% gratuito.',
+      'Crea itinerari personalizzati giorno per giorno con luoghi reali e 3 livelli di budget in 30 secondi. Nessun account necessario, mai.',
   },
 };
 
