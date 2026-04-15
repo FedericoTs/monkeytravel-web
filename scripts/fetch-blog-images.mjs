@@ -97,6 +97,9 @@ const BLOG_QUERIES = {
   "fifa-world-cup-2026-travel-guide": "football stadium crowd World Cup fans celebration",
   "us-tariffs-impact-travel-costs-2026": "airport departure board prices expensive travel costs",
   "coolcation-destinations-2026": "Norway fjord cool summer landscape blue water mountains",
+  "mete-estate-2026-mare": "Mediterranean beach turquoise water summer umbrella vacation",
+  "dove-andare-agosto-2026": "Greek bay boats turquoise water August summer holiday",
+  "cheapest-southeast-asia-backpackers-2026": "backpacker street market Southeast Asia colorful vibrant",
 };
 
 async function fetchPexels(query) {

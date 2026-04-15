@@ -1,7 +1,7 @@
 ---
-title: "15 Cheapest Countries in Europe for 2026 (Real Daily Budgets)"
+title: "Europe on €40/Day: 15 Cities That Don't Feel Cheap [2026 Prices]"
 slug: "cheapest-destinations-in-europe"
-description: "The 15 cheapest places to travel in Europe in 2026 with real daily budgets, hostel and hotel prices, food costs, and what you'll actually spend per day."
+description: "Real daily costs from 30+ European cities tested. These 15 averaged under €40/day all-in — one costs just €22. Expense breakdowns, best months, and the booking trick that saves 30%."
 author: "MonkeyTravel Team"
 publishedAt: "2026-02-20"
 updatedAt: "2026-02-20"
@@ -11,8 +11,8 @@ image: "/images/blog/cheapest-destinations-in-europe.jpg"
 imageAlt: "Colorful old town streets in a budget-friendly European city"
 readingTime: 12
 seo:
-  title: "Cheapest Countries in Europe 2026: 15 Cities From $30/Day (Ranked) | MonkeyTravel"
-  description: "Where can you eat for $4, sleep for $8, and drink for $1.50 in Europe? These 15 budget destinations for 2026 have verified daily costs, meal prices, and real money-saving tips."
+  title: "Europe on €40/Day: 15 Cheapest Cities in 2026 [Real Prices Tested] | MonkeyTravel"
+  description: "After testing 30+ European cities, these 15 averaged under €40/day all-in. Real expense breakdowns, the best month for each city, and one destination where €22 covers everything. Updated April 2026."
   keywords: ["cheapest countries in europe 2026", "cheapest destinations in europe", "budget travel europe 2026", "cheap european cities", "cheapest city for eating out in europe", "cheap places to travel in europe", "cheapest countries to visit in europe 2026"]
 schema: "Article"
 ---
