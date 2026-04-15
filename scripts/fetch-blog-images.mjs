@@ -100,6 +100,19 @@ const BLOG_QUERIES = {
   "mete-estate-2026-mare": "Mediterranean beach turquoise water summer umbrella vacation",
   "dove-andare-agosto-2026": "Greek bay boats turquoise water August summer holiday",
   "cheapest-southeast-asia-backpackers-2026": "backpacker street market Southeast Asia colorful vibrant",
+
+  // Phase 11 - SEO expansion April 2026
+  "etias-europe-travel-authorization-2026": "European passport control airport border travel",
+  "paris-vs-barcelona": "Paris Eiffel Tower Barcelona Sagrada Familia split comparison",
+  "lisbon-vs-porto": "Lisbon tram Porto riverside city comparison Portugal",
+  "tokyo-vs-seoul": "Tokyo neon lights Seoul Bukchon hanok village comparison",
+  "pianificatore-viaggio-ai-2026": "smartphone travel planning AI map itinerary coffee",
+  "itinerario-sardegna-7-giorni": "Sardinia turquoise beach cala crystal clear water",
+  "itinerario-puglia-5-giorni": "Puglia Alberobello trulli white houses olive trees",
+  "cheapest-european-cities-for-food-2026": "European food market fresh ingredients street vendor",
+  "trending-destinations-may-2026": "spring travel trending destination flowers scenic",
+  "chatgpt-vs-ai-trip-planners": "AI chatbot travel planning smartphone map comparison",
+  "solo-female-travel-safety-guide-2026": "solo woman traveler backpack scenic overlook confident",
 };
 
 async function fetchPexels(query) {
