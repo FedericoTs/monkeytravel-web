@@ -1,0 +1,193 @@
+name: Cross-Publish Blog Posts
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'content/blog/*.md'
+      - '!content/blog/es/**'
+      - '!content/blog/it/**'
+
+jobs:
+  cross-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Find new/modified blog posts
+        id: changed
+        run: |
+          # Get list of changed EN blog posts (not ES/IT translations)
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'content/blog/*.md' | grep -v '/es/' | grep -v '/it/' || true)
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Changed files: $CHANGED"
+
+      - name: Load publish state
+        id: state
+        run: |
+          if [ -f .github/cross-publish-state.json ]; then
+            echo "state=$(cat .github/cross-publish-state.json)" >> $GITHUB_OUTPUT
+          else
+            echo 'state={}' >> $GITHUB_OUTPUT
+          fi
+
+      - name: Cross-publish to Dev.to and Hashnode
+        if: steps.changed.outputs.files != ''
+        env:
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+          HASHNODE_TOKEN: ${{ secrets.HASHNODE_TOKEN }}
+          HASHNODE_PUBLICATION_ID: ${{ secrets.HASHNODE_PUBLICATION_ID }}
+        run: |
+          node << 'SCRIPT'
+          const fs = require('fs');
+          const path = require('path');
+
+          const SITE_URL = 'https://monkeytravel.app';
+          const changedFiles = process.env.CHANGED_FILES?.split('\n').filter(Boolean) || [];
+          const state = JSON.parse(fs.readFileSync('.github/cross-publish-state.json', 'utf-8').catch(() => '{}'));
+
+          // Parse frontmatter from markdown
+          function parseFrontmatter(content) {
+            const match = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!match) return null;
+            const fm = {};
+            match[1].split('\n').forEach(line => {
+              const [key, ...rest] = line.split(':');
+              if (key && rest.length) fm[key.trim()] = rest.join(':').trim().replace(/^["']|["']$/g, '');
+            });
+            return fm;
+          }
+
+          async function publishToDevto(slug, title, content, tags, canonicalUrl) {
+            if (!process.env.DEVTO_API_KEY) { console.log('  ⏭ Dev.to: No API key'); return; }
+
+            const res = await fetch('https://dev.to/api/articles', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'api-key': process.env.DEVTO_API_KEY,
+              },
+              body: JSON.stringify({
+                article: {
+                  title,
+                  body_markdown: content,
+                  published: true,
+                  canonical_url: canonicalUrl,
+                  tags: tags.slice(0, 4).map(t => t.replace(/[^a-z0-9]/gi, '').toLowerCase()),
+                },
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              console.log(`  ✅ Dev.to: ${data.url}`);
+              return data.url;
+            } else {
+              const err = await res.text();
+              console.log(`  ❌ Dev.to: ${res.status} ${err}`);
+            }
+          }
+
+          async function publishToHashnode(slug, title, contentMarkdown, tags, canonicalUrl) {
+            if (!process.env.HASHNODE_TOKEN || !process.env.HASHNODE_PUBLICATION_ID) {
+              console.log('  ⏭ Hashnode: No token/publication ID');
+              return;
+            }
+
+            const query = `mutation PublishPost($input: PublishPostInput!) {
+              publishPost(input: $input) {
+                post { url slug }
+              }
+            }`;
+
+            const res = await fetch('https://gql.hashnode.com', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': process.env.HASHNODE_TOKEN,
+              },
+              body: JSON.stringify({
+                query,
+                variables: {
+                  input: {
+                    title,
+                    contentMarkdown,
+                    publicationId: process.env.HASHNODE_PUBLICATION_ID,
+                    tags: tags.slice(0, 5).map(t => ({ name: t, slug: t.toLowerCase().replace(/\s+/g, '-') })),
+                    isRepublished: { originalArticleURL: canonicalUrl },
+                  },
+                },
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              const url = data?.data?.publishPost?.post?.url;
+              console.log(`  ✅ Hashnode: ${url || 'published'}`);
+              return url;
+            } else {
+              const err = await res.text();
+              console.log(`  ❌ Hashnode: ${res.status} ${err}`);
+            }
+          }
+
+          async function main() {
+            const stateFile = '.github/cross-publish-state.json';
+            let state = {};
+            try { state = JSON.parse(fs.readFileSync(stateFile, 'utf-8')); } catch {}
+
+            for (const file of changedFiles) {
+              const slug = path.basename(file, '.md');
+
+              // Skip if already published
+              if (state[slug]?.devto && state[slug]?.hashnode) {
+                console.log(`⏭ ${slug}: already published to both`);
+                continue;
+              }
+
+              console.log(`📝 Processing: ${slug}`);
+              const raw = fs.readFileSync(file, 'utf-8');
+              const fm = parseFrontmatter(raw);
+              if (!fm) { console.log(`  ⚠ No frontmatter`); continue; }
+
+              // Extract markdown body (after frontmatter)
+              const body = raw.replace(/^---[\s\S]*?---\n/, '');
+              const canonicalUrl = `${SITE_URL}/blog/${slug}`;
+              const tags = (fm.tags || '').replace(/[\[\]"]/g, '').split(',').map(t => t.trim());
+
+              if (!state[slug]) state[slug] = {};
+
+              if (!state[slug].devto) {
+                state[slug].devto = await publishToDevto(slug, fm.title || slug, body, tags, canonicalUrl);
+              }
+
+              if (!state[slug].hashnode) {
+                state[slug].hashnode = await publishToHashnode(slug, fm.title || slug, body, tags, canonicalUrl);
+              }
+
+              // Rate limit between posts
+              await new Promise(r => setTimeout(r, 2000));
+            }
+
+            fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
+            console.log(`\n✅ State saved. ${Object.keys(state).length} posts tracked.`);
+          }
+
+          main().catch(console.error);
+          SCRIPT
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+
+      - name: Commit publish state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/cross-publish-state.json
+          git diff --cached --quiet || git commit -m "chore: update cross-publish state"
+          git push
