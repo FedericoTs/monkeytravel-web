@@ -150,6 +150,22 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
             </section>
           );
         })}
+
+        {/* Server-rendered link list — guarantees every destination is
+            discoverable in initial SSR HTML even if RSC streaming hides
+            the visible grid from Googlebot's first-pass crawl. */}
+        <nav aria-label={t("index.allDestinations")} className="sr-only">
+          <h2>{t("index.allDestinations")}</h2>
+          <ul>
+            {destinations.map((d) => (
+              <li key={d.slug}>
+                <Link href={`/destinations/${d.slug}`}>
+                  {d.name[loc]}, {d.country[loc]}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </main>
 
       <Footer />

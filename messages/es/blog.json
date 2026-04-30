@@ -7,7 +7,8 @@
     "title": "Blog de Planificación de Viajes",
     "subtitle": "Consejos prácticos, guías de destinos y opiniones honestas sobre cómo la AI está cambiando la planificación de viajes.",
     "readMore": "Leer más",
-    "minuteRead": "{minutes} min de lectura"
+    "minuteRead": "{minutes} min de lectura",
+    "allPostsLabel": "Todos los artículos del blog"
   },
   "filter": {
     "all": "Todos",

@@ -170,6 +170,22 @@ export default async function BlogIndexPage({ params }: PageProps) {
             <BlogGrid posts={posts.map((p) => p.frontmatter)} />
           </div>
         </section>
+
+        {/* Server-rendered link list — ensures every post is discoverable in
+            the initial SSR HTML even though BlogGrid above is client-only.
+            Visually hidden but accessible to crawlers and screen readers. */}
+        <nav aria-label={t("index.allPostsLabel")} className="sr-only">
+          <h2>{t("index.allPostsLabel")}</h2>
+          <ul>
+            {posts.map(({ frontmatter }) => (
+              <li key={frontmatter.slug}>
+                <Link href={`/blog/${frontmatter.slug}`}>
+                  {t(`posts.${frontmatter.slug}.title`)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </main>
 
       <Footer />

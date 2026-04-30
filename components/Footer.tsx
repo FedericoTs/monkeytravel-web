@@ -1,9 +1,10 @@
-"use client";
-
 import Image from 'next/image';
 import { Link } from '@/lib/i18n/routing';
-import { useTranslations } from 'next-intl';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { CookieSettingsButton } from '@/components/consent';
+import { destinations } from '@/lib/destinations/data';
+import { getAllFrontmatter } from '@/lib/blog/api';
+import type { Locale } from '@/lib/destinations/types';
 
 const socialLinks = [
   { label: 'Twitter', href: 'https://twitter.com/monkeytravel_app', icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
@@ -11,9 +12,14 @@ const socialLinks = [
   { label: 'LinkedIn', href: 'https://linkedin.com/company/monkeytravel', icon: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
 ];
 
-export default function Footer() {
-  const t = useTranslations('common.footer');
-  const tCommon = useTranslations('common');
+// Featured destinations shown in the footer for sitewide internal linking.
+// These flow PageRank to the most important destination pages on every render.
+const FEATURED_DESTINATION_SLUGS = ['paris', 'rome', 'tokyo', 'barcelona', 'london', 'bali', 'lisbon', 'new-york'];
+
+export default async function Footer() {
+  const t = await getTranslations('common.footer');
+  const tCommon = await getTranslations('common');
+  const locale = (await getLocale()) as Locale;
 
   const footerLinks = {
     product: [
@@ -33,6 +39,14 @@ export default function Footer() {
       { label: t('termsOfService'), href: '/terms' },
     ],
   };
+
+  // Featured destinations (matched to slug list, preserving order)
+  const featuredDestinations = FEATURED_DESTINATION_SLUGS
+    .map((slug) => destinations.find((d) => d.slug === slug))
+    .filter((d): d is NonNullable<typeof d> => d !== undefined);
+
+  // Latest 6 blog posts (sorted desc by publishedAt in getAllFrontmatter)
+  const latestPosts = getAllFrontmatter(locale).slice(0, 6);
 
   return (
     <footer className="bg-[var(--navy)] text-white">
@@ -114,6 +128,54 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+
+        {/* Featured Destinations + Latest Articles — sitewide internal links for SEO */}
+        <div className="mt-16 pt-12 border-t border-white/10 grid md:grid-cols-2 gap-12">
+          <div>
+            <h3 className="font-semibold mb-5 text-white/90">{t('popularDestinations')}</h3>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {featuredDestinations.map((dest) => (
+                <li key={dest.slug}>
+                  <Link
+                    href={`/destinations/${dest.slug}`}
+                    className="text-white/65 hover:text-[var(--accent)] transition-colors text-sm"
+                  >
+                    {dest.name[locale]}
+                    <span className="text-white/40 ml-1.5">{dest.country[locale]}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/destinations"
+              className="inline-block mt-4 text-[var(--accent)] hover:text-[var(--accent-light)] transition-colors text-sm font-medium"
+            >
+              {t('viewAllDestinations')} →
+            </Link>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-5 text-white/90">{t('featuredArticles')}</h3>
+            <ul className="space-y-3">
+              {latestPosts.map((post) => (
+                <li key={post.slug}>
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="text-white/65 hover:text-[var(--accent)] transition-colors text-sm leading-snug block"
+                  >
+                    {post.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/blog"
+              className="inline-block mt-4 text-[var(--accent)] hover:text-[var(--accent-light)] transition-colors text-sm font-medium"
+            >
+              {t('viewAllArticles')} →
+            </Link>
           </div>
         </div>
       </div>

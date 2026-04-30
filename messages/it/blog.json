@@ -7,7 +7,8 @@
     "title": "Blog di Pianificazione Viaggi",
     "subtitle": "Consigli pratici, guide alle destinazioni e opinioni oneste su come l'AI sta cambiando la pianificazione dei viaggi.",
     "readMore": "Leggi di più",
-    "minuteRead": "{minutes} min di lettura"
+    "minuteRead": "{minutes} min di lettura",
+    "allPostsLabel": "Tutti gli articoli del blog"
   },
   "filter": {
     "all": "Tutti",

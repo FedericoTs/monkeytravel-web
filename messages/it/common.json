@@ -106,7 +106,11 @@
     "sendFeedback": "Invia Feedback",
     "privacyPolicy": "Informativa sulla Privacy",
     "termsOfService": "Termini di Servizio",
-    "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati."
+    "copyright": "© {year} MonkeyTravel. Tutti i diritti riservati.",
+    "popularDestinations": "Destinazioni Popolari",
+    "featuredArticles": "Articoli in Evidenza",
+    "viewAllDestinations": "Vedi tutte le destinazioni",
+    "viewAllArticles": "Vedi tutti gli articoli"
   },
   "bottomNav": {
     "home": "Home",

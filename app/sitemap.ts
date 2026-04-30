@@ -5,43 +5,61 @@ import { getAllSlugs as getBlogSlugs, getPostDates } from "@/lib/blog/api";
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
 
+// Hardcoded lastmod dates per content type — keeps the sitemap stable across
+// rebuilds rather than declaring "everything changed today" on every build,
+// which trains Google to ignore the lastmod signal entirely.
+// Bump these when the corresponding content actually changes.
+const LASTMOD_HOMEPAGE = "2026-04-30";
+const LASTMOD_LANDING = "2026-04-15";
+const LASTMOD_DESTINATIONS = "2026-04-15";
+const LASTMOD_LEGAL = "2025-12-01";
+
+// Most-important pages get the highest priority signal so Google clusters them
+// at the top of the crawl queue when budget is tight.
+const PRIORITY_HOMEPAGE = 1.0;
+const PRIORITY_LOCALE_HOMEPAGE = 0.9;
+const PRIORITY_LANDING = 0.9;
+const PRIORITY_INDEX = 0.8;
+const PRIORITY_BLOG_DETAIL = 0.7;
+const PRIORITY_DESTINATION_DETAIL = 0.7;
+const PRIORITY_LEGAL = 0.3;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://monkeytravel.app";
-  const currentDate = new Date().toISOString();
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     // Homepage (all locales)
     {
       url: baseUrl,
-      lastModified: currentDate,
+      lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
-      priority: 1,
+      priority: PRIORITY_HOMEPAGE,
     },
     {
       url: `${baseUrl}/es`,
-      lastModified: currentDate,
+      lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
-      priority: 1,
+      priority: PRIORITY_LOCALE_HOMEPAGE,
     },
     {
       url: `${baseUrl}/it`,
-      lastModified: currentDate,
+      lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
-      priority: 1,
+      priority: PRIORITY_LOCALE_HOMEPAGE,
     },
     // Legal pages (English only — content is not translated)
     {
       url: `${baseUrl}/privacy`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.3,
+      lastModified: LASTMOD_LEGAL,
+      changeFrequency: "yearly",
+      priority: PRIORITY_LEGAL,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.3,
+      lastModified: LASTMOD_LEGAL,
+      changeFrequency: "yearly",
+      priority: PRIORITY_LEGAL,
     },
     // Auth pages excluded — noindexed by auth/layout.tsx
   ];
@@ -55,9 +73,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of seoLandingPaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.9,
+        lastModified: LASTMOD_LANDING,
+        changeFrequency: 'monthly',
+        priority: PRIORITY_LANDING,
       });
     }
   }
@@ -71,18 +89,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Index page per locale
     destinationPages.push({
       url: `${baseUrl}${prefix}/destinations`,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 0.8,
+      lastModified: LASTMOD_DESTINATIONS,
+      changeFrequency: "monthly",
+      priority: PRIORITY_INDEX,
     });
 
     // Detail page per destination per locale
     for (const dest of destinations) {
       destinationPages.push({
         url: `${baseUrl}${prefix}/destinations/${dest.slug}`,
-        lastModified: currentDate,
+        lastModified: LASTMOD_DESTINATIONS,
         changeFrequency: "monthly",
-        priority: 0.7,
+        priority: PRIORITY_DESTINATION_DETAIL,
       });
     }
   }
@@ -91,15 +109,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogPages: MetadataRoute.Sitemap = [];
   const blogSlugs = getBlogSlugs();
 
+  // Use the most-recent post date as the blog index lastmod so Google sees
+  // fresh activity each time we publish, without the index changing every build.
+  const newestPostDate = blogSlugs
+    .map((slug) => getPostDates(slug)?.updatedAt)
+    .filter((d): d is string => Boolean(d))
+    .sort()
+    .pop() ?? LASTMOD_HOMEPAGE;
+
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
 
     // Blog index page per locale
     blogPages.push({
       url: `${baseUrl}${prefix}/blog`,
-      lastModified: currentDate,
+      lastModified: newestPostDate,
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: PRIORITY_INDEX,
     });
 
     // Blog detail page per post per locale
@@ -107,9 +133,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const dates = getPostDates(slug);
       blogPages.push({
         url: `${baseUrl}${prefix}/blog/${slug}`,
-        lastModified: dates?.updatedAt ?? currentDate,
+        lastModified: dates?.updatedAt ?? LASTMOD_HOMEPAGE,
         changeFrequency: "monthly",
-        priority: 0.7,
+        priority: PRIORITY_BLOG_DETAIL,
       });
     }
   }

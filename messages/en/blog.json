@@ -7,7 +7,8 @@
     "title": "Travel Planning Blog",
     "subtitle": "Practical tips, destination guides, and honest takes on how AI is changing travel planning.",
     "readMore": "Read more",
-    "minuteRead": "{minutes} min read"
+    "minuteRead": "{minutes} min read",
+    "allPostsLabel": "All blog posts"
   },
   "filter": {
     "all": "All Posts",
