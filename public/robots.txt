@@ -7,6 +7,9 @@ Disallow: /admin
 Disallow: /api/
 Disallow: /auth/callback
 
+# User-generated trip pages — noindex (low-value duplicates)
+Disallow: /shared/
+
 # Allow important pages
 Allow: /trips
 Allow: /privacy

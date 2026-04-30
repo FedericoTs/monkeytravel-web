@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import BlogContentClient from "./BlogContentClient";
 
 interface BlogContentProps {
@@ -7,23 +8,21 @@ interface BlogContentProps {
 
 /**
  * Server component that renders blog HTML as static content.
- * The actual HTML is rendered server-side so bots, Medium, Flipboard,
- * and Google can see the full content without executing JavaScript.
- *
- * Interactive features (ToC, table wrapping) are handled by the
- * client-side BlogContentClient component.
+ * Article is emitted FIRST so it's present in the initial SSR HTML
+ * (Googlebot's first-pass crawl reads this before any RSC streaming).
+ * The interactive ToC/table-wrap client child is wrapped in Suspense
+ * so it can't pull the article into the streaming bucket.
  */
 export default function BlogContent({ html, tocLabel = "Table of Contents" }: BlogContentProps) {
   return (
     <>
-      {/* Client component handles ToC extraction + table wrapping after hydration */}
-      <BlogContentClient html={html} tocLabel={tocLabel} />
-
-      {/* Server-rendered blog content — visible to all bots and importers */}
       <article
         className="blog-prose"
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      <Suspense fallback={null}>
+        <BlogContentClient html={html} tocLabel={tocLabel} />
+      </Suspense>
     </>
   );
 }

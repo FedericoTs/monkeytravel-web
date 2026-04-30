@@ -18,15 +18,15 @@ const BASE_URL = 'https://monkeytravel.app';
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: 'MonkeyTravel — Free AI Trip Planner | Day-by-Day Itineraries in Minutes',
+    title: 'Free AI Trip Planner | Day-by-Day Itineraries in Minutes',
     description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
   },
   es: {
-    title: 'MonkeyTravel — Planificador de Viajes AI Gratis | Itinerarios en Minutos',
+    title: 'Planificador de Viajes AI Gratis | Itinerarios en Minutos',
     description: 'Planifica tu viaje perfecto con itinerarios generados por AI día a día. Obtén planes de viaje personalizados en minutos — gratis, sin tarjeta de crédito.',
   },
   it: {
-    title: 'MonkeyTravel — Pianificatore Viaggi AI Gratuito | Itinerari in Pochi Minuti',
+    title: 'Pianificatore Viaggi AI Gratuito | Itinerari in Pochi Minuti',
     description: 'Pianifica il tuo viaggio perfetto con itinerari generati con AI giorno per giorno. Ottieni piani di viaggio personalizzati in pochi minuti — gratis, senza carta di credito.',
   },
 };
@@ -34,6 +34,10 @@ const META: Record<string, { title: string; description: string }> = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const meta = META[locale] || META.en;
+
+  const ogLocaleMap: Record<string, string> = { en: 'en_US', es: 'es_ES', it: 'it_IT' };
+  const ogLocale = ogLocaleMap[locale] ?? 'en_US';
+  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
     title: meta.title,
@@ -52,6 +56,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       description: meta.description,
       type: 'website',
       url: locale === 'en' ? BASE_URL : `${BASE_URL}/${locale}`,
+      siteName: 'MonkeyTravel',
+      locale: ogLocale,
+      alternateLocale,
     },
   };
 }

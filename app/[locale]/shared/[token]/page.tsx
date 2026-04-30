@@ -26,18 +26,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!trip) {
     return {
-      title: "Trip Not Found | MonkeyTravel",
+      title: "Trip Not Found",
+      robots: { index: false, follow: false },
     };
   }
 
   return {
-    title: `${trip.title} | MonkeyTravel`,
+    title: trip.title,
     description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+    robots: { index: false, follow: false },
     alternates: {
       canonical: `https://monkeytravel.app/shared/${token}`,
     },
     openGraph: {
-      title: `${trip.title} | MonkeyTravel`,
+      title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
       type: "website",
       ...(trip.cover_image_url && {
@@ -46,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: `${trip.title} | MonkeyTravel`,
+      title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
       ...(trip.cover_image_url && { images: [trip.cover_image_url] }),
     },

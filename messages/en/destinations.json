@@ -1,8 +1,8 @@
 {
   "meta": {
-    "titleIndex": "Top Travel Destinations & AI Itineraries | MonkeyTravel",
+    "titleIndex": "Top Travel Destinations & AI Itineraries",
     "descriptionIndex": "Explore our curated travel destinations. Get AI-generated day-by-day itineraries for Paris, Rome, Tokyo, and 20+ cities worldwide.",
-    "titleDetail": "{city} Travel Guide & AI Itinerary | MonkeyTravel",
+    "titleDetail": "{city} Travel Guide & AI Itinerary",
     "descriptionDetail": "Plan your {city} trip with AI. Get a personalized day-by-day itinerary with restaurants, attractions, and hidden gems in {city}, {country}."
   },
   "index": {

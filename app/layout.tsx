@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
+import { getLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 
 // Dynamic import: moves SessionTracker + its dependencies (supabase, analytics, posthog/identify)
@@ -48,7 +49,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   // Core metadata
   title: {
-    default: "MonkeyTravel — Free AI Trip Planner | Day-by-Day Itineraries in Minutes",
+    default: "Free AI Trip Planner | Day-by-Day Itineraries in Minutes",
     template: "%s | MonkeyTravel",
   },
   description: "Plan your perfect trip with AI-generated day-by-day itineraries. Get Budget, Balanced, and Premium options tailored to your travel style. Create personalized travel plans in minutes!",
@@ -145,13 +146,14 @@ const organizationSchema = generateOrganizationSchema();
 const webSiteSchema = generateWebSiteSchema();
 const softwareApplicationSchema = generateSoftwareApplicationSchema();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         {/* Global Structured Data (JSON-LD) for SEO */}
         <script {...jsonLdScriptProps(organizationSchema)} />

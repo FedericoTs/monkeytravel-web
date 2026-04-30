@@ -44,6 +44,10 @@ export async function generateMetadata({
   }
   languages["x-default"] = `${SITE_URL}/blog`;
 
+  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT" };
+  const ogLocale = ogLocaleMap[locale] ?? "en_US";
+  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
+
   return {
     title,
     description,
@@ -56,6 +60,8 @@ export async function generateMetadata({
       description,
       url: languages[locale],
       siteName: "MonkeyTravel",
+      locale: ogLocale,
+      alternateLocale,
       type: "website",
       images: [
         {
