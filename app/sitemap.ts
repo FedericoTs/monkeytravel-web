@@ -156,5 +156,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages];
+  // Destination style/vibe landing pages (× 3 locales). Tags here are the
+  // taxonomic 'travel style' set, identical across locales (e.g. 'romantic',
+  // 'foodie'). The pages themselves localize copy via translation keys.
+  const STYLE_TAGS = [
+    "romantic", "cultural", "foodie", "urban", "historical",
+    "beach", "nightlife", "adventure", "nature", "wellness",
+    "shopping", "offbeat",
+  ];
+  const stylePages: MetadataRoute.Sitemap = [];
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? "" : `/${locale}`;
+    for (const styleTag of STYLE_TAGS) {
+      stylePages.push({
+        url: `${baseUrl}${prefix}/destinations/style/${styleTag}`,
+        lastModified: LASTMOD_DESTINATIONS,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      });
+    }
+  }
+
+  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages, ...stylePages];
 }

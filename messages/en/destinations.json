@@ -19,6 +19,14 @@
     "previousDestination": "Previous",
     "nextDestination": "Next"
   },
+  "style": {
+    "eyebrow": "Travel style",
+    "heading": "{tag} destinations",
+    "subtitle": "{count, plural, =1 {1 destination} other {# destinations}} that match this travel style.",
+    "allDestinations": "All matching destinations",
+    "metaTitle": "{tag} destinations — AI-planned itineraries",
+    "metaDescription": "{count, plural, =1 {1 destination} other {# destinations}} for {tag} travel. Get an AI-built day-by-day itinerary in 30 seconds — free."
+  },
   "stats": {
     "avgStay": "{days} days avg. stay",
     "bestMonths": "Best months",

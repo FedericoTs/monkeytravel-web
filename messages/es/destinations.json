@@ -19,6 +19,14 @@
     "previousDestination": "Anterior",
     "nextDestination": "Siguiente"
   },
+  "style": {
+    "eyebrow": "Estilo de viaje",
+    "heading": "Destinos {tag}",
+    "subtitle": "{count, plural, =1 {1 destino} other {# destinos}} que coinciden con este estilo de viaje.",
+    "allDestinations": "Todos los destinos que coinciden",
+    "metaTitle": "Destinos {tag} — itinerarios planificados con AI",
+    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viajes {tag}. Obtén un itinerario día a día creado por AI en 30 segundos — gratis."
+  },
   "stats": {
     "avgStay": "{days} días de estancia media",
     "bestMonths": "Mejores meses",
