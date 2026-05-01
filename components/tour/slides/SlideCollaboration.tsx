@@ -44,7 +44,7 @@ export default function SlideCollaboration() {
           <motion.h2
             variants={textItemVariants}
             className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4 leading-tight"
-            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
           >
             Plan{" "}
             <span className="bg-gradient-to-r from-purple-600 to-rose-500 bg-clip-text text-transparent">

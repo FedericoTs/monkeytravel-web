@@ -35,7 +35,7 @@ export default function SlideTemplates() {
           <motion.h2
             variants={textItemVariants}
             className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4 leading-tight"
-            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
           >
             Customize{" "}
             <span className="text-[#E5B800]">Instantly</span>

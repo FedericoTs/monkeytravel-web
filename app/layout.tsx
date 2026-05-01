@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Playfair_Display, Source_Sans_3, Geist_Mono } from "next/font/google";
+import { Fraunces, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -23,11 +23,13 @@ import {
 } from "@/lib/seo/structured-data";
 import "./globals.css";
 
-// Display font for headings - elegant serif
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+// Display font for headings — warm editorial serif (variable font)
+// Fraunces ships as a single woff2 covering 400/500/600/700 via the variable
+// axis, so we get more weights than Playfair did at lower wire cost.
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -166,7 +168,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://o4510503013122048.ingest.de.sentry.io" />
       </head>
       <body
-        className={`${playfair.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fraunces.variable} ${sourceSans.variable} ${geistMono.variable} antialiased`}
       >
         <PostHogProviderWrapper>
           <LocaleProvider>

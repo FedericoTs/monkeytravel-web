@@ -102,7 +102,6 @@
   --color-foreground-muted: var(--foreground-muted);
   --color-foreground-light: var(--foreground-light);
   --font-sans: var(--font-source-sans);
-  --font-display: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -114,9 +113,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Heading typography - elegant serif */
+/* Heading typography — warm editorial serif (Fraunces) */
 h1, h2, h3 {
-  font-family: var(--font-playfair), Georgia, serif;
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
 }
 
 /* Selection styling */
