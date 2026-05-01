@@ -39,6 +39,11 @@
       "description": "Scegli una destinazione e ottieni un itinerario giorno per giorno in 30 secondi. Gratis, senza carta di credito.",
       "button": "Pianifica il mio viaggio"
     },
+    "planThisCta": {
+      "title": "Pronto a pianificare il tuo viaggio a {city}?",
+      "description": "Trasformiamo questa guida in un itinerario giorno per giorno in 30 secondi. Gratis.",
+      "button": "Pianifica il mio viaggio a {city}"
+    },
     "tableOfContents": "Indice dei Contenuti",
     "backToBlog": "Torna al Blog",
     "planYourTrip": "Pronto a pianificare il tuo viaggio?",

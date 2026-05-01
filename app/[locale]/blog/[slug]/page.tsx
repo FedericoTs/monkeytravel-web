@@ -17,7 +17,8 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogShareRow, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogShareRow, ReadingProgress } from "@/components/blog";
+import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
@@ -182,6 +183,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
   const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
+  const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags);
 
   // "More from Region" section — posts from the same region (excluding current + related)
   const postRegion = getRegionForPost(slug);
@@ -332,6 +334,15 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 />
               }
             />
+            {primaryDestination && (
+              <BlogPlanThisCta
+                destination={primaryDestination}
+                locale={loc}
+                title={t("detail.planThisCta.title", { city: primaryDestination.name[loc] })}
+                description={t("detail.planThisCta.description")}
+                ctaLabel={t("detail.planThisCta.button", { city: primaryDestination.name[loc] })}
+              />
+            )}
           </div>
         </section>
 

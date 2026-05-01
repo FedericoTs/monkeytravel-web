@@ -39,6 +39,11 @@
       "description": "Drop a destination, get a day-by-day itinerary in 30 seconds. Free, no credit card.",
       "button": "Plan my trip"
     },
+    "planThisCta": {
+      "title": "Ready to plan your {city} trip?",
+      "description": "We'll turn this guide into a real day-by-day itinerary in 30 seconds. Free.",
+      "button": "Plan my {city} trip"
+    },
     "tableOfContents": "Table of Contents",
     "backToBlog": "Back to Blog",
     "planYourTrip": "Ready to plan your trip?",
