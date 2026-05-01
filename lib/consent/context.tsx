@@ -115,15 +115,24 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
         }
       }
 
-      // If no consent found anywhere, show banner
+      // If no consent found anywhere, show banner — but defer the
+      // appearance by ~800ms so it doesn't race the rest of the
+      // page (auth-button hydration, navbar settle, image priorities).
+      // Banner pops up as a deliberate moment rather than competing
+      // with everything else painting in the first 200ms.
       if (!localRecord && (!userId || !(await loadConsentFromSupabase(userId || "")))) {
-        setBannerStatus("visible");
+        const t = setTimeout(() => setBannerStatus("visible"), 800);
+        cleanups.push(() => clearTimeout(t));
       }
 
       setIsInitialized(true);
     }
 
+    const cleanups: Array<() => void> = [];
     initializeConsent();
+    return () => {
+      cleanups.forEach((fn) => fn());
+    };
   }, [userId]);
 
   // Accept all cookies

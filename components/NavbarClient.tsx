@@ -80,7 +80,16 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
       <div className="hidden md:flex items-center gap-3">
         <LanguageSwitcher showLabel={false} />
         {loading ? (
-          <div className="w-24 h-10 bg-slate-100 rounded-full animate-pulse" />
+          /*
+            Loading placeholder — two soft pills sized to match the logged-out
+            final state ('Sign in' + 'Get started'). Same width = no layout
+            shift when the real buttons appear. No animate-pulse → much less
+            visually distracting than the prior single small pulsing pill.
+          */
+          <div className="flex items-center gap-3" aria-hidden>
+            <div className="h-10 w-[72px] rounded-full bg-slate-50/80" />
+            <div className="h-10 w-[122px] rounded-full bg-slate-50" />
+          </div>
         ) : user ? (
           <>
             {isAdmin(user.email) && (
