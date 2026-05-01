@@ -68,6 +68,12 @@
       "aiItineraryGenerator": "Generatore di Itinerari AI"
     }
   },
+  "tag": {
+    "eyebrow": "Tag",
+    "subtitle": "{count, plural, =1 {1 articolo} other {# articoli}} su questo argomento.",
+    "metaTitle": "{tag} — Guide e consigli di viaggio",
+    "metaDescription": "Leggi le nostre guide di viaggio su {tag}. {count, plural, =1 {1 articolo} other {# articoli}}, tutti scritti per viaggiatori che pianificano viaggi reali."
+  },
   "breadcrumbs": {
     "home": "Home",
     "blog": "Blog"

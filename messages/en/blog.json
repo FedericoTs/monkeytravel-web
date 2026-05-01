@@ -68,6 +68,12 @@
       "aiItineraryGenerator": "AI Itinerary Generator"
     }
   },
+  "tag": {
+    "eyebrow": "Tagged",
+    "subtitle": "{count, plural, =1 {1 article} other {# articles}} on this topic.",
+    "metaTitle": "{tag} — Travel guides and tips",
+    "metaDescription": "Read our travel guides on {tag}. {count, plural, =1 {1 article} other {# articles}}, all written for travelers planning real trips."
+  },
   "breadcrumbs": {
     "home": "Home",
     "blog": "Blog"

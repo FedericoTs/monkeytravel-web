@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { destinations } from "@/lib/destinations/data";
 import { getAllSlugs as getBlogSlugs, getPostDates } from "@/lib/blog/api";
+import { getAllTagSlugs } from "@/lib/blog/tags";
 
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
@@ -140,5 +141,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages];
+  // Blog tag landing pages (× 3 locales). Tags are localized so each
+  // locale gets its own set of slugs.
+  const tagPages: MetadataRoute.Sitemap = [];
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? "" : `/${locale}`;
+    for (const tagSlug of getAllTagSlugs(locale)) {
+      tagPages.push({
+        url: `${baseUrl}${prefix}/blog/tag/${tagSlug}`,
+        lastModified: newestPostDate,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
+    }
+  }
+
+  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages];
 }
