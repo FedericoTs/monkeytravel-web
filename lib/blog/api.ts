@@ -20,13 +20,50 @@ function stripLeadingH1(markdown: string): string {
   return markdown.replace(/^\s*#\s+[^\n]+\n+/, "");
 }
 
+/**
+ * GitHub-style admonition labels. The author writes:
+ *
+ *     > [!TIP]
+ *     > body content here
+ *     > over multiple lines
+ *
+ * and gets a styled callout block. We emit a <blockquote class="callout
+ * callout-tip"> rather than a <div> so it survives remark-html's default
+ * sanitization (blockquote + class attribute is in the safe schema).
+ */
+const CALLOUT_LABELS: Record<string, { cls: string; emoji: string; label: string }> = {
+  TIP:       { cls: "callout-tip",       emoji: "💡", label: "Tip" },
+  NOTE:      { cls: "callout-note",      emoji: "📘", label: "Note" },
+  IMPORTANT: { cls: "callout-important", emoji: "🔔", label: "Important" },
+  WARNING:   { cls: "callout-warning",   emoji: "⚠️", label: "Warning" },
+  CAUTION:   { cls: "callout-caution",   emoji: "🛑", label: "Caution" },
+  INFO:      { cls: "callout-note",      emoji: "ℹ️", label: "Info" },
+};
+
+function parseAdmonitions(markdown: string): string {
+  // Match a blockquote that opens with `> [!LABEL]` followed by any number
+  // of contiguous `> ...` lines. The opening label line is consumed; the
+  // remaining lines become the callout body.
+  const pattern = /^>\s*\[!(TIP|NOTE|IMPORTANT|WARNING|CAUTION|INFO)\]\s*\n((?:^>.*(?:\n|$))*)/gm;
+  return markdown.replace(pattern, (_match, type: string, body: string) => {
+    const meta = CALLOUT_LABELS[type] ?? CALLOUT_LABELS.NOTE;
+    // Strip the leading `> ` from each body line
+    const cleanBody = body.replace(/^>\s?/gm, "").trim();
+    // Emit as a styled blockquote — survives remark-html sanitization.
+    // A blank line between the header paragraph and the body is required
+    // for remark to parse the body as separate paragraphs.
+    return `<blockquote class="callout ${meta.cls}">\n\n**${meta.emoji} ${meta.label}**\n\n${cleanBody}\n\n</blockquote>\n`;
+  });
+}
+
 async function markdownToHtml(markdown: string): Promise<string> {
+  const preprocessed = parseAdmonitions(stripLeadingH1(markdown));
   // sanitize: true enables GitHub-style HTML sanitization, stripping
   // dangerous tags (<script>, event handlers) while allowing safe HTML
   const result = await remark()
     .use(remarkGfm)
     .use(html, { sanitize: true })
-    .process(stripLeadingH1(markdown));
+    .process(preprocessed);
   return result.toString();
 }
 

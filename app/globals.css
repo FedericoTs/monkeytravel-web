@@ -1073,6 +1073,58 @@ h1, h2, h3 {
   color: var(--foreground-muted);
 }
 
+/* ---------------------------------------------------------------- */
+/* GitHub-style admonition callouts                                  */
+/* Markdown source:                                                  */
+/*   > [!TIP]                                                        */
+/*   > body content                                                  */
+/* Rendered HTML: <blockquote class="callout callout-tip">...</...>  */
+/* ---------------------------------------------------------------- */
+.blog-prose .callout {
+  margin: 1.75rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--callout-accent, #94a3b8);
+  background: var(--callout-bg, #f8fafc);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: normal;
+  color: var(--foreground);
+}
+.blog-prose .callout > p:first-child {
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--callout-heading, #334155);
+  font-style: normal;
+}
+.blog-prose .callout > p:last-child {
+  margin-bottom: 0;
+}
+.blog-prose .callout-tip {
+  --callout-accent: #10b981;
+  --callout-bg: #ecfdf5;
+  --callout-heading: #065f46;
+}
+.blog-prose .callout-note {
+  --callout-accent: #3b82f6;
+  --callout-bg: #eff6ff;
+  --callout-heading: #1e40af;
+}
+.blog-prose .callout-important {
+  --callout-accent: #8b5cf6;
+  --callout-bg: #f5f3ff;
+  --callout-heading: #5b21b6;
+}
+.blog-prose .callout-warning {
+  --callout-accent: #f59e0b;
+  --callout-bg: #fffbeb;
+  --callout-heading: #92400e;
+}
+.blog-prose .callout-caution {
+  --callout-accent: #ef4444;
+  --callout-bg: #fef2f2;
+  --callout-heading: #991b1b;
+}
+
 /* Navbar scroll-state styling — toggled via class by NavbarClient */
 nav[data-monkey-nav].monkey-nav-scrolled {
   background-color: rgba(255, 255, 255, 0.95);
