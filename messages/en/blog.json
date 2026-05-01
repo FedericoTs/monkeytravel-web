@@ -23,8 +23,9 @@
   },
   "detail": {
     "relatedPosts": "You might also like",
-    "publishedOn": "Published on {date}",
-    "updatedOn": "Updated on {date}",
+    "publishedOn": "Published {date}",
+    "updatedOn": "Updated {date}",
+    "byline": "By the MonkeyTravel Team",
     "tableOfContents": "Table of Contents",
     "backToBlog": "Back to Blog",
     "planYourTrip": "Ready to plan your trip?",

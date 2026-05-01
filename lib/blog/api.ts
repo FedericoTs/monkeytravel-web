@@ -8,10 +8,25 @@ import type { BlogFrontmatter, BlogPost } from "./types";
 
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
 
+/**
+ * Strip the markdown's leading H1 line if present.
+ *
+ * Each blog page renders its own <h1> from `messages/{locale}/blog.json`
+ * (the SEO title). Authors typically also write a `# Title` at the top of
+ * the markdown body which would render a SECOND <h1>, hurting the
+ * one-h1-per-page best practice. This removes that duplicate.
+ */
+function stripLeadingH1(markdown: string): string {
+  return markdown.replace(/^\s*#\s+[^\n]+\n+/, "");
+}
+
 async function markdownToHtml(markdown: string): Promise<string> {
   // sanitize: true enables GitHub-style HTML sanitization, stripping
   // dangerous tags (<script>, event handlers) while allowing safe HTML
-  const result = await remark().use(remarkGfm).use(html, { sanitize: true }).process(markdown);
+  const result = await remark()
+    .use(remarkGfm)
+    .use(html, { sanitize: true })
+    .process(stripLeadingH1(markdown));
   return result.toString();
 }
 
