@@ -25,7 +25,7 @@ export default function BlogByline({
   logoAlt,
 }: BlogBylineProps) {
   return (
-    <div className="flex items-center gap-4 py-5 mb-8 border-y border-slate-200/80">
+    <div className="flex items-center gap-4">
       <div className="shrink-0 w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
         <Image
           src="/images/logo.png"

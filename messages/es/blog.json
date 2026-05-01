@@ -26,6 +26,19 @@
     "publishedOn": "Publicado el {date}",
     "updatedOn": "Actualizado el {date}",
     "byline": "Por el equipo de MonkeyTravel",
+    "share": {
+      "label": "Compartir este artículo",
+      "twitter": "Compartir en X",
+      "linkedin": "Compartir en LinkedIn",
+      "copyLink": "Copiar enlace",
+      "copied": "¡Copiado!",
+      "share": "Compartir"
+    },
+    "inlineAiCta": {
+      "title": "Sáltate la planificación, empieza el viaje",
+      "description": "Elige un destino y obtén un itinerario día a día en 30 segundos. Gratis, sin tarjeta de crédito.",
+      "button": "Planificar mi viaje"
+    },
     "tableOfContents": "Tabla de Contenidos",
     "backToBlog": "Volver al Blog",
     "planYourTrip": "¿Listo para planificar tu viaje?",

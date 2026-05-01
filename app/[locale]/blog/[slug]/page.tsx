@@ -17,7 +17,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogShareRow, ReadingProgress } from "@/components/blog";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
@@ -301,17 +301,37 @@ export default async function BlogDetailPage({ params }: PageProps) {
         {/* Article body */}
         <section className="pb-16 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-            <BlogByline
-              authorLabel={t("detail.byline")}
-              publishedDate={frontmatter.publishedAt}
-              updatedDate={updatedDate}
-              readingTime={frontmatter.readingTime}
-              publishedLabel={t("detail.publishedOn", { date: publishedDate })}
-              updatedLabel={updatedDate ? t("detail.updatedOn", { date: updatedDate }) : null}
-              minuteReadLabel={t("index.minuteRead", { minutes: frontmatter.readingTime })}
-              logoAlt={tCommon("logoAlt")}
+            <div className="flex items-start justify-between gap-4 mb-8 py-5 border-y border-slate-200/80">
+              <div className="flex-1 min-w-0">
+                <BlogByline
+                  authorLabel={t("detail.byline")}
+                  publishedDate={frontmatter.publishedAt}
+                  updatedDate={updatedDate}
+                  readingTime={frontmatter.readingTime}
+                  publishedLabel={t("detail.publishedOn", { date: publishedDate })}
+                  updatedLabel={updatedDate ? t("detail.updatedOn", { date: updatedDate }) : null}
+                  minuteReadLabel={t("index.minuteRead", { minutes: frontmatter.readingTime })}
+                  logoAlt={tCommon("logoAlt")}
+                />
+              </div>
+              <div className="hidden sm:block shrink-0">
+                <BlogShareRow url={pageUrl} title={seoTitle} />
+              </div>
+            </div>
+            <div className="sm:hidden -mt-4 mb-6">
+              <BlogShareRow url={pageUrl} title={seoTitle} />
+            </div>
+            <BlogContent
+              html={html}
+              tocLabel={t("detail.tableOfContents")}
+              inlineSlot={
+                <BlogInlineAiCta
+                  title={t("detail.inlineAiCta.title")}
+                  description={t("detail.inlineAiCta.description")}
+                  ctaLabel={t("detail.inlineAiCta.button")}
+                />
+              }
             />
-            <BlogContent html={html} tocLabel={t("detail.tableOfContents")} />
           </div>
         </section>
 
