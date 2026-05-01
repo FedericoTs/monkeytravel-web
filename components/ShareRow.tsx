@@ -14,7 +14,7 @@ interface ShareRowProps {
  * Web Share API. Stays passive on SSR — buttons only.
  */
 export default function ShareRow({ url, title }: ShareRowProps) {
-  const t = useTranslations("common.share");
+  const t = useTranslations("common.pageShare");
   const [copied, setCopied] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
 

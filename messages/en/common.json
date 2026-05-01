@@ -91,7 +91,7 @@
     "notFound": "Page not found",
     "unauthorized": "You are not authorized to access this page"
   },
-  "share": {
+  "pageShare": {
     "label": "Share this page",
     "twitter": "Share on X",
     "linkedin": "Share on LinkedIn",

@@ -91,7 +91,7 @@
     "notFound": "Pagina non trovata",
     "unauthorized": "Non sei autorizzato ad accedere a questa pagina"
   },
-  "share": {
+  "pageShare": {
     "label": "Condividi questa pagina",
     "twitter": "Condividi su X",
     "linkedin": "Condividi su LinkedIn",
