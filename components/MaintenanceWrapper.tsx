@@ -46,7 +46,6 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
   const pathname = usePathname();
   const [isBlocked, setIsBlocked] = useState(false);
   const [config, setConfig] = useState<SiteConfig | null>(null);
-  const [checking, setChecking] = useState(true);
 
   const checkAccess = useCallback(async () => {
     try {
@@ -58,7 +57,6 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
       // If maintenance mode is off, allow access
       if (!siteConfig.maintenance_mode) {
         setIsBlocked(false);
-        setChecking(false);
         return;
       }
 
@@ -69,14 +67,12 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
       // If not authenticated, block access (they'll see maintenance page)
       if (!user) {
         setIsBlocked(true);
-        setChecking(false);
         return;
       }
 
       // Check if user is admin
       if (isAdmin(user.email)) {
         setIsBlocked(false);
-        setChecking(false);
         return;
       }
 
@@ -84,25 +80,21 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
       const allowedEmails = siteConfig.allowed_emails || [];
       if (user.email && allowedEmails.includes(user.email.toLowerCase())) {
         setIsBlocked(false);
-        setChecking(false);
         return;
       }
 
       // Check if user has redeemed an early access code
       if (await hasValidTesterAccess(supabase, user.id)) {
         setIsBlocked(false);
-        setChecking(false);
         return;
       }
 
       // User is not admin, not in allowed list, and has no early access - block
       setIsBlocked(true);
-      setChecking(false);
     } catch (error) {
       console.error("Error checking maintenance status:", error);
       // On error, allow access to prevent locking everyone out
       setIsBlocked(false);
-      setChecking(false);
     }
   }, []);
 
@@ -120,26 +112,17 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
     ];
 
     const shouldSkip = skipPaths.some(path => pathname.startsWith(path));
-
-    if (shouldSkip) {
-      setIsBlocked(false);
-      setChecking(false);
-      return;
-    }
+    if (shouldSkip) return;
 
     checkAccess();
   }, [pathname, checkAccess]);
 
-  // Show nothing while checking (brief flash)
-  if (checking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // Show maintenance page if blocked
+  // Render children by default — Googlebot and the first paint both get full
+  // page content immediately. The async maintenance check runs in useEffect; if
+  // it determines this user should be blocked, we swap to MaintenancePage on the
+  // next render. This keeps SSR HTML crawl-friendly (zero blank-spinner pages
+  // delivered to bots) and only adds a brief flash for the rare case when
+  // maintenance mode is actually on for a non-admin user.
   if (isBlocked && config) {
     return (
       <MaintenancePage
@@ -149,6 +132,5 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
     );
   }
 
-  // Otherwise render children normally
   return <>{children}</>;
 }
