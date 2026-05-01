@@ -7,3 +7,4 @@ export { default as DestinationCTA } from "./DestinationCTA";
 export { default as DestinationCard } from "./DestinationCard";
 export { default as DestinationGrid } from "./DestinationGrid";
 export { default as DestinationPrevNext } from "./DestinationPrevNext";
+export { default as DestinationSectionNav } from "./DestinationSectionNav";

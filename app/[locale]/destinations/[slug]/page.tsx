@@ -25,6 +25,7 @@ import {
   DestinationCTA,
   DestinationGrid,
   DestinationPrevNext,
+  DestinationSectionNav,
 } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 
@@ -157,6 +158,15 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
   const { prev: prevDest, next: nextDest } = getPrevNextDestinations(slug, loc);
 
+  const sectionNavEntries = [
+    { id: "overview",   label: t("nav.overview") },
+    { id: "best-time",  label: t("nav.bestTime") },
+    { id: "highlights", label: t("nav.highlights") },
+    { id: "sample-day", label: t("nav.sampleDay") },
+    { id: "faq",        label: t("nav.faq") },
+    { id: "plan-trip",  label: t("nav.planTrip") },
+  ];
+
   // Get tag-based destination links (first 2 tags that have other destinations)
   const tagLinks = destination.tags
     .map((tag) => ({
@@ -211,8 +221,13 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         {/* Hero */}
         <DestinationPageHero destination={destination} locale={loc} t={t} />
 
+        {/* Sticky section nav — chips that appear below the navbar
+            once the hero scrolls past. Driven by IntersectionObserver
+            so the active chip tracks the user's scroll position. */}
+        <DestinationSectionNav sections={sectionNavEntries} />
+
         {/* Description + share row */}
-        <section className="py-12 sm:py-16 bg-white">
+        <section id="overview" className="py-12 sm:py-16 bg-white scroll-mt-32">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200/80">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
@@ -231,39 +246,49 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         </section>
 
         {/* Best Time to Visit */}
-        <BestTimeToVisit destination={destination} locale={loc} t={t} />
+        <section id="best-time" className="scroll-mt-32">
+          <BestTimeToVisit destination={destination} locale={loc} t={t} />
+        </section>
 
         {/* Why Visit */}
-        <DestinationHighlights
-          cityName={cityName}
-          highlights={destination.content.highlights}
-          locale={loc}
-          t={t}
-        />
+        <section id="highlights" className="scroll-mt-32">
+          <DestinationHighlights
+            cityName={cityName}
+            highlights={destination.content.highlights}
+            locale={loc}
+            t={t}
+          />
+        </section>
 
         {/* Sample Day */}
-        <SampleDayPreview
-          cityName={cityName}
-          activities={destination.content.sampleDay.activities}
-          locale={loc}
-          t={t}
-        />
+        <section id="sample-day" className="scroll-mt-32">
+          <SampleDayPreview
+            cityName={cityName}
+            activities={destination.content.sampleDay.activities}
+            locale={loc}
+            t={t}
+          />
+        </section>
 
         {/* FAQ */}
-        <DestinationFAQ
-          faqs={destination.content.faqs}
-          locale={loc}
-          t={t}
-        />
+        <section id="faq" className="scroll-mt-32">
+          <DestinationFAQ
+            faqs={destination.content.faqs}
+            locale={loc}
+            t={t}
+          />
+        </section>
 
         {/* CTA */}
-        <DestinationCTA
-          slug={slug}
-          ctaText={destination.content.ctaText[loc]}
-          cityName={cityName}
-          locale={loc}
-          t={t}
-        />
+        <section id="plan-trip" className="scroll-mt-32">
+          <DestinationCTA
+            slug={slug}
+            ctaText={destination.content.ctaText[loc]}
+            cityName={cityName}
+            locale={loc}
+            t={t}
+          />
+        </section>
 
         {/* Prev / Next destination */}
         {(prevDest || nextDest) && (

@@ -17,7 +17,13 @@
   },
   "nav": {
     "previousDestination": "Anterior",
-    "nextDestination": "Siguiente"
+    "nextDestination": "Siguiente",
+    "overview": "Resumen",
+    "bestTime": "Mejor época",
+    "highlights": "Imprescindibles",
+    "sampleDay": "Día tipo",
+    "faq": "Preguntas",
+    "planTrip": "Planificar"
   },
   "style": {
     "eyebrow": "Estilo de viaje",
