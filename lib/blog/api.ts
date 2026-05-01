@@ -64,7 +64,32 @@ async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(html, { sanitize: true })
     .process(preprocessed);
-  return addHeadingIds(result.toString());
+  return styleDestinationLinks(addHeadingIds(result.toString()));
+}
+
+/**
+ * Tag any inline link to /destinations/<slug> with a `dest-chip` class
+ * so we can give it editorial highlighter styling + a 'Plan with AI'
+ * affordance on hover. The conversion target stays the same — the user
+ * lands on the destination page where the AI planner is one tap away —
+ * but the visual treatment signals "this is more than just a link, it's
+ * a way into the product."
+ *
+ * The class attribute is permitted on <a> in remark-html's default safe
+ * schema so this survives sanitization.
+ */
+function styleDestinationLinks(html: string): string {
+  return html.replace(
+    /<a(\s+[^>]*?)?href="(\/(?:[a-z]{2}\/)?destinations\/[a-z0-9-]+)"([^>]*?)>/g,
+    (match, beforeAttrs: string | undefined, href: string, afterAttrs: string) => {
+      // Skip if the link already carries a class
+      if ((beforeAttrs && /\sclass=/.test(beforeAttrs)) || /\sclass=/.test(afterAttrs)) {
+        return match;
+      }
+      const before = beforeAttrs ?? "";
+      return `<a${before}href="${href}"${afterAttrs} class="dest-chip">`;
+    }
+  );
 }
 
 /**

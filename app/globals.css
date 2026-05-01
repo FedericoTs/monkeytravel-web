@@ -1154,6 +1154,40 @@ h1, h2, h3 {
   --callout-heading: #991b1b;
 }
 
+/* ---------------------------------------------------------------- */
+/* Destination chips — inline links to /destinations/{slug}.         */
+/* Editorial highlighter treatment with a subtle 'Plan with AI'      */
+/* affordance on hover, signalling these aren't just links but       */
+/* entry points into the product.                                    */
+/* Auto-applied by lib/blog/api.ts:styleDestinationLinks().          */
+/* ---------------------------------------------------------------- */
+.blog-prose a.dest-chip {
+  position: relative;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--primary-dark);
+  background-image: linear-gradient(transparent 65%, color-mix(in srgb, var(--accent) 35%, transparent) 65%);
+  padding: 0 0.15em;
+  transition: background-image 0.2s, color 0.2s;
+}
+.blog-prose a.dest-chip::after {
+  content: "✨";
+  display: inline-block;
+  margin-left: 0.35em;
+  font-size: 0.85em;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.blog-prose a.dest-chip:hover {
+  color: var(--primary);
+  background-image: linear-gradient(transparent 0%, color-mix(in srgb, var(--accent) 55%, transparent) 0%);
+}
+.blog-prose a.dest-chip:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* Navbar scroll-state styling — toggled via class by NavbarClient */
 nav[data-monkey-nav].monkey-nav-scrolled {
   background-color: rgba(255, 255, 255, 0.95);
