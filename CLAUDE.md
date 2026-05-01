@@ -473,6 +473,35 @@ need to block content (auth, maintenance, geo-restriction) prefer:
    only when an async check decides to block — accepts a brief flash for the
    rare blocking case in exchange for SEO-correct first paint)
 
+**Sub-trap of Trap 1 — tree-shape switching on async resolve:** even if you
+render children eagerly, do NOT change the *outer wrapper shape* between
+SSR/initial-render and post-async-check. Code like this:
+
+```tsx
+// 🚫 Children remount when isLoaded flips → every descendant flashes
+if (!isLoaded) return <>{children}</>;
+return <Provider>{children}<Banner /></Provider>;
+```
+
+React sees the slot's type change (Fragment vs Provider) and unmounts and
+remounts every descendant. Client children below (Navbar auth state,
+loading skeletons, etc.) re-enter their initial loading state → visible
+flash on every page load. Always render the same shape; conditionally
+render only cheap descendants (e.g. a banner that self-hides with
+`return null`):
+
+```tsx
+// ✅ Stable tree shape; banner self-hides when not needed
+return (
+  <Provider userId={userId}>
+    {children}
+    <Banner />  {/* returns null when bannerStatus !== "visible" */}
+  </Provider>
+);
+```
+
+We hit this in May 2026 with `ConsentWrapper` — fixed in commit `541c1cd`.
+
 #### Trap 2: Server component wrapping client siblings — RSC streaming pollution
 
 When a page tree mixes server and client components, large parts of the tree
