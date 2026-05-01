@@ -17,7 +17,8 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogShareRow, BlogSidebar, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
+import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
@@ -322,11 +323,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     />
                   </div>
                   <div className="hidden sm:block shrink-0">
-                    <BlogShareRow url={pageUrl} title={seoTitle} />
+                    <ShareRow url={pageUrl} title={seoTitle} />
                   </div>
                 </div>
                 <div className="sm:hidden -mt-4 mb-6">
-                  <BlogShareRow url={pageUrl} title={seoTitle} />
+                  <ShareRow url={pageUrl} title={seoTitle} />
                 </div>
                 <BlogContent
                   html={html}

@@ -8,6 +8,5 @@ export { default as BlogLane } from "./BlogLane";
 export { default as BlogPrevNext } from "./BlogPrevNext";
 export { default as FeaturedHero } from "./FeaturedHero";
 export { default as BlogSidebar } from "./BlogSidebar";
-export { default as BlogShareRow } from "./BlogShareRow";
 export { default as BlogTipsSection } from "./BlogTipsSection";
 export { default as ReadingProgress } from "./ReadingProgress";

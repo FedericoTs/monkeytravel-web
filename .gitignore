@@ -46,6 +46,12 @@ supabase/.temp/
 video/output/
 public/video/screens/
 
+# cross-publish automation (cookies, state files)
+.flipboard-cookies.json
+.flipboard-state.json
+.medium-cookies.json
+.medium-state.json
+
 # vercel
 .vercel
 

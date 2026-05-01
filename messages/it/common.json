@@ -91,6 +91,14 @@
     "notFound": "Pagina non trovata",
     "unauthorized": "Non sei autorizzato ad accedere a questa pagina"
   },
+  "share": {
+    "label": "Condividi questa pagina",
+    "twitter": "Condividi su X",
+    "linkedin": "Condividi su LinkedIn",
+    "copyLink": "Copia link",
+    "copied": "Copiato!",
+    "share": "Condividi"
+  },
   "footer": {
     "description": "Pianificazione viaggi con AI che crea itinerari personalizzati giorno per giorno in pochi minuti.",
     "product": "Prodotto",

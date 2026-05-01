@@ -91,6 +91,14 @@
     "notFound": "Page not found",
     "unauthorized": "You are not authorized to access this page"
   },
+  "share": {
+    "label": "Share this page",
+    "twitter": "Share on X",
+    "linkedin": "Share on LinkedIn",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "share": "Share"
+  },
   "footer": {
     "description": "AI-powered travel planning that creates personalized day-by-day itineraries in minutes.",
     "product": "Product",

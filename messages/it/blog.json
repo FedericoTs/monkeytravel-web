@@ -44,14 +44,6 @@
     "publishedOn": "Pubblicato il {date}",
     "updatedOn": "Aggiornato il {date}",
     "byline": "Dal team MonkeyTravel",
-    "share": {
-      "label": "Condividi questo articolo",
-      "twitter": "Condividi su X",
-      "linkedin": "Condividi su LinkedIn",
-      "copyLink": "Copia link",
-      "copied": "Copiato!",
-      "share": "Condividi"
-    },
     "inlineAiCta": {
       "title": "Salta la pianificazione, parti subito",
       "description": "Scegli una destinazione e ottieni un itinerario giorno per giorno in 30 secondi. Gratis, senza carta di credito.",

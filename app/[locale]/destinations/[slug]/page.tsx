@@ -14,6 +14,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareRow from "@/components/ShareRow";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import {
   DestinationPageHero,
@@ -208,10 +209,20 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         {/* Hero */}
         <DestinationPageHero destination={destination} locale={loc} t={t} />
 
-        {/* Description */}
-        <section className="py-16 bg-white">
+        {/* Description + share row */}
+        <section className="py-12 sm:py-16 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-lg text-[var(--foreground-muted)] leading-relaxed">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200/80">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
+                {destination.country[loc]}
+                <span className="mx-2 text-slate-300">·</span>
+                <span className="text-slate-500 normal-case tracking-normal">
+                  {t("card.days", { days: destination.stats.avgStayDays })}
+                </span>
+              </p>
+              <ShareRow url={pageUrl} title={cityName} />
+            </div>
+            <p className="text-lg text-[var(--foreground)] leading-relaxed">
               {destination.content.description[loc]}
             </p>
           </div>

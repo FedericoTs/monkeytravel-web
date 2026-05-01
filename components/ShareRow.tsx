@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-interface BlogShareRowProps {
+interface ShareRowProps {
   url: string;
   title: string;
 }
 
 /**
- * Compact share row for blog detail pages.
+ * Compact share row for blog and destination detail pages.
  * Renders Twitter/X, LinkedIn, Copy link, and (mobile only) the native
  * Web Share API. Stays passive on SSR — buttons only.
  */
-export default function BlogShareRow({ url, title }: BlogShareRowProps) {
-  const t = useTranslations("blog.detail.share");
+export default function ShareRow({ url, title }: ShareRowProps) {
+  const t = useTranslations("common.share");
   const [copied, setCopied] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
 

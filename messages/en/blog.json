@@ -44,14 +44,6 @@
     "publishedOn": "Published {date}",
     "updatedOn": "Updated {date}",
     "byline": "By the MonkeyTravel Team",
-    "share": {
-      "label": "Share this article",
-      "twitter": "Share on X",
-      "linkedin": "Share on LinkedIn",
-      "copyLink": "Copy link",
-      "copied": "Copied!",
-      "share": "Share"
-    },
     "inlineAiCta": {
       "title": "Skip the planning, start the trip",
       "description": "Drop a destination, get a day-by-day itinerary in 30 seconds. Free, no credit card.",
