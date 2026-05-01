@@ -44,6 +44,8 @@
       "description": "Convertimos esta guía en un itinerario día a día en 30 segundos. Gratis.",
       "button": "Planificar mi viaje a {city}"
     },
+    "previousPost": "Anterior",
+    "nextPost": "A continuación",
     "tableOfContents": "Tabla de Contenidos",
     "backToBlog": "Volver al Blog",
     "planYourTrip": "¿Listo para planificar tu viaje?",

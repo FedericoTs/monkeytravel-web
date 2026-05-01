@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts } from "@/lib/blog/api";
+import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts } from "@/lib/blog/api";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
 import { getRegionForPost } from "@/lib/blog/regions";
@@ -17,7 +17,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogShareRow, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogShareRow, ReadingProgress } from "@/components/blog";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
@@ -184,6 +184,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags);
+  const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
 
   // "More from Region" section — posts from the same region (excluding current + related)
   const postRegion = getRegionForPost(slug);
@@ -343,6 +344,14 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 ctaLabel={t("detail.planThisCta.button", { city: primaryDestination.name[loc] })}
               />
             )}
+            <BlogPrevNext
+              prev={prevPost}
+              prevTitle={prevPost ? t(`posts.${prevPost.slug}.title`) : null}
+              next={nextPost}
+              nextTitle={nextPost ? t(`posts.${nextPost.slug}.title`) : null}
+              prevLabel={t("detail.previousPost")}
+              nextLabel={t("detail.nextPost")}
+            />
           </div>
         </section>
 

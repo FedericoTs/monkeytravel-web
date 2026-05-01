@@ -138,6 +138,24 @@ export async function getPostBySlug(slug: string, locale = "en"): Promise<BlogPo
   };
 }
 
+/**
+ * Find the previous (newer) and next (older) post in chronological order.
+ * Used by the prev/next navigation block at the end of detail pages.
+ * Returns nulls at the boundaries (newest post has no prev; oldest has no next).
+ */
+export function getPrevNextPosts(
+  slug: string,
+  locale = "en"
+): { prev: BlogFrontmatter | null; next: BlogFrontmatter | null } {
+  const all = getAllFrontmatter(locale);
+  const idx = all.findIndex((fm) => fm.slug === slug);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? all[idx - 1] : null,
+    next: idx < all.length - 1 ? all[idx + 1] : null,
+  };
+}
+
 export function getRelatedPosts(
   slug: string,
   limit = 3,

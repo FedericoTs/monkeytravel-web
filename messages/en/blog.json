@@ -44,6 +44,8 @@
       "description": "We'll turn this guide into a real day-by-day itinerary in 30 seconds. Free.",
       "button": "Plan my {city} trip"
     },
+    "previousPost": "Previous",
+    "nextPost": "Next up",
     "tableOfContents": "Table of Contents",
     "backToBlog": "Back to Blog",
     "planYourTrip": "Ready to plan your trip?",
