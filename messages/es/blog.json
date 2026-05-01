@@ -8,7 +8,25 @@
     "subtitle": "Consejos prácticos, guías de destinos y opiniones honestas sobre cómo la AI está cambiando la planificación de viajes.",
     "readMore": "Leer más",
     "minuteRead": "{minutes} min de lectura",
-    "allPostsLabel": "Todos los artículos del blog"
+    "allPostsLabel": "Todos los artículos del blog",
+    "articleCount": "artículos",
+    "featured": "Destacado",
+    "allPostsHeading": "Todos los artículos",
+    "allPostsDescription": "Filtra por tema y región para encontrar lo que buscas."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Destinos del momento",
+      "description": "Guías de ciudades e itinerarios a los que nuestros lectores vuelven."
+    },
+    "practical": {
+      "title": "Guías prácticas",
+      "description": "Cómo planificar un viaje — checklists, presupuestos y métodos que ahorran tiempo de verdad."
+    },
+    "ai": {
+      "title": "Viajes con AI",
+      "description": "Cómo la AI está cambiando la forma de planificar viajes, con opiniones honestas (sin exageraciones)."
+    }
   },
   "filter": {
     "all": "Todos",

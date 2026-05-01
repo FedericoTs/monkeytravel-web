@@ -8,7 +8,25 @@
     "subtitle": "Practical tips, destination guides, and honest takes on how AI is changing travel planning.",
     "readMore": "Read more",
     "minuteRead": "{minutes} min read",
-    "allPostsLabel": "All blog posts"
+    "allPostsLabel": "All blog posts",
+    "articleCount": "articles",
+    "featured": "Editor's pick",
+    "allPostsHeading": "Browse all articles",
+    "allPostsDescription": "Filter by topic and region to find what you need."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Trending destinations",
+      "description": "City guides and itineraries our readers come back to."
+    },
+    "practical": {
+      "title": "Practical guides",
+      "description": "Trip-planning know-how — checklists, budgets, and frameworks that actually save you time."
+    },
+    "ai": {
+      "title": "AI travel",
+      "description": "How AI is changing the way trips get planned, with honest takes (no hype)."
+    }
   },
   "filter": {
     "all": "All Posts",
