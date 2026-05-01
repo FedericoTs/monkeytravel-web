@@ -8,3 +8,5 @@ export { default as DestinationCard } from "./DestinationCard";
 export { default as DestinationGrid } from "./DestinationGrid";
 export { default as DestinationPrevNext } from "./DestinationPrevNext";
 export { default as DestinationSectionNav } from "./DestinationSectionNav";
+export { default as DestinationFeatured } from "./DestinationFeatured";
+export { default as DestinationLane } from "./DestinationLane";

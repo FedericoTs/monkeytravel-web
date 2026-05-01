@@ -9,7 +9,26 @@
     "title": "Explora Destinos",
     "subtitle": "Elige una ciudad y obtén un itinerario personalizado con AI en 30 segundos",
     "allDestinations": "Todos los Destinos",
-    "filterByRegion": "Filtrar por región"
+    "filterByRegion": "Filtrar por región",
+    "destinationCount": "destinos",
+    "featured": "Destacado",
+    "allByContinent": "Explora por continente",
+    "allByContinentDescription": "Todos los destinos, agrupados por continente."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Ciudades del momento",
+      "description": "Adónde están viajando los viajeros ahora mismo."
+    },
+    "romantic": {
+      "title": "Escapadas románticas",
+      "description": "Para parejas — mañanas tranquilas, comidas largas, atardeceres espectaculares."
+    },
+    "beach": {
+      "title": "Escapadas a la playa",
+      "description": "Arena, mar y muy poco más en la agenda."
+    },
+    "viewAll": "Ver todos"
   },
   "breadcrumbs": {
     "home": "Inicio",

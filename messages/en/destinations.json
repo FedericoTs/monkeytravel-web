@@ -9,7 +9,26 @@
     "title": "Explore Destinations",
     "subtitle": "Choose a city and get a personalized AI itinerary in 30 seconds",
     "allDestinations": "All Destinations",
-    "filterByRegion": "Filter by region"
+    "filterByRegion": "Filter by region",
+    "destinationCount": "destinations",
+    "featured": "Featured",
+    "allByContinent": "Browse by continent",
+    "allByContinentDescription": "Every destination, grouped where it lives on the map."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Trending cities",
+      "description": "Where travelers are heading right now."
+    },
+    "romantic": {
+      "title": "Romantic getaways",
+      "description": "For couples — slow mornings, long lunches, dramatic sunsets."
+    },
+    "beach": {
+      "title": "Beach escapes",
+      "description": "Sand, sea, and very little else on the agenda."
+    },
+    "viewAll": "View all"
   },
   "breadcrumbs": {
     "home": "Home",

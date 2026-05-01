@@ -8,7 +8,7 @@ import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structure
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContentTracker from "@/components/analytics/ContentTracker";
-import { DestinationGrid } from "@/components/destinations";
+import { DestinationGrid, DestinationFeatured, DestinationLane } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -84,6 +84,27 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
   // Group by continent for display
   const continents = [...new Set(destinations.map((d) => d.continent))];
 
+  // Curation — pure heuristics, no manual flagging required.
+  const featured = destinations[0]; // Paris currently
+  const usedSlugs = new Set<string>([featured.slug]);
+  const pickByTag = (tag: string, limit: number): typeof destinations => {
+    const picks = destinations
+      .filter((d) => d.tags.includes(tag) && !usedSlugs.has(d.slug))
+      .slice(0, limit);
+    picks.forEach((d) => usedSlugs.add(d.slug));
+    return picks;
+  };
+  const trendingLane = pickByTag("urban", 3);
+  const romanticLane = pickByTag("romantic", 3);
+  const beachLane = pickByTag("beach", 3);
+
+  // Translation tag-label map reused across all grids
+  const tagLabels = Object.fromEntries(
+    ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
+      (tag) => [tag, t(`tags.${tag}`)]
+    )
+  );
+
   return (
     <>
       <script {...jsonLdScriptProps(breadcrumbSchema)} />
@@ -97,59 +118,120 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
       <Navbar />
 
       <main className="pt-20">
-        {/* Hero */}
-        <section className="py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            {/* Breadcrumb */}
-            <nav className="flex items-center justify-center gap-2 text-sm text-[var(--foreground-muted)] mb-8">
-              <Link
-                href="/"
-                className="hover:text-[var(--primary)] transition-colors"
-              >
+        {/* Compact magazine masthead */}
+        <section className="relative py-12 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 via-white to-white border-b border-slate-200/60">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+              <Link href="/" className="hover:text-[var(--primary)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
-              <span>/</span>
-              <span className="text-[var(--foreground)] font-medium">
-                {t("breadcrumbs.destinations")}
-              </span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-700 font-medium">{t("breadcrumbs.destinations")}</span>
             </nav>
 
-            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-              {t("index.title")}
-            </h1>
-            <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-              {t("index.subtitle")}
-            </p>
+            <div className="grid md:grid-cols-[1fr_auto] gap-6 items-end">
+              <div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                  {t("index.title")}
+                </h1>
+                <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                  {t("index.subtitle")}
+                </p>
+              </div>
+              <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary)]">
+                {destinations.length}{" "}
+                <span className="text-slate-400 font-normal normal-case tracking-normal">
+                  {t("index.destinationCount")}
+                </span>
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Destination grid by continent */}
-        {continents.map((continent) => {
-          const continentDestinations = destinations.filter(
-            (d) => d.continent === continent
-          );
+        {/* Featured destination */}
+        {featured && (
+          <section className="py-10 sm:py-12 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <DestinationFeatured
+                destination={featured}
+                locale={loc}
+                eyebrowLabel={t("index.featured")}
+                ctaLabel={t("cta.planTrip")}
+                daysLabel={t("card.days", { days: featured.stats.avgStayDays })}
+              />
+            </div>
+          </section>
+        )}
 
-          return (
-            <section key={continent} className="py-12 bg-white">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-2xl font-bold text-[var(--foreground)] mb-8">
-                  {t(`continents.${continent}`)}
-                </h2>
-                <DestinationGrid
-                  destinations={continentDestinations}
-                  locale={loc}
-                  planTripLabel={t("cta.planTrip")}
-                  daysLabel={(days) => t("card.days", { days })}
-                  tagLabels={Object.fromEntries(
-                    ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
-                      (tag) => [tag, t(`tags.${tag}`)]
-                    )
-                  )}
-                />
-              </div>
-            </section>
-          );
-        })}
+        {/* Curated style lanes */}
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 divide-y divide-slate-200/60">
+            <DestinationLane
+              title={t("lanes.trending.title")}
+              description={t("lanes.trending.description")}
+              destinations={trendingLane}
+              locale={loc}
+              planTripLabel={t("cta.planTrip")}
+              daysLabel={(days) => t("card.days", { days })}
+              tagLabels={tagLabels}
+              viewAllHref="/destinations/style/urban"
+              viewAllLabel={t("lanes.viewAll")}
+            />
+            <DestinationLane
+              title={t("lanes.romantic.title")}
+              description={t("lanes.romantic.description")}
+              destinations={romanticLane}
+              locale={loc}
+              planTripLabel={t("cta.planTrip")}
+              daysLabel={(days) => t("card.days", { days })}
+              tagLabels={tagLabels}
+              viewAllHref="/destinations/style/romantic"
+              viewAllLabel={t("lanes.viewAll")}
+            />
+            <DestinationLane
+              title={t("lanes.beach.title")}
+              description={t("lanes.beach.description")}
+              destinations={beachLane}
+              locale={loc}
+              planTripLabel={t("cta.planTrip")}
+              daysLabel={(days) => t("card.days", { days })}
+              tagLabels={tagLabels}
+              viewAllHref="/destinations/style/beach"
+              viewAllLabel={t("lanes.viewAll")}
+            />
+          </div>
+        </div>
+
+        {/* All destinations grouped by continent */}
+        <section className="py-14 sm:py-16 bg-[var(--background-alt)] border-t border-slate-200/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+              {t("index.allByContinent")}
+            </h2>
+            <p className="text-sm sm:text-base text-slate-500 mb-10">{t("index.allByContinentDescription")}</p>
+
+            {continents.map((continent) => {
+              const continentDestinations = destinations.filter(
+                (d) => d.continent === continent
+              );
+
+              return (
+                <div key={continent} className="mt-12 first:mt-0">
+                  <h3 className="text-xl font-bold text-slate-900 mb-6">
+                    {t(`continents.${continent}`)}
+                  </h3>
+                  <DestinationGrid
+                    destinations={continentDestinations}
+                    locale={loc}
+                    planTripLabel={t("cta.planTrip")}
+                    daysLabel={(days) => t("card.days", { days })}
+                    tagLabels={tagLabels}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Server-rendered link list — guarantees every destination is
             discoverable in initial SSR HTML even if RSC streaming hides
