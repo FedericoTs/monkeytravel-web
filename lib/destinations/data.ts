@@ -1,4 +1,4 @@
-import type { Destination } from "./types";
+import type { Destination, Locale } from "./types";
 
 export const destinations: Destination[] = [
   // =========================================================================
@@ -2069,4 +2069,26 @@ export function getDestinationsByTag(
   return destinations
     .filter((d) => d.tags.includes(tag) && d.slug !== excludeSlug)
     .slice(0, limit);
+}
+
+/**
+ * Find the previous and next destination in alphabetical order within
+ * the same continent. At continent boundaries the prev/next slot is
+ * null. Used for the prev/next navigation block on detail pages.
+ */
+export function getPrevNextDestinations(
+  slug: string,
+  locale: Locale = "en"
+): { prev: Destination | null; next: Destination | null } {
+  const current = getDestinationBySlug(slug);
+  if (!current) return { prev: null, next: null };
+  const sameContinent = destinations
+    .filter((d) => d.continent === current.continent)
+    .sort((a, b) => a.name[locale].localeCompare(b.name[locale]));
+  const idx = sameContinent.findIndex((d) => d.slug === slug);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? sameContinent[idx - 1] : null,
+    next: idx < sameContinent.length - 1 ? sameContinent[idx + 1] : null,
+  };
 }

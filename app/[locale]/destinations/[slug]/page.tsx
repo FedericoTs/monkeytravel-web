@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import type { Locale } from "@/lib/destinations/types";
-import { destinations, getDestinationBySlug, getAllSlugs, getRelatedDestinations, getDestinationsByTag } from "@/lib/destinations/data";
+import { destinations, getDestinationBySlug, getAllSlugs, getRelatedDestinations, getDestinationsByTag, getPrevNextDestinations } from "@/lib/destinations/data";
 import { getBlogPostsForDestination } from "@/lib/cross-links";
 import {
   generateTouristDestinationSchema,
@@ -24,6 +24,7 @@ import {
   DestinationFAQ,
   DestinationCTA,
   DestinationGrid,
+  DestinationPrevNext,
 } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 
@@ -154,6 +155,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
   const relatedDestinations = getRelatedDestinations(slug, 6);
   const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
+  const { prev: prevDest, next: nextDest } = getPrevNextDestinations(slug, loc);
 
   // Get tag-based destination links (first 2 tags that have other destinations)
   const tagLinks = destination.tags
@@ -262,6 +264,21 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           locale={loc}
           t={t}
         />
+
+        {/* Prev / Next destination */}
+        {(prevDest || nextDest) && (
+          <section className="bg-white">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+              <DestinationPrevNext
+                prev={prevDest}
+                next={nextDest}
+                locale={loc}
+                prevLabel={t("nav.previousDestination")}
+                nextLabel={t("nav.nextDestination")}
+              />
+            </div>
+          </section>
+        )}
 
         {/* Related Blog Posts */}
         {relatedBlogSlugs.length > 0 && (

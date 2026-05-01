@@ -15,6 +15,10 @@
     "home": "Home",
     "destinations": "Destinations"
   },
+  "nav": {
+    "previousDestination": "Previous",
+    "nextDestination": "Next"
+  },
   "stats": {
     "avgStay": "{days} days avg. stay",
     "bestMonths": "Best months",
