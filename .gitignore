@@ -59,3 +59,8 @@ public/video/screens/
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Claude Code local session state — process-id locks etc., not the
+# project's own .claude/skills/ docs which DO belong in the repo.
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
