@@ -6,7 +6,7 @@ import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/datetime";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import CuratedEscapes from "@/components/templates/CuratedEscapes";
+import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection from "@/components/blog/BlogTipsSection";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
