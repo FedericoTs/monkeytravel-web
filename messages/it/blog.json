@@ -46,6 +46,11 @@
     },
     "previousPost": "Precedente",
     "nextPost": "Prossimo",
+    "sidebarCta": {
+      "title": "Pianifica con AI",
+      "description": "Trasforma questa guida in un itinerario in 30 secondi.",
+      "button": "Prova gratis"
+    },
     "tableOfContents": "Indice dei Contenuti",
     "backToBlog": "Torna al Blog",
     "planYourTrip": "Pronto a pianificare il tuo viaggio?",

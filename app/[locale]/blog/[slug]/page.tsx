@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts } from "@/lib/blog/api";
+import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc } from "@/lib/blog/api";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
 import { getRegionForPost } from "@/lib/blog/regions";
@@ -17,7 +17,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogShareRow, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogShareRow, BlogSidebar, ReadingProgress } from "@/components/blog";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
@@ -185,6 +185,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags);
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
+  const toc = extractToc(html);
 
   // "More from Region" section — posts from the same region (excluding current + related)
   const postRegion = getRegionForPost(slug);
@@ -301,57 +302,71 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* Article body */}
+        {/* Article body — 2-column on desktop, single-column on mobile */}
         <section className="pb-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-            <div className="flex items-start justify-between gap-4 mb-8 py-5 border-y border-slate-200/80">
-              <div className="flex-1 min-w-0">
-                <BlogByline
-                  authorLabel={t("detail.byline")}
-                  publishedDate={frontmatter.publishedAt}
-                  updatedDate={updatedDate}
-                  readingTime={frontmatter.readingTime}
-                  publishedLabel={t("detail.publishedOn", { date: publishedDate })}
-                  updatedLabel={updatedDate ? t("detail.updatedOn", { date: updatedDate }) : null}
-                  minuteReadLabel={t("index.minuteRead", { minutes: frontmatter.readingTime })}
-                  logoAlt={tCommon("logoAlt")}
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-12">
+              {/* Article column */}
+              <div className="lg:max-w-2xl lg:min-w-0">
+                <div className="flex items-start justify-between gap-4 mb-8 py-5 border-y border-slate-200/80">
+                  <div className="flex-1 min-w-0">
+                    <BlogByline
+                      authorLabel={t("detail.byline")}
+                      publishedDate={frontmatter.publishedAt}
+                      updatedDate={updatedDate}
+                      readingTime={frontmatter.readingTime}
+                      publishedLabel={t("detail.publishedOn", { date: publishedDate })}
+                      updatedLabel={updatedDate ? t("detail.updatedOn", { date: updatedDate }) : null}
+                      minuteReadLabel={t("index.minuteRead", { minutes: frontmatter.readingTime })}
+                      logoAlt={tCommon("logoAlt")}
+                    />
+                  </div>
+                  <div className="hidden sm:block shrink-0">
+                    <BlogShareRow url={pageUrl} title={seoTitle} />
+                  </div>
+                </div>
+                <div className="sm:hidden -mt-4 mb-6">
+                  <BlogShareRow url={pageUrl} title={seoTitle} />
+                </div>
+                <BlogContent
+                  html={html}
+                  tocLabel={t("detail.tableOfContents")}
+                  inlineSlot={
+                    <BlogInlineAiCta
+                      title={t("detail.inlineAiCta.title")}
+                      description={t("detail.inlineAiCta.description")}
+                      ctaLabel={t("detail.inlineAiCta.button")}
+                    />
+                  }
+                />
+                {primaryDestination && (
+                  <BlogPlanThisCta
+                    destination={primaryDestination}
+                    locale={loc}
+                    title={t("detail.planThisCta.title", { city: primaryDestination.name[loc] })}
+                    description={t("detail.planThisCta.description")}
+                    ctaLabel={t("detail.planThisCta.button", { city: primaryDestination.name[loc] })}
+                  />
+                )}
+                <BlogPrevNext
+                  prev={prevPost}
+                  prevTitle={prevPost ? t(`posts.${prevPost.slug}.title`) : null}
+                  next={nextPost}
+                  nextTitle={nextPost ? t(`posts.${nextPost.slug}.title`) : null}
+                  prevLabel={t("detail.previousPost")}
+                  nextLabel={t("detail.nextPost")}
                 />
               </div>
-              <div className="hidden sm:block shrink-0">
-                <BlogShareRow url={pageUrl} title={seoTitle} />
-              </div>
-            </div>
-            <div className="sm:hidden -mt-4 mb-6">
-              <BlogShareRow url={pageUrl} title={seoTitle} />
-            </div>
-            <BlogContent
-              html={html}
-              tocLabel={t("detail.tableOfContents")}
-              inlineSlot={
-                <BlogInlineAiCta
-                  title={t("detail.inlineAiCta.title")}
-                  description={t("detail.inlineAiCta.description")}
-                  ctaLabel={t("detail.inlineAiCta.button")}
-                />
-              }
-            />
-            {primaryDestination && (
-              <BlogPlanThisCta
-                destination={primaryDestination}
-                locale={loc}
-                title={t("detail.planThisCta.title", { city: primaryDestination.name[loc] })}
-                description={t("detail.planThisCta.description")}
-                ctaLabel={t("detail.planThisCta.button", { city: primaryDestination.name[loc] })}
+
+              {/* Sticky sidebar — desktop only */}
+              <BlogSidebar
+                toc={toc}
+                tocLabel={t("detail.tableOfContents")}
+                ctaTitle={t("detail.sidebarCta.title")}
+                ctaDescription={t("detail.sidebarCta.description")}
+                ctaButton={t("detail.sidebarCta.button")}
               />
-            )}
-            <BlogPrevNext
-              prev={prevPost}
-              prevTitle={prevPost ? t(`posts.${prevPost.slug}.title`) : null}
-              next={nextPost}
-              nextTitle={nextPost ? t(`posts.${nextPost.slug}.title`) : null}
-              prevLabel={t("detail.previousPost")}
-              nextLabel={t("detail.nextPost")}
-            />
+            </div>
           </div>
         </section>
 

@@ -64,7 +64,66 @@ async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(html, { sanitize: true })
     .process(preprocessed);
-  return result.toString();
+  return addHeadingIds(result.toString());
+}
+
+/**
+ * Slugify a heading's plain text into a URL anchor id.
+ * Matches the algorithm in components/blog/BlogContentClient.tsx so server
+ * and client converge on the same id for the same heading text.
+ */
+export function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/<[^>]*>/g, "")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
+/**
+ * Inject `id="..."` attributes into rendered <h2>/<h3> tags that don't
+ * already have them. Lets both the server-rendered sidebar ToC and the
+ * client-side collapsible ToC link to the same anchors.
+ */
+function addHeadingIds(html: string): string {
+  return html.replace(
+    /<h([2-3])(\s[^>]*)?>([\s\S]*?)<\/h\1>/g,
+    (_match, level: string, attrs: string | undefined, inner: string) => {
+      // Skip if there's already an id attribute on the tag
+      if (attrs && /\sid=/.test(attrs)) {
+        return _match;
+      }
+      const text = inner.replace(/<[^>]*>/g, "").trim();
+      const id = slugifyHeading(text);
+      const existingAttrs = attrs ?? "";
+      return `<h${level}${existingAttrs} id="${id}">${inner}</h${level}>`;
+    }
+  );
+}
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+/**
+ * Extract a flat ToC from rendered article HTML. Run after markdownToHtml
+ * so the ids match the ones we injected. Used by the sticky desktop
+ * sidebar.
+ */
+export function extractToc(html: string): TocItem[] {
+  const items: TocItem[] = [];
+  const re = /<h([2-3])(?:\s[^>]*)?>([\s\S]*?)<\/h\1>/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) {
+    const level = parseInt(match[1], 10) as 2 | 3;
+    const text = match[2].replace(/<[^>]*>/g, "").trim();
+    if (text) items.push({ id: slugifyHeading(text), text, level });
+  }
+  return items;
 }
 
 function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFrontmatter; content: string } | null {

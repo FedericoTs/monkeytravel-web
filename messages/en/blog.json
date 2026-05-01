@@ -46,6 +46,11 @@
     },
     "previousPost": "Previous",
     "nextPost": "Next up",
+    "sidebarCta": {
+      "title": "Plan with AI",
+      "description": "Turn this guide into a real itinerary in 30 seconds.",
+      "button": "Try free"
+    },
     "tableOfContents": "Table of Contents",
     "backToBlog": "Back to Blog",
     "planYourTrip": "Ready to plan your trip?",
