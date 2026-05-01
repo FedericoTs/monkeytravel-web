@@ -394,3 +394,230 @@ The AI generates content in the user's selected language:
 - `lib/gemini.ts` contains `getLanguageInstruction()`
 - Append language instruction to prompts for non-English locales
 - Activity descriptions, tips, and summaries are localized
+
+## SEO & SSR Discipline (MANDATORY)
+
+> **Why this section exists**: in April 2026 we discovered ~75 URLs stuck in
+> Google Search Console's "Discovered — currently not indexed" cohort and ~80
+> in "Crawled — currently not indexed". Root cause: server-side HTML delivered
+> to Googlebot was a blank loading spinner with zero internal links, even
+> though every page rendered fine in the browser. Several traps below all had
+> to be hit at once. Every new feature must respect these rules.
+
+### Crawler-Visible HTML — the only thing that matters for indexing
+
+Googlebot's first-pass crawl reads the **initial SSR HTML response**. It does
+NOT execute JavaScript on every URL. If your page's important content (text
+headings, internal links, article body) is not in that initial HTML, Google
+treats the page as thin/empty and parks it in "Discovered/Crawled — not
+indexed". The browser DevTools "view rendered DOM" is a LIE for SEO purposes —
+only the raw HTTP response counts.
+
+**Verify any new page with this curl recipe before considering it shipped:**
+
+```bash
+UA='Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+curl -sL --compressed --max-time 30 -A "$UA" "https://monkeytravel.app/<path>" -o /tmp/p.html
+
+# Structural HTML present?
+grep -ocE '<h1|<h2|<h3' /tmp/p.html        # expect ≥ 1 each
+grep -oc '<a [^>]*href' /tmp/p.html         # expect ≥ 30 on indexable pages
+grep -oc '<footer' /tmp/p.html              # expect 1 (sitewide footer)
+
+# Locale signals correct?
+grep -oE '<html[^>]*lang="[a-z-]+"' /tmp/p.html       # must match URL locale
+grep -oE '<link rel="canonical" href="[^"]+"' /tmp/p.html  # must be self-referential per locale
+grep -oE '<link rel="alternate" hrefLang' /tmp/p.html | wc -l  # expect 4 (en/es/it/x-default)
+
+# Indexability correct?
+grep -oE '<meta name="robots" content="[^"]+"' /tmp/p.html
+# - public pages: "index, follow"
+# - auth/admin/shared: "noindex, nofollow"
+```
+
+If `<h2>` count is 0 or `<a href>` count is < 20 on a page meant to rank, the
+page tree is being delivered via React Server Components streaming chunks
+instead of static HTML. Diagnose with the rules below.
+
+### The traps that bit us — never repeat them
+
+#### Trap 1: Client wrappers with `checking=true` initial state
+
+A client component (`"use client"`) that returns `<Spinner />` while
+`checking` is true and renders `children` only after a `useEffect` async
+check **delivers a blank spinner to crawlers on every page**. We had this in
+`MaintenanceWrapper` for months. Pattern that broke us:
+
+```tsx
+// 🚫 SSR-poisoning pattern — every page becomes a spinner for Googlebot
+const [checking, setChecking] = useState(true);
+useEffect(() => { fetch('/api/...').then(...).finally(() => setChecking(false)); }, []);
+if (checking) return <Spinner />;
+return <>{children}</>;
+```
+
+```tsx
+// ✅ Render children eagerly; transition state only when blocking is needed
+const [isBlocked, setIsBlocked] = useState(false);
+useEffect(() => { fetch('/api/...').then(r => { if (r.shouldBlock) setIsBlocked(true); }); }, []);
+if (isBlocked) return <BlockingPage />;
+return <>{children}</>;
+```
+
+Any wrapper that gates SSR output on a client-side check is suspect. If you
+need to block content (auth, maintenance, geo-restriction) prefer:
+1. **Middleware** (runs on every request, before render — can redirect/rewrite)
+2. **Server-side check in a layout/page** (read cookies/session in a server
+   component and conditionally render or redirect)
+3. **Eager-render client wrapper** (default to children, swap to blocking UI
+   only when an async check decides to block — accepts a brief flash for the
+   rare blocking case in exchange for SEO-correct first paint)
+
+#### Trap 2: Server component wrapping client siblings — RSC streaming pollution
+
+When a page tree mixes server and client components, large parts of the tree
+can stream via `__next_f.push(...)` chunks instead of being emitted as
+static HTML. The blog article body (`<article class="blog-prose">`) was
+absent from initial HTML for weeks because `<BlogContentClient>` (a client
+sibling of the article inside `<BlogContent>`) pulled the article into the
+streaming bucket.
+
+**Pattern fix:** put server-rendered content **first**, wrap the client
+sibling in `<Suspense fallback={null}>`:
+
+```tsx
+// ✅ Server component — article emits in static HTML, client child is isolated
+import { Suspense } from "react";
+export default function BlogContent({ html }) {
+  return (
+    <>
+      <article className="blog-prose" dangerouslySetInnerHTML={{ __html: html }} />
+      <Suspense fallback={null}>
+        <BlogContentClient html={html} />  {/* "use client" sibling */}
+      </Suspense>
+    </>
+  );
+}
+```
+
+#### Trap 3: Client `Navbar` / `Footer` — sitewide PageRank starvation
+
+`Navbar` and `Footer` are on every page. If they're `"use client"`, every
+page sitewide loses the internal link graph for crawlers. We restructured
+both as **server-with-client-islands**:
+
+- `Navbar.tsx` (server) — renders the `<nav>` shell with all primary links
+  in static HTML
+- `NavbarClient.tsx` (client island) — handles auth state, mobile menu
+  toggle, scroll-based background
+- `Footer.tsx` (server) — renders all sitewide links, plus a "Popular
+  Destinations" + "Featured Articles" section that emits ~14 internal links
+  to top content on every page (sitewide PageRank multiplier)
+- `CookieSettingsButton` — small client island imported normally inside the
+  server Footer (this is fine; client components CAN render inside server
+  parents)
+
+When you create a new sitewide layout component, default to **server**.
+Extract the interactive bits into named `*Client.tsx` islands and import
+them as small leaves of the server tree.
+
+#### Trap 4: Server async component imported by a client tree
+
+`CuratedEscapes` was made an async server component for SEO, but
+`TripsPageClient` (a `"use client"` component) also imported it for the
+authenticated dashboard. The Vercel build failed because async components
+cannot be rendered inside client trees. **Solution:** keep two variants —
+`Foo.tsx` (server, used by public pages) and `FooClient.tsx` (client, used
+by client trees). Document which is which in a JSDoc comment.
+
+#### Trap 5: `next-intl` `Link` is a client component
+
+`Link` from `@/lib/i18n/routing` is a client component (it depends on
+`createNavigation`'s client hooks). Wrapping a region of a server component
+in this `Link` does NOT poison the server render — Next.js still emits
+the `<a href>` in static HTML — but it does mean the link's children are
+delivered as RSC payload. For pure SSR-link emission with no client
+interactivity, plain `next/link` works too and avoids any streaming concern.
+
+#### Trap 6: Title template double-brand
+
+Root layout sets `title.template = "%s | MonkeyTravel"`. If a child page's
+metadata returns `title: "Foo | MonkeyTravel"`, the template appends
+" | MonkeyTravel" again, producing `Foo | MonkeyTravel | MonkeyTravel` in
+the rendered title. Always strip any `| MonkeyTravel` suffix from values
+that flow through the template (translations, dynamic titles).
+
+#### Trap 7: `<html lang>` hardcoded in root layout
+
+The root layout (`app/layout.tsx`) is the only component that can render
+`<html>`. It doesn't know the URL locale unless told. Use:
+
+```tsx
+import { getLocale } from "next-intl/server";
+export default async function RootLayout({ children }) {
+  const locale = await getLocale();
+  return <html lang={locale}>...</html>;
+}
+```
+
+#### Trap 8: User-generated `/shared/{uuid}` flooding the sitemap
+
+Public sitemaps must list only canonical, evergreen pages. UGC like trip
+shares should be `noindex, nofollow` and excluded from `app/sitemap.ts`.
+We had ~6 trip-share URLs in the sitemap actively dragging site-quality
+score for the rest of the property. `public/robots.txt` should also
+`Disallow: /shared/` for belt-and-braces.
+
+#### Trap 9: Sitemap `lastModified: new Date()` on every entry
+
+If every URL's `lastmod` is the build date, you're telling Google "the
+entire site changed at once, every build, please ignore the lastmod
+signal". Use **realistic dates**: hardcoded constants per content type
+(static pages, landing pages), the post's `updatedAt` for blogs, and the
+newest post's date for the blog index.
+
+### noindex routes — keep this list current
+
+| Route | `robots: { index: false, follow: false }` |
+|---|---|
+| `/[locale]/auth/**` | ✅ via `app/[locale]/auth/layout.tsx` |
+| `/[locale]/trips/**` | ✅ via `app/[locale]/trips/page.tsx` |
+| `/[locale]/onboarding/**` | ✅ via `app/[locale]/onboarding/layout.tsx` |
+| `/[locale]/shared/[token]` | ✅ via `generateMetadata` |
+| `/admin/**` | (not under [locale]; not crawled per `robots.txt`) |
+
+`public/robots.txt` should `Disallow: /admin`, `/api/`, `/auth/callback`,
+`/shared/`.
+
+### When to spin up the Server vs Client checklist
+
+For any new page or component:
+
+1. Does it need `useState` / `useEffect` / browser APIs / event handlers?
+   - **No** → server component (default).
+   - **Yes** → consider whether the *whole* component needs client, or just
+     a small bit. Extract the interactive part as `*Client.tsx`.
+
+2. Will it render on a public/indexable page?
+   - **Yes** → must emit its content in static SSR HTML. Verify with the
+     curl recipe above.
+   - **No (auth/admin/UGC)** → set `robots: { index: false, follow: false }`
+     in metadata.
+
+3. Does it use `getTranslations()`?
+   - That's a server-only API — fine in server components, will fail in
+     client components. Use `useTranslations()` in client components.
+
+4. Does it use Supabase server client (`createClient` from
+   `@/lib/supabase/server`)?
+   - Forces dynamic rendering (uses `cookies()`).
+   - Cannot be imported into a `"use client"` component (async server only).
+   - Build will fail if you try.
+
+### Post-deploy verification
+
+A weekly health-check routine (`trig_01Q8z36rfyz9S8jbxQtYLwWe`) runs every
+Monday 09:00 UTC and validates the curl recipe across 5 representative URLs
+plus the `/shared/{uuid}` noindex check and sitemap hygiene. If you ship
+changes that affect SSR output, manually re-run the recipe before declaring
+done.
