@@ -36,9 +36,19 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 }
 
 /**
- * Log Gemini response usage metadata for cache monitoring
- * Tracks implicit caching stats to verify cost savings
+ * Log Gemini response usage metadata for cache monitoring.
+ * Tracks implicit caching stats to verify cost savings, and emits a
+ * Sentry warning when the rolling cache-hit rate drops below threshold —
+ * catches silent prompt-cache regressions early (often caused by adding
+ * a non-cacheable prefix like a timestamp at the start of the prompt).
  */
+const CACHE_HIT_RATE_WINDOW = 50; // last N calls
+const CACHE_HIT_RATE_ALERT_THRESHOLD = 15; // %; below this we emit a warning
+const CACHE_HIT_RATE_MIN_SAMPLES = 20; // don't alert until we have a real signal
+const CACHE_HIT_RATE_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 alert/hour max
+let cacheHitRolling: number[] = []; // % per call (0-100)
+let lastCacheAlertAt = 0;
+
 function logCacheMetrics(
   endpoint: string,
   usageMetadata?: {
@@ -54,18 +64,15 @@ function logCacheMetrics(
     promptTokenCount = 0,
     candidatesTokenCount = 0,
     cachedContentTokenCount = 0,
-    totalTokenCount = 0,
   } = usageMetadata;
 
-  const cacheHitRate = promptTokenCount > 0
-    ? ((cachedContentTokenCount / promptTokenCount) * 100).toFixed(1)
-    : "0.0";
+  const cacheHitRatePct =
+    promptTokenCount > 0 ? (cachedContentTokenCount / promptTokenCount) * 100 : 0;
 
-  // Log cache metrics for monitoring
   console.log(
     `[Gemini Cache] ${endpoint}: ` +
-    `prompt=${promptTokenCount}, output=${candidatesTokenCount}, ` +
-    `cached=${cachedContentTokenCount} (${cacheHitRate}% cache hit)`
+      `prompt=${promptTokenCount}, output=${candidatesTokenCount}, ` +
+      `cached=${cachedContentTokenCount} (${cacheHitRatePct.toFixed(1)}% cache hit)`
   );
 
   // Calculate cost savings (cached tokens are 75% cheaper)
@@ -74,6 +81,43 @@ function logCacheMetrics(
     const cachedCost = cachedContentTokenCount * 0.0000025; // $0.0025 per 1K cached tokens
     const savings = regularCost - cachedCost;
     console.log(`[Gemini Cache] Savings: $${savings.toFixed(6)} from cached tokens`);
+  }
+
+  // Rolling cache-hit-rate alerting
+  if (promptTokenCount > 0) {
+    cacheHitRolling.push(cacheHitRatePct);
+    if (cacheHitRolling.length > CACHE_HIT_RATE_WINDOW) {
+      cacheHitRolling = cacheHitRolling.slice(-CACHE_HIT_RATE_WINDOW);
+    }
+    if (cacheHitRolling.length >= CACHE_HIT_RATE_MIN_SAMPLES) {
+      const avg =
+        cacheHitRolling.reduce((a, b) => a + b, 0) / cacheHitRolling.length;
+      const now = Date.now();
+      if (
+        avg < CACHE_HIT_RATE_ALERT_THRESHOLD &&
+        now - lastCacheAlertAt > CACHE_HIT_RATE_ALERT_COOLDOWN_MS
+      ) {
+        lastCacheAlertAt = now;
+        const msg =
+          `[Gemini Cache] ⚠ Rolling cache-hit rate over the last ` +
+          `${cacheHitRolling.length} calls is ${avg.toFixed(1)}% ` +
+          `(threshold: ${CACHE_HIT_RATE_ALERT_THRESHOLD}%). Likely cause: ` +
+          `a non-cacheable prefix at the start of the prompt (timestamp, ` +
+          `request ID, locale-dynamic header). Audit lib/prompts.ts and ` +
+          `move dynamic content to the END of the prompt.`;
+        console.warn(msg);
+        // Best-effort Sentry capture — wrapped so a missing/failed Sentry
+        // never breaks the Gemini call path. Imported lazily so the
+        // dependency stays optional.
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureMessage?.(msg, "warning");
+          })
+          .catch(() => {
+            /* Sentry not available — console.warn above is the fallback */
+          });
+      }
+    }
   }
 }
 
