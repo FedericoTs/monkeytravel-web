@@ -65,6 +65,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Auth pages excluded — noindexed by auth/layout.tsx
   ];
 
+  // Contact page (× 3 locales). Indexable; supports brand-name searches like
+  // "monkeytravel contact" and gives press/partnerships a stable URL to land on.
+  const contactPages: MetadataRoute.Sitemap = [];
+  for (const locale of locales) {
+    const prefix = locale === defaultLocale ? "" : `/${locale}`;
+    contactPages.push({
+      url: `${baseUrl}${prefix}/contact`,
+      lastModified: LASTMOD_LANDING,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    });
+  }
+
   // SEO landing pages (× 3 locales)
   const landingPages: MetadataRoute.Sitemap = [];
   const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner'];
@@ -177,5 +190,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages, ...stylePages];
+  return [...staticPages, ...contactPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages, ...stylePages];
 }

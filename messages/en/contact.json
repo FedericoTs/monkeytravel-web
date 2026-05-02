@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "title": "Contact Us",
+    "description": "Get in touch with the MonkeyTravel team. We read every message and reply within 1 business day."
+  },
+  "hero": {
+    "eyebrow": "Get in touch",
+    "title": "Talk to a human",
+    "subtitle": "Press, partnerships, support, or just saying hi — drop us a line and we'll come back within one business day."
+  },
+  "form": {
+    "name": "Your name",
+    "namePlaceholder": "Jane Traveler",
+    "email": "Email",
+    "emailPlaceholder": "jane@example.com",
+    "topic": "What's this about?",
+    "topicPlaceholder": "Choose a topic",
+    "topics": {
+      "support": "Support",
+      "partnership": "Partnerships",
+      "press": "Press",
+      "feedback": "Product feedback",
+      "other": "Something else"
+    },
+    "message": "Message",
+    "messagePlaceholder": "Tell us a bit more — links, screenshots, anything that helps.",
+    "submit": "Send message",
+    "submitting": "Sending…",
+    "successTitle": "Message sent",
+    "successBody": "Thanks — we received your note and will reply within one business day.",
+    "errorTitle": "Something went wrong",
+    "errorBody": "We couldn't send your message. Please try again or email us directly at support@monkeytravel.app.",
+    "rateLimited": "Too many messages from this connection. Please try again in an hour.",
+    "validationName": "Please enter your name.",
+    "validationEmail": "Please enter a valid email.",
+    "validationMessage": "Please write a message of at least 10 characters."
+  },
+  "directEmail": {
+    "label": "Prefer email?",
+    "address": "support@monkeytravel.app"
+  }
+}

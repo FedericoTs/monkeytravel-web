@@ -31,7 +31,7 @@ export default async function Footer() {
     ],
     support: [
       { label: t('faq'), href: '/#support' },
-      { label: t('contact'), href: 'mailto:support@monkeytravel.app' },
+      { label: t('contact'), href: '/contact' },
       { label: t('sendFeedback'), href: 'mailto:feedback@monkeytravel.app' },
     ],
     legal: [
@@ -189,7 +189,7 @@ export default async function Footer() {
               <Link href="/privacy" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('privacyPolicy')}</Link>
               <Link href="/terms" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('termsOfService')}</Link>
               <CookieSettingsButton />
-              <a href="mailto:support@monkeytravel.app" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('contact')}</a>
+              <Link href="/contact" className="underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors">{t('contact')}</Link>
             </div>
           </div>
         </div>

@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "title": "Contattaci",
+    "description": "Mettiti in contatto con il team di MonkeyTravel. Leggiamo ogni messaggio e rispondiamo entro un giorno lavorativo."
+  },
+  "hero": {
+    "eyebrow": "Scrivici",
+    "title": "Parla con una persona vera",
+    "subtitle": "Stampa, partnership, supporto o anche solo un saluto — mandaci un messaggio e ti rispondiamo entro un giorno lavorativo."
+  },
+  "form": {
+    "name": "Il tuo nome",
+    "namePlaceholder": "Giulia Viaggiatrice",
+    "email": "Email",
+    "emailPlaceholder": "giulia@esempio.com",
+    "topic": "Di cosa si tratta?",
+    "topicPlaceholder": "Scegli un argomento",
+    "topics": {
+      "support": "Supporto",
+      "partnership": "Partnership",
+      "press": "Stampa",
+      "feedback": "Feedback sul prodotto",
+      "other": "Altro"
+    },
+    "message": "Messaggio",
+    "messagePlaceholder": "Raccontaci qualcosa in più — link, screenshot, tutto ciò che aiuta.",
+    "submit": "Invia messaggio",
+    "submitting": "Invio in corso…",
+    "successTitle": "Messaggio inviato",
+    "successBody": "Grazie — abbiamo ricevuto il tuo messaggio e ti rispondiamo entro un giorno lavorativo.",
+    "errorTitle": "Qualcosa è andato storto",
+    "errorBody": "Non siamo riusciti a inviare il messaggio. Riprova oppure scrivici direttamente a support@monkeytravel.app.",
+    "rateLimited": "Troppi messaggi da questa connessione. Riprova tra un'ora.",
+    "validationName": "Per favore inserisci il tuo nome.",
+    "validationEmail": "Per favore inserisci un'email valida.",
+    "validationMessage": "Per favore scrivi un messaggio di almeno 10 caratteri."
+  },
+  "directEmail": {
+    "label": "Preferisci l'email?",
+    "address": "support@monkeytravel.app"
+  }
+}
