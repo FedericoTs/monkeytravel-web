@@ -38,7 +38,6 @@ export default function FeaturedHero({
             src={post.image}
             alt={post.imageAlt}
             fill
-            unoptimized
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
             className="object-cover group-hover:scale-105 transition-transform duration-700"

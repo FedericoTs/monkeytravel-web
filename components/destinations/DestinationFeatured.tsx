@@ -39,7 +39,6 @@ export default function DestinationFeatured({
             src={`/images/destinations/${destination.slug}.jpg`}
             alt={cityName}
             fill
-            unoptimized
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
             className="object-cover group-hover:scale-105 transition-transform duration-700"
