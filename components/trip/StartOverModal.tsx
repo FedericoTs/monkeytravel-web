@@ -11,6 +11,9 @@ interface StartOverModalProps {
   destination: string;
   tripDays: number;
   activitiesCount: number;
+  /** When true, surface the fact that confirming will DELETE an
+   *  already-auto-saved trip from the user's dashboard. */
+  wasAutoSaved?: boolean;
 }
 
 export default function StartOverModal({
@@ -20,6 +23,7 @@ export default function StartOverModal({
   destination,
   tripDays,
   activitiesCount,
+  wasAutoSaved = false,
 }: StartOverModalProps) {
   const t = useTranslations("common.startOver");
 
@@ -70,7 +74,9 @@ export default function StartOverModal({
         {/* Content */}
         <div className="px-6 py-5">
           <p className="text-slate-700 mb-4">
-            {t("discardMessage", { destination })}
+            {wasAutoSaved
+              ? t("discardMessageSaved", { destination })
+              : t("discardMessage", { destination })}
           </p>
 
           {/* What will be lost */}
@@ -113,7 +119,7 @@ export default function StartOverModal({
             onClick={onConfirm}
             className="flex-1 px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
           >
-            {t("confirm")}
+            {wasAutoSaved ? t("confirmDeleteSaved") : t("confirm")}
           </button>
         </div>
       </div>

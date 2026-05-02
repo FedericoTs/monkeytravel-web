@@ -329,6 +329,16 @@ export function captureTripCreated(event: TripCreatedEvent) {
 }
 
 /**
+ * Capture a trip-updated event — fires when an auto-saved trip is
+ * UPDATEd in place (e.g. user clicks Regenerate after auto-save).
+ * Distinct from trip_created so funnel analysis can tell whether
+ * a user came back to refine vs. created from scratch.
+ */
+export function captureTripUpdated(event: TripCreatedEvent) {
+  posthog.capture("trip_updated", event);
+}
+
+/**
  * Capture user signup
  */
 export function captureUserSignedUp(event: UserSignedUpEvent) {

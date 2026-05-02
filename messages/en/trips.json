@@ -129,7 +129,13 @@
     "startOver": "Start Over",
     "regenerate": "Regenerate",
     "share": "Share",
-    "export": "Export"
+    "export": "Export",
+    "saving": "Saving…",
+    "savedViewTrip": "Saved ✓ — View trip",
+    "autoSaveError": "Couldn't auto-save",
+    "autoSaveErrorDetail": "Tap Save to retry.",
+    "retrySave": "Retry save",
+    "planWithFriends": "Plan with friends"
   },
   "day": {
     "label": "Day {number}",

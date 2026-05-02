@@ -44,6 +44,7 @@ import {
 } from "@/lib/analytics";
 import {
   captureTripCreated,
+  captureTripUpdated,
   captureItineraryGenerated,
   captureTripWizardStepViewed,
   captureTripWizardStepCompleted,
@@ -54,6 +55,17 @@ import {
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
+import { useFlag } from "@/lib/posthog";
+import { FLAG_AUTO_SAVE_V1 } from "@/lib/posthog/flags";
+import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
+import {
+  insertTrip as persistInsertTrip,
+  updateTrip as persistUpdateTrip,
+  deleteTrip as persistDeleteTrip,
+  attachCoverImage as persistAttachCoverImage,
+  type TripFormState as PersistTripFormState,
+  type PersistInput,
+} from "@/lib/trips/persistTrip";
 
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -400,6 +412,113 @@ export default function NewTripPage() {
     }
   }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, saveDraft]);
 
+  // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
+  // The hook owns the save state machine — INSERT-or-UPDATE decision,
+  // the in-flight save promise (so regenerate can await it), error
+  // surfacing, and the discard path. See hooks/useAutoSaveTrip.ts.
+  const { enabled: autoSaveEnabled } = useFlag(FLAG_AUTO_SAVE_V1);
+
+  const autoSaveFormState: PersistTripFormState = {
+    destination,
+    startDate,
+    endDate,
+    budgetTier,
+    pace,
+    vibes: selectedVibes,
+    derivedInterests: deriveInterestsFromVibes(),
+  };
+
+  const autoSaveTrip = useCallback(async (input: PersistInput) => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return persistInsertTrip(supabase, input, user.id);
+  }, []);
+
+  const autoUpdateTrip = useCallback(async (tripId: string, input: PersistInput) => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return persistUpdateTrip(supabase, tripId, input, user.id);
+  }, []);
+
+  const autoDeleteTrip = useCallback(async (tripId: string) => {
+    const supabase = createClient();
+    return persistDeleteTrip(supabase, tripId);
+  }, []);
+
+  const autoAttachCoverImage = useCallback(async (tripId: string, dest: string) => {
+    const supabase = createClient();
+    return persistAttachCoverImage(supabase, tripId, dest);
+  }, []);
+
+  const handlePersisted = useCallback(
+    (tripId: string, durationDays: number, mode: "insert" | "update") => {
+      if (mode === "insert") {
+        // GA4 + referral + bananas + side-effects (mirrors the legacy
+        // handleSaveTrip post-insert block).
+        trackTripCreated({
+          tripId,
+          destination,
+          duration: durationDays,
+          budgetTier,
+          isFromTemplate: false,
+        });
+        handleTripCreatedWithReferral(
+          tripId,
+          destination,
+          durationDays,
+          budgetTier,
+          false,
+        ).catch((err) => {
+          console.error("[Auto-save] referral/tracking error:", err);
+        });
+        clearDraft();
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("profile_modal_shown", "true");
+        }
+      } else {
+        // Don't re-fire referral/bananas on regen — only count the
+        // first save. Just emit the distinct trip_updated event for
+        // funnel analysis.
+        captureTripUpdated({
+          trip_id: tripId,
+          destination,
+          duration_days: durationDays,
+          budget_tier: budgetTier,
+          is_from_template: false,
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [destination, budgetTier, clearDraft],
+  );
+
+  const autoSave = useAutoSaveTrip({
+    itinerary: generatedItinerary,
+    isAuthenticated,
+    enabled: autoSaveEnabled,
+    formState: autoSaveFormState,
+    saveTrip: autoSaveTrip,
+    updateTrip: autoUpdateTrip,
+    deleteTrip: autoDeleteTrip,
+    attachCoverImage: autoAttachCoverImage,
+    onPersisted: handlePersisted,
+  });
+
+  // Mirror the auto-save trip id into the existing savedTripId state so
+  // ShareAfterSaveModal + Sticky Bottom Bar continue to read it from one
+  // place. setState is a no-op when values are equal.
+  useEffect(() => {
+    if (autoSave.savedTripId && autoSave.savedTripId !== savedTripId) {
+      setSavedTripId(autoSave.savedTripId);
+    }
+    if (!autoSave.savedTripId && savedTripId && autoSaveEnabled) {
+      // discarded
+      setSavedTripId(null);
+    }
+  }, [autoSave.savedTripId, savedTripId, autoSaveEnabled]);
+
   // Handle draft restoration
   const handleRestoreDraft = () => {
     if (draft) {
@@ -425,6 +544,12 @@ export default function NewTripPage() {
     if (isRegenerating || generating) return;
 
     setIsRegenerating(true);
+    // CRITICAL: await any in-flight auto-save BEFORE we tear down state.
+    // Otherwise the next persist sees savedTripId still null and emits a
+    // duplicate INSERT — silent data loss for the original trip.
+    if (autoSaveEnabled) {
+      await autoSave.regenerate();
+    }
     setGeneratedItinerary(null); // Clear current to show progress
 
     // Small delay for visual feedback
@@ -436,7 +561,12 @@ export default function NewTripPage() {
   };
 
   // Handle start over - confirmed discard
-  const handleStartOver = () => {
+  const handleStartOver = async () => {
+    // If auto-save persisted a row, delete it before resetting state so
+    // the user doesn't end up with an orphaned trip in their dashboard.
+    if (autoSaveEnabled && autoSave.savedTripId) {
+      await autoSave.discard();
+    }
     clearDraft();
     setGeneratedItinerary(null);
     setShowStartOverModal(false);
@@ -632,6 +762,11 @@ export default function NewTripPage() {
 
   const handleSaveTrip = async () => {
     if (!generatedItinerary) return;
+    // No-op when the auto-save flow has already persisted the trip.
+    // Defense in depth — the UI hides this button when autoSave.savedTripId
+    // is set, but a child component (DestinationHero onSave at line 1200)
+    // could still invoke it.
+    if (autoSaveEnabled && autoSave.savedTripId) return;
 
     setLoading(true);
     try {
@@ -766,6 +901,7 @@ export default function NewTripPage() {
           destination={fullDestination}
           tripDays={generatedItinerary.days.length}
           activitiesCount={totalActivities}
+          wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId)}
         />
 
         {/* Share After Save Modal - Critical for virality */}
@@ -839,28 +975,62 @@ export default function NewTripPage() {
                 isRegenerating={isRegenerating || generating}
                 variant="compact"
               />
-              <button
-                onClick={handleSaveTrip}
-                disabled={loading}
-                className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    Save Trip
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
+              {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
+                // Auto-save flow: trip already persisted. Repurpose the
+                // primary action as a navigation to the saved detail view.
+                <Link
+                  href={`/trips/${autoSave.savedTripId}`}
+                  className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25 flex items-center gap-2"
+                >
+                  {t("result.savedViewTrip")}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              ) : autoSaveEnabled && autoSave.status === "saving" ? (
+                <button
+                  type="button"
+                  disabled
+                  className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  {t("result.saving")}
+                </button>
+              ) : autoSaveEnabled && autoSave.status === "error" ? (
+                <button
+                  onClick={() => autoSave.retry()}
+                  className="bg-rose-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-rose-600 transition-colors flex items-center gap-2"
+                >
+                  {t("result.retrySave")}
+                </button>
+              ) : (
+                // Legacy flow (flag off): manual Save Trip button.
+                <button
+                  onClick={handleSaveTrip}
+                  disabled={loading}
+                  className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      Save Trip
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -887,28 +1057,59 @@ export default function NewTripPage() {
             />
 
             {/* Save - Mobile (Full Width) */}
-            <button
-              onClick={handleSaveTrip}
-              disabled={loading}
-              className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  Save Trip
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </>
-              )}
-            </button>
+            {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
+              <Link
+                href={`/trips/${autoSave.savedTripId}`}
+                className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-semibold transition-colors shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                {t("result.savedViewTrip")}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            ) : autoSaveEnabled && autoSave.status === "saving" ? (
+              <button
+                type="button"
+                disabled
+                className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                {t("result.saving")}
+              </button>
+            ) : autoSaveEnabled && autoSave.status === "error" ? (
+              <button
+                onClick={() => autoSave.retry()}
+                className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
+              >
+                {t("result.retrySave")}
+              </button>
+            ) : (
+              <button
+                onClick={handleSaveTrip}
+                disabled={loading}
+                className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Save Trip
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

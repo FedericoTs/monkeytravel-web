@@ -926,7 +926,9 @@
     "activities": "{count} actividades",
     "tip": "Consejo: Siempre puedes volver a este viaje desde tu historial de viajes.",
     "cancel": "Mantener Viaje Actual",
-    "confirm": "Empezar de Nuevo"
+    "confirm": "Empezar de Nuevo",
+    "discardMessageSaved": "Estás a punto de descartar tu itinerario para {destination} y ELIMINAR el viaje guardado de tu panel.",
+    "confirmDeleteSaved": "Descartar viaje guardado"
   },
   "stagedLoading": {
     "stages": {
@@ -1131,20 +1133,41 @@
     "editor": {
       "label": "Editor",
       "description": "Puede editar e invitar a otros",
-      "permissions": ["Editar actividades", "Votar cambios", "Invitar a otros"],
-      "restrictions": ["No puede eliminar el viaje", "No puede eliminar al propietario"]
+      "permissions": [
+        "Editar actividades",
+        "Votar cambios",
+        "Invitar a otros"
+      ],
+      "restrictions": [
+        "No puede eliminar el viaje",
+        "No puede eliminar al propietario"
+      ]
     },
     "voter": {
       "label": "Votante",
       "description": "Puede votar y sugerir actividades",
-      "permissions": ["Votar actividades", "Sugerir nuevos lugares", "Ver itinerario"],
-      "restrictions": ["No puede editar directamente", "No puede invitar a otros"]
+      "permissions": [
+        "Votar actividades",
+        "Sugerir nuevos lugares",
+        "Ver itinerario"
+      ],
+      "restrictions": [
+        "No puede editar directamente",
+        "No puede invitar a otros"
+      ]
     },
     "viewer": {
       "label": "Espectador",
       "description": "Solo puede ver el viaje",
-      "permissions": ["Ver itinerario", "Ver detalles de actividades"],
-      "restrictions": ["No puede editar", "No puede votar", "No puede invitar"]
+      "permissions": [
+        "Ver itinerario",
+        "Ver detalles de actividades"
+      ],
+      "restrictions": [
+        "No puede editar",
+        "No puede votar",
+        "No puede invitar"
+      ]
     }
   },
   "activityStatus": {

@@ -129,7 +129,13 @@
     "startOver": "Empezar de Nuevo",
     "regenerate": "Regenerar",
     "share": "Compartir",
-    "export": "Exportar"
+    "export": "Exportar",
+    "saving": "Guardando…",
+    "savedViewTrip": "Guardado ✓ — Ver viaje",
+    "autoSaveError": "No se pudo guardar automáticamente",
+    "autoSaveErrorDetail": "Toca Guardar para reintentar.",
+    "retrySave": "Reintentar guardado",
+    "planWithFriends": "Planear con amigos"
   },
   "day": {
     "label": "Día {number}",

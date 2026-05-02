@@ -849,7 +849,9 @@
     "activities": "{count} attività",
     "tip": "Suggerimento: Puoi sempre tornare a questo viaggio dalla cronologia dei viaggi.",
     "cancel": "Mantieni Viaggio Attuale",
-    "confirm": "Ricomincia"
+    "confirm": "Ricomincia",
+    "discardMessageSaved": "Stai per eliminare il tuo itinerario per {destination} e CANCELLARE il viaggio salvato dalla tua dashboard.",
+    "confirmDeleteSaved": "Elimina viaggio salvato"
   },
   "personalization": {
     "title": "Personalizza il tuo viaggio",
@@ -1131,20 +1133,41 @@
     "editor": {
       "label": "Editore",
       "description": "Può modificare e invitare altri",
-      "permissions": ["Modificare attività", "Votare modifiche", "Invitare altri"],
-      "restrictions": ["Non può eliminare il viaggio", "Non può rimuovere il proprietario"]
+      "permissions": [
+        "Modificare attività",
+        "Votare modifiche",
+        "Invitare altri"
+      ],
+      "restrictions": [
+        "Non può eliminare il viaggio",
+        "Non può rimuovere il proprietario"
+      ]
     },
     "voter": {
       "label": "Votante",
       "description": "Può votare e suggerire attività",
-      "permissions": ["Votare attività", "Suggerire nuovi posti", "Vedere l'itinerario"],
-      "restrictions": ["Non può modificare direttamente", "Non può invitare altri"]
+      "permissions": [
+        "Votare attività",
+        "Suggerire nuovi posti",
+        "Vedere l'itinerario"
+      ],
+      "restrictions": [
+        "Non può modificare direttamente",
+        "Non può invitare altri"
+      ]
     },
     "viewer": {
       "label": "Osservatore",
       "description": "Può solo visualizzare il viaggio",
-      "permissions": ["Vedere l'itinerario", "Vedere i dettagli delle attività"],
-      "restrictions": ["Non può modificare", "Non può votare", "Non può invitare"]
+      "permissions": [
+        "Vedere l'itinerario",
+        "Vedere i dettagli delle attività"
+      ],
+      "restrictions": [
+        "Non può modificare",
+        "Non può votare",
+        "Non può invitare"
+      ]
     }
   },
   "activityStatus": {

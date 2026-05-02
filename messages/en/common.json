@@ -926,7 +926,9 @@
     "activities": "{count} activities",
     "tip": "Tip: You can always come back to this trip from your trip history.",
     "cancel": "Keep Current Trip",
-    "confirm": "Start Fresh"
+    "confirm": "Start Fresh",
+    "discardMessageSaved": "You're about to discard your itinerary for {destination} and DELETE the saved trip from your dashboard.",
+    "confirmDeleteSaved": "Discard saved trip"
   },
   "stagedLoading": {
     "stages": {
@@ -1131,20 +1133,41 @@
     "editor": {
       "label": "Editor",
       "description": "Can edit and invite others",
-      "permissions": ["Edit activities", "Vote on changes", "Invite others"],
-      "restrictions": ["Cannot delete trip", "Cannot remove owner"]
+      "permissions": [
+        "Edit activities",
+        "Vote on changes",
+        "Invite others"
+      ],
+      "restrictions": [
+        "Cannot delete trip",
+        "Cannot remove owner"
+      ]
     },
     "voter": {
       "label": "Voter",
       "description": "Can vote and suggest activities",
-      "permissions": ["Vote on activities", "Suggest new places", "View itinerary"],
-      "restrictions": ["Cannot edit directly", "Cannot invite others"]
+      "permissions": [
+        "Vote on activities",
+        "Suggest new places",
+        "View itinerary"
+      ],
+      "restrictions": [
+        "Cannot edit directly",
+        "Cannot invite others"
+      ]
     },
     "viewer": {
       "label": "Viewer",
       "description": "Can only view the trip",
-      "permissions": ["View itinerary", "See activity details"],
-      "restrictions": ["Cannot edit", "Cannot vote", "Cannot invite"]
+      "permissions": [
+        "View itinerary",
+        "See activity details"
+      ],
+      "restrictions": [
+        "Cannot edit",
+        "Cannot vote",
+        "Cannot invite"
+      ]
     }
   },
   "activityStatus": {

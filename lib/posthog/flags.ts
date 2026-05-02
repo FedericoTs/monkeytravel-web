@@ -124,6 +124,14 @@ export const FLAG_WIZARD_PERF_V2 = "wizard-perf-v2";
  */
 export const FLAG_LISTICLE_CTA_V1 = "listicle-cta-v1";
 
+/**
+ * Auto-save trip v1 (2026-05-02)
+ * Gates the auto-save-on-generation-complete flow inside /trips/new.
+ * Roll out 0% → 10% → 50% → 100% while watching the trip_created event
+ * rate and the auto_save_failed Sentry tag.
+ */
+export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -148,6 +156,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_WIZARD_UX_V2]: false,
   [FLAG_WIZARD_PERF_V2]: false,
   [FLAG_LISTICLE_CTA_V1]: false,
+  [FLAG_AUTO_SAVE_V1]: false,
 };
 
 /**
