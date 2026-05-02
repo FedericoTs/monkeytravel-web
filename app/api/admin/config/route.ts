@@ -38,13 +38,25 @@ export async function GET() {
       });
     }
 
-    // Public response: only expose maintenance info, never allowed_emails
-    return apiSuccess({
-      maintenance_mode: data.maintenance_mode,
-      maintenance_message: data.maintenance_message,
-      maintenance_title: data.maintenance_title,
-      maintenance_started_at: data.maintenance_started_at,
-    });
+    // Public response: only expose maintenance info, never allowed_emails.
+    // Cache at the edge: maintenance toggles are rare and a 60s lag is
+    // perfectly fine. Without this header every visitor's first request
+    // re-queries Supabase, which was a top contributor to function
+    // GB-Hours per the runtime-log audit on 2026-05-02.
+    return apiSuccess(
+      {
+        maintenance_mode: data.maintenance_mode,
+        maintenance_message: data.maintenance_message,
+        maintenance_title: data.maintenance_title,
+        maintenance_started_at: data.maintenance_started_at,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (error) {
     console.error("[Admin Config] Site config error:", error);
     return errors.internal("Failed to fetch site config", "Admin Config");
