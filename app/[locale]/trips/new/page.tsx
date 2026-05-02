@@ -9,23 +9,27 @@ import type { Locale } from "@/lib/destinations/types";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
-import DestinationHero from "@/components/DestinationHero";
-import ActivityCard from "@/components/ActivityCard";
+// Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
-import GenerationProgress from "@/components/trip/GenerationProgress";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { buildSeasonalContext } from "@/lib/seasonal";
-// New UX enhancement components
-import StartOverModal from "@/components/trip/StartOverModal";
-import RegenerateButton from "@/components/trip/RegenerateButton";
-import ValuePropositionBanner from "@/components/trip/ValuePropositionBanner";
-import ShareAfterSaveModal from "@/components/trip/ShareAfterSaveModal";
-import AuthPromptModal from "@/components/ui/AuthPromptModal";
-import EarlyAccessModal from "@/components/ui/EarlyAccessModal";
-import { BetaCodeInput, WaitlistSignup } from "@/components/beta";
+
+// Post-generation + modal UI is gated by user action / state — split it
+// out of the initial wizard chunk so the form paints faster (P10).
+const DestinationHero = dynamic(() => import("@/components/DestinationHero"), { ssr: false });
+const ActivityCard = dynamic(() => import("@/components/ActivityCard"), { ssr: false });
+const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
+const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
+const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
+const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
+const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
+const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
+const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
+const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
+const WaitlistSignup = dynamic(() => import("@/components/beta").then((m) => m.WaitlistSignup), { ssr: false });
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
