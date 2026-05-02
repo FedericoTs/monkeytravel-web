@@ -28,6 +28,7 @@ import { BetaCodeInput, WaitlistSignup } from "@/components/beta";
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useCurrency } from "@/lib/locale";
+import WizardReplay from "@/components/trip/WizardReplay";
 import {
   trackItineraryGenerated,
   trackTripCreated,
@@ -1203,6 +1204,7 @@ export default function NewTripPage() {
   // Wizard form
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+      <WizardReplay />
       {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
         isOpen={showAuthModal}
