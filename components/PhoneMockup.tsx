@@ -4,6 +4,11 @@ interface PhoneMockupProps {
   screenImage?: string;
   className?: string;
   scale?: 'sm' | 'md' | 'lg';
+  /**
+   * Mark this mockup as the LCP candidate — adds fetchpriority=high and
+   * eager loading. Use ONLY for the above-the-fold hero instance.
+   */
+  priority?: boolean;
 }
 
 const scaleStyles = {
@@ -16,6 +21,7 @@ export default function PhoneMockup({
   screenImage,
   className = '',
   scale = 'lg',
+  priority = false,
 }: PhoneMockupProps) {
   return (
     <div className={`relative ${scaleStyles[scale]} ${className}`}>
@@ -36,8 +42,8 @@ export default function PhoneMockup({
                 src={screenImage}
                 alt="App screenshot"
                 fill
-                unoptimized
                 sizes="(max-width: 768px) 60vw, 280px"
+                priority={priority}
                 className="object-cover object-top"
               />
             ) : (

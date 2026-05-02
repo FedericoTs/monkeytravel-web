@@ -201,7 +201,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-[var(--accent)]/20 to-[var(--primary)]/15 rounded-full blur-[80px]" />
 
                   <div className="relative animate-float-slow">
-                    <PhoneMockup scale="lg" screenImage={APP_SCREENSHOTS.hero} />
+                    <PhoneMockup scale="lg" screenImage={APP_SCREENSHOTS.hero} priority />
                   </div>
 
                   {/* Floating feature cards */}
