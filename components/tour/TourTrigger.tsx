@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/i18n/routing";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+// Re-importing the constant here (rather than from ./index) avoids a
+// circular import: index.ts re-exports this file.
+import { TOUR_ENABLED } from "./tour-flag";
 
 // Dynamically import ProductTour to avoid SSR issues
 const ProductTour = dynamic(() => import("./ProductTour"), {
@@ -42,6 +45,13 @@ export default function TourTrigger({
   }, []);
 
   const handleOpenTour = () => {
+    // Tour is disabled (A/B test for signup conversion). Skip directly to
+    // signup so the click still moves the user toward the goal.
+    if (!TOUR_ENABLED) {
+      router.push("/auth/signup");
+      return;
+    }
+
     // Wait for localStorage check to complete
     if (!isReady) {
       // If not ready yet, show tour (safe default)
@@ -119,8 +129,9 @@ export default function TourTrigger({
       >
         {children || defaultContent}
 
-        {/* "New" badge for users who haven't seen the tour - only for default button variant */}
-        {isReady && hasSeenTour === false && variant === "button" && (
+        {/* "New" badge for users who haven't seen the tour - only for default button variant.
+            Hidden while the tour is disabled — there's nothing new to see. */}
+        {TOUR_ENABLED && isReady && hasSeenTour === false && variant === "button" && (
           <span
             className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
             style={{ transform: "scale(0)" }}
@@ -140,6 +151,8 @@ export function useTourAutoShow(): [boolean, () => void] {
   const [shouldShow, setShouldShow] = useState(false);
 
   useEffect(() => {
+    // Respect the kill-switch — never auto-show while the tour is deactivated.
+    if (!TOUR_ENABLED) return;
     if (typeof window !== "undefined") {
       const completed = localStorage.getItem(TOUR_COMPLETED_KEY) === "true";
       // Auto-show on first visit after a short delay

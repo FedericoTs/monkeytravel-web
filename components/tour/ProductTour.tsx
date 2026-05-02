@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 
 import { useTranslations } from "next-intl";
@@ -57,7 +57,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
     prevSlide,
     completeTour,
     resetAutoAdvance,
-  } = useTourNavigation(true, isOpen); // Pass isOpen to only auto-advance when visible
+  } = useTourNavigation(false, isOpen); // Auto-advance disabled — users control their own pace.
 
   // Mount check for portal
   useEffect(() => {

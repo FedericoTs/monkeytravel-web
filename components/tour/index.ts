@@ -1,3 +1,7 @@
+// Kill-switch for the product tour — see tour-flag.ts for the rationale.
+// Flip the constant value there to re-enable.
+export { TOUR_ENABLED } from "./tour-flag";
+
 // Main tour component
 export { default as ProductTour } from "./ProductTour";
 

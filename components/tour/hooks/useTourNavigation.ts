@@ -2,7 +2,11 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 
-const TOTAL_SLIDES = 5;
+// 5 content slides + 1 CTA slide. Must match ProductTour.tsx's TOTAL_SLIDES.
+// (Bug 2026-05-02: hook had 5 here, ProductTour had 6 — capped at index 4
+// so the CTA slide with the signup button was unreachable; users got stuck
+// on "Step 5 of 5 — Plan Together" forever.)
+const TOTAL_SLIDES = 6;
 const AUTO_ADVANCE_DELAY = 8000; // 8 seconds per slide
 const TOUR_COMPLETED_KEY = "monkeytravel_tour_completed";
 
@@ -22,7 +26,9 @@ interface UseTourNavigationReturn {
 }
 
 export function useTourNavigation(
-  autoAdvance: boolean = true,
+  // Default OFF — auto-advance held users hostage for 40+ seconds before
+  // letting them reach the CTA. Caller must explicitly opt in.
+  autoAdvance: boolean = false,
   isOpen: boolean = true // Only auto-advance when tour is visible
 ): UseTourNavigationReturn {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -93,11 +99,12 @@ export function useTourNavigation(
   }, [currentSlide, resetAutoAdvance]);
 
   const nextSlide = useCallback(() => {
+    resetAutoAdvance();
     if (currentSlide < TOTAL_SLIDES - 1) {
       setDirection(1);
       setCurrentSlide((prev) => prev + 1);
     }
-  }, [currentSlide]);
+  }, [currentSlide, resetAutoAdvance]);
 
   const prevSlide = useCallback(() => {
     resetAutoAdvance();
