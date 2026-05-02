@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -40,9 +40,12 @@ import {
   captureItineraryGenerated,
   captureTripWizardStepViewed,
   captureTripWizardStepCompleted,
+  captureTripWizardAbandoned,
+  captureTripWizardFieldInteracted,
   captureTripGenerationStarted,
   captureTripGenerationCompleted,
 } from "@/lib/posthog/events";
+import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 
 // Dynamic import for TripMap to avoid SSR issues
@@ -161,6 +164,103 @@ export default function NewTripPage() {
       step_name: STEP_NAMES[step - 1],
     });
   }, [step]);
+
+  // ── Wizard funnel diagnostics ────────────────────────────────────────────
+  // Goal: pinpoint which field on /trips/new is killing the funnel. Today
+  // we know 96% of sessions that view step 1 never complete it. We don't
+  // know if they (a) didn't engage at all, (b) typed a destination but
+  // bailed on the date picker, (c) etc. These refs + the abandonment
+  // listener give us the answer.
+
+  const wizardMountedAtRef = useRef<number>(Date.now());
+  const stepStartedAtRef = useRef<number>(Date.now());
+  const lastTouchedFieldRef = useRef<TripWizardFieldInteractedEvent["field"] | null>(null);
+  const touchedFieldsThisStepRef = useRef<Set<string>>(new Set());
+  const wizardCompletedRef = useRef<boolean>(false);
+  const abandonedFiredRef = useRef<boolean>(false);
+
+  // Mirror state into refs so the unload handlers can read current values
+  // without having to re-bind the listeners on every state change.
+  const stepRef = useRef(step);
+  const destinationFieldRef = useRef(destination);
+  const startDateRef = useRef(startDate);
+  const endDateRef = useRef(endDate);
+  const vibesRef = useRef(selectedVibes);
+  useEffect(() => { stepRef.current = step; }, [step]);
+  useEffect(() => { destinationFieldRef.current = destination; }, [destination]);
+  useEffect(() => { startDateRef.current = startDate; }, [startDate]);
+  useEffect(() => { endDateRef.current = endDate; }, [endDate]);
+  useEffect(() => { vibesRef.current = selectedVibes; }, [selectedVibes]);
+
+  // Reset per-step tracking when the user advances/retreats
+  useEffect(() => {
+    stepStartedAtRef.current = Date.now();
+    lastTouchedFieldRef.current = null;
+    touchedFieldsThisStepRef.current = new Set();
+  }, [step]);
+
+  /**
+   * Record a field interaction. Emits trip_wizard_field_interacted on first
+   * touch only (don't flood PostHog) and updates the last-touched ref so
+   * the abandonment event can name the field they bailed on.
+   */
+  const trackFieldInteraction = useCallback(
+    (field: TripWizardFieldInteractedEvent["field"]) => {
+      lastTouchedFieldRef.current = field;
+      const firstTouch = !touchedFieldsThisStepRef.current.has(field);
+      if (firstTouch) {
+        touchedFieldsThisStepRef.current.add(field);
+        captureTripWizardFieldInteracted({
+          step_number: stepRef.current,
+          step_name: STEP_NAMES[stepRef.current - 1],
+          field,
+          first_touch: true,
+        });
+      }
+    },
+    [STEP_NAMES]
+  );
+
+  // Abandonment listener: fire trip_wizard_abandoned exactly once when the
+  // user closes the tab, navigates away, or the wizard component unmounts —
+  // unless they completed the flow (wizardCompletedRef set in handleGenerate).
+  useEffect(() => {
+    function fireAbandoned() {
+      if (abandonedFiredRef.current || wizardCompletedRef.current) return;
+      // Only fire if they actually engaged (touched ≥ 1 field). Otherwise
+      // we'd flood PostHog with bot/preview pageviews.
+      if (touchedFieldsThisStepRef.current.size === 0 && stepRef.current === 1) {
+        return;
+      }
+      abandonedFiredRef.current = true;
+      const totalSeconds = Math.round((Date.now() - wizardMountedAtRef.current) / 1000);
+      captureTripWizardAbandoned({
+        last_step_completed: Math.max(0, stepRef.current - 1),
+        last_step_name: STEP_NAMES[stepRef.current - 1],
+        total_time_seconds: totalSeconds,
+        last_touched_field: lastTouchedFieldRef.current,
+        had_destination: Boolean(destinationFieldRef.current),
+        had_dates: Boolean(startDateRef.current && endDateRef.current),
+        had_vibes: vibesRef.current.length > 0,
+      });
+    }
+
+    function handleVisibility() {
+      if (document.visibilityState === "hidden") fireAbandoned();
+    }
+
+    window.addEventListener("beforeunload", fireAbandoned);
+    window.addEventListener("pagehide", fireAbandoned);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      // Fire on SPA unmount too (router.push elsewhere mid-wizard)
+      fireAbandoned();
+      window.removeEventListener("beforeunload", fireAbandoned);
+      window.removeEventListener("pagehide", fireAbandoned);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [STEP_NAMES]);
 
   // Check authentication status and existing trips on mount
   useEffect(() => {
@@ -384,6 +484,9 @@ export default function NewTripPage() {
       step_number: 2,
       step_name: "vibes_preferences",
     });
+    // Mark the wizard as completed so the abandonment listener doesn't
+    // fire on the inevitable post-generation page transition.
+    wizardCompletedRef.current = true;
     captureTripGenerationStarted({
       destination,
       duration_days: startDate && endDate
@@ -1247,8 +1350,14 @@ export default function NewTripPage() {
               <div className="text-sm font-medium text-slate-700 mb-2">Destination</div>
               <DestinationAutocomplete
                 value={destination}
-                onChange={setDestination}
-                onSelect={handleDestinationSelect}
+                onChange={(v) => {
+                  trackFieldInteraction("destination_autocomplete");
+                  setDestination(v);
+                }}
+                onSelect={(p) => {
+                  trackFieldInteraction("destination_autocomplete");
+                  handleDestinationSelect(p);
+                }}
                 placeholder="e.g., Paris, Tokyo, New York..."
                 autoFocus
               />
@@ -1268,6 +1377,7 @@ export default function NewTripPage() {
                       <button
                         key={place.name}
                         onClick={() => {
+                          trackFieldInteraction("destination_pill");
                           setDestination(place.name);
                           setDestinationCoords(place.coords);
                           trackDestinationSelected({
@@ -1296,8 +1406,14 @@ export default function NewTripPage() {
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
+                onStartDateChange={(d) => {
+                  trackFieldInteraction("start_date");
+                  setStartDate(d);
+                }}
+                onEndDateChange={(d) => {
+                  trackFieldInteraction("end_date");
+                  setEndDate(d);
+                }}
                 maxDays={14}
                 minDate={new Date().toISOString().split("T")[0]}
               />
@@ -1330,7 +1446,10 @@ export default function NewTripPage() {
             {/* Vibes — required */}
             <VibeSelector
               selectedVibes={selectedVibes}
-              onVibesChange={setSelectedVibes}
+              onVibesChange={(v) => {
+                trackFieldInteraction("vibe");
+                setSelectedVibes(v);
+              }}
               maxVibes={3}
             />
 

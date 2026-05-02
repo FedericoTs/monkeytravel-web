@@ -180,6 +180,44 @@ export interface TripWizardAbandonedEvent {
   last_step_name: string;
   /** Total time in wizard in seconds */
   total_time_seconds: number;
+  /**
+   * The field the user touched immediately before abandoning. Lets us
+   * distinguish "didn't engage at all" from "stuck on the date picker"
+   * from "filled everything but didn't submit". Values match the
+   * `wizard_field_interacted.field` taxonomy.
+   */
+  last_touched_field?:
+    | "destination_autocomplete"
+    | "destination_pill"
+    | "start_date"
+    | "end_date"
+    | "vibe"
+    | "budget"
+    | "pace"
+    | "requirements"
+    | null;
+  /** Did they put something in the destination field by the time they left? */
+  had_destination?: boolean;
+  /** Did they pick both start AND end date? */
+  had_dates?: boolean;
+  /** Did they pick at least one vibe? */
+  had_vibes?: boolean;
+}
+
+export interface TripWizardFieldInteractedEvent {
+  step_number: number;
+  step_name: string;
+  field:
+    | "destination_autocomplete"
+    | "destination_pill"
+    | "start_date"
+    | "end_date"
+    | "vibe"
+    | "budget"
+    | "pace"
+    | "requirements";
+  /** First time this field was touched in this step session, or a follow-up? */
+  first_touch: boolean;
 }
 
 export interface TripGenerationStartedEvent {
@@ -449,6 +487,10 @@ export function captureTripWizardStepCompleted(event: TripWizardStepCompletedEve
 
 export function captureTripWizardAbandoned(event: TripWizardAbandonedEvent) {
   posthog.capture("trip_wizard_abandoned", event);
+}
+
+export function captureTripWizardFieldInteracted(event: TripWizardFieldInteractedEvent) {
+  posthog.capture("trip_wizard_field_interacted", event);
 }
 
 export function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
