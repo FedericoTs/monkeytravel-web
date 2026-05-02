@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import { Link } from "@/lib/i18n/routing";
 import { useTranslations } from "next-intl";
 
+interface StickyBlogCtaProps {
+  ctaHref?: string;
+}
+
 /**
  * Sticky bottom CTA bar for blog posts on mobile.
  * Appears after scrolling past the hero, hides when the bottom CTA section
  * is visible (to avoid duplicate CTAs on screen).
  */
-export default function StickyBlogCta() {
+export default function StickyBlogCta({ ctaHref = "/trips/new" }: StickyBlogCtaProps = {}) {
   const t = useTranslations("blog.detail");
   const [visible, setVisible] = useState(false);
 
@@ -38,7 +42,7 @@ export default function StickyBlogCta() {
     <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden animate-in slide-in-from-bottom-4 duration-300">
       <div className="bg-white/95 backdrop-blur-sm border-t border-slate-200 px-4 py-3 shadow-lg">
         <Link
-          href="/trips/new"
+          href={ctaHref}
           className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-[var(--accent)] text-slate-900 font-semibold text-sm active:bg-[var(--accent)]/80 transition-all min-h-[48px] shadow-sm"
         >
           {t("stickyCtaButton")}

@@ -185,6 +185,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags);
+  const tripsNewHref = primaryDestination
+    ? `/trips/new?destination=${primaryDestination.slug}`
+    : "/trips/new";
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
   const toc = extractToc(html);
 
@@ -337,6 +340,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                       title={t("detail.inlineAiCta.title")}
                       description={t("detail.inlineAiCta.description")}
                       ctaLabel={t("detail.inlineAiCta.button")}
+                      ctaHref={tripsNewHref}
                     />
                   }
                 />
@@ -366,6 +370,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 ctaTitle={t("detail.sidebarCta.title")}
                 ctaDescription={t("detail.sidebarCta.description")}
                 ctaButton={t("detail.sidebarCta.button")}
+                ctaHref={tripsNewHref}
               />
             </div>
           </div>
@@ -384,7 +389,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <Link
-                href="/trips/new"
+                href={tripsNewHref}
                 className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold text-sm hover:bg-[var(--primary)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
               >
                 {t("detail.inlineCtaButton")}
@@ -418,7 +423,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               {t("detail.planYourTripDescription")}
             </p>
             <Link
-              href="/trips/new"
+              href={tripsNewHref}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)]/90 transition-all hover:shadow-lg hover:shadow-[var(--accent)]/20 hover:-translate-y-0.5"
             >
               {t("detail.planYourTripCta")}
@@ -550,7 +555,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
       <Footer />
 
       {/* Sticky mobile CTA — appears on scroll, hides near bottom */}
-      <StickyBlogCta />
+      <StickyBlogCta ctaHref={tripsNewHref} />
     </>
   );
 }

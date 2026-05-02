@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getDestinationBySlug } from "@/lib/destinations/data";
+import type { Locale } from "@/lib/destinations/types";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
@@ -95,6 +97,8 @@ const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
 export default function NewTripPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const wizardLocale = useLocale() as Locale;
   const t = useTranslations("trips");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -199,6 +203,31 @@ export default function NewTripPage() {
     lastTouchedFieldRef.current = null;
     touchedFieldsThisStepRef.current = new Set();
   }, [step]);
+
+  // Pre-fill destination from ?destination=<slug> deeplink (e.g. coming from
+  // a /destinations/* page or a blog post CTA). Runs once on mount; if the
+  // user already started typing/restored a draft we don't clobber that.
+  useEffect(() => {
+    const param = searchParams?.get("destination");
+    if (!param || destinationFieldRef.current) return;
+
+    const known = getDestinationBySlug(param.toLowerCase());
+    if (known) {
+      setDestination(known.name[wizardLocale]);
+      setDestinationCoords({
+        latitude: known.coordinates.lat,
+        longitude: known.coordinates.lng,
+      });
+    } else {
+      // Free-text fallback — capitalize but otherwise pass through. Coords
+      // will be filled when the user confirms via autocomplete.
+      const trimmed = param.trim().slice(0, 120);
+      if (trimmed) {
+        setDestination(trimmed.charAt(0).toUpperCase() + trimmed.slice(1));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Record a field interaction. Emits trip_wizard_field_interacted on first
