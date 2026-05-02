@@ -58,13 +58,10 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Redirect www to non-www (canonical domain consolidation for SEO)
-  const host = request.headers.get("host") || "";
-  if (host.startsWith("www.")) {
-    const url = request.nextUrl.clone();
-    url.host = host.replace("www.", "");
-    return NextResponse.redirect(url, 301);
-  }
+  // www → apex redirect is handled at the Vercel edge by a domain-level
+  // 308 redirect (configured 2026-05-02). The redirect fires before this
+  // middleware ever runs, so removing the previous in-code redirect saves
+  // one edge-middleware invocation per www request.
 
   const { pathname } = request.nextUrl;
 

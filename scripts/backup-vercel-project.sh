@@ -4,8 +4,32 @@
 # Captures:
 #   - Project metadata (framework, node version, root directory, build cmds)
 #   - Domains
-#   - Environment variables (decrypted values for all environments)
+#   - Environment variable NAMES and TARGETS (NOT plaintext values, see below)
 #   - Git integration config
+#
+# IMPORTANT — env var values are NOT plaintext.
+# Verified empirically on 2026-05-02: the GET /env?decrypt=true endpoint
+# returns ciphertext blobs (typically 800-4500 chars) regardless of the
+# `decrypt=true` parameter, with the API tokens this script can use.
+# Vercel reserves true plaintext access for the `vercel env pull` CLI
+# flow, which uses a different auth path.
+#
+# What the JSON IS useful for:
+#   - Inventory of which secrets exist on which environment (production/
+#     preview/development) — i.e. a "what to re-create" checklist
+#   - Project settings (framework, node version, build commands)
+#   - Domain configuration
+# What it is NOT useful for:
+#   - One-shot restore of secret values
+#
+# To capture plaintext values for true restore-ability, run from a
+# regular Windows shell (NOT this WSL session — the npm-installed CLI
+# hangs from WSL):
+#   cd <project-dir-on-windows>
+#   vercel env pull .env.production --environment=production
+#   vercel env pull .env.preview --environment=preview
+#   vercel env pull .env.development --environment=development
+# Then store those .env.* files securely (e.g. a password manager).
 #
 # Usage:
 #   1. Create a temporary token at https://vercel.com/account/tokens
@@ -18,9 +42,9 @@
 #
 # Restoring later:
 #   - Re-import the GitHub repo into a new Vercel project
-#   - Manually re-add env vars (or write a companion restore script using
-#     POST /v9/projects/{id}/env from the saved JSON)
-#   - Re-add custom domains and verify
+#   - Re-add env vars from the .env.* files captured via `vercel env pull`
+#     (paste each variable in the Vercel dashboard or via `vercel env add`)
+#   - Re-add custom domains from the JSON and verify
 
 set -euo pipefail
 

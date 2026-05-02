@@ -98,7 +98,11 @@ const nextConfig: NextConfig = {
   // Image optimization for Vercel — tuned to reduce transformation count
   images: {
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 2592000, // 30 days (default 60s!) — prevents re-optimization
+    // 1 year cache TTL on the optimized AVIF/WebP variants. Static
+    // destination/blog images don't change between deploys; bumping
+    // from 30d → 1y cuts the per-variant transformation count by ~12×
+    // since each cached variant lives until invalidated by a new build.
+    minimumCacheTTL: 31536000, // 1 year
     deviceSizes: [640, 828, 1200],  // 3 sizes instead of default 6
     imageSizes: [128, 256, 384],    // 3 sizes instead of default 4
     remotePatterns: [
