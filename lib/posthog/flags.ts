@@ -106,6 +106,24 @@ export const FLAG_PREMIUM_TEMPLATES = "premium-templates";
  */
 export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
 
+/**
+ * Wizard mobile-first redesign (P11)
+ * Gates the new /trips/new layout. 0% rollout until session-replay data lands.
+ */
+export const FLAG_WIZARD_UX_V2 = "wizard-ux-v2";
+
+/**
+ * Wizard performance v2 (P10)
+ * Gates the code-split / lazy-loaded wizard JS bundle to fix LCP/INP on /trips/new.
+ */
+export const FLAG_WIZARD_PERF_V2 = "wizard-perf-v2";
+
+/**
+ * Listicle in-article CTA v1 (P6)
+ * Gates the mini-quiz CTA inside the Italian summer post.
+ */
+export const FLAG_LISTICLE_CTA_V1 = "listicle-cta-v1";
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -127,6 +145,9 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_ANALYTICS]: true,
   [FLAG_PREMIUM_TEMPLATES]: false,
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
+  [FLAG_WIZARD_UX_V2]: false,
+  [FLAG_WIZARD_PERF_V2]: false,
+  [FLAG_LISTICLE_CTA_V1]: false,
 };
 
 /**
