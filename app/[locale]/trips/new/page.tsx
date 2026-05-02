@@ -416,7 +416,11 @@ export default function NewTripPage() {
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
   // the in-flight save promise (so regenerate can await it), error
   // surfacing, and the discard path. See hooks/useAutoSaveTrip.ts.
-  const { enabled: autoSaveEnabled } = useFlag(FLAG_AUTO_SAVE_V1);
+  // useFlag returns `boolean | undefined` while PostHog is still loading
+  // — coerce to a strict boolean so the hook's "off by default" semantics
+  // are explicit (no auto-save until the flag has actually evaluated).
+  const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
+  const autoSaveEnabled = autoSaveEnabledRaw === true;
 
   const autoSaveFormState: PersistTripFormState = {
     destination,
@@ -583,8 +587,10 @@ export default function NewTripPage() {
     setSeasonalContext(null);
   };
 
-  // Derive interests from selected vibes for AI prompt compatibility
-  const deriveInterestsFromVibes = (): string[] => {
+  // Derive interests from selected vibes for AI prompt compatibility.
+  // Declared as a `function` (not `const` arrow) so it's hoisted and
+  // can be called by the auto-save hook setup that lives further up.
+  function deriveInterestsFromVibes(): string[] {
     const interestSet = new Set<string>();
     selectedVibes.forEach((vibe) => {
       // TripVibe is a string type, use directly as key
@@ -592,7 +598,7 @@ export default function NewTripPage() {
       interests.forEach((interest) => interestSet.add(interest));
     });
     return Array.from(interestSet);
-  };
+  }
 
   const canProceed = () => {
     switch (step) {
