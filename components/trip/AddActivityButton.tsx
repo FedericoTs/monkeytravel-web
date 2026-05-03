@@ -233,7 +233,7 @@ export default function AddActivityButton({
               >
                 <option value={30}>{t("durations.30min")}</option>
                 <option value={60}>{t("durations.1hr")}</option>
-                <option value={90}>{t("durations.1.5hr")}</option>
+                <option value={90}>{t("durations.90min")}</option>
                 <option value={120}>{t("durations.2hr")}</option>
                 <option value={180}>{t("durations.3hr")}</option>
                 <option value={240}>{t("durations.4hr")}</option>

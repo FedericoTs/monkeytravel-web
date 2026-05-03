@@ -1600,7 +1600,13 @@ export default function NewTripPage() {
                   handleDestinationSelect(p);
                 }}
                 placeholder="e.g., Paris, Tokyo, New York..."
-                autoFocus
+                // autoFocus removed (2026-05-03) — on mobile it auto-opened
+                // the suggestions dropdown which covered the popular-
+                // destination pills below. Users tapping a pill ended up
+                // hitting "Santorini" / "Tokyo" instead. Without autoFocus,
+                // the pills are visible by default; users can still tap
+                // the input to reveal the autocomplete dropdown when they
+                // want it.
               />
 
               {/* Popular destinations - compact pills */}

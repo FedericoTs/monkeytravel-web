@@ -475,7 +475,7 @@ export function ProposeActivitySheet({
                 >
                   <option value={30}>{t("durations.30min")}</option>
                   <option value={60}>{t("durations.1hour")}</option>
-                  <option value={90}>{t("durations.1_5hours")}</option>
+                  <option value={90}>{t("durations.90min")}</option>
                   <option value={120}>{t("durations.2hours")}</option>
                   <option value={180}>{t("durations.3hours")}</option>
                 </select>

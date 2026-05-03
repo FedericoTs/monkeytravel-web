@@ -812,11 +812,11 @@
     "durations": {
       "30min": "30 min",
       "1hr": "1 hora",
-      "1.5hr": "1.5 horas",
       "2hr": "2 horas",
       "3hr": "3 horas",
       "4hr": "4 horas",
-      "halfDay": "Medio día"
+      "halfDay": "Medio día",
+      "90min": "1.5 horas"
     }
   },
   "regenerate": {

@@ -247,10 +247,10 @@
   "durations": {
     "30min": "30 min",
     "1hour": "1 hora",
-    "1.5hours": "1.5 horas",
     "2hours": "2 horas",
     "3hours": "3 horas",
-    "4hours": "4 horas"
+    "4hours": "4 horas",
+    "90min": "1.5 horas"
   },
   "limits": {
     "freeTripsRemaining": "Te quedan {count} viajes gratuitos",

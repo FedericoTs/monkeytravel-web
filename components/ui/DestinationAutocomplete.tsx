@@ -195,13 +195,22 @@ export default function DestinationAutocomplete({
         return;
       }
 
+      // Only auto-open the dropdown when the input is actually focused.
+      // Without this guard, an external setValue (e.g. clicking a popular-
+      // destination pill in the parent, or a ?destination= deeplink) used
+      // to trigger the search and pop a "no results" overlay over the rest
+      // of the form. (Bug verified 2026-05-03 via Playwright mobile run.)
+      const inputFocused =
+        typeof document !== "undefined" &&
+        document.activeElement === inputRef.current;
+
       // Show popular destinations when input is empty or very short
       if (!debouncedValue || debouncedValue.length < 3) {
         if (showPopular && debouncedValue.length < 3) {
           // Show popular destinations (from database, no Google API call)
           setPredictions(popularDestinations);
           setSearchSource("popular");
-          setIsOpen(true);
+          setIsOpen(inputFocused);
           setHighlightedIndex(-1);
         } else {
           setPredictions([]);
@@ -216,7 +225,7 @@ export default function DestinationAutocomplete({
         console.log("[Autocomplete] Using cached results for:", debouncedValue);
         setPredictions(cachedResults);
         setSearchSource("local");
-        setIsOpen(cachedResults.length > 0);
+        setIsOpen(inputFocused && cachedResults.length > 0);
         setHighlightedIndex(-1);
         return;
       }
@@ -232,14 +241,17 @@ export default function DestinationAutocomplete({
           setPredictions(localResults);
           setSearchSource("local");
           setCachedResults(debouncedValue, localResults);
-          setIsOpen(true);
+          setIsOpen(inputFocused);
           setHighlightedIndex(-1);
         } else {
           // No local results - show empty state with helpful message
-          // User can still manually type any destination
+          // User can still manually type any destination — but only if
+          // the input is actually focused. Otherwise the value came from
+          // an external source (pill click / deeplink) and we should NOT
+          // pop an overlay over the rest of the form.
           setPredictions([]);
           setSearchSource("local");
-          setIsOpen(true); // Keep open to show "no results" message
+          setIsOpen(inputFocused);
           setHighlightedIndex(-1);
         }
       } catch (error) {
