@@ -12,7 +12,6 @@ import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext 
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
-import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { buildSeasonalContext } from "@/lib/seasonal";
@@ -1826,8 +1825,17 @@ export default function NewTripPage() {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activePage="new" />
+      {/*
+        MobileBottomNav was previously rendered here but it sits at fixed
+        bottom-0 / z-50 on mobile, which completely covered the wizard's
+        own sticky Continue/Generate button (z-40). Step 1 → step 2 was
+        unreachable on mobile.
+
+        The wizard is a focused flow: the user is already on /trips/new
+        (so the "New" tab in MobileBottomNav points to themselves), and
+        the global Navbar at the top provides the navigation paths. The
+        result view doesn't render MobileBottomNav either — same pattern.
+      */}
     </div>
   );
 }
