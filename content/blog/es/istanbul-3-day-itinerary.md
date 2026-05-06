@@ -1,20 +1,37 @@
 ---
-title: "Itinerario de 3 Días en Estambul: La Guía Práctica Día a Día para 2026"
-slug: "istanbul-3-day-itinerary"
-description: "Un itinerario de Estambul día a día cubriendo Sultanahmet, Gran Bazar, Bósforo, Kadikoy y Beyoglu. Precios reales de 2026, restaurantes reales y rutas inteligentes."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["estambul", "itinerario", "turquía", "guía de ciudad", "viaje de 3 días"]
-image: "/images/blog/istanbul-3-day-itinerary.jpg"
-imageAlt: "Santa Sofía y la Mezquita Azul al atardecer en Estambul"
+title: 'Itinerario de 3 Días en Estambul: La Guía Práctica Día a Día para 2026'
+slug: istanbul-3-day-itinerary
+description: >-
+  Un itinerario de Estambul día a día cubriendo Sultanahmet, Gran Bazar,
+  Bósforo, Kadikoy y Beyoglu. Precios reales de 2026, restaurantes reales y
+  rutas inteligentes.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - estambul
+  - itinerario
+  - turquía
+  - guía de ciudad
+  - viaje de 3 días
+image: /images/blog/istanbul-3-day-itinerary.jpg
+imageAlt: Santa Sofía y la Mezquita Azul al atardecer en Estambul
 readingTime: 11
 seo:
-  title: "Itinerario de 3 Días en Estambul 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 3 días inolvidables en Estambul con este itinerario práctico día a día. Precios reales de 2026, restaurantes, rutas de tranvía y ferry, y consejos para Sultanahmet, el Bósforo y Beyoglu."
-  keywords: ["itinerario 3 dias estambul", "estambul itinerario 2026", "3 dias en estambul", "guia de viaje estambul", "que hacer en estambul", "estambul presupuesto"]
-schema: "Article"
+  title: 'Itinerario de 3 Días en Estambul 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 3 días inolvidables en Estambul con este itinerario práctico día a
+    día. Precios reales de 2026, restaurantes, rutas de tranvía y ferry, y
+    consejos para Sultanahmet, el Bósforo y Beyoglu.
+  keywords:
+    - itinerario 3 dias estambul
+    - estambul itinerario 2026
+    - 3 dias en estambul
+    - guia de viaje estambul
+    - que hacer en estambul
+    - estambul presupuesto
+schema: Article
 ---
 
 # Itinerario de 3 Días en Estambul: La Guía Práctica Día a Día para 2026

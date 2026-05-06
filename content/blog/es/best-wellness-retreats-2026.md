@@ -1,20 +1,47 @@
 ---
-title: "10 Mejores Retiros de Bienestar en 2026: Del Yoga a la Recuperación del Burnout"
-slug: "best-wellness-retreats-2026"
-description: "Las búsquedas de 'retiro de recuperación del burnout' crecieron un 340%. Comparamos los 10 mejores destinos de bienestar para 2026 — precios reales, qué incluyen y cuál encaja con tu situación."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["turismo de bienestar", "retiros de yoga", "recuperación del burnout", "destinos de spa", "2026", "wellness"]
-image: "/images/blog/best-wellness-retreats-2026.jpg"
-imageAlt: "Piscina infinita con vistas a la jungla tropical en un retiro de bienestar en Bali"
+title: >-
+  10 Mejores Retiros de Bienestar en 2026: Del Yoga a la Recuperación del
+  Burnout
+slug: best-wellness-retreats-2026
+description: >-
+  Las búsquedas de 'retiro de recuperación del burnout' crecieron un 340%.
+  Comparamos los 10 mejores destinos de bienestar para 2026 — precios reales,
+  qué incluyen y cuál encaja con tu situación.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - turismo de bienestar
+  - retiros de yoga
+  - recuperación del burnout
+  - destinos de spa
+  - '2026'
+  - wellness
+image: /images/blog/best-wellness-retreats-2026.jpg
+imageAlt: >-
+  Piscina infinita con vistas a la jungla tropical en un retiro de bienestar en
+  Bali
 readingTime: 11
 seo:
-  title: "10 Mejores Retiros de Bienestar 2026: Yoga, Burnout y Star Bathing | MonkeyTravel"
-  description: "Los 10 mejores retiros de bienestar para 2026 con precios reales, descripción de programas y qué retiro encaja con tus necesidades — desde 50 €/día en Bali hasta 800 €/día en SHA España."
-  keywords: ["mejores retiros de bienestar 2026", "retiro recuperación burnout", "retiro yoga 2026", "turismo bienestar", "retiro spa", "star bathing", "Kamalaya", "SHA Wellness", "Ananda India"]
-schema: "Article"
+  title: >-
+    10 Mejores Retiros de Bienestar 2026: Yoga, Burnout y Star Bathing |
+    MonkeyTravel
+  description: >-
+    Los 10 mejores retiros de bienestar para 2026 con precios reales,
+    descripción de programas y qué retiro encaja con tus necesidades — desde 50
+    €/día en Bali hasta 800 €/día en SHA España.
+  keywords:
+    - mejores retiros de bienestar 2026
+    - retiro recuperación burnout
+    - retiro yoga 2026
+    - turismo bienestar
+    - retiro spa
+    - star bathing
+    - Kamalaya
+    - SHA Wellness
+    - Ananda India
+schema: Article
 ---
 
 # 10 Mejores Retiros de Bienestar en 2026: Del Yoga a la Recuperación del Burnout

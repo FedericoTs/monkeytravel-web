@@ -1,20 +1,39 @@
 ---
-title: "How to Plan a Trip with AI: A Step-by-Step Guide for Beginners"
-slug: "how-to-plan-a-trip-with-ai"
-description: "Never used AI to plan a trip? This beginner-friendly guide walks you through every step — from picking a destination to having a complete day-by-day itinerary in minutes."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["AI trip planning", "how to plan a trip", "AI travel guide", "trip planning for beginners", "AI itinerary generator"]
-image: "/images/blog/plan-trip-with-ai.jpg"
-imageAlt: "Person using a smartphone app to generate a travel itinerary with AI suggestions on screen"
+title: 'How to Plan a Trip with AI: A Step-by-Step Guide for Beginners'
+slug: how-to-plan-a-trip-with-ai
+description: >-
+  Never used AI to plan a trip? This beginner-friendly guide walks you through
+  every step — from picking a destination to having a complete day-by-day
+  itinerary in minutes.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - AI trip planning
+  - how to plan a trip
+  - AI travel guide
+  - trip planning for beginners
+  - AI itinerary generator
+image: /images/blog/plan-trip-with-ai.jpg
+imageAlt: >-
+  Person using a smartphone app to generate a travel itinerary with AI
+  suggestions on screen
 readingTime: 8
 seo:
-  title: "How to Plan a Trip with AI: Step-by-Step Beginner's Guide 2026 | MonkeyTravel"
-  description: "Complete beginner's guide to AI trip planning. Learn how to go from zero to a full day-by-day itinerary in under 15 minutes using AI tools."
-  keywords: ["how to plan a trip with AI", "AI trip planning guide", "AI itinerary generator", "plan trip step by step", "AI travel planner for beginners"]
-schema: "Article"
+  title: >-
+    How to Plan a Trip with AI: Step-by-Step Beginner's Guide 2026 |
+    MonkeyTravel
+  description: >-
+    Complete beginner's guide to AI trip planning. Learn how to go from zero to
+    a full day-by-day itinerary in under 15 minutes using AI tools.
+  keywords:
+    - how to plan a trip with AI
+    - AI trip planning guide
+    - AI itinerary generator
+    - plan trip step by step
+    - AI travel planner for beginners
+schema: Article
 ---
 
 # How to Plan a Trip with AI: A Step-by-Step Guide for Beginners

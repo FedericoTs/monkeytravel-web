@@ -1,20 +1,43 @@
 ---
-title: "¿Es Seguro Viajar a Estados Unidos en 2026? Lo Que Todo Viajero Necesita Saber"
-slug: "is-it-safe-to-travel-to-the-us-2026"
-description: "Guia practica y basada en datos para viajeros internacionales que consideran viajar a EE.UU. en 2026. ICE en aeropuertos, alertas de viaje, procedimientos fronterizos, seguridad LGBTQ+, visas para la Copa del Mundo FIFA y destinos alternativos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-01"
-updatedAt: "2026-04-01"
-category: "Travel Tips"
-tags: ["estados unidos", "seguridad de viaje", "alerta de viaje", "inmigracion", "requisitos de visa", "Copa del Mundo FIFA 2026"]
-image: "/images/blog/is-it-safe-to-travel-to-the-us-2026.jpg"
-imageAlt: "Vista aerea de la Estatua de la Libertad y el puerto de Nueva York con un viajero internacional mirando desde la ventanilla de un avion"
+title: ¿Es Seguro Viajar a Estados Unidos en 2026? Lo Que Todo Viajero Necesita Saber
+slug: is-it-safe-to-travel-to-the-us-2026
+description: >-
+  Guia practica y basada en datos para viajeros internacionales que consideran
+  viajar a EE.UU. en 2026. ICE en aeropuertos, alertas de viaje, procedimientos
+  fronterizos, seguridad LGBTQ+, visas para la Copa del Mundo FIFA y destinos
+  alternativos.
+author: Riccardo P.
+publishedAt: '2026-04-01'
+updatedAt: '2026-04-01'
+category: Travel Tips
+tags:
+  - estados unidos
+  - seguridad de viaje
+  - alerta de viaje
+  - inmigracion
+  - requisitos de visa
+  - Copa del Mundo FIFA 2026
+image: /images/blog/is-it-safe-to-travel-to-the-us-2026.jpg
+imageAlt: >-
+  Vista aerea de la Estatua de la Libertad y el puerto de Nueva York con un
+  viajero internacional mirando desde la ventanilla de un avion
 readingTime: 18
 seo:
-  title: "¿Es Seguro Viajar a EE.UU. en 2026? Guia Honesta para Visitantes Internacionales | MonkeyTravel"
-  description: "9 paises han emitido alertas de viaje sobre EE.UU. ICE esta en los aeropuertos. El turismo cayo un 10%. Lo que los viajeros internacionales realmente necesitan saber antes de visitar America en 2026."
-  keywords: ["es seguro viajar a estados unidos 2026", "alerta de viaje estados unidos 2026", "ice aeropuertos", "trump slump turismo", "paises alertas sobre estados unidos", "destinos alternativos a eeuu"]
-schema: "Article"
+  title: >-
+    ¿Es Seguro Viajar a EE.UU. en 2026? Guia Honesta para Visitantes
+    Internacionales | MonkeyTravel
+  description: >-
+    9 paises han emitido alertas de viaje sobre EE.UU. ICE esta en los
+    aeropuertos. El turismo cayo un 10%. Lo que los viajeros internacionales
+    realmente necesitan saber antes de visitar America en 2026.
+  keywords:
+    - es seguro viajar a estados unidos 2026
+    - alerta de viaje estados unidos 2026
+    - ice aeropuertos
+    - trump slump turismo
+    - paises alertas sobre estados unidos
+    - destinos alternativos a eeuu
+schema: Article
 ---
 
 # ¿Es Seguro Viajar a Estados Unidos en 2026? Lo Que Todo Viajero Necesita Saber

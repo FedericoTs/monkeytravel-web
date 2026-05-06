@@ -1,20 +1,38 @@
 ---
-title: "The Perfect 3-Day Barcelona Itinerary: A Day-by-Day Guide for 2026"
-slug: "barcelona-3-day-itinerary"
-description: "A practical day-by-day Barcelona itinerary with real prices, real places, and smart routing. Sagrada Familia, Gothic Quarter, Park Guell, and more without wasting time or money."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["barcelona", "itinerary", "spain", "3 days", "europe travel"]
-image: "/images/blog/barcelona-3-day-itinerary.jpg"
-imageAlt: "Panoramic view of Barcelona skyline with Sagrada Familia towers and Mediterranean Sea at sunset"
+title: 'The Perfect 3-Day Barcelona Itinerary: A Day-by-Day Guide for 2026'
+slug: barcelona-3-day-itinerary
+description: >-
+  A practical day-by-day Barcelona itinerary with real prices, real places, and
+  smart routing. Sagrada Familia, Gothic Quarter, Park Guell, and more without
+  wasting time or money.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - barcelona
+  - itinerary
+  - spain
+  - 3 days
+  - europe travel
+image: /images/blog/barcelona-3-day-itinerary.jpg
+imageAlt: >-
+  Panoramic view of Barcelona skyline with Sagrada Familia towers and
+  Mediterranean Sea at sunset
 readingTime: 8
 seo:
-  title: "Barcelona 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 3 perfect days in Barcelona with this day-by-day itinerary. Real prices, smart routing, and local tips for Sagrada Familia, Gothic Quarter, Park Guell, and more."
-  keywords: ["barcelona 3 day itinerary", "3 days in barcelona", "barcelona itinerary 3 days", "barcelona travel guide 2026", "what to do in barcelona in 3 days"]
-schema: "Article"
+  title: 'Barcelona 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 3 perfect days in Barcelona with this day-by-day itinerary. Real
+    prices, smart routing, and local tips for Sagrada Familia, Gothic Quarter,
+    Park Guell, and more.
+  keywords:
+    - barcelona 3 day itinerary
+    - 3 days in barcelona
+    - barcelona itinerary 3 days
+    - barcelona travel guide 2026
+    - what to do in barcelona in 3 days
+schema: Article
 ---
 
 # The Perfect 3-Day Barcelona Itinerary: A Day-by-Day Guide for 2026

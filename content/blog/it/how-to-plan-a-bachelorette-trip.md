@@ -1,20 +1,37 @@
 ---
-title: "Come Organizzare un Viaggio di Addio al Nubilato Che Piaccia Davvero a Tutte"
-slug: "how-to-plan-a-bachelorette-trip"
-description: "Una guida passo dopo passo per organizzare un addio al nubilato perfetto per ogni budget, personalità e dimensione del gruppo. Niente drammi, niente debiti, niente rimpianti."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["addio al nubilato", "idee addio al nubilato", "viaggio di gruppo", "destinazioni addio al nubilato", "viaggio sposa"]
-image: "/images/blog/bachelorette-trip-planning.jpg"
-imageAlt: "Group of women celebrating on a rooftop terrace with cocktails at sunset"
+title: Come Organizzare un Viaggio di Addio al Nubilato Che Piaccia Davvero a Tutte
+slug: how-to-plan-a-bachelorette-trip
+description: >-
+  Una guida passo dopo passo per organizzare un addio al nubilato perfetto per
+  ogni budget, personalità e dimensione del gruppo. Niente drammi, niente
+  debiti, niente rimpianti.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - addio al nubilato
+  - idee addio al nubilato
+  - viaggio di gruppo
+  - destinazioni addio al nubilato
+  - viaggio sposa
+image: /images/blog/bachelorette-trip-planning.jpg
+imageAlt: Group of women celebrating on a rooftop terrace with cocktails at sunset
 readingTime: 7
 seo:
-  title: "Come Organizzare un Addio al Nubilato (Guida Passo-Passo 2026) | MonkeyTravel"
-  description: "Organizza un addio al nubilato che tutte ameranno. Guida passo dopo passo su budget, destinazione, attività e come tenere felice tutto il gruppo."
-  keywords: ["come organizzare addio al nubilato", "organizzare addio al nubilato", "idee addio al nubilato 2026", "guida destinazioni addio al nubilato", "viaggio di gruppo addio al nubilato"]
-schema: "Article"
+  title: >-
+    Come Organizzare un Addio al Nubilato (Guida Passo-Passo 2026) |
+    MonkeyTravel
+  description: >-
+    Organizza un addio al nubilato che tutte ameranno. Guida passo dopo passo su
+    budget, destinazione, attività e come tenere felice tutto il gruppo.
+  keywords:
+    - come organizzare addio al nubilato
+    - organizzare addio al nubilato
+    - idee addio al nubilato 2026
+    - guida destinazioni addio al nubilato
+    - viaggio di gruppo addio al nubilato
+schema: Article
 ---
 
 # Come Organizzare un Viaggio di Addio al Nubilato Che Piaccia Davvero a Tutte

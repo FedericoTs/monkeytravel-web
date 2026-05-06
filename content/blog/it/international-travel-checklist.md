@@ -1,20 +1,39 @@
 ---
-title: "Checklist per Viaggi Internazionali 2026: Tutto Quello Che Ti Serve Prima del Viaggio"
-slug: "international-travel-checklist"
-description: "Il checklist completo per viaggi internazionali organizzato per tempistiche. Passaporti, visti, vaccini, assicurazioni, banche e preparazione digitale per viaggiare senza stress."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["viaggi internazionali", "checklist di viaggio", "preparazione al viaggio", "primo viaggio internazionale"]
-image: "/images/blog/international-travel-checklist.jpg"
-imageAlt: "Passaporto, carta d'imbarco e accessori essenziali da viaggio su un tavolo di legno prima di un viaggio internazionale"
+title: >-
+  Checklist per Viaggi Internazionali 2026: Tutto Quello Che Ti Serve Prima del
+  Viaggio
+slug: international-travel-checklist
+description: >-
+  Il checklist completo per viaggi internazionali organizzato per tempistiche.
+  Passaporti, visti, vaccini, assicurazioni, banche e preparazione digitale per
+  viaggiare senza stress.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - viaggi internazionali
+  - checklist di viaggio
+  - preparazione al viaggio
+  - primo viaggio internazionale
+image: /images/blog/international-travel-checklist.jpg
+imageAlt: >-
+  Passaporto, carta d'imbarco e accessori essenziali da viaggio su un tavolo di
+  legno prima di un viaggio internazionale
 readingTime: 10
 seo:
-  title: "Checklist per Viaggi Internazionali 2026: La Guida Completa | MonkeyTravel"
-  description: "Checklist completo per viaggi internazionali 2026 organizzato per tempistiche: 3 mesi, 1 mese, 1 settimana e il giorno della partenza. Passaporti, visti, vaccini, assicurazioni e altro."
-  keywords: ["checklist viaggi internazionali", "preparazione al viaggio", "cosa fare prima di un viaggio internazionale", "checklist documenti di viaggio", "primo viaggio internazionale checklist"]
-schema: "Article"
+  title: 'Checklist per Viaggi Internazionali 2026: La Guida Completa | MonkeyTravel'
+  description: >-
+    Checklist completo per viaggi internazionali 2026 organizzato per
+    tempistiche: 3 mesi, 1 mese, 1 settimana e il giorno della partenza.
+    Passaporti, visti, vaccini, assicurazioni e altro.
+  keywords:
+    - checklist viaggi internazionali
+    - preparazione al viaggio
+    - cosa fare prima di un viaggio internazionale
+    - checklist documenti di viaggio
+    - primo viaggio internazionale checklist
+schema: Article
 ---
 
 # Checklist per Viaggi Internazionali 2026: Tutto Quello Che Ti Serve Prima del Viaggio

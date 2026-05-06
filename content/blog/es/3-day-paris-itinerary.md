@@ -1,20 +1,38 @@
 ---
-title: "Itinerario de 3 Días en París: Guía Día a Día para 2026"
-slug: "3-day-paris-itinerary"
-description: "Un itinerario práctico de París día a día con precios reales, lugares reales y rutas inteligentes. Torre Eiffel, Louvre, Montmartre y más sin perder tiempo ni dinero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["parís", "itinerario", "francia", "3 días", "viajes europa"]
-image: "/images/blog/3-day-paris-itinerary.jpg"
-imageAlt: "Vista de la Torre Eiffel desde el Trocadéro al atardecer con arquitectura parisina"
+title: 'Itinerario de 3 Días en París: Guía Día a Día para 2026'
+slug: 3-day-paris-itinerary
+description: >-
+  Un itinerario práctico de París día a día con precios reales, lugares reales y
+  rutas inteligentes. Torre Eiffel, Louvre, Montmartre y más sin perder tiempo
+  ni dinero.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - parís
+  - itinerario
+  - francia
+  - 3 días
+  - viajes europa
+image: /images/blog/3-day-paris-itinerary.jpg
+imageAlt: >-
+  Vista de la Torre Eiffel desde el Trocadéro al atardecer con arquitectura
+  parisina
 readingTime: 7
 seo:
-  title: "Itinerario de 3 Días en París 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 3 días perfectos en París con este itinerario día a día. Precios reales, rutas inteligentes y consejos locales para la Torre Eiffel, Louvre y más."
-  keywords: ["itinerario 3 dias paris", "paris en 3 dias", "que ver en paris 3 dias", "guia paris 2026", "viaje a paris itinerario"]
-schema: "Article"
+  title: 'Itinerario de 3 Días en París 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 3 días perfectos en París con este itinerario día a día. Precios
+    reales, rutas inteligentes y consejos locales para la Torre Eiffel, Louvre y
+    más.
+  keywords:
+    - itinerario 3 dias paris
+    - paris en 3 dias
+    - que ver en paris 3 dias
+    - guia paris 2026
+    - viaje a paris itinerario
+schema: Article
 ---
 
 # Itinerario de 3 Días en París: Guía Día a Día para 2026

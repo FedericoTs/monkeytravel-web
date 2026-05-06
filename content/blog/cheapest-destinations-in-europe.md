@@ -1,20 +1,39 @@
 ---
-title: "Europe on €40/Day: 15 Cities That Don't Feel Cheap [2026 Prices]"
-slug: "cheapest-destinations-in-europe"
-description: "Real daily costs from 30+ European cities tested. These 15 averaged under €40/day all-in — one costs just €22. Expense breakdowns, best months, and the booking trick that saves 30%."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Budget Travel"
-tags: ["europe", "budget travel", "cheap destinations", "backpacking"]
-image: "/images/blog/cheapest-destinations-in-europe.jpg"
-imageAlt: "Colorful old town streets in a budget-friendly European city"
+title: 'Europe on €40/Day: 15 Cities That Don''t Feel Cheap [2026 Prices]'
+slug: cheapest-destinations-in-europe
+description: >-
+  Real daily costs from 30+ European cities tested. These 15 averaged under
+  €40/day all-in — one costs just €22. Expense breakdowns, best months, and the
+  booking trick that saves 30%.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Budget Travel
+tags:
+  - europe
+  - budget travel
+  - cheap destinations
+  - backpacking
+image: /images/blog/cheapest-destinations-in-europe.jpg
+imageAlt: Colorful old town streets in a budget-friendly European city
 readingTime: 12
 seo:
-  title: "Europe on €40/Day: 15 Cheapest Cities in 2026 [Real Prices Tested] | MonkeyTravel"
-  description: "After testing 30+ European cities, these 15 averaged under €40/day all-in. Real expense breakdowns, the best month for each city, and one destination where €22 covers everything. Updated April 2026."
-  keywords: ["cheapest countries in europe 2026", "cheapest destinations in europe", "budget travel europe 2026", "cheap european cities", "cheapest city for eating out in europe", "cheap places to travel in europe", "cheapest countries to visit in europe 2026"]
-schema: "Article"
+  title: >-
+    Europe on €40/Day: 15 Cheapest Cities in 2026 [Real Prices Tested] |
+    MonkeyTravel
+  description: >-
+    After testing 30+ European cities, these 15 averaged under €40/day all-in.
+    Real expense breakdowns, the best month for each city, and one destination
+    where €22 covers everything. Updated April 2026.
+  keywords:
+    - cheapest countries in europe 2026
+    - cheapest destinations in europe
+    - budget travel europe 2026
+    - cheap european cities
+    - cheapest city for eating out in europe
+    - cheap places to travel in europe
+    - cheapest countries to visit in europe 2026
+schema: Article
 ---
 
 # 15 Cheapest Countries in Europe for 2026 (Real Daily Budgets)

@@ -1,20 +1,35 @@
 ---
-title: "10 Errori nei Viaggi di Gruppo Che Rovinano Tutto (e Come Evitarli)"
-slug: "group-travel-mistakes-to-avoid"
-description: "La maggior parte dei viaggi di gruppo fallisce prima ancora di partire. Ecco 10 errori che ammazzano il mood — e i sistemi per prevenirli, basati su dati reali."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["errori viaggi di gruppo", "consigli viaggio con amici", "problemi viaggio di gruppo", "pianificazione vacanza di gruppo", "evitare conflitti in viaggio"]
-image: "/images/blog/group-travel-mistakes.jpg"
-imageAlt: "Friends looking frustrated while reading a map together in a European city"
+title: 10 Errori nei Viaggi di Gruppo Che Rovinano Tutto (e Come Evitarli)
+slug: group-travel-mistakes-to-avoid
+description: >-
+  La maggior parte dei viaggi di gruppo fallisce prima ancora di partire. Ecco
+  10 errori che ammazzano il mood — e i sistemi per prevenirli, basati su dati
+  reali.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - errori viaggi di gruppo
+  - consigli viaggio con amici
+  - problemi viaggio di gruppo
+  - pianificazione vacanza di gruppo
+  - evitare conflitti in viaggio
+image: /images/blog/group-travel-mistakes.jpg
+imageAlt: Friends looking frustrated while reading a map together in a European city
 readingTime: 7
 seo:
-  title: "10 Errori nei Viaggi di Gruppo (e Come Risolverli) | MonkeyTravel"
-  description: "I 10 errori più comuni che rovinano i viaggi di gruppo — e sistemi pratici per prevenirli tutti. Basato su dati reali dei viaggiatori."
-  keywords: ["errori viaggi di gruppo", "problemi viaggio di gruppo", "consigli viaggio con amici", "errori vacanza di gruppo", "come evitare litigi in viaggio di gruppo"]
-schema: "Article"
+  title: 10 Errori nei Viaggi di Gruppo (e Come Risolverli) | MonkeyTravel
+  description: >-
+    I 10 errori più comuni che rovinano i viaggi di gruppo — e sistemi pratici
+    per prevenirli tutti. Basato su dati reali dei viaggiatori.
+  keywords:
+    - errori viaggi di gruppo
+    - problemi viaggio di gruppo
+    - consigli viaggio con amici
+    - errori vacanza di gruppo
+    - come evitare litigi in viaggio di gruppo
+schema: Article
 ---
 
 # 10 Errori nei Viaggi di Gruppo Che Rovinano Tutto (e Come Evitarli)

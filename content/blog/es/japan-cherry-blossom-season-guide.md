@@ -1,20 +1,42 @@
 ---
-title: "Temporada de Cerezos en Flor en Japón 2026: La Guía Completa del Sakura"
-slug: "japan-cherry-blossom-season-guide"
-description: "Todo lo que necesitas para planificar un viaje a Japón durante la floración de los cerezos en 2026 — pronósticos de floración, mejores ciudades y parques, etiqueta del hanami, consejos de presupuesto y alternativas tardías en Hokkaido."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["japón", "cerezo en flor", "sakura", "estacional", "tokio", "kioto"]
-image: "/images/blog/japan-cherry-blossom-season-guide.jpg"
-imageAlt: "Cerezos en plena floración a lo largo del río Meguro en Tokio con pétalos rosas"
+title: 'Temporada de Cerezos en Flor en Japón 2026: La Guía Completa del Sakura'
+slug: japan-cherry-blossom-season-guide
+description: >-
+  Todo lo que necesitas para planificar un viaje a Japón durante la floración de
+  los cerezos en 2026 — pronósticos de floración, mejores ciudades y parques,
+  etiqueta del hanami, consejos de presupuesto y alternativas tardías en
+  Hokkaido.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - japón
+  - cerezo en flor
+  - sakura
+  - estacional
+  - tokio
+  - kioto
+image: /images/blog/japan-cherry-blossom-season-guide.jpg
+imageAlt: >-
+  Cerezos en plena floración a lo largo del río Meguro en Tokio con pétalos
+  rosas
 readingTime: 8
 seo:
-  title: "Temporada de Cerezos en Flor en Japón 2026: Guía Completa del Sakura | MonkeyTravel"
-  description: "Planifica tu viaje para ver los cerezos en flor en Japón en 2026 con pronósticos de floración, los mejores lugares en Tokio, Kioto, Osaka y Nara, etiqueta del hanami y consejos de presupuesto."
-  keywords: ["temporada cerezos en flor japón", "sakura japón 2026", "pronóstico floración cerezos japón", "mejores lugares sakura japón", "guía hanami japón"]
-schema: "Article"
+  title: >-
+    Temporada de Cerezos en Flor en Japón 2026: Guía Completa del Sakura |
+    MonkeyTravel
+  description: >-
+    Planifica tu viaje para ver los cerezos en flor en Japón en 2026 con
+    pronósticos de floración, los mejores lugares en Tokio, Kioto, Osaka y Nara,
+    etiqueta del hanami y consejos de presupuesto.
+  keywords:
+    - temporada cerezos en flor japón
+    - sakura japón 2026
+    - pronóstico floración cerezos japón
+    - mejores lugares sakura japón
+    - guía hanami japón
+schema: Article
 ---
 
 # Temporada de Cerezos en Flor en Japón 2026: La Guía Completa del Sakura

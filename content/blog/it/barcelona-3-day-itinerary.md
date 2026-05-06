@@ -1,20 +1,38 @@
 ---
-title: "Itinerario di 3 Giorni a Barcellona: Guida Giorno per Giorno 2026"
-slug: "barcelona-3-day-itinerary"
-description: "Un itinerario pratico di Barcellona giorno per giorno con prezzi reali, luoghi reali e percorsi intelligenti. Sagrada Familia, Quartiere Gotico, Park Güell e altro senza sprecare tempo o denaro."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["barcellona", "itinerario", "spagna", "3 giorni", "viaggi europa"]
-image: "/images/blog/barcelona-3-day-itinerary.jpg"
-imageAlt: "Vista panoramica dello skyline di Barcellona con le torri della Sagrada Familia e il Mar Mediterraneo al tramonto"
+title: 'Itinerario di 3 Giorni a Barcellona: Guida Giorno per Giorno 2026'
+slug: barcelona-3-day-itinerary
+description: >-
+  Un itinerario pratico di Barcellona giorno per giorno con prezzi reali, luoghi
+  reali e percorsi intelligenti. Sagrada Familia, Quartiere Gotico, Park Güell e
+  altro senza sprecare tempo o denaro.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - barcellona
+  - itinerario
+  - spagna
+  - 3 giorni
+  - viaggi europa
+image: /images/blog/barcelona-3-day-itinerary.jpg
+imageAlt: >-
+  Vista panoramica dello skyline di Barcellona con le torri della Sagrada
+  Familia e il Mar Mediterraneo al tramonto
 readingTime: 8
 seo:
-  title: "Itinerario 3 Giorni Barcellona 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 3 giorni perfetti a Barcellona con questo itinerario giorno per giorno. Prezzi reali, percorsi intelligenti e consigli locali per Sagrada Familia, Quartiere Gotico e altro."
-  keywords: ["itinerario 3 giorni barcellona", "barcellona in 3 giorni", "cosa vedere a barcellona 3 giorni", "guida barcellona 2026", "viaggio a barcellona itinerario"]
-schema: "Article"
+  title: 'Itinerario 3 Giorni Barcellona 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 3 giorni perfetti a Barcellona con questo itinerario giorno per
+    giorno. Prezzi reali, percorsi intelligenti e consigli locali per Sagrada
+    Familia, Quartiere Gotico e altro.
+  keywords:
+    - itinerario 3 giorni barcellona
+    - barcellona in 3 giorni
+    - cosa vedere a barcellona 3 giorni
+    - guida barcellona 2026
+    - viaggio a barcellona itinerario
+schema: Article
 ---
 
 # Itinerario di 3 Giorni a Barcellona: Guida Giorno per Giorno 2026

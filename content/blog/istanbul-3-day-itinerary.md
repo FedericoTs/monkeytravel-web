@@ -1,20 +1,37 @@
 ---
-title: "Istanbul 3-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "istanbul-3-day-itinerary"
-description: "A day-by-day Istanbul itinerary covering Sultanahmet, Grand Bazaar, Bosphorus, Kadikoy, and Beyoglu. Real 2026 prices, real restaurants, and smart routing."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["istanbul", "itinerary", "turkey", "city guide", "3-day trip"]
-image: "/images/blog/istanbul-3-day-itinerary.jpg"
-imageAlt: "Hagia Sophia and the Blue Mosque at sunset in Istanbul"
+title: 'Istanbul 3-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: istanbul-3-day-itinerary
+description: >-
+  A day-by-day Istanbul itinerary covering Sultanahmet, Grand Bazaar, Bosphorus,
+  Kadikoy, and Beyoglu. Real 2026 prices, real restaurants, and smart routing.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - istanbul
+  - itinerary
+  - turkey
+  - city guide
+  - 3-day trip
+image: /images/blog/istanbul-3-day-itinerary.jpg
+imageAlt: Hagia Sophia and the Blue Mosque at sunset in Istanbul
 readingTime: 11
 seo:
-  title: "Istanbul 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 3 unforgettable days in Istanbul with this practical day-by-day itinerary. Real 2026 prices, restaurant picks, tram and ferry routes, and smart tips for Sultanahmet, the Bosphorus, and Beyoglu."
-  keywords: ["istanbul 3 day itinerary", "istanbul itinerary 2026", "3 days in istanbul", "istanbul travel guide", "istanbul day by day", "what to do in istanbul", "istanbul budget guide"]
-schema: "Article"
+  title: 'Istanbul 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 3 unforgettable days in Istanbul with this practical day-by-day
+    itinerary. Real 2026 prices, restaurant picks, tram and ferry routes, and
+    smart tips for Sultanahmet, the Bosphorus, and Beyoglu.
+  keywords:
+    - istanbul 3 day itinerary
+    - istanbul itinerary 2026
+    - 3 days in istanbul
+    - istanbul travel guide
+    - istanbul day by day
+    - what to do in istanbul
+    - istanbul budget guide
+schema: Article
 ---
 
 # Istanbul 3-Day Itinerary: The Practical Day-by-Day Guide for 2026

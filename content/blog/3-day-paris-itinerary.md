@@ -1,20 +1,36 @@
 ---
-title: "The Perfect 3-Day Paris Itinerary: A Day-by-Day Guide for 2026"
-slug: "3-day-paris-itinerary"
-description: "A practical day-by-day Paris itinerary with real prices, real places, and smart routing. See the Eiffel Tower, Louvre, Montmartre, and more without wasting time or money."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["paris", "itinerary", "france", "3 days", "europe travel"]
-image: "/images/blog/3-day-paris-itinerary.jpg"
-imageAlt: "View of the Eiffel Tower from Trocadéro at sunset with Parisian architecture"
+title: 'The Perfect 3-Day Paris Itinerary: A Day-by-Day Guide for 2026'
+slug: 3-day-paris-itinerary
+description: >-
+  A practical day-by-day Paris itinerary with real prices, real places, and
+  smart routing. See the Eiffel Tower, Louvre, Montmartre, and more without
+  wasting time or money.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - paris
+  - itinerary
+  - france
+  - 3 days
+  - europe travel
+image: /images/blog/3-day-paris-itinerary.jpg
+imageAlt: View of the Eiffel Tower from Trocadéro at sunset with Parisian architecture
 readingTime: 7
 seo:
-  title: "3-Day Paris Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 3 perfect days in Paris with this day-by-day itinerary. Real prices, smart routing, and local tips for the Eiffel Tower, Louvre, Montmartre, and more."
-  keywords: ["3 day paris itinerary", "paris itinerary 3 days", "3 days in paris", "paris travel guide 2026", "what to do in paris in 3 days"]
-schema: "Article"
+  title: '3-Day Paris Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 3 perfect days in Paris with this day-by-day itinerary. Real prices,
+    smart routing, and local tips for the Eiffel Tower, Louvre, Montmartre, and
+    more.
+  keywords:
+    - 3 day paris itinerary
+    - paris itinerary 3 days
+    - 3 days in paris
+    - paris travel guide 2026
+    - what to do in paris in 3 days
+schema: Article
 ---
 
 # The Perfect 3-Day Paris Itinerary: A Day-by-Day Guide for 2026

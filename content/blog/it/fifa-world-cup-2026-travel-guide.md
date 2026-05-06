@@ -1,20 +1,45 @@
 ---
-title: "Guida di Viaggio per i Mondiali FIFA 2026: Pianifica il Tuo Viaggio Multi-Citta Con AI"
-slug: "fifa-world-cup-2026-travel-guide"
-description: "Guida completa per pianificare il tuo viaggio ai Mondiali FIFA 2026 nelle 16 citta ospitanti di USA, Canada e Messico. Stadi, consigli di viaggio, visti, budget e come l'AI puo pianificare il tuo itinerario perfetto."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-01"
-updatedAt: "2026-04-01"
-category: "Destination Guides"
-tags: ["FIFA World Cup 2026", "sports travel", "multi-city trip", "united states", "canada", "mexico", "AI travel planner"]
-image: "/images/blog/fifa-world-cup-2026-travel-guide.jpg"
-imageAlt: "Vista aerea di uno stadio di calcio gremito durante una partita dei Mondiali con lo skyline della citta"
+title: >-
+  Guida di Viaggio per i Mondiali FIFA 2026: Pianifica il Tuo Viaggio
+  Multi-Citta Con AI
+slug: fifa-world-cup-2026-travel-guide
+description: >-
+  Guida completa per pianificare il tuo viaggio ai Mondiali FIFA 2026 nelle 16
+  citta ospitanti di USA, Canada e Messico. Stadi, consigli di viaggio, visti,
+  budget e come l'AI puo pianificare il tuo itinerario perfetto.
+author: Emanuela P.
+publishedAt: '2026-04-01'
+updatedAt: '2026-04-01'
+category: Destination Guides
+tags:
+  - FIFA World Cup 2026
+  - sports travel
+  - multi-city trip
+  - united states
+  - canada
+  - mexico
+  - AI travel planner
+image: /images/blog/fifa-world-cup-2026-travel-guide.jpg
+imageAlt: >-
+  Vista aerea di uno stadio di calcio gremito durante una partita dei Mondiali
+  con lo skyline della citta
 readingTime: 14
 seo:
-  title: "Guida di Viaggio Mondiali FIFA 2026: 16 Citta Ospitanti, Budget e Pianificazione Con AI | MonkeyTravel"
-  description: "Pianifica il tuo viaggio ai Mondiali 2026 nelle 16 citta ospitanti di USA, Canada e Messico. Guida agli stadi, requisiti per i visti, budget e pianificazione itinerari multi-citta con AI."
-  keywords: ["guida viaggio mondiali 2026", "citta ospitanti mondiali 2026", "consigli viaggio mondiali 2026", "biglietti e viaggio mondiali 2026", "pianificatore viaggio multi citta mondiali", "requisiti visto mondiali 2026"]
-schema: "Article"
+  title: >-
+    Guida di Viaggio Mondiali FIFA 2026: 16 Citta Ospitanti, Budget e
+    Pianificazione Con AI | MonkeyTravel
+  description: >-
+    Pianifica il tuo viaggio ai Mondiali 2026 nelle 16 citta ospitanti di USA,
+    Canada e Messico. Guida agli stadi, requisiti per i visti, budget e
+    pianificazione itinerari multi-citta con AI.
+  keywords:
+    - guida viaggio mondiali 2026
+    - citta ospitanti mondiali 2026
+    - consigli viaggio mondiali 2026
+    - biglietti e viaggio mondiali 2026
+    - pianificatore viaggio multi citta mondiali
+    - requisiti visto mondiali 2026
+schema: Article
 ---
 
 # Guida di Viaggio per i Mondiali FIFA 2026: Pianifica il Tuo Viaggio Multi-Citta Con AI

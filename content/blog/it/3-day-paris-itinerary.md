@@ -1,20 +1,36 @@
 ---
-title: "Itinerario di 3 Giorni a Parigi: Guida Giorno per Giorno 2026"
-slug: "3-day-paris-itinerary"
-description: "Un itinerario pratico di Parigi giorno per giorno con prezzi reali, luoghi reali e percorsi intelligenti. Torre Eiffel, Louvre, Montmartre e altro senza sprecare tempo o denaro."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["parigi", "itinerario", "francia", "3 giorni", "viaggi europa"]
-image: "/images/blog/3-day-paris-itinerary.jpg"
-imageAlt: "Vista della Torre Eiffel dal Trocadéro al tramonto con architettura parigina"
+title: 'Itinerario di 3 Giorni a Parigi: Guida Giorno per Giorno 2026'
+slug: 3-day-paris-itinerary
+description: >-
+  Un itinerario pratico di Parigi giorno per giorno con prezzi reali, luoghi
+  reali e percorsi intelligenti. Torre Eiffel, Louvre, Montmartre e altro senza
+  sprecare tempo o denaro.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - parigi
+  - itinerario
+  - francia
+  - 3 giorni
+  - viaggi europa
+image: /images/blog/3-day-paris-itinerary.jpg
+imageAlt: Vista della Torre Eiffel dal Trocadéro al tramonto con architettura parigina
 readingTime: 7
 seo:
-  title: "Itinerario 3 Giorni Parigi 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 3 giorni perfetti a Parigi con questo itinerario giorno per giorno. Prezzi reali, percorsi intelligenti e consigli locali per Torre Eiffel, Louvre e altro."
-  keywords: ["itinerario 3 giorni parigi", "parigi in 3 giorni", "cosa vedere a parigi 3 giorni", "guida parigi 2026", "viaggio a parigi itinerario"]
-schema: "Article"
+  title: 'Itinerario 3 Giorni Parigi 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 3 giorni perfetti a Parigi con questo itinerario giorno per
+    giorno. Prezzi reali, percorsi intelligenti e consigli locali per Torre
+    Eiffel, Louvre e altro.
+  keywords:
+    - itinerario 3 giorni parigi
+    - parigi in 3 giorni
+    - cosa vedere a parigi 3 giorni
+    - guida parigi 2026
+    - viaggio a parigi itinerario
+schema: Article
 ---
 
 # Itinerario di 3 Giorni a Parigi: Guida Giorno per Giorno 2026

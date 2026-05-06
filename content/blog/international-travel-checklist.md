@@ -1,20 +1,40 @@
 ---
-title: "International Travel Checklist 2026: Everything You Need Before Your Trip"
-slug: "international-travel-checklist"
-description: "The complete international travel checklist organized by timeline. Covers passports, visas, vaccines, insurance, banking, and digital prep for stress-free travel."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["international travel", "travel checklist", "travel preparation", "first international trip"]
-image: "/images/blog/international-travel-checklist.jpg"
-imageAlt: "Passport, boarding pass, and travel essentials laid out on a wooden table before an international trip"
+title: 'International Travel Checklist 2026: Everything You Need Before Your Trip'
+slug: international-travel-checklist
+description: >-
+  The complete international travel checklist organized by timeline. Covers
+  passports, visas, vaccines, insurance, banking, and digital prep for
+  stress-free travel.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - international travel
+  - travel checklist
+  - travel preparation
+  - first international trip
+image: /images/blog/international-travel-checklist.jpg
+imageAlt: >-
+  Passport, boarding pass, and travel essentials laid out on a wooden table
+  before an international trip
 readingTime: 10
 seo:
-  title: "International Travel Checklist 2026: The Complete Pre-Trip Guide | MonkeyTravel"
-  description: "Complete international travel checklist for 2026 organized by timeline: 3 months, 1 month, 1 week, and day of travel. Passports, visas, vaccines, insurance, and more."
-  keywords: ["international travel checklist", "travel preparation", "what to do before international trip", "travel documents checklist", "first international trip checklist", "pre-trip checklist"]
-schema: "Article"
+  title: >-
+    International Travel Checklist 2026: The Complete Pre-Trip Guide |
+    MonkeyTravel
+  description: >-
+    Complete international travel checklist for 2026 organized by timeline: 3
+    months, 1 month, 1 week, and day of travel. Passports, visas, vaccines,
+    insurance, and more.
+  keywords:
+    - international travel checklist
+    - travel preparation
+    - what to do before international trip
+    - travel documents checklist
+    - first international trip checklist
+    - pre-trip checklist
+schema: Article
 ---
 
 # International Travel Checklist 2026: Everything You Need Before Your Trip

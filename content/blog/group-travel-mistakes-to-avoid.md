@@ -1,20 +1,34 @@
 ---
-title: "10 Group Travel Mistakes That Ruin Trips (and How to Avoid Them)"
-slug: "group-travel-mistakes-to-avoid"
-description: "Most group trips fail before they start. Here are 10 mistakes that kill the vibe — and the systems that prevent them, based on real data."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group travel mistakes", "travel with friends tips", "group trip problems", "group vacation planning", "travel conflict avoidance"]
-image: "/images/blog/group-travel-mistakes.jpg"
-imageAlt: "Friends looking frustrated while reading a map together in a European city"
+title: 10 Group Travel Mistakes That Ruin Trips (and How to Avoid Them)
+slug: group-travel-mistakes-to-avoid
+description: >-
+  Most group trips fail before they start. Here are 10 mistakes that kill the
+  vibe — and the systems that prevent them, based on real data.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group travel mistakes
+  - travel with friends tips
+  - group trip problems
+  - group vacation planning
+  - travel conflict avoidance
+image: /images/blog/group-travel-mistakes.jpg
+imageAlt: Friends looking frustrated while reading a map together in a European city
 readingTime: 7
 seo:
-  title: "10 Group Travel Mistakes (and How to Fix Them) | MonkeyTravel"
-  description: "The 10 most common mistakes that ruin group trips — and practical systems to prevent every one of them. Based on real traveler data."
-  keywords: ["group travel mistakes", "group trip problems", "travel with friends tips", "group vacation mistakes", "how to avoid fights on group trip"]
-schema: "Article"
+  title: 10 Group Travel Mistakes (and How to Fix Them) | MonkeyTravel
+  description: >-
+    The 10 most common mistakes that ruin group trips — and practical systems to
+    prevent every one of them. Based on real traveler data.
+  keywords:
+    - group travel mistakes
+    - group trip problems
+    - travel with friends tips
+    - group vacation mistakes
+    - how to avoid fights on group trip
+schema: Article
 ---
 
 # 10 Group Travel Mistakes That Ruin Trips (and How to Avoid Them)

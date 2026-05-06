@@ -1,20 +1,42 @@
 ---
-title: "Itinerario Cerdeña 7 Días: Costa Esmeralda, Ogliastra y Sur con AI"
-slug: "itinerario-sardegna-7-giorni"
-description: "Itinerario completo de 7 días en Cerdeña: de Cagliari a la Costa Esmeralda pasando por Ogliastra. Día a día con presupuesto, transporte y las mejores playas."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["sardinia", "itinerary", "italy", "beach", "7 days", "costa smeralda", "ogliastra", "road trip"]
-image: "/images/blog/itinerario-sardegna-7-giorni.jpg"
-imageAlt: "Cala Goloritzé en Cerdeña con agua turquesa y acantilados de piedra caliza"
+title: 'Itinerario Cerdeña 7 Días: Costa Esmeralda, Ogliastra y Sur con AI'
+slug: itinerario-sardegna-7-giorni
+description: >-
+  Itinerario completo de 7 días en Cerdeña: de Cagliari a la Costa Esmeralda
+  pasando por Ogliastra. Día a día con presupuesto, transporte y las mejores
+  playas.
+author: Federico S.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - sardinia
+  - itinerary
+  - italy
+  - beach
+  - 7 days
+  - costa smeralda
+  - ogliastra
+  - road trip
+image: /images/blog/itinerario-sardegna-7-giorni.jpg
+imageAlt: Cala Goloritzé en Cerdeña con agua turquesa y acantilados de piedra caliza
 readingTime: 10
 seo:
-  title: "Itinerario Cerdeña 7 Días 2026: Costa Esmeralda, Ogliastra y Sur | MonkeyTravel"
-  description: "Planifica 7 días perfectos en Cerdeña con este itinerario día a día. Cagliari, Villasimius, Ogliastra, Costa Esmeralda y Alghero — playas, presupuesto y consejos prácticos."
-  keywords: ["itinerario cerdeña 7 dias", "cerdeña 7 dias", "itinerario cerdeña", "cerdeña en coche", "costa esmeralda itinerario", "cerdeña que ver"]
-schema: "Article"
+  title: >-
+    Itinerario Cerdeña 7 Días 2026: Costa Esmeralda, Ogliastra y Sur |
+    MonkeyTravel
+  description: >-
+    Planifica 7 días perfectos en Cerdeña con este itinerario día a día.
+    Cagliari, Villasimius, Ogliastra, Costa Esmeralda y Alghero — playas,
+    presupuesto y consejos prácticos.
+  keywords:
+    - itinerario cerdeña 7 dias
+    - cerdeña 7 dias
+    - itinerario cerdeña
+    - cerdeña en coche
+    - costa esmeralda itinerario
+    - cerdeña que ver
+schema: Article
 ---
 
 # Itinerario Cerdeña 7 Días: Costa Esmeralda, Ogliastra y Sur con AI

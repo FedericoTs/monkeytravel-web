@@ -1,20 +1,43 @@
 ---
-title: "FIFA World Cup 2026 Travel Guide: Plan Your Multi-City Trip With AI"
-slug: "fifa-world-cup-2026-travel-guide"
-description: "Complete guide to planning your FIFA World Cup 2026 trip across 16 host cities in the US, Canada, and Mexico. Venues, travel tips, visa info, budgets, and how AI can plan your perfect World Cup itinerary."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-01"
-updatedAt: "2026-04-01"
-category: "Destination Guides"
-tags: ["FIFA World Cup 2026", "sports travel", "multi-city trip", "united states", "canada", "mexico", "AI travel planner"]
-image: "/images/blog/fifa-world-cup-2026-travel-guide.jpg"
-imageAlt: "Aerial view of a packed football stadium during a World Cup match with city skyline"
+title: 'FIFA World Cup 2026 Travel Guide: Plan Your Multi-City Trip With AI'
+slug: fifa-world-cup-2026-travel-guide
+description: >-
+  Complete guide to planning your FIFA World Cup 2026 trip across 16 host cities
+  in the US, Canada, and Mexico. Venues, travel tips, visa info, budgets, and
+  how AI can plan your perfect World Cup itinerary.
+author: Emanuela P.
+publishedAt: '2026-04-01'
+updatedAt: '2026-04-01'
+category: Destination Guides
+tags:
+  - FIFA World Cup 2026
+  - sports travel
+  - multi-city trip
+  - united states
+  - canada
+  - mexico
+  - AI travel planner
+image: /images/blog/fifa-world-cup-2026-travel-guide.jpg
+imageAlt: >-
+  Aerial view of a packed football stadium during a World Cup match with city
+  skyline
 readingTime: 14
 seo:
-  title: "FIFA World Cup 2026 Travel Guide: 16 Host Cities, Budgets & AI Trip Planning | MonkeyTravel"
-  description: "Plan your World Cup 2026 trip to 16 host cities across the US, Canada, and Mexico. Venue guides, visa requirements, budget breakdowns, and AI-powered multi-city itinerary planning."
-  keywords: ["fifa world cup 2026 travel guide", "world cup 2026 host cities", "world cup 2026 travel tips", "world cup 2026 tickets travel", "multi city trip planner world cup", "world cup 2026 visa requirements"]
-schema: "Article"
+  title: >-
+    FIFA World Cup 2026 Travel Guide: 16 Host Cities, Budgets & AI Trip Planning
+    | MonkeyTravel
+  description: >-
+    Plan your World Cup 2026 trip to 16 host cities across the US, Canada, and
+    Mexico. Venue guides, visa requirements, budget breakdowns, and AI-powered
+    multi-city itinerary planning.
+  keywords:
+    - fifa world cup 2026 travel guide
+    - world cup 2026 host cities
+    - world cup 2026 travel tips
+    - world cup 2026 tickets travel
+    - multi city trip planner world cup
+    - world cup 2026 visa requirements
+schema: Article
 ---
 
 # FIFA World Cup 2026 Travel Guide: Plan Your Multi-City Trip With AI

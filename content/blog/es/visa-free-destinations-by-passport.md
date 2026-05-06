@@ -1,20 +1,36 @@
 ---
-title: "Destinos Sin Visa por Pasaporte: La Guía Completa 2026"
-slug: "visa-free-destinations-by-passport"
-description: "Descubre cuántos países puedes visitar sin visa con tu pasaporte. Guía completa 2026 con los 15 pasaportes principales, ETAs, visa a la llegada y consejos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["viajes sin visa", "poder del pasaporte", "documentos de viaje", "requisitos de visa"]
-image: "/images/blog/visa-free-destinations-by-passport.jpg"
-imageAlt: "Mapa mundial con sellos de pasaporte y pines de destinos sin visa destacando la libertad de viaje global"
+title: 'Destinos Sin Visa por Pasaporte: La Guía Completa 2026'
+slug: visa-free-destinations-by-passport
+description: >-
+  Descubre cuántos países puedes visitar sin visa con tu pasaporte. Guía
+  completa 2026 con los 15 pasaportes principales, ETAs, visa a la llegada y
+  consejos.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - viajes sin visa
+  - poder del pasaporte
+  - documentos de viaje
+  - requisitos de visa
+image: /images/blog/visa-free-destinations-by-passport.jpg
+imageAlt: >-
+  Mapa mundial con sellos de pasaporte y pines de destinos sin visa destacando
+  la libertad de viaje global
 readingTime: 11
 seo:
-  title: "Destinos Sin Visa por Pasaporte 2026: Guía Completa País por País"
-  description: "Descubre cuántos países puedes visitar sin visa con tu pasaporte. Guía completa 2026 con los 15 pasaportes principales, ETAs, visa a la llegada y consejos."
-  keywords: ["destinos sin visa", "viajes sin visa", "requisitos visa pasaporte", "viajar sin visa"]
-schema: "Article"
+  title: 'Destinos Sin Visa por Pasaporte 2026: Guía Completa País por País'
+  description: >-
+    Descubre cuántos países puedes visitar sin visa con tu pasaporte. Guía
+    completa 2026 con los 15 pasaportes principales, ETAs, visa a la llegada y
+    consejos.
+  keywords:
+    - destinos sin visa
+    - viajes sin visa
+    - requisitos visa pasaporte
+    - viajar sin visa
+schema: Article
 ---
 
 # Destinos sin visa por pasaporte: la guia completa 2026

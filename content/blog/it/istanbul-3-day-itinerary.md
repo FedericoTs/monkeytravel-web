@@ -1,20 +1,39 @@
 ---
-title: "Itinerario di 3 Giorni a Istanbul: La Guida Pratica Giorno per Giorno per il 2026"
-slug: "istanbul-3-day-itinerary"
-description: "Un itinerario di Istanbul giorno per giorno che copre Sultanahmet, Gran Bazar, Bosforo, Kadikoy e Beyoglu. Prezzi reali 2026, ristoranti veri e percorsi intelligenti."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["istanbul", "itinerario", "turchia", "guida città", "viaggio di 3 giorni"]
-image: "/images/blog/istanbul-3-day-itinerary.jpg"
-imageAlt: "Santa Sofia e la Moschea Blu al tramonto a Istanbul"
+title: >-
+  Itinerario di 3 Giorni a Istanbul: La Guida Pratica Giorno per Giorno per il
+  2026
+slug: istanbul-3-day-itinerary
+description: >-
+  Un itinerario di Istanbul giorno per giorno che copre Sultanahmet, Gran Bazar,
+  Bosforo, Kadikoy e Beyoglu. Prezzi reali 2026, ristoranti veri e percorsi
+  intelligenti.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - istanbul
+  - itinerario
+  - turchia
+  - guida città
+  - viaggio di 3 giorni
+image: /images/blog/istanbul-3-day-itinerary.jpg
+imageAlt: Santa Sofia e la Moschea Blu al tramonto a Istanbul
 readingTime: 11
 seo:
-  title: "Itinerario 3 Giorni Istanbul 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 3 giorni indimenticabili a Istanbul con questo itinerario pratico giorno per giorno. Prezzi reali 2026, ristoranti consigliati, percorsi in tram e traghetto, e consigli per Sultanahmet, il Bosforo e Beyoglu."
-  keywords: ["itinerario 3 giorni istanbul", "istanbul itinerario 2026", "3 giorni a istanbul", "guida viaggio istanbul", "cosa fare a istanbul", "istanbul budget guida"]
-schema: "Article"
+  title: 'Itinerario 3 Giorni Istanbul 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 3 giorni indimenticabili a Istanbul con questo itinerario pratico
+    giorno per giorno. Prezzi reali 2026, ristoranti consigliati, percorsi in
+    tram e traghetto, e consigli per Sultanahmet, il Bosforo e Beyoglu.
+  keywords:
+    - itinerario 3 giorni istanbul
+    - istanbul itinerario 2026
+    - 3 giorni a istanbul
+    - guida viaggio istanbul
+    - cosa fare a istanbul
+    - istanbul budget guida
+schema: Article
 ---
 
 # Itinerario di 3 Giorni a Istanbul: La Guida Pratica Giorno per Giorno per il 2026

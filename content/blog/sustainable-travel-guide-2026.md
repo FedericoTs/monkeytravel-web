@@ -1,20 +1,42 @@
 ---
-title: "Sustainable Travel Guide 2026: 10 Destinations Leading the Way"
-slug: "sustainable-travel-guide-2026"
-description: "The honest guide to sustainable travel in 2026 — 10 destinations that are actually doing it right, from carbon-negative Bhutan to community-led conservation in Kenya, with real budgets and practical eco-travel tips."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["sustainable travel 2026", "eco-friendly destinations", "responsible tourism", "green travel", "regenerative travel", "sustainable tourism guide"]
-image: "/images/blog/sustainable-travel-guide-2026.jpg"
-imageAlt: "Lush rainforest canopy viewed from a sustainable eco-lodge, mist rising over treetops at dawn"
+title: 'Sustainable Travel Guide 2026: 10 Destinations Leading the Way'
+slug: sustainable-travel-guide-2026
+description: >-
+  The honest guide to sustainable travel in 2026 — 10 destinations that are
+  actually doing it right, from carbon-negative Bhutan to community-led
+  conservation in Kenya, with real budgets and practical eco-travel tips.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - sustainable travel 2026
+  - eco-friendly destinations
+  - responsible tourism
+  - green travel
+  - regenerative travel
+  - sustainable tourism guide
+image: /images/blog/sustainable-travel-guide-2026.jpg
+imageAlt: >-
+  Lush rainforest canopy viewed from a sustainable eco-lodge, mist rising over
+  treetops at dawn
 readingTime: 11
 seo:
-  title: "Sustainable Travel Guide 2026: 10 Destinations Leading the Way | MonkeyTravel"
-  description: "10 destinations genuinely leading sustainable tourism in 2026 — real budgets, best eco-experiences, and practical tips for traveling with less impact and more meaning."
-  keywords: ["sustainable travel 2026", "best eco-friendly destinations 2026", "responsible tourism guide", "green travel tips", "regenerative travel destinations", "sustainable tourism 2026"]
-schema: "Article"
+  title: >-
+    Sustainable Travel Guide 2026: 10 Destinations Leading the Way |
+    MonkeyTravel
+  description: >-
+    10 destinations genuinely leading sustainable tourism in 2026 — real
+    budgets, best eco-experiences, and practical tips for traveling with less
+    impact and more meaning.
+  keywords:
+    - sustainable travel 2026
+    - best eco-friendly destinations 2026
+    - responsible tourism guide
+    - green travel tips
+    - regenerative travel destinations
+    - sustainable tourism 2026
+schema: Article
 ---
 
 # Sustainable Travel Guide 2026: 10 Destinations Leading the Way

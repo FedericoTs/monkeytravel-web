@@ -1,20 +1,36 @@
 ---
-title: "Itinerario di 7 Giorni a Bali: Guida Pratica Giorno per Giorno 2026"
-slug: "bali-7-day-itinerary"
-description: "Un itinerario realistico di 7 giorni a Bali che copre Ubud, Seminyak, Uluwatu e Nusa Penida con prezzi reali del 2026, ristoranti veri e consigli onesti sui trasporti."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["bali", "itinerario", "indonesia", "7 giorni", "viaggi asia"]
-image: "/images/blog/bali-7-day-itinerary.jpg"
-imageAlt: "Terrazze di riso di Tegallalang a Ubud, Bali con livelli verdi e palme"
+title: 'Itinerario di 7 Giorni a Bali: Guida Pratica Giorno per Giorno 2026'
+slug: bali-7-day-itinerary
+description: >-
+  Un itinerario realistico di 7 giorni a Bali che copre Ubud, Seminyak, Uluwatu
+  e Nusa Penida con prezzi reali del 2026, ristoranti veri e consigli onesti sui
+  trasporti.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - bali
+  - itinerario
+  - indonesia
+  - 7 giorni
+  - viaggi asia
+image: /images/blog/bali-7-day-itinerary.jpg
+imageAlt: 'Terrazze di riso di Tegallalang a Ubud, Bali con livelli verdi e palme'
 readingTime: 9
 seo:
-  title: "Itinerario 7 Giorni Bali 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 7 giorni perfetti a Bali con questo itinerario pratico. Prezzi reali, ristoranti veri e percorsi intelligenti per Ubud, Seminyak, Uluwatu e Nusa Penida."
-  keywords: ["itinerario 7 giorni bali", "bali in 7 giorni", "cosa fare a bali una settimana", "guida bali 2026", "viaggio a bali itinerario"]
-schema: "Article"
+  title: 'Itinerario 7 Giorni Bali 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 7 giorni perfetti a Bali con questo itinerario pratico. Prezzi
+    reali, ristoranti veri e percorsi intelligenti per Ubud, Seminyak, Uluwatu e
+    Nusa Penida.
+  keywords:
+    - itinerario 7 giorni bali
+    - bali in 7 giorni
+    - cosa fare a bali una settimana
+    - guida bali 2026
+    - viaggio a bali itinerario
+schema: Article
 ---
 
 # Itinerario di 7 Giorni a Bali: Guida Pratica Giorno per Giorno 2026

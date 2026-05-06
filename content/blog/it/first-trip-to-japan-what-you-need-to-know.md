@@ -1,20 +1,36 @@
 ---
-title: "What You Need to Know Before Your First Trip to Japan"
-slug: "first-trip-to-japan-what-you-need-to-know"
-description: "Everything first-time visitors to Japan need to know in 2026 — from rail passes and cash culture to etiquette that actually matters. No fluff, just the practical stuff."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Destination Guides"
-tags: ["japan", "first time travel", "travel tips", "destination guide", "asia travel"]
-image: "/images/blog/first-trip-japan.jpg"
-imageAlt: "Traditional torii gates in Kyoto, Japan with cherry blossoms"
+title: What You Need to Know Before Your First Trip to Japan
+slug: first-trip-to-japan-what-you-need-to-know
+description: >-
+  Everything first-time visitors to Japan need to know in 2026 — from rail
+  passes and cash culture to etiquette that actually matters. No fluff, just the
+  practical stuff.
+author: Enrico E.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Destination Guides
+tags:
+  - japan
+  - first time travel
+  - travel tips
+  - destination guide
+  - asia travel
+image: /images/blog/first-trip-japan.jpg
+imageAlt: 'Traditional torii gates in Kyoto, Japan with cherry blossoms'
 readingTime: 6
 seo:
-  title: "What You Need to Know Before Your First Trip to Japan in 2026 | MonkeyTravel"
-  description: "First time in Japan? Here's what actually matters: rail passes, cash vs. card, etiquette rules, and the mistakes every tourist makes. Updated for 2026."
-  keywords: ["first trip to japan", "japan travel tips", "what to know before visiting japan", "japan first time visitor guide", "japan travel guide 2026"]
-schema: "Article"
+  title: What You Need to Know Before Your First Trip to Japan in 2026 | MonkeyTravel
+  description: >-
+    First time in Japan? Here's what actually matters: rail passes, cash vs.
+    card, etiquette rules, and the mistakes every tourist makes. Updated for
+    2026.
+  keywords:
+    - first trip to japan
+    - japan travel tips
+    - what to know before visiting japan
+    - japan first time visitor guide
+    - japan travel guide 2026
+schema: Article
 ---
 
 # Cosa devi sapere prima del tuo primo viaggio in Giappone

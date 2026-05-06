@@ -1,20 +1,42 @@
 ---
-title: "Le Migliori Destinazioni per il Foliage Autunnale nel Mondo: Dove Vedere i Colori dell'Autunno nel 2026"
-slug: "best-fall-foliage-destinations"
-description: "Le 12 migliori destinazioni al mondo per il foliage autunnale, con date di picco, percorsi in auto, consigli fotografici e confronto budget. Pianifica il tuo viaggio d'autunno 2026."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["foliage autunnale", "autunno", "stagionale", "natura", "fotografia"]
-image: "/images/blog/best-fall-foliage-destinations.jpg"
-imageAlt: "Foliage autunnale vibrante in rosso e arancione lungo una strada del New England con un ponte coperto"
+title: >-
+  Le Migliori Destinazioni per il Foliage Autunnale nel Mondo: Dove Vedere i
+  Colori dell'Autunno nel 2026
+slug: best-fall-foliage-destinations
+description: >-
+  Le 12 migliori destinazioni al mondo per il foliage autunnale, con date di
+  picco, percorsi in auto, consigli fotografici e confronto budget. Pianifica il
+  tuo viaggio d'autunno 2026.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - foliage autunnale
+  - autunno
+  - stagionale
+  - natura
+  - fotografia
+image: /images/blog/best-fall-foliage-destinations.jpg
+imageAlt: >-
+  Foliage autunnale vibrante in rosso e arancione lungo una strada del New
+  England con un ponte coperto
 readingTime: 8
 seo:
-  title: "Migliori Destinazioni Foliage Autunnale 2026: 12 Luoghi per Vedere i Colori d'Autunno | MonkeyTravel"
-  description: "Scopri le 12 migliori destinazioni per il foliage autunnale nel 2026. Date di picco, percorsi in auto, itinerari in treno, consigli fotografici e confronto budget."
-  keywords: ["migliori destinazioni foliage autunnale", "viaggio foglie autunno", "viaggio colori autunno 2026", "dove vedere foliage autunnale", "migliori luoghi colori autunno"]
-schema: "Article"
+  title: >-
+    Migliori Destinazioni Foliage Autunnale 2026: 12 Luoghi per Vedere i Colori
+    d'Autunno | MonkeyTravel
+  description: >-
+    Scopri le 12 migliori destinazioni per il foliage autunnale nel 2026. Date
+    di picco, percorsi in auto, itinerari in treno, consigli fotografici e
+    confronto budget.
+  keywords:
+    - migliori destinazioni foliage autunnale
+    - viaggio foglie autunno
+    - viaggio colori autunno 2026
+    - dove vedere foliage autunnale
+    - migliori luoghi colori autunno
+schema: Article
 ---
 
 # Le Migliori Destinazioni per il Foliage Autunnale nel Mondo: Dove Vedere i Colori dell'Autunno nel 2026

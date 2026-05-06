@@ -1,20 +1,40 @@
 ---
-title: "Passport Power Index 2026: Ranking Completo e Cosa Significa per i Tuoi Viaggi"
-slug: "passport-power-index-2026"
-description: "Il Passport Power Index 2026 completo: i 10 passaporti piu forti e deboli, destinazioni senza visto, analisi regionale e come il ranking influenza i viaggi."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["potere del passaporto", "viaggi senza visto", "ranking passaporti", "documenti di viaggio"]
-image: "/images/blog/passport-power-index-2026.jpg"
-imageAlt: "Passaporti del mondo dispiegati su una mappa accanto a un mappamondo e una carta d'imbarco, a rappresentare il Passport Power Index 2026"
+title: 'Passport Power Index 2026: Ranking Completo e Cosa Significa per i Tuoi Viaggi'
+slug: passport-power-index-2026
+description: >-
+  Il Passport Power Index 2026 completo: i 10 passaporti piu forti e deboli,
+  destinazioni senza visto, analisi regionale e come il ranking influenza i
+  viaggi.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - potere del passaporto
+  - viaggi senza visto
+  - ranking passaporti
+  - documenti di viaggio
+image: /images/blog/passport-power-index-2026.jpg
+imageAlt: >-
+  Passaporti del mondo dispiegati su una mappa accanto a un mappamondo e una
+  carta d'imbarco, a rappresentare il Passport Power Index 2026
 readingTime: 12
 seo:
-  title: "Passport Power Index 2026: Rankings Completi e Destinazioni Senza Visto | MonkeyTravel"
-  description: "Il Passport Power Index 2026 completo: i 10 passaporti piu forti e deboli, destinazioni senza visto, analisi regionale e come il ranking influenza i viaggi."
-  keywords: ["passport power index 2026", "passaporti piu forti", "destinazioni senza visto", "ranking passaporti", "Henley Passport Index 2026", "passaporti piu potenti 2026"]
-schema: "Article"
+  title: >-
+    Passport Power Index 2026: Rankings Completi e Destinazioni Senza Visto |
+    MonkeyTravel
+  description: >-
+    Il Passport Power Index 2026 completo: i 10 passaporti piu forti e deboli,
+    destinazioni senza visto, analisi regionale e come il ranking influenza i
+    viaggi.
+  keywords:
+    - passport power index 2026
+    - passaporti piu forti
+    - destinazioni senza visto
+    - ranking passaporti
+    - Henley Passport Index 2026
+    - passaporti piu potenti 2026
+schema: Article
 ---
 
 # Passport Power Index 2026: Ranking Completo e Cosa Significa per i Tuoi Viaggi

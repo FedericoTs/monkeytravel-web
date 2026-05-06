@@ -1,20 +1,37 @@
 ---
-title: "ChatGPT vs AI Trip Planners: Which Actually Plans Better Trips in 2026?"
-slug: "chatgpt-vs-ai-trip-planners"
-description: "We gave the same trip request to ChatGPT and dedicated AI trip planners. The results were not close. Here's an honest comparison of where each tool wins and fails."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Travel Tips"
-tags: ["AI travel planner", "ChatGPT", "trip planning", "comparison", "travel tools"]
-image: "/images/blog/chatgpt-vs-ai-trip-planners.jpg"
-imageAlt: "Split screen comparing ChatGPT conversation and a dedicated AI trip planner itinerary"
+title: 'ChatGPT vs AI Trip Planners: Which Actually Plans Better Trips in 2026?'
+slug: chatgpt-vs-ai-trip-planners
+description: >-
+  We gave the same trip request to ChatGPT and dedicated AI trip planners. The
+  results were not close. Here's an honest comparison of where each tool wins
+  and fails.
+author: Riccardo P.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Travel Tips
+tags:
+  - AI travel planner
+  - ChatGPT
+  - trip planning
+  - comparison
+  - travel tools
+image: /images/blog/chatgpt-vs-ai-trip-planners.jpg
+imageAlt: >-
+  Split screen comparing ChatGPT conversation and a dedicated AI trip planner
+  itinerary
 readingTime: 9
 seo:
-  title: "ChatGPT vs AI Trip Planners 2026: Honest Comparison | MonkeyTravel"
-  description: "ChatGPT is great for brainstorming, but it fails at complex itineraries 90% of the time. We tested it against dedicated AI trip planners. Here's what actually works."
-  keywords: ["chatgpt vs ai trip planner", "chatgpt travel planning", "best ai trip planner 2026", "chatgpt itinerary problems"]
-schema: "Article"
+  title: 'ChatGPT vs AI Trip Planners 2026: Honest Comparison | MonkeyTravel'
+  description: >-
+    ChatGPT is great for brainstorming, but it fails at complex itineraries 90%
+    of the time. We tested it against dedicated AI trip planners. Here's what
+    actually works.
+  keywords:
+    - chatgpt vs ai trip planner
+    - chatgpt travel planning
+    - best ai trip planner 2026
+    - chatgpt itinerary problems
+schema: Article
 ---
 
 # ChatGPT vs AI Trip Planners: Which Actually Plans Better Trips in 2026?

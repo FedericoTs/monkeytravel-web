@@ -1,20 +1,43 @@
 ---
-title: "Migliori Destinazioni per il Sole di Mezzanotte: Dove Vivere 24 Ore di Luce nel 2026"
-slug: "midnight-sun-best-destinations"
-description: "I migliori posti per vedere il sole di mezzanotte nel 2026 — dalle Isole Lofoten in Norvegia all'Islanda, Lapponia Svedese, Finlandia, Alaska e Svalbard. Quando andare, cosa fare e quanto costa."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["sole di mezzanotte", "artico", "norvegia", "islanda", "stagionale", "estate"]
-image: "/images/blog/midnight-sun-best-destinations.jpg"
-imageAlt: "Sole di mezzanotte che bagna di luce dorata le Isole Lofoten in Norvegia a mezzanotte"
+title: >-
+  Migliori Destinazioni per il Sole di Mezzanotte: Dove Vivere 24 Ore di Luce
+  nel 2026
+slug: midnight-sun-best-destinations
+description: >-
+  I migliori posti per vedere il sole di mezzanotte nel 2026 — dalle Isole
+  Lofoten in Norvegia all'Islanda, Lapponia Svedese, Finlandia, Alaska e
+  Svalbard. Quando andare, cosa fare e quanto costa.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - sole di mezzanotte
+  - artico
+  - norvegia
+  - islanda
+  - stagionale
+  - estate
+image: /images/blog/midnight-sun-best-destinations.jpg
+imageAlt: >-
+  Sole di mezzanotte che bagna di luce dorata le Isole Lofoten in Norvegia a
+  mezzanotte
 readingTime: 7
 seo:
-  title: "Migliori Destinazioni Sole di Mezzanotte 2026: Dove Vedere 24h di Luce | MonkeyTravel"
-  description: "Scopri le migliori destinazioni per il sole di mezzanotte nel 2026. Norvegia, Islanda, Svezia, Finlandia, Alaska e altro — con date, attività e consigli pratici."
-  keywords: ["destinazioni sole di mezzanotte", "dove vedere sole di mezzanotte", "sole di mezzanotte viaggio 2026", "migliori posti sole di mezzanotte", "sole di mezzanotte norvegia islanda"]
-schema: "Article"
+  title: >-
+    Migliori Destinazioni Sole di Mezzanotte 2026: Dove Vedere 24h di Luce |
+    MonkeyTravel
+  description: >-
+    Scopri le migliori destinazioni per il sole di mezzanotte nel 2026.
+    Norvegia, Islanda, Svezia, Finlandia, Alaska e altro — con date, attività e
+    consigli pratici.
+  keywords:
+    - destinazioni sole di mezzanotte
+    - dove vedere sole di mezzanotte
+    - sole di mezzanotte viaggio 2026
+    - migliori posti sole di mezzanotte
+    - sole di mezzanotte norvegia islanda
+schema: Article
 ---
 
 # Migliori Destinazioni per il Sole di Mezzanotte: Dove Vivere 24 Ore di Luce nel 2026

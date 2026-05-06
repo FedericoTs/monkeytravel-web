@@ -1,20 +1,42 @@
 ---
-title: "Monsoon Season 2026: Where to Go and Where to Avoid in Asia"
-slug: "monsoon-season-where-to-go-and-avoid"
-description: "A practical guide to monsoon season across Asia. Which months hit which countries, where to avoid, where to go for green season deals, and how to save 30-50% on your trip."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["monsoon", "asia", "seasonal", "budget travel", "weather"]
-image: "/images/blog/monsoon-season-where-to-go-and-avoid.jpg"
-imageAlt: "Lush green rice terraces during monsoon season with dramatic rain clouds in Southeast Asia"
+title: 'Monsoon Season 2026: Where to Go and Where to Avoid in Asia'
+slug: monsoon-season-where-to-go-and-avoid
+description: >-
+  A practical guide to monsoon season across Asia. Which months hit which
+  countries, where to avoid, where to go for green season deals, and how to save
+  30-50% on your trip.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - monsoon
+  - asia
+  - seasonal
+  - budget travel
+  - weather
+image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
+imageAlt: >-
+  Lush green rice terraces during monsoon season with dramatic rain clouds in
+  Southeast Asia
 readingTime: 7
 seo:
-  title: "Monsoon Season Asia 2026: Month-by-Month Guide — Where to Go & Avoid | MonkeyTravel"
-  description: "Don't cancel your Asia trip. Complete 2026 monsoon calendar for Southeast Asia, India, and East Asia — which months to visit, which to skip, and where to go instead."
-  keywords: ["monsoon season asia 2026", "monsoon season travel", "where to avoid monsoon", "green season asia", "best time to visit southeast asia", "rain season asia", "monsoon season thailand 2026"]
-schema: "Article"
+  title: >-
+    Monsoon Season Asia 2026: Month-by-Month Guide — Where to Go & Avoid |
+    MonkeyTravel
+  description: >-
+    Don't cancel your Asia trip. Complete 2026 monsoon calendar for Southeast
+    Asia, India, and East Asia — which months to visit, which to skip, and where
+    to go instead.
+  keywords:
+    - monsoon season asia 2026
+    - monsoon season travel
+    - where to avoid monsoon
+    - green season asia
+    - best time to visit southeast asia
+    - rain season asia
+    - monsoon season thailand 2026
+schema: Article
 ---
 
 # Monsoon Season 2026: Where to Go and Where to Avoid in Asia

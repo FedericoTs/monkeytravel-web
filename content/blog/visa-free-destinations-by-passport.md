@@ -1,20 +1,36 @@
 ---
-title: "Visa-Free Destinations by Passport: The Complete 2026 Guide"
-slug: "visa-free-destinations-by-passport"
-description: "Discover how many countries you can visit visa-free with your passport. Complete 2026 guide covering top 15 passports, ETAs, visa-on-arrival, and tips."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["visa-free travel", "passport power", "travel documents", "visa requirements"]
-image: "/images/blog/visa-free-destinations-by-passport.jpg"
-imageAlt: "World map with passport stamps and visa-free destination pins highlighting global travel freedom"
+title: 'Visa-Free Destinations by Passport: The Complete 2026 Guide'
+slug: visa-free-destinations-by-passport
+description: >-
+  Discover how many countries you can visit visa-free with your passport.
+  Complete 2026 guide covering top 15 passports, ETAs, visa-on-arrival, and
+  tips.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - visa-free travel
+  - passport power
+  - travel documents
+  - visa requirements
+image: /images/blog/visa-free-destinations-by-passport.jpg
+imageAlt: >-
+  World map with passport stamps and visa-free destination pins highlighting
+  global travel freedom
 readingTime: 11
 seo:
-  title: "Visa-Free Destinations by Passport 2026: Complete Country-by-Country Guide"
-  description: "Discover how many countries you can visit visa-free with your passport. Complete 2026 guide covering top 15 passports, ETAs, visa-on-arrival, and tips."
-  keywords: ["visa-free destinations", "visa-free travel", "passport visa requirements", "travel without visa"]
-schema: "Article"
+  title: 'Visa-Free Destinations by Passport 2026: Complete Country-by-Country Guide'
+  description: >-
+    Discover how many countries you can visit visa-free with your passport.
+    Complete 2026 guide covering top 15 passports, ETAs, visa-on-arrival, and
+    tips.
+  keywords:
+    - visa-free destinations
+    - visa-free travel
+    - passport visa requirements
+    - travel without visa
+schema: Article
 ---
 
 # Visa-Free Destinations by Passport: The Complete 2026 Guide

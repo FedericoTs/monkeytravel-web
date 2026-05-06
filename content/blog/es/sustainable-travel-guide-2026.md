@@ -1,20 +1,43 @@
 ---
-title: "Guía de Viaje Sostenible 2026: 10 Destinos que Lideran el Camino"
-slug: "sustainable-travel-guide-2026"
-description: "La guía honesta del viaje sostenible en 2026 — 10 destinos que realmente lo hacen bien, desde el Bután con carbono negativo hasta la conservación comunitaria en Kenia, con presupuestos reales y consejos prácticos para viajar de forma ecológica."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["viaje sostenible 2026", "destinos ecológicos", "turismo responsable", "viaje verde", "turismo regenerativo", "guía turismo sostenible"]
-image: "/images/blog/sustainable-travel-guide-2026.jpg"
-imageAlt: "Frondoso dosel de selva tropical visto desde un ecolodge sostenible, niebla elevándose sobre las copas de los árboles al amanecer"
+title: 'Guía de Viaje Sostenible 2026: 10 Destinos que Lideran el Camino'
+slug: sustainable-travel-guide-2026
+description: >-
+  La guía honesta del viaje sostenible en 2026 — 10 destinos que realmente lo
+  hacen bien, desde el Bután con carbono negativo hasta la conservación
+  comunitaria en Kenia, con presupuestos reales y consejos prácticos para viajar
+  de forma ecológica.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - viaje sostenible 2026
+  - destinos ecológicos
+  - turismo responsable
+  - viaje verde
+  - turismo regenerativo
+  - guía turismo sostenible
+image: /images/blog/sustainable-travel-guide-2026.jpg
+imageAlt: >-
+  Frondoso dosel de selva tropical visto desde un ecolodge sostenible, niebla
+  elevándose sobre las copas de los árboles al amanecer
 readingTime: 11
 seo:
-  title: "Guía de Viaje Sostenible 2026: 10 Destinos que Lideran el Camino | MonkeyTravel"
-  description: "10 destinos que realmente lideran el turismo sostenible en 2026 — presupuestos reales, mejores experiencias ecológicas y consejos prácticos para viajar con menos impacto y más sentido."
-  keywords: ["viaje sostenible 2026", "mejores destinos ecológicos 2026", "guía turismo responsable", "consejos viaje verde", "destinos turismo regenerativo", "turismo sostenible 2026"]
-schema: "Article"
+  title: >-
+    Guía de Viaje Sostenible 2026: 10 Destinos que Lideran el Camino |
+    MonkeyTravel
+  description: >-
+    10 destinos que realmente lideran el turismo sostenible en 2026 —
+    presupuestos reales, mejores experiencias ecológicas y consejos prácticos
+    para viajar con menos impacto y más sentido.
+  keywords:
+    - viaje sostenible 2026
+    - mejores destinos ecológicos 2026
+    - guía turismo responsable
+    - consejos viaje verde
+    - destinos turismo regenerativo
+    - turismo sostenible 2026
+schema: Article
 ---
 
 # Guía de Viaje Sostenible 2026: 10 Destinos que Lideran el Camino

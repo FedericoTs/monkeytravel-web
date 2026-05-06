@@ -1,20 +1,40 @@
 ---
-title: "Bali vs Tailandia: ¿Cuál Deberías Elegir en 2026?"
-slug: "bali-vs-thailand"
-description: "Una comparación honesta entre Bali y Tailandia para 2026 — costes, playas, comida, cultura, vida nocturna y cuál destino se adapta mejor a tu estilo de viaje."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["bali", "thailand", "comparison", "southeast asia", "budget travel"]
-image: "/images/blog/bali-vs-thailand.jpg"
-imageAlt: "Imagen dividida comparando terrazas de arroz de Bali y playas de Tailandia"
+title: 'Bali vs Tailandia: ¿Cuál Deberías Elegir en 2026?'
+slug: bali-vs-thailand
+description: >-
+  Una comparación honesta entre Bali y Tailandia para 2026 — costes, playas,
+  comida, cultura, vida nocturna y cuál destino se adapta mejor a tu estilo de
+  viaje.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - bali
+  - thailand
+  - comparison
+  - southeast asia
+  - budget travel
+image: /images/blog/bali-vs-thailand.jpg
+imageAlt: Imagen dividida comparando terrazas de arroz de Bali y playas de Tailandia
 readingTime: 10
 seo:
-  title: "Bali vs Tailandia 2026: Comparación Honesta | MonkeyTravel"
-  description: "¿Bali o Tailandia? Compara playas, costes diarios, comida, cultura, vida nocturna y requisitos de visa para 2026. Descubre cuál destino se adapta a tu estilo."
-  keywords: ["bali vs thailand", "bali or thailand", "bali vs thailand cost", "bali vs thailand 2026", "southeast asia comparison", "bali vs thailand beaches", "bali vs thailand budget", "thailand or bali for couples", "bali vs thailand nightlife"]
-schema: "Article"
+  title: 'Bali vs Tailandia 2026: Comparación Honesta | MonkeyTravel'
+  description: >-
+    ¿Bali o Tailandia? Compara playas, costes diarios, comida, cultura, vida
+    nocturna y requisitos de visa para 2026. Descubre cuál destino se adapta a
+    tu estilo.
+  keywords:
+    - bali vs thailand
+    - bali or thailand
+    - bali vs thailand cost
+    - bali vs thailand 2026
+    - southeast asia comparison
+    - bali vs thailand beaches
+    - bali vs thailand budget
+    - thailand or bali for couples
+    - bali vs thailand nightlife
+schema: Article
 ---
 
 # Bali vs Tailandia: cual deberias elegir en 2026?

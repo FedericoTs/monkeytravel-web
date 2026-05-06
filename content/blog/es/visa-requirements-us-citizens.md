@@ -1,20 +1,38 @@
 ---
-title: "Requisitos de Visa para Ciudadanos de EE.UU. 2026: Todos los Paises Donde Necesitas Visa"
-slug: "visa-requirements-us-citizens"
-description: "Guia completa 2026 de requisitos de visa para ciudadanos estadounidenses. Paises sin visa, e-visas, costos, tiempos de tramite y el nuevo ETIAS para Europa."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["requisitos de visa", "pasaporte estadounidense", "documentos de viaje", "viajeros americanos"]
-image: "/images/blog/visa-requirements-us-citizens.jpg"
-imageAlt: "Pasaporte estadounidense sobre un mapa mundial con tarjetas de embarque y sellos de viaje"
+title: >-
+  Requisitos de Visa para Ciudadanos de EE.UU. 2026: Todos los Paises Donde
+  Necesitas Visa
+slug: visa-requirements-us-citizens
+description: >-
+  Guia completa 2026 de requisitos de visa para ciudadanos estadounidenses.
+  Paises sin visa, e-visas, costos, tiempos de tramite y el nuevo ETIAS para
+  Europa.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - requisitos de visa
+  - pasaporte estadounidense
+  - documentos de viaje
+  - viajeros americanos
+image: /images/blog/visa-requirements-us-citizens.jpg
+imageAlt: >-
+  Pasaporte estadounidense sobre un mapa mundial con tarjetas de embarque y
+  sellos de viaje
 readingTime: 11
 seo:
-  title: "Requisitos de Visa para Ciudadanos de EE.UU. 2026: Guia Completa por Pais"
-  description: "Guia completa 2026 de requisitos de visa para ciudadanos estadounidenses. Paises sin visa, e-visas, costos, tiempos de tramite y el nuevo ETIAS para Europa."
-  keywords: ["requisitos de visa ciudadanos eeuu", "pasaporte eeuu visa", "necesito visa", "visa viaje americanos"]
-schema: "Article"
+  title: 'Requisitos de Visa para Ciudadanos de EE.UU. 2026: Guia Completa por Pais'
+  description: >-
+    Guia completa 2026 de requisitos de visa para ciudadanos estadounidenses.
+    Paises sin visa, e-visas, costos, tiempos de tramite y el nuevo ETIAS para
+    Europa.
+  keywords:
+    - requisitos de visa ciudadanos eeuu
+    - pasaporte eeuu visa
+    - necesito visa
+    - visa viaje americanos
+schema: Article
 ---
 
 # Requisitos de Visa para Ciudadanos de EE.UU. 2026: Todos los Paises Donde Necesitas Visa

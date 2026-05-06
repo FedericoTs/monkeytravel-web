@@ -1,20 +1,40 @@
 ---
-title: "Tokio vs Seúl: ¿Qué Megaciudad Asiática Deberías Visitar en 2026?"
-slug: "tokyo-vs-seoul"
-description: "Una comparación honesta entre Tokio y Seúl para 2026 — presupuesto, gastronomía, vida nocturna, cultura, transporte y cuál gana para cada tipo de viajero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["tokyo", "seoul", "comparison", "asia", "city guide"]
-image: "/images/blog/tokyo-vs-seoul.jpg"
-imageAlt: "Imagen dividida comparando el cruce de Shibuya en Tokio y la aldea Bukchon Hanok en Seúl"
+title: 'Tokio vs Seúl: ¿Qué Megaciudad Asiática Deberías Visitar en 2026?'
+slug: tokyo-vs-seoul
+description: >-
+  Una comparación honesta entre Tokio y Seúl para 2026 — presupuesto,
+  gastronomía, vida nocturna, cultura, transporte y cuál gana para cada tipo de
+  viajero.
+author: Enrico E.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - tokyo
+  - seoul
+  - comparison
+  - asia
+  - city guide
+image: /images/blog/tokyo-vs-seoul.jpg
+imageAlt: >-
+  Imagen dividida comparando el cruce de Shibuya en Tokio y la aldea Bukchon
+  Hanok en Seúl
 readingTime: 10
 seo:
-  title: "Tokio vs Seúl 2026: ¿Qué Ciudad Deberías Visitar Primero?"
-  description: "¿Tokio o Seúl en 2026? Comparamos costes, comida, vida nocturna, cultura y transporte para que elijas la megaciudad asiática perfecta para tu estilo de viaje."
-  keywords: ["tokio vs seul", "tokio o seul", "tokio vs seul coste", "tokio vs seul 2026", "tokio vs seul comida", "tokio vs seul vida nocturna", "comparación asia"]
-schema: "Article"
+  title: 'Tokio vs Seúl 2026: ¿Qué Ciudad Deberías Visitar Primero?'
+  description: >-
+    ¿Tokio o Seúl en 2026? Comparamos costes, comida, vida nocturna, cultura y
+    transporte para que elijas la megaciudad asiática perfecta para tu estilo de
+    viaje.
+  keywords:
+    - tokio vs seul
+    - tokio o seul
+    - tokio vs seul coste
+    - tokio vs seul 2026
+    - tokio vs seul comida
+    - tokio vs seul vida nocturna
+    - comparación asia
+schema: Article
 ---
 
 # Tokio vs Seúl: ¿Qué Megaciudad Asiática Deberías Visitar en 2026?

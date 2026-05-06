@@ -42,6 +42,23 @@ function isBlockedBot(userAgent: string | null): boolean {
   return BLOCKED_BOT_PATTERNS.some((re) => re.test(userAgent));
 }
 
+// Posts deleted 2026-05-06 as part of the indexing-recovery work. We respond
+// 410 Gone (not 404) so Google removes them from its index aggressively
+// rather than periodically re-checking. Each appears at /blog/{slug} and
+// /{locale}/blog/{slug} for es/it.
+const GONE_BLOG_SLUGS = new Set([
+  "pianificatore-viaggio-ai-2026",
+  "us-tariffs-impact-travel-costs-2026",
+  "trending-destinations-may-2026",
+]);
+
+function isGoneBlogPath(pathname: string): boolean {
+  // Match /blog/{slug} or /{locale}/blog/{slug} (and trailing slash variants).
+  const match = pathname.match(/^(?:\/(?:en|es|it))?\/blog\/([^/?#]+)\/?$/);
+  if (!match) return false;
+  return GONE_BLOG_SLUGS.has(match[1]);
+}
+
 export async function middleware(request: NextRequest) {
   // Block AI-training and SEO-spam bots BEFORE any other work runs.
   // Returns 403 with no body — saves bandwidth + downstream compute.
@@ -64,6 +81,22 @@ export async function middleware(request: NextRequest) {
   // one edge-middleware invocation per www request.
 
   const { pathname } = request.nextUrl;
+
+  // 410 Gone for deliberately-deleted blog posts. Tells Google to drop
+  // these URLs from the index immediately (vs the slower 404 trickle).
+  if (isGoneBlogPath(pathname)) {
+    return new NextResponse(
+      `<!doctype html><html><head><title>Gone</title><meta name="robots" content="noindex"></head><body><h1>410 Gone</h1><p>This article has been retired. <a href="/blog">Browse the blog</a>.</p></body></html>`,
+      {
+        status: 410,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "X-Robots-Tag": "noindex",
+        },
+      }
+    );
+  }
 
   // Skip i18n for API routes, static files, and special paths
   const shouldSkipIntl =

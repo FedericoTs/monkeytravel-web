@@ -1,20 +1,38 @@
 ---
-title: "Itinerario de 3 Días en Barcelona: Guía Día a Día para 2026"
-slug: "barcelona-3-day-itinerary"
-description: "Un itinerario práctico de Barcelona día a día con precios reales, lugares reales y rutas inteligentes. Sagrada Familia, Barrio Gótico, Park Güell y más sin perder tiempo ni dinero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["barcelona", "itinerario", "españa", "3 días", "viajes europa"]
-image: "/images/blog/barcelona-3-day-itinerary.jpg"
-imageAlt: "Vista panorámica del skyline de Barcelona con las torres de la Sagrada Familia y el mar Mediterráneo al atardecer"
+title: 'Itinerario de 3 Días en Barcelona: Guía Día a Día para 2026'
+slug: barcelona-3-day-itinerary
+description: >-
+  Un itinerario práctico de Barcelona día a día con precios reales, lugares
+  reales y rutas inteligentes. Sagrada Familia, Barrio Gótico, Park Güell y más
+  sin perder tiempo ni dinero.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - barcelona
+  - itinerario
+  - españa
+  - 3 días
+  - viajes europa
+image: /images/blog/barcelona-3-day-itinerary.jpg
+imageAlt: >-
+  Vista panorámica del skyline de Barcelona con las torres de la Sagrada Familia
+  y el mar Mediterráneo al atardecer
 readingTime: 8
 seo:
-  title: "Itinerario de 3 Días en Barcelona 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 3 días perfectos en Barcelona con este itinerario día a día. Precios reales, rutas inteligentes y consejos locales para Sagrada Familia, Barrio Gótico y más."
-  keywords: ["itinerario 3 dias barcelona", "barcelona en 3 dias", "que ver en barcelona 3 dias", "guia barcelona 2026", "viaje a barcelona itinerario"]
-schema: "Article"
+  title: 'Itinerario de 3 Días en Barcelona 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 3 días perfectos en Barcelona con este itinerario día a día.
+    Precios reales, rutas inteligentes y consejos locales para Sagrada Familia,
+    Barrio Gótico y más.
+  keywords:
+    - itinerario 3 dias barcelona
+    - barcelona en 3 dias
+    - que ver en barcelona 3 dias
+    - guia barcelona 2026
+    - viaje a barcelona itinerario
+schema: Article
 ---
 
 # Itinerario de 3 Días en Barcelona: Guía Día a Día para 2026

@@ -1,20 +1,35 @@
 ---
-title: "How to Plan a Group Trip Without Losing Your Friends"
-slug: "how-to-plan-a-group-trip"
-description: "The real reason group trips fall apart isn't the destination — it's the planning. Here's a step-by-step system for organizing a trip with friends that actually works."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group travel", "trip planning", "travel with friends", "collaboration", "travel tips"]
-image: "/images/blog/group-trip-planning.jpg"
-imageAlt: "Group of friends looking at a map together while planning a trip"
+title: How to Plan a Group Trip Without Losing Your Friends
+slug: how-to-plan-a-group-trip
+description: >-
+  The real reason group trips fall apart isn't the destination — it's the
+  planning. Here's a step-by-step system for organizing a trip with friends that
+  actually works.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group travel
+  - trip planning
+  - travel with friends
+  - collaboration
+  - travel tips
+image: /images/blog/group-trip-planning.jpg
+imageAlt: Group of friends looking at a map together while planning a trip
 readingTime: 5
 seo:
-  title: "How to Plan a Group Trip Without Losing Your Friends | MonkeyTravel"
-  description: "47 browser tabs, 200 WhatsApp messages, zero decisions. Sound familiar? Here's the system that actually makes group trip planning work."
-  keywords: ["how to plan a group trip", "group travel planning", "trip with friends", "plan trip with multiple people", "group vacation planning tips"]
-schema: "HowTo"
+  title: How to Plan a Group Trip Without Losing Your Friends | MonkeyTravel
+  description: >-
+    47 browser tabs, 200 WhatsApp messages, zero decisions. Sound familiar?
+    Here's the system that actually makes group trip planning work.
+  keywords:
+    - how to plan a group trip
+    - group travel planning
+    - trip with friends
+    - plan trip with multiple people
+    - group vacation planning tips
+schema: HowTo
 ---
 
 # How to Plan a Group Trip Without Losing Your Friends

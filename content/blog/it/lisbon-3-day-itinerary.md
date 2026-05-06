@@ -1,20 +1,38 @@
 ---
-title: "Itinerario di 3 Giorni a Lisbona: Guida Pratica Giorno per Giorno 2026"
-slug: "lisbon-3-day-itinerary"
-description: "Un itinerario di Lisbona giorno per giorno con Alfama, Belém, Bairro Alto ed escursione a Sintra. Prezzi reali 2026, pastéis de nata, percorsi del tram."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["lisbona", "itinerario", "portogallo", "guida della città", "viaggio di 3 giorni"]
-image: "/images/blog/lisbon-3-day-itinerary.jpg"
-imageAlt: "Colorato tram 28 che percorre le strette strade di Alfama a Lisbona"
+title: 'Itinerario di 3 Giorni a Lisbona: Guida Pratica Giorno per Giorno 2026'
+slug: lisbon-3-day-itinerary
+description: >-
+  Un itinerario di Lisbona giorno per giorno con Alfama, Belém, Bairro Alto ed
+  escursione a Sintra. Prezzi reali 2026, pastéis de nata, percorsi del tram.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - lisbona
+  - itinerario
+  - portogallo
+  - guida della città
+  - viaggio di 3 giorni
+image: /images/blog/lisbon-3-day-itinerary.jpg
+imageAlt: Colorato tram 28 che percorre le strette strade di Alfama a Lisbona
 readingTime: 11
 seo:
-  title: "Itinerario 3 Giorni Lisbona 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 3 giorni perfetti a Lisbona con questo itinerario giorno per giorno. Prezzi reali 2026, percorsi del tram, pastéis de nata, Alfama, Belém ed escursione a Sintra."
-  keywords: ["itinerario 3 giorni lisbona", "lisbona itinerario 2026", "3 giorni a lisbona", "guida viaggio lisbona", "lisbona giorno per giorno", "cosa fare a lisbona", "escursione sintra da lisbona", "guida alfama lisbona"]
-schema: "Article"
+  title: 'Itinerario 3 Giorni Lisbona 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 3 giorni perfetti a Lisbona con questo itinerario giorno per
+    giorno. Prezzi reali 2026, percorsi del tram, pastéis de nata, Alfama, Belém
+    ed escursione a Sintra.
+  keywords:
+    - itinerario 3 giorni lisbona
+    - lisbona itinerario 2026
+    - 3 giorni a lisbona
+    - guida viaggio lisbona
+    - lisbona giorno per giorno
+    - cosa fare a lisbona
+    - escursione sintra da lisbona
+    - guida alfama lisbona
+schema: Article
 ---
 
 # Itinerario di 3 Giorni a Lisbona: Guida Pratica Giorno per Giorno 2026

@@ -1,20 +1,40 @@
 ---
-title: "Stagione dei Ciliegi in Fiore in Giappone 2026: La Guida Completa al Sakura"
-slug: "japan-cherry-blossom-season-guide"
-description: "Tutto ciò che ti serve per pianificare un viaggio in Giappone durante la fioritura dei ciliegi nel 2026 — previsioni di fioritura, migliori città e parchi, etichetta dell'hanami, consigli sul budget e alternative tardive a Hokkaido."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["giappone", "ciliegio in fiore", "sakura", "stagionale", "tokyo", "kyoto"]
-image: "/images/blog/japan-cherry-blossom-season-guide.jpg"
-imageAlt: "Ciliegi in piena fioritura lungo il fiume Meguro a Tokyo con petali rosa"
+title: 'Stagione dei Ciliegi in Fiore in Giappone 2026: La Guida Completa al Sakura'
+slug: japan-cherry-blossom-season-guide
+description: >-
+  Tutto ciò che ti serve per pianificare un viaggio in Giappone durante la
+  fioritura dei ciliegi nel 2026 — previsioni di fioritura, migliori città e
+  parchi, etichetta dell'hanami, consigli sul budget e alternative tardive a
+  Hokkaido.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - giappone
+  - ciliegio in fiore
+  - sakura
+  - stagionale
+  - tokyo
+  - kyoto
+image: /images/blog/japan-cherry-blossom-season-guide.jpg
+imageAlt: Ciliegi in piena fioritura lungo il fiume Meguro a Tokyo con petali rosa
 readingTime: 8
 seo:
-  title: "Stagione dei Ciliegi in Fiore in Giappone 2026: Guida Completa al Sakura | MonkeyTravel"
-  description: "Pianifica il tuo viaggio per vedere i ciliegi in fiore in Giappone nel 2026 con previsioni di fioritura, i migliori luoghi a Tokyo, Kyoto, Osaka e Nara, etichetta dell'hanami e consigli sul budget."
-  keywords: ["stagione ciliegi in fiore giappone", "sakura giappone 2026", "previsioni fioritura ciliegi giappone", "migliori luoghi sakura giappone", "guida hanami giappone"]
-schema: "Article"
+  title: >-
+    Stagione dei Ciliegi in Fiore in Giappone 2026: Guida Completa al Sakura |
+    MonkeyTravel
+  description: >-
+    Pianifica il tuo viaggio per vedere i ciliegi in fiore in Giappone nel 2026
+    con previsioni di fioritura, i migliori luoghi a Tokyo, Kyoto, Osaka e Nara,
+    etichetta dell'hanami e consigli sul budget.
+  keywords:
+    - stagione ciliegi in fiore giappone
+    - sakura giappone 2026
+    - previsioni fioritura ciliegi giappone
+    - migliori luoghi sakura giappone
+    - guida hanami giappone
+schema: Article
 ---
 
 # Stagione dei Ciliegi in Fiore in Giappone 2026: La Guida Completa al Sakura

@@ -1,20 +1,35 @@
 ---
-title: "Le 15 Destinazioni Più Economiche d'Europa nel 2026 (Budget Giornalieri Reali)"
-slug: "cheapest-destinations-in-europe"
-description: "I 15 posti più economici dove viaggiare in Europa nel 2026 con budget giornalieri reali, prezzi di ostelli e hotel, costi dei pasti e quanto spenderai davvero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Budget Travel"
-tags: ["europe", "budget travel", "cheap destinations", "backpacking"]
-image: "/images/blog/cheapest-destinations-in-europe.jpg"
-imageAlt: "Strade colorate del centro storico in una città europea economica"
+title: Le 15 Destinazioni Più Economiche d'Europa nel 2026 (Budget Giornalieri Reali)
+slug: cheapest-destinations-in-europe
+description: >-
+  I 15 posti più economici dove viaggiare in Europa nel 2026 con budget
+  giornalieri reali, prezzi di ostelli e hotel, costi dei pasti e quanto
+  spenderai davvero.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Budget Travel
+tags:
+  - europe
+  - budget travel
+  - cheap destinations
+  - backpacking
+image: /images/blog/cheapest-destinations-in-europe.jpg
+imageAlt: Strade colorate del centro storico in una città europea economica
 readingTime: 12
 seo:
-  title: "15 Destinazioni Più Economiche d'Europa 2026: Budget Reali | MonkeyTravel"
-  description: "Scopri le 15 destinazioni più economiche d'Europa per il 2026 con budget giornalieri reali, prezzi ostelli, costi pasti e consigli per risparmiare."
-  keywords: ["cheapest destinations in europe", "budget travel europe 2026", "cheap european cities", "backpacking europe budget", "affordable europe travel", "cheap places to visit in europe"]
-schema: "Article"
+  title: '15 Destinazioni Più Economiche d''Europa 2026: Budget Reali | MonkeyTravel'
+  description: >-
+    Scopri le 15 destinazioni più economiche d'Europa per il 2026 con budget
+    giornalieri reali, prezzi ostelli, costi pasti e consigli per risparmiare.
+  keywords:
+    - cheapest destinations in europe
+    - budget travel europe 2026
+    - cheap european cities
+    - backpacking europe budget
+    - affordable europe travel
+    - cheap places to visit in europe
+schema: Article
 ---
 
 # Le 15 destinazioni piu economiche in Europa nel 2026 (budget giornalieri reali)

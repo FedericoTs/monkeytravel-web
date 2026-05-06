@@ -1,20 +1,38 @@
 ---
-title: "Stagione dei Monsoni 2026: Dove Andare e Cosa Evitare in Asia"
-slug: "monsoon-season-where-to-go-and-avoid"
-description: "Guida pratica alla stagione dei monsoni in Asia. Quali mesi colpiscono quali paesi, dove evitare, dove andare per le offerte della green season e come risparmiare il 30-50%."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["monsone", "asia", "stagionale", "viaggi economici", "meteo"]
-image: "/images/blog/monsoon-season-where-to-go-and-avoid.jpg"
-imageAlt: "Lussureggianti terrazze di riso verdi durante la stagione dei monsoni con nuvole di pioggia drammatiche nel Sud-est Asiatico"
+title: 'Stagione dei Monsoni 2026: Dove Andare e Cosa Evitare in Asia'
+slug: monsoon-season-where-to-go-and-avoid
+description: >-
+  Guida pratica alla stagione dei monsoni in Asia. Quali mesi colpiscono quali
+  paesi, dove evitare, dove andare per le offerte della green season e come
+  risparmiare il 30-50%.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - monsone
+  - asia
+  - stagionale
+  - viaggi economici
+  - meteo
+image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
+imageAlt: >-
+  Lussureggianti terrazze di riso verdi durante la stagione dei monsoni con
+  nuvole di pioggia drammatiche nel Sud-est Asiatico
 readingTime: 7
 seo:
-  title: "Stagione dei Monsoni 2026: Dove Andare e Cosa Evitare in Asia | MonkeyTravel"
-  description: "Stagione dei monsoni in Asia spiegata mese per mese. Quali paesi evitare, quali sono ideali e come risparmiare il 30-50% viaggiando nella green season."
-  keywords: ["stagione monsoni asia", "monsone asia 2026", "quando viaggiare in asia", "green season asia", "miglior periodo visitare sud est asiatico"]
-schema: "Article"
+  title: 'Stagione dei Monsoni 2026: Dove Andare e Cosa Evitare in Asia | MonkeyTravel'
+  description: >-
+    Stagione dei monsoni in Asia spiegata mese per mese. Quali paesi evitare,
+    quali sono ideali e come risparmiare il 30-50% viaggiando nella green
+    season.
+  keywords:
+    - stagione monsoni asia
+    - monsone asia 2026
+    - quando viaggiare in asia
+    - green season asia
+    - miglior periodo visitare sud est asiatico
+schema: Article
 ---
 
 # Stagione dei Monsoni 2026: Dove Andare e Cosa Evitare in Asia

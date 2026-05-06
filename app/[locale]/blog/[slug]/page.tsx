@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc } from "@/lib/blog/api";
+import { getAuthorByFrontmatterId } from "@/lib/blog/authors";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
 import { getRegionForPost } from "@/lib/blog/regions";
@@ -152,6 +153,12 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const seoTitle = t(`posts.${slug}.title`);
   const seoDescription = t(`posts.${slug}.description`);
   const wordCount = post.content.split(/\s+/).length;
+  // Resolve named author if frontmatter `author:` matches a known persona;
+  // falls back to the legacy string-author shape for unrecognized authors.
+  const namedAuthor = getAuthorByFrontmatterId(frontmatter.author);
+  const authorBioUrl = namedAuthor
+    ? `${SITE_URL}${localePrefix}/about/authors/${namedAuthor.slug}`
+    : undefined;
   const articleSchema = generateArticleSchema({
     title: seoTitle,
     description: seoDescription,
@@ -161,7 +168,14 @@ export default async function BlogDetailPage({ params }: PageProps) {
       : undefined,
     datePublished: frontmatter.publishedAt,
     dateModified: frontmatter.updatedAt,
-    author: frontmatter.author,
+    author: namedAuthor
+      ? {
+          name: namedAuthor.name,
+          url: authorBioUrl,
+          jobTitle: namedAuthor.title,
+          image: `${SITE_URL}/images/authors/${namedAuthor.slug}.jpg`,
+        }
+      : frontmatter.author,
     wordCount,
     articleSection: frontmatter.category,
     keywords: frontmatter.seo.keywords,
@@ -315,6 +329,16 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 <div className="flex items-start justify-between gap-4 mb-8 py-5 border-y border-slate-200/80">
                   <div className="flex-1 min-w-0">
                     <BlogByline
+                      author={
+                        namedAuthor
+                          ? {
+                              name: namedAuthor.name,
+                              title: namedAuthor.title,
+                              bioUrl: `${localePrefix}/about/authors/${namedAuthor.slug}`,
+                              photoUrl: `/images/authors/${namedAuthor.slug}.jpg`,
+                            }
+                          : undefined
+                      }
                       authorLabel={t("detail.byline")}
                       publishedDate={frontmatter.publishedAt}
                       updatedDate={updatedDate}

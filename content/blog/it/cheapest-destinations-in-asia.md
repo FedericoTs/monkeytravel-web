@@ -1,20 +1,41 @@
 ---
-title: "Le 15 Destinazioni Più Economiche dell'Asia nel 2026 (Budget Giornalieri Reali)"
-slug: "cheapest-destinations-in-asia"
-description: "I 15 posti più economici dove viaggiare in Asia nel 2026 con budget giornalieri reali, costi di alloggio, prezzi dello street food e quanto spenderai davvero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Budget Travel"
-tags: ["asia", "budget travel", "cheap destinations", "backpacking"]
-image: "/images/blog/cheapest-destinations-in-asia.jpg"
-imageAlt: "Colorato mercato galleggiante con barche di prodotti freschi nel Sud-est Asiatico"
+title: >-
+  Le 15 Destinazioni Più Economiche dell'Asia nel 2026 (Budget Giornalieri
+  Reali)
+slug: cheapest-destinations-in-asia
+description: >-
+  I 15 posti più economici dove viaggiare in Asia nel 2026 con budget
+  giornalieri reali, costi di alloggio, prezzi dello street food e quanto
+  spenderai davvero.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Budget Travel
+tags:
+  - asia
+  - budget travel
+  - cheap destinations
+  - backpacking
+image: /images/blog/cheapest-destinations-in-asia.jpg
+imageAlt: >-
+  Colorato mercato galleggiante con barche di prodotti freschi nel Sud-est
+  Asiatico
 readingTime: 12
 seo:
-  title: "15 Destinazioni Più Economiche dell'Asia 2026: Budget Reali | MonkeyTravel"
-  description: "Scopri le 15 destinazioni più economiche dell'Asia per il 2026 con budget giornalieri reali, prezzi street food e costi alloggio. Da $15/giorno ad Hanoi a $35/giorno a Bali."
-  keywords: ["cheapest destinations in asia", "budget travel asia 2026", "cheap countries in asia", "backpacking asia budget", "cheapest places to travel asia", "asia on a budget", "cheap asian travel destinations"]
-schema: "Article"
+  title: '15 Destinazioni Più Economiche dell''Asia 2026: Budget Reali | MonkeyTravel'
+  description: >-
+    Scopri le 15 destinazioni più economiche dell'Asia per il 2026 con budget
+    giornalieri reali, prezzi street food e costi alloggio. Da $15/giorno ad
+    Hanoi a $35/giorno a Bali.
+  keywords:
+    - cheapest destinations in asia
+    - budget travel asia 2026
+    - cheap countries in asia
+    - backpacking asia budget
+    - cheapest places to travel asia
+    - asia on a budget
+    - cheap asian travel destinations
+schema: Article
 ---
 
 # Le 15 destinazioni più economiche in Asia nel 2026 (budget giornalieri reali)

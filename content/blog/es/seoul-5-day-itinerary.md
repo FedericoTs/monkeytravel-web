@@ -1,20 +1,39 @@
 ---
-title: "Itinerario de 5 Días en Seúl: Guía Práctica Día a Día para 2026"
-slug: "seoul-5-day-itinerary"
-description: "Itinerario de Seúl día a día con palacios, K-beauty, la DMZ, Gangnam y Hongdae. Precios reales de 2026, consejos de metro y guía de glow-cation integrada."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["seúl", "itinerario", "corea del sur", "guía de ciudad", "viaje de 5 días", "k-beauty"]
-image: "/images/blog/seoul-5-day-itinerary.jpg"
-imageAlt: "Palacio Gyeongbokgung con la montaña Bukhansan al fondo, Seúl, Corea del Sur"
+title: 'Itinerario de 5 Días en Seúl: Guía Práctica Día a Día para 2026'
+slug: seoul-5-day-itinerary
+description: >-
+  Itinerario de Seúl día a día con palacios, K-beauty, la DMZ, Gangnam y
+  Hongdae. Precios reales de 2026, consejos de metro y guía de glow-cation
+  integrada.
+author: Enrico E.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - seúl
+  - itinerario
+  - corea del sur
+  - guía de ciudad
+  - viaje de 5 días
+  - k-beauty
+image: /images/blog/seoul-5-day-itinerary.jpg
+imageAlt: 'Palacio Gyeongbokgung con la montaña Bukhansan al fondo, Seúl, Corea del Sur'
 readingTime: 14
 seo:
-  title: "Itinerario de 5 Días en Seúl 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 5 días perfectos en Seúl con este itinerario día a día. Palacios, clínicas K-beauty, excursión a la DMZ, BBQ coreano, Hongdae y jjimjilbang — con precios reales de 2026."
-  keywords: ["itinerario 5 dias seul", "seul itinerario 2026", "5 dias en seul", "guia de viaje seul", "que hacer en seul", "seul k-beauty glow-cation", "excursion dmz desde seul"]
-schema: "Article"
+  title: 'Itinerario de 5 Días en Seúl 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 5 días perfectos en Seúl con este itinerario día a día. Palacios,
+    clínicas K-beauty, excursión a la DMZ, BBQ coreano, Hongdae y jjimjilbang —
+    con precios reales de 2026.
+  keywords:
+    - itinerario 5 dias seul
+    - seul itinerario 2026
+    - 5 dias en seul
+    - guia de viaje seul
+    - que hacer en seul
+    - seul k-beauty glow-cation
+    - excursion dmz desde seul
+schema: Article
 ---
 
 # Itinerario de 5 Días en Seúl: Guía Práctica Día a Día para 2026

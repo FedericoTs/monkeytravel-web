@@ -1,20 +1,35 @@
 ---
-title: "How to Plan a Trip to Italy on a Budget in 2026"
-slug: "how-to-plan-trip-to-italy-on-a-budget"
-description: "Plan an incredible Italy trip without blowing your savings. Real prices, local tips, and a day-by-day strategy to see Rome, Florence, and the Amalfi Coast for under $100/day."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Budget Travel"
-tags: ["italy", "budget travel", "europe", "trip planning", "itinerary"]
-image: "/images/blog/italy-budget-travel.jpg"
-imageAlt: "View of colorful houses in Cinque Terre, Italy at sunset"
+title: How to Plan a Trip to Italy on a Budget in 2026
+slug: how-to-plan-trip-to-italy-on-a-budget
+description: >-
+  Plan an incredible Italy trip without blowing your savings. Real prices, local
+  tips, and a day-by-day strategy to see Rome, Florence, and the Amalfi Coast
+  for under $100/day.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Budget Travel
+tags:
+  - italy
+  - budget travel
+  - europe
+  - trip planning
+  - itinerary
+image: /images/blog/italy-budget-travel.jpg
+imageAlt: 'View of colorful houses in Cinque Terre, Italy at sunset'
 readingTime: 5
 seo:
-  title: "How to Plan a Trip to Italy on a Budget in 2026 | MonkeyTravel"
-  description: "Real costs, local secrets, and a practical budget breakdown for Italy in 2026. Rome, Florence, and the coast — all under $100/day."
-  keywords: ["plan trip to italy on a budget", "italy budget travel 2026", "cheap italy itinerary", "italy travel costs", "budget italy tips"]
-schema: "HowTo"
+  title: How to Plan a Trip to Italy on a Budget in 2026 | MonkeyTravel
+  description: >-
+    Real costs, local secrets, and a practical budget breakdown for Italy in
+    2026. Rome, Florence, and the coast — all under $100/day.
+  keywords:
+    - plan trip to italy on a budget
+    - italy budget travel 2026
+    - cheap italy itinerary
+    - italy travel costs
+    - budget italy tips
+schema: HowTo
 ---
 
 # Come pianificare un viaggio in Italia con un budget ridotto nel 2026

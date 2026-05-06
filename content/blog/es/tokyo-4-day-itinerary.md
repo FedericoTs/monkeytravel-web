@@ -1,20 +1,36 @@
 ---
-title: "Itinerario de 4 Días en Tokio: Guía Práctica Día a Día para 2026"
-slug: "tokyo-4-day-itinerary"
-description: "Itinerario de Tokio día a día con Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku y excursión a Kamakura. Precios reales, rutas de tren reales, restaurantes reales."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["tokio", "itinerario", "japón", "4 días", "viajes asia"]
-image: "/images/blog/tokyo-4-day-itinerary.jpg"
-imageAlt: "Cruce de Shibuya al atardecer con luces de neón y multitudes en Tokio, Japón"
+title: 'Itinerario de 4 Días en Tokio: Guía Práctica Día a Día para 2026'
+slug: tokyo-4-day-itinerary
+description: >-
+  Itinerario de Tokio día a día con Shibuya, Shinjuku, Asakusa, Akihabara,
+  Harajuku y excursión a Kamakura. Precios reales, rutas de tren reales,
+  restaurantes reales.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - tokio
+  - itinerario
+  - japón
+  - 4 días
+  - viajes asia
+image: /images/blog/tokyo-4-day-itinerary.jpg
+imageAlt: 'Cruce de Shibuya al atardecer con luces de neón y multitudes en Tokio, Japón'
 readingTime: 9
 seo:
-  title: "Itinerario de 4 Días en Tokio 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 4 días perfectos en Tokio con este itinerario día a día. Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku y Kamakura — con precios reales y consejos de tren."
-  keywords: ["itinerario 4 dias tokio", "4 dias en tokio", "tokio itinerario 2026", "guia de viaje tokio", "que hacer en tokio en 4 dias"]
-schema: "Article"
+  title: 'Itinerario de 4 Días en Tokio 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 4 días perfectos en Tokio con este itinerario día a día. Shibuya,
+    Shinjuku, Asakusa, Akihabara, Harajuku y Kamakura — con precios reales y
+    consejos de tren.
+  keywords:
+    - itinerario 4 dias tokio
+    - 4 dias en tokio
+    - tokio itinerario 2026
+    - guia de viaje tokio
+    - que hacer en tokio en 4 dias
+schema: Article
 ---
 
 # Itinerario de 4 Días en Tokio: Guía Práctica Día a Día para 2026

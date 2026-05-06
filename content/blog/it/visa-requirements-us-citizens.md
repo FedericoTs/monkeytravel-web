@@ -1,20 +1,35 @@
 ---
-title: "Requisiti di Visto per Cittadini USA 2026: Ogni Paese in Cui Serve il Visto"
-slug: "visa-requirements-us-citizens"
-description: "Guida completa 2026 ai requisiti di visto per cittadini americani. Paesi senza visto, e-visa, costi, tempi di elaborazione e il nuovo ETIAS per l'Europa."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["requisiti visto", "passaporto americano", "documenti di viaggio", "viaggiatori americani"]
-image: "/images/blog/visa-requirements-us-citizens.jpg"
-imageAlt: "Passaporto americano su una mappa del mondo con carte d'imbarco e timbri di viaggio"
+title: 'Requisiti di Visto per Cittadini USA 2026: Ogni Paese in Cui Serve il Visto'
+slug: visa-requirements-us-citizens
+description: >-
+  Guida completa 2026 ai requisiti di visto per cittadini americani. Paesi senza
+  visto, e-visa, costi, tempi di elaborazione e il nuovo ETIAS per l'Europa.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - requisiti visto
+  - passaporto americano
+  - documenti di viaggio
+  - viaggiatori americani
+image: /images/blog/visa-requirements-us-citizens.jpg
+imageAlt: >-
+  Passaporto americano su una mappa del mondo con carte d'imbarco e timbri di
+  viaggio
 readingTime: 11
 seo:
-  title: "Requisiti di Visto per Cittadini USA 2026: Guida Completa Paese per Paese"
-  description: "Guida completa 2026 ai requisiti di visto per cittadini americani. Paesi senza visto, e-visa, costi, tempi di elaborazione e il nuovo ETIAS per l'Europa."
-  keywords: ["requisiti visto cittadini usa", "passaporto usa visto", "serve il visto", "visto viaggio americani"]
-schema: "Article"
+  title: 'Requisiti di Visto per Cittadini USA 2026: Guida Completa Paese per Paese'
+  description: >-
+    Guida completa 2026 ai requisiti di visto per cittadini americani. Paesi
+    senza visto, e-visa, costi, tempi di elaborazione e il nuovo ETIAS per
+    l'Europa.
+  keywords:
+    - requisiti visto cittadini usa
+    - passaporto usa visto
+    - serve il visto
+    - visto viaggio americani
+schema: Article
 ---
 
 # Requisiti di Visto per Cittadini USA 2026: Ogni Paese in Cui Serve il Visto

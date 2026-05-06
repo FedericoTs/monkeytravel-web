@@ -1,20 +1,38 @@
 ---
-title: "15 Citta Europee Piu Economiche per Mangiare e Bere nel 2026"
-slug: "cheapest-european-cities-for-food-2026"
-description: "Le 15 citta piu economiche d'Europa per mangiare e bere nel 2026 — classificate per costo medio del pasto, con migliori piatti locali, mercati, prezzi della birra e budget giornalieri da $3 a $13 a pasto."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Budget Travel"
-tags: ["budget travel", "europe", "food travel", "cheap eats", "street food"]
-image: "/images/blog/cheapest-european-cities-for-food-2026.jpg"
-imageAlt: "Cibo di strada europeo conveniente in un mercato all'aperto"
+title: 15 Citta Europee Piu Economiche per Mangiare e Bere nel 2026
+slug: cheapest-european-cities-for-food-2026
+description: >-
+  Le 15 citta piu economiche d'Europa per mangiare e bere nel 2026 —
+  classificate per costo medio del pasto, con migliori piatti locali, mercati,
+  prezzi della birra e budget giornalieri da $3 a $13 a pasto.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Budget Travel
+tags:
+  - budget travel
+  - europe
+  - food travel
+  - cheap eats
+  - street food
+image: /images/blog/cheapest-european-cities-for-food-2026.jpg
+imageAlt: Cibo di strada europeo conveniente in un mercato all'aperto
 readingTime: 9
 seo:
-  title: "15 Citta Europee Piu Economiche per Mangiare 2026 [Classifica] | MonkeyTravel"
-  description: "Le 15 citta europee piu economiche per mangiare e bere nel 2026 — costi medi, migliori piatti locali, prezzi birra e migliori mercati. Da Tirana a $3 a Valencia a $13."
-  keywords: ["citta europee piu economiche per mangiare 2026", "mangiare economico europa", "cibo di strada europa", "viaggio gastronomico economico europa", "cheapest european cities for food"]
-schema: "Article"
+  title: >-
+    15 Citta Europee Piu Economiche per Mangiare 2026 [Classifica] |
+    MonkeyTravel
+  description: >-
+    Le 15 citta europee piu economiche per mangiare e bere nel 2026 — costi
+    medi, migliori piatti locali, prezzi birra e migliori mercati. Da Tirana a
+    $3 a Valencia a $13.
+  keywords:
+    - citta europee piu economiche per mangiare 2026
+    - mangiare economico europa
+    - cibo di strada europa
+    - viaggio gastronomico economico europa
+    - cheapest european cities for food
+schema: Article
 ---
 
 # 15 Citta europee piu economiche per mangiare e bere nel 2026

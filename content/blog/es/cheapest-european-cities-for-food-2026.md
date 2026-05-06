@@ -1,20 +1,36 @@
 ---
-title: "15 Ciudades Europeas Más Baratas para Comer y Beber en 2026"
-slug: "cheapest-european-cities-for-food-2026"
-description: "Las 15 ciudades más baratas de Europa para comer y beber en 2026 — clasificadas por coste medio de comida, con mejores platos locales, mercados, precios de cerveza y presupuestos diarios desde $3 hasta $13 por comida."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Budget Travel"
-tags: ["budget travel", "europe", "food travel", "cheap eats", "street food"]
-image: "/images/blog/cheapest-european-cities-for-food-2026.jpg"
-imageAlt: "Comida callejera europea asequible en un mercado al aire libre"
+title: 15 Ciudades Europeas Más Baratas para Comer y Beber en 2026
+slug: cheapest-european-cities-for-food-2026
+description: >-
+  Las 15 ciudades más baratas de Europa para comer y beber en 2026 —
+  clasificadas por coste medio de comida, con mejores platos locales, mercados,
+  precios de cerveza y presupuestos diarios desde $3 hasta $13 por comida.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Budget Travel
+tags:
+  - budget travel
+  - europe
+  - food travel
+  - cheap eats
+  - street food
+image: /images/blog/cheapest-european-cities-for-food-2026.jpg
+imageAlt: Comida callejera europea asequible en un mercado al aire libre
 readingTime: 9
 seo:
-  title: "15 Ciudades Europeas Más Baratas para Comer 2026 [Ranking] | MonkeyTravel"
-  description: "Las 15 ciudades europeas más baratas para comer y beber en 2026 — costes medios, mejores platos locales, precios de cerveza y mejores mercados. Desde Tirana a $3 hasta Valencia a $13."
-  keywords: ["ciudades europeas más baratas para comer 2026", "comer barato en europa", "comida callejera europa", "viaje gastronómico barato europa", "cheapest european cities for food"]
-schema: "Article"
+  title: '15 Ciudades Europeas Más Baratas para Comer 2026 [Ranking] | MonkeyTravel'
+  description: >-
+    Las 15 ciudades europeas más baratas para comer y beber en 2026 — costes
+    medios, mejores platos locales, precios de cerveza y mejores mercados. Desde
+    Tirana a $3 hasta Valencia a $13.
+  keywords:
+    - ciudades europeas más baratas para comer 2026
+    - comer barato en europa
+    - comida callejera europa
+    - viaje gastronómico barato europa
+    - cheapest european cities for food
+schema: Article
 ---
 
 # 15 Ciudades europeas más baratas para comer y beber en 2026

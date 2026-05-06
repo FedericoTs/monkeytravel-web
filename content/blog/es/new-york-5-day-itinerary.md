@@ -1,20 +1,36 @@
 ---
-title: "Itinerario de 5 Días en Nueva York: Guía Práctica Día a Día para 2026"
-slug: "new-york-5-day-itinerary"
-description: "Un itinerario de Nueva York día a día que cubre Manhattan, Brooklyn y más. Precios reales de 2026, restaurantes reales y rutas inteligentes en metro."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["nueva york", "itinerario", "estados unidos", "guía de ciudad", "viaje de 5 días"]
-image: "/images/blog/new-york-5-day-itinerary.jpg"
-imageAlt: "Skyline de Manhattan con el Empire State Building al atardecer"
+title: 'Itinerario de 5 Días en Nueva York: Guía Práctica Día a Día para 2026'
+slug: new-york-5-day-itinerary
+description: >-
+  Un itinerario de Nueva York día a día que cubre Manhattan, Brooklyn y más.
+  Precios reales de 2026, restaurantes reales y rutas inteligentes en metro.
+author: Federico S.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - nueva york
+  - itinerario
+  - estados unidos
+  - guía de ciudad
+  - viaje de 5 días
+image: /images/blog/new-york-5-day-itinerary.jpg
+imageAlt: Skyline de Manhattan con el Empire State Building al atardecer
 readingTime: 14
 seo:
-  title: "Itinerario de 5 Días en Nueva York 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 5 días perfectos en Nueva York con este itinerario día a día. Precios reales 2026, rutas en metro, restaurantes recomendados y agrupación inteligente por barrios en Manhattan y Brooklyn."
-  keywords: ["itinerario 5 dias nueva york", "nueva york itinerario 2026", "5 dias en nueva york", "guia nueva york 2026", "que hacer en nueva york 5 dias", "itinerario nueva york dia a dia"]
-schema: "Article"
+  title: 'Itinerario de 5 Días en Nueva York 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 5 días perfectos en Nueva York con este itinerario día a día.
+    Precios reales 2026, rutas en metro, restaurantes recomendados y agrupación
+    inteligente por barrios en Manhattan y Brooklyn.
+  keywords:
+    - itinerario 5 dias nueva york
+    - nueva york itinerario 2026
+    - 5 dias en nueva york
+    - guia nueva york 2026
+    - que hacer en nueva york 5 dias
+    - itinerario nueva york dia a dia
+schema: Article
 ---
 
 # Itinerario de 5 Días en Nueva York: Guía Práctica Día a Día para 2026

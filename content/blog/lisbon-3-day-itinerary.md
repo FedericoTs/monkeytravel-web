@@ -1,20 +1,38 @@
 ---
-title: "Lisbon 3-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "lisbon-3-day-itinerary"
-description: "A day-by-day Lisbon itinerary covering Alfama, Belem, Bairro Alto, and Sintra day trip. Real 2026 prices, pasteis de nata spots, tram routes."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["lisbon", "itinerary", "portugal", "city guide", "3-day trip"]
-image: "/images/blog/lisbon-3-day-itinerary.jpg"
-imageAlt: "Colorful tram 28 winding through Alfama's narrow streets in Lisbon"
+title: 'Lisbon 3-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: lisbon-3-day-itinerary
+description: >-
+  A day-by-day Lisbon itinerary covering Alfama, Belem, Bairro Alto, and Sintra
+  day trip. Real 2026 prices, pasteis de nata spots, tram routes.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - lisbon
+  - itinerary
+  - portugal
+  - city guide
+  - 3-day trip
+image: /images/blog/lisbon-3-day-itinerary.jpg
+imageAlt: Colorful tram 28 winding through Alfama's narrow streets in Lisbon
 readingTime: 11
 seo:
-  title: "Lisbon 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 3 perfect days in Lisbon with this day-by-day itinerary. Real 2026 prices, tram routes, pasteis de nata spots, Alfama, Belem, and a Sintra day trip."
-  keywords: ["lisbon 3 day itinerary", "lisbon itinerary 2026", "3 days in lisbon", "lisbon travel guide", "lisbon day by day", "what to do in lisbon", "lisbon sintra day trip", "alfama lisbon guide"]
-schema: "Article"
+  title: 'Lisbon 3-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 3 perfect days in Lisbon with this day-by-day itinerary. Real 2026
+    prices, tram routes, pasteis de nata spots, Alfama, Belem, and a Sintra day
+    trip.
+  keywords:
+    - lisbon 3 day itinerary
+    - lisbon itinerary 2026
+    - 3 days in lisbon
+    - lisbon travel guide
+    - lisbon day by day
+    - what to do in lisbon
+    - lisbon sintra day trip
+    - alfama lisbon guide
+schema: Article
 ---
 
 # Lisbon 3-Day Itinerary: The Practical Day-by-Day Guide for 2026

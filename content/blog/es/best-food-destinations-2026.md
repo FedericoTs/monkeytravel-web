@@ -1,20 +1,40 @@
 ---
-title: "Los 12 Mejores Destinos Gastronómicos del Mundo para 2026"
-slug: "best-food-destinations-2026"
-description: "Los mejores destinos del mundo para viajar por comida en 2026 — desde el patrimonio mediterráneo de Creta hasta la precisión artesanal de Tokio y las tradiciones vivas de Oaxaca. Presupuestos diarios reales, platos imprescindibles y consejos de locales."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["turismo gastronómico", "viajes culinarios", "mejores destinos 2026", "viajes de comida", "restaurantes", "comida callejera"]
-image: "/images/blog/best-food-destinations-2026.jpg"
-imageAlt: "Colorida variedad de platos de distintas cocinas sobre una mesa de mercado"
+title: Los 12 Mejores Destinos Gastronómicos del Mundo para 2026
+slug: best-food-destinations-2026
+description: >-
+  Los mejores destinos del mundo para viajar por comida en 2026 — desde el
+  patrimonio mediterráneo de Creta hasta la precisión artesanal de Tokio y las
+  tradiciones vivas de Oaxaca. Presupuestos diarios reales, platos
+  imprescindibles y consejos de locales.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - turismo gastronómico
+  - viajes culinarios
+  - mejores destinos 2026
+  - viajes de comida
+  - restaurantes
+  - comida callejera
+image: /images/blog/best-food-destinations-2026.jpg
+imageAlt: Colorida variedad de platos de distintas cocinas sobre una mesa de mercado
 readingTime: 11
 seo:
-  title: "12 Mejores Destinos Gastronómicos del Mundo 2026 | MonkeyTravel"
-  description: "Los 12 mejores destinos gastronómicos para 2026 — platos típicos, mercados de comida, presupuestos diarios y consejos de locales para Creta, Tokio, Ciudad de México, Lima, Estambul, Bangkok, Bolonia, Lyon, Seúl, Oaxaca, Hanói y San Sebastián."
-  keywords: ["mejores destinos gastronomicos 2026", "turismo culinario 2026", "viajes gastronomicos", "mejores ciudades para comer", "destinos foodies mundo", "turismo gastronómico"]
-schema: "Article"
+  title: 12 Mejores Destinos Gastronómicos del Mundo 2026 | MonkeyTravel
+  description: >-
+    Los 12 mejores destinos gastronómicos para 2026 — platos típicos, mercados
+    de comida, presupuestos diarios y consejos de locales para Creta, Tokio,
+    Ciudad de México, Lima, Estambul, Bangkok, Bolonia, Lyon, Seúl, Oaxaca,
+    Hanói y San Sebastián.
+  keywords:
+    - mejores destinos gastronomicos 2026
+    - turismo culinario 2026
+    - viajes gastronomicos
+    - mejores ciudades para comer
+    - destinos foodies mundo
+    - turismo gastronómico
+schema: Article
 ---
 
 # Los 12 Mejores Destinos Gastronómicos del Mundo para 2026

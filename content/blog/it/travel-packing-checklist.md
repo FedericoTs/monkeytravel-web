@@ -1,20 +1,37 @@
 ---
-title: "La Lista Definitiva per Fare la Valigia nel 2026 (Stampabile e Organizzata)"
-slug: "travel-packing-checklist"
-description: "L'unica lista per fare la valigia di cui hai bisogno. Organizzata per categoria con liste per mare, citta, trekking, lavoro e freddo. Copia, stampa, prepara."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["lista valigia", "bagaglio da viaggio", "consigli per fare la valigia", "essenziali da viaggio"]
-image: "/images/blog/travel-packing-checklist.jpg"
-imageAlt: "Valigia aperta su un letto con vestiti ben organizzati, cubi da imballaggio ed essenziali da viaggio disposti accanto"
+title: La Lista Definitiva per Fare la Valigia nel 2026 (Stampabile e Organizzata)
+slug: travel-packing-checklist
+description: >-
+  L'unica lista per fare la valigia di cui hai bisogno. Organizzata per
+  categoria con liste per mare, citta, trekking, lavoro e freddo. Copia, stampa,
+  prepara.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - lista valigia
+  - bagaglio da viaggio
+  - consigli per fare la valigia
+  - essenziali da viaggio
+image: /images/blog/travel-packing-checklist.jpg
+imageAlt: >-
+  Valigia aperta su un letto con vestiti ben organizzati, cubi da imballaggio ed
+  essenziali da viaggio disposti accanto
 readingTime: 10
 seo:
-  title: "Lista Valigia da Viaggio 2026: La Lista Completa Che Userai Davvero"
-  description: "L'unica lista per fare la valigia di cui hai bisogno nel 2026. Organizzata per categoria, tipo di viaggio e limiti di peso delle compagnie aeree. Bagaglio a mano, vestiti, prodotti igiene, elettronica e altro."
-  keywords: ["lista valigia viaggio", "cosa mettere in valigia", "essenziali da viaggio", "lista bagaglio a mano", "consigli valigia"]
-schema: "Article"
+  title: 'Lista Valigia da Viaggio 2026: La Lista Completa Che Userai Davvero'
+  description: >-
+    L'unica lista per fare la valigia di cui hai bisogno nel 2026. Organizzata
+    per categoria, tipo di viaggio e limiti di peso delle compagnie aeree.
+    Bagaglio a mano, vestiti, prodotti igiene, elettronica e altro.
+  keywords:
+    - lista valigia viaggio
+    - cosa mettere in valigia
+    - essenziali da viaggio
+    - lista bagaglio a mano
+    - consigli valigia
+schema: Article
 ---
 
 # La Lista Definitiva per Fare la Valigia nel 2026

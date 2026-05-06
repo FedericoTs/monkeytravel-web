@@ -1,20 +1,45 @@
 ---
-title: "Guia de Viaje para el Mundial FIFA 2026: Planifica Tu Viaje Multi-Ciudad Con AI"
-slug: "fifa-world-cup-2026-travel-guide"
-description: "Guia completa para planificar tu viaje al Mundial FIFA 2026 en 16 ciudades sede de EE.UU., Canada y Mexico. Estadios, consejos de viaje, visados, presupuestos y como la AI puede planificar tu itinerario perfecto."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-01"
-updatedAt: "2026-04-01"
-category: "Destination Guides"
-tags: ["FIFA World Cup 2026", "sports travel", "multi-city trip", "united states", "canada", "mexico", "AI travel planner"]
-image: "/images/blog/fifa-world-cup-2026-travel-guide.jpg"
-imageAlt: "Vista aerea de un estadio de futbol lleno durante un partido del Mundial con el skyline de la ciudad"
+title: >-
+  Guia de Viaje para el Mundial FIFA 2026: Planifica Tu Viaje Multi-Ciudad Con
+  AI
+slug: fifa-world-cup-2026-travel-guide
+description: >-
+  Guia completa para planificar tu viaje al Mundial FIFA 2026 en 16 ciudades
+  sede de EE.UU., Canada y Mexico. Estadios, consejos de viaje, visados,
+  presupuestos y como la AI puede planificar tu itinerario perfecto.
+author: Emanuela P.
+publishedAt: '2026-04-01'
+updatedAt: '2026-04-01'
+category: Destination Guides
+tags:
+  - FIFA World Cup 2026
+  - sports travel
+  - multi-city trip
+  - united states
+  - canada
+  - mexico
+  - AI travel planner
+image: /images/blog/fifa-world-cup-2026-travel-guide.jpg
+imageAlt: >-
+  Vista aerea de un estadio de futbol lleno durante un partido del Mundial con
+  el skyline de la ciudad
 readingTime: 14
 seo:
-  title: "Guia de Viaje Mundial FIFA 2026: 16 Ciudades Sede, Presupuestos y Planificacion Con AI | MonkeyTravel"
-  description: "Planifica tu viaje al Mundial 2026 en 16 ciudades sede de EE.UU., Canada y Mexico. Guia de estadios, requisitos de visado, presupuestos y planificacion de itinerarios multi-ciudad con AI."
-  keywords: ["guia de viaje mundial 2026", "ciudades sede mundial 2026", "consejos viaje mundial 2026", "entradas y viaje mundial 2026", "planificador viaje multi ciudad mundial", "requisitos visa mundial 2026"]
-schema: "Article"
+  title: >-
+    Guia de Viaje Mundial FIFA 2026: 16 Ciudades Sede, Presupuestos y
+    Planificacion Con AI | MonkeyTravel
+  description: >-
+    Planifica tu viaje al Mundial 2026 en 16 ciudades sede de EE.UU., Canada y
+    Mexico. Guia de estadios, requisitos de visado, presupuestos y planificacion
+    de itinerarios multi-ciudad con AI.
+  keywords:
+    - guia de viaje mundial 2026
+    - ciudades sede mundial 2026
+    - consejos viaje mundial 2026
+    - entradas y viaje mundial 2026
+    - planificador viaje multi ciudad mundial
+    - requisitos visa mundial 2026
+schema: Article
 ---
 
 # Guia de Viaje para el Mundial FIFA 2026: Planifica Tu Viaje Multi-Ciudad Con AI

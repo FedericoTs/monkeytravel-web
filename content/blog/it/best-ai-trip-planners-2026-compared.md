@@ -1,20 +1,42 @@
 ---
-title: "I migliori pianificatori di viaggio con AI nel 2026: 7 strumenti messi a confronto"
-slug: "best-ai-trip-planners-2026-compared"
-description: "Il 33% dei viaggiatori prevede di usare l'AI per pianificare viaggi nel 2026, ma solo il 38% lo usa regolarmente. Abbiamo testato 7 strumenti per aiutarti a scegliere."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "AI Travel"
-tags: ["pianificatore di viaggio ai", "migliori app viaggio 2026", "generatore di itinerari ai", "confronto strumenti viaggio", "pianificazione viaggi"]
-image: "/images/blog/best-ai-trip-planners-2026-compared.jpg"
-imageAlt: "Confronto tra strumenti di pianificazione viaggi con AI su schermi di laptop e smartphone"
+title: >-
+  I migliori pianificatori di viaggio con AI nel 2026: 7 strumenti messi a
+  confronto
+slug: best-ai-trip-planners-2026-compared
+description: >-
+  Il 33% dei viaggiatori prevede di usare l'AI per pianificare viaggi nel 2026,
+  ma solo il 38% lo usa regolarmente. Abbiamo testato 7 strumenti per aiutarti a
+  scegliere.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: AI Travel
+tags:
+  - pianificatore di viaggio ai
+  - migliori app viaggio 2026
+  - generatore di itinerari ai
+  - confronto strumenti viaggio
+  - pianificazione viaggi
+image: /images/blog/best-ai-trip-planners-2026-compared.jpg
+imageAlt: >-
+  Confronto tra strumenti di pianificazione viaggi con AI su schermi di laptop e
+  smartphone
 readingTime: 10
 seo:
-  title: "Migliori pianificatori di viaggio con AI nel 2026: 7 strumenti a confronto | MonkeyTravel"
-  description: "Abbiamo testato MonkeyTravel, Mindtrip, Layla AI, Wonderplan, Google Gemini, ChatGPT e iPlan.ai. Scopri quale pianificatore di viaggio con AI vale davvero il tuo tempo nel 2026."
-  keywords: ["migliore pianificatore viaggi ai 2026", "confronto strumenti viaggio ai", "mindtrip vs chatgpt", "layla ai recensione", "generatore itinerari gratis"]
-schema: "Article"
+  title: >-
+    Migliori pianificatori di viaggio con AI nel 2026: 7 strumenti a confronto |
+    MonkeyTravel
+  description: >-
+    Abbiamo testato MonkeyTravel, Mindtrip, Layla AI, Wonderplan, Google Gemini,
+    ChatGPT e iPlan.ai. Scopri quale pianificatore di viaggio con AI vale
+    davvero il tuo tempo nel 2026.
+  keywords:
+    - migliore pianificatore viaggi ai 2026
+    - confronto strumenti viaggio ai
+    - mindtrip vs chatgpt
+    - layla ai recensione
+    - generatore itinerari gratis
+schema: Article
 ---
 
 # I migliori pianificatori di viaggio con AI nel 2026: 7 strumenti messi a confronto

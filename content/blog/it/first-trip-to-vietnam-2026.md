@@ -1,20 +1,40 @@
 ---
-title: "First Trip to Vietnam: The Complete 10-Day Guide for 2026"
-slug: "first-trip-to-vietnam-2026"
-description: "Everything you need to plan your first trip to Vietnam in 2026 — visa, costs, a day-by-day 10-day itinerary from Hanoi to the Mekong Delta, and what nobody tells you before you go."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["vietnam", "primo viaggio", "itinerario", "guida destinazione", "viaggi asia", "viaggio economico"]
-image: "/images/blog/first-trip-to-vietnam-2026.jpg"
-imageAlt: "La Baia di Ha Long all'alba con una tradizionale giunca, Vietnam"
+title: 'First Trip to Vietnam: The Complete 10-Day Guide for 2026'
+slug: first-trip-to-vietnam-2026
+description: >-
+  Everything you need to plan your first trip to Vietnam in 2026 — visa, costs,
+  a day-by-day 10-day itinerary from Hanoi to the Mekong Delta, and what nobody
+  tells you before you go.
+author: Enrico E.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - vietnam
+  - primo viaggio
+  - itinerario
+  - guida destinazione
+  - viaggi asia
+  - viaggio economico
+image: /images/blog/first-trip-to-vietnam-2026.jpg
+imageAlt: 'La Baia di Ha Long all''alba con una tradizionale giunca, Vietnam'
 readingTime: 12
 seo:
-  title: "Primo Viaggio in Vietnam 2026: Itinerario Completo di 10 Giorni | MonkeyTravel"
-  description: "Pianifichi il tuo primo viaggio in Vietnam? La guida onesta: visto, costi reali (30-150 €/giorno), itinerario di 10 giorni e gli errori più comuni. Aggiornata marzo 2026."
-  keywords: ["primo viaggio vietnam", "itinerario vietnam 10 giorni", "guida vietnam 2026", "vietnam budget", "consigli viaggio vietnam", "cosa vedere vietnam"]
-schema: "Article"
+  title: >-
+    Primo Viaggio in Vietnam 2026: Itinerario Completo di 10 Giorni |
+    MonkeyTravel
+  description: >-
+    Pianifichi il tuo primo viaggio in Vietnam? La guida onesta: visto, costi
+    reali (30-150 €/giorno), itinerario di 10 giorni e gli errori più comuni.
+    Aggiornata marzo 2026.
+  keywords:
+    - primo viaggio vietnam
+    - itinerario vietnam 10 giorni
+    - guida vietnam 2026
+    - vietnam budget
+    - consigli viaggio vietnam
+    - cosa vedere vietnam
+schema: Article
 ---
 
 # Primo Viaggio in Vietnam: La Guida Completa di 10 Giorni per il 2026

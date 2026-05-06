@@ -1,20 +1,42 @@
 ---
-title: "The Perfect 5-Day Italy Itinerary: Rome, Florence & Beyond (2026)"
-slug: "5-day-italy-itinerary"
-description: "A practical day-by-day Italy itinerary covering Rome, Florence, and a day trip to Venice or the Amalfi Coast. Real 2026 prices, real restaurants, and smart train routing."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["italy", "itinerary", "rome", "florence", "venice", "amalfi coast", "5 days", "europe travel"]
-image: "/images/blog/5-day-italy-itinerary.jpg"
-imageAlt: "View of Florence's Duomo and city skyline at golden hour from Piazzale Michelangelo"
+title: 'The Perfect 5-Day Italy Itinerary: Rome, Florence & Beyond (2026)'
+slug: 5-day-italy-itinerary
+description: >-
+  A practical day-by-day Italy itinerary covering Rome, Florence, and a day trip
+  to Venice or the Amalfi Coast. Real 2026 prices, real restaurants, and smart
+  train routing.
+author: Federico S.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - italy
+  - itinerary
+  - rome
+  - florence
+  - venice
+  - amalfi coast
+  - 5 days
+  - europe travel
+image: /images/blog/5-day-italy-itinerary.jpg
+imageAlt: >-
+  View of Florence's Duomo and city skyline at golden hour from Piazzale
+  Michelangelo
 readingTime: 9
 seo:
-  title: "5-Day Italy Itinerary 2026: Rome, Florence & Day Trip Guide | MonkeyTravel"
-  description: "Plan 5 perfect days in Italy with this day-by-day itinerary. Rome, Florence, and Venice or Amalfi Coast — real prices, train times, and local restaurant picks."
-  keywords: ["5 day italy itinerary", "italy itinerary 5 days", "rome florence venice itinerary", "5 days in italy", "italy travel guide 2026", "rome to florence itinerary"]
-schema: "Article"
+  title: '5-Day Italy Itinerary 2026: Rome, Florence & Day Trip Guide | MonkeyTravel'
+  description: >-
+    Plan 5 perfect days in Italy with this day-by-day itinerary. Rome, Florence,
+    and Venice or Amalfi Coast — real prices, train times, and local restaurant
+    picks.
+  keywords:
+    - 5 day italy itinerary
+    - italy itinerary 5 days
+    - rome florence venice itinerary
+    - 5 days in italy
+    - italy travel guide 2026
+    - rome to florence itinerary
+schema: Article
 ---
 
 # The Perfect 5-Day Italy Itinerary: Rome, Florence & Beyond (2026)

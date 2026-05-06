@@ -1,20 +1,38 @@
 ---
-title: "AI Trip Planner vs. Travel Agent: An Honest 2026 Comparison"
-slug: "ai-trip-planner-vs-travel-agent"
-description: "We planned the same 7-day trip to Portugal using an AI trip planner and a traditional travel agent. Here's what each got right, what they missed, and which actually saved more money."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "AI Travel"
-tags: ["ai travel planner", "travel agent", "trip planning", "comparison", "travel technology"]
-image: "/images/blog/ai-vs-travel-agent.jpg"
-imageAlt: "Split screen showing a phone with AI itinerary and a traditional travel agency desk"
+title: 'AI Trip Planner vs. Travel Agent: An Honest 2026 Comparison'
+slug: ai-trip-planner-vs-travel-agent
+description: >-
+  We planned the same 7-day trip to Portugal using an AI trip planner and a
+  traditional travel agent. Here's what each got right, what they missed, and
+  which actually saved more money.
+author: Riccardo P.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: AI Travel
+tags:
+  - ai travel planner
+  - travel agent
+  - trip planning
+  - comparison
+  - travel technology
+image: /images/blog/ai-vs-travel-agent.jpg
+imageAlt: >-
+  Split screen showing a phone with AI itinerary and a traditional travel agency
+  desk
 readingTime: 5
 seo:
-  title: "AI Trip Planner vs. Travel Agent: Which Plans Better in 2026? | MonkeyTravel"
-  description: "We tested both on the same 7-day Portugal trip. Real costs, real itineraries, honest results. See which one actually delivers better travel planning."
-  keywords: ["ai trip planner vs travel agent", "ai travel planner 2026", "is AI better than travel agent", "ai itinerary planner comparison", "best way to plan a trip"]
-schema: "Article"
+  title: 'AI Trip Planner vs. Travel Agent: Which Plans Better in 2026? | MonkeyTravel'
+  description: >-
+    We tested both on the same 7-day Portugal trip. Real costs, real
+    itineraries, honest results. See which one actually delivers better travel
+    planning.
+  keywords:
+    - ai trip planner vs travel agent
+    - ai travel planner 2026
+    - is AI better than travel agent
+    - ai itinerary planner comparison
+    - best way to plan a trip
+schema: Article
 ---
 
 # Planificador de viajes AI vs. agente de viajes: una comparación honesta en 2026

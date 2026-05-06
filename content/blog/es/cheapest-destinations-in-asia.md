@@ -1,20 +1,39 @@
 ---
-title: "Los 15 Destinos Más Baratos de Asia en 2026 (Presupuestos Diarios Reales)"
-slug: "cheapest-destinations-in-asia"
-description: "Los 15 lugares más baratos para viajar en Asia en 2026 con presupuestos diarios reales, costes de alojamiento, precios de comida callejera y gastos reales."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Budget Travel"
-tags: ["asia", "budget travel", "cheap destinations", "backpacking"]
-image: "/images/blog/cheapest-destinations-in-asia.jpg"
-imageAlt: "Colorido mercado flotante con botes de productos frescos en el Sudeste Asiático"
+title: Los 15 Destinos Más Baratos de Asia en 2026 (Presupuestos Diarios Reales)
+slug: cheapest-destinations-in-asia
+description: >-
+  Los 15 lugares más baratos para viajar en Asia en 2026 con presupuestos
+  diarios reales, costes de alojamiento, precios de comida callejera y gastos
+  reales.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Budget Travel
+tags:
+  - asia
+  - budget travel
+  - cheap destinations
+  - backpacking
+image: /images/blog/cheapest-destinations-in-asia.jpg
+imageAlt: >-
+  Colorido mercado flotante con botes de productos frescos en el Sudeste
+  Asiático
 readingTime: 12
 seo:
-  title: "15 Destinos Más Baratos de Asia 2026: Presupuestos Reales | MonkeyTravel"
-  description: "Descubre los 15 destinos más baratos de Asia para 2026 con presupuestos diarios reales, precios de comida callejera y costes de alojamiento. Desde $15/día en Hanoi."
-  keywords: ["cheapest destinations in asia", "budget travel asia 2026", "cheap countries in asia", "backpacking asia budget", "cheapest places to travel asia", "asia on a budget", "cheap asian travel destinations"]
-schema: "Article"
+  title: '15 Destinos Más Baratos de Asia 2026: Presupuestos Reales | MonkeyTravel'
+  description: >-
+    Descubre los 15 destinos más baratos de Asia para 2026 con presupuestos
+    diarios reales, precios de comida callejera y costes de alojamiento. Desde
+    $15/día en Hanoi.
+  keywords:
+    - cheapest destinations in asia
+    - budget travel asia 2026
+    - cheap countries in asia
+    - backpacking asia budget
+    - cheapest places to travel asia
+    - asia on a budget
+    - cheap asian travel destinations
+schema: Article
 ---
 
 # Los 15 destinos más baratos de Asia en 2026 (presupuestos diarios reales)

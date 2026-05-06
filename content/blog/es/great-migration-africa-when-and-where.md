@@ -1,20 +1,38 @@
 ---
-title: "La Gran Migración en África: Cuándo y Dónde Verla en 2026"
-slug: "great-migration-africa-when-and-where"
-description: "Guía completa mes a mes de la Gran Migración en África Oriental. Dónde están las manadas, los mejores campamentos para cada temporada, cruces del río Mara, temporada de partos y presupuestos reales."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["africa", "safari", "gran migración", "vida salvaje", "estacional", "tanzania", "kenia"]
-image: "/images/blog/great-migration-africa-when-and-where.jpg"
-imageAlt: "Manada de ñus cruzando el río Mara durante la Gran Migración en Kenia"
+title: 'La Gran Migración en África: Cuándo y Dónde Verla en 2026'
+slug: great-migration-africa-when-and-where
+description: >-
+  Guía completa mes a mes de la Gran Migración en África Oriental. Dónde están
+  las manadas, los mejores campamentos para cada temporada, cruces del río Mara,
+  temporada de partos y presupuestos reales.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - africa
+  - safari
+  - gran migración
+  - vida salvaje
+  - estacional
+  - tanzania
+  - kenia
+image: /images/blog/great-migration-africa-when-and-where.jpg
+imageAlt: Manada de ñus cruzando el río Mara durante la Gran Migración en Kenia
 readingTime: 9
 seo:
-  title: "Gran Migración África 2026: Cuándo y Dónde Verla | MonkeyTravel"
-  description: "Guía completa mes a mes de la Gran Migración en Tanzania y Kenia. Mejores campamentos, cruces del río Mara, temporada de partos, presupuestos y consejos prácticos para 2026."
-  keywords: ["gran migración africa", "migración serengeti cuando", "migración masai mara 2026", "mejor epoca gran migración", "calendario migración ñus"]
-schema: "Article"
+  title: 'Gran Migración África 2026: Cuándo y Dónde Verla | MonkeyTravel'
+  description: >-
+    Guía completa mes a mes de la Gran Migración en Tanzania y Kenia. Mejores
+    campamentos, cruces del río Mara, temporada de partos, presupuestos y
+    consejos prácticos para 2026.
+  keywords:
+    - gran migración africa
+    - migración serengeti cuando
+    - migración masai mara 2026
+    - mejor epoca gran migración
+    - calendario migración ñus
+schema: Article
 ---
 
 # La Gran Migración en África: Cuándo y Dónde Verla en 2026

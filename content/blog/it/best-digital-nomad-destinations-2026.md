@@ -1,20 +1,41 @@
 ---
-title: "12 Migliori Destinazioni per Nomadi Digitali nel 2026 (Costi, Visti e Velocità Internet)"
-slug: "best-digital-nomad-destinations-2026"
-description: "L'analisi onesta di dove basarsi nel 2026 — costi mensili reali, requisiti di visto, velocità internet e opzioni di coworking in 12 città per nomadi digitali."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["destinazioni nomadi digitali", "migliori posti per lavorare da remoto 2026", "visto nomade digitale", "viaggi lavoro remoto", "città nomadi 2026"]
-image: "/images/blog/best-digital-nomad-destinations-2026.jpg"
-imageAlt: "Laptop aperto in uno spazio coworking sul tetto con vista sullo skyline di una città assolata"
+title: >-
+  12 Migliori Destinazioni per Nomadi Digitali nel 2026 (Costi, Visti e Velocità
+  Internet)
+slug: best-digital-nomad-destinations-2026
+description: >-
+  L'analisi onesta di dove basarsi nel 2026 — costi mensili reali, requisiti di
+  visto, velocità internet e opzioni di coworking in 12 città per nomadi
+  digitali.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - destinazioni nomadi digitali
+  - migliori posti per lavorare da remoto 2026
+  - visto nomade digitale
+  - viaggi lavoro remoto
+  - città nomadi 2026
+image: /images/blog/best-digital-nomad-destinations-2026.jpg
+imageAlt: >-
+  Laptop aperto in uno spazio coworking sul tetto con vista sullo skyline di una
+  città assolata
 readingTime: 10
 seo:
-  title: "12 Migliori Destinazioni Nomadi Digitali 2026 (Costi, Visti e Wi-Fi) | MonkeyTravel"
-  description: "Analisi onesta delle 12 migliori destinazioni per nomadi digitali nel 2026. Costi reali, tipi di visto e velocità internet a confronto."
-  keywords: ["migliori destinazioni nomadi digitali 2026", "visto nomade digitale 2026", "paesi più economici per lavoro remoto", "dove vivere come nomade digitale", "confronto città nomadi 2026"]
-schema: "Article"
+  title: >-
+    12 Migliori Destinazioni Nomadi Digitali 2026 (Costi, Visti e Wi-Fi) |
+    MonkeyTravel
+  description: >-
+    Analisi onesta delle 12 migliori destinazioni per nomadi digitali nel 2026.
+    Costi reali, tipi di visto e velocità internet a confronto.
+  keywords:
+    - migliori destinazioni nomadi digitali 2026
+    - visto nomade digitale 2026
+    - paesi più economici per lavoro remoto
+    - dove vivere come nomade digitale
+    - confronto città nomadi 2026
+schema: Article
 ---
 
 # 12 Migliori Destinazioni per Nomadi Digitali nel 2026 (Costi, Visti e Velocità Internet)

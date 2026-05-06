@@ -1,20 +1,45 @@
 ---
-title: "10 Migliori Ritiri Wellness nel 2026: Dallo Yoga al Recupero dal Burnout"
-slug: "best-wellness-retreats-2026"
-description: "Le ricerche di 'ritiro di recupero dal burnout' sono cresciute del 340%. Abbiamo classificato i 10 migliori destinazioni wellness per il 2026 — prezzi reali, cosa includono e quale si adatta alla tua situazione."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["turismo wellness", "ritiri yoga", "recupero burnout", "destinazioni spa", "2026", "benessere"]
-image: "/images/blog/best-wellness-retreats-2026.jpg"
-imageAlt: "Piscina a sfioro con vista sulla giungla tropicale in un ritiro wellness a Bali"
+title: '10 Migliori Ritiri Wellness nel 2026: Dallo Yoga al Recupero dal Burnout'
+slug: best-wellness-retreats-2026
+description: >-
+  Le ricerche di 'ritiro di recupero dal burnout' sono cresciute del 340%.
+  Abbiamo classificato i 10 migliori destinazioni wellness per il 2026 — prezzi
+  reali, cosa includono e quale si adatta alla tua situazione.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - turismo wellness
+  - ritiri yoga
+  - recupero burnout
+  - destinazioni spa
+  - '2026'
+  - benessere
+image: /images/blog/best-wellness-retreats-2026.jpg
+imageAlt: >-
+  Piscina a sfioro con vista sulla giungla tropicale in un ritiro wellness a
+  Bali
 readingTime: 11
 seo:
-  title: "10 Migliori Ritiri Wellness 2026: Yoga, Burnout e Star Bathing | MonkeyTravel"
-  description: "I 10 migliori ritiri wellness per il 2026 con prezzi reali, descrizione dei programmi e qual ritiro si adatta alle tue esigenze — da $50/giorno a Bali a $800/giorno allo SHA in Spagna."
-  keywords: ["migliori ritiri wellness 2026", "ritiro recupero burnout", "ritiro yoga 2026", "turismo benessere", "ritiro spa", "star bathing", "Kamalaya", "SHA Wellness", "Ananda India"]
-schema: "Article"
+  title: >-
+    10 Migliori Ritiri Wellness 2026: Yoga, Burnout e Star Bathing |
+    MonkeyTravel
+  description: >-
+    I 10 migliori ritiri wellness per il 2026 con prezzi reali, descrizione dei
+    programmi e qual ritiro si adatta alle tue esigenze — da $50/giorno a Bali a
+    $800/giorno allo SHA in Spagna.
+  keywords:
+    - migliori ritiri wellness 2026
+    - ritiro recupero burnout
+    - ritiro yoga 2026
+    - turismo benessere
+    - ritiro spa
+    - star bathing
+    - Kamalaya
+    - SHA Wellness
+    - Ananda India
+schema: Article
 ---
 
 # 10 Migliori Ritiri Wellness nel 2026: Dallo Yoga al Recupero dal Burnout

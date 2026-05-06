@@ -1,20 +1,36 @@
 ---
-title: "Bangkok 5-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "bangkok-5-day-itinerary"
-description: "A day-by-day Bangkok itinerary covering temples, street food, floating markets, and nightlife. Real 2026 prices, local tips, and BTS/MRT routing."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["bangkok", "itinerary", "thailand", "city guide", "5-day trip"]
-image: "/images/blog/bangkok-5-day-itinerary.jpg"
-imageAlt: "Wat Arun temple at sunset with the Chao Phraya River in Bangkok"
+title: 'Bangkok 5-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: bangkok-5-day-itinerary
+description: >-
+  A day-by-day Bangkok itinerary covering temples, street food, floating
+  markets, and nightlife. Real 2026 prices, local tips, and BTS/MRT routing.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - bangkok
+  - itinerary
+  - thailand
+  - city guide
+  - 5-day trip
+image: /images/blog/bangkok-5-day-itinerary.jpg
+imageAlt: Wat Arun temple at sunset with the Chao Phraya River in Bangkok
 readingTime: 13
 seo:
-  title: "Bangkok 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 5 perfect days in Bangkok with this day-by-day itinerary. Temples, street food, floating markets, Chinatown, and Ayutthaya — with real 2026 prices and BTS/MRT tips."
-  keywords: ["bangkok 5 day itinerary", "bangkok itinerary 2026", "5 days in bangkok", "bangkok travel guide", "what to do in bangkok", "bangkok day by day guide"]
-schema: "Article"
+  title: 'Bangkok 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 5 perfect days in Bangkok with this day-by-day itinerary. Temples,
+    street food, floating markets, Chinatown, and Ayutthaya — with real 2026
+    prices and BTS/MRT tips.
+  keywords:
+    - bangkok 5 day itinerary
+    - bangkok itinerary 2026
+    - 5 days in bangkok
+    - bangkok travel guide
+    - what to do in bangkok
+    - bangkok day by day guide
+schema: Article
 ---
 
 # Bangkok 5-Day Itinerary: The Practical Day-by-Day Guide for 2026

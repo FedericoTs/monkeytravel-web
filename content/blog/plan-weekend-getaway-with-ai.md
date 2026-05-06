@@ -1,20 +1,37 @@
 ---
-title: "How to Plan a 3-Day Weekend Getaway in 15 Minutes with AI"
-slug: "plan-weekend-getaway-with-ai"
-description: "Short on time but need a break? Learn how AI trip planners can generate a complete 3-day itinerary — with restaurants, activities, and timing — in under 15 minutes."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["weekend getaway", "3 day trip", "AI trip planner", "short trip planning", "quick vacation ideas"]
-image: "/images/blog/weekend-getaway-ai.jpg"
-imageAlt: "Couple with small luggage arriving at a charming European city for a weekend getaway"
+title: How to Plan a 3-Day Weekend Getaway in 15 Minutes with AI
+slug: plan-weekend-getaway-with-ai
+description: >-
+  Short on time but need a break? Learn how AI trip planners can generate a
+  complete 3-day itinerary — with restaurants, activities, and timing — in under
+  15 minutes.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - weekend getaway
+  - 3 day trip
+  - AI trip planner
+  - short trip planning
+  - quick vacation ideas
+image: /images/blog/weekend-getaway-ai.jpg
+imageAlt: >-
+  Couple with small luggage arriving at a charming European city for a weekend
+  getaway
 readingTime: 5
 seo:
-  title: "Plan a Weekend Getaway in 15 Minutes with AI | MonkeyTravel"
-  description: "No time to plan? AI can build a complete 3-day weekend itinerary in minutes. See how it works with 5 real destination examples."
-  keywords: ["weekend getaway planner", "3 day trip itinerary", "plan weekend trip AI", "short trip planner", "quick vacation planner"]
-schema: "Article"
+  title: Plan a Weekend Getaway in 15 Minutes with AI | MonkeyTravel
+  description: >-
+    No time to plan? AI can build a complete 3-day weekend itinerary in minutes.
+    See how it works with 5 real destination examples.
+  keywords:
+    - weekend getaway planner
+    - 3 day trip itinerary
+    - plan weekend trip AI
+    - short trip planner
+    - quick vacation planner
+schema: Article
 ---
 
 # How to Plan a 3-Day Weekend Getaway in 15 Minutes with AI

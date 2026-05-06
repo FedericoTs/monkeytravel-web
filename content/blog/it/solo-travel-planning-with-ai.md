@@ -1,20 +1,38 @@
 ---
-title: "Come pianificare un viaggio in solitaria con l'AI: la guida completa 2026"
-slug: "solo-travel-planning-with-ai"
-description: "I viaggi in solitaria sono ai massimi storici nel 2026. Scopri come i pianificatori AI eliminano la parte più difficile del viaggiare da soli — fare tutta la pianificazione da soli."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "Travel Tips"
-tags: ["solo travel", "AI trip planner", "solo travel tips", "travel alone", "solo travel planning 2026"]
-image: "/images/blog/solo-travel-ai.jpg"
-imageAlt: "Viaggiatore solitario con zaino che ammira un panorama montano al tramonto"
+title: 'Come pianificare un viaggio in solitaria con l''AI: la guida completa 2026'
+slug: solo-travel-planning-with-ai
+description: >-
+  I viaggi in solitaria sono ai massimi storici nel 2026. Scopri come i
+  pianificatori AI eliminano la parte più difficile del viaggiare da soli — fare
+  tutta la pianificazione da soli.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: Travel Tips
+tags:
+  - solo travel
+  - AI trip planner
+  - solo travel tips
+  - travel alone
+  - solo travel planning 2026
+image: /images/blog/solo-travel-ai.jpg
+imageAlt: Viaggiatore solitario con zaino che ammira un panorama montano al tramonto
 readingTime: 7
 seo:
-  title: "Pianificare un viaggio in solitaria con l'AI: guida completa 2026 | MonkeyTravel"
-  description: "Il 26% dei viaggiatori ha in programma un viaggio in solitaria nel 2026. Scopri come i pianificatori AI rendono il viaggio da soli più facile — dalla sicurezza agli itinerari ottimizzati per una persona."
-  keywords: ["pianificazione viaggio solitario", "come pianificare un viaggio da soli", "consigli viaggio solitario 2026", "AI pianificatore viaggio solitario", "guida viaggiare da soli"]
-schema: "Article"
+  title: >-
+    Pianificare un viaggio in solitaria con l'AI: guida completa 2026 |
+    MonkeyTravel
+  description: >-
+    Il 26% dei viaggiatori ha in programma un viaggio in solitaria nel 2026.
+    Scopri come i pianificatori AI rendono il viaggio da soli più facile — dalla
+    sicurezza agli itinerari ottimizzati per una persona.
+  keywords:
+    - pianificazione viaggio solitario
+    - come pianificare un viaggio da soli
+    - consigli viaggio solitario 2026
+    - AI pianificatore viaggio solitario
+    - guida viaggiare da soli
+schema: Article
 ---
 
 # Come pianificare un viaggio in solitaria con l'AI: la guida completa 2026

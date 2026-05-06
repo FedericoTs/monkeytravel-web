@@ -1,20 +1,35 @@
 ---
-title: "Can You Trust an AI Travel Itinerary? What to Check Before You Go"
-slug: "can-you-trust-ai-travel-itinerary"
-description: "AI trip planners are impressive, but they're not perfect. Here's exactly what to verify in your AI-generated itinerary — and the common mistakes to watch for."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["AI travel accuracy", "AI itinerary", "trip planning tips", "AI travel limitations", "travel planning verification"]
-image: "/images/blog/trust-ai-itinerary.jpg"
-imageAlt: "Traveler double-checking a printed itinerary against a map at an airport"
+title: Can You Trust an AI Travel Itinerary? What to Check Before You Go
+slug: can-you-trust-ai-travel-itinerary
+description: >-
+  AI trip planners are impressive, but they're not perfect. Here's exactly what
+  to verify in your AI-generated itinerary — and the common mistakes to watch
+  for.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - AI travel accuracy
+  - AI itinerary
+  - trip planning tips
+  - AI travel limitations
+  - travel planning verification
+image: /images/blog/trust-ai-itinerary.jpg
+imageAlt: Traveler double-checking a printed itinerary against a map at an airport
 readingTime: 6
 seo:
-  title: "Can You Trust an AI Travel Itinerary? Verification Checklist | MonkeyTravel"
-  description: "AI travel planners can hallucinate, suggest closed venues, and miss cultural context. Here's a practical checklist of what to verify before your trip."
-  keywords: ["can you trust AI travel itinerary", "AI travel planner accuracy", "AI trip planner problems", "verify AI itinerary", "AI travel limitations"]
-schema: "Article"
+  title: Can You Trust an AI Travel Itinerary? Verification Checklist | MonkeyTravel
+  description: >-
+    AI travel planners can hallucinate, suggest closed venues, and miss cultural
+    context. Here's a practical checklist of what to verify before your trip.
+  keywords:
+    - can you trust AI travel itinerary
+    - AI travel planner accuracy
+    - AI trip planner problems
+    - verify AI itinerary
+    - AI travel limitations
+schema: Article
 ---
 
 # Can You Trust an AI Travel Itinerary? What to Check Before You Go

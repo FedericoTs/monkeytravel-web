@@ -1,20 +1,39 @@
 ---
-title: "Itinerario Puglia 5 Días: Bari, Salento y Trulli con AI"
-slug: "itinerario-puglia-5-giorni"
-description: "Itinerario completo de 5 días en Puglia: Bari, Polignano a Mare, Alberobello, Ostuni, Lecce y Salento. Día a día con presupuesto, dónde comer y playas."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["puglia", "itinerary", "italy", "bari", "salento", "lecce", "trulli", "5 days"]
-image: "/images/blog/itinerario-puglia-5-giorni.jpg"
-imageAlt: "Trulli de Alberobello con techos cónicos de piedra y cielo azul"
+title: 'Itinerario Puglia 5 Días: Bari, Salento y Trulli con AI'
+slug: itinerario-puglia-5-giorni
+description: >-
+  Itinerario completo de 5 días en Puglia: Bari, Polignano a Mare, Alberobello,
+  Ostuni, Lecce y Salento. Día a día con presupuesto, dónde comer y playas.
+author: Federico S.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - puglia
+  - itinerary
+  - italy
+  - bari
+  - salento
+  - lecce
+  - trulli
+  - 5 days
+image: /images/blog/itinerario-puglia-5-giorni.jpg
+imageAlt: Trulli de Alberobello con techos cónicos de piedra y cielo azul
 readingTime: 9
 seo:
-  title: "Itinerario Puglia 5 Días 2026: Bari, Salento y Trulli | MonkeyTravel"
-  description: "Planifica 5 días perfectos en Puglia con este itinerario día a día. Bari, Polignano, Alberobello, Lecce y Salento — dónde comer, playas y presupuestos reales."
-  keywords: ["itinerario puglia 5 dias", "puglia 5 dias", "itinerario puglia", "puglia que ver", "bari salento itinerario", "apulia guia de viaje"]
-schema: "Article"
+  title: 'Itinerario Puglia 5 Días 2026: Bari, Salento y Trulli | MonkeyTravel'
+  description: >-
+    Planifica 5 días perfectos en Puglia con este itinerario día a día. Bari,
+    Polignano, Alberobello, Lecce y Salento — dónde comer, playas y presupuestos
+    reales.
+  keywords:
+    - itinerario puglia 5 dias
+    - puglia 5 dias
+    - itinerario puglia
+    - puglia que ver
+    - bari salento itinerario
+    - apulia guia de viaje
+schema: Article
 ---
 
 # Itinerario Puglia 5 Días: Bari, Salento y Trulli con AI

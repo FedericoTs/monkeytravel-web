@@ -1,20 +1,43 @@
 ---
-title: "Vuelos Baratos 2026: Cuándo y Dónde Reservar para las Mejores Ofertas"
-slug: "cheapest-flights-2026-when-and-where-to-book"
-description: "El vuelo doméstico de ida y vuelta cuesta de media 340 dólares, pero existen docenas de rutas por menos de 100. Aquí te explicamos exactamente cuándo reservar, a dónde volar y cómo encontrar precios que la mayoría de viajeros nunca llega a ver."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Budget Travel"
-tags: ["vuelos baratos", "ofertas de vuelos", "viajes económicos", "2026", "consejos de reserva", "tarifas aéreas"]
-image: "/images/blog/cheapest-flights-2026-when-and-where-to-book.jpg"
-imageAlt: "Ala de avión sobre un mosaico de campos de cultivo al atardecer, vista desde la ventanilla"
+title: 'Vuelos Baratos 2026: Cuándo y Dónde Reservar para las Mejores Ofertas'
+slug: cheapest-flights-2026-when-and-where-to-book
+description: >-
+  El vuelo doméstico de ida y vuelta cuesta de media 340 dólares, pero existen
+  docenas de rutas por menos de 100. Aquí te explicamos exactamente cuándo
+  reservar, a dónde volar y cómo encontrar precios que la mayoría de viajeros
+  nunca llega a ver.
+author: Emanuela P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Budget Travel
+tags:
+  - vuelos baratos
+  - ofertas de vuelos
+  - viajes económicos
+  - '2026'
+  - consejos de reserva
+  - tarifas aéreas
+image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
+imageAlt: >-
+  Ala de avión sobre un mosaico de campos de cultivo al atardecer, vista desde
+  la ventanilla
 readingTime: 10
 seo:
-  title: "Vuelos Baratos 2026: Cuándo y Dónde Reservar | MonkeyTravel"
-  description: "Encuentra los vuelos más baratos de 2026. Las 10 rutas domésticas e internacionales más económicas, los mejores días y meses para volar, y estrategias como tarifas erróneas y fechas flexibles que realmente funcionan."
-  keywords: ["vuelos baratos 2026", "cuándo reservar vuelos", "rutas domésticas baratas", "vuelos internacionales baratos", "ofertas de vuelos 2026", "cómo encontrar vuelos baratos", "mejor día para reservar vuelos"]
-schema: "Article"
+  title: 'Vuelos Baratos 2026: Cuándo y Dónde Reservar | MonkeyTravel'
+  description: >-
+    Encuentra los vuelos más baratos de 2026. Las 10 rutas domésticas e
+    internacionales más económicas, los mejores días y meses para volar, y
+    estrategias como tarifas erróneas y fechas flexibles que realmente
+    funcionan.
+  keywords:
+    - vuelos baratos 2026
+    - cuándo reservar vuelos
+    - rutas domésticas baratas
+    - vuelos internacionales baratos
+    - ofertas de vuelos 2026
+    - cómo encontrar vuelos baratos
+    - mejor día para reservar vuelos
+schema: Article
 ---
 
 # Vuelos Baratos 2026: Cuándo y Dónde Reservar para las Mejores Ofertas

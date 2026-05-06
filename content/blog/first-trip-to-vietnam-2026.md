@@ -1,20 +1,38 @@
 ---
-title: "First Trip to Vietnam: The Complete 10-Day Guide for 2026"
-slug: "first-trip-to-vietnam-2026"
-description: "Everything you need to plan your first trip to Vietnam in 2026 — visa, costs, a day-by-day 10-day itinerary from Hanoi to the Mekong Delta, and what nobody tells you before you go."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["vietnam", "first time travel", "itinerary", "destination guide", "asia travel", "budget travel"]
-image: "/images/blog/first-trip-to-vietnam-2026.jpg"
-imageAlt: "Ha Long Bay limestone karsts at sunrise with traditional junk boat, Vietnam"
+title: 'First Trip to Vietnam: The Complete 10-Day Guide for 2026'
+slug: first-trip-to-vietnam-2026
+description: >-
+  Everything you need to plan your first trip to Vietnam in 2026 — visa, costs,
+  a day-by-day 10-day itinerary from Hanoi to the Mekong Delta, and what nobody
+  tells you before you go.
+author: Enrico E.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - vietnam
+  - first time travel
+  - itinerary
+  - destination guide
+  - asia travel
+  - budget travel
+image: /images/blog/first-trip-to-vietnam-2026.jpg
+imageAlt: 'Ha Long Bay limestone karsts at sunrise with traditional junk boat, Vietnam'
 readingTime: 12
 seo:
-  title: "First Trip to Vietnam 2026: Complete 10-Day Itinerary & Guide | MonkeyTravel"
-  description: "Planning your first trip to Vietnam? Here's the honest guide — visa rules, real daily costs ($30-150), a 10-day itinerary, and the mistakes first-timers make. Updated March 2026."
-  keywords: ["first trip to vietnam", "vietnam itinerary 10 days", "vietnam travel guide 2026", "vietnam for beginners", "vietnam travel tips", "vietnam budget travel"]
-schema: "Article"
+  title: 'First Trip to Vietnam 2026: Complete 10-Day Itinerary & Guide | MonkeyTravel'
+  description: >-
+    Planning your first trip to Vietnam? Here's the honest guide — visa rules,
+    real daily costs ($30-150), a 10-day itinerary, and the mistakes
+    first-timers make. Updated March 2026.
+  keywords:
+    - first trip to vietnam
+    - vietnam itinerary 10 days
+    - vietnam travel guide 2026
+    - vietnam for beginners
+    - vietnam travel tips
+    - vietnam budget travel
+schema: Article
 ---
 
 # First Trip to Vietnam: The Complete 10-Day Guide for 2026

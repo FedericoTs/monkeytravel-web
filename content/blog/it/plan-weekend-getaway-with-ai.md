@@ -1,20 +1,38 @@
 ---
-title: "Come pianificare un weekend fuori porta in 15 minuti con l'AI"
-slug: "plan-weekend-getaway-with-ai"
-description: "Poco tempo ma bisogno di una pausa? Scopri come i pianificatori AI possono generare un itinerario completo di 3 giorni — con ristoranti, attivita e orari — in meno di 15 minuti."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["weekend getaway", "3 day trip", "AI trip planner", "short trip planning", "quick vacation ideas"]
-image: "/images/blog/weekend-getaway-ai.jpg"
-imageAlt: "Coppia con bagaglio leggero che arriva in un'affascinante citta europea per un weekend fuori porta"
+title: Come pianificare un weekend fuori porta in 15 minuti con l'AI
+slug: plan-weekend-getaway-with-ai
+description: >-
+  Poco tempo ma bisogno di una pausa? Scopri come i pianificatori AI possono
+  generare un itinerario completo di 3 giorni — con ristoranti, attivita e orari
+  — in meno di 15 minuti.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - weekend getaway
+  - 3 day trip
+  - AI trip planner
+  - short trip planning
+  - quick vacation ideas
+image: /images/blog/weekend-getaway-ai.jpg
+imageAlt: >-
+  Coppia con bagaglio leggero che arriva in un'affascinante citta europea per un
+  weekend fuori porta
 readingTime: 5
 seo:
-  title: "Pianificare un weekend fuori porta in 15 minuti con l'AI | MonkeyTravel"
-  description: "Non hai tempo per pianificare? L'AI puo creare un itinerario completo per un weekend di 3 giorni in pochi minuti. Scopri come funziona con 5 esempi di destinazioni reali."
-  keywords: ["pianificatore weekend fuori porta", "itinerario viaggio 3 giorni", "pianificare weekend con AI", "pianificatore viaggi brevi", "pianificatore vacanze rapido"]
-schema: "Article"
+  title: Pianificare un weekend fuori porta in 15 minuti con l'AI | MonkeyTravel
+  description: >-
+    Non hai tempo per pianificare? L'AI puo creare un itinerario completo per un
+    weekend di 3 giorni in pochi minuti. Scopri come funziona con 5 esempi di
+    destinazioni reali.
+  keywords:
+    - pianificatore weekend fuori porta
+    - itinerario viaggio 3 giorni
+    - pianificare weekend con AI
+    - pianificatore viaggi brevi
+    - pianificatore vacanze rapido
+schema: Article
 ---
 
 # Come pianificare un weekend fuori porta in 15 minuti con l'AI

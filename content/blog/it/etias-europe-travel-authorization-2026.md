@@ -1,20 +1,45 @@
 ---
-title: "ETIAS Autorizzazione di Viaggio per l'Europa 2026: Tutto Quello Che Devi Sapere"
-slug: "etias-europe-travel-authorization-2026"
-description: "Guida completa all'autorizzazione di viaggio ETIAS in arrivo nel 2026. Chi ne ha bisogno, come fare domanda, costo, validità e cosa significa per chi visita l'Europa."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Travel Tips"
-tags: ["etias", "europe travel", "travel authorization", "schengen", "us travel documents"]
-image: "/images/blog/etias-europe-travel-authorization-2026.jpg"
-imageAlt: "Bandiera dell'Unione Europea con passaporto e schermo di autorizzazione di viaggio digitale"
+title: >-
+  ETIAS Autorizzazione di Viaggio per l'Europa 2026: Tutto Quello Che Devi
+  Sapere
+slug: etias-europe-travel-authorization-2026
+description: >-
+  Guida completa all'autorizzazione di viaggio ETIAS in arrivo nel 2026. Chi ne
+  ha bisogno, come fare domanda, costo, validità e cosa significa per chi visita
+  l'Europa.
+author: Riccardo P.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Travel Tips
+tags:
+  - etias
+  - europe travel
+  - travel authorization
+  - schengen
+  - us travel documents
+image: /images/blog/etias-europe-travel-authorization-2026.jpg
+imageAlt: >-
+  Bandiera dell'Unione Europea con passaporto e schermo di autorizzazione di
+  viaggio digitale
 readingTime: 12
 seo:
-  title: "ETIAS 2026 per Americani: Guida Completa alla Nuova Autorizzazione di Viaggio per l'Europa"
-  description: "ETIAS si attiva nel Q4 2026 per americani e oltre 60 nazionalità. Scopri il costo (7 €), la procedura di richiesta, quali 30 paesi lo richiedono e in cosa differisce da un visto."
-  keywords: ["etias 2026", "etias per americani", "autorizzazione viaggio europa", "domanda etias", "costo etias", "autorizzazione viaggio schengen", "paesi etias", "serve etias"]
-schema: "Article"
+  title: >-
+    ETIAS 2026 per Americani: Guida Completa alla Nuova Autorizzazione di
+    Viaggio per l'Europa
+  description: >-
+    ETIAS si attiva nel Q4 2026 per americani e oltre 60 nazionalità. Scopri il
+    costo (7 €), la procedura di richiesta, quali 30 paesi lo richiedono e in
+    cosa differisce da un visto.
+  keywords:
+    - etias 2026
+    - etias per americani
+    - autorizzazione viaggio europa
+    - domanda etias
+    - costo etias
+    - autorizzazione viaggio schengen
+    - paesi etias
+    - serve etias
+schema: Article
 ---
 
 # ETIAS Autorizzazione di Viaggio per l'Europa 2026: Tutto Quello Che Devi Sapere

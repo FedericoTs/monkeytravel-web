@@ -1,20 +1,44 @@
 ---
-title: "Itinerario de 5 Días en Italia: Roma, Florencia y Más (2026)"
-slug: "5-day-italy-itinerary"
-description: "Un itinerario práctico de Italia día a día cubriendo Roma, Florencia y una excursión a Venecia o la Costa Amalfitana. Precios reales de 2026, restaurantes reales y trenes bien planificados."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["italia", "itinerario", "roma", "florencia", "venecia", "costa amalfitana", "5 días", "viajes europa"]
-image: "/images/blog/5-day-italy-itinerary.jpg"
-imageAlt: "Vista del Duomo de Florencia y el skyline de la ciudad al atardecer desde Piazzale Michelangelo"
+title: 'Itinerario de 5 Días en Italia: Roma, Florencia y Más (2026)'
+slug: 5-day-italy-itinerary
+description: >-
+  Un itinerario práctico de Italia día a día cubriendo Roma, Florencia y una
+  excursión a Venecia o la Costa Amalfitana. Precios reales de 2026,
+  restaurantes reales y trenes bien planificados.
+author: Federico S.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - italia
+  - itinerario
+  - roma
+  - florencia
+  - venecia
+  - costa amalfitana
+  - 5 días
+  - viajes europa
+image: /images/blog/5-day-italy-itinerary.jpg
+imageAlt: >-
+  Vista del Duomo de Florencia y el skyline de la ciudad al atardecer desde
+  Piazzale Michelangelo
 readingTime: 9
 seo:
-  title: "Itinerario de 5 Días en Italia 2026: Roma, Florencia y Excursión | MonkeyTravel"
-  description: "Planifica 5 días perfectos en Italia con este itinerario día a día. Roma, Florencia y Venecia o Costa Amalfitana — precios reales, trenes y restaurantes locales."
-  keywords: ["itinerario 5 dias italia", "italia en 5 dias", "itinerario roma florencia venecia", "5 dias en italia", "guia italia 2026", "roma a florencia itinerario"]
-schema: "Article"
+  title: >-
+    Itinerario de 5 Días en Italia 2026: Roma, Florencia y Excursión |
+    MonkeyTravel
+  description: >-
+    Planifica 5 días perfectos en Italia con este itinerario día a día. Roma,
+    Florencia y Venecia o Costa Amalfitana — precios reales, trenes y
+    restaurantes locales.
+  keywords:
+    - itinerario 5 dias italia
+    - italia en 5 dias
+    - itinerario roma florencia venecia
+    - 5 dias en italia
+    - guia italia 2026
+    - roma a florencia itinerario
+schema: Article
 ---
 
 # Itinerario de 5 Días en Italia: Roma, Florencia y Más (2026)

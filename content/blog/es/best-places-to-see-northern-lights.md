@@ -1,20 +1,39 @@
 ---
-title: "Los Mejores Lugares para Ver la Aurora Boreal en 2026: Guía Práctica"
-slug: "best-places-to-see-northern-lights"
-description: "Los 12 mejores destinos para ver la aurora boreal en 2026, con costes reales, mejores meses, probabilidades y consejos prácticos para cada lugar. Sin adornos — solo lo que funciona."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["aurora boreal", "viajes de invierno", "noruega", "islandia", "finlandia", "viajes árticos"]
-image: "/images/blog/best-places-to-see-northern-lights.jpg"
-imageAlt: "Auroras boreales verdes y violetas danzando sobre un paisaje ártico nevado con un lago congelado"
+title: 'Los Mejores Lugares para Ver la Aurora Boreal en 2026: Guía Práctica'
+slug: best-places-to-see-northern-lights
+description: >-
+  Los 12 mejores destinos para ver la aurora boreal en 2026, con costes reales,
+  mejores meses, probabilidades y consejos prácticos para cada lugar. Sin
+  adornos — solo lo que funciona.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - aurora boreal
+  - viajes de invierno
+  - noruega
+  - islandia
+  - finlandia
+  - viajes árticos
+image: /images/blog/best-places-to-see-northern-lights.jpg
+imageAlt: >-
+  Auroras boreales verdes y violetas danzando sobre un paisaje ártico nevado con
+  un lago congelado
 readingTime: 11
 seo:
-  title: "Dónde Ver la Aurora Boreal 2026: 12 Destinos Clasificados | MonkeyTravel"
-  description: "Dónde ver la aurora boreal en 2026. 12 destinos clasificados por probabilidad, presupuesto y accesibilidad. Costes reales, mejores meses y herramientas de pronóstico."
-  keywords: ["mejores lugares para ver aurora boreal", "donde ver aurora boreal 2026", "aurora boreal destinos", "ver auroras boreales", "mejor epoca aurora boreal"]
-schema: "Article"
+  title: 'Dónde Ver la Aurora Boreal 2026: 12 Destinos Clasificados | MonkeyTravel'
+  description: >-
+    Dónde ver la aurora boreal en 2026. 12 destinos clasificados por
+    probabilidad, presupuesto y accesibilidad. Costes reales, mejores meses y
+    herramientas de pronóstico.
+  keywords:
+    - mejores lugares para ver aurora boreal
+    - donde ver aurora boreal 2026
+    - aurora boreal destinos
+    - ver auroras boreales
+    - mejor epoca aurora boreal
+schema: Article
 ---
 
 # Los Mejores Lugares para Ver la Aurora Boreal en 2026: Guía Práctica

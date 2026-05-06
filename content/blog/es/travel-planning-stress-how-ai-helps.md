@@ -1,20 +1,40 @@
 ---
-title: "¿Agobiado planificando tu viaje? Cómo el AI elimina el estrés de planificar vacaciones"
-slug: "travel-planning-stress-how-ai-helps"
-description: "Si planificar un viaje se siente como un segundo trabajo, no estás solo. Descubre cómo los planificadores de viaje con AI eliminan la fatiga de decisiones y convierten horas de investigación en minutos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "Travel Tips"
-tags: ["travel planning stress", "vacation planning tips", "AI trip planner", "decision fatigue travel", "stress-free travel planning"]
-image: "/images/blog/travel-planning-stress.jpg"
-imageAlt: "Persona rodeada de guías de viaje y pestañas del navegador abiertas con cara de agobio, con una pantalla de móvil limpia mostrando un itinerario organizado"
+title: >-
+  ¿Agobiado planificando tu viaje? Cómo el AI elimina el estrés de planificar
+  vacaciones
+slug: travel-planning-stress-how-ai-helps
+description: >-
+  Si planificar un viaje se siente como un segundo trabajo, no estás solo.
+  Descubre cómo los planificadores de viaje con AI eliminan la fatiga de
+  decisiones y convierten horas de investigación en minutos.
+author: Federico S.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: Travel Tips
+tags:
+  - travel planning stress
+  - vacation planning tips
+  - AI trip planner
+  - decision fatigue travel
+  - stress-free travel planning
+image: /images/blog/travel-planning-stress.jpg
+imageAlt: >-
+  Persona rodeada de guías de viaje y pestañas del navegador abiertas con cara
+  de agobio, con una pantalla de móvil limpia mostrando un itinerario organizado
 readingTime: 6
 seo:
-  title: "¿Agobiado planificando tu viaje? Deja que el AI se encargue | MonkeyTravel"
-  description: "¿47 pestañas abiertas, reseñas contradictorias y parálisis por análisis? Descubre cómo los planificadores de viaje con AI eliminan el ruido y planifican tus vacaciones en minutos, no semanas."
-  keywords: ["estrés planificar viaje", "agobio planificando viaje", "ansiedad planificación viaje", "planificación de vacaciones sin estrés", "planificador de viaje AI fácil"]
-schema: "Article"
+  title: ¿Agobiado planificando tu viaje? Deja que el AI se encargue | MonkeyTravel
+  description: >-
+    ¿47 pestañas abiertas, reseñas contradictorias y parálisis por análisis?
+    Descubre cómo los planificadores de viaje con AI eliminan el ruido y
+    planifican tus vacaciones en minutos, no semanas.
+  keywords:
+    - estrés planificar viaje
+    - agobio planificando viaje
+    - ansiedad planificación viaje
+    - planificación de vacaciones sin estrés
+    - planificador de viaje AI fácil
+schema: Article
 ---
 
 # ¿Agobiado planificando tu viaje? Cómo el AI elimina el estrés de planificar vacaciones

@@ -1,20 +1,43 @@
 ---
-title: "Guida al Viaggio Sostenibile 2026: 10 Destinazioni che Aprono la Strada"
-slug: "sustainable-travel-guide-2026"
-description: "La guida onesta al viaggio sostenibile nel 2026 — 10 destinazioni che lo fanno davvero bene, dal Bhutan con bilancio carbonio negativo alla conservazione comunitaria in Kenya, con budget reali e consigli pratici per viaggiare in modo ecologico."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["viaggio sostenibile 2026", "destinazioni eco-friendly", "turismo responsabile", "viaggio verde", "turismo rigenerativo", "guida turismo sostenibile"]
-image: "/images/blog/sustainable-travel-guide-2026.jpg"
-imageAlt: "Lussureggiante chioma di foresta pluviale vista da un ecolodge sostenibile, nebbia che si alza sulle cime degli alberi all'alba"
+title: 'Guida al Viaggio Sostenibile 2026: 10 Destinazioni che Aprono la Strada'
+slug: sustainable-travel-guide-2026
+description: >-
+  La guida onesta al viaggio sostenibile nel 2026 — 10 destinazioni che lo fanno
+  davvero bene, dal Bhutan con bilancio carbonio negativo alla conservazione
+  comunitaria in Kenya, con budget reali e consigli pratici per viaggiare in
+  modo ecologico.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - viaggio sostenibile 2026
+  - destinazioni eco-friendly
+  - turismo responsabile
+  - viaggio verde
+  - turismo rigenerativo
+  - guida turismo sostenibile
+image: /images/blog/sustainable-travel-guide-2026.jpg
+imageAlt: >-
+  Lussureggiante chioma di foresta pluviale vista da un ecolodge sostenibile,
+  nebbia che si alza sulle cime degli alberi all'alba
 readingTime: 11
 seo:
-  title: "Guida al Viaggio Sostenibile 2026: 10 Destinazioni che Aprono la Strada | MonkeyTravel"
-  description: "10 destinazioni che guidano davvero il turismo sostenibile nel 2026 — budget reali, migliori esperienze eco e consigli pratici per viaggiare con meno impatto e più significato."
-  keywords: ["viaggio sostenibile 2026", "migliori destinazioni eco-friendly 2026", "guida turismo responsabile", "consigli viaggio verde", "destinazioni turismo rigenerativo", "turismo sostenibile 2026"]
-schema: "Article"
+  title: >-
+    Guida al Viaggio Sostenibile 2026: 10 Destinazioni che Aprono la Strada |
+    MonkeyTravel
+  description: >-
+    10 destinazioni che guidano davvero il turismo sostenibile nel 2026 — budget
+    reali, migliori esperienze eco e consigli pratici per viaggiare con meno
+    impatto e più significato.
+  keywords:
+    - viaggio sostenibile 2026
+    - migliori destinazioni eco-friendly 2026
+    - guida turismo responsabile
+    - consigli viaggio verde
+    - destinazioni turismo rigenerativo
+    - turismo sostenibile 2026
+schema: Article
 ---
 
 # Guida al Viaggio Sostenibile 2026: 10 Destinazioni che Aprono la Strada

@@ -1,20 +1,37 @@
 ---
-title: "Travel Planning Overwhelm? How AI Takes the Stress Out of Vacation Planning"
-slug: "travel-planning-stress-how-ai-helps"
-description: "If planning a trip feels like a second job, you're not alone. Here's how AI trip planners eliminate decision fatigue and turn hours of research into minutes."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "Travel Tips"
-tags: ["travel planning stress", "vacation planning tips", "AI trip planner", "decision fatigue travel", "stress-free travel planning"]
-image: "/images/blog/travel-planning-stress.jpg"
-imageAlt: "Person surrounded by travel guides and open browser tabs looking overwhelmed, with a clean phone screen showing an organized itinerary"
+title: Travel Planning Overwhelm? How AI Takes the Stress Out of Vacation Planning
+slug: travel-planning-stress-how-ai-helps
+description: >-
+  If planning a trip feels like a second job, you're not alone. Here's how AI
+  trip planners eliminate decision fatigue and turn hours of research into
+  minutes.
+author: Federico S.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: Travel Tips
+tags:
+  - travel planning stress
+  - vacation planning tips
+  - AI trip planner
+  - decision fatigue travel
+  - stress-free travel planning
+image: /images/blog/travel-planning-stress.jpg
+imageAlt: >-
+  Person surrounded by travel guides and open browser tabs looking overwhelmed,
+  with a clean phone screen showing an organized itinerary
 readingTime: 6
 seo:
-  title: "Travel Planning Overwhelm? Let AI Handle It | MonkeyTravel"
-  description: "47 open tabs, conflicting reviews, and analysis paralysis? Learn how AI trip planners cut through the noise and plan your vacation in minutes, not weeks."
-  keywords: ["travel planning stress", "overwhelmed planning a trip", "travel planning anxiety", "stress-free vacation planning", "AI trip planner easy"]
-schema: "Article"
+  title: Travel Planning Overwhelm? Let AI Handle It | MonkeyTravel
+  description: >-
+    47 open tabs, conflicting reviews, and analysis paralysis? Learn how AI trip
+    planners cut through the noise and plan your vacation in minutes, not weeks.
+  keywords:
+    - travel planning stress
+    - overwhelmed planning a trip
+    - travel planning anxiety
+    - stress-free vacation planning
+    - AI trip planner easy
+schema: Article
 ---
 
 # Travel Planning Overwhelm? How AI Takes the Stress Out of Vacation Planning

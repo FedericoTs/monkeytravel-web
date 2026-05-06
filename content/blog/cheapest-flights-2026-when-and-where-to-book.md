@@ -1,20 +1,39 @@
 ---
-title: "Cheapest Flights 2026: When and Where to Book for the Best Deals"
-slug: "cheapest-flights-2026-when-and-where-to-book"
-description: "The average domestic round-trip flight costs $340, but dozens of routes exist for under $100. Here's exactly when to book, where to fly, and how to find prices that most travelers never see."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Budget Travel"
-tags: ["cheap flights", "flight deals", "budget travel", "2026", "booking tips", "airfare"]
-image: "/images/blog/cheapest-flights-2026-when-and-where-to-book.jpg"
-imageAlt: "Airplane wing over a patchwork of farmland at sunset, viewed from window seat"
+title: 'Cheapest Flights 2026: When and Where to Book for the Best Deals'
+slug: cheapest-flights-2026-when-and-where-to-book
+description: >-
+  The average domestic round-trip flight costs $340, but dozens of routes exist
+  for under $100. Here's exactly when to book, where to fly, and how to find
+  prices that most travelers never see.
+author: Emanuela P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Budget Travel
+tags:
+  - cheap flights
+  - flight deals
+  - budget travel
+  - '2026'
+  - booking tips
+  - airfare
+image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
+imageAlt: 'Airplane wing over a patchwork of farmland at sunset, viewed from window seat'
 readingTime: 10
 seo:
-  title: "Cheapest Flights 2026: When and Where to Book | MonkeyTravel"
-  description: "Find the cheapest flights in 2026. Top 10 cheapest domestic and international routes, best days and months to fly, and strategies like error fares and flexible dates that actually work."
-  keywords: ["cheapest flights 2026", "when to book flights", "cheapest domestic routes", "cheapest international flights", "flight deals 2026", "how to find cheap flights", "best day to book flights"]
-schema: "Article"
+  title: 'Cheapest Flights 2026: When and Where to Book | MonkeyTravel'
+  description: >-
+    Find the cheapest flights in 2026. Top 10 cheapest domestic and
+    international routes, best days and months to fly, and strategies like error
+    fares and flexible dates that actually work.
+  keywords:
+    - cheapest flights 2026
+    - when to book flights
+    - cheapest domestic routes
+    - cheapest international flights
+    - flight deals 2026
+    - how to find cheap flights
+    - best day to book flights
+schema: Article
 ---
 
 # Cheapest Flights 2026: When and Where to Book for the Best Deals

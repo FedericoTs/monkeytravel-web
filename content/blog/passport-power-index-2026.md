@@ -1,20 +1,42 @@
 ---
-title: "Passport Power Index 2026: Where Does YOUR Country Rank? [Full Rankings]"
-slug: "passport-power-index-2026"
-description: "Find your country in the 2026 passport rankings. Henley & Arton data side by side, visa-free counts, the 3 countries that jumped most, and why the US slipped to 10th."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["passport power", "visa-free travel", "passport ranking", "travel documents"]
-image: "/images/blog/passport-power-index-2026.jpg"
-imageAlt: "World passports fanned out on a map next to a globe and boarding pass, representing the 2026 Passport Power Index"
+title: 'Passport Power Index 2026: Where Does YOUR Country Rank? [Full Rankings]'
+slug: passport-power-index-2026
+description: >-
+  Find your country in the 2026 passport rankings. Henley & Arton data side by
+  side, visa-free counts, the 3 countries that jumped most, and why the US
+  slipped to 10th.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - passport power
+  - visa-free travel
+  - passport ranking
+  - travel documents
+image: /images/blog/passport-power-index-2026.jpg
+imageAlt: >-
+  World passports fanned out on a map next to a globe and boarding pass,
+  representing the 2026 Passport Power Index
 readingTime: 12
 seo:
-  title: "Passport Power 2026: Can YOUR Passport Get You There? [Full Rankings] | MonkeyTravel"
-  description: "Find your country in the 2026 passport power rankings. Henley & Arton Capital compared — the 3 countries that jumped most, why the US slipped to 10th, and what it means for your next trip. Updated April 2026."
-  keywords: ["passport power index 2026", "strongest passports 2026", "weakest passports 2026", "henley passport index 2026", "arton capital passport index 2026", "passport ranking 2026", "most powerful passports 2026", "henley vs arton"]
-schema: "Article"
+  title: >-
+    Passport Power 2026: Can YOUR Passport Get You There? [Full Rankings] |
+    MonkeyTravel
+  description: >-
+    Find your country in the 2026 passport power rankings. Henley & Arton
+    Capital compared — the 3 countries that jumped most, why the US slipped to
+    10th, and what it means for your next trip. Updated April 2026.
+  keywords:
+    - passport power index 2026
+    - strongest passports 2026
+    - weakest passports 2026
+    - henley passport index 2026
+    - arton capital passport index 2026
+    - passport ranking 2026
+    - most powerful passports 2026
+    - henley vs arton
+schema: Article
 ---
 
 # Passport Power Index 2026: Complete Ranking & What It Means for Your Travel

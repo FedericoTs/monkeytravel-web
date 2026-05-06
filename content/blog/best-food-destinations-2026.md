@@ -1,20 +1,38 @@
 ---
-title: "12 Best Food Destinations in the World for 2026"
-slug: "best-food-destinations-2026"
-description: "The world's best cities and regions for food travel in 2026 — from Crete's Mediterranean heritage to Tokyo's precision craft to Oaxaca's living food traditions. Real daily budgets, must-try dishes, and insider tips."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["food travel", "culinary tourism", "best destinations 2026", "foodie travel", "restaurants", "street food"]
-image: "/images/blog/best-food-destinations-2026.jpg"
-imageAlt: "Colorful spread of dishes from multiple cuisines on a market table"
+title: 12 Best Food Destinations in the World for 2026
+slug: best-food-destinations-2026
+description: >-
+  The world's best cities and regions for food travel in 2026 — from Crete's
+  Mediterranean heritage to Tokyo's precision craft to Oaxaca's living food
+  traditions. Real daily budgets, must-try dishes, and insider tips.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - food travel
+  - culinary tourism
+  - best destinations 2026
+  - foodie travel
+  - restaurants
+  - street food
+image: /images/blog/best-food-destinations-2026.jpg
+imageAlt: Colorful spread of dishes from multiple cuisines on a market table
 readingTime: 11
 seo:
-  title: "12 Best Food Destinations in the World for 2026 | MonkeyTravel"
-  description: "The 12 best food destinations in 2026 — signature dishes, food markets, daily budgets, and insider tips for Crete, Tokyo, Mexico City, Lima, Istanbul, Bangkok, Bologna, Lyon, Seoul, Oaxaca, Hanoi, and San Sebastián."
-  keywords: ["best food destinations 2026", "culinary travel 2026", "food travel destinations", "best cities for food", "foodie destinations world", "culinary tourism"]
-schema: "Article"
+  title: 12 Best Food Destinations in the World for 2026 | MonkeyTravel
+  description: >-
+    The 12 best food destinations in 2026 — signature dishes, food markets,
+    daily budgets, and insider tips for Crete, Tokyo, Mexico City, Lima,
+    Istanbul, Bangkok, Bologna, Lyon, Seoul, Oaxaca, Hanoi, and San Sebastián.
+  keywords:
+    - best food destinations 2026
+    - culinary travel 2026
+    - food travel destinations
+    - best cities for food
+    - foodie destinations world
+    - culinary tourism
+schema: Article
 ---
 
 # 12 Best Food Destinations in the World for 2026

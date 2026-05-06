@@ -1,20 +1,42 @@
 ---
-title: "7-Day Sardinia Itinerary: Costa Smeralda, Ogliastra & Southern Coast with AI"
-slug: "itinerario-sardegna-7-giorni"
-description: "Complete 7-day Sardinia itinerary: from Cagliari to Costa Smeralda via Ogliastra. Day-by-day with budget, transport, and the best beaches you can't miss."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["sardinia", "itinerary", "italy", "beach", "7 days", "costa smeralda", "ogliastra", "road trip"]
-image: "/images/blog/itinerario-sardegna-7-giorni.jpg"
-imageAlt: "Cala Goloritzé in Sardinia with turquoise water and limestone cliffs"
+title: '7-Day Sardinia Itinerary: Costa Smeralda, Ogliastra & Southern Coast with AI'
+slug: itinerario-sardegna-7-giorni
+description: >-
+  Complete 7-day Sardinia itinerary: from Cagliari to Costa Smeralda via
+  Ogliastra. Day-by-day with budget, transport, and the best beaches you can't
+  miss.
+author: Federico S.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - sardinia
+  - itinerary
+  - italy
+  - beach
+  - 7 days
+  - costa smeralda
+  - ogliastra
+  - road trip
+image: /images/blog/itinerario-sardegna-7-giorni.jpg
+imageAlt: Cala Goloritzé in Sardinia with turquoise water and limestone cliffs
 readingTime: 10
 seo:
-  title: "7-Day Sardinia Itinerary 2026: Costa Smeralda, Ogliastra & South | MonkeyTravel"
-  description: "Plan 7 perfect days in Sardinia with this day-by-day itinerary. Cagliari, Villasimius, Ogliastra, Costa Smeralda, and Alghero — beaches, budgets, and practical tips."
-  keywords: ["7 day sardinia itinerary", "sardinia itinerary", "sardinia road trip", "costa smeralda itinerary", "sardinia what to see", "best beaches sardinia"]
-schema: "Article"
+  title: >-
+    7-Day Sardinia Itinerary 2026: Costa Smeralda, Ogliastra & South |
+    MonkeyTravel
+  description: >-
+    Plan 7 perfect days in Sardinia with this day-by-day itinerary. Cagliari,
+    Villasimius, Ogliastra, Costa Smeralda, and Alghero — beaches, budgets, and
+    practical tips.
+  keywords:
+    - 7 day sardinia itinerary
+    - sardinia itinerary
+    - sardinia road trip
+    - costa smeralda itinerary
+    - sardinia what to see
+    - best beaches sardinia
+schema: Article
 ---
 
 # 7-Day Sardinia Itinerary: Costa Smeralda, Ogliastra & Southern Coast with AI

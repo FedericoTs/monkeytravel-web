@@ -1,20 +1,35 @@
 ---
-title: "Bali 7-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "bali-7-day-itinerary"
-description: "A realistic 7-day Bali itinerary covering Ubud, Seminyak, Uluwatu, and Nusa Penida with real 2026 prices, actual restaurant names, and honest transport advice."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["bali", "itinerary", "indonesia", "7 days", "asia travel"]
-image: "/images/blog/bali-7-day-itinerary.jpg"
-imageAlt: "Tegallalang rice terraces in Ubud, Bali with lush green tiers and palm trees"
+title: 'Bali 7-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: bali-7-day-itinerary
+description: >-
+  A realistic 7-day Bali itinerary covering Ubud, Seminyak, Uluwatu, and Nusa
+  Penida with real 2026 prices, actual restaurant names, and honest transport
+  advice.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - bali
+  - itinerary
+  - indonesia
+  - 7 days
+  - asia travel
+image: /images/blog/bali-7-day-itinerary.jpg
+imageAlt: 'Tegallalang rice terraces in Ubud, Bali with lush green tiers and palm trees'
 readingTime: 9
 seo:
-  title: "Bali 7-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 7 perfect days in Bali with this practical itinerary. Real prices, real restaurants, and smart routing for Ubud, Seminyak, Uluwatu, and Nusa Penida."
-  keywords: ["bali 7 day itinerary", "bali itinerary 7 days", "7 days in bali", "bali travel guide 2026", "what to do in bali for a week"]
-schema: "Article"
+  title: 'Bali 7-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 7 perfect days in Bali with this practical itinerary. Real prices, real
+    restaurants, and smart routing for Ubud, Seminyak, Uluwatu, and Nusa Penida.
+  keywords:
+    - bali 7 day itinerary
+    - bali itinerary 7 days
+    - 7 days in bali
+    - bali travel guide 2026
+    - what to do in bali for a week
+schema: Article
 ---
 
 # Bali 7-Day Itinerary: The Practical Day-by-Day Guide for 2026

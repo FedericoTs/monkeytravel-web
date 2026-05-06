@@ -1,20 +1,34 @@
 ---
-title: "How to Split Costs on a Group Trip Without Ruining Friendships"
-slug: "group-trip-budget-how-to-split-costs"
-description: "Money is the #1 reason group trips get awkward. Here are 5 systems for splitting expenses fairly — plus the tools that make it painless."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group trip budget", "split travel costs", "travel expenses friends", "group travel money", "trip cost sharing"]
-image: "/images/blog/group-trip-split-costs.jpg"
-imageAlt: "Friends at a restaurant table splitting the bill on their phones"
+title: How to Split Costs on a Group Trip Without Ruining Friendships
+slug: group-trip-budget-how-to-split-costs
+description: >-
+  Money is the #1 reason group trips get awkward. Here are 5 systems for
+  splitting expenses fairly — plus the tools that make it painless.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group trip budget
+  - split travel costs
+  - travel expenses friends
+  - group travel money
+  - trip cost sharing
+image: /images/blog/group-trip-split-costs.jpg
+imageAlt: Friends at a restaurant table splitting the bill on their phones
 readingTime: 7
 seo:
-  title: "How to Split Group Trip Costs Fairly (5 Methods) | MonkeyTravel"
-  description: "5 proven systems for splitting travel expenses with friends. Avoid awkward money talks and keep friendships intact."
-  keywords: ["how to split costs group trip", "group travel expenses", "split travel costs friends", "group trip budget", "travel expense sharing app"]
-schema: "Article"
+  title: How to Split Group Trip Costs Fairly (5 Methods) | MonkeyTravel
+  description: >-
+    5 proven systems for splitting travel expenses with friends. Avoid awkward
+    money talks and keep friendships intact.
+  keywords:
+    - how to split costs group trip
+    - group travel expenses
+    - split travel costs friends
+    - group trip budget
+    - travel expense sharing app
+schema: Article
 ---
 
 # How to Split Costs on a Group Trip Without Ruining Friendships

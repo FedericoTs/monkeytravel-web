@@ -1,20 +1,42 @@
 ---
-title: "Best Fall Foliage Destinations in the World: Where to See Autumn Colors in 2026"
-slug: "best-fall-foliage-destinations"
-description: "The 12 best fall foliage destinations worldwide, with peak dates, driving routes, photography tips, and budget breakdowns. Plan your autumn leaves trip for 2026."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["fall foliage", "autumn", "seasonal", "nature", "photography"]
-image: "/images/blog/best-fall-foliage-destinations.jpg"
-imageAlt: "Vibrant red and orange fall foliage along a New England road with a covered bridge"
+title: >-
+  Best Fall Foliage Destinations in the World: Where to See Autumn Colors in
+  2026
+slug: best-fall-foliage-destinations
+description: >-
+  The 12 best fall foliage destinations worldwide, with peak dates, driving
+  routes, photography tips, and budget breakdowns. Plan your autumn leaves trip
+  for 2026.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - fall foliage
+  - autumn
+  - seasonal
+  - nature
+  - photography
+image: /images/blog/best-fall-foliage-destinations.jpg
+imageAlt: >-
+  Vibrant red and orange fall foliage along a New England road with a covered
+  bridge
 readingTime: 8
 seo:
-  title: "Best Fall Foliage Destinations 2026: 12 Places to See Autumn Leaves | MonkeyTravel"
-  description: "Discover the 12 best fall foliage destinations for 2026. Peak dates, driving routes, train itineraries, photography tips, and budget comparisons for every destination."
-  keywords: ["best fall foliage destinations", "autumn leaves travel", "fall colors travel 2026", "where to see fall foliage", "best places for autumn colors"]
-schema: "Article"
+  title: >-
+    Best Fall Foliage Destinations 2026: 12 Places to See Autumn Leaves |
+    MonkeyTravel
+  description: >-
+    Discover the 12 best fall foliage destinations for 2026. Peak dates, driving
+    routes, train itineraries, photography tips, and budget comparisons for
+    every destination.
+  keywords:
+    - best fall foliage destinations
+    - autumn leaves travel
+    - fall colors travel 2026
+    - where to see fall foliage
+    - best places for autumn colors
+schema: Article
 ---
 
 # Best Fall Foliage Destinations in the World: Where to See Autumn Colors in 2026

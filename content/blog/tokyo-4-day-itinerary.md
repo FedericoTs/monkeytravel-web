@@ -1,20 +1,36 @@
 ---
-title: "Tokyo 4-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "tokyo-4-day-itinerary"
-description: "A day-by-day Tokyo itinerary covering Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku, and a day trip to Kamakura. Real prices, real train routes, real restaurants."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["tokyo", "itinerary", "japan", "4 days", "asia travel"]
-image: "/images/blog/tokyo-4-day-itinerary.jpg"
-imageAlt: "Shibuya Crossing at dusk with neon lights and crowds in Tokyo, Japan"
+title: 'Tokyo 4-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: tokyo-4-day-itinerary
+description: >-
+  A day-by-day Tokyo itinerary covering Shibuya, Shinjuku, Asakusa, Akihabara,
+  Harajuku, and a day trip to Kamakura. Real prices, real train routes, real
+  restaurants.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - tokyo
+  - itinerary
+  - japan
+  - 4 days
+  - asia travel
+image: /images/blog/tokyo-4-day-itinerary.jpg
+imageAlt: 'Shibuya Crossing at dusk with neon lights and crowds in Tokyo, Japan'
 readingTime: 9
 seo:
-  title: "Tokyo 4-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 4 perfect days in Tokyo with this day-by-day itinerary. Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku, and a Kamakura day trip — with real prices and train tips."
-  keywords: ["tokyo 4 day itinerary", "4 days in tokyo", "tokyo itinerary 2026", "tokyo travel guide", "what to do in tokyo in 4 days"]
-schema: "Article"
+  title: 'Tokyo 4-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 4 perfect days in Tokyo with this day-by-day itinerary. Shibuya,
+    Shinjuku, Asakusa, Akihabara, Harajuku, and a Kamakura day trip — with real
+    prices and train tips.
+  keywords:
+    - tokyo 4 day itinerary
+    - 4 days in tokyo
+    - tokyo itinerary 2026
+    - tokyo travel guide
+    - what to do in tokyo in 4 days
+schema: Article
 ---
 
 # Tokyo 4-Day Itinerary: The Practical Day-by-Day Guide for 2026

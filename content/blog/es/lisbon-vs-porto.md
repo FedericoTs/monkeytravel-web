@@ -1,20 +1,40 @@
 ---
-title: "Lisboa vs Oporto: ¿Qué Ciudad Portuguesa Deberías Visitar en 2026?"
-slug: "lisbon-vs-porto"
-description: "Una comparación honesta entre Lisboa y Oporto para 2026 — presupuesto, gastronomía, vino, vida nocturna, cultura, playas y cuál gana para cada tipo de viajero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["lisbon", "porto", "comparison", "portugal", "city guide"]
-image: "/images/blog/lisbon-vs-porto.jpg"
-imageAlt: "Imagen dividida comparando la colina colorida de Lisboa y el distrito de Ribeira en Oporto junto al río Duero"
+title: 'Lisboa vs Oporto: ¿Qué Ciudad Portuguesa Deberías Visitar en 2026?'
+slug: lisbon-vs-porto
+description: >-
+  Una comparación honesta entre Lisboa y Oporto para 2026 — presupuesto,
+  gastronomía, vino, vida nocturna, cultura, playas y cuál gana para cada tipo
+  de viajero.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - lisbon
+  - porto
+  - comparison
+  - portugal
+  - city guide
+image: /images/blog/lisbon-vs-porto.jpg
+imageAlt: >-
+  Imagen dividida comparando la colina colorida de Lisboa y el distrito de
+  Ribeira en Oporto junto al río Duero
 readingTime: 10
 seo:
-  title: "Lisboa vs Oporto 2026: ¿Cuál Es la Ciudad Portuguesa Perfecta para Ti?"
-  description: "¿Lisboa u Oporto en 2026? Comparamos costes, comida, vino, vida nocturna y cultura para que elijas la ciudad portuguesa ideal para tu estilo de viaje y presupuesto."
-  keywords: ["lisboa vs oporto", "lisboa o oporto", "lisboa vs oporto coste", "lisboa vs oporto 2026", "lisboa vs oporto comida", "comparación portugal", "qué ciudad en portugal"]
-schema: "Article"
+  title: 'Lisboa vs Oporto 2026: ¿Cuál Es la Ciudad Portuguesa Perfecta para Ti?'
+  description: >-
+    ¿Lisboa u Oporto en 2026? Comparamos costes, comida, vino, vida nocturna y
+    cultura para que elijas la ciudad portuguesa ideal para tu estilo de viaje y
+    presupuesto.
+  keywords:
+    - lisboa vs oporto
+    - lisboa o oporto
+    - lisboa vs oporto coste
+    - lisboa vs oporto 2026
+    - lisboa vs oporto comida
+    - comparación portugal
+    - qué ciudad en portugal
+schema: Article
 ---
 
 # Lisboa vs Oporto: ¿Qué Ciudad Portuguesa Deberías Visitar en 2026?

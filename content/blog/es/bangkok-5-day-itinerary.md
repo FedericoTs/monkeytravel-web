@@ -1,20 +1,37 @@
 ---
-title: "Itinerario de 5 Días en Bangkok: Guía Práctica Día a Día para 2026"
-slug: "bangkok-5-day-itinerary"
-description: "Itinerario de Bangkok día a día con templos, comida callejera, mercados flotantes y vida nocturna. Precios reales de 2026, consejos locales y rutas de BTS/MRT."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["bangkok", "itinerario", "tailandia", "guía de ciudad", "viaje de 5 días"]
-image: "/images/blog/bangkok-5-day-itinerary.jpg"
-imageAlt: "Templo Wat Arun al atardecer con el río Chao Phraya en Bangkok"
+title: 'Itinerario de 5 Días en Bangkok: Guía Práctica Día a Día para 2026'
+slug: bangkok-5-day-itinerary
+description: >-
+  Itinerario de Bangkok día a día con templos, comida callejera, mercados
+  flotantes y vida nocturna. Precios reales de 2026, consejos locales y rutas de
+  BTS/MRT.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - bangkok
+  - itinerario
+  - tailandia
+  - guía de ciudad
+  - viaje de 5 días
+image: /images/blog/bangkok-5-day-itinerary.jpg
+imageAlt: Templo Wat Arun al atardecer con el río Chao Phraya en Bangkok
 readingTime: 13
 seo:
-  title: "Itinerario de 5 Días en Bangkok 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 5 días perfectos en Bangkok con este itinerario día a día. Templos, comida callejera, mercados flotantes, Chinatown y Ayutthaya — con precios reales de 2026 y consejos de BTS/MRT."
-  keywords: ["itinerario 5 dias bangkok", "bangkok itinerario 2026", "5 dias en bangkok", "guia de viaje bangkok", "que hacer en bangkok", "bangkok guia dia a dia"]
-schema: "Article"
+  title: 'Itinerario de 5 Días en Bangkok 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 5 días perfectos en Bangkok con este itinerario día a día.
+    Templos, comida callejera, mercados flotantes, Chinatown y Ayutthaya — con
+    precios reales de 2026 y consejos de BTS/MRT.
+  keywords:
+    - itinerario 5 dias bangkok
+    - bangkok itinerario 2026
+    - 5 dias en bangkok
+    - guia de viaje bangkok
+    - que hacer en bangkok
+    - bangkok guia dia a dia
+schema: Article
 ---
 
 # Itinerario de 5 Días en Bangkok: Guía Práctica Día a Día para 2026

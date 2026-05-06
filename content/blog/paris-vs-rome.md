@@ -1,20 +1,36 @@
 ---
-title: "Paris vs Rome: Which European City Should You Visit in 2026?"
-slug: "paris-vs-rome"
-description: "An honest comparison of Paris and Rome for 2026 — covering food, art, costs, romance, and which city wins for different types of travelers."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["paris", "rome", "comparison", "europe", "city guide"]
-image: "/images/blog/paris-vs-rome.jpg"
-imageAlt: "Split image comparing the Eiffel Tower in Paris and the Colosseum in Rome"
+title: 'Paris vs Rome: Which European City Should You Visit in 2026?'
+slug: paris-vs-rome
+description: >-
+  An honest comparison of Paris and Rome for 2026 — covering food, art, costs,
+  romance, and which city wins for different types of travelers.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - paris
+  - rome
+  - comparison
+  - europe
+  - city guide
+image: /images/blog/paris-vs-rome.jpg
+imageAlt: Split image comparing the Eiffel Tower in Paris and the Colosseum in Rome
 readingTime: 10
 seo:
-  title: "Paris vs Rome 2026: Which City Should You Actually Visit First?"
-  description: "First-timer or returning traveler? We break down Paris vs Rome by cost, crowds, food, and vibe — so you can stop debating and start booking."
-  keywords: ["paris vs rome", "paris or rome", "paris vs rome cost", "paris vs rome food", "paris vs rome 2026", "europe trip paris rome", "which is better paris or rome"]
-schema: "Article"
+  title: 'Paris vs Rome 2026: Which City Should You Actually Visit First?'
+  description: >-
+    First-timer or returning traveler? We break down Paris vs Rome by cost,
+    crowds, food, and vibe — so you can stop debating and start booking.
+  keywords:
+    - paris vs rome
+    - paris or rome
+    - paris vs rome cost
+    - paris vs rome food
+    - paris vs rome 2026
+    - europe trip paris rome
+    - which is better paris or rome
+schema: Article
 ---
 
 # Paris vs Rome: Which European City Should You Visit in 2026?

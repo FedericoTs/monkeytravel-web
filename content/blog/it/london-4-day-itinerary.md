@@ -1,20 +1,37 @@
 ---
-title: "Itinerario di 4 Giorni a Londra: Guida Pratica Giorno per Giorno 2026"
-slug: "london-4-day-itinerary"
-description: "Itinerario di Londra giorno per giorno con Westminster, South Bank, Camden, Shoreditch e altro. Prezzi reali 2026, ristoranti reali, percorsi intelligenti in metro."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["londra", "itinerario", "inghilterra", "guida città", "viaggio di 4 giorni"]
-image: "/images/blog/london-4-day-itinerary.jpg"
-imageAlt: "Big Ben e le Houses of Parliament lungo il Tamigi a Londra"
+title: 'Itinerario di 4 Giorni a Londra: Guida Pratica Giorno per Giorno 2026'
+slug: london-4-day-itinerary
+description: >-
+  Itinerario di Londra giorno per giorno con Westminster, South Bank, Camden,
+  Shoreditch e altro. Prezzi reali 2026, ristoranti reali, percorsi intelligenti
+  in metro.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - londra
+  - itinerario
+  - inghilterra
+  - guida città
+  - viaggio di 4 giorni
+image: /images/blog/london-4-day-itinerary.jpg
+imageAlt: Big Ben e le Houses of Parliament lungo il Tamigi a Londra
 readingTime: 12
 seo:
-  title: "Itinerario 4 Giorni Londra 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 4 giorni perfetti a Londra con questo itinerario giorno per giorno. Westminster, British Museum, Torre di Londra, Borough Market, Camden, Notting Hill — con prezzi reali 2026 e consigli sulla metro."
-  keywords: ["itinerario 4 giorni londra", "londra itinerario 2026", "4 giorni a londra", "guida di viaggio londra 2026", "cosa fare a londra in 4 giorni", "londra giorno per giorno"]
-schema: "Article"
+  title: 'Itinerario 4 Giorni Londra 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 4 giorni perfetti a Londra con questo itinerario giorno per
+    giorno. Westminster, British Museum, Torre di Londra, Borough Market,
+    Camden, Notting Hill — con prezzi reali 2026 e consigli sulla metro.
+  keywords:
+    - itinerario 4 giorni londra
+    - londra itinerario 2026
+    - 4 giorni a londra
+    - guida di viaggio londra 2026
+    - cosa fare a londra in 4 giorni
+    - londra giorno per giorno
+schema: Article
 ---
 
 # Itinerario di 4 Giorni a Londra: Guida Pratica Giorno per Giorno 2026

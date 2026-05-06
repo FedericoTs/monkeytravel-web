@@ -1,20 +1,40 @@
 ---
-title: "Lisbona vs Porto: Quale Città Portoghese Dovresti Visitare nel 2026?"
-slug: "lisbon-vs-porto"
-description: "Un confronto onesto tra Lisbona e Porto per il 2026 — budget, gastronomia, vino, vita notturna, cultura, spiagge e quale vince per ogni tipo di viaggiatore."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["lisbon", "porto", "comparison", "portugal", "city guide"]
-image: "/images/blog/lisbon-vs-porto.jpg"
-imageAlt: "Immagine divisa che confronta la collina colorata di Lisbona e il quartiere Ribeira di Porto lungo il fiume Douro"
+title: 'Lisbona vs Porto: Quale Città Portoghese Dovresti Visitare nel 2026?'
+slug: lisbon-vs-porto
+description: >-
+  Un confronto onesto tra Lisbona e Porto per il 2026 — budget, gastronomia,
+  vino, vita notturna, cultura, spiagge e quale vince per ogni tipo di
+  viaggiatore.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - lisbon
+  - porto
+  - comparison
+  - portugal
+  - city guide
+image: /images/blog/lisbon-vs-porto.jpg
+imageAlt: >-
+  Immagine divisa che confronta la collina colorata di Lisbona e il quartiere
+  Ribeira di Porto lungo il fiume Douro
 readingTime: 10
 seo:
-  title: "Lisbona vs Porto 2026: Quale Città Portoghese È Giusta per Te?"
-  description: "Lisbona o Porto nel 2026? Confrontiamo costi, cibo, vino, vita notturna e cultura per scegliere la città portoghese perfetta per il tuo stile di viaggio e budget."
-  keywords: ["lisbona vs porto", "lisbona o porto", "lisbona vs porto costi", "lisbona vs porto 2026", "lisbona vs porto cibo", "confronto portogallo", "quale città in portogallo"]
-schema: "Article"
+  title: 'Lisbona vs Porto 2026: Quale Città Portoghese È Giusta per Te?'
+  description: >-
+    Lisbona o Porto nel 2026? Confrontiamo costi, cibo, vino, vita notturna e
+    cultura per scegliere la città portoghese perfetta per il tuo stile di
+    viaggio e budget.
+  keywords:
+    - lisbona vs porto
+    - lisbona o porto
+    - lisbona vs porto costi
+    - lisbona vs porto 2026
+    - lisbona vs porto cibo
+    - confronto portogallo
+    - quale città in portogallo
+schema: Article
 ---
 
 # Lisbona vs Porto: Quale Città Portoghese Dovresti Visitare nel 2026?

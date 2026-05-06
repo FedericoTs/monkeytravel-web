@@ -1,20 +1,36 @@
 ---
-title: "How AI Is Actually Changing Travel Planning in 2026 (No Hype, Just Facts)"
-slug: "how-ai-is-changing-travel-planning"
-description: "42% of travelers used AI for trip planning in 2025. Here's what AI planners actually do well, where they still fail, and why the smartest travelers use them differently than you'd expect."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "AI Travel"
-tags: ["ai travel planning", "travel technology", "ai itinerary", "future of travel", "trip planning tools"]
-image: "/images/blog/ai-travel-planning-2026.jpg"
-imageAlt: "Person using a phone showing an AI-generated travel itinerary with a map"
+title: 'How AI Is Actually Changing Travel Planning in 2026 (No Hype, Just Facts)'
+slug: how-ai-is-changing-travel-planning
+description: >-
+  42% of travelers used AI for trip planning in 2025. Here's what AI planners
+  actually do well, where they still fail, and why the smartest travelers use
+  them differently than you'd expect.
+author: Federico S.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: AI Travel
+tags:
+  - ai travel planning
+  - travel technology
+  - ai itinerary
+  - future of travel
+  - trip planning tools
+image: /images/blog/ai-travel-planning-2026.jpg
+imageAlt: Person using a phone showing an AI-generated travel itinerary with a map
 readingTime: 5
 seo:
-  title: "How AI Is Actually Changing Travel Planning in 2026 | MonkeyTravel"
-  description: "42% of travelers used AI tools in 2025. But what does AI trip planning actually look like? What it does well, where it fails, and how to use it smartly."
-  keywords: ["ai travel planning", "how ai is changing travel", "ai trip planner 2026", "ai itinerary generator", "future of travel planning"]
-schema: "Article"
+  title: How AI Is Actually Changing Travel Planning in 2026 | MonkeyTravel
+  description: >-
+    42% of travelers used AI tools in 2025. But what does AI trip planning
+    actually look like? What it does well, where it fails, and how to use it
+    smartly.
+  keywords:
+    - ai travel planning
+    - how ai is changing travel
+    - ai trip planner 2026
+    - ai itinerary generator
+    - future of travel planning
+schema: Article
 ---
 
 # Come l'AI sta davvero cambiando il modo di pianificare i viaggi nel 2026

@@ -1,20 +1,36 @@
 ---
-title: "Destinazioni Senza Visto per Passaporto: La Guida Completa 2026"
-slug: "visa-free-destinations-by-passport"
-description: "Scopri quanti Paesi puoi visitare senza visto con il tuo passaporto. Guida completa 2026 con i 15 passaporti principali, ETA, visto all'arrivo e consigli."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["viaggi senza visto", "potere del passaporto", "documenti di viaggio", "requisiti visto"]
-image: "/images/blog/visa-free-destinations-by-passport.jpg"
-imageAlt: "Mappa mondiale con timbri di passaporto e pin di destinazioni senza visto che evidenziano la libertà di viaggio globale"
+title: 'Destinazioni Senza Visto per Passaporto: La Guida Completa 2026'
+slug: visa-free-destinations-by-passport
+description: >-
+  Scopri quanti Paesi puoi visitare senza visto con il tuo passaporto. Guida
+  completa 2026 con i 15 passaporti principali, ETA, visto all'arrivo e
+  consigli.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - viaggi senza visto
+  - potere del passaporto
+  - documenti di viaggio
+  - requisiti visto
+image: /images/blog/visa-free-destinations-by-passport.jpg
+imageAlt: >-
+  Mappa mondiale con timbri di passaporto e pin di destinazioni senza visto che
+  evidenziano la libertà di viaggio globale
 readingTime: 11
 seo:
-  title: "Destinazioni Senza Visto per Passaporto 2026: Guida Completa Paese per Paese"
-  description: "Scopri quanti Paesi puoi visitare senza visto con il tuo passaporto. Guida completa 2026 con i 15 passaporti principali, ETA, visto all'arrivo e consigli."
-  keywords: ["destinazioni senza visto", "viaggi senza visto", "requisiti visto passaporto", "viaggiare senza visto"]
-schema: "Article"
+  title: 'Destinazioni Senza Visto per Passaporto 2026: Guida Completa Paese per Paese'
+  description: >-
+    Scopri quanti Paesi puoi visitare senza visto con il tuo passaporto. Guida
+    completa 2026 con i 15 passaporti principali, ETA, visto all'arrivo e
+    consigli.
+  keywords:
+    - destinazioni senza visto
+    - viaggi senza visto
+    - requisiti visto passaporto
+    - viaggiare senza visto
+schema: Article
 ---
 
 # Destinazioni senza visto per passaporto: la guida completa 2026

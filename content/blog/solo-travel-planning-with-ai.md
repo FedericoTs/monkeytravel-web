@@ -1,20 +1,35 @@
 ---
-title: "How to Plan a Solo Trip with AI: The Complete 2026 Guide"
-slug: "solo-travel-planning-with-ai"
-description: "Solo travel is at an all-time high in 2026. Learn how AI trip planners eliminate the hardest part of traveling alone — doing all the planning yourself."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "Travel Tips"
-tags: ["solo travel", "AI trip planner", "solo travel tips", "travel alone", "solo travel planning 2026"]
-image: "/images/blog/solo-travel-ai.jpg"
-imageAlt: "Solo traveler with backpack looking at a scenic mountain vista at golden hour"
+title: 'How to Plan a Solo Trip with AI: The Complete 2026 Guide'
+slug: solo-travel-planning-with-ai
+description: >-
+  Solo travel is at an all-time high in 2026. Learn how AI trip planners
+  eliminate the hardest part of traveling alone — doing all the planning
+  yourself.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: Travel Tips
+tags:
+  - solo travel
+  - AI trip planner
+  - solo travel tips
+  - travel alone
+  - solo travel planning 2026
+image: /images/blog/solo-travel-ai.jpg
+imageAlt: Solo traveler with backpack looking at a scenic mountain vista at golden hour
 readingTime: 7
 seo:
-  title: "Solo Travel Planning with AI: Complete 2026 Guide | MonkeyTravel"
-  description: "26% of travelers plan to go solo in 2026. Learn how AI trip planners make solo travel easier — from safety to itineraries optimized for one."
-  keywords: ["solo travel planning", "how to plan a solo trip", "solo travel tips 2026", "AI solo travel planner", "traveling alone guide"]
-schema: "Article"
+  title: 'Solo Travel Planning with AI: Complete 2026 Guide | MonkeyTravel'
+  description: >-
+    26% of travelers plan to go solo in 2026. Learn how AI trip planners make
+    solo travel easier — from safety to itineraries optimized for one.
+  keywords:
+    - solo travel planning
+    - how to plan a solo trip
+    - solo travel tips 2026
+    - AI solo travel planner
+    - traveling alone guide
+schema: Article
 ---
 
 # How to Plan a Solo Trip with AI: The Complete 2026 Guide

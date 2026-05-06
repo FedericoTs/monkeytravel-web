@@ -1,20 +1,39 @@
 ---
-title: "Paris vs Barcelona: Which City Should You Visit in 2026?"
-slug: "paris-vs-barcelona"
-description: "An honest comparison of Paris and Barcelona for 2026 — covering budget, food, nightlife, beaches, culture, and which city wins for different travelers."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["paris", "barcelona", "comparison", "europe", "city guide"]
-image: "/images/blog/paris-vs-barcelona.jpg"
-imageAlt: "Split image comparing the Eiffel Tower in Paris and the Sagrada Familia in Barcelona"
+title: 'Paris vs Barcelona: Which City Should You Visit in 2026?'
+slug: paris-vs-barcelona
+description: >-
+  An honest comparison of Paris and Barcelona for 2026 — covering budget, food,
+  nightlife, beaches, culture, and which city wins for different travelers.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - paris
+  - barcelona
+  - comparison
+  - europe
+  - city guide
+image: /images/blog/paris-vs-barcelona.jpg
+imageAlt: >-
+  Split image comparing the Eiffel Tower in Paris and the Sagrada Familia in
+  Barcelona
 readingTime: 10
 seo:
-  title: "Paris vs Barcelona 2026: Honest Comparison for Your Next Trip"
-  description: "Paris or Barcelona in 2026? We compare costs, food, nightlife, beaches, culture, and weather so you can pick the right city for your travel style and budget."
-  keywords: ["paris vs barcelona", "paris or barcelona", "paris vs barcelona cost", "paris vs barcelona 2026", "paris vs barcelona food", "paris vs barcelona nightlife", "europe trip comparison"]
-schema: "Article"
+  title: 'Paris vs Barcelona 2026: Honest Comparison for Your Next Trip'
+  description: >-
+    Paris or Barcelona in 2026? We compare costs, food, nightlife, beaches,
+    culture, and weather so you can pick the right city for your travel style
+    and budget.
+  keywords:
+    - paris vs barcelona
+    - paris or barcelona
+    - paris vs barcelona cost
+    - paris vs barcelona 2026
+    - paris vs barcelona food
+    - paris vs barcelona nightlife
+    - europe trip comparison
+schema: Article
 ---
 
 # Paris vs Barcelona: Which City Should You Visit in 2026?

@@ -1,20 +1,34 @@
 ---
-title: "Il Template per l'Itinerario di Gruppo Che Tiene Tutti Contenti"
-slug: "group-trip-itinerary-template"
-description: "Un template collaudato giorno per giorno per itinerari di gruppo. Equilibra struttura e flessibilità così nessuno si sente intrappolato o perso."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group trip itinerary", "trip itinerary template", "group travel planning", "travel itinerary friends", "day by day trip plan"]
-image: "/images/blog/group-trip-itinerary-template.jpg"
-imageAlt: "A shared travel itinerary displayed on a tablet with a map and checklist"
+title: Il Template per l'Itinerario di Gruppo Che Tiene Tutti Contenti
+slug: group-trip-itinerary-template
+description: >-
+  Un template collaudato giorno per giorno per itinerari di gruppo. Equilibra
+  struttura e flessibilità così nessuno si sente intrappolato o perso.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group trip itinerary
+  - trip itinerary template
+  - group travel planning
+  - travel itinerary friends
+  - day by day trip plan
+image: /images/blog/group-trip-itinerary-template.jpg
+imageAlt: A shared travel itinerary displayed on a tablet with a map and checklist
 readingTime: 7
 seo:
-  title: "Template Itinerario di Gruppo (Guida Giorno per Giorno) | MonkeyTravel"
-  description: "Un template flessibile giorno per giorno per viaggi di gruppo. Equilibra attività pianificate e tempo libero così tutti restano contenti."
-  keywords: ["group trip itinerary template", "group travel itinerary", "trip itinerary template friends", "day by day group trip plan", "how to make group trip itinerary"]
-schema: "Article"
+  title: Template Itinerario di Gruppo (Guida Giorno per Giorno) | MonkeyTravel
+  description: >-
+    Un template flessibile giorno per giorno per viaggi di gruppo. Equilibra
+    attività pianificate e tempo libero così tutti restano contenti.
+  keywords:
+    - group trip itinerary template
+    - group travel itinerary
+    - trip itinerary template friends
+    - day by day group trip plan
+    - how to make group trip itinerary
+schema: Article
 ---
 
 # Il Template per l'Itinerario di Gruppo Che Tiene Tutti Contenti

@@ -1,20 +1,38 @@
 ---
-title: "The Great Migration in Africa: When and Where to See It in 2026"
-slug: "great-migration-africa-when-and-where"
-description: "A complete month-by-month guide to the Great Migration in East Africa. Where the herds are, the best camps for each season, Mara River crossings, calving season, and real budget breakdowns."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["africa", "safari", "great migration", "wildlife", "seasonal", "tanzania", "kenya"]
-image: "/images/blog/great-migration-africa-when-and-where.jpg"
-imageAlt: "Wildebeest herd crossing the Mara River during the Great Migration in Kenya"
+title: 'The Great Migration in Africa: When and Where to See It in 2026'
+slug: great-migration-africa-when-and-where
+description: >-
+  A complete month-by-month guide to the Great Migration in East Africa. Where
+  the herds are, the best camps for each season, Mara River crossings, calving
+  season, and real budget breakdowns.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - africa
+  - safari
+  - great migration
+  - wildlife
+  - seasonal
+  - tanzania
+  - kenya
+image: /images/blog/great-migration-africa-when-and-where.jpg
+imageAlt: Wildebeest herd crossing the Mara River during the Great Migration in Kenya
 readingTime: 9
 seo:
-  title: "Great Migration Africa 2026: When & Where to See It | MonkeyTravel"
-  description: "Complete month-by-month guide to the Great Migration in Tanzania and Kenya. Best camps, Mara River crossings, calving season, budgets, and practical tips for 2026."
-  keywords: ["great migration africa", "serengeti migration when", "masai mara migration 2026", "great migration best time", "wildebeest migration calendar"]
-schema: "Article"
+  title: 'Great Migration Africa 2026: When & Where to See It | MonkeyTravel'
+  description: >-
+    Complete month-by-month guide to the Great Migration in Tanzania and Kenya.
+    Best camps, Mara River crossings, calving season, budgets, and practical
+    tips for 2026.
+  keywords:
+    - great migration africa
+    - serengeti migration when
+    - masai mara migration 2026
+    - great migration best time
+    - wildebeest migration calendar
+schema: Article
 ---
 
 # The Great Migration in Africa: When and Where to See It in 2026

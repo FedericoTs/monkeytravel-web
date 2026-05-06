@@ -1,20 +1,40 @@
 ---
-title: "Puoi fidarti di un itinerario di viaggio generato dall'AI? Cosa verificare prima di partire"
-slug: "can-you-trust-ai-travel-itinerary"
-description: "I pianificatori AI sono impressionanti, ma non perfetti. Ecco esattamente cosa verificare nel tuo itinerario generato dall'AI — e gli errori più comuni da tenere d'occhio."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["AI travel accuracy", "AI itinerary", "trip planning tips", "AI travel limitations", "travel planning verification"]
-image: "/images/blog/trust-ai-itinerary.jpg"
-imageAlt: "Viaggiatore che ricontrolla un itinerario stampato confrontandolo con una mappa in aeroporto"
+title: >-
+  Puoi fidarti di un itinerario di viaggio generato dall'AI? Cosa verificare
+  prima di partire
+slug: can-you-trust-ai-travel-itinerary
+description: >-
+  I pianificatori AI sono impressionanti, ma non perfetti. Ecco esattamente cosa
+  verificare nel tuo itinerario generato dall'AI — e gli errori più comuni da
+  tenere d'occhio.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - AI travel accuracy
+  - AI itinerary
+  - trip planning tips
+  - AI travel limitations
+  - travel planning verification
+image: /images/blog/trust-ai-itinerary.jpg
+imageAlt: >-
+  Viaggiatore che ricontrolla un itinerario stampato confrontandolo con una
+  mappa in aeroporto
 readingTime: 6
 seo:
-  title: "Puoi fidarti di un itinerario AI? Checklist di verifica | MonkeyTravel"
-  description: "I pianificatori AI possono avere allucinazioni, suggerire locali chiusi e perdere il contesto culturale. Ecco una checklist pratica di cosa verificare prima del viaggio."
-  keywords: ["fidarsi itinerario AI viaggio", "accuratezza pianificatore AI viaggio", "problemi pianificatore AI viaggio", "verificare itinerario AI", "limitazioni AI viaggio"]
-schema: "Article"
+  title: Puoi fidarti di un itinerario AI? Checklist di verifica | MonkeyTravel
+  description: >-
+    I pianificatori AI possono avere allucinazioni, suggerire locali chiusi e
+    perdere il contesto culturale. Ecco una checklist pratica di cosa verificare
+    prima del viaggio.
+  keywords:
+    - fidarsi itinerario AI viaggio
+    - accuratezza pianificatore AI viaggio
+    - problemi pianificatore AI viaggio
+    - verificare itinerario AI
+    - limitazioni AI viaggio
+schema: Article
 ---
 
 # Puoi fidarti di un itinerario di viaggio generato dall'AI? Cosa verificare prima di partire

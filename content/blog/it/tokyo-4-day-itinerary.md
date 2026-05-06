@@ -1,20 +1,36 @@
 ---
-title: "Itinerario di 4 Giorni a Tokyo: Guida Pratica Giorno per Giorno 2026"
-slug: "tokyo-4-day-itinerary"
-description: "Itinerario di Tokyo giorno per giorno con Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku e gita a Kamakura. Prezzi reali, treni reali, ristoranti reali."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["tokyo", "itinerario", "giappone", "4 giorni", "viaggi asia"]
-image: "/images/blog/tokyo-4-day-itinerary.jpg"
-imageAlt: "Incrocio di Shibuya al crepuscolo con luci al neon e folla a Tokyo, Giappone"
+title: 'Itinerario di 4 Giorni a Tokyo: Guida Pratica Giorno per Giorno 2026'
+slug: tokyo-4-day-itinerary
+description: >-
+  Itinerario di Tokyo giorno per giorno con Shibuya, Shinjuku, Asakusa,
+  Akihabara, Harajuku e gita a Kamakura. Prezzi reali, treni reali, ristoranti
+  reali.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - tokyo
+  - itinerario
+  - giappone
+  - 4 giorni
+  - viaggi asia
+image: /images/blog/tokyo-4-day-itinerary.jpg
+imageAlt: 'Incrocio di Shibuya al crepuscolo con luci al neon e folla a Tokyo, Giappone'
 readingTime: 9
 seo:
-  title: "Itinerario 4 Giorni Tokyo 2026: Guida Giorno per Giorno | MonkeyTravel"
-  description: "Pianifica 4 giorni perfetti a Tokyo con questo itinerario giorno per giorno. Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku e Kamakura — con prezzi reali e consigli sui treni."
-  keywords: ["itinerario 4 giorni tokyo", "4 giorni a tokyo", "tokyo itinerario 2026", "guida di viaggio tokyo", "cosa fare a tokyo in 4 giorni"]
-schema: "Article"
+  title: 'Itinerario 4 Giorni Tokyo 2026: Guida Giorno per Giorno | MonkeyTravel'
+  description: >-
+    Pianifica 4 giorni perfetti a Tokyo con questo itinerario giorno per giorno.
+    Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku e Kamakura — con prezzi
+    reali e consigli sui treni.
+  keywords:
+    - itinerario 4 giorni tokyo
+    - 4 giorni a tokyo
+    - tokyo itinerario 2026
+    - guida di viaggio tokyo
+    - cosa fare a tokyo in 4 giorni
+schema: Article
 ---
 
 # Itinerario di 4 Giorni a Tokyo: Guida Pratica Giorno per Giorno 2026

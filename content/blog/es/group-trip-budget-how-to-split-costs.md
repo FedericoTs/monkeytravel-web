@@ -1,20 +1,37 @@
 ---
-title: "How to Split Costs on a Group Trip Without Ruining Friendships"
-slug: "group-trip-budget-how-to-split-costs"
-description: "El dinero es la razón #1 por la que los viajes en grupo se vuelven incómodos. Aquí tienes 5 sistemas para dividir gastos de forma justa — y las herramientas que lo hacen sencillo."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group trip budget", "split travel costs", "travel expenses friends", "group travel money", "trip cost sharing"]
-image: "/images/blog/group-trip-split-costs.jpg"
-imageAlt: "Friends at a restaurant table splitting the bill on their phones"
+title: How to Split Costs on a Group Trip Without Ruining Friendships
+slug: group-trip-budget-how-to-split-costs
+description: >-
+  El dinero es la razón #1 por la que los viajes en grupo se vuelven incómodos.
+  Aquí tienes 5 sistemas para dividir gastos de forma justa — y las herramientas
+  que lo hacen sencillo.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group trip budget
+  - split travel costs
+  - travel expenses friends
+  - group travel money
+  - trip cost sharing
+image: /images/blog/group-trip-split-costs.jpg
+imageAlt: Friends at a restaurant table splitting the bill on their phones
 readingTime: 7
 seo:
-  title: "Cómo dividir los gastos de un viaje en grupo de forma justa (5 métodos) | MonkeyTravel"
-  description: "5 sistemas probados para dividir los gastos de viaje con amigos. Evita las conversaciones incómodas sobre dinero y mantén tus amistades intactas."
-  keywords: ["cómo dividir gastos viaje en grupo", "gastos viaje con amigos", "dividir costes viaje", "presupuesto viaje en grupo", "app para dividir gastos viaje"]
-schema: "Article"
+  title: >-
+    Cómo dividir los gastos de un viaje en grupo de forma justa (5 métodos) |
+    MonkeyTravel
+  description: >-
+    5 sistemas probados para dividir los gastos de viaje con amigos. Evita las
+    conversaciones incómodas sobre dinero y mantén tus amistades intactas.
+  keywords:
+    - cómo dividir gastos viaje en grupo
+    - gastos viaje con amigos
+    - dividir costes viaje
+    - presupuesto viaje en grupo
+    - app para dividir gastos viaje
+schema: Article
 ---
 
 # Cómo dividir los gastos de un viaje en grupo sin arruinar amistades

@@ -1,20 +1,42 @@
 ---
-title: "Voli Economici 2026: Quando e Dove Prenotare per le Migliori Offerte"
-slug: "cheapest-flights-2026-when-and-where-to-book"
-description: "Il volo domestico andata e ritorno costa in media 340 dollari, ma esistono decine di rotte sotto i 100 dollari. Ecco esattamente quando prenotare, dove volare e come trovare prezzi che la maggior parte dei viaggiatori non vede mai."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Budget Travel"
-tags: ["voli economici", "offerte voli", "viaggi low cost", "2026", "consigli prenotazione", "tariffe aeree"]
-image: "/images/blog/cheapest-flights-2026-when-and-where-to-book.jpg"
-imageAlt: "Ala di aereo su un mosaico di campi coltivati al tramonto, vista dal finestrino"
+title: 'Voli Economici 2026: Quando e Dove Prenotare per le Migliori Offerte'
+slug: cheapest-flights-2026-when-and-where-to-book
+description: >-
+  Il volo domestico andata e ritorno costa in media 340 dollari, ma esistono
+  decine di rotte sotto i 100 dollari. Ecco esattamente quando prenotare, dove
+  volare e come trovare prezzi che la maggior parte dei viaggiatori non vede
+  mai.
+author: Emanuela P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Budget Travel
+tags:
+  - voli economici
+  - offerte voli
+  - viaggi low cost
+  - '2026'
+  - consigli prenotazione
+  - tariffe aeree
+image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
+imageAlt: >-
+  Ala di aereo su un mosaico di campi coltivati al tramonto, vista dal
+  finestrino
 readingTime: 10
 seo:
-  title: "Voli Economici 2026: Quando e Dove Prenotare | MonkeyTravel"
-  description: "Trova i voli piu economici del 2026. Le 10 rotte domestiche e internazionali piu convenienti, i migliori giorni e mesi per volare, e strategie come le tariffe errore e le date flessibili che funzionano davvero."
-  keywords: ["voli economici 2026", "quando prenotare voli", "rotte domestiche economiche", "voli internazionali economici", "offerte voli 2026", "come trovare voli economici", "miglior giorno prenotare voli"]
-schema: "Article"
+  title: 'Voli Economici 2026: Quando e Dove Prenotare | MonkeyTravel'
+  description: >-
+    Trova i voli piu economici del 2026. Le 10 rotte domestiche e internazionali
+    piu convenienti, i migliori giorni e mesi per volare, e strategie come le
+    tariffe errore e le date flessibili che funzionano davvero.
+  keywords:
+    - voli economici 2026
+    - quando prenotare voli
+    - rotte domestiche economiche
+    - voli internazionali economici
+    - offerte voli 2026
+    - come trovare voli economici
+    - miglior giorno prenotare voli
+schema: Article
 ---
 
 # Voli Economici 2026: Quando e Dove Prenotare per le Migliori Offerte

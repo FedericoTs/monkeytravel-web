@@ -1,20 +1,42 @@
 ---
-title: "Sopraffatto dalla pianificazione del viaggio? Come l'AI elimina lo stress dalla pianificazione delle vacanze"
-slug: "travel-planning-stress-how-ai-helps"
-description: "Se pianificare un viaggio ti sembra un secondo lavoro, non sei solo. Ecco come i pianificatori AI eliminano la stanchezza decisionale e trasformano ore di ricerca in minuti."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "Travel Tips"
-tags: ["travel planning stress", "vacation planning tips", "AI trip planner", "decision fatigue travel", "stress-free travel planning"]
-image: "/images/blog/travel-planning-stress.jpg"
-imageAlt: "Persona circondata da guide di viaggio e schede del browser aperte con aria sopraffatta, con lo schermo del telefono che mostra un itinerario organizzato"
+title: >-
+  Sopraffatto dalla pianificazione del viaggio? Come l'AI elimina lo stress
+  dalla pianificazione delle vacanze
+slug: travel-planning-stress-how-ai-helps
+description: >-
+  Se pianificare un viaggio ti sembra un secondo lavoro, non sei solo. Ecco come
+  i pianificatori AI eliminano la stanchezza decisionale e trasformano ore di
+  ricerca in minuti.
+author: Federico S.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: Travel Tips
+tags:
+  - travel planning stress
+  - vacation planning tips
+  - AI trip planner
+  - decision fatigue travel
+  - stress-free travel planning
+image: /images/blog/travel-planning-stress.jpg
+imageAlt: >-
+  Persona circondata da guide di viaggio e schede del browser aperte con aria
+  sopraffatta, con lo schermo del telefono che mostra un itinerario organizzato
 readingTime: 6
 seo:
-  title: "Sopraffatto dalla pianificazione del viaggio? Lascia fare all'AI | MonkeyTravel"
-  description: "47 schede aperte, recensioni contraddittorie e paralisi da analisi? Scopri come i pianificatori AI tagliano il rumore e pianificano la tua vacanza in minuti, non settimane."
-  keywords: ["stress pianificazione viaggio", "sopraffatto pianificare viaggio", "ansia pianificazione viaggio", "pianificazione vacanza senza stress", "pianificatore AI viaggio facile"]
-schema: "Article"
+  title: >-
+    Sopraffatto dalla pianificazione del viaggio? Lascia fare all'AI |
+    MonkeyTravel
+  description: >-
+    47 schede aperte, recensioni contraddittorie e paralisi da analisi? Scopri
+    come i pianificatori AI tagliano il rumore e pianificano la tua vacanza in
+    minuti, non settimane.
+  keywords:
+    - stress pianificazione viaggio
+    - sopraffatto pianificare viaggio
+    - ansia pianificazione viaggio
+    - pianificazione vacanza senza stress
+    - pianificatore AI viaggio facile
+schema: Article
 ---
 
 # Sopraffatto dalla pianificazione del viaggio? Come l'AI elimina lo stress dalla pianificazione delle vacanze

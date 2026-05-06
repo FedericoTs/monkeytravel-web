@@ -1,20 +1,34 @@
 ---
-title: "How to Plan a Bachelorette Trip That Everyone Actually Enjoys"
-slug: "how-to-plan-a-bachelorette-trip"
-description: "A step-by-step guide to planning a bachelorette trip that works for every budget, personality, and squad size. No drama, no debt, no regrets."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["bachelorette trip planning", "bachelorette party ideas", "group trip planning", "bachelorette destinations", "bride trip"]
-image: "/images/blog/bachelorette-trip-planning.jpg"
-imageAlt: "Group of women celebrating on a rooftop terrace with cocktails at sunset"
+title: How to Plan a Bachelorette Trip That Everyone Actually Enjoys
+slug: how-to-plan-a-bachelorette-trip
+description: >-
+  A step-by-step guide to planning a bachelorette trip that works for every
+  budget, personality, and squad size. No drama, no debt, no regrets.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - bachelorette trip planning
+  - bachelorette party ideas
+  - group trip planning
+  - bachelorette destinations
+  - bride trip
+image: /images/blog/bachelorette-trip-planning.jpg
+imageAlt: Group of women celebrating on a rooftop terrace with cocktails at sunset
 readingTime: 7
 seo:
-  title: "How to Plan a Bachelorette Trip (Step-by-Step 2026 Guide) | MonkeyTravel"
-  description: "Plan a bachelorette trip everyone loves. Step-by-step guide covering budget, destination, activities, and how to keep the whole squad happy."
-  keywords: ["how to plan a bachelorette trip", "bachelorette party planning", "bachelorette trip ideas 2026", "bachelorette destination guide", "group trip bachelorette"]
-schema: "Article"
+  title: How to Plan a Bachelorette Trip (Step-by-Step 2026 Guide) | MonkeyTravel
+  description: >-
+    Plan a bachelorette trip everyone loves. Step-by-step guide covering budget,
+    destination, activities, and how to keep the whole squad happy.
+  keywords:
+    - how to plan a bachelorette trip
+    - bachelorette party planning
+    - bachelorette trip ideas 2026
+    - bachelorette destination guide
+    - group trip bachelorette
+schema: Article
 ---
 
 # How to Plan a Bachelorette Trip That Everyone Actually Enjoys

@@ -1,20 +1,37 @@
 ---
-title: "15 Cheapest European Cities for Food and Drink in 2026"
-slug: "cheapest-european-cities-for-food-2026"
-description: "The 15 cheapest cities in Europe for food and drink in 2026 — ranked by average meal cost, with best local dishes, food markets, beer prices, and daily food budgets from $3 to $13 per meal."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Budget Travel"
-tags: ["budget travel", "europe", "food travel", "cheap eats", "street food"]
-image: "/images/blog/cheapest-european-cities-for-food-2026.jpg"
-imageAlt: "Affordable European street food spread at an outdoor market"
+title: 15 Cheapest European Cities for Food and Drink in 2026
+slug: cheapest-european-cities-for-food-2026
+description: >-
+  The 15 cheapest cities in Europe for food and drink in 2026 — ranked by
+  average meal cost, with best local dishes, food markets, beer prices, and
+  daily food budgets from $3 to $13 per meal.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Budget Travel
+tags:
+  - budget travel
+  - europe
+  - food travel
+  - cheap eats
+  - street food
+image: /images/blog/cheapest-european-cities-for-food-2026.jpg
+imageAlt: Affordable European street food spread at an outdoor market
 readingTime: 9
 seo:
-  title: "15 Cheapest European Cities for Food and Drink 2026 [Ranked] | MonkeyTravel"
-  description: "The 15 cheapest European cities for food and drink in 2026 — average meal costs, best local dishes, beer prices, and top food markets. From Tirana at $3 to Valencia at $13."
-  keywords: ["cheapest cities in europe for food and drink 2025 2026", "cheapest european cities for food", "cheap eats europe", "budget food travel europe", "cheapest city for eating out in europe", "street food europe cheap"]
-schema: "Article"
+  title: '15 Cheapest European Cities for Food and Drink 2026 [Ranked] | MonkeyTravel'
+  description: >-
+    The 15 cheapest European cities for food and drink in 2026 — average meal
+    costs, best local dishes, beer prices, and top food markets. From Tirana at
+    $3 to Valencia at $13.
+  keywords:
+    - cheapest cities in europe for food and drink 2025 2026
+    - cheapest european cities for food
+    - cheap eats europe
+    - budget food travel europe
+    - cheapest city for eating out in europe
+    - street food europe cheap
+schema: Article
 ---
 
 # 15 Cheapest European Cities for Food and Drink in 2026

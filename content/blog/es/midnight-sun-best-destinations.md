@@ -1,20 +1,41 @@
 ---
-title: "Mejores Destinos para Ver el Sol de Medianoche: Dónde Vivir 24 Horas de Luz en 2026"
-slug: "midnight-sun-best-destinations"
-description: "Los mejores lugares para ver el sol de medianoche en 2026 — desde las Islas Lofoten en Noruega hasta Islandia, Laponia Sueca, Finlandia, Alaska y Svalbard. Cuándo ir, qué hacer y cuánto cuesta."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["sol de medianoche", "ártico", "noruega", "islandia", "estacional", "verano"]
-image: "/images/blog/midnight-sun-best-destinations.jpg"
-imageAlt: "Sol de medianoche bañando con luz dorada las Islas Lofoten en Noruega a medianoche"
+title: >-
+  Mejores Destinos para Ver el Sol de Medianoche: Dónde Vivir 24 Horas de Luz en
+  2026
+slug: midnight-sun-best-destinations
+description: >-
+  Los mejores lugares para ver el sol de medianoche en 2026 — desde las Islas
+  Lofoten en Noruega hasta Islandia, Laponia Sueca, Finlandia, Alaska y
+  Svalbard. Cuándo ir, qué hacer y cuánto cuesta.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - sol de medianoche
+  - ártico
+  - noruega
+  - islandia
+  - estacional
+  - verano
+image: /images/blog/midnight-sun-best-destinations.jpg
+imageAlt: >-
+  Sol de medianoche bañando con luz dorada las Islas Lofoten en Noruega a
+  medianoche
 readingTime: 7
 seo:
-  title: "Mejores Destinos Sol de Medianoche 2026: Dónde Ver 24h de Luz | MonkeyTravel"
-  description: "Descubre los mejores destinos para ver el sol de medianoche en 2026. Noruega, Islandia, Suecia, Finlandia, Alaska y más — con fechas, actividades y consejos prácticos."
-  keywords: ["destinos sol de medianoche", "donde ver sol de medianoche", "sol de medianoche viaje 2026", "mejores lugares sol de medianoche", "sol de medianoche noruega islandia"]
-schema: "Article"
+  title: 'Mejores Destinos Sol de Medianoche 2026: Dónde Ver 24h de Luz | MonkeyTravel'
+  description: >-
+    Descubre los mejores destinos para ver el sol de medianoche en 2026.
+    Noruega, Islandia, Suecia, Finlandia, Alaska y más — con fechas, actividades
+    y consejos prácticos.
+  keywords:
+    - destinos sol de medianoche
+    - donde ver sol de medianoche
+    - sol de medianoche viaje 2026
+    - mejores lugares sol de medianoche
+    - sol de medianoche noruega islandia
+schema: Article
 ---
 
 # Mejores Destinos para Ver el Sol de Medianoche: Dónde Vivir 24 Horas de Luz en 2026

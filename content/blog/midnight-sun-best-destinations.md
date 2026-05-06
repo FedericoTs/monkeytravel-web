@@ -1,20 +1,43 @@
 ---
-title: "Midnight Sun Best Destinations: Where to Experience 24 Hours of Daylight in 2026"
-slug: "midnight-sun-best-destinations"
-description: "The best places to see the midnight sun in 2026 — from Norway's Lofoten Islands to Iceland, Swedish Lapland, Finland, Alaska, and Svalbard. When to go, what to do, and how much it costs."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["midnight sun", "arctic", "norway", "iceland", "seasonal", "summer"]
-image: "/images/blog/midnight-sun-best-destinations.jpg"
-imageAlt: "Midnight sun casting golden light over the Lofoten Islands in Norway at midnight"
+title: >-
+  Midnight Sun Best Destinations: Where to Experience 24 Hours of Daylight in
+  2026
+slug: midnight-sun-best-destinations
+description: >-
+  The best places to see the midnight sun in 2026 — from Norway's Lofoten
+  Islands to Iceland, Swedish Lapland, Finland, Alaska, and Svalbard. When to
+  go, what to do, and how much it costs.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - midnight sun
+  - arctic
+  - norway
+  - iceland
+  - seasonal
+  - summer
+image: /images/blog/midnight-sun-best-destinations.jpg
+imageAlt: >-
+  Midnight sun casting golden light over the Lofoten Islands in Norway at
+  midnight
 readingTime: 7
 seo:
-  title: "Midnight Sun Best Destinations 2026: Where to See 24h Daylight | MonkeyTravel"
-  description: "Discover the best midnight sun destinations for 2026. Norway, Iceland, Sweden, Finland, Alaska & more — with dates, activities, budget tips, and practical advice."
-  keywords: ["midnight sun destinations", "where to see midnight sun", "midnight sun travel 2026", "best places midnight sun", "midnight sun norway iceland"]
-schema: "Article"
+  title: >-
+    Midnight Sun Best Destinations 2026: Where to See 24h Daylight |
+    MonkeyTravel
+  description: >-
+    Discover the best midnight sun destinations for 2026. Norway, Iceland,
+    Sweden, Finland, Alaska & more — with dates, activities, budget tips, and
+    practical advice.
+  keywords:
+    - midnight sun destinations
+    - where to see midnight sun
+    - midnight sun travel 2026
+    - best places midnight sun
+    - midnight sun norway iceland
+schema: Article
 ---
 
 # Midnight Sun Best Destinations: Where to Experience 24 Hours of Daylight in 2026

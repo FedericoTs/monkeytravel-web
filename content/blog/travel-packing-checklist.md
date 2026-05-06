@@ -1,20 +1,37 @@
 ---
-title: "The Ultimate Travel Packing Checklist for 2026 (Printable & Organized)"
-slug: "travel-packing-checklist"
-description: "The only travel packing checklist you need. Organized by category with lists for beach, city, hiking, business, and cold weather trips. Copy, print, pack."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["packing checklist", "travel packing", "packing tips", "travel essentials"]
-image: "/images/blog/travel-packing-checklist.jpg"
-imageAlt: "Open suitcase on a bed with neatly organized clothes, packing cubes, and travel essentials laid out beside it"
+title: The Ultimate Travel Packing Checklist for 2026 (Printable & Organized)
+slug: travel-packing-checklist
+description: >-
+  The only travel packing checklist you need. Organized by category with lists
+  for beach, city, hiking, business, and cold weather trips. Copy, print, pack.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - packing checklist
+  - travel packing
+  - packing tips
+  - travel essentials
+image: /images/blog/travel-packing-checklist.jpg
+imageAlt: >-
+  Open suitcase on a bed with neatly organized clothes, packing cubes, and
+  travel essentials laid out beside it
 readingTime: 10
 seo:
-  title: "Travel Packing Checklist 2026: The Complete List You'll Actually Use"
-  description: "The only travel packing checklist you need for 2026. Organized by category, trip type, and airline weight limits. Carry-on essentials, clothing, toiletries, electronics, and more."
-  keywords: ["travel packing checklist", "packing list", "what to pack for travel", "travel essentials", "carry-on packing list", "packing tips"]
-schema: "Article"
+  title: 'Travel Packing Checklist 2026: The Complete List You''ll Actually Use'
+  description: >-
+    The only travel packing checklist you need for 2026. Organized by category,
+    trip type, and airline weight limits. Carry-on essentials, clothing,
+    toiletries, electronics, and more.
+  keywords:
+    - travel packing checklist
+    - packing list
+    - what to pack for travel
+    - travel essentials
+    - carry-on packing list
+    - packing tips
+schema: Article
 ---
 
 # The Ultimate Travel Packing Checklist for 2026

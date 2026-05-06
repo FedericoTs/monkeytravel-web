@@ -1,20 +1,46 @@
 ---
-title: "Is It Safe to Travel to the United States in 2026? What Every Traveler Needs to Know"
-slug: "is-it-safe-to-travel-to-the-us-2026"
-description: "A practical, fact-based guide for international travelers considering a trip to the US in 2026. ICE enforcement, travel advisories, border procedures, LGBTQ+ safety, FIFA World Cup visa rules, and alternative destinations."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-01"
-updatedAt: "2026-04-01"
-category: "Travel Tips"
-tags: ["united states", "travel safety", "travel advisory", "immigration", "visa requirements", "FIFA World Cup 2026"]
-image: "/images/blog/is-it-safe-to-travel-to-the-us-2026.jpg"
-imageAlt: "Aerial view of the Statue of Liberty and New York Harbor with an international traveler looking out from a plane window"
+title: >-
+  Is It Safe to Travel to the United States in 2026? What Every Traveler Needs
+  to Know
+slug: is-it-safe-to-travel-to-the-us-2026
+description: >-
+  A practical, fact-based guide for international travelers considering a trip
+  to the US in 2026. ICE enforcement, travel advisories, border procedures,
+  LGBTQ+ safety, FIFA World Cup visa rules, and alternative destinations.
+author: Riccardo P.
+publishedAt: '2026-04-01'
+updatedAt: '2026-04-01'
+category: Travel Tips
+tags:
+  - united states
+  - travel safety
+  - travel advisory
+  - immigration
+  - visa requirements
+  - FIFA World Cup 2026
+image: /images/blog/is-it-safe-to-travel-to-the-us-2026.jpg
+imageAlt: >-
+  Aerial view of the Statue of Liberty and New York Harbor with an international
+  traveler looking out from a plane window
 readingTime: 18
 seo:
-  title: "Is It Safe to Travel to the US in 2026? Honest Guide for International Visitors | MonkeyTravel"
-  description: "9 countries have issued travel advisories about the US. ICE is at airports. Tourism is down 10%. Here's what international travelers actually need to know before visiting America in 2026."
-  keywords: ["is it safe to travel to the us 2026", "us travel advisory 2026", "ice at airports", "travel to united states safe", "countries warning about us travel", "us tourism decline 2026", "trump slump tourism", "alternative destinations to usa"]
-schema: "Article"
+  title: >-
+    Is It Safe to Travel to the US in 2026? Honest Guide for International
+    Visitors | MonkeyTravel
+  description: >-
+    9 countries have issued travel advisories about the US. ICE is at airports.
+    Tourism is down 10%. Here's what international travelers actually need to
+    know before visiting America in 2026.
+  keywords:
+    - is it safe to travel to the us 2026
+    - us travel advisory 2026
+    - ice at airports
+    - travel to united states safe
+    - countries warning about us travel
+    - us tourism decline 2026
+    - trump slump tourism
+    - alternative destinations to usa
+schema: Article
 ---
 
 # Is It Safe to Travel to the United States in 2026? What Every Traveler Needs to Know

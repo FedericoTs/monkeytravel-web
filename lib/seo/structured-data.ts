@@ -318,6 +318,17 @@ export function generateTouristDestinationSchema(
 // Blog Article Schema
 // ============================================================================
 
+export interface ArticleAuthorInput {
+  /** Display name */
+  name: string;
+  /** Absolute URL to the author bio page (signals Person, not Organization) */
+  url?: string;
+  /** Job title (e.g. "Asia & Pacific Editor") */
+  jobTitle?: string;
+  /** Absolute image URL — square headshot ideally */
+  image?: string;
+}
+
 export interface ArticleSchemaInput {
   title: string;
   description: string;
@@ -325,7 +336,13 @@ export interface ArticleSchemaInput {
   image?: string;
   datePublished: string;
   dateModified: string;
-  author: string;
+  /**
+   * Author can be a string (legacy — emits Organization) or an
+   * ArticleAuthorInput (preferred — emits Person with bio URL).
+   * Person authorship is a stronger E-E-A-T signal than Organization
+   * authorship for editorial content.
+   */
+  author: string | ArticleAuthorInput;
   wordCount?: number;
   articleSection?: string;
   keywords?: string[];
@@ -333,6 +350,21 @@ export interface ArticleSchemaInput {
 }
 
 export function generateArticleSchema(input: ArticleSchemaInput) {
+  const authorNode =
+    typeof input.author === "string"
+      ? {
+          "@type": "Organization" as const,
+          name: input.author,
+          url: SITE_URL,
+        }
+      : {
+          "@type": "Person" as const,
+          name: input.author.name,
+          ...(input.author.url && { url: input.author.url }),
+          ...(input.author.jobTitle && { jobTitle: input.author.jobTitle }),
+          ...(input.author.image && { image: input.author.image }),
+        };
+
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -342,11 +374,7 @@ export function generateArticleSchema(input: ArticleSchemaInput) {
     image: input.image,
     datePublished: input.datePublished,
     dateModified: input.dateModified,
-    author: {
-      "@type": "Organization",
-      name: input.author,
-      url: SITE_URL,
-    },
+    author: authorNode,
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
@@ -411,6 +439,40 @@ export function generateCollectionPageSchema(input: CollectionPageInput) {
       })),
     },
   };
+}
+
+// ============================================================================
+// Person Schema (Author bio pages)
+// ============================================================================
+
+export interface PersonSchemaInput {
+  name: string;
+  url: string;
+  jobTitle: string;
+  description: string;
+  image?: string;
+  sameAs?: string[];
+  knowsAbout?: string[];
+}
+
+export function generatePersonSchema(input: PersonSchemaInput) {
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: input.name,
+    url: input.url,
+    jobTitle: input.jobTitle,
+    description: input.description,
+    worksFor: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  };
+  if (input.image) schema.image = input.image;
+  if (input.sameAs?.length) schema.sameAs = input.sameAs;
+  if (input.knowsAbout?.length) schema.knowsAbout = input.knowsAbout;
+  return schema;
 }
 
 // ============================================================================

@@ -1,20 +1,40 @@
 ---
-title: "París vs Barcelona: ¿Qué Ciudad Deberías Visitar en 2026?"
-slug: "paris-vs-barcelona"
-description: "Una comparación honesta entre París y Barcelona para 2026 — presupuesto, gastronomía, vida nocturna, playas, cultura y cuál gana para cada tipo de viajero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["paris", "barcelona", "comparison", "europe", "city guide"]
-image: "/images/blog/paris-vs-barcelona.jpg"
-imageAlt: "Imagen dividida comparando la Torre Eiffel en París y la Sagrada Familia en Barcelona"
+title: 'París vs Barcelona: ¿Qué Ciudad Deberías Visitar en 2026?'
+slug: paris-vs-barcelona
+description: >-
+  Una comparación honesta entre París y Barcelona para 2026 — presupuesto,
+  gastronomía, vida nocturna, playas, cultura y cuál gana para cada tipo de
+  viajero.
+author: Francesca A.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - paris
+  - barcelona
+  - comparison
+  - europe
+  - city guide
+image: /images/blog/paris-vs-barcelona.jpg
+imageAlt: >-
+  Imagen dividida comparando la Torre Eiffel en París y la Sagrada Familia en
+  Barcelona
 readingTime: 10
 seo:
-  title: "París vs Barcelona 2026: Comparación Honesta para Tu Próximo Viaje"
-  description: "¿París o Barcelona en 2026? Comparamos costes, comida, vida nocturna, playas, cultura y clima para que elijas la ciudad perfecta para tu estilo de viaje."
-  keywords: ["paris vs barcelona", "paris o barcelona", "paris vs barcelona coste", "paris vs barcelona 2026", "paris vs barcelona comida", "paris vs barcelona vida nocturna", "comparación europa"]
-schema: "Article"
+  title: 'París vs Barcelona 2026: Comparación Honesta para Tu Próximo Viaje'
+  description: >-
+    ¿París o Barcelona en 2026? Comparamos costes, comida, vida nocturna,
+    playas, cultura y clima para que elijas la ciudad perfecta para tu estilo de
+    viaje.
+  keywords:
+    - paris vs barcelona
+    - paris o barcelona
+    - paris vs barcelona coste
+    - paris vs barcelona 2026
+    - paris vs barcelona comida
+    - paris vs barcelona vida nocturna
+    - comparación europa
+schema: Article
 ---
 
 # París vs Barcelona: ¿Qué Ciudad Deberías Visitar en 2026?

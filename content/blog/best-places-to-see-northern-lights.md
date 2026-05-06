@@ -1,20 +1,45 @@
 ---
-title: "Best Places to See the Northern Lights in 2026: A Practical Guide"
-slug: "best-places-to-see-northern-lights"
-description: "The 12 best destinations to see the aurora borealis in 2026, with real costs, best months, probability ratings, and practical tips for each location. No hype — just what works."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["northern lights", "aurora borealis", "winter travel", "norway", "iceland", "finland", "arctic travel"]
-image: "/images/blog/best-places-to-see-northern-lights.jpg"
-imageAlt: "Vivid green and purple northern lights dancing over a snowy Arctic landscape with a frozen lake in the foreground"
+title: 'Best Places to See the Northern Lights in 2026: A Practical Guide'
+slug: best-places-to-see-northern-lights
+description: >-
+  The 12 best destinations to see the aurora borealis in 2026, with real costs,
+  best months, probability ratings, and practical tips for each location. No
+  hype — just what works.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - northern lights
+  - aurora borealis
+  - winter travel
+  - norway
+  - iceland
+  - finland
+  - arctic travel
+image: /images/blog/best-places-to-see-northern-lights.jpg
+imageAlt: >-
+  Vivid green and purple northern lights dancing over a snowy Arctic landscape
+  with a frozen lake in the foreground
 readingTime: 11
 seo:
-  title: "Best Places to See the Northern Lights in 2026 — Before the Solar Peak Ends ($100/Night) | MonkeyTravel"
-  description: "See the aurora borealis before Solar Cycle 25 fades. 12 destinations from $100/night ranked by clear-sky probability (up to 90%), with best months, budget breakdowns, and hidden cheaper alternatives."
-  keywords: ["northern lights 2026", "best places to see northern lights", "cheapest place to see northern lights", "aurora borealis 2026", "northern lights destinations 2026", "northern lights best time", "solar maximum 2026", "northern lights on a budget"]
-schema: "Article"
+  title: >-
+    Best Places to See the Northern Lights in 2026 — Before the Solar Peak Ends
+    ($100/Night) | MonkeyTravel
+  description: >-
+    See the aurora borealis before Solar Cycle 25 fades. 12 destinations from
+    $100/night ranked by clear-sky probability (up to 90%), with best months,
+    budget breakdowns, and hidden cheaper alternatives.
+  keywords:
+    - northern lights 2026
+    - best places to see northern lights
+    - cheapest place to see northern lights
+    - aurora borealis 2026
+    - northern lights destinations 2026
+    - northern lights best time
+    - solar maximum 2026
+    - northern lights on a budget
+schema: Article
 ---
 
 # Best Places to See the Northern Lights in 2026: A Practical Guide

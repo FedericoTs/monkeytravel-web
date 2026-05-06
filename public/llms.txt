@@ -61,20 +61,8 @@
 
 ## Blog — Seasonal & "Where to Go" Guides
 
-- [Where to Go in January](https://monkeytravel.app/blog/where-to-go-in-january): 12 best destinations for January travel with real costs and weather
-- [Where to Go in February](https://monkeytravel.app/blog/where-to-go-in-february): 12 best destinations — Carnival, Northern Lights, winter sun
-- [Where to Go in March](https://monkeytravel.app/blog/where-to-go-in-march): 12 best spring destinations
-- [Where to Go in April](https://monkeytravel.app/blog/where-to-go-in-april): 12 best destinations — cherry blossoms, dry-season escapes
-- [Where to Go in May](https://monkeytravel.app/blog/where-to-go-in-may): 12 best destinations — shoulder-season Europe, spring blooms
-- [Where to Go in June](https://monkeytravel.app/blog/where-to-go-in-june): 12 best summer travel destinations
-- [Where to Go in July](https://monkeytravel.app/blog/where-to-go-in-july): 12 best peak summer destinations
-- [Where to Go in August](https://monkeytravel.app/blog/where-to-go-in-august): 12 best destinations — festivals, smart alternatives
-- [Where to Go in September](https://monkeytravel.app/blog/where-to-go-in-september): 12 best shoulder season destinations
-- [Where to Go in October](https://monkeytravel.app/blog/where-to-go-in-october): 12 best fall destinations worldwide
-- [Where to Go in November](https://monkeytravel.app/blog/where-to-go-in-november): 12 best destinations before the holiday rush
-- [Where to Go in December](https://monkeytravel.app/blog/where-to-go-in-december): 12 best winter escape and holiday destinations
-- [Spring Break Destinations 2026](https://monkeytravel.app/blog/spring-break-destinations-2026): 12 trending picks backed by Google Flights data
-- [Best Summer Destinations 2026](https://monkeytravel.app/blog/best-summer-destinations-2026): 15 best summer destinations
+- [The 2026 Travel Calendar](https://monkeytravel.app/blog/2026-travel-calendar): The complete month-by-month guide to where to travel in 2026 — real weather data, crowd patterns, seasonal events, and budget ranges for every month
+- [Spring & Summer Travel Guide](https://monkeytravel.app/blog/spring-summer-travel-guide): Where to go from March through August 2026 — peak heat, coolcation alternatives, and shoulder-season value picks
 - [Monsoon Season Asia 2026](https://monkeytravel.app/blog/monsoon-season-where-to-go-and-avoid): Month-by-month guide to Asia's monsoon season
 
 ## Blog — Budget Travel
@@ -83,11 +71,10 @@
 - [Cheapest Destinations in Asia 2026](https://monkeytravel.app/blog/cheapest-destinations-in-asia): 15 Asian destinations under $30/day with real prices
 - [Cheapest Flights 2026](https://monkeytravel.app/blog/cheapest-flights-2026-when-and-where-to-book): When and where to book for the best deals, with real route prices
 - [Italy on a Budget](https://monkeytravel.app/blog/how-to-plan-trip-to-italy-on-a-budget): How to plan a budget trip to Italy in 2026
-- [Honeymoon on a Budget 2026](https://monkeytravel.app/blog/honeymoon-on-a-budget-2026): 10 affordable alternatives to overpriced honeymoon destinations
 
 ## Blog — Trip Planning & Travel Lifestyle
 
-- [Best Honeymoon Destinations 2026](https://monkeytravel.app/blog/best-honeymoon-destinations-2026): 12 honeymoon destinations for every budget and style
+- [2026 Honeymoon Planning Guide](https://monkeytravel.app/blog/honeymoon-planning-guide): Honeymoon destinations and planning advice organized by budget tier ($2k–$15k+), with the planning mistakes that ruin Day 1
 - [Best Digital Nomad Destinations 2026](https://monkeytravel.app/blog/best-digital-nomad-destinations-2026): 12 cities for remote work — costs, visas, internet speeds
 - [Best Food Destinations 2026](https://monkeytravel.app/blog/best-food-destinations-2026): 12 culinary travel destinations worldwide
 - [Best Wellness Retreats 2026](https://monkeytravel.app/blog/best-wellness-retreats-2026): 10 wellness retreats from yoga to burnout recovery

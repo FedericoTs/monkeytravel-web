@@ -1,20 +1,37 @@
 ---
-title: "London 4-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "london-4-day-itinerary"
-description: "A day-by-day London itinerary covering Westminster, South Bank, Camden, Shoreditch, and day trips. Real 2026 prices, real restaurants, smart Tube routing."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["london", "itinerary", "england", "city guide", "4-day trip"]
-image: "/images/blog/london-4-day-itinerary.jpg"
-imageAlt: "Big Ben and the Houses of Parliament along the Thames River in London"
+title: 'London 4-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: london-4-day-itinerary
+description: >-
+  A day-by-day London itinerary covering Westminster, South Bank, Camden,
+  Shoreditch, and day trips. Real 2026 prices, real restaurants, smart Tube
+  routing.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - london
+  - itinerary
+  - england
+  - city guide
+  - 4-day trip
+image: /images/blog/london-4-day-itinerary.jpg
+imageAlt: Big Ben and the Houses of Parliament along the Thames River in London
 readingTime: 12
 seo:
-  title: "London 4-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 4 perfect days in London with this day-by-day itinerary. Westminster, British Museum, Tower of London, Borough Market, Camden, Notting Hill — with real 2026 prices and Tube tips."
-  keywords: ["london 4 day itinerary", "london itinerary 2026", "4 days in london", "london travel guide 2026", "what to do in london in 4 days", "london day by day guide"]
-schema: "Article"
+  title: 'London 4-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 4 perfect days in London with this day-by-day itinerary. Westminster,
+    British Museum, Tower of London, Borough Market, Camden, Notting Hill — with
+    real 2026 prices and Tube tips.
+  keywords:
+    - london 4 day itinerary
+    - london itinerary 2026
+    - 4 days in london
+    - london travel guide 2026
+    - what to do in london in 4 days
+    - london day by day guide
+schema: Article
 ---
 
 # London 4-Day Itinerary: The Practical Day-by-Day Guide for 2026

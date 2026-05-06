@@ -1,20 +1,42 @@
 ---
-title: "Itinerario di 5 Giorni in Italia: Roma, Firenze e Oltre (2026)"
-slug: "5-day-italy-itinerary"
-description: "Un itinerario pratico dell'Italia giorno per giorno che copre Roma, Firenze e una gita a Venezia o in Costiera Amalfitana. Prezzi reali 2026, ristoranti veri e treni ben pianificati."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["italia", "itinerario", "roma", "firenze", "venezia", "costiera amalfitana", "5 giorni", "viaggi europa"]
-image: "/images/blog/5-day-italy-itinerary.jpg"
-imageAlt: "Vista del Duomo di Firenze e dello skyline della città al tramonto dal Piazzale Michelangelo"
+title: 'Itinerario di 5 Giorni in Italia: Roma, Firenze e Oltre (2026)'
+slug: 5-day-italy-itinerary
+description: >-
+  Un itinerario pratico dell'Italia giorno per giorno che copre Roma, Firenze e
+  una gita a Venezia o in Costiera Amalfitana. Prezzi reali 2026, ristoranti
+  veri e treni ben pianificati.
+author: Federico S.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - italia
+  - itinerario
+  - roma
+  - firenze
+  - venezia
+  - costiera amalfitana
+  - 5 giorni
+  - viaggi europa
+image: /images/blog/5-day-italy-itinerary.jpg
+imageAlt: >-
+  Vista del Duomo di Firenze e dello skyline della città al tramonto dal
+  Piazzale Michelangelo
 readingTime: 9
 seo:
-  title: "Itinerario 5 Giorni Italia 2026: Roma, Firenze e Gita | MonkeyTravel"
-  description: "Pianifica 5 giorni perfetti in Italia con questo itinerario giorno per giorno. Roma, Firenze e Venezia o Costiera Amalfitana — prezzi reali, treni e ristoranti locali."
-  keywords: ["itinerario 5 giorni italia", "italia in 5 giorni", "itinerario roma firenze venezia", "5 giorni in italia", "guida italia 2026", "roma firenze itinerario"]
-schema: "Article"
+  title: 'Itinerario 5 Giorni Italia 2026: Roma, Firenze e Gita | MonkeyTravel'
+  description: >-
+    Pianifica 5 giorni perfetti in Italia con questo itinerario giorno per
+    giorno. Roma, Firenze e Venezia o Costiera Amalfitana — prezzi reali, treni
+    e ristoranti locali.
+  keywords:
+    - itinerario 5 giorni italia
+    - italia in 5 giorni
+    - itinerario roma firenze venezia
+    - 5 giorni in italia
+    - guida italia 2026
+    - roma firenze itinerario
+schema: Article
 ---
 
 # Itinerario di 5 Giorni in Italia: Roma, Firenze e Oltre (2026)

@@ -1,20 +1,37 @@
 ---
-title: "New York 5-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "new-york-5-day-itinerary"
-description: "A day-by-day New York itinerary covering Manhattan, Brooklyn, and beyond. Real 2026 prices, real restaurants, and smart subway routing."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["new york", "itinerary", "usa", "city guide", "5-day trip"]
-image: "/images/blog/new-york-5-day-itinerary.jpg"
-imageAlt: "Manhattan skyline with the Empire State Building at sunset"
+title: 'New York 5-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: new-york-5-day-itinerary
+description: >-
+  A day-by-day New York itinerary covering Manhattan, Brooklyn, and beyond. Real
+  2026 prices, real restaurants, and smart subway routing.
+author: Federico S.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - new york
+  - itinerary
+  - usa
+  - city guide
+  - 5-day trip
+image: /images/blog/new-york-5-day-itinerary.jpg
+imageAlt: Manhattan skyline with the Empire State Building at sunset
 readingTime: 14
 seo:
-  title: "New York 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 5 perfect days in New York with this day-by-day itinerary. Real 2026 prices, subway routing, restaurant picks, and smart neighborhood grouping across Manhattan and Brooklyn."
-  keywords: ["new york 5 day itinerary", "nyc itinerary 2026", "5 days in new york", "new york travel guide 2026", "what to do in new york 5 days", "nyc day by day itinerary", "new york trip planner"]
-schema: "Article"
+  title: 'New York 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 5 perfect days in New York with this day-by-day itinerary. Real 2026
+    prices, subway routing, restaurant picks, and smart neighborhood grouping
+    across Manhattan and Brooklyn.
+  keywords:
+    - new york 5 day itinerary
+    - nyc itinerary 2026
+    - 5 days in new york
+    - new york travel guide 2026
+    - what to do in new york 5 days
+    - nyc day by day itinerary
+    - new york trip planner
+schema: Article
 ---
 
 # New York 5-Day Itinerary: The Practical Day-by-Day Guide for 2026

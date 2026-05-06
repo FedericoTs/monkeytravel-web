@@ -1,20 +1,40 @@
 ---
-title: "Le 12 Migliori Destinazioni Gastronomiche del Mondo per il 2026"
-slug: "best-food-destinations-2026"
-description: "Le migliori destinazioni al mondo per il turismo gastronomico nel 2026 — dal patrimonio mediterraneo di Creta alla precisione artigianale di Tokyo alle tradizioni culinarie vive di Oaxaca. Budget giornalieri reali, piatti da non perdere e consigli locali."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["turismo gastronomico", "viaggi culinari", "migliori destinazioni 2026", "viaggi enogastronomici", "ristoranti", "street food"]
-image: "/images/blog/best-food-destinations-2026.jpg"
-imageAlt: "Colorata varietà di piatti di diverse cucine su un tavolo di mercato"
+title: Le 12 Migliori Destinazioni Gastronomiche del Mondo per il 2026
+slug: best-food-destinations-2026
+description: >-
+  Le migliori destinazioni al mondo per il turismo gastronomico nel 2026 — dal
+  patrimonio mediterraneo di Creta alla precisione artigianale di Tokyo alle
+  tradizioni culinarie vive di Oaxaca. Budget giornalieri reali, piatti da non
+  perdere e consigli locali.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - turismo gastronomico
+  - viaggi culinari
+  - migliori destinazioni 2026
+  - viaggi enogastronomici
+  - ristoranti
+  - street food
+image: /images/blog/best-food-destinations-2026.jpg
+imageAlt: Colorata varietà di piatti di diverse cucine su un tavolo di mercato
 readingTime: 11
 seo:
-  title: "12 Migliori Destinazioni Gastronomiche del Mondo 2026 | MonkeyTravel"
-  description: "Le 12 migliori destinazioni gastronomiche per il 2026 — piatti tipici, mercati alimentari, budget giornalieri e consigli locali per Creta, Tokyo, Città del Messico, Lima, Istanbul, Bangkok, Bologna, Lione, Seoul, Oaxaca, Hanoi e San Sebastián."
-  keywords: ["migliori destinazioni gastronomiche 2026", "turismo culinario 2026", "viaggi gastronomici", "migliori citta per mangiare", "destinazioni foodie mondo", "turismo gastronomico"]
-schema: "Article"
+  title: 12 Migliori Destinazioni Gastronomiche del Mondo 2026 | MonkeyTravel
+  description: >-
+    Le 12 migliori destinazioni gastronomiche per il 2026 — piatti tipici,
+    mercati alimentari, budget giornalieri e consigli locali per Creta, Tokyo,
+    Città del Messico, Lima, Istanbul, Bangkok, Bologna, Lione, Seoul, Oaxaca,
+    Hanoi e San Sebastián.
+  keywords:
+    - migliori destinazioni gastronomiche 2026
+    - turismo culinario 2026
+    - viaggi gastronomici
+    - migliori citta per mangiare
+    - destinazioni foodie mondo
+    - turismo gastronomico
+schema: Article
 ---
 
 # Le 12 Migliori Destinazioni Gastronomiche del Mondo per il 2026

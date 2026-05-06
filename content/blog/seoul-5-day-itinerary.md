@@ -1,20 +1,41 @@
 ---
-title: "Seoul 5-Day Itinerary: The Practical Day-by-Day Guide for 2026"
-slug: "seoul-5-day-itinerary"
-description: "A practical day-by-day Seoul itinerary covering palaces, K-beauty, DMZ, Gangnam, and Hongdae. Real 2026 prices, subway tips, and the glow-cation guide built in."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Destination Guides"
-tags: ["seoul", "itinerary", "south korea", "city guide", "5-day trip", "k-beauty"]
-image: "/images/blog/seoul-5-day-itinerary.jpg"
-imageAlt: "Gyeongbokgung Palace with Bukhansan mountain in the background, Seoul, South Korea"
+title: 'Seoul 5-Day Itinerary: The Practical Day-by-Day Guide for 2026'
+slug: seoul-5-day-itinerary
+description: >-
+  A practical day-by-day Seoul itinerary covering palaces, K-beauty, DMZ,
+  Gangnam, and Hongdae. Real 2026 prices, subway tips, and the glow-cation guide
+  built in.
+author: Enrico E.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Destination Guides
+tags:
+  - seoul
+  - itinerary
+  - south korea
+  - city guide
+  - 5-day trip
+  - k-beauty
+image: /images/blog/seoul-5-day-itinerary.jpg
+imageAlt: >-
+  Gyeongbokgung Palace with Bukhansan mountain in the background, Seoul, South
+  Korea
 readingTime: 14
 seo:
-  title: "Seoul 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel"
-  description: "Plan 5 perfect days in Seoul with this day-by-day itinerary. Palaces, K-beauty clinics, DMZ day trip, Korean BBQ, Hongdae, and jjimjilbang — with real 2026 prices and subway tips."
-  keywords: ["seoul 5 day itinerary", "seoul itinerary 2026", "5 days in seoul", "seoul travel guide", "what to do in seoul", "seoul k-beauty glow-cation", "dmz day trip from seoul"]
-schema: "Article"
+  title: 'Seoul 5-Day Itinerary 2026: Day-by-Day Guide | MonkeyTravel'
+  description: >-
+    Plan 5 perfect days in Seoul with this day-by-day itinerary. Palaces,
+    K-beauty clinics, DMZ day trip, Korean BBQ, Hongdae, and jjimjilbang — with
+    real 2026 prices and subway tips.
+  keywords:
+    - seoul 5 day itinerary
+    - seoul itinerary 2026
+    - 5 days in seoul
+    - seoul travel guide
+    - what to do in seoul
+    - seoul k-beauty glow-cation
+    - dmz day trip from seoul
+schema: Article
 ---
 
 # Seoul 5-Day Itinerary: The Practical Day-by-Day Guide for 2026

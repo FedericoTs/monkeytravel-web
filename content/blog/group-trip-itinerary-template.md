@@ -1,20 +1,34 @@
 ---
-title: "The Group Trip Itinerary Template That Keeps Everyone Happy"
-slug: "group-trip-itinerary-template"
-description: "A proven day-by-day itinerary template for group trips. Balances structure with flexibility so nobody feels trapped or lost."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group trip itinerary", "trip itinerary template", "group travel planning", "travel itinerary friends", "day by day trip plan"]
-image: "/images/blog/group-trip-itinerary-template.jpg"
-imageAlt: "A shared travel itinerary displayed on a tablet with a map and checklist"
+title: The Group Trip Itinerary Template That Keeps Everyone Happy
+slug: group-trip-itinerary-template
+description: >-
+  A proven day-by-day itinerary template for group trips. Balances structure
+  with flexibility so nobody feels trapped or lost.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group trip itinerary
+  - trip itinerary template
+  - group travel planning
+  - travel itinerary friends
+  - day by day trip plan
+image: /images/blog/group-trip-itinerary-template.jpg
+imageAlt: A shared travel itinerary displayed on a tablet with a map and checklist
 readingTime: 7
 seo:
-  title: "Group Trip Itinerary Template (Day-by-Day Guide) | MonkeyTravel"
-  description: "A flexible day-by-day itinerary template for group trips. Balances planned activities with free time so everyone stays happy."
-  keywords: ["group trip itinerary template", "group travel itinerary", "trip itinerary template friends", "day by day group trip plan", "how to make group trip itinerary"]
-schema: "Article"
+  title: Group Trip Itinerary Template (Day-by-Day Guide) | MonkeyTravel
+  description: >-
+    A flexible day-by-day itinerary template for group trips. Balances planned
+    activities with free time so everyone stays happy.
+  keywords:
+    - group trip itinerary template
+    - group travel itinerary
+    - trip itinerary template friends
+    - day by day group trip plan
+    - how to make group trip itinerary
+schema: Article
 ---
 
 # The Group Trip Itinerary Template That Keeps Everyone Happy

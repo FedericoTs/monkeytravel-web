@@ -1,20 +1,37 @@
 ---
-title: "Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia"
-slug: "monsoon-season-where-to-go-and-avoid"
-description: "Guía práctica de la temporada de monzones en Asia. Qué meses afectan a cada país, dónde evitar, dónde ir por ofertas de temporada verde y cómo ahorrar un 30-50%."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["monzón", "asia", "estacional", "viajes económicos", "clima"]
-image: "/images/blog/monsoon-season-where-to-go-and-avoid.jpg"
-imageAlt: "Exuberantes terrazas de arroz verdes durante la temporada de monzones con nubes de lluvia dramáticas en el Sudeste Asiático"
+title: 'Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia'
+slug: monsoon-season-where-to-go-and-avoid
+description: >-
+  Guía práctica de la temporada de monzones en Asia. Qué meses afectan a cada
+  país, dónde evitar, dónde ir por ofertas de temporada verde y cómo ahorrar un
+  30-50%.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - monzón
+  - asia
+  - estacional
+  - viajes económicos
+  - clima
+image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
+imageAlt: >-
+  Exuberantes terrazas de arroz verdes durante la temporada de monzones con
+  nubes de lluvia dramáticas en el Sudeste Asiático
 readingTime: 7
 seo:
-  title: "Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia | MonkeyTravel"
-  description: "Temporada de monzones en Asia explicada mes a mes. Qué países evitar, cuáles son ideales y cómo ahorrar 30-50% viajando en temporada verde."
-  keywords: ["temporada de monzones asia", "monzon asia 2026", "cuando viajar a asia", "temporada verde asia", "mejor epoca viajar sudeste asiatico"]
-schema: "Article"
+  title: 'Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia | MonkeyTravel'
+  description: >-
+    Temporada de monzones en Asia explicada mes a mes. Qué países evitar, cuáles
+    son ideales y cómo ahorrar 30-50% viajando en temporada verde.
+  keywords:
+    - temporada de monzones asia
+    - monzon asia 2026
+    - cuando viajar a asia
+    - temporada verde asia
+    - mejor epoca viajar sudeste asiatico
+schema: Article
 ---
 
 # Temporada de Monzones 2026: A Dónde Ir y Qué Evitar en Asia

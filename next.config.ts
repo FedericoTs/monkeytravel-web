@@ -55,6 +55,46 @@ const nextConfig: NextConfig = {
   // "Duplicate without user-selected canonical" in Search Console.
   htmlLimitedBots: /Googlebot|Google-InspectionTool|Bingbot|Yandex|Baiduspider|DuckDuckBot|Slurp|Twitterbot|facebookexternalhit|LinkedInBot|WhatsApp|Applebot/i,
 
+  // 301 redirects for the blog consolidation done 2026-05-06.
+  // 17 thin/duplicate posts collapsed into 3 pillars to fix the
+  // "Discovered – currently not indexed" pile-up in Search Console.
+  // Each rule covers all 3 locales (en is the default, no prefix).
+  async redirects() {
+    const redirectMap: Array<[string, string]> = [
+      // 12 monthly listicles → 2026 travel calendar pillar (anchored per month)
+      ["where-to-go-in-january",   "2026-travel-calendar#january"],
+      ["where-to-go-in-february",  "2026-travel-calendar#february"],
+      ["where-to-go-in-march",     "2026-travel-calendar#march"],
+      ["where-to-go-in-april",     "2026-travel-calendar#april"],
+      ["where-to-go-in-may",       "2026-travel-calendar#may"],
+      ["where-to-go-in-june",      "2026-travel-calendar#june"],
+      ["where-to-go-in-july",      "2026-travel-calendar#july"],
+      ["where-to-go-in-august",    "2026-travel-calendar#august"],
+      ["where-to-go-in-september", "2026-travel-calendar#september"],
+      ["where-to-go-in-october",   "2026-travel-calendar#october"],
+      ["where-to-go-in-november",  "2026-travel-calendar#november"],
+      ["where-to-go-in-december",  "2026-travel-calendar#december"],
+      // 3 summer-season dupes → spring/summer pillar
+      ["best-summer-destinations-2026",  "spring-summer-travel-guide"],
+      ["spring-break-destinations-2026", "spring-summer-travel-guide"],
+      ["coolcation-destinations-2026",   "spring-summer-travel-guide"],
+      // 2 honeymoon dupes → honeymoon pillar
+      ["best-honeymoon-destinations-2026", "honeymoon-planning-guide"],
+      ["honeymoon-on-a-budget-2026",       "honeymoon-planning-guide"],
+    ];
+
+    const rules: Array<{ source: string; destination: string; permanent: true }> = [];
+    for (const [from, to] of redirectMap) {
+      // Default locale (no prefix)
+      rules.push({ source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true });
+      // Non-default locales
+      for (const locale of ["es", "it"]) {
+        rules.push({ source: `/${locale}/blog/${from}`, destination: `/${locale}/blog/${to}`, permanent: true });
+      }
+    }
+    return rules;
+  },
+
   // Security + caching headers
   async headers() {
     return [

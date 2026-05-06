@@ -1,20 +1,42 @@
 ---
-title: "Los Mejores Destinos para Ver el Follaje de Otoño en el Mundo: Dónde Ver los Colores del Otoño en 2026"
-slug: "best-fall-foliage-destinations"
-description: "Los 12 mejores destinos del mundo para ver el follaje de otoño, con fechas pico, rutas en coche, consejos de fotografía y comparación de presupuestos. Planifica tu viaje de otoño 2026."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["follaje otoñal", "otoño", "estacional", "naturaleza", "fotografía"]
-image: "/images/blog/best-fall-foliage-destinations.jpg"
-imageAlt: "Follaje otoñal vibrante en rojo y naranja a lo largo de un camino en Nueva Inglaterra con un puente cubierto"
+title: >-
+  Los Mejores Destinos para Ver el Follaje de Otoño en el Mundo: Dónde Ver los
+  Colores del Otoño en 2026
+slug: best-fall-foliage-destinations
+description: >-
+  Los 12 mejores destinos del mundo para ver el follaje de otoño, con fechas
+  pico, rutas en coche, consejos de fotografía y comparación de presupuestos.
+  Planifica tu viaje de otoño 2026.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - follaje otoñal
+  - otoño
+  - estacional
+  - naturaleza
+  - fotografía
+image: /images/blog/best-fall-foliage-destinations.jpg
+imageAlt: >-
+  Follaje otoñal vibrante en rojo y naranja a lo largo de un camino en Nueva
+  Inglaterra con un puente cubierto
 readingTime: 8
 seo:
-  title: "Mejores Destinos de Follaje Otoñal 2026: 12 Lugares para Ver los Colores del Otoño | MonkeyTravel"
-  description: "Descubre los 12 mejores destinos para ver el follaje otoñal en 2026. Fechas pico, rutas en coche, itinerarios en tren, consejos de fotografía y comparación de presupuestos."
-  keywords: ["mejores destinos follaje otoñal", "viaje hojas de otoño", "viaje colores otoño 2026", "dónde ver follaje otoñal", "mejores lugares colores otoño"]
-schema: "Article"
+  title: >-
+    Mejores Destinos de Follaje Otoñal 2026: 12 Lugares para Ver los Colores del
+    Otoño | MonkeyTravel
+  description: >-
+    Descubre los 12 mejores destinos para ver el follaje otoñal en 2026. Fechas
+    pico, rutas en coche, itinerarios en tren, consejos de fotografía y
+    comparación de presupuestos.
+  keywords:
+    - mejores destinos follaje otoñal
+    - viaje hojas de otoño
+    - viaje colores otoño 2026
+    - dónde ver follaje otoñal
+    - mejores lugares colores otoño
+schema: Article
 ---
 
 # Los Mejores Destinos para Ver el Follaje de Otoño en el Mundo: Dónde Ver los Colores del Otoño en 2026

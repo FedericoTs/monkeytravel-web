@@ -1,20 +1,39 @@
 ---
-title: "Guia de seguridad para mujeres que viajan solas 2026: 15 destinos mas seguros y como planificar"
-slug: "solo-female-travel-safety-guide-2026"
-description: "Las mujeres representan el 84% de los viajeros en solitario y el mercado crece al 14,6% anual. Estos son los 15 destinos mas seguros para mujeres que viajan solas en 2026."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Travel Tips"
-tags: ["viaje en solitario", "viaje femenino", "seguridad viajera", "mujeres viajeras", "viajar sola"]
-image: "/images/blog/solo-female-travel-safety-guide-2026.jpg"
-imageAlt: "Mujer viajera con mochila contemplando un paisaje costero al atardecer"
+title: >-
+  Guia de seguridad para mujeres que viajan solas 2026: 15 destinos mas seguros
+  y como planificar
+slug: solo-female-travel-safety-guide-2026
+description: >-
+  Las mujeres representan el 84% de los viajeros en solitario y el mercado crece
+  al 14,6% anual. Estos son los 15 destinos mas seguros para mujeres que viajan
+  solas en 2026.
+author: Emanuela P.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Travel Tips
+tags:
+  - viaje en solitario
+  - viaje femenino
+  - seguridad viajera
+  - mujeres viajeras
+  - viajar sola
+image: /images/blog/solo-female-travel-safety-guide-2026.jpg
+imageAlt: Mujer viajera con mochila contemplando un paisaje costero al atardecer
 readingTime: 11
 seo:
-  title: "Guia de seguridad para mujeres que viajan solas 2026: 15 destinos | MonkeyTravel"
-  description: "La guia definitiva de 2026 para mujeres que viajan solas. 15 destinos mas seguros con presupuestos diarios, consejos practicos y recomendaciones de seguridad."
-  keywords: ["viajar sola 2026", "destinos seguros mujeres", "seguridad viaje femenino", "mujeres viajando solas 2026"]
-schema: "Article"
+  title: >-
+    Guia de seguridad para mujeres que viajan solas 2026: 15 destinos |
+    MonkeyTravel
+  description: >-
+    La guia definitiva de 2026 para mujeres que viajan solas. 15 destinos mas
+    seguros con presupuestos diarios, consejos practicos y recomendaciones de
+    seguridad.
+  keywords:
+    - viajar sola 2026
+    - destinos seguros mujeres
+    - seguridad viaje femenino
+    - mujeres viajando solas 2026
+schema: Article
 ---
 
 # Guia de seguridad para mujeres que viajan solas 2026: 15 destinos mas seguros y como planificar

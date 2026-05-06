@@ -1,20 +1,42 @@
 ---
-title: "Itinerario Sardegna 7 Giorni: Costa Smeralda, Ogliastra e Sud con AI"
-slug: "itinerario-sardegna-7-giorni"
-description: "Itinerario completo di 7 giorni in Sardegna: da Cagliari alla Costa Smeralda passando per Ogliastra. Giorno per giorno con budget, trasporti e spiagge imperdibili."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["sardinia", "itinerary", "italy", "beach", "7 days", "costa smeralda", "ogliastra", "road trip"]
-image: "/images/blog/itinerario-sardegna-7-giorni.jpg"
-imageAlt: "Cala Goloritzé in Sardegna con acqua turchese e scogliere calcaree"
+title: 'Itinerario Sardegna 7 Giorni: Costa Smeralda, Ogliastra e Sud con AI'
+slug: itinerario-sardegna-7-giorni
+description: >-
+  Itinerario completo di 7 giorni in Sardegna: da Cagliari alla Costa Smeralda
+  passando per Ogliastra. Giorno per giorno con budget, trasporti e spiagge
+  imperdibili.
+author: Federico S.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - sardinia
+  - itinerary
+  - italy
+  - beach
+  - 7 days
+  - costa smeralda
+  - ogliastra
+  - road trip
+image: /images/blog/itinerario-sardegna-7-giorni.jpg
+imageAlt: Cala Goloritzé in Sardegna con acqua turchese e scogliere calcaree
 readingTime: 10
 seo:
-  title: "Itinerario Sardegna 7 Giorni 2026: Costa Smeralda, Ogliastra e Sud | MonkeyTravel"
-  description: "Pianifica 7 giorni perfetti in Sardegna con questo itinerario giorno per giorno. Cagliari, Villasimius, Ogliastra, Costa Smeralda e Alghero — spiagge, budget e consigli pratici."
-  keywords: ["itinerario sardegna 7 giorni", "sardegna 7 giorni", "itinerario sardegna", "sardegna on the road", "costa smeralda itinerario", "sardegna cosa vedere"]
-schema: "Article"
+  title: >-
+    Itinerario Sardegna 7 Giorni 2026: Costa Smeralda, Ogliastra e Sud |
+    MonkeyTravel
+  description: >-
+    Pianifica 7 giorni perfetti in Sardegna con questo itinerario giorno per
+    giorno. Cagliari, Villasimius, Ogliastra, Costa Smeralda e Alghero —
+    spiagge, budget e consigli pratici.
+  keywords:
+    - itinerario sardegna 7 giorni
+    - sardegna 7 giorni
+    - itinerario sardegna
+    - sardegna on the road
+    - costa smeralda itinerario
+    - sardegna cosa vedere
+schema: Article
 ---
 
 # Itinerario Sardegna 7 Giorni: Costa Smeralda, Ogliastra e Sud con AI

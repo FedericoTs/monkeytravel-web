@@ -1,20 +1,37 @@
 ---
-title: "Japan Cherry Blossom Season 2026: The Complete Sakura Guide"
-slug: "japan-cherry-blossom-season-guide"
-description: "Everything you need to plan a cherry blossom trip to Japan in 2026 — bloom forecasts, best cities and parks, hanami etiquette, budget tips, and late-blooming alternatives in Hokkaido."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["japan", "cherry blossom", "sakura", "seasonal", "tokyo", "kyoto"]
-image: "/images/blog/japan-cherry-blossom-season-guide.jpg"
-imageAlt: "Cherry blossoms in full bloom along the Meguro River in Tokyo with pink petals"
+title: 'Japan Cherry Blossom Season 2026: The Complete Sakura Guide'
+slug: japan-cherry-blossom-season-guide
+description: >-
+  Everything you need to plan a cherry blossom trip to Japan in 2026 — bloom
+  forecasts, best cities and parks, hanami etiquette, budget tips, and
+  late-blooming alternatives in Hokkaido.
+author: Emanuela P.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - japan
+  - cherry blossom
+  - sakura
+  - seasonal
+  - tokyo
+  - kyoto
+image: /images/blog/japan-cherry-blossom-season-guide.jpg
+imageAlt: Cherry blossoms in full bloom along the Meguro River in Tokyo with pink petals
 readingTime: 8
 seo:
-  title: "Japan Cherry Blossom Season 2026: Complete Sakura Guide | MonkeyTravel"
-  description: "Plan your cherry blossom trip to Japan in 2026 with bloom forecasts, the best sakura spots in Tokyo, Kyoto, Osaka, and Nara, hanami etiquette, and budget tips for peak season."
-  keywords: ["japan cherry blossom season", "sakura season japan 2026", "cherry blossom forecast japan", "best cherry blossom spots japan", "hanami guide japan"]
-schema: "Article"
+  title: 'Japan Cherry Blossom Season 2026: Complete Sakura Guide | MonkeyTravel'
+  description: >-
+    Plan your cherry blossom trip to Japan in 2026 with bloom forecasts, the
+    best sakura spots in Tokyo, Kyoto, Osaka, and Nara, hanami etiquette, and
+    budget tips for peak season.
+  keywords:
+    - japan cherry blossom season
+    - sakura season japan 2026
+    - cherry blossom forecast japan
+    - best cherry blossom spots japan
+    - hanami guide japan
+schema: Article
 ---
 
 # Japan Cherry Blossom Season 2026: The Complete Sakura Guide

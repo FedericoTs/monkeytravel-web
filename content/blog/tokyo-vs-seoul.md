@@ -1,20 +1,40 @@
 ---
-title: "Tokyo vs Seoul: Which Asian Megacity Should You Visit in 2026?"
-slug: "tokyo-vs-seoul"
-description: "An honest comparison of Tokyo and Seoul for 2026 — covering budget, food, nightlife, culture, transport, and which city wins for different types of travelers."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Destination Guides"
-tags: ["tokyo", "seoul", "comparison", "asia", "city guide"]
-image: "/images/blog/tokyo-vs-seoul.jpg"
-imageAlt: "Split image comparing Tokyo's Shibuya Crossing and Seoul's Bukchon Hanok Village"
+title: 'Tokyo vs Seoul: Which Asian Megacity Should You Visit in 2026?'
+slug: tokyo-vs-seoul
+description: >-
+  An honest comparison of Tokyo and Seoul for 2026 — covering budget, food,
+  nightlife, culture, transport, and which city wins for different types of
+  travelers.
+author: Enrico E.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Destination Guides
+tags:
+  - tokyo
+  - seoul
+  - comparison
+  - asia
+  - city guide
+image: /images/blog/tokyo-vs-seoul.jpg
+imageAlt: >-
+  Split image comparing Tokyo's Shibuya Crossing and Seoul's Bukchon Hanok
+  Village
 readingTime: 10
 seo:
-  title: "Tokyo vs Seoul 2026: Which City Should You Visit First?"
-  description: "Tokyo or Seoul in 2026? We compare costs, food, nightlife, culture, and transport so you can choose the right Asian megacity for your travel style and budget."
-  keywords: ["tokyo vs seoul", "tokyo or seoul", "tokyo vs seoul cost", "tokyo vs seoul 2026", "tokyo vs seoul food", "tokyo vs seoul nightlife", "asia trip comparison"]
-schema: "Article"
+  title: 'Tokyo vs Seoul 2026: Which City Should You Visit First?'
+  description: >-
+    Tokyo or Seoul in 2026? We compare costs, food, nightlife, culture, and
+    transport so you can choose the right Asian megacity for your travel style
+    and budget.
+  keywords:
+    - tokyo vs seoul
+    - tokyo or seoul
+    - tokyo vs seoul cost
+    - tokyo vs seoul 2026
+    - tokyo vs seoul food
+    - tokyo vs seoul nightlife
+    - asia trip comparison
+schema: Article
 ---
 
 # Tokyo vs Seoul: Which Asian Megacity Should You Visit in 2026?

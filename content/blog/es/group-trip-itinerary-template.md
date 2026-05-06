@@ -1,20 +1,34 @@
 ---
-title: "La Plantilla de Itinerario para Viajes en Grupo Que Mantiene a Todos Contentos"
-slug: "group-trip-itinerary-template"
-description: "Una plantilla de itinerario día a día probada para viajes en grupo. Equilibra estructura con flexibilidad para que nadie se sienta atrapado ni perdido."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["group trip itinerary", "trip itinerary template", "group travel planning", "travel itinerary friends", "day by day trip plan"]
-image: "/images/blog/group-trip-itinerary-template.jpg"
-imageAlt: "A shared travel itinerary displayed on a tablet with a map and checklist"
+title: La Plantilla de Itinerario para Viajes en Grupo Que Mantiene a Todos Contentos
+slug: group-trip-itinerary-template
+description: >-
+  Una plantilla de itinerario día a día probada para viajes en grupo. Equilibra
+  estructura con flexibilidad para que nadie se sienta atrapado ni perdido.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - group trip itinerary
+  - trip itinerary template
+  - group travel planning
+  - travel itinerary friends
+  - day by day trip plan
+image: /images/blog/group-trip-itinerary-template.jpg
+imageAlt: A shared travel itinerary displayed on a tablet with a map and checklist
 readingTime: 7
 seo:
-  title: "Plantilla de Itinerario para Viaje en Grupo (Guía Día a Día) | MonkeyTravel"
-  description: "Una plantilla de itinerario flexible día a día para viajes en grupo. Combina actividades planificadas con tiempo libre para que todos estén contentos."
-  keywords: ["plantilla itinerario viaje en grupo", "itinerario viaje grupo", "plantilla itinerario amigos", "plan viaje grupo día a día", "cómo hacer itinerario viaje en grupo"]
-schema: "Article"
+  title: Plantilla de Itinerario para Viaje en Grupo (Guía Día a Día) | MonkeyTravel
+  description: >-
+    Una plantilla de itinerario flexible día a día para viajes en grupo. Combina
+    actividades planificadas con tiempo libre para que todos estén contentos.
+  keywords:
+    - plantilla itinerario viaje en grupo
+    - itinerario viaje grupo
+    - plantilla itinerario amigos
+    - plan viaje grupo día a día
+    - cómo hacer itinerario viaje en grupo
+schema: Article
 ---
 
 # La Plantilla de Itinerario para Viajes en Grupo Que Mantiene a Todos Contentos

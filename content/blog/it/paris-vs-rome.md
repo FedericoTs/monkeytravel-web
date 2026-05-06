@@ -1,20 +1,37 @@
 ---
-title: "Parigi vs Roma: Quale Città Europea Dovresti Visitare nel 2026?"
-slug: "paris-vs-rome"
-description: "Un confronto onesto tra Parigi e Roma per il 2026 — gastronomia, arte, costi, romanticismo e quale città vince per ogni tipo di viaggiatore."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["parigi", "roma", "confronto", "europa", "guida città"]
-image: "/images/blog/paris-vs-rome.jpg"
-imageAlt: "Immagine divisa che confronta la Torre Eiffel a Parigi e il Colosseo a Roma"
+title: 'Parigi vs Roma: Quale Città Europea Dovresti Visitare nel 2026?'
+slug: paris-vs-rome
+description: >-
+  Un confronto onesto tra Parigi e Roma per il 2026 — gastronomia, arte, costi,
+  romanticismo e quale città vince per ogni tipo di viaggiatore.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - parigi
+  - roma
+  - confronto
+  - europa
+  - guida città
+image: /images/blog/paris-vs-rome.jpg
+imageAlt: Immagine divisa che confronta la Torre Eiffel a Parigi e il Colosseo a Roma
 readingTime: 10
 seo:
-  title: "Parigi vs Roma 2026: Confronto Onesto | MonkeyTravel"
-  description: "Parigi o Roma nel 2026? Confronta gastronomia, arte, costi, romanticismo e vita notturna. Scopri quale città è migliore per il tuo stile di viaggio e budget."
-  keywords: ["parigi vs roma", "parigi o roma", "parigi vs roma costi", "parigi vs roma cibo", "parigi vs roma 2026", "viaggio europa parigi roma", "meglio parigi o roma"]
-schema: "Article"
+  title: 'Parigi vs Roma 2026: Confronto Onesto | MonkeyTravel'
+  description: >-
+    Parigi o Roma nel 2026? Confronta gastronomia, arte, costi, romanticismo e
+    vita notturna. Scopri quale città è migliore per il tuo stile di viaggio e
+    budget.
+  keywords:
+    - parigi vs roma
+    - parigi o roma
+    - parigi vs roma costi
+    - parigi vs roma cibo
+    - parigi vs roma 2026
+    - viaggio europa parigi roma
+    - meglio parigi o roma
+schema: Article
 ---
 
 # Parigi vs Roma: Quale Città Europea Dovresti Visitare nel 2026?

@@ -1,20 +1,39 @@
 ---
-title: "15 Migliori Destinazioni per Viaggi di Gruppo nel 2026 (Per Ogni Budget e Stile)"
-slug: "best-group-trip-destinations-2026"
-description: "Dai 30€/giorno nei Balcani alle ville di lusso a Bali — 15 destinazioni dove i viaggi di gruppo funzionano davvero, con costi reali e consigli per organizzarsi."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Destination Guides"
-tags: ["destinazioni viaggio di gruppo", "viaggiare con amici", "idee vacanze di gruppo", "viaggi di gruppo economici", "viaggi con amici 2026"]
-image: "/images/blog/group-trip-destinations-2026.jpg"
-imageAlt: "Group of friends overlooking a coastal Mediterranean town at sunset"
+title: >-
+  15 Migliori Destinazioni per Viaggi di Gruppo nel 2026 (Per Ogni Budget e
+  Stile)
+slug: best-group-trip-destinations-2026
+description: >-
+  Dai 30€/giorno nei Balcani alle ville di lusso a Bali — 15 destinazioni dove i
+  viaggi di gruppo funzionano davvero, con costi reali e consigli per
+  organizzarsi.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Destination Guides
+tags:
+  - destinazioni viaggio di gruppo
+  - viaggiare con amici
+  - idee vacanze di gruppo
+  - viaggi di gruppo economici
+  - viaggi con amici 2026
+image: /images/blog/group-trip-destinations-2026.jpg
+imageAlt: Group of friends overlooking a coastal Mediterranean town at sunset
 readingTime: 8
 seo:
-  title: "15 Migliori Destinazioni Viaggi di Gruppo 2026 (Economiche e di Lusso) | MonkeyTravel"
-  description: "15 destinazioni perfette per viaggi di gruppo nel 2026. Costi giornalieri reali, attività per gruppi e perché funzionano con gli amici."
-  keywords: ["migliori destinazioni viaggio di gruppo 2026", "idee vacanze di gruppo", "dove viaggiare con amici", "viaggi di gruppo economici", "idee viaggio di gruppo 2026"]
-schema: "Article"
+  title: >-
+    15 Migliori Destinazioni Viaggi di Gruppo 2026 (Economiche e di Lusso) |
+    MonkeyTravel
+  description: >-
+    15 destinazioni perfette per viaggi di gruppo nel 2026. Costi giornalieri
+    reali, attività per gruppi e perché funzionano con gli amici.
+  keywords:
+    - migliori destinazioni viaggio di gruppo 2026
+    - idee vacanze di gruppo
+    - dove viaggiare con amici
+    - viaggi di gruppo economici
+    - idee viaggio di gruppo 2026
+schema: Article
 ---
 
 # 15 Migliori Destinazioni per Viaggi di Gruppo nel 2026 (Per Ogni Budget e Stile)

@@ -1,20 +1,40 @@
 ---
-title: "La Grande Migrazione in Africa: Quando e Dove Vederla nel 2026"
-slug: "great-migration-africa-when-and-where"
-description: "Guida completa mese per mese alla Grande Migrazione in Africa Orientale. Dove sono le mandrie, i migliori campi per ogni stagione, attraversamenti del fiume Mara, stagione dei parti e budget reali."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Seasonal Travel"
-tags: ["africa", "safari", "grande migrazione", "fauna selvatica", "stagionale", "tanzania", "kenya"]
-image: "/images/blog/great-migration-africa-when-and-where.jpg"
-imageAlt: "Mandria di gnu che attraversa il fiume Mara durante la Grande Migrazione in Kenya"
+title: 'La Grande Migrazione in Africa: Quando e Dove Vederla nel 2026'
+slug: great-migration-africa-when-and-where
+description: >-
+  Guida completa mese per mese alla Grande Migrazione in Africa Orientale. Dove
+  sono le mandrie, i migliori campi per ogni stagione, attraversamenti del fiume
+  Mara, stagione dei parti e budget reali.
+author: Enrico E.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Seasonal Travel
+tags:
+  - africa
+  - safari
+  - grande migrazione
+  - fauna selvatica
+  - stagionale
+  - tanzania
+  - kenya
+image: /images/blog/great-migration-africa-when-and-where.jpg
+imageAlt: >-
+  Mandria di gnu che attraversa il fiume Mara durante la Grande Migrazione in
+  Kenya
 readingTime: 9
 seo:
-  title: "Grande Migrazione Africa 2026: Quando e Dove Vederla | MonkeyTravel"
-  description: "Guida completa mese per mese alla Grande Migrazione in Tanzania e Kenya. Migliori campi, attraversamenti del fiume Mara, stagione dei parti, budget e consigli pratici per il 2026."
-  keywords: ["grande migrazione africa", "migrazione serengeti quando", "migrazione masai mara 2026", "periodo migliore grande migrazione", "calendario migrazione gnu"]
-schema: "Article"
+  title: 'Grande Migrazione Africa 2026: Quando e Dove Vederla | MonkeyTravel'
+  description: >-
+    Guida completa mese per mese alla Grande Migrazione in Tanzania e Kenya.
+    Migliori campi, attraversamenti del fiume Mara, stagione dei parti, budget e
+    consigli pratici per il 2026.
+  keywords:
+    - grande migrazione africa
+    - migrazione serengeti quando
+    - migrazione masai mara 2026
+    - periodo migliore grande migrazione
+    - calendario migrazione gnu
+schema: Article
 ---
 
 # La Grande Migrazione in Africa: Quando e Dove Vederla nel 2026

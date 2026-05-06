@@ -1,20 +1,43 @@
 ---
-title: "10 Best Wellness Retreats in 2026: From Yoga to Burnout Recovery"
-slug: "best-wellness-retreats-2026"
-description: "Burnout recovery retreats grew 340% in searches. We ranked the 10 best wellness destinations for 2026 — real prices, what's included, and which retreat actually fits your situation."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["wellness travel", "yoga retreats", "burnout recovery", "spa destinations", "2026", "wellness tourism"]
-image: "/images/blog/best-wellness-retreats-2026.jpg"
-imageAlt: "Infinity pool overlooking tropical jungle at a wellness retreat in Bali"
+title: '10 Best Wellness Retreats in 2026: From Yoga to Burnout Recovery'
+slug: best-wellness-retreats-2026
+description: >-
+  Burnout recovery retreats grew 340% in searches. We ranked the 10 best
+  wellness destinations for 2026 — real prices, what's included, and which
+  retreat actually fits your situation.
+author: Francesca A.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - wellness travel
+  - yoga retreats
+  - burnout recovery
+  - spa destinations
+  - '2026'
+  - wellness tourism
+image: /images/blog/best-wellness-retreats-2026.jpg
+imageAlt: Infinity pool overlooking tropical jungle at a wellness retreat in Bali
 readingTime: 11
 seo:
-  title: "10 Best Wellness Retreats 2026: Yoga, Burnout Recovery & Star Bathing | MonkeyTravel"
-  description: "The 10 best wellness retreats for 2026 with real prices, program breakdowns, and honest advice on which retreat fits your needs — from $50/day Bali to $800/day SHA Spain."
-  keywords: ["best wellness retreats 2026", "burnout recovery retreat", "yoga retreat 2026", "wellness tourism", "spa retreat", "star bathing", "Kamalaya", "SHA Wellness", "Ananda India"]
-schema: "Article"
+  title: >-
+    10 Best Wellness Retreats 2026: Yoga, Burnout Recovery & Star Bathing |
+    MonkeyTravel
+  description: >-
+    The 10 best wellness retreats for 2026 with real prices, program breakdowns,
+    and honest advice on which retreat fits your needs — from $50/day Bali to
+    $800/day SHA Spain.
+  keywords:
+    - best wellness retreats 2026
+    - burnout recovery retreat
+    - yoga retreat 2026
+    - wellness tourism
+    - spa retreat
+    - star bathing
+    - Kamalaya
+    - SHA Wellness
+    - Ananda India
+schema: Article
 ---
 
 # 10 Best Wellness Retreats in 2026: From Yoga to Burnout Recovery

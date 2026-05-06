@@ -1,20 +1,37 @@
 ---
-title: "París vs Roma: ¿Qué Ciudad Europea Deberías Visitar en 2026?"
-slug: "paris-vs-rome"
-description: "Una comparación honesta entre París y Roma para 2026 — gastronomía, arte, costes, romance y cuál gana según tu tipo de viajero."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["parís", "roma", "comparación", "europa", "guía de ciudades"]
-image: "/images/blog/paris-vs-rome.jpg"
-imageAlt: "Imagen dividida comparando la Torre Eiffel en París y el Coliseo en Roma"
+title: 'París vs Roma: ¿Qué Ciudad Europea Deberías Visitar en 2026?'
+slug: paris-vs-rome
+description: >-
+  Una comparación honesta entre París y Roma para 2026 — gastronomía, arte,
+  costes, romance y cuál gana según tu tipo de viajero.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - parís
+  - roma
+  - comparación
+  - europa
+  - guía de ciudades
+image: /images/blog/paris-vs-rome.jpg
+imageAlt: Imagen dividida comparando la Torre Eiffel en París y el Coliseo en Roma
 readingTime: 10
 seo:
-  title: "París vs Roma 2026: Comparación Honesta | MonkeyTravel"
-  description: "¿París o Roma en 2026? Compara gastronomía, arte, costes, romance y vida nocturna. Descubre cuál ciudad es mejor para tu estilo de viaje y presupuesto."
-  keywords: ["paris vs roma", "paris o roma", "paris vs roma coste", "paris vs roma comida", "paris vs roma 2026", "viaje europa paris roma", "que es mejor paris o roma"]
-schema: "Article"
+  title: 'París vs Roma 2026: Comparación Honesta | MonkeyTravel'
+  description: >-
+    ¿París o Roma en 2026? Compara gastronomía, arte, costes, romance y vida
+    nocturna. Descubre cuál ciudad es mejor para tu estilo de viaje y
+    presupuesto.
+  keywords:
+    - paris vs roma
+    - paris o roma
+    - paris vs roma coste
+    - paris vs roma comida
+    - paris vs roma 2026
+    - viaje europa paris roma
+    - que es mejor paris o roma
+schema: Article
 ---
 
 # París vs Roma: ¿Qué Ciudad Europea Deberías Visitar en 2026?

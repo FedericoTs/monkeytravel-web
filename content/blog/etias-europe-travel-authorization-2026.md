@@ -1,20 +1,43 @@
 ---
-title: "ETIAS Europe Travel Authorization 2026: Everything You Need to Know Before You Go"
-slug: "etias-europe-travel-authorization-2026"
-description: "Complete guide to the ETIAS travel authorization launching in 2026. Who needs it, how to apply, cost, validity, and what it means for Americans visiting Europe."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Travel Tips"
-tags: ["etias", "europe travel", "travel authorization", "schengen", "us travel documents"]
-image: "/images/blog/etias-europe-travel-authorization-2026.jpg"
-imageAlt: "European Union flag with a passport and digital travel authorization screen"
+title: >-
+  ETIAS Europe Travel Authorization 2026: Everything You Need to Know Before You
+  Go
+slug: etias-europe-travel-authorization-2026
+description: >-
+  Complete guide to the ETIAS travel authorization launching in 2026. Who needs
+  it, how to apply, cost, validity, and what it means for Americans visiting
+  Europe.
+author: Riccardo P.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Travel Tips
+tags:
+  - etias
+  - europe travel
+  - travel authorization
+  - schengen
+  - us travel documents
+image: /images/blog/etias-europe-travel-authorization-2026.jpg
+imageAlt: European Union flag with a passport and digital travel authorization screen
 readingTime: 12
 seo:
-  title: "ETIAS 2026 for Americans: Complete Guide to Europe's New Travel Authorization"
-  description: "ETIAS launches Q4 2026 for Americans and 60+ nationalities. Learn the cost (€7), application process, which 30 countries require it, and how it differs from a visa."
-  keywords: ["etias 2026", "etias for americans", "europe travel authorization", "etias application", "etias cost", "schengen travel authorization", "etias countries", "do americans need etias"]
-schema: "Article"
+  title: >-
+    ETIAS 2026 for Americans: Complete Guide to Europe's New Travel
+    Authorization
+  description: >-
+    ETIAS launches Q4 2026 for Americans and 60+ nationalities. Learn the cost
+    (€7), application process, which 30 countries require it, and how it differs
+    from a visa.
+  keywords:
+    - etias 2026
+    - etias for americans
+    - europe travel authorization
+    - etias application
+    - etias cost
+    - schengen travel authorization
+    - etias countries
+    - do americans need etias
+schema: Article
 ---
 
 # ETIAS Europe Travel Authorization 2026: Everything You Need to Know Before You Go

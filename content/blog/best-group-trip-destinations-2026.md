@@ -1,20 +1,34 @@
 ---
-title: "15 Best Group Trip Destinations in 2026 (For Every Budget and Vibe)"
-slug: "best-group-trip-destinations-2026"
-description: "From $30/day Balkans adventures to luxury Bali villas — 15 destinations where group trips actually work, with real costs and planning tips."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Destination Guides"
-tags: ["group trip destinations", "best places travel friends", "group vacation ideas", "affordable group trips", "travel with friends 2026"]
-image: "/images/blog/group-trip-destinations-2026.jpg"
-imageAlt: "Group of friends overlooking a coastal Mediterranean town at sunset"
+title: 15 Best Group Trip Destinations in 2026 (For Every Budget and Vibe)
+slug: best-group-trip-destinations-2026
+description: >-
+  From $30/day Balkans adventures to luxury Bali villas — 15 destinations where
+  group trips actually work, with real costs and planning tips.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Destination Guides
+tags:
+  - group trip destinations
+  - best places travel friends
+  - group vacation ideas
+  - affordable group trips
+  - travel with friends 2026
+image: /images/blog/group-trip-destinations-2026.jpg
+imageAlt: Group of friends overlooking a coastal Mediterranean town at sunset
 readingTime: 8
 seo:
-  title: "15 Best Group Trip Destinations 2026 (Budget to Luxury) | MonkeyTravel"
-  description: "15 destinations perfect for group trips in 2026. Real daily costs, group-friendly activities, and why each works for friend groups."
-  keywords: ["best group trip destinations 2026", "group vacation ideas", "best places to travel with friends", "affordable group trips", "group trip ideas 2026"]
-schema: "Article"
+  title: 15 Best Group Trip Destinations 2026 (Budget to Luxury) | MonkeyTravel
+  description: >-
+    15 destinations perfect for group trips in 2026. Real daily costs,
+    group-friendly activities, and why each works for friend groups.
+  keywords:
+    - best group trip destinations 2026
+    - group vacation ideas
+    - best places to travel with friends
+    - affordable group trips
+    - group trip ideas 2026
+schema: Article
 ---
 
 # 15 Best Group Trip Destinations in 2026 (For Every Budget and Vibe)

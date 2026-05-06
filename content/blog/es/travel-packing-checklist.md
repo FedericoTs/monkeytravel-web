@@ -1,20 +1,37 @@
 ---
-title: "La Lista Definitiva para Hacer la Maleta en 2026 (Imprimible y Organizada)"
-slug: "travel-packing-checklist"
-description: "La unica lista para hacer la maleta que necesitas. Organizada por categoria con listas para playa, ciudad, senderismo, negocios y frio. Copia, imprime, empaca."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Travel Tips"
-tags: ["lista para hacer la maleta", "equipaje de viaje", "consejos para empacar", "esenciales de viaje"]
-image: "/images/blog/travel-packing-checklist.jpg"
-imageAlt: "Maleta abierta sobre una cama con ropa bien organizada, cubos de empaque y esenciales de viaje dispuestos al lado"
+title: La Lista Definitiva para Hacer la Maleta en 2026 (Imprimible y Organizada)
+slug: travel-packing-checklist
+description: >-
+  La unica lista para hacer la maleta que necesitas. Organizada por categoria
+  con listas para playa, ciudad, senderismo, negocios y frio. Copia, imprime,
+  empaca.
+author: Giuseppe G.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Travel Tips
+tags:
+  - lista para hacer la maleta
+  - equipaje de viaje
+  - consejos para empacar
+  - esenciales de viaje
+image: /images/blog/travel-packing-checklist.jpg
+imageAlt: >-
+  Maleta abierta sobre una cama con ropa bien organizada, cubos de empaque y
+  esenciales de viaje dispuestos al lado
 readingTime: 10
 seo:
-  title: "Lista para Hacer la Maleta 2026: La Lista Completa Que Realmente Usaras"
-  description: "La unica lista para hacer la maleta que necesitas en 2026. Organizada por categoria, tipo de viaje y limites de peso de aerolineas. Esenciales de equipaje de mano, ropa, articulos de aseo, electronica y mas."
-  keywords: ["lista para hacer la maleta", "que empacar para viajar", "esenciales de viaje", "lista de equipaje de mano", "consejos para empacar"]
-schema: "Article"
+  title: 'Lista para Hacer la Maleta 2026: La Lista Completa Que Realmente Usaras'
+  description: >-
+    La unica lista para hacer la maleta que necesitas en 2026. Organizada por
+    categoria, tipo de viaje y limites de peso de aerolineas. Esenciales de
+    equipaje de mano, ropa, articulos de aseo, electronica y mas.
+  keywords:
+    - lista para hacer la maleta
+    - que empacar para viajar
+    - esenciales de viaje
+    - lista de equipaje de mano
+    - consejos para empacar
+schema: Article
 ---
 
 # La Lista Definitiva para Hacer la Maleta en 2026

@@ -1,20 +1,38 @@
 ---
-title: "Itinerario de 3 Días en Lisboa: Guía Práctica Día a Día para 2026"
-slug: "lisbon-3-day-itinerary"
-description: "Un itinerario de Lisboa día a día con Alfama, Belém, Bairro Alto y excursión a Sintra. Precios reales de 2026, pastéis de nata, rutas de tranvía."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["lisboa", "itinerario", "portugal", "guía de ciudad", "viaje de 3 días"]
-image: "/images/blog/lisbon-3-day-itinerary.jpg"
-imageAlt: "Colorido tranvía 28 recorriendo las estrechas calles de Alfama en Lisboa"
+title: 'Itinerario de 3 Días en Lisboa: Guía Práctica Día a Día para 2026'
+slug: lisbon-3-day-itinerary
+description: >-
+  Un itinerario de Lisboa día a día con Alfama, Belém, Bairro Alto y excursión a
+  Sintra. Precios reales de 2026, pastéis de nata, rutas de tranvía.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - lisboa
+  - itinerario
+  - portugal
+  - guía de ciudad
+  - viaje de 3 días
+image: /images/blog/lisbon-3-day-itinerary.jpg
+imageAlt: Colorido tranvía 28 recorriendo las estrechas calles de Alfama en Lisboa
 readingTime: 11
 seo:
-  title: "Itinerario de 3 Días en Lisboa 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 3 días perfectos en Lisboa con este itinerario día a día. Precios reales de 2026, rutas de tranvía, pastéis de nata, Alfama, Belém y excursión a Sintra."
-  keywords: ["itinerario 3 dias lisboa", "lisboa itinerario 2026", "3 dias en lisboa", "guia de viaje lisboa", "lisboa dia a dia", "que hacer en lisboa", "excursion sintra desde lisboa", "guia alfama lisboa"]
-schema: "Article"
+  title: 'Itinerario de 3 Días en Lisboa 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 3 días perfectos en Lisboa con este itinerario día a día. Precios
+    reales de 2026, rutas de tranvía, pastéis de nata, Alfama, Belém y excursión
+    a Sintra.
+  keywords:
+    - itinerario 3 dias lisboa
+    - lisboa itinerario 2026
+    - 3 dias en lisboa
+    - guia de viaje lisboa
+    - lisboa dia a dia
+    - que hacer en lisboa
+    - excursion sintra desde lisboa
+    - guia alfama lisboa
+schema: Article
 ---
 
 # Itinerario de 3 Días en Lisboa: Guía Práctica Día a Día para 2026

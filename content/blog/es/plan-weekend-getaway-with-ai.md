@@ -1,20 +1,37 @@
 ---
-title: "Cómo planificar una escapada de fin de semana en 15 minutos con AI"
-slug: "plan-weekend-getaway-with-ai"
-description: "¿Poco tiempo pero necesitas un descanso? Descubre cómo los planificadores de viaje con AI pueden generar un itinerario completo de 3 días — con restaurantes, actividades y horarios — en menos de 15 minutos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["weekend getaway", "3 day trip", "AI trip planner", "short trip planning", "quick vacation ideas"]
-image: "/images/blog/weekend-getaway-ai.jpg"
-imageAlt: "Pareja con equipaje pequeño llegando a una encantadora ciudad europea para una escapada de fin de semana"
+title: Cómo planificar una escapada de fin de semana en 15 minutos con AI
+slug: plan-weekend-getaway-with-ai
+description: >-
+  ¿Poco tiempo pero necesitas un descanso? Descubre cómo los planificadores de
+  viaje con AI pueden generar un itinerario completo de 3 días — con
+  restaurantes, actividades y horarios — en menos de 15 minutos.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - weekend getaway
+  - 3 day trip
+  - AI trip planner
+  - short trip planning
+  - quick vacation ideas
+image: /images/blog/weekend-getaway-ai.jpg
+imageAlt: >-
+  Pareja con equipaje pequeño llegando a una encantadora ciudad europea para una
+  escapada de fin de semana
 readingTime: 5
 seo:
-  title: "Planifica una escapada de fin de semana en 15 minutos con AI | MonkeyTravel"
-  description: "¿Sin tiempo para planificar? AI puede crear un itinerario completo de 3 días en minutos. Descubre cómo funciona con 5 ejemplos de destinos reales."
-  keywords: ["planificador escapada fin de semana", "itinerario viaje 3 días", "planificar viaje fin de semana AI", "planificador viajes cortos", "planificador vacaciones rápidas"]
-schema: "Article"
+  title: Planifica una escapada de fin de semana en 15 minutos con AI | MonkeyTravel
+  description: >-
+    ¿Sin tiempo para planificar? AI puede crear un itinerario completo de 3 días
+    en minutos. Descubre cómo funciona con 5 ejemplos de destinos reales.
+  keywords:
+    - planificador escapada fin de semana
+    - itinerario viaje 3 días
+    - planificar viaje fin de semana AI
+    - planificador viajes cortos
+    - planificador vacaciones rápidas
+schema: Article
 ---
 
 # Cómo planificar una escapada de fin de semana en 15 minutos con AI

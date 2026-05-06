@@ -1,20 +1,37 @@
 ---
-title: "Itinerario de 4 Días en Londres: Guía Práctica Día a Día para 2026"
-slug: "london-4-day-itinerary"
-description: "Itinerario de Londres día a día con Westminster, South Bank, Camden, Shoreditch y más. Precios reales 2026, restaurantes reales, rutas inteligentes de metro."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-20"
-updatedAt: "2026-02-20"
-category: "Destination Guides"
-tags: ["londres", "itinerario", "inglaterra", "guía de ciudad", "viaje de 4 días"]
-image: "/images/blog/london-4-day-itinerary.jpg"
-imageAlt: "Big Ben y las Casas del Parlamento junto al río Támesis en Londres"
+title: 'Itinerario de 4 Días en Londres: Guía Práctica Día a Día para 2026'
+slug: london-4-day-itinerary
+description: >-
+  Itinerario de Londres día a día con Westminster, South Bank, Camden,
+  Shoreditch y más. Precios reales 2026, restaurantes reales, rutas inteligentes
+  de metro.
+author: Francesca A.
+publishedAt: '2026-02-20'
+updatedAt: '2026-02-20'
+category: Destination Guides
+tags:
+  - londres
+  - itinerario
+  - inglaterra
+  - guía de ciudad
+  - viaje de 4 días
+image: /images/blog/london-4-day-itinerary.jpg
+imageAlt: Big Ben y las Casas del Parlamento junto al río Támesis en Londres
 readingTime: 12
 seo:
-  title: "Itinerario de 4 Días en Londres 2026: Guía Día a Día | MonkeyTravel"
-  description: "Planifica 4 días perfectos en Londres con este itinerario día a día. Westminster, British Museum, Torre de Londres, Borough Market, Camden, Notting Hill — con precios reales 2026 y consejos del metro."
-  keywords: ["itinerario 4 dias londres", "londres itinerario 2026", "4 dias en londres", "guia de viaje londres 2026", "que hacer en londres en 4 dias", "londres dia a dia"]
-schema: "Article"
+  title: 'Itinerario de 4 Días en Londres 2026: Guía Día a Día | MonkeyTravel'
+  description: >-
+    Planifica 4 días perfectos en Londres con este itinerario día a día.
+    Westminster, British Museum, Torre de Londres, Borough Market, Camden,
+    Notting Hill — con precios reales 2026 y consejos del metro.
+  keywords:
+    - itinerario 4 dias londres
+    - londres itinerario 2026
+    - 4 dias en londres
+    - guia de viaje londres 2026
+    - que hacer en londres en 4 dias
+    - londres dia a dia
+schema: Article
 ---
 
 # Itinerario de 4 Días en Londres: Guía Práctica Día a Día para 2026

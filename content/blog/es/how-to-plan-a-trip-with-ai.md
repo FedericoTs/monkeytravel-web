@@ -1,20 +1,40 @@
 ---
-title: "Cómo planificar un viaje con AI: Guía paso a paso para principiantes"
-slug: "how-to-plan-a-trip-with-ai"
-description: "¿Nunca has usado AI para planificar un viaje? Esta guía para principiantes te lleva paso a paso — desde elegir destino hasta tener un itinerario completo día a día en minutos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-19"
-updatedAt: "2026-02-19"
-category: "AI Travel"
-tags: ["AI trip planning", "how to plan a trip", "AI travel guide", "trip planning for beginners", "AI itinerary generator"]
-image: "/images/blog/plan-trip-with-ai.jpg"
-imageAlt: "Persona usando una app de smartphone para generar un itinerario de viaje con sugerencias de AI en pantalla"
+title: 'Cómo planificar un viaje con AI: Guía paso a paso para principiantes'
+slug: how-to-plan-a-trip-with-ai
+description: >-
+  ¿Nunca has usado AI para planificar un viaje? Esta guía para principiantes te
+  lleva paso a paso — desde elegir destino hasta tener un itinerario completo
+  día a día en minutos.
+author: Riccardo P.
+publishedAt: '2026-02-19'
+updatedAt: '2026-02-19'
+category: AI Travel
+tags:
+  - AI trip planning
+  - how to plan a trip
+  - AI travel guide
+  - trip planning for beginners
+  - AI itinerary generator
+image: /images/blog/plan-trip-with-ai.jpg
+imageAlt: >-
+  Persona usando una app de smartphone para generar un itinerario de viaje con
+  sugerencias de AI en pantalla
 readingTime: 8
 seo:
-  title: "Cómo planificar un viaje con AI: Guía paso a paso para principiantes 2026 | MonkeyTravel"
-  description: "Guía completa para principiantes sobre planificación de viajes con AI. Aprende a pasar de cero a un itinerario completo día a día en menos de 15 minutos."
-  keywords: ["cómo planificar un viaje con AI", "guía planificación viaje AI", "generador de itinerarios AI", "planificar viaje paso a paso", "planificador de viaje AI para principiantes"]
-schema: "Article"
+  title: >-
+    Cómo planificar un viaje con AI: Guía paso a paso para principiantes 2026 |
+    MonkeyTravel
+  description: >-
+    Guía completa para principiantes sobre planificación de viajes con AI.
+    Aprende a pasar de cero a un itinerario completo día a día en menos de 15
+    minutos.
+  keywords:
+    - cómo planificar un viaje con AI
+    - guía planificación viaje AI
+    - generador de itinerarios AI
+    - planificar viaje paso a paso
+    - planificador de viaje AI para principiantes
+schema: Article
 ---
 
 # Cómo planificar un viaje con AI: Guía paso a paso para principiantes

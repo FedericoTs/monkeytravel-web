@@ -1,20 +1,37 @@
 ---
-title: "Cómo organizar una despedida de soltera que todas disfruten de verdad"
-slug: "how-to-plan-a-bachelorette-trip"
-description: "Guía paso a paso para organizar un viaje de despedida de soltera que funcione para cualquier presupuesto, personalidad y tamaño de grupo. Sin dramas, sin deudas, sin arrepentimientos."
-author: "MonkeyTravel Team"
-publishedAt: "2026-02-18"
-updatedAt: "2026-02-18"
-category: "Trip Planning"
-tags: ["bachelorette trip planning", "bachelorette party ideas", "group trip planning", "bachelorette destinations", "bride trip"]
-image: "/images/blog/bachelorette-trip-planning.jpg"
-imageAlt: "Group of women celebrating on a rooftop terrace with cocktails at sunset"
+title: Cómo organizar una despedida de soltera que todas disfruten de verdad
+slug: how-to-plan-a-bachelorette-trip
+description: >-
+  Guía paso a paso para organizar un viaje de despedida de soltera que funcione
+  para cualquier presupuesto, personalidad y tamaño de grupo. Sin dramas, sin
+  deudas, sin arrepentimientos.
+author: Giuseppe G.
+publishedAt: '2026-02-18'
+updatedAt: '2026-02-18'
+category: Trip Planning
+tags:
+  - bachelorette trip planning
+  - bachelorette party ideas
+  - group trip planning
+  - bachelorette destinations
+  - bride trip
+image: /images/blog/bachelorette-trip-planning.jpg
+imageAlt: Group of women celebrating on a rooftop terrace with cocktails at sunset
 readingTime: 7
 seo:
-  title: "Cómo organizar un viaje de despedida de soltera (Guía paso a paso 2026) | MonkeyTravel"
-  description: "Organiza una despedida de soltera que todas adoren. Guía paso a paso con presupuesto, destino, actividades y cómo mantener a todo el grupo contento."
-  keywords: ["cómo organizar despedida de soltera", "ideas despedida de soltera", "viaje despedida de soltera 2026", "destinos despedida de soltera", "viaje entre amigas"]
-schema: "Article"
+  title: >-
+    Cómo organizar un viaje de despedida de soltera (Guía paso a paso 2026) |
+    MonkeyTravel
+  description: >-
+    Organiza una despedida de soltera que todas adoren. Guía paso a paso con
+    presupuesto, destino, actividades y cómo mantener a todo el grupo contento.
+  keywords:
+    - cómo organizar despedida de soltera
+    - ideas despedida de soltera
+    - viaje despedida de soltera 2026
+    - destinos despedida de soltera
+    - viaje entre amigas
+schema: Article
 ---
 
 # Cómo organizar una despedida de soltera que todas disfruten de verdad

@@ -1,20 +1,39 @@
 ---
-title: "12 Best Digital Nomad Destinations for 2026 (Costs, Visas & Internet Speeds)"
-slug: "best-digital-nomad-destinations-2026"
-description: "The honest breakdown of where to actually base yourself in 2026 — real monthly costs, visa requirements, internet speeds, and coworking options for 12 top digital nomad cities."
-author: "MonkeyTravel Team"
-publishedAt: "2026-03-25"
-updatedAt: "2026-03-25"
-category: "Trip Planning"
-tags: ["digital nomad destinations", "best places to work remotely 2026", "digital nomad visa", "remote work travel", "nomad cities 2026"]
-image: "/images/blog/best-digital-nomad-destinations-2026.jpg"
-imageAlt: "Laptop open at a rooftop coworking space overlooking a sun-drenched city skyline"
+title: '12 Best Digital Nomad Destinations for 2026 (Costs, Visas & Internet Speeds)'
+slug: best-digital-nomad-destinations-2026
+description: >-
+  The honest breakdown of where to actually base yourself in 2026 — real monthly
+  costs, visa requirements, internet speeds, and coworking options for 12 top
+  digital nomad cities.
+author: Riccardo P.
+publishedAt: '2026-03-25'
+updatedAt: '2026-03-25'
+category: Trip Planning
+tags:
+  - digital nomad destinations
+  - best places to work remotely 2026
+  - digital nomad visa
+  - remote work travel
+  - nomad cities 2026
+image: /images/blog/best-digital-nomad-destinations-2026.jpg
+imageAlt: >-
+  Laptop open at a rooftop coworking space overlooking a sun-drenched city
+  skyline
 readingTime: 10
 seo:
-  title: "12 Best Digital Nomad Destinations 2026 (Costs, Visas & Wi-Fi) | MonkeyTravel"
-  description: "Honest breakdown of the 12 best digital nomad destinations in 2026. Real costs, visa types, internet speeds, and coworking scenes compared."
-  keywords: ["best digital nomad destinations 2026", "digital nomad visa 2026", "cheapest countries for remote work", "where to live as a digital nomad", "nomad city comparison 2026"]
-schema: "Article"
+  title: >-
+    12 Best Digital Nomad Destinations 2026 (Costs, Visas & Wi-Fi) |
+    MonkeyTravel
+  description: >-
+    Honest breakdown of the 12 best digital nomad destinations in 2026. Real
+    costs, visa types, internet speeds, and coworking scenes compared.
+  keywords:
+    - best digital nomad destinations 2026
+    - digital nomad visa 2026
+    - cheapest countries for remote work
+    - where to live as a digital nomad
+    - nomad city comparison 2026
+schema: Article
 ---
 
 # 12 Best Digital Nomad Destinations for 2026 (Costs, Visas & Internet Speeds)

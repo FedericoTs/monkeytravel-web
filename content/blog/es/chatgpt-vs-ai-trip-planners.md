@@ -1,20 +1,39 @@
 ---
-title: "ChatGPT vs planificadores de viajes con AI: cual planifica mejor en 2026?"
-slug: "chatgpt-vs-ai-trip-planners"
-description: "Le dimos la misma solicitud de viaje a ChatGPT y a planificadores de viaje con AI dedicados. Los resultados no fueron parejos. Comparativa honesta de donde gana cada herramienta."
-author: "MonkeyTravel Team"
-publishedAt: "2026-04-15"
-updatedAt: "2026-04-15"
-category: "Travel Tips"
-tags: ["planificador de viajes con AI", "ChatGPT", "planificacion de viajes", "comparativa", "herramientas de viaje"]
-image: "/images/blog/chatgpt-vs-ai-trip-planners.jpg"
-imageAlt: "Pantalla dividida comparando una conversacion en ChatGPT y un itinerario de un planificador de viajes con AI"
+title: 'ChatGPT vs planificadores de viajes con AI: cual planifica mejor en 2026?'
+slug: chatgpt-vs-ai-trip-planners
+description: >-
+  Le dimos la misma solicitud de viaje a ChatGPT y a planificadores de viaje con
+  AI dedicados. Los resultados no fueron parejos. Comparativa honesta de donde
+  gana cada herramienta.
+author: Riccardo P.
+publishedAt: '2026-04-15'
+updatedAt: '2026-04-15'
+category: Travel Tips
+tags:
+  - planificador de viajes con AI
+  - ChatGPT
+  - planificacion de viajes
+  - comparativa
+  - herramientas de viaje
+image: /images/blog/chatgpt-vs-ai-trip-planners.jpg
+imageAlt: >-
+  Pantalla dividida comparando una conversacion en ChatGPT y un itinerario de un
+  planificador de viajes con AI
 readingTime: 9
 seo:
-  title: "ChatGPT vs planificadores de viajes con AI 2026: comparativa honesta | MonkeyTravel"
-  description: "ChatGPT es genial para inspirarse, pero falla en itinerarios complejos el 90% de las veces. Lo probamos contra planificadores de viajes con AI dedicados."
-  keywords: ["chatgpt vs planificador de viajes ai", "chatgpt planificacion viajes", "mejor planificador de viajes ai 2026", "problemas itinerario chatgpt"]
-schema: "Article"
+  title: >-
+    ChatGPT vs planificadores de viajes con AI 2026: comparativa honesta |
+    MonkeyTravel
+  description: >-
+    ChatGPT es genial para inspirarse, pero falla en itinerarios complejos el
+    90% de las veces. Lo probamos contra planificadores de viajes con AI
+    dedicados.
+  keywords:
+    - chatgpt vs planificador de viajes ai
+    - chatgpt planificacion viajes
+    - mejor planificador de viajes ai 2026
+    - problemas itinerario chatgpt
+schema: Article
 ---
 
 # ChatGPT vs planificadores de viajes con AI: cual planifica mejor en 2026?
