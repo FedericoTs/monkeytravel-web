@@ -96,12 +96,18 @@ function styleDestinationLinks(html: string): string {
  * Slugify a heading's plain text into a URL anchor id.
  * Matches the algorithm in components/blog/BlogContentClient.tsx so server
  * and client converge on the same id for the same heading text.
+ *
+ * The NFKD step normalizes accented characters (e.g. "Día 1" -> "dia-1")
+ * before the ASCII filter; without it, JS `\w` would strip the accent
+ * AND the base letter, breaking anchors on Spanish/Italian headings.
  */
 export function slugifyHeading(text: string): string {
   return text
     .toLowerCase()
     .replace(/<[^>]*>/g, "")
-    .replace(/[^\w\s-]/g, "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .trim();

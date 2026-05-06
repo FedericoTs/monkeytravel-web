@@ -13,11 +13,15 @@ interface BlogContentClientProps {
   tocLabel?: string;
 }
 
+// Mirrors slugifyHeading in lib/blog/api.ts — server and client must
+// produce identical IDs so the ToC anchors line up after hydration.
 function slugify(text: string): string {
   return text
     .toLowerCase()
     .replace(/<[^>]*>/g, "")
-    .replace(/[^\w\s-]/g, "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .trim();

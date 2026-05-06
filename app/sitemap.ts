@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { destinations } from "@/lib/destinations/data";
 import { getAllSlugs as getBlogSlugs, getPostDates } from "@/lib/blog/api";
-import { getAllTagSlugs } from "@/lib/blog/tags";
+import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
@@ -156,10 +156,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Blog tag landing pages (× 3 locales). Tags are localized so each
   // locale gets its own set of slugs.
+  //
+  // Skip "thin" tag archives — pages with only a handful of posts get
+  // classified by Google as low-value duplicate aggregators ("Crawled —
+  // currently not indexed") and burn crawl budget that should go to real
+  // content. The page itself still renders if linked directly; we just
+  // don't actively submit it for indexing.
   const tagPages: MetadataRoute.Sitemap = [];
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
     for (const tagSlug of getAllTagSlugs(locale)) {
+      if (getPostsByTagSlug(tagSlug, locale).length < TAG_MIN_POSTS_FOR_INDEX) continue;
       tagPages.push({
         url: `${baseUrl}${prefix}/blog/tag/${tagSlug}`,
         lastModified: newestPostDate,

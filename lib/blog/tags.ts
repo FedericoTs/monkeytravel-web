@@ -2,15 +2,33 @@ import { getAllFrontmatter } from "./api";
 import type { BlogFrontmatter } from "./types";
 
 /**
- * Convert a free-form tag (e.g. "Asia Travel", "7 days") into a URL slug.
- * Lowercase, hyphenated, alpha-numeric only. Stable across locales as long
- * as the source tag string is the same.
+ * Tag archives below this post count are noindexed and excluded from the
+ * sitemap. Google flags single-post tag pages as low-value duplicate
+ * aggregators and refuses to index them, which burns crawl budget that
+ * should go to real content.
+ */
+export const TAG_MIN_POSTS_FOR_INDEX = 5;
+
+// U+0300..U+036F is the Combining Diacritical Marks block — what NFKD
+// produces when it splits an accented letter into base + mark.
+const COMBINING_MARKS = /[̀-ͯ]/g;
+
+/**
+ * Convert a free-form tag (e.g. "Asia Travel", "Japón") into a URL slug.
+ *
+ * Why the NFKD normalization step: JS `\w` is ASCII-only, so the previous
+ * `[^\w\s-]` strip turned "Japón" into "japn" (not "japon"), producing
+ * dead URLs like /blog/tag/japn that 404'd in Search Console. Decomposing
+ * to NFKD then dropping combining marks keeps the unaccented base letters
+ * before the ASCII filter runs.
  */
 export function slugifyTag(tag: string): string {
   return tag
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "")
+    .normalize("NFKD")
+    .replace(COMBINING_MARKS, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug } from "@/lib/blog/tags";
+import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -56,9 +56,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
+  // Thin tag archives get noindex,follow — page renders for users who land
+  // on it, but Google drops it from the index (matches the sitemap exclusion
+  // in app/sitemap.ts). Without this, previously-submitted thin tags stay
+  // in Search Console's "Crawled — currently not indexed" bucket forever.
+  const isThin = posts.length < TAG_MIN_POSTS_FOR_INDEX;
+
   return {
     title,
     description,
+    robots: isThin ? { index: false, follow: true } : undefined,
     alternates: {
       canonical: languages[locale],
       languages,
