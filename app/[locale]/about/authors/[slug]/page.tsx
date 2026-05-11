@@ -31,24 +31,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const author = getAuthorBySlug(slug);
   if (!author) return {};
 
-  const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
-  const url = `${SITE_URL}${localePrefix}/about/authors/${slug}`;
-
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const p = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${p}/about/authors/${slug}`;
-  }
-  languages["x-default"] = `${SITE_URL}/about/authors/${slug}`;
+  // Author bios are intentionally English-only (the bio prose isn't translated).
+  // Canonicalize every locale URL to the EN one so Google indexes only one
+  // version and doesn't flag the /es/ /it/ variants as duplicate-canonical.
+  // The /es/ and /it/ URLs still render — they just defer to /about/authors/{slug}
+  // as the source of truth.
+  const enUrl = `${SITE_URL}/about/authors/${slug}`;
 
   return {
     title: `${author.name} — ${author.title} | MonkeyTravel`,
     description: author.shortBio,
-    alternates: { canonical: url, languages },
+    alternates: {
+      canonical: enUrl,
+      languages: { en: enUrl, "x-default": enUrl },
+    },
     openGraph: {
       title: `${author.name} — ${author.title}`,
       description: author.shortBio,
-      url,
+      url: enUrl,
       siteName: "MonkeyTravel",
       type: "profile",
       images: [{ url: `${SITE_URL}/images/authors/${author.slug}.jpg`, width: 400, height: 400, alt: author.name }],

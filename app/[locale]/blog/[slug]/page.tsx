@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc } from "@/lib/blog/api";
+import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc, hasLocaleTranslation } from "@/lib/blog/api";
 import { getAuthorByFrontmatterId } from "@/lib/blog/authors";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
@@ -58,12 +58,25 @@ export async function generateMetadata({
   const title = t(`posts.${slug}.title`);
   const description = t(`posts.${slug}.description`);
 
+  // Only emit hreflang for locales that have a real translation file. Without
+  // this check, an EN-only post (e.g. the consolidation pillars) declares
+  // itself as available in es/it too — the /es/ and /it/ URLs then serve the
+  // EN content via locale fallback, Google sees identical content at 3 URLs,
+  // and demotes 2 with "Duplicate, Google chose different canonical than user".
   const languages: Record<string, string> = {};
   for (const l of routing.locales) {
+    if (!hasLocaleTranslation(slug, l)) continue;
     const prefix = l === routing.defaultLocale ? "" : `/${l}`;
     languages[l] = `${SITE_URL}${prefix}/blog/${slug}`;
   }
   languages["x-default"] = `${SITE_URL}/blog/${slug}`;
+
+  // If the current locale serves fallback content (no per-locale .md), point
+  // the canonical at the source-of-truth EN URL so Google indexes only that.
+  const currentLocaleHasTranslation = hasLocaleTranslation(slug, locale);
+  const canonicalUrl = currentLocaleHasTranslation
+    ? languages[locale]
+    : `${SITE_URL}/blog/${slug}`;
 
   const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
@@ -74,13 +87,13 @@ export async function generateMetadata({
     description,
     keywords: frontmatter.seo.keywords,
     alternates: {
-      canonical: languages[locale],
+      canonical: canonicalUrl,
       languages,
     },
     openGraph: {
       title,
       description,
-      url: languages[locale],
+      url: canonicalUrl,
       siteName: "MonkeyTravel",
       locale: ogLocale,
       alternateLocale,

@@ -170,6 +170,26 @@ function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFront
   return { frontmatter: data as BlogFrontmatter, content };
 }
 
+/**
+ * Returns true if a locale-specific markdown file exists for this slug.
+ * Used by metadata generators to decide whether to emit hreflang for
+ * a given locale or treat the page as EN-only with locale-fallback.
+ *
+ * Without this check, EN-only posts (e.g. the 3 consolidation pillars)
+ * still emit hreflang for all 3 locales — Google then sees identical
+ * content at 3 URLs and demotes 2 of them as "Duplicate, Google chose
+ * different canonical than user".
+ *
+ * For locale="en" this always returns true (the source file IS the EN
+ * version when no per-locale file is needed).
+ */
+export function hasLocaleTranslation(slug: string, locale: string): boolean {
+  if (locale === "en") {
+    return fs.existsSync(path.join(BLOG_DIR, `${slug}.md`));
+  }
+  return fs.existsSync(path.join(BLOG_DIR, locale, `${slug}.md`));
+}
+
 export function getPostTags(slug: string): string[] {
   const parsed = parseFrontmatter(slug);
   return parsed?.frontmatter.tags ?? [];

@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
 import { destinations } from "@/lib/destinations/data";
-import { getAllSlugs as getBlogSlugs, getPostDates } from "@/lib/blog/api";
+import { getAllSlugs as getBlogSlugs, getPostDates, hasLocaleTranslation } from "@/lib/blog/api";
 import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
+import { getAllAuthors } from "@/lib/blog/authors";
 
 const locales = ["en", "es", "it"] as const;
 const defaultLocale = "en";
@@ -142,8 +143,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: PRIORITY_INDEX,
     });
 
-    // Blog detail page per post per locale
+    // Blog detail page per post per locale — but ONLY if a real per-locale
+    // translation exists. EN-only posts (e.g. consolidation pillars) get a
+    // single EN entry instead of 3 locale variants. This stops Google from
+    // discovering /es/ /it/ URLs that serve EN-fallback content and would
+    // be flagged as "Duplicate, Google chose different canonical than user".
     for (const slug of blogSlugs) {
+      if (!hasLocaleTranslation(slug, locale)) continue;
       const dates = getPostDates(slug);
       blogPages.push({
         url: `${baseUrl}${prefix}/blog/${slug}`,
@@ -153,6 +159,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   }
+
+  // Author bio pages — EN only. Author bios are English-only content; the /es/
+  // and /it/ URLs render the same English text via locale routing and are
+  // canonicalized to the EN version (see app/[locale]/about/authors/[slug]).
+  const authorPages: MetadataRoute.Sitemap = getAllAuthors().map((author) => ({
+    url: `${baseUrl}/about/authors/${author.slug}`,
+    lastModified: LASTMOD_HOMEPAGE,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
 
   // Blog tag landing pages (× 3 locales). Tags are localized so each
   // locale gets its own set of slugs.
@@ -197,5 +213,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticPages, ...contactPages, ...landingPages, ...destinationPages, ...blogPages, ...tagPages, ...stylePages];
+  return [...staticPages, ...contactPages, ...landingPages, ...destinationPages, ...blogPages, ...authorPages, ...tagPages, ...stylePages];
 }
