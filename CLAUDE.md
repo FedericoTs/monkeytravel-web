@@ -643,7 +643,44 @@ For any new page or component:
    - Cannot be imported into a `"use client"` component (async server only).
    - Build will fail if you try.
 
-### Post-deploy verification
+### CI/CD verification is MANDATORY after every push
+
+**The rule:** after every `git push origin master`, run
+`./scripts/verify-deploy.sh` (no args = checks HEAD on origin). Do not
+declare "deployed" or move to other tasks until it returns exit code 0.
+
+This caught a Vercel build failure on 2026-05-23 that would otherwise
+have left the production deploy stuck on a previous commit for hours.
+Vercel keeps serving the last successful build when the latest one fails
+— so the API silently keeps the old behavior and there is **no runtime
+signal** that your code didn't actually ship. The only honest signal is
+the GitHub status API, which the script polls.
+
+The script (`scripts/verify-deploy.sh`):
+- Uses the unauthenticated GitHub statuses endpoint (works on the public
+  monkeytravel-web repo with no token).
+- Polls every 20s up to a 6-minute default timeout.
+- Exit 0 = success, 1 = failure (then go fix it), 2 = timeout (still
+  pending — usually safe to wait, but worth eyeballing), 3 = tool/setup
+  problem.
+- On failure prints the `vercel inspect` command so you can pull build
+  logs immediately.
+
+If the script reports failure, the playbook:
+1. Run `npm run build` locally to reproduce — `tsc --noEmit` alone
+   misses build-only failures (Next.js does extra route validation
+   beyond TS, e.g. union narrowing on route handlers).
+2. Fix the error.
+3. Commit + push the fix.
+4. Re-run `verify-deploy.sh` to confirm the new commit deploys cleanly.
+
+A passing build on a *later* commit retroactively makes the live state
+correct (Git is linear — the deployed tree contains every prior change),
+but the intermediate "failed" commits will permanently show ✗ in the
+GitHub UI. That's expected; what matters is that the LATEST commit's
+status is `success`.
+
+### Post-deploy verification (content/SSR)
 
 A weekly health-check routine (`trig_01Q8z36rfyz9S8jbxQtYLwWe`) runs every
 Monday 09:00 UTC and validates the curl recipe across 5 representative URLs
