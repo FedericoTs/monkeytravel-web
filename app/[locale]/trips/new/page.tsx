@@ -14,6 +14,7 @@ import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
+import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
 import { buildSeasonalContext } from "@/lib/seasonal";
 
 // Post-generation + modal UI is gated by user action / state — split it
@@ -1603,6 +1604,40 @@ export default function NewTripPage() {
                 Pick a destination and your travel dates
               </p>
             </div>
+
+            {/* "Start Anywhere" — Gemini-Vision-powered prefill from image/URL.
+                Sits above the destination input so users see the shortcut
+                before typing. Opt-in (collapsed by default). */}
+            <StartAnywhereSection
+              onExtracted={(fields, ctx) => {
+                if (fields.destination) {
+                  setDestination(fields.destination);
+                  // Coordinates will be filled via the autocomplete or
+                  // server-side geocoding on submit — no need to block
+                  // here on a separate geocode call.
+                  setDestinationCoords(null);
+                  trackDestinationSelected({
+                    destination: fields.destination,
+                    // "manual" is the closest existing source label until the
+                    // analytics enum is widened to include "start_anywhere".
+                    source: "manual",
+                  });
+                }
+                if (fields.vibes.length > 0) {
+                  setSelectedVibes(fields.vibes);
+                }
+                if (fields.suggestedStartDate && fields.suggestedEndDate) {
+                  setStartDate(fields.suggestedStartDate);
+                  setEndDate(fields.suggestedEndDate);
+                }
+                // Tracking is emitted server-side by /api/ai/extract-trip-context
+                // (logApiCall with destination_confidence + identified_destination
+                // metadata). Skip client-side trackFieldInteraction since the
+                // existing field-interaction enum doesn't include this source.
+                setError(null);
+                console.log("[StartAnywhere] extracted:", ctx);
+              }}
+            />
 
             {/* Destination */}
             <div>
