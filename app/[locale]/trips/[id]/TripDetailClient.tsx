@@ -143,6 +143,30 @@ export default function TripDetailClient({
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  // **2026-05-23**: Foreground the AI assistant — it's the killer feature
+  // (the "make Day 2 cheaper" loop) and was previously hidden behind a small
+  // floating pill that most users never noticed. We now auto-open it on
+  // first visit to a trip, and visually pulse the trigger until the user
+  // has interacted with it at least once. After that, no nags.
+  const [hasSeenAssistant, setHasSeenAssistant] = useState<boolean>(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seenAt = localStorage.getItem("mt_ai_assistant_seen");
+    if (!seenAt) {
+      // First-time visitor to any trip — surface the assistant after a brief
+      // delay so they've had a moment to scan the itinerary first.
+      setHasSeenAssistant(false);
+      const t = setTimeout(() => setIsAIAssistantOpen(true), 2500);
+      return () => clearTimeout(t);
+    }
+  }, []);
+  // Mark as seen whenever the assistant opens — both auto-open and manual.
+  useEffect(() => {
+    if (isAIAssistantOpen && typeof window !== "undefined") {
+      localStorage.setItem("mt_ai_assistant_seen", String(Date.now()));
+      setHasSeenAssistant(true);
+    }
+  }, [isAIAssistantOpen]);
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -1966,16 +1990,18 @@ export default function TripDetailClient({
       {/* Bottom padding when edit bar is showing */}
       {isEditMode && <div className="h-20" />}
 
-      {/* AI Assistant Floating Button - Premium pill design on left */}
+      {/* AI Assistant Floating Button — primary CTA. Bigger + accented +
+          pulses for first-time visitors so the killer feature is impossible
+          to miss. Previously: muted white pill that 95% of users ignored. */}
       {!isEditMode && (
         <button
           onClick={() => setIsAIAssistantOpen(true)}
-          className="fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group"
+          className={`fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group ${!hasSeenAssistant ? "animate-pulse" : ""}`}
           title={t('detail.aiTripAssistant')}
         >
-          <div className="flex items-center gap-2.5 px-3 py-2 sm:px-4 sm:py-3 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300 hover:scale-[1.02]">
-            {/* AI Agent Image */}
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md">
+          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] text-white shadow-xl shadow-[var(--primary)]/30 hover:shadow-2xl hover:scale-[1.04] transition-all duration-300 ring-2 ring-white">
+            {/* AI Agent Image with ring on white background for contrast */}
+            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-md bg-white">
               <Image
                 src="/images/ai-agent.png"
                 alt="AI Assistant"
@@ -1985,14 +2011,18 @@ export default function TripDetailClient({
             </div>
             {/* Label - hidden on very small screens */}
             <div className="hidden sm:flex flex-col items-start leading-none">
-              <span className="text-sm font-semibold text-slate-800">{t('detail.aiAssistant')}</span>
-              <span className="text-[11px] text-slate-500">{t('detail.customizeTrip')}</span>
+              <span className="text-sm font-bold text-white">{t('detail.aiAssistant')}</span>
+              <span className="text-[12px] text-white/85">{t('detail.customizeTrip')}</span>
             </div>
             {/* Arrow indicator */}
-            <svg className="w-4 h-4 text-slate-400 group-hover:text-[var(--primary)] group-hover:translate-x-0.5 transition-all hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-all hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </div>
+          {/* First-time visual nudge — small dot like a notification badge */}
+          {!hasSeenAssistant && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--accent)] ring-2 ring-white animate-ping" />
+          )}
         </button>
       )}
 
