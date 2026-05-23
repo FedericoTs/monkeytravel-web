@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { getAuthenticatedUser } from "@/lib/api/auth";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import {
   generateItinerary,
   validateTripParams,
@@ -30,32 +31,36 @@ import { cookies } from "next/headers";
 type SupportedLanguage = "en" | "es" | "it";
 
 /**
- * Get the user's preferred language from cookies or profile
+ * Get the user's preferred language from cookies or profile.
+ * For anonymous users (userId === null) we use only the locale cookie.
  */
 async function getUserLanguage(
   supabase: SupabaseClient,
-  userId: string
+  userId: string | null
 ): Promise<SupportedLanguage> {
-  // First check for locale cookie (set by next-intl middleware)
+  // First check for locale cookie (set by next-intl middleware) — works for
+  // both authenticated and anonymous users.
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("NEXT_LOCALE");
   if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
     return localeCookie.value as SupportedLanguage;
   }
 
-  // Fall back to user's profile preference
-  try {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("preferred_language")
-      .eq("id", userId)
-      .single();
+  // Authenticated: fall back to profile preference
+  if (userId) {
+    try {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("preferred_language")
+        .eq("id", userId)
+        .single();
 
-    if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
-      return profile.preferred_language as SupportedLanguage;
+      if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
+        return profile.preferred_language as SupportedLanguage;
+      }
+    } catch {
+      // Ignore errors, use default
     }
-  } catch {
-    // Ignore errors, use default
   }
 
   return "en";
@@ -211,56 +216,70 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
-    if (errorResponse) return errorResponse;
+    // **2026-05-23**: Anonymous generation enabled (per conversion audit).
+    // Visitors can generate one trip without signing up — the auth wall
+    // fires at Save instead. This is the single biggest conversion lift
+    // available (75% of generators previously never reached trip_created
+    // because of the post-fill signup modal).
+    //
+    // Auth flow: try to get the user; if absent, we're in anonymous mode.
+    // Rate-limit anonymous users via cookie to prevent obvious abuse.
+    const supabase = await createClient();
+    const { data: { user: maybeUser } } = await supabase.auth.getUser();
+    const user: User | null = maybeUser ?? null;
+    const isAnonymous = user === null;
 
-    // Check early access (during early access period)
-    const earlyAccess = await checkEarlyAccess(user.id, "generation", user.email);
-    if (!earlyAccess.allowed) {
-      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
+    let anonLimit: Awaited<ReturnType<typeof checkAnonymousRateLimit>> | null = null;
+    if (isAnonymous) {
+      anonLimit = await checkAnonymousRateLimit();
+      if (!anonLimit.allowed) {
+        return errors.rateLimit(
+          anonLimit.message || "Free trip limit reached. Sign up to keep generating.",
+          { usage: anonLimit, signupUrl: "/auth/signup" }
+        );
+      }
     }
 
-    // Fetch user's profile preferences to include in trip generation
+    // Personalization comes from the user profile — only for authenticated
+    // users. Anonymous users supply preferences directly in the wizard form.
     let profilePreferences: UserProfilePreferences = {};
-    try {
-      const { data: userProfile } = await supabase
-        .from("users")
-        .select("preferences, notification_settings")
-        .eq("id", user.id)
-        .single();
+    if (user) {
+      try {
+        const { data: userProfile } = await supabase
+          .from("users")
+          .select("preferences, notification_settings")
+          .eq("id", user.id)
+          .single();
 
-      if (userProfile?.preferences) {
-        const prefs = userProfile.preferences as Record<string, unknown>;
-        profilePreferences = {
-          dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
-          travelStyles: prefs.travelStyles as string[] | undefined,
-          accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
-        };
-      }
-
-      // Convert quiet hours to active hours for activity scheduling
-      // Quiet hours are when user rests, so active hours are the inverse
-      if (userProfile?.notification_settings) {
-        const notifSettings = userProfile.notification_settings as Record<string, unknown>;
-        const quietStart = notifSettings.quietHoursStart as number | undefined;
-        const quietEnd = notifSettings.quietHoursEnd as number | undefined;
-
-        // quietHoursStart = when user starts resting (e.g., 22 = 10 PM)
-        // quietHoursEnd = when user wakes up (e.g., 8 = 8 AM)
-        // Active hours are inverted: activeStart = quietEnd, activeEnd = quietStart
-        if (quietStart !== undefined && quietEnd !== undefined) {
-          profilePreferences.activeHoursStart = quietEnd;   // Wake up time
-          profilePreferences.activeHoursEnd = quietStart;   // Rest time
+        if (userProfile?.preferences) {
+          const prefs = userProfile.preferences as Record<string, unknown>;
+          profilePreferences = {
+            dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
+            travelStyles: prefs.travelStyles as string[] | undefined,
+            accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
+          };
         }
+
+        // Convert quiet hours to active hours for activity scheduling
+        // Quiet hours are when user rests, so active hours are the inverse
+        if (userProfile?.notification_settings) {
+          const notifSettings = userProfile.notification_settings as Record<string, unknown>;
+          const quietStart = notifSettings.quietHoursStart as number | undefined;
+          const quietEnd = notifSettings.quietHoursEnd as number | undefined;
+
+          if (quietStart !== undefined && quietEnd !== undefined) {
+            profilePreferences.activeHoursStart = quietEnd;
+            profilePreferences.activeHoursEnd = quietStart;
+          }
+        }
+      } catch (err) {
+        console.warn("[AI Generate] Could not fetch user preferences:", err);
       }
-    } catch (err) {
-      // Log but don't fail if profile fetch fails
-      console.warn("[AI Generate] Could not fetch user preferences:", err);
     }
 
-    // Get user's preferred language for AI content localization
-    const userLanguage = await getUserLanguage(supabase, user.id);
-    console.log(`[AI Generate] User language: ${userLanguage}`);
+    // Get preferred language for AI content localization (cookie-based for anon)
+    const userLanguage = await getUserLanguage(supabase, user?.id ?? null);
+    console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
 
     // Parse request body
     const body = await request.json();
@@ -295,16 +314,20 @@ export async function POST(request: NextRequest) {
         cacheHit: false,
         costUsd: 0,
         error: `BLOCKED: ${access.message}`,
-        metadata: { user_id: user.id },
+        metadata: { user_id: user?.id ?? "anonymous" },
       });
       return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
-    // Check usage limits (tier-based limits, admins bypass)
-    const userIsAdmin = isAdmin(user.email);
-    const usageCheck = await checkUsageLimit(user.id, "aiGenerations", user.email);
+    // Authenticated-tier usage limits (anonymous is rate-limited above via
+    // cookie; authenticated users are unlimited per the 2026-05-23 free-tier
+    // decision but we keep checkUsageLimit wired so analytics still tracks).
+    const userIsAdmin = user ? isAdmin(user.email) : false;
+    const usageCheck = user
+      ? await checkUsageLimit(user.id, "aiGenerations", user.email)
+      : { allowed: true, used: 0, remaining: 999, limit: 999 };
 
-    if (!usageCheck.allowed) {
+    if (user && !usageCheck.allowed) {
       return errors.rateLimit(
         usageCheck.message || "Monthly trip generation limit reached.",
         { usage: usageCheck, upgradeUrl: "/pricing" }
@@ -449,7 +472,8 @@ export async function POST(request: NextRequest) {
       cacheHit,
       costUsd: generationCost,
       metadata: {
-        user_id: user.id,
+        user_id: user?.id ?? "anonymous",
+        is_anonymous: isAnonymous,
         destination: params.destination,
         vibes: params.vibes,
         duration: totalDays,
@@ -460,28 +484,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Increment usage counter (only for non-cache hits)
-    // Cache hits don't cost money, so they don't count against the limit
+    // Increment usage counters (only for non-cache hits — cache hits cost $0).
     let updatedUsage = usageCheck;
     if (!cacheHit) {
-      await incrementUsage(user.id, "aiGenerations", 1);
-
-      // Decrement the appropriate counter based on access type
-      if (earlyAccess.accessType === "free_trip") {
-        // User used their free trip - decrement free_trips_remaining
+      if (user) {
+        // Authenticated path: track usage in the per-user tier counter.
+        // The early-access counters are no-ops now (see lib/early-access)
+        // but kept in case a paywall ever lands.
+        await incrementUsage(user.id, "aiGenerations", 1);
         await decrementFreeTrips(user.id);
-      } else if (earlyAccess.accessType === "tester") {
-        // User has a tester code - increment early access usage
         await incrementEarlyAccessUsage(user.id, "generation");
-      }
-      // Admin users don't have their usage tracked
 
-      // Update the usage info for the response
-      updatedUsage = {
-        ...usageCheck,
-        used: usageCheck.used + 1,
-        remaining: Math.max(0, usageCheck.remaining - 1),
-      };
+        updatedUsage = {
+          ...usageCheck,
+          used: usageCheck.used + 1,
+          remaining: Math.max(0, usageCheck.remaining - 1),
+        };
+      } else {
+        // Anonymous path: bump the cookie counter so the visitor can't
+        // burn unlimited generations without ever signing up.
+        await recordAnonymousGeneration();
+      }
     }
 
     return apiSuccess({

@@ -45,10 +45,12 @@ export default function TourTrigger({
   }, []);
 
   const handleOpenTour = () => {
-    // Tour is disabled (A/B test for signup conversion). Skip directly to
-    // signup so the click still moves the user toward the goal.
+    // Tour is disabled — route directly to the wizard so the visitor can try
+    // the product immediately. The wizard supports anonymous generation;
+    // the auth wall fires later (at Save). Previously routed to /auth/signup
+    // which was the biggest top-of-funnel conversion leak in the audit.
     if (!TOUR_ENABLED) {
-      router.push("/auth/signup");
+      router.push("/trips/new");
       return;
     }
 
@@ -59,9 +61,10 @@ export default function TourTrigger({
       return;
     }
 
-    // If skipToAuthIfCompleted is true and tour was already seen, go straight to auth
+    // If skipToAuthIfCompleted is true and tour was already seen, go straight
+    // to the wizard (same reasoning — let users try the product, not gate them).
     if (skipToAuthIfCompleted && hasSeenTour === true) {
-      router.push("/auth/signup");
+      router.push("/trips/new");
       return;
     }
     setIsTourOpen(true);

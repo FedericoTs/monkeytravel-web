@@ -625,24 +625,22 @@ export default function NewTripPage() {
   };
 
   const handleGenerate = async () => {
-    // Check authentication first - show modal if not logged in
-    if (!isAuthenticated) {
-      // Save current form state to draft before prompting
-      if (destination && startDate && endDate) {
-        saveDraft({
-          generatedItinerary: null as unknown as GeneratedItinerary,
-          destination,
-          startDate,
-          endDate,
-          pace,
-          vibes: selectedVibes,
-          budgetTier,
-        });
-      }
-
-      // Show auth modal to prompt signup/login
-      setShowAuthModal(true);
-      return;
+    // **2026-05-23**: Anonymous generation enabled. Visitors generate first,
+    // sign up later (at Save). The /api/ai/generate route accepts anonymous
+    // requests rate-limited by cookie (2/24h). Persisting the form draft to
+    // localStorage stays — it lets us recover gracefully if the visitor
+    // closes the tab mid-generation, AND it's what survives the eventual
+    // signup modal at Save time.
+    if (destination && startDate && endDate) {
+      saveDraft({
+        generatedItinerary: null as unknown as GeneratedItinerary,
+        destination,
+        startDate,
+        endDate,
+        pace,
+        vibes: selectedVibes,
+        budgetTier,
+      });
     }
 
     setGenerating(true);
@@ -780,7 +778,27 @@ export default function NewTripPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        // **2026-05-23**: This is now the auth wall (moved from Generate).
+        // The user just saw their generated itinerary and clicked Save —
+        // peak motivation, the right moment to ask for an account. The
+        // existing draft logic (saveDraft + pendingTripGeneration flag)
+        // already persists the trip so it'll be restored after signup.
+        if (generatedItinerary) {
+          saveDraft({
+            generatedItinerary,
+            destination,
+            startDate,
+            endDate,
+            pace,
+            vibes: selectedVibes,
+            budgetTier,
+          });
+        }
+        setLoading(false);
+        setShowAuthModal(true);
+        return;
+      }
 
       // Fetch a proper cover image for this destination
       let coverImageUrl: string | undefined;

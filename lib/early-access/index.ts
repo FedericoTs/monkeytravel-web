@@ -109,129 +109,50 @@ export async function getEarlyAccessStatus(
 }
 
 /**
- * Check if a user can perform an AI action
- * Priority: Admin > Free trips > Tester code
+ * Check if a user can perform an AI action.
+ *
+ * **2026-05-23 PRODUCT DECISION**: The closed-beta gate has been removed —
+ * the app is fully free with no paywall. Every authenticated user can use
+ * every AI feature without limit. This function now returns `allowed: true`
+ * unconditionally; the original gate logic is kept commented below in case
+ * we ever need to reintroduce a beta or paywall flow.
+ *
+ * Anonymous-user limits (e.g. "1 free generation, then sign up to save") are
+ * handled separately in `lib/anonymous/rate-limit.ts` — not in this file,
+ * which only sees authenticated users.
  */
 export async function checkEarlyAccess(
-  userId: string,
-  action: EarlyAccessAction,
+  _userId: string,
+  _action: EarlyAccessAction,
   userEmail?: string | null
 ): Promise<EarlyAccessCheckResult> {
-  // Admin bypass - unlimited access
+  // Admin remains admin (mostly cosmetic — every user is now effectively
+  // unlimited anyway, but keeping the accessType for analytics/debug).
   if (userEmail && isAdmin(userEmail)) {
     return { allowed: true, remaining: null, accessType: "admin" };
   }
 
-  const supabase = await createClient();
-
-  // For generation action, check free_trips_remaining first
-  // This allows new users who completed onboarding to use their free trip
-  if (action === "generation") {
-    const { data: userProfile } = await supabase
-      .from("users")
-      .select("free_trips_remaining")
-      .eq("id", userId)
-      .single();
-
-    if (userProfile && userProfile.free_trips_remaining > 0) {
-      return {
-        allowed: true,
-        remaining: userProfile.free_trips_remaining,
-        accessType: "free_trip",
-        freeTripsRemaining: userProfile.free_trips_remaining,
-      };
-    }
-  }
-
-  // Check if user has redeemed a tester code
-  const { data: access, error } = await supabase
-    .from("user_tester_access")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  if (error || !access) {
-    return {
-      allowed: false,
-      remaining: 0,
-      error: "NO_ACCESS",
-      message: "You need an early access code to use AI features.",
-    };
-  }
-
-  // Check expiration
-  if (access.expires_at && new Date(access.expires_at) < new Date()) {
-    return {
-      allowed: false,
-      remaining: 0,
-      error: "CODE_EXPIRED",
-      message: "Your early access code has expired.",
-    };
-  }
-
-  // Check limits based on action type
-  const limitField = `ai_${action}s_limit` as keyof typeof access;
-  const usedField = `ai_${action}s_used` as keyof typeof access;
-
-  const limit = access[limitField] as number | null;
-  const used = access[usedField] as number;
-
-  // Unlimited if limit is null
-  if (limit === null) {
-    return { allowed: true, remaining: null, accessType: "tester" };
-  }
-
-  // Check if limit reached
-  if (used >= limit) {
-    return {
-      allowed: false,
-      remaining: 0,
-      error: "LIMIT_REACHED",
-      message: `You've reached your ${action} limit (${limit}).`,
-    };
-  }
-
+  // Everyone else is also unlimited. accessType="free_trip" preserves the
+  // legacy enum; downstream callers don't make decisions based on the value.
   return {
     allowed: true,
-    remaining: limit - used,
-    accessType: "tester",
+    remaining: null,
+    accessType: "free_trip",
   };
 }
 
 /**
- * Increment usage after a successful AI action
+ * Increment usage after a successful AI action.
+ *
+ * No-op since the beta gate was removed 2026-05-23 — we no longer cap usage,
+ * so there's nothing to count. Kept as a function (rather than deleted) to
+ * preserve the call sites in /api/ai/* routes without churn. If a paywall
+ * ever lands, restore the original increment logic from git history.
  */
 export async function incrementEarlyAccessUsage(
-  userId: string,
-  action: EarlyAccessAction
+  _userId: string,
+  _action: EarlyAccessAction
 ): Promise<boolean> {
-  const supabase = await createClient();
-  const usedField = `ai_${action}s_used`;
-
-  // Use RPC or direct increment
-  const { error } = await supabase.rpc("increment_early_access_usage", {
-    p_user_id: userId,
-    p_field: usedField,
-  });
-
-  if (error) {
-    // Fallback: direct update
-    const { data: access } = await supabase
-      .from("user_tester_access")
-      .select(usedField)
-      .eq("user_id", userId)
-      .single();
-
-    if (access && typeof access === "object") {
-      const accessObj = access as unknown as Record<string, number>;
-      const currentValue = accessObj[usedField] || 0;
-      await supabase
-        .from("user_tester_access")
-        .update({ [usedField]: currentValue + 1 })
-        .eq("user_id", userId);
-    }
-  }
-
   return true;
 }
 
@@ -367,32 +288,12 @@ export async function validateCode(
 }
 
 /**
- * Decrement free_trips_remaining for a user after using their free trip
- * Returns the new count after decrement
+ * Decrement free_trips_remaining for a user after using their free trip.
+ *
+ * No-op since the beta gate was removed 2026-05-23. Free-trip accounting is
+ * no longer enforced. Returns a large sentinel so any caller using the return
+ * value as "remaining" displays as effectively unlimited.
  */
-export async function decrementFreeTrips(userId: string): Promise<number> {
-  const supabase = await createClient();
-
-  // Get current count
-  const { data: userProfile } = await supabase
-    .from("users")
-    .select("free_trips_remaining")
-    .eq("id", userId)
-    .single();
-
-  if (!userProfile || userProfile.free_trips_remaining <= 0) {
-    return 0;
-  }
-
-  const newCount = Math.max(0, userProfile.free_trips_remaining - 1);
-
-  // Update the count
-  await supabase
-    .from("users")
-    .update({ free_trips_remaining: newCount })
-    .eq("id", userId);
-
-  console.log(`[EarlyAccess] Decremented free trips for user ${userId}: ${userProfile.free_trips_remaining} -> ${newCount}`);
-
-  return newCount;
+export async function decrementFreeTrips(_userId: string): Promise<number> {
+  return 999;
 }
