@@ -16,11 +16,28 @@ import DaySummary from "@/components/trip/DaySummary";
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import {
+  AnonymousActivityVoteBar,
+  type MyVote,
+  type VoteTally,
+} from "@/components/trip/AnonymousActivityVoteBar";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Copy, Check, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+
+interface VoteApiResponse {
+  activity_id: string;
+  up: number;
+  down: number;
+  myVote: MyVote;
+}
+
+interface VotesHydrationResponse {
+  tallies: Record<string, VoteTally>;
+  myVotes: Record<string, "up" | "down">;
+}
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -62,6 +79,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
 
+  // Anonymous vote state — see /api/shared/[token]/vote and /votes.
+  // Tallies are keyed by activity.id (the per-activity nanoid in the itinerary).
+  // myVotes is the current viewer's own votes, resolved server-side via the
+  // mt_anon_voter httpOnly cookie. hasDisplayName tracks whether the viewer
+  // has already typed a name this session, so we only show the inline prompt once.
+  const [voteTallies, setVoteTallies] = useState<Record<string, VoteTally>>({});
+  const [myVotes, setMyVotes] = useState<Record<string, "up" | "down">>({});
+  const [pendingVoteId, setPendingVoteId] = useState<string | null>(null);
+  const [hasDisplayName, setHasDisplayName] = useState(false);
+
   // Track share link view for viral loop analytics
   useEffect(() => {
     trackShareLinkClicked({
@@ -69,6 +96,82 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
       referrer: typeof document !== "undefined" ? document.referrer : undefined,
     });
   }, [trip.id]);
+
+  // Hydrate vote tallies + this viewer's own votes on mount. One round-trip,
+  // returns all activities at once (typical trip is <40 activities).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/shared/${shareToken}/votes`, {
+          method: "GET",
+          credentials: "same-origin",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as VotesHydrationResponse;
+        if (cancelled) return;
+        setVoteTallies(data.tallies ?? {});
+        setMyVotes(data.myVotes ?? {});
+        // If the viewer already has votes on record, they've already been
+        // through the name flow at least once — don't prompt them again.
+        if (data.myVotes && Object.keys(data.myVotes).length > 0) {
+          setHasDisplayName(true);
+        }
+      } catch {
+        // Non-fatal: page still works without vote hydration; the user just
+        // sees zero counts until they click.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [shareToken]);
+
+  const handleVote = async ({
+    activityId,
+    voteType,
+    displayName,
+  }: {
+    activityId: string;
+    voteType: "up" | "down" | null;
+    displayName?: string;
+  }) => {
+    setPendingVoteId(activityId);
+    try {
+      const res = await fetch(`/api/shared/${shareToken}/vote`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activity_id: activityId,
+          vote_type: voteType,
+          ...(displayName ? { display_name: displayName } : {}),
+        }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as VoteApiResponse;
+      setVoteTallies((prev) => ({
+        ...prev,
+        [data.activity_id]: { up: data.up, down: data.down },
+      }));
+      setMyVotes((prev) => {
+        const next = { ...prev };
+        if (data.myVote === null) {
+          delete next[data.activity_id];
+        } else {
+          next[data.activity_id] = data.myVote;
+        }
+        return next;
+      });
+      // Either we just collected a name, or the user skipped — either way
+      // they've been through the prompt and shouldn't see it again.
+      setHasDisplayName(true);
+    } catch {
+      // Swallow — UI keeps the previous state, user can retry.
+    } finally {
+      setPendingVoteId(null);
+    }
+  };
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
@@ -284,6 +387,7 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                             (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
                           );
 
+                          const voteActivityId = activity.id;
                           return (
                             <div key={activity.id || idx}>
                               <ActivityCard
@@ -293,6 +397,18 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                 showGallery={true}
                                 disableAutoFetch={true}
                               />
+                              {voteActivityId && (
+                                <div className="px-3 sm:px-4 pb-3">
+                                  <AnonymousActivityVoteBar
+                                    activityId={voteActivityId}
+                                    tally={voteTallies[voteActivityId] ?? { up: 0, down: 0 }}
+                                    myVote={myVotes[voteActivityId] ?? null}
+                                    hasDisplayName={hasDisplayName}
+                                    pending={pendingVoteId === voteActivityId}
+                                    onVote={handleVote}
+                                  />
+                                </div>
+                              )}
                               {/* Travel connector to next activity */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
@@ -368,6 +484,18 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
                                       </span>
                                     </div>
                                   </div>
+                                  {activity.id && (
+                                    <div className="mt-3">
+                                      <AnonymousActivityVoteBar
+                                        activityId={activity.id}
+                                        tally={voteTallies[activity.id] ?? { up: 0, down: 0 }}
+                                        myVote={myVotes[activity.id] ?? null}
+                                        hasDisplayName={hasDisplayName}
+                                        pending={pendingVoteId === activity.id}
+                                        onVote={handleVote}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               {/* Compact travel connector in timeline */}

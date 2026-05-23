@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Undo2, Redo2 } from "lucide-react";
+import { Undo2, Redo2, RefreshCw } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
@@ -181,6 +181,8 @@ export default function TripDetailClient({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
+  // Per-day regeneration: tracks which day_number is currently being replaced.
+  const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
 
   // Status management
   const router = useRouter();
@@ -762,6 +764,62 @@ export default function TripDetailClient({
       }
     },
     [trip.id, destination, editedItinerary, pushUndo]
+  );
+
+  // Per-day regeneration: replaces all activities of a single day with a
+  // fresh generation that takes the surrounding days as context. Confirms
+  // first (destructive), pushes to undo stack, then swaps in the response.
+  const handleDayRegenerate = useCallback(
+    async (dayNumber: number) => {
+      if (typeof window !== "undefined") {
+        const ok = window.confirm(
+          `Replace Day ${dayNumber} with a new generated day? Activities in this day will be lost.`
+        );
+        if (!ok) return;
+      }
+
+      pushUndo(`Regenerate Day ${dayNumber}`);
+      setRegeneratingDayNumber(dayNumber);
+      try {
+        const response = await fetch("/api/ai/regenerate-day", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tripId: trip.id, dayNumber }),
+        });
+
+        if (!response.ok) {
+          let msg = "Failed to regenerate day";
+          try {
+            const errBody = await response.json();
+            if (errBody?.error?.message) msg = errBody.error.message;
+            else if (typeof errBody?.error === "string") msg = errBody.error;
+          } catch {
+            /* ignore parse error */
+          }
+          throw new Error(msg);
+        }
+
+        const data = await response.json();
+        // apiSuccess wraps payloads as { data: {...} } in some helpers; tolerate both.
+        const newDay = (data?.day ?? data?.data?.day) as ItineraryDay | undefined;
+        if (!newDay) throw new Error("Empty response from server");
+
+        setEditedItinerary((prev) =>
+          prev.map((d) => (d.day_number === dayNumber ? ensureActivityIds([newDay])[0] : d))
+        );
+        // Bump the version counter so the day's children re-mount cleanly.
+        setItineraryVersion((v) => v + 1);
+        addToast(`Day ${dayNumber} regenerated`, "success");
+      } catch (error) {
+        console.error("Error regenerating day:", error);
+        const msg = error instanceof Error ? error.message : "Failed to regenerate day. Please try again.";
+        setSaveError(msg);
+        addToast(msg, "error");
+      } finally {
+        setRegeneratingDayNumber(null);
+      }
+    },
+    [trip.id, pushUndo, addToast]
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -1544,7 +1602,20 @@ export default function TripDetailClient({
             {displayItinerary
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day, dayIndex) => (
-                <div key={`day-${day.day_number}-v${itineraryVersion}`}>
+                <div key={`day-${day.day_number}-v${itineraryVersion}`} className="relative">
+                  {/* Loading overlay during per-day regeneration */}
+                  {regeneratingDayNumber === day.day_number && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center
+                                    bg-white/70 backdrop-blur-sm rounded-2xl pointer-events-auto"
+                         aria-live="polite">
+                      <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow border border-slate-200">
+                        <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary)]" />
+                        <span className="text-sm font-medium text-slate-700">
+                          Regenerating Day {day.day_number}…
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {/* Day Header */}
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center gap-3">
@@ -1565,6 +1636,24 @@ export default function TripDetailClient({
                       </div>
                     </div>
                     <div className="ml-auto flex items-center gap-3">
+                      {/* Regenerate Day Button - icon-only; owner only; subtle */}
+                      {userRole === "owner" && (
+                        <button
+                          type="button"
+                          onClick={() => handleDayRegenerate(day.day_number)}
+                          disabled={regeneratingDayNumber !== null}
+                          className="flex items-center justify-center w-8 h-8 rounded-lg
+                                     text-slate-500 hover:text-[var(--primary)] hover:bg-slate-100
+                                     disabled:opacity-50 disabled:cursor-not-allowed
+                                     transition-colors"
+                          title={`Regenerate Day ${day.day_number} — replace all activities with a fresh AI suggestion`}
+                          aria-label={`Regenerate Day ${day.day_number}`}
+                        >
+                          <RefreshCw
+                            className={`w-4 h-4 ${regeneratingDayNumber === day.day_number ? "animate-spin" : ""}`}
+                          />
+                        </button>
+                      )}
                       {/* Optimize Route Button - only show in edit mode with 3+ activities */}
                       {isEditMode && day.activities.length >= 3 && (
                         <button

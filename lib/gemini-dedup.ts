@@ -93,6 +93,16 @@ export interface MoreDaysDedupParams {
 }
 
 /**
+ * Parameters for single-day regeneration deduplication key
+ */
+export interface DayDedupParams {
+  destination: string;
+  dayNumber: number;
+  budgetTier: string;
+  instructions?: string;
+}
+
+/**
  * Generate deduplication key for itinerary generation
  */
 export function getItineraryDedupKey(params: ItineraryDedupParams): string {
@@ -130,6 +140,18 @@ export function getMoreDaysDedupKey(params: MoreDaysDedupParams): string {
     count: params.daysToGenerate,
     budget: params.budgetTier,
     pace: params.pace,
+  })}`;
+}
+
+/**
+ * Generate deduplication key for single-day regeneration
+ */
+export function getDayDedupKey(params: DayDedupParams): string {
+  return `day:${hashParams({
+    dest: params.destination.toLowerCase().trim(),
+    day: params.dayNumber,
+    budget: params.budgetTier,
+    instructions: params.instructions?.toLowerCase().trim() || "",
   })}`;
 }
 

@@ -68,6 +68,22 @@ Return ONLY a valid JSON object for a single activity. No markdown, no extra tex
 
 ## Output
 Return ONLY a valid JSON array of days. No markdown or extra text.`,
+
+  regenerate_day: `You are MonkeyTravel AI. Regenerate a SINGLE day within an existing travel itinerary.
+
+## CRITICAL Rules
+1. **Single Day Only**: Return ONE day object, not an array. Do not regenerate the rest of the trip.
+2. **Real Places Only**: All locations MUST be real and verifiable on Google Maps.
+3. **No Repetition**: Do NOT include any place already in the surrounding days (you will be given the exact list).
+4. **Complementary**: The new day must complement the surrounding days — a different theme, different neighborhood when possible, fresh experiences.
+5. **GPS Coordinates MANDATORY**: Include precise latitude/longitude (6 decimal places) for EVERY activity.
+6. **Full Addresses**: Include complete street addresses.
+7. **Geographic Efficiency**: Group nearby activities within the day, minimize backtracking.
+8. **Match the Day Number and Date**: Preserve the exact day_number and date passed in the prompt.
+9. **Vibes & Budget**: Honor the original trip's budget tier and vibes when selecting activities.
+
+## Output
+Return ONLY a valid JSON object for a single day (the schema is in the user message). No markdown, no extra text, no array wrapping.`,
 };
 
 export type PromptName = keyof typeof DEFAULT_PROMPTS;
