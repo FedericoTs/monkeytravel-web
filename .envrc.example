@@ -1,0 +1,44 @@
+# Per-project environment variables, auto-loaded by direnv.
+#
+# Setup:
+#   1. Install direnv: https://direnv.net/docs/installation.html
+#   2. Copy this file to .envrc:    cp .envrc.example .envrc
+#   3. Fill in the values (see comments below for where to get each).
+#   4. Run: direnv allow
+#
+# .envrc is gitignored. Never commit real tokens. Use 1Password / your
+# OS keychain to store the originals; .envrc just references them.
+#
+# Why direnv: cd into this directory and the right Supabase + Vercel
+# tokens are auto-loaded; cd into a different project and the previous
+# project's tokens are unloaded. Zero risk of running `supabase db push`
+# against the wrong account by mistake.
+
+# ─── Supabase (MonkeyTravel project) ───────────────────────────────────────
+# Get a Personal Access Token at: https://supabase.com/dashboard/account/tokens
+# Generate it from the account that owns the MonkeyTravel project
+# (federicosciuca@droplab.io — NOT the ryskmanagement account).
+#
+# Once set, every `supabase` CLI command in this directory uses the
+# MonkeyTravel context. Run `supabase link --project-ref sevfbahwmlbdlnbhqwyi`
+# once to persist the project link.
+export SUPABASE_ACCESS_TOKEN="sbp_paste_monkeytravel_pat_here"
+export SUPABASE_PROJECT_REF="sevfbahwmlbdlnbhqwyi"
+
+# ─── Vercel (MonkeyTravel project) ─────────────────────────────────────────
+# Get an access token at: https://vercel.com/account/tokens
+# Scope it to the team/account that owns the travel-app-web Vercel project.
+#
+# Once set, every `vercel` CLI command in this directory uses this token.
+# No more "token expired" prompts when checking deployment status.
+export VERCEL_TOKEN="paste_vercel_access_token_here"
+# Optional: which Vercel scope/team to default to. Leave commented if
+# the token is already team-scoped.
+# export VERCEL_ORG_ID="team_xxx"
+# export VERCEL_PROJECT_ID="prj_xxx"
+
+# ─── GitHub (optional — only needed for gh CLI authenticated calls) ────────
+# gh auth login normally handles this interactively. Only set this if
+# you want a project-specific token (e.g. fine-grained PAT scoped to
+# only the monkeytravel-web repo).
+# export GH_TOKEN="ghp_xxx"

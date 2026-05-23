@@ -203,8 +203,39 @@ identifyUser(user, {
 
 This project uses MCP servers for AI-assisted development:
 
-- **Supabase MCP**: Database management, migrations, queries
-- **Vercel MCP**: Deployment, domain management
+- **`supabase-monkey` (HTTP, OAuth)** — production DB for monkeytravel.app
+  (project_ref `sevfbahwmlbdlnbhqwyi`). Project-local in `.mcp.json`.
+  One-time browser OAuth on first invocation; persists thereafter.
+- **`supabase-rysk` (HTTP, OAuth)** — the second Supabase account
+  (ryskmanagement26@gmail.com, project_ref `oipwlrhyzayuxgcabsvu`).
+  Also project-local. The reason BOTH live here: managing multiple
+  Supabase accounts without re-authentication. Call the relevant one
+  by namespace (`mcp__supabase-monkey__*` vs `mcp__supabase-rysk__*`).
+- **n8n-mcp** — workflow automation server (auth via bearer in URL).
+
+### Local-dev secrets pattern
+
+`.envrc.example` documents the per-project token pattern for the
+Supabase CLI and Vercel CLI. To use:
+
+```bash
+cp .envrc.example .envrc
+# edit .envrc — paste real PAT/token values
+direnv allow
+```
+
+After that, `cd` into this directory auto-loads `SUPABASE_ACCESS_TOKEN`
+(monkeytravel-scoped) and `VERCEL_TOKEN` (also monkeytravel-scoped).
+`cd` away → tokens unload. This prevents accidentally running
+`supabase db push` or `vercel --prod` against the wrong account.
+
+`.envrc` is gitignored. Get the values from:
+- Supabase PAT: https://supabase.com/dashboard/account/tokens
+- Vercel token: https://vercel.com/account/tokens
+
+For multi-project setups, each project gets its own `.envrc` with its
+own PATs. The global Supabase / Vercel CLIs read whichever env is
+active when you invoke them.
 
 ## Deployment
 

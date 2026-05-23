@@ -36,6 +36,10 @@ yarn-error.log*
 .env.*.local
 !.env.example
 
+# direnv — per-project SUPABASE_ACCESS_TOKEN / VERCEL_TOKEN. The
+# committed template is .envrc.example; .envrc holds real secrets.
+.envrc
+
 # whatsapp bridge databases
 /store/
 
