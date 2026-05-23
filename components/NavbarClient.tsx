@@ -9,6 +9,7 @@ import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 import { TourTrigger } from '@/components/tour';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTranslations } from 'next-intl';
 
 interface NavLink {
@@ -116,6 +117,8 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             >
               {t('navigation.myTrips')}
             </Link>
+            {/* Bell sits between My Trips and Profile. Self-hides for anon visitors. */}
+            <NotificationBell />
             <Link
               href="/profile"
               className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"

@@ -15,6 +15,7 @@ import {
   calculateProposalConsensus,
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
+import { enqueueNotification } from "@/lib/notifications/service";
 
 /**
  * GET /api/trips/[id]/proposals
@@ -379,6 +380,27 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
           }
         : undefined,
     };
+
+    // Notify the trip owner — but not for self-proposals (owner
+    // proposing on their own trip is noise). Best-effort; the proposal
+    // is already saved if this fires.
+    if (!isOwner) {
+      const proposerName = profile?.display_name || "A collaborator";
+      void enqueueNotification({
+        userId: trip.user_id,
+        notification: {
+          type: "collab_proposal",
+          data: {
+            message: `${proposerName} proposed "${activityWithId.name}" for day ${targetDay + 1}`,
+            href: `/trips/${tripId}/edit`,
+            trip_id: tripId,
+            proposer_name: proposerName,
+            proposed_activity: activityWithId.name,
+            day_number: targetDay + 1,
+          },
+        },
+      });
+    }
 
     return apiSuccess({
       success: true,

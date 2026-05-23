@@ -3,6 +3,7 @@ import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote } from "@/types";
+import { enqueueNotification } from "@/lib/notifications/service";
 
 /**
  * GET /api/trips/[id]/activities/[activityId]/vote
@@ -195,6 +196,41 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
         return errors.internal("Failed to cast vote", "Activity Vote");
       }
       vote = newVote;
+    }
+
+    // Notify the trip owner of a NEW vote — only when it's not the owner
+    // voting on their own trip, and only for first-time votes (not edits).
+    // Best-effort; enqueueNotification swallows internal failures so a
+    // notification miss never fails the vote.
+    if (!existingVote && !isOwner) {
+      const { data: voterProfile } = await supabase
+        .from("users")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const voterName = voterProfile?.display_name || "A collaborator";
+      const voteLabel =
+        voteType === "love"
+          ? "loved"
+          : voteType === "flexible"
+            ? "is flexible on"
+            : voteType === "concerns"
+              ? "has concerns about"
+              : "voted no on";
+      void enqueueNotification({
+        userId: trip.user_id,
+        notification: {
+          type: "collab_vote",
+          data: {
+            message: `${voterName} ${voteLabel} an activity in your trip`,
+            href: `/trips/${tripId}/edit`,
+            trip_id: tripId,
+            voter_name: voterName,
+            activity_label: activityId,
+            vote_type: voteType === "love" ? "up" : "down",
+          },
+        },
+      });
     }
 
     return apiSuccess({
