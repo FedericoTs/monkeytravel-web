@@ -46,20 +46,13 @@ test.describe("SEO / routing regressions @prod", () => {
     }
   });
 
-  test("EN-only pillars canonicalize to the EN URL on /es and /it", async ({
-    page,
-  }) => {
-    // honeymoon-planning-guide.md is currently EN-only — no es/ or it/ copy
-    // exists, so /es/ and /it/ serve fallback content and must canonicalize
-    // back to the EN URL to avoid duplicate-content demotion.
-    const url = "/es/blog/honeymoon-planning-guide";
-    await page.goto(url);
-    const canonical = await page
-      .locator('link[rel="canonical"]')
-      .getAttribute("href");
-    expect(canonical).toMatch(
-      /^https:\/\/monkeytravel\.app\/blog\/honeymoon-planning-guide$/
-    );
+  test.skip("EN-only pillars canonicalize to the EN URL on /es and /it", async () => {
+    // As of 2026-05-23 every post in content/blog/*.md has matching es/
+    // and it/ translations, so there is no EN-only post available to
+    // exercise the fallback canonical path. The code path itself is still
+    // in app/[locale]/blog/[slug]/page.tsx (currentLocaleHasTranslation
+    // check) — re-enable this test when a new EN-only post lands so we
+    // catch regressions in that fallback.
   });
 
   test("translated pillars canonicalize to their own per-locale URL", async ({
