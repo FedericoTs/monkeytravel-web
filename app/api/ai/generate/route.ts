@@ -325,11 +325,11 @@ export async function POST(request: NextRequest) {
     const userIsAdmin = user ? isAdmin(user.email) : false;
     const usageCheck = user
       ? await checkUsageLimit(user.id, "aiGenerations", user.email)
-      : { allowed: true, used: 0, remaining: 999, limit: 999 };
+      : { allowed: true as const, used: 0, remaining: 999, limit: 999, message: undefined as string | undefined };
 
     if (user && !usageCheck.allowed) {
       return errors.rateLimit(
-        usageCheck.message || "Monthly trip generation limit reached.",
+        ("message" in usageCheck && usageCheck.message) || "Monthly trip generation limit reached.",
         { usage: usageCheck, upgradeUrl: "/pricing" }
       );
     }
