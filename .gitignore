@@ -64,3 +64,6 @@ next-env.d.ts
 # project's own .claude/skills/ docs which DO belong in the repo.
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+test-results/
+playwright-report/
+.audit/raw-data.json
