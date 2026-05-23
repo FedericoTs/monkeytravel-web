@@ -71,12 +71,22 @@ class ApiGateway {
     // Store in-flight request for deduplication (only for GET requests)
     const method = options.method || "GET";
     if (method === "GET" && !config.skipDedup) {
-      inFlightRequests.set(dedupeKey, requestPromise.then((r) => r.response));
+      // Derived promises off requestPromise inherit its rejection state.
+      // If the request fails and no concurrent dedup-caller awaits these
+      // derived chains, Node fires `unhandledRejection` (caught by Sentry
+      // as a noisy "internal" error even though the original caller did
+      // handle the failure). Attach noop catch handlers to silence the
+      // mirrors — real awaiters re-attach their own catch.
+      const dedupePromise = requestPromise.then((r) => r.response);
+      dedupePromise.catch(() => {});
+      inFlightRequests.set(dedupeKey, dedupePromise);
 
       // Clean up after request completes
-      requestPromise.finally(() => {
-        inFlightRequests.delete(dedupeKey);
-      });
+      requestPromise
+        .finally(() => {
+          inFlightRequests.delete(dedupeKey);
+        })
+        .catch(() => {});
     }
 
     return requestPromise;
@@ -109,8 +119,25 @@ class ApiGateway {
         startTime
       );
 
-      // Parse response
-      const data = await response.clone().json();
+      // Parse response. Only attempt JSON.parse on successful responses —
+      // upstream APIs often return HTML error pages on 4xx/5xx (which is
+      // how the "<html><h1>500..." SyntaxError fired from undici's
+      // parseJSONFromBytes was reaching Sentry on /api/weather).
+      // Callers are already expected to check `response.ok` before
+      // consuming `data`; returning a null body on non-OK responses
+      // keeps that contract and lets the caller surface a clean 500.
+      let data: T;
+      if (response.ok) {
+        data = await response.clone().json();
+      } else {
+        // Try JSON anyway — some APIs do return JSON error bodies on 4xx/5xx.
+        // Fall back to null silently if the body isn't JSON.
+        try {
+          data = await response.clone().json();
+        } catch {
+          data = null as T;
+        }
+      }
 
       return { response, data };
     } catch (error) {
