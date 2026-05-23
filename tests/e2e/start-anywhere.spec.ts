@@ -28,17 +28,29 @@ test.describe("Start Anywhere — extract-trip-context @prod", () => {
     request,
   }) => {
     // 7.1MB of A's — over the app-level 7MB cap AND over Vercel's 4.5MB
-    // serverless body limit. Either layer can reject; what matters is the
-    // request doesn't reach Gemini Vision. Accept any non-2xx that's not a
-    // hard infra failure.
+    // serverless body limit. What matters is the request doesn't reach
+    // Gemini Vision; the layer that catches it varies:
+    //   - App-level cap: 400
+    //   - Vercel edge: 413
+    //   - Vercel edge mid-stream: ECONNRESET (socket closed before status)
+    // All three count as "infra/app refused to forward the request to the
+    // model" which is the property under test.
     const huge = "A".repeat(7_100_000);
-    const res = await request.post("/api/ai/extract-trip-context", {
-      data: { imageBase64: huge },
-    });
-    expect(
-      [400, 413, 500, 503],
-      `expected reject, got ${res.status()}`
-    ).toContain(res.status());
+    try {
+      const res = await request.post("/api/ai/extract-trip-context", {
+        data: { imageBase64: huge },
+      });
+      expect(
+        [400, 413, 500, 503],
+        `expected reject, got ${res.status()}`
+      ).toContain(res.status());
+    } catch (err) {
+      // ECONNRESET / socket-hangup from the edge mid-upload is the expected
+      // reject path on prod — Vercel doesn't bother sending a 413, it just
+      // kills the connection.
+      const msg = err instanceof Error ? err.message : String(err);
+      expect(msg).toMatch(/ECONNRESET|socket hang up|aborted/i);
+    }
   });
 
   test("API: data: URL in imageUrl is rejected (must use imageBase64)", async ({

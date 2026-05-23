@@ -49,12 +49,34 @@ test.describe("SEO / routing regressions @prod", () => {
   test("EN-only pillars canonicalize to the EN URL on /es and /it", async ({
     page,
   }) => {
-    const url = "/es/blog/2026-travel-calendar";
+    // honeymoon-planning-guide.md is currently EN-only — no es/ or it/ copy
+    // exists, so /es/ and /it/ serve fallback content and must canonicalize
+    // back to the EN URL to avoid duplicate-content demotion.
+    const url = "/es/blog/honeymoon-planning-guide";
     await page.goto(url);
     const canonical = await page
       .locator('link[rel="canonical"]')
       .getAttribute("href");
-    expect(canonical).toMatch(/^https:\/\/monkeytravel\.app\/blog\/2026-travel-calendar$/);
+    expect(canonical).toMatch(
+      /^https:\/\/monkeytravel\.app\/blog\/honeymoon-planning-guide$/
+    );
+  });
+
+  test("translated pillars canonicalize to their own per-locale URL", async ({
+    page,
+  }) => {
+    // 2026-travel-calendar.md now has es/ and it/ translations. Each locale
+    // version should declare itself canonical (no longer pointing back to EN)
+    // so Google indexes all three independently.
+    for (const locale of ["es", "it"]) {
+      await page.goto(`/${locale}/blog/2026-travel-calendar`);
+      const canonical = await page
+        .locator('link[rel="canonical"]')
+        .getAttribute("href");
+      expect(canonical, `${locale} canonical`).toBe(
+        `https://monkeytravel.app/${locale}/blog/2026-travel-calendar`
+      );
+    }
   });
 
   test("cut posts return 410 Gone", async ({ request }) => {
