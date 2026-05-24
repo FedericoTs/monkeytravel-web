@@ -1771,12 +1771,12 @@
     }
   },
   "authPrompt": {
-    "title": "Ready to Generate Your Trip!",
-    "subtitle": "Create a free account to generate your personalized {destination} itinerary",
+    "title": "Save Your Trip",
+    "subtitle": "Create a free account to save your {destination} itinerary and access it anytime",
     "benefits": {
-      "aiPowered": "AI-powered itinerary generation",
+      "aiPowered": "Edit and regenerate any day",
       "saveEdit": "Save and edit your trips anytime",
-      "realTime": "Real-time travel information"
+      "realTime": "Share and vote with friends"
     },
     "redirecting": "Redirecting...",
     "createAccount": "Create Free Account",

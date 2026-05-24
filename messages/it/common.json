@@ -1771,12 +1771,12 @@
     }
   },
   "authPrompt": {
-    "title": "Pronto a Generare il Tuo Viaggio!",
-    "subtitle": "Crea un account gratuito per generare il tuo itinerario personalizzato per {destination}",
+    "title": "Salva il Tuo Viaggio",
+    "subtitle": "Crea un account gratuito per salvare il tuo itinerario per {destination} e ritrovarlo quando vuoi",
     "benefits": {
-      "aiPowered": "Generazione itinerari con AI",
+      "aiPowered": "Modifica e rigenera qualsiasi giorno",
       "saveEdit": "Salva e modifica i tuoi viaggi in qualsiasi momento",
-      "realTime": "Informazioni di viaggio in tempo reale"
+      "realTime": "Condividi e vota con gli amici"
     },
     "redirecting": "Reindirizzamento...",
     "createAccount": "Crea Account Gratis",
