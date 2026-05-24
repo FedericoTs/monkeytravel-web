@@ -22,6 +22,15 @@ export interface InviteEmailProps {
   inviteUrl: string;
   /** Optional personal note from the inviter (max ~500 chars). */
   message?: string;
+  /**
+   * Optional pre-built HMAC unsubscribe URL. Invites are technically
+   * transactional (the recipient was explicitly named) so the layout
+   * unsubscribe link is mostly a "manage preferences" courtesy. When
+   * the orchestrator can mint a tokenized link (user_id known + secret
+   * configured), it passes it here; otherwise the layout falls back
+   * to the generic /profile/notifications URL.
+   */
+  unsubscribeUrl?: string;
 }
 
 const ROLE_DESCRIPTION: Record<InviteEmailProps["role"], string> = {
@@ -41,13 +50,14 @@ export default function InviteEmail({
   role,
   inviteUrl,
   message,
+  unsubscribeUrl,
 }: InviteEmailProps) {
   const preview = `${inviterName} invited you to plan ${tripDestination}`;
 
   return (
     <EmailLayout
       preview={preview}
-      unsubscribeUrl={`${APP_URL}/profile/notifications`}
+      unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
     >
       <Heading as="h1" style={h1}>
         {inviterName} invited you to a trip

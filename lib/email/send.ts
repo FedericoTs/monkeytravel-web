@@ -25,6 +25,7 @@ import VoteCastEmail, {
   voteCastEmailText,
   type VoteCastEmailProps,
 } from "./templates/VoteCast";
+import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 
 export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
@@ -71,6 +72,18 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // first invite.
   invite: null,
   // Vote-cast is collaboration — gated by emailNotifications + collabVotes
+  vote_cast: "collabVotes",
+};
+
+/**
+ * Per-template unsubscribe-key mapping. When we have a user_id AND the
+ * unsubscribe secret is configured, the orchestrator mints a one-click
+ * unsubscribe URL with this key and passes it into the template's
+ * footer. Falsy = template doesn't get a tokenized link (still falls
+ * back to /profile/notifications in the layout).
+ */
+const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
+  invite: null, // transactional — recipient may not have an account yet
   vote_cast: "collabVotes",
 };
 
@@ -149,12 +162,42 @@ export async function dispatchEmail(
     }
   }
 
-  // 4. Render the template.
+  // 4. Render the template. If this send is opt-out-able and we have
+  //    both a user id and a configured unsubscribe secret, mint a one-
+  //    click unsubscribe URL and inject it into the template props.
   let html: string;
   let text: string;
   let subject: string;
   try {
-    const rendered = await renderTemplate(options.template);
+    let template = options.template;
+    const unsubKey = UNSUB_KEY[options.template.id];
+    if (
+      unsubKey &&
+      options.recipientUserId &&
+      process.env.EMAIL_UNSUBSCRIBE_SECRET
+    ) {
+      try {
+        const unsubscribeUrl = buildUnsubscribeUrl(
+          options.recipientUserId,
+          unsubKey
+        );
+        // Re-typed cast: we know the template props include
+        // unsubscribeUrl (optional) for both currently-supported ids.
+        template = {
+          ...options.template,
+          props: { ...options.template.props, unsubscribeUrl },
+        } as EmailTemplate;
+      } catch (signErr) {
+        // Secret was set but signing threw — log and continue without
+        // the tokenized URL (falls back to /profile/notifications).
+        console.warn(
+          "[email/send] unsubscribe URL mint failed, using fallback:",
+          signErr instanceof Error ? signErr.message : signErr
+        );
+      }
+    }
+
+    const rendered = await renderTemplate(template);
     html = rendered.html;
     text = rendered.text;
     subject = rendered.subject;
@@ -187,11 +230,36 @@ export async function dispatchEmail(
 
   // 6. Actually send. The client gracefully skips when RESEND_API_KEY
   //    is missing; we record that outcome distinctly.
+  //
+  //    RFC 8058 List-Unsubscribe headers — when we have a tokenized URL,
+  //    we advertise one-click unsubscribe. Gmail Postmaster checks for
+  //    these on bulk senders; their absence on marketing mail demotes
+  //    inbox placement.
+  const headers: Record<string, string> = {};
+  const unsubKeyForHeaders = UNSUB_KEY[options.template.id];
+  if (
+    unsubKeyForHeaders &&
+    options.recipientUserId &&
+    process.env.EMAIL_UNSUBSCRIBE_SECRET
+  ) {
+    try {
+      const unsubscribeUrl = buildUnsubscribeUrl(
+        options.recipientUserId,
+        unsubKeyForHeaders
+      );
+      headers["List-Unsubscribe"] = `<${unsubscribeUrl}>`;
+      headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+    } catch {
+      // Skip the header if signing fails — never block the send.
+    }
+  }
+
   const result = await sendEmail({
     to: recipient,
     subject,
     html,
     text,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
     tags: [{ name: "template", value: options.template.id }],
   });
 

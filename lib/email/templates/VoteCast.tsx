@@ -18,6 +18,13 @@ export interface VoteCastEmailProps {
   activityLabel: string;
   /** Pre-built absolute URL to the trip edit page. */
   tripUrl: string;
+  /**
+   * Optional pre-built HMAC unsubscribe URL (key='collabVotes'). When
+   * the orchestrator supplies it, the footer "manage preferences" link
+   * is replaced with a one-click unsubscribe so the recipient can opt
+   * out of vote notifications without leaving the email.
+   */
+  unsubscribeUrl?: string;
 }
 
 const VOTE_PHRASE: Record<VoteCastEmailProps["voteType"], string> = {
@@ -43,13 +50,14 @@ export default function VoteCastEmail({
   voteType,
   activityLabel,
   tripUrl,
+  unsubscribeUrl,
 }: VoteCastEmailProps) {
   const preview = `${voterName} ${VOTE_PHRASE[voteType]} ${activityLabel}`;
 
   return (
     <EmailLayout
       preview={preview}
-      unsubscribeUrl={`${APP_URL}/profile/notifications`}
+      unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
     >
       <Heading as="h1" style={h1}>
         {VOTE_EMOJI[voteType]} New activity feedback

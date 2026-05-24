@@ -73,6 +73,13 @@ export default function ShareAndInviteModal({
   const [isLoadingCollaborators, setIsLoadingCollaborators] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Email-invite state. Empty recipient = legacy shareable-link path.
+  // Filled = single-recipient invite via the new /api/trips/[id]/invites
+  // recipientEmail parameter (see app/api/trips/[id]/invites/route.ts).
+  const [emailRecipient, setEmailRecipient] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailOutcome, setEmailOutcome] = useState<string | null>(null);
+
   // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -193,17 +200,57 @@ export default function ShareAndInviteModal({
   // Generate invite link
   const handleGenerateInvite = async () => {
     setIsGeneratingInvite(true);
+    setEmailOutcome(null);
+
+    // Build the request body. When emailRecipient is set, the server-side
+    // path forces single-use, sends an email (or skip-logs it if Resend
+    // isn't configured), and returns emailOutcome on the response. Empty
+    // recipient = legacy shareable-link behavior.
+    const trimmedEmail = emailRecipient.trim();
+    const trimmedMessage = emailMessage.trim();
+    const body: Record<string, unknown> = { role: selectedRole };
+    if (trimmedEmail) body.recipientEmail = trimmedEmail;
+    if (trimmedMessage) body.message = trimmedMessage;
+
     try {
       const response = await fetch(`/api/trips/${tripId}/invites`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole }),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
         const data = await response.json();
         setInviteUrl(data.invite.inviteUrl);
-        addToast(ts("toast.inviteCreated"), "success");
+        if (data.emailOutcome) {
+          setEmailOutcome(data.emailOutcome);
+          if (data.emailOutcome === "sent") {
+            addToast(`Invite emailed to ${trimmedEmail}`, "success");
+          } else if (data.emailOutcome === "skipped_no_key") {
+            addToast(
+              "Invite link ready — email delivery not yet enabled. Share manually.",
+              "info"
+            );
+          } else if (data.emailOutcome === "skipped_suppressed") {
+            addToast(
+              "Invite link ready — that address previously bounced, share manually.",
+              "warning"
+            );
+          } else if (data.emailOutcome === "failed") {
+            addToast(
+              "Invite created but email delivery failed. Share the link manually.",
+              "warning"
+            );
+          } else {
+            addToast(ts("toast.inviteCreated"), "success");
+          }
+        } else {
+          addToast(ts("toast.inviteCreated"), "success");
+        }
+        // Reset the email fields after a successful send so the user
+        // can either invite someone else or use the link they got back.
+        setEmailRecipient("");
+        setEmailMessage("");
       } else {
         const error = await response.json();
         console.error("Failed to generate invite:", error);
@@ -498,6 +545,60 @@ export default function ShareAndInviteModal({
                   disabled={isGeneratingInvite}
                 />
 
+                {/* Optional email invite fields — leave blank for a
+                    shareable-link invite (legacy behavior). Filling
+                    these turns it into a single-recipient email send
+                    via the /api/trips/[id]/invites recipientEmail param. */}
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="invite-email"
+                      className="block text-sm font-medium text-slate-700 mb-1.5"
+                    >
+                      Send to (optional)
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        id="invite-email"
+                        type="email"
+                        autoComplete="off"
+                        placeholder="friend@example.com"
+                        value={emailRecipient}
+                        onChange={(e) => setEmailRecipient(e.target.value)}
+                        disabled={isGeneratingInvite}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Leave blank for a shareable link.
+                    </p>
+                  </div>
+                  {emailRecipient.trim() && (
+                    <div>
+                      <label
+                        htmlFor="invite-message"
+                        className="block text-sm font-medium text-slate-700 mb-1.5"
+                      >
+                        Personal note (optional)
+                      </label>
+                      <textarea
+                        id="invite-message"
+                        rows={3}
+                        maxLength={500}
+                        placeholder="Hey! Want to help me plan this?"
+                        value={emailMessage}
+                        onChange={(e) => setEmailMessage(e.target.value)}
+                        disabled={isGeneratingInvite}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors resize-none"
+                      />
+                      <p className="text-xs text-slate-400 mt-1 text-right">
+                        {emailMessage.length}/500
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Generate Invite */}
                 {!inviteUrl ? (
                   <button
@@ -513,6 +614,11 @@ export default function ShareAndInviteModal({
                         </svg>
                         {ts("invite.generating")}
                       </>
+                    ) : emailRecipient.trim() ? (
+                      <>
+                        <Mail className="w-5 h-5" />
+                        Send invite email
+                      </>
                     ) : (
                       <>
                         <Users className="w-5 h-5" />
@@ -522,9 +628,30 @@ export default function ShareAndInviteModal({
                   </button>
                 ) : (
                   <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                    <p className="text-sm font-medium text-green-800 mb-3">
+                    <p className="text-sm font-medium text-green-800 mb-1">
                       {ts("invite.inviteCreated")}
                     </p>
+                    {emailOutcome === "sent" && (
+                      <p className="text-xs text-green-700 mb-3">
+                        ✓ Email delivered. They'll get a notification.
+                      </p>
+                    )}
+                    {emailOutcome === "skipped_no_key" && (
+                      <p className="text-xs text-amber-700 mb-3">
+                        Email delivery isn't enabled yet — share this link manually for now.
+                      </p>
+                    )}
+                    {emailOutcome === "skipped_suppressed" && (
+                      <p className="text-xs text-orange-700 mb-3">
+                        That address previously bounced — share the link manually.
+                      </p>
+                    )}
+                    {emailOutcome === "failed" && (
+                      <p className="text-xs text-red-700 mb-3">
+                        Email delivery failed — share the link manually.
+                      </p>
+                    )}
+                    {!emailOutcome && <div className="mb-3" />}
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
