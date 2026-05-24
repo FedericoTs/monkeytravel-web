@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { shareLink, copyToClipboard, isNative } from "@/lib/native/share";
 
 interface ShareRowProps {
   url: string;
@@ -19,7 +20,10 @@ export default function ShareRow({ url, title }: ShareRowProps) {
   const [canNativeShare, setCanNativeShare] = useState(false);
 
   useEffect(() => {
-    if (typeof navigator !== "undefined" && "share" in navigator) {
+    // Show the native-share button if EITHER the Web Share API is
+    // available OR we're inside the Capacitor shell (which always has
+    // a native share sheet via @capacitor/share).
+    if (typeof navigator !== "undefined" && ("share" in navigator || isNative())) {
       setCanNativeShare(true);
     }
   }, []);
@@ -28,21 +32,17 @@ export default function ShareRow({ url, title }: ShareRowProps) {
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
 
   async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(url);
+    const ok = await copyToClipboard(url);
+    if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore — graceful degradation
     }
   }
 
   async function nativeShare() {
-    try {
-      await navigator.share({ title, url });
-    } catch {
-      // user cancelled or unsupported
-    }
+    // shareLink handles native, Web Share API, and clipboard fallback
+    // in priority order. We don't care which branch fires.
+    await shareLink({ title, url });
   }
 
   return (

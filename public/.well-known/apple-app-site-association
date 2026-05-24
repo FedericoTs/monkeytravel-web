@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TEAMID.app.monkeytravel"],
+        "components": [
+          { "/": "/trips/*", "comment": "Open trip pages in the app" },
+          { "/": "/shared/*", "comment": "Open shared trip pages in the app" },
+          { "/": "/invites/*", "comment": "Open invite redemption in the app" },
+          { "/": "/auth/callback*", "comment": "OAuth callback returns to the app" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.app.monkeytravel"]
+  }
+}

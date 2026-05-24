@@ -132,6 +132,30 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Apple Universal Links — Apple's CDN is strict: the file MUST be
+      // served with Content-Type: application/json (NOT application/pkcs7-mime
+      // and NOT application/octet-stream, which is what Next.js defaults to
+      // for files without extensions). Without this header, the swcd
+      // verification daemon silently drops the association and deep
+      // links fall back to opening Safari.
+      {
+        source: '/.well-known/apple-app-site-association',
+        headers: [
+          { key: 'Content-Type', value: 'application/json' },
+          // Cache aggressively — the file rarely changes; Apple's CDN
+          // refreshes on its own schedule anyway.
+          { key: 'Cache-Control', value: 'public, max-age=3600' },
+        ],
+      },
+      // Android App Links — Google Play Services fetches this. JSON
+      // content-type is recommended; without it Chrome warns in DevTools.
+      {
+        source: '/.well-known/assetlinks.json',
+        headers: [
+          { key: 'Content-Type', value: 'application/json' },
+          { key: 'Cache-Control', value: 'public, max-age=3600' },
+        ],
+      },
     ];
   },
 

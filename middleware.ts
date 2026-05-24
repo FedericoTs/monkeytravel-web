@@ -14,6 +14,13 @@ const intlMiddleware = createIntlMiddleware(routing);
 //
 // Sourced from https://platform.openai.com/docs/bots and the public
 // Common Crawl / Anthropic / Perplexity user-agent strings (2026-05).
+// LOAD-BEARING ALLOWLIST: the Capacitor mobile shell ships with the UA
+// suffix "MonkeyTravelApp/1.0" (see capacitor.config.ts → ios/android
+// appendUserAgent). No pattern below matches it. If you add a new pattern
+// later, sanity-check against `Mozilla/5.0 (iPhone; ...) ... MonkeyTravelApp/1.0`
+// and `Mozilla/5.0 (Linux; Android ...) ... MonkeyTravelApp/1.0` — a
+// regression here = the mobile app gets 403 on every request.
+// E2E coverage: tests/e2e/mobile-webview.spec.ts
 const BLOCKED_BOT_PATTERNS = [
   /GPTBot/i,
   /ChatGPT-User/i,
@@ -99,10 +106,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // Skip i18n for API routes, static files, and special paths
+  // .well-known/* serves Universal Links / Android App Links manifests —
+  // Apple + Google fetch these unauthenticated and DO NOT follow locale
+  // redirects, so they MUST bypass i18n entirely.
   const shouldSkipIntl =
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/.well-known/") ||
     pathname.includes(".") ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth/signout");
