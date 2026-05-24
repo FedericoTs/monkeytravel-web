@@ -313,12 +313,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Get destination cover image and info
+// Get destination cover image and info.
+// **2026-05-24 P0 (live-test):** This GET previously required authentication,
+// but DestinationHero on /trips/new calls it for the result-view hero
+// image. Anonymous users (the entire pre-save funnel) hit 401 → cover
+// never loads → user sees a flat pink gradient on the most important
+// "wow" moment of the conversion. Cost-protection is already provided by:
+//   (a) 30-day server-side cache (most destinations hit cache → $0)
+//   (b) checkApiAccess() circuit breaker (kill switch for cost runaway)
+//   (c) usage limit gate for authenticated users (kept below)
+// We DO NOT add a per-IP rate-limiter here yet; if abuse shows up in
+// logs, layer it on. POST (used for generic searches) stays auth-gated.
 export async function GET(request: NextRequest) {
-  // Require authentication to prevent anonymous abuse
-  const { errorResponse: authError } = await getAuthenticatedUser();
-  if (authError) return authError;
-
   const startTime = Date.now();
   const { searchParams } = new URL(request.url);
   const destination = searchParams.get("destination");
@@ -328,7 +334,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Check authentication (optional - for usage tracking)
+    // Read auth state if present (for usage tracking + per-user rate-limit).
+    // Missing user is now an expected, non-error condition.
     const supabaseAuth = await createClient();
     const { data: { user } } = await supabaseAuth.auth.getUser();
 
@@ -363,8 +370,12 @@ export async function GET(request: NextRequest) {
       return errors.internal("Google Places API key not configured", "Places Destination");
     }
 
-    // Check cache first
-    const cacheKey = generateCacheKey(destination, "destination");
+    // Check cache first.
+    // **Cache version bump 2026-05-24:** the previous cache contained
+    // `/media?key=...` URLs that 504 in the browser. The "_v2" suffix
+    // produces a different MD5 → old broken entries are bypassed; they
+    // expire naturally after 30 days.
+    const cacheKey = generateCacheKey(destination, "destination_v2");
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
@@ -413,18 +424,49 @@ export async function GET(request: NextRequest) {
       return errors.notFound("Destination not found");
     }
 
-    // Get cover image (first photo, high resolution)
-    const coverPhoto = place.photos?.[0];
-    const coverImageUrl = coverPhoto
-      ? `https://places.googleapis.com/v1/${coverPhoto.name}/media?maxHeightPx=1200&maxWidthPx=1920&key=${GOOGLE_PLACES_API_KEY}`
-      : null;
+    // Resolve photo URLs server-side.
+    // **2026-05-24 live-test fix:** Returning the raw `/media?key=...`
+    // URL caused the browser to receive HTTP 504 on direct loads — the
+    // Places "New API" media endpoint is not designed for direct browser
+    // embed. Calling it server-side with `skipHttpRedirect=true` + the
+    // `X-Goog-Api-Key` header yields a JSON payload with a `photoUri`
+    // pointing to `lh3.googleusercontent.com`, which IS browser-friendly
+    // and doesn't expose our API key. We resolve every photo here so the
+    // cached entry stores already-browser-safe URLs.
+    const resolvePhotoUri = async (
+      photoName: string,
+      maxWidth: number,
+      maxHeight: number
+    ): Promise<string | null> => {
+      try {
+        const r = await fetch(
+          `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=${maxHeight}&maxWidthPx=${maxWidth}&skipHttpRedirect=true`,
+          { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY } }
+        );
+        if (!r.ok) return null;
+        const j = await r.json();
+        return typeof j.photoUri === "string" ? j.photoUri : null;
+      } catch {
+        return null;
+      }
+    };
 
-    // Get gallery photos (next 4 photos)
-    const galleryPhotos =
-      place.photos?.slice(1, 5).map((photo: PlacePhoto) => ({
-        url: `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=600&maxWidthPx=800&key=${GOOGLE_PLACES_API_KEY}`,
-        thumbnailUrl: `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=150&maxWidthPx=200&key=${GOOGLE_PLACES_API_KEY}`,
-      })) || [];
+    // Get cover image (first photo, high resolution) + gallery (next 4),
+    // resolved in parallel for speed.
+    const coverPhoto = place.photos?.[0];
+    const galleryPhotosSrc = (place.photos?.slice(1, 5) || []) as PlacePhoto[];
+    const [coverImageUrl, ...resolvedGallery] = await Promise.all([
+      coverPhoto ? resolvePhotoUri(coverPhoto.name, 1920, 1200) : Promise.resolve(null),
+      ...galleryPhotosSrc.flatMap((p) => [
+        resolvePhotoUri(p.name, 800, 600),
+        resolvePhotoUri(p.name, 200, 150),
+      ]),
+    ]);
+
+    const galleryPhotos = galleryPhotosSrc.map((_, i) => ({
+      url: resolvedGallery[i * 2] || "",
+      thumbnailUrl: resolvedGallery[i * 2 + 1] || "",
+    })).filter((p) => p.url);
 
     const result = {
       placeId: place.id,
