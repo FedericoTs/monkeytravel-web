@@ -38,15 +38,30 @@ export default function BookingDrawer({
   const [recentOrigins, setRecentOrigins] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  // Load recent origins from localStorage
+  // Load recent origins from localStorage.
+  // Bug-bounty 2026-05-24 P2: a corrupted/migrated value like
+  // `{"foo":1}` previously got setState'd as `recentOrigins`, then
+  // `recentOrigins.filter(...)` further down crashed because filter
+  // doesn't exist on plain objects. Validate shape (array of strings)
+  // before storing.
   useEffect(() => {
     if (typeof window !== "undefined") {
       const recent = localStorage.getItem(RECENT_ORIGINS_KEY);
       if (recent) {
         try {
-          setRecentOrigins(JSON.parse(recent));
+          const parsed = JSON.parse(recent);
+          if (
+            Array.isArray(parsed) &&
+            parsed.every((v) => typeof v === "string")
+          ) {
+            setRecentOrigins(parsed);
+          } else {
+            // Bad shape — clear so we don't keep tripping over it.
+            localStorage.removeItem(RECENT_ORIGINS_KEY);
+          }
         } catch {
-          // Ignore parse errors
+          // Bad JSON — clear + ignore.
+          localStorage.removeItem(RECENT_ORIGINS_KEY);
         }
       }
     }

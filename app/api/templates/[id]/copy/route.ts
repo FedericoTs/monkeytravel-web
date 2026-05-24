@@ -98,14 +98,22 @@ export async function POST(
       return errors.internal("Failed to create trip from template", "Template Copy");
     }
 
-    // Increment the template's copy count (fire and forget)
+    // Increment the template's copy count atomically via RPC.
+    // Bug-bounty 2026-05-24 P1: previously read-modify-write — two
+    // simultaneous "Use this template" clicks dropped one increment.
+    // Migration 20260524_atomic_counters.sql defines the RPC.
     void (async () => {
       try {
-        await supabase
-          .from("trips")
-          .update({ template_copy_count: (template.template_copy_count || 0) + 1 })
-          .eq("id", templateId);
-        console.log(`[Template Copy] Incremented copy count for template ${templateId}`);
+        const { error: rpcError } = await supabase.rpc(
+          "increment_template_copy_count",
+          { template_id: templateId }
+        );
+        if (rpcError) {
+          console.error(
+            "[Template Copy] increment RPC failed:",
+            rpcError.message
+          );
+        }
       } catch (err) {
         console.error("[Template Copy] Failed to increment copy count:", err);
       }

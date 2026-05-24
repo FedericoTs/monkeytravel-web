@@ -102,11 +102,23 @@ export async function POST(request: Request) {
       }
     }
 
-    // Increment code usage
-    await supabase
-      .from("tester_codes")
-      .update({ current_uses: testerCode.current_uses + 1 })
-      .eq("id", testerCode.id);
+    // Increment code usage atomically.
+    // Bug-bounty 2026-05-24 P1: previous read-modify-write let two
+    // concurrent redemptions both pass the "uses < max" check and both
+    // bump +1, silently exceeding max_uses. The RPC moves the limit
+    // check into the UPDATE WHERE clause so it's enforced atomically.
+    // Migration: 20260524_atomic_counters.sql.
+    const { error: consumeErr } = await supabase.rpc("consume_tester_code", {
+      code_id: testerCode.id,
+    });
+    if (consumeErr) {
+      console.error(
+        "[admin/grant-access] consume_tester_code RPC error:",
+        consumeErr.message
+      );
+      // The grant above already succeeded — this is just usage tracking.
+      // Log and continue; admin operator can manually adjust if needed.
+    }
 
     return apiSuccess({
       success: true,

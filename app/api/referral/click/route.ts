@@ -59,23 +59,23 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
 
-    // Update click count.
-    // Bug-bounty 2026-05-24 P1: `x || 0 + 1` evaluates as `x || (0+1)`
-    // due to operator precedence — `||` binds AFTER `+`. So the
-    // previous code always wrote `x || 1` and NEVER actually
-    // incremented (resulting in clicks frozen at 1). Use nullish
-    // coalescing and explicit parentheses.
-    const currentClicks = (referralCode as { total_clicks?: number }).total_clicks ?? 0;
-    await supabase
-      .from("referral_codes")
-      .update({ total_clicks: currentClicks + 1 })
-      .eq("id", referralCode.id);
-
-    // Actually increment properly using RPC (if available)
-    try {
-      await supabase.rpc("increment_referral_clicks", { code_id: referralCode.id });
-    } catch {
-      // Fallback: RPC doesn't exist, the direct update above handles it
+    // Atomic increment via RPC (added in migration
+    // 20260524_atomic_counters.sql). Replaces the previous
+    // read-modify-write pattern that:
+    //  (a) was racy under concurrent clicks, dropping increments
+    //  (b) had a `x || 0 + 1` precedence bug that froze the count
+    //      at 1 indefinitely
+    // The RPC's UPDATE is single-statement-atomic and runs as
+    // SECURITY DEFINER so it bypasses RLS for the counter bump
+    // without needing the service-role key here.
+    const { error: rpcError } = await supabase.rpc(
+      "increment_referral_clicks",
+      { code_id: referralCode.id }
+    );
+    if (rpcError) {
+      // Log but don't fail the user-facing response — click tracking
+      // is best-effort; the referrer page should still render.
+      console.warn("[referral/click] RPC failed:", rpcError.message);
     }
 
     return apiSuccess({

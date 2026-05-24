@@ -69,14 +69,24 @@ function ActivityCard({
   // Create stable key from activity properties (not id, since we want to fetch for same place)
   const activityKey = `${activity.name}|${activity.address || activity.location}|${activity.type}`;
 
-  // Detect mobile viewport
+  // Detect mobile viewport.
+  // Bug-bounty 2026-05-24 P2: previously `useState(false)` then this
+  // effect flipped it after mount. On real mobile devices that produced
+  // a one-frame "desktop layout, then snap to mobile" flash visible
+  // around hydration. matchMedia is sync at mount — read it eagerly
+  // in the effect and use the matchMedia change event to keep up.
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mql = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    if (mql.addEventListener) {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    // Legacy Safari fallback
+    mql.addListener(onChange);
+    return () => mql.removeListener(onChange);
   }, []);
 
   // Types that typically have price information in Google Places

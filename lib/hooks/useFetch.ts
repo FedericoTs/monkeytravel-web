@@ -109,6 +109,11 @@ export function useFetch<T>(
   // Track if component is mounted to prevent state updates after unmount
   const isMounted = useRef(true);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bug-bounty 2026-05-24 P1: previously no AbortController, so rapid
+  // dep changes (e.g. search input typing) fired overlapping requests
+  // and whichever finished last won — not whichever fired last. Track
+  // the in-flight controller in a ref and abort on each new fetch.
+  const inFlightController = useRef<AbortController | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -118,17 +123,29 @@ export function useFetch<T>(
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
+      if (inFlightController.current) {
+        inFlightController.current.abort();
+        inFlightController.current = null;
+      }
     };
   }, []);
 
   const fetchData = useCallback(async () => {
     if (!url) return;
 
+    // Abort any prior in-flight request so the latest fetch's result is
+    // the one that lands in state.
+    if (inFlightController.current) {
+      inFlightController.current.abort();
+    }
+    const controller = new AbortController();
+    inFlightController.current = controller;
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(url, fetchOptions);
+      const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -138,19 +155,28 @@ export function useFetch<T>(
       const rawData = await response.json();
       const processedData = transform ? transform(rawData) : (rawData as T);
 
-      if (isMounted.current) {
+      if (isMounted.current && !controller.signal.aborted) {
         setData(processedData);
         onSuccess?.(processedData);
       }
     } catch (err) {
-      if (isMounted.current) {
+      // AbortError is expected when a newer fetch supersedes this one —
+      // not a real failure, don't surface to the caller.
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      if (isMounted.current && !isAbort && !controller.signal.aborted) {
         const errorMessage = err instanceof Error ? err.message : "An error occurred";
         setError(errorMessage);
         onError?.(err instanceof Error ? err : new Error(errorMessage));
       }
     } finally {
-      if (isMounted.current) {
+      if (isMounted.current && !controller.signal.aborted) {
         setIsLoading(false);
+      }
+      // Clear the ref if it's still pointing at our (now-finished)
+      // controller; if a newer request has already swapped it out,
+      // don't clobber that.
+      if (inFlightController.current === controller) {
+        inFlightController.current = null;
       }
     }
   }, [url, fetchOptions, transform, onSuccess, onError]);
