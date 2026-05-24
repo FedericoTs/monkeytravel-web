@@ -15,7 +15,7 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
-import { buildSeasonalContext } from "@/lib/seasonal";
+import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
 
 // Post-generation + modal UI is gated by user action / state — split it
@@ -286,6 +286,18 @@ export default function NewTripPage() {
       }
     },
     [STEP_NAMES]
+  );
+
+  // Memoized VibeSelector handler so the child's React.memo can actually
+  // short-circuit. Caught in LIVE_AUDIT B5 — without this the new
+  // function identity on every parent render bust memoization and made
+  // step 2 expensive to re-render.
+  const handleVibesChange = useCallback(
+    (v: TripVibe[]) => {
+      trackFieldInteraction("vibe");
+      setSelectedVibes(v);
+    },
+    [trackFieldInteraction]
   );
 
   // Abandonment listener: fire trip_wizard_abandoned exactly once when the
@@ -1715,14 +1727,24 @@ export default function NewTripPage() {
                           changed,
                         });
                       }}
+                      // Per LIVE_AUDIT F4: previous selected-state used
+                      // bg-[var(--primary)]/5 which was barely visible.
+                      // Bumped to /10 fill + primary-colored text for
+                      // clearer "this is picked" affordance.
                       className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         isSelected
-                          ? "border-[var(--primary)] bg-[var(--primary)]/5 text-slate-900"
+                          ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
                           : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                       aria-pressed={isSelected}
                     >
-                      <span className="text-lg" aria-hidden>
+                      {/* Per LIVE_AUDIT F5: icon now adopts the selected
+                          color (brand pink) or slate (unselected) — was
+                          dark navy in both states (off-brand). */}
+                      <span
+                        className={`text-lg ${isSelected ? "" : "opacity-70"}`}
+                        aria-hidden
+                      >
                         {opt.emoji}
                       </span>
                       <span>{opt.label}</span>
@@ -1732,8 +1754,11 @@ export default function NewTripPage() {
               </div>
               {tripIntent === "group" && (
                 <p className="text-xs text-slate-500 mt-2">
+                  {/* Per LIVE_AUDIT P1: "coming soon" was misleading —
+                      invite-after-generation already works today. Honest
+                      framing of what happens next. */}
                   You&rsquo;ll be able to invite friends to vote after we
-                  generate the trip. Group-first planning is coming soon.
+                  generate the trip.
                 </p>
               )}
             </div>
@@ -1876,13 +1901,13 @@ export default function NewTripPage() {
               </p>
             </div>
 
-            {/* Vibes — required */}
+            {/* Vibes — required.
+                onVibesChange uses the memoized handleVibesChange from
+                above so the VibeSelector's React.memo can short-circuit
+                on parent re-renders. */}
             <VibeSelector
               selectedVibes={selectedVibes}
-              onVibesChange={(v) => {
-                trackFieldInteraction("vibe");
-                setSelectedVibes(v);
-              }}
+              onVibesChange={handleVibesChange}
               maxVibes={3}
             />
 
@@ -1995,6 +2020,53 @@ export default function NewTripPage() {
                   step_number: step,
                   step_name: STEP_NAMES[step - 1],
                 });
+                // Per LIVE_AUDIT F2: pre-apply seasonal vibe suggestions
+                // when advancing into step 2. Previously the suggestions
+                // were shown on step 1 ("SUGGESTED VIBES: Adventure")
+                // but the user had to manually pick them on step 2 —
+                // an obvious lost flow. Only seeds if the user hasn't
+                // already picked vibes (don't clobber their choices)
+                // AND only when there's no Saved draft to restore.
+                if (
+                  step === 1 &&
+                  seasonalContext &&
+                  selectedVibes.length === 0 &&
+                  startDate
+                ) {
+                  try {
+                    const month = new Date(startDate).getMonth() + 1; // 1-12
+                    const suggestions = getSeasonalVibeSuggestions(
+                      seasonalContext.season,
+                      seasonalContext.holidays || [],
+                      month
+                    );
+                    // Take the top 2 suggestions so the user lands in
+                    // the "good defaults" state but still has room to
+                    // add a 3rd of their own. Filter to the 6 canonical
+                    // TripVibe values — the helper sometimes returns
+                    // niche vibes like "fairytale" that the wizard's
+                    // VibeSelector doesn't show.
+                    const CANONICAL: TripVibe[] = [
+                      "adventure",
+                      "cultural",
+                      "foodie",
+                      "romantic",
+                      "nature",
+                      "urban",
+                    ];
+                    const validVibes = suggestions
+                      .map((s) => s.vibeId as TripVibe)
+                      .filter((v): v is TripVibe => CANONICAL.includes(v))
+                      .slice(0, 2);
+                    if (validVibes.length > 0) {
+                      setSelectedVibes(validVibes);
+                    }
+                  } catch (err) {
+                    // Non-fatal: if the helper throws, step 2 just
+                    // starts empty (existing behaviour).
+                    console.warn("[wizard] seasonal vibe seed failed:", err);
+                  }
+                }
                 setStep(step + 1);
               }}
               disabled={!canProceed()}

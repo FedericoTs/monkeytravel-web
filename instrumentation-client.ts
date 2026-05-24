@@ -136,6 +136,20 @@ function initMonitoring() {
         }
         return event;
       },
+
+      // Drop breadcrumbs from browser extensions. Per LIVE_AUDIT P5,
+      // extensions (e.g. TensorFlow-based content classifiers) spam
+      // hundreds of console messages and XHRs that show up in Sentry
+      // breadcrumb history attached to OUR errors — noise that makes
+      // real bugs harder to diagnose. Filter URL-bearing breadcrumbs
+      // whose URL is an extension protocol.
+      beforeBreadcrumb(breadcrumb) {
+        const url = (breadcrumb.data as { url?: string } | undefined)?.url;
+        if (url && /^(chrome|moz|safari|webkit-masked-url)-extension:\/\//.test(url)) {
+          return null;
+        }
+        return breadcrumb;
+      },
     });
 
     // Wire up router transition tracking

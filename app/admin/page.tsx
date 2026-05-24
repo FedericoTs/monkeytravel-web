@@ -4,7 +4,9 @@ import { isAdmin, getAdminName } from "@/lib/admin";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export const metadata = {
-  title: "Admin Dashboard | MonkeyTravel",
+  // Root layout's title.template appends " | MonkeyTravel" — don't add
+  // the suffix here or the rendered <title> doubles it.
+  title: "Admin Dashboard",
   description: "Platform analytics and performance metrics",
 };
 

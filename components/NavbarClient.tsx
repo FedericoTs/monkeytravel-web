@@ -36,7 +36,15 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Per LIVE_AUDIT F1: starting `loading=true` rendered the empty
+  // placeholder pills for ~1s on first paint — they looked broken to
+  // every fresh visitor. Default-to-logged-out instead: render the
+  // Sign In / Get Started CTAs immediately, then swap to the logged-in
+  // state if auth resolves to a user. The ~75% of visitors who ARE
+  // logged out see the right thing instantly; the ~25% who are logged
+  // in briefly see "Sign In" before the swap — much less wrong than
+  // empty pills.
+  const [loading, setLoading] = useState(false);
   const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   useEffect(() => {

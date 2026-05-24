@@ -24,6 +24,10 @@ export default function SharedTripNotFound() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
+        {/* Icon matches the invite-error layout (same warning triangle
+            with exclamation) for visual parity per LIVE_AUDIT P2 —
+            same conceptual failure mode (a public link that no longer
+            resolves) should have the same iconography. */}
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
           <svg
             className="w-8 h-8 text-red-500"

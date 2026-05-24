@@ -19,7 +19,8 @@ interface PageProps {
 }
 
 export const metadata = {
-  title: "Authorize Access - MonkeyTravel",
+  // Strip brand suffix — root layout's title.template adds it.
+  title: "Authorize Access",
   description: "Authorize an application to access your MonkeyTravel account",
 };
 

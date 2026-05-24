@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import NotificationPreferencesClient from "./NotificationPreferencesClient";
 
 export const metadata = {
-  title: "Notification Preferences | MonkeyTravel",
+  // Strip brand suffix — root layout's title.template adds it.
+  title: "Notification Preferences",
   description: "Manage which emails and in-app notifications you receive.",
   robots: { index: false, follow: false },
 };

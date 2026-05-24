@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback, useMemo } from "react";
 import { TripVibe, VibeOption } from "@/types";
 import { useTranslations } from "next-intl";
 
@@ -29,38 +30,50 @@ interface VibeSelectorProps {
   maxVibes?: number;
 }
 
-export default function VibeSelector({
+function VibeSelectorInner({
   selectedVibes,
   onVibesChange,
   maxVibes = 3,
 }: VibeSelectorProps) {
   const t = useTranslations("common.vibes");
 
-  // Build vibes array with translated labels/descriptions
-  const vibes: VibeOption[] = VIBE_CONFIGS.map((config) => ({
-    id: config.id,
-    label: t(`types.${config.id}.label`),
-    emoji: config.emoji,
-    color: config.color,
-    description: t(`types.${config.id}.description`),
-    details: Array.from({ length: config.detailCount }, (_, i) =>
-      t(`types.${config.id}.details.${i}`)
-    ),
-    category: config.category,
-  }));
+  // Memoize the translated vibes array. Before: rebuilt on every render
+  // — every parent state change (incl. ones unrelated to vibes) iterated
+  // all 6 configs × 5 t() calls. With ~50 re-renders in a typical
+  // wizard interaction that's 1,500 dictionary lookups just to display
+  // cards that don't change. Hypothesized contributor to LIVE_AUDIT B5
+  // step-2 renderer freeze.
+  const vibes: VibeOption[] = useMemo(
+    () =>
+      VIBE_CONFIGS.map((config) => ({
+        id: config.id,
+        label: t(`types.${config.id}.label`),
+        emoji: config.emoji,
+        color: config.color,
+        description: t(`types.${config.id}.description`),
+        details: Array.from({ length: config.detailCount }, (_, i) =>
+          t(`types.${config.id}.details.${i}`)
+        ),
+        category: config.category,
+      })),
+    [t]
+  );
 
-  const toggleVibe = (vibeId: TripVibe) => {
-    const currentIndex = selectedVibes.indexOf(vibeId);
+  const toggleVibe = useCallback(
+    (vibeId: TripVibe) => {
+      const currentIndex = selectedVibes.indexOf(vibeId);
 
-    if (currentIndex !== -1) {
-      // Remove vibe
-      const newVibes = selectedVibes.filter((v) => v !== vibeId);
-      onVibesChange(newVibes);
-    } else if (selectedVibes.length < maxVibes) {
-      // Add vibe
-      onVibesChange([...selectedVibes, vibeId]);
-    }
-  };
+      if (currentIndex !== -1) {
+        // Remove vibe
+        const newVibes = selectedVibes.filter((v) => v !== vibeId);
+        onVibesChange(newVibes);
+      } else if (selectedVibes.length < maxVibes) {
+        // Add vibe
+        onVibesChange([...selectedVibes, vibeId]);
+      }
+    },
+    [selectedVibes, onVibesChange, maxVibes]
+  );
 
   const getSelectionOrder = (vibeId: TripVibe): number | null => {
     const index = selectedVibes.indexOf(vibeId);
@@ -268,6 +281,13 @@ function VibeCard({
     </button>
   );
 }
+
+// Wrap in React.memo so parent re-renders (driven by other wizard state
+// changes) don't repaint the 6 vibe cards. Hypothesized contributor to
+// the step-2 freeze in LIVE_AUDIT B5.
+const VibeSelector = memo(VibeSelectorInner);
+VibeSelector.displayName = "VibeSelector";
+export default VibeSelector;
 
 // Export the VIBE_CONFIGS array for use in other components
 export { VIBE_CONFIGS };

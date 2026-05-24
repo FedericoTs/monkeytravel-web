@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const enUrl = `${SITE_URL}/about/authors/${slug}`;
 
   return {
-    title: `${author.name} — ${author.title} | MonkeyTravel`,
+    title: `${author.name} — ${author.title}`,
     description: author.shortBio,
     alternates: {
       canonical: enUrl,

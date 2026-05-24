@@ -22,7 +22,8 @@ export async function generateMetadata({ params }: TemplatePageProps) {
   }
 
   return {
-    title: `${template.template_destination} Trip | MonkeyTravel`,
+    // Strip brand suffix — root layout's title.template adds it.
+    title: `${template.template_destination} Trip`,
     description: template.template_short_description || `Explore our curated ${template.template_destination} itinerary`,
   };
 }

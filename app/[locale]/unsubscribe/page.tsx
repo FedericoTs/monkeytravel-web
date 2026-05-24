@@ -2,7 +2,8 @@ import { verifyUnsubscribeToken, type UnsubKey } from "@/lib/email/unsubscribe";
 import { Link } from "@/lib/i18n/routing";
 
 export const metadata = {
-  title: "Unsubscribe | MonkeyTravel",
+  // Strip brand suffix — root layout's title.template adds it.
+  title: "Unsubscribe",
   description: "Manage your email notification preferences.",
   robots: { index: false, follow: false },
 };

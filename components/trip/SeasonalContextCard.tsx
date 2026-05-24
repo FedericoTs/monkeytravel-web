@@ -124,8 +124,18 @@ export default function SeasonalContextCard({
   }
 
   const formatDateRange = () => {
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : null;
+    // Parse YYYY-MM-DD as a LOCAL date (not UTC).
+    // `new Date("2026-06-15")` parses as UTC midnight — in negative-offset
+    // timezones (e.g. US Pacific) toLocaleDateString then shows the
+    // previous day. Caught live in LIVE_AUDIT F3 — user picked Jun 15-20,
+    // card showed Jun 14-19. Splitting the ISO string + using the
+    // multi-arg Date constructor avoids the UTC interpretation.
+    const parseLocal = (iso: string): Date => {
+      const [y, m, d] = iso.split("-").map((n) => parseInt(n, 10));
+      return new Date(y, m - 1, d);
+    };
+    const start = parseLocal(startDate);
+    const end = endDate ? parseLocal(endDate) : null;
     const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
 
     if (end) {

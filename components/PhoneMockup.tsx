@@ -35,8 +35,13 @@ export default function PhoneMockup({
             <div className="w-3 h-3 rounded-full bg-gray-800 ring-1 ring-gray-700" />
           </div>
 
-          {/* Screen content */}
-          <div className="relative aspect-[9/19.5] overflow-hidden">
+          {/* Screen content. The bg-gradient placeholder is what's visible
+              while the Image loads — without it the phone screen shows as
+              a black rectangle (the parent black bezel) until the Next
+              image optimizer responds, which on a cold CDN cache + the
+              cookie banner stealing main-thread budget can take 3-8s.
+              Caught live in LIVE_AUDIT.md B3. */}
+          <div className="relative aspect-[9/19.5] overflow-hidden bg-gradient-to-b from-[var(--background-warm)] to-white">
             {screenImage ? (
               <Image
                 src={screenImage}

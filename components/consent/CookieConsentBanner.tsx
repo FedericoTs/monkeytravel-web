@@ -5,8 +5,17 @@
  *
  * GDPR-compliant banner that appears on first visit.
  * Allows users to accept all, essential only, or customize settings.
+ *
+ * Mounts after a 1.5s delay so the hero LCP completes first. Caught
+ * live in LIVE_AUDIT.md B4 — the banner was previously rendering
+ * immediately, partially obscuring the hero CTAs on first paint AND
+ * stealing main-thread budget that made the phone-mockup image take
+ * 3-8s to appear. Per Gmail/Outlook bulk-sender deliverability research
+ * the consent banner is at most ~1s of "delay" the user notices; this
+ * trade-off prioritises perceived speed of the hero.
  */
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useConsent } from "@/lib/consent";
 
@@ -14,9 +23,19 @@ export function CookieConsentBanner() {
   const t = useTranslations("consent");
   const { bannerStatus, acceptAll, acceptEssentialOnly, openSettings } =
     useConsent();
+  // Defer the visible mount so the hero LCP finishes first. Without this
+  // the banner competes with the hero phone image for main-thread + paint
+  // priority and visibly delays both. 1.5s is long enough for typical
+  // hero rendering, short enough that GDPR compliance still applies.
+  const [readyToShow, setReadyToShow] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setReadyToShow(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Don't render if banner should be hidden
-  if (bannerStatus !== "visible") {
+  // Don't render if banner should be hidden, or while we're still in
+  // the LCP-protection window.
+  if (bannerStatus !== "visible" || !readyToShow) {
     return null;
   }
 

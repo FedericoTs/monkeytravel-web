@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Fraunces, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -18,6 +17,9 @@ const SessionTracker = dynamic(
 // Self-gates inside the Capacitor shell and on /trips/* paths — safe to
 // always mount, costs ~0 on marketing pages.
 const NativeBoot = dynamic(() => import("@/components/NativeBoot"));
+// AffiliateScript: interaction-gated loader for the Travelpayouts script
+// (was contributing to scroll-renderer-hang per LIVE_AUDIT F7).
+const AffiliateScript = dynamic(() => import("@/components/AffiliateScript"));
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
@@ -191,11 +193,11 @@ export default async function RootLayout({
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
-        {/* Travelpayouts Affiliate Network - deferred to after page load */}
-        <Script
-          src="https://emrldco.com/NDgzOTk3.js?t=483997"
-          strategy="lazyOnload"
-        />
+        {/* Travelpayouts Affiliate Network — interaction-gated loader.
+            Was contributing to the deep-scroll renderer hang in
+            LIVE_AUDIT F7 because long pages never go truly idle and
+            lazyOnload would fire mid-scroll. */}
+        <AffiliateScript />
       </body>
     </html>
   );

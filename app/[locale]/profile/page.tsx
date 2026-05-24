@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import ProfileClient from "./ProfileClient";
 
 export const metadata = {
-  title: "Profile | MonkeyTravel",
+  // Strip brand suffix — root layout's title.template adds it.
+  title: "Profile",
   description: "Manage your MonkeyTravel profile, preferences, and settings",
 };
 
