@@ -1,0 +1,81 @@
+import { NextRequest } from "next/server";
+
+/**
+ * GET /api/places/photo?name=places/<placeId>/photos/<photoToken>&w=600&h=400
+ *
+ * Server-side image proxy for Google Places "New API" photos.
+ *
+ * **Why this exists** — 2026-05-24 live-test:
+ * Google's Places photo endpoints (`places.googleapis.com/v1/.../media`
+ * and even the resolved `lh3.googleusercontent.com/place-photos/...`)
+ * return HTTP 504 to direct browser loads. Verified via the
+ * browser network panel: every photo request from anonymous result
+ * pages 504'd, so every activity card and the destination hero showed
+ * a broken image silently.
+ *
+ * This route resolves the photo server-side (where Google's endpoint
+ * works fine), streams the resulting JPEG bytes back to the browser
+ * with aggressive Cache-Control, and never exposes the API key.
+ *
+ * **Why a proxy and not a redirect** — we tried `skipHttpRedirect=true`
+ * to get an `lh3.googleusercontent.com` URL and embed that directly.
+ * Even those returned 504 to the browser. Proxying is the only path
+ * that reliably renders.
+ *
+ * **Why per-photo and not per-trip** — Vercel function memory caps make
+ * bundling many images per request risky. The 1-year `Cache-Control`
+ * header makes each photo a one-time fetch per CDN region.
+ */
+
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
+
+// Validate the photo name shape so we can't be used as an open proxy.
+// Google emits names like: `places/ChIJ.../photos/Ab43m-...` with
+// alphanumerics + a small set of separators.
+const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const name = searchParams.get("name");
+  const wRaw = parseInt(searchParams.get("w") || "600", 10);
+  const hRaw = parseInt(searchParams.get("h") || "400", 10);
+
+  if (!name || !NAME_RE.test(name)) {
+    return new Response("Invalid name", { status: 400 });
+  }
+  if (!GOOGLE_PLACES_API_KEY) {
+    return new Response("Photo service not configured", { status: 503 });
+  }
+
+  // Clamp dimensions to reasonable bounds.
+  const w = Math.min(Math.max(Number.isFinite(wRaw) ? wRaw : 600, 16), 4096);
+  const h = Math.min(Math.max(Number.isFinite(hRaw) ? hRaw : 400, 16), 4096);
+
+  const upstream = `https://places.googleapis.com/v1/${name}/media?maxHeightPx=${h}&maxWidthPx=${w}`;
+  let res: Response;
+  try {
+    res = await fetch(upstream, {
+      headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY },
+      // Server-side fetches follow the 302 redirect to the actual image.
+      redirect: "follow",
+    });
+  } catch {
+    return new Response("Upstream fetch failed", { status: 502 });
+  }
+
+  if (!res.ok || !res.body) {
+    return new Response(`Upstream ${res.status}`, { status: res.status });
+  }
+
+  // Stream the bytes through. Photos don't change once issued, so cache
+  // hard at the edge (Vercel) and in the browser. `s-maxage` covers the
+  // Vercel CDN; `max-age` covers the browser; `immutable` is a hint to
+  // clients that the resource will never change at this URL.
+  return new Response(res.body, {
+    status: 200,
+    headers: {
+      "Content-Type": res.headers.get("content-type") || "image/jpeg",
+      "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
+    },
+  });
+}

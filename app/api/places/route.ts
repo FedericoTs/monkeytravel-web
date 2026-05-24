@@ -371,11 +371,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Check cache first.
-    // **Cache version bump 2026-05-24:** the previous cache contained
-    // `/media?key=...` URLs that 504 in the browser. The "_v2" suffix
-    // produces a different MD5 → old broken entries are bypassed; they
-    // expire naturally after 30 days.
-    const cacheKey = generateCacheKey(destination, "destination_v2");
+    // **Cache version bumps 2026-05-24:**
+    //   v1 → v2: dropped because the legacy `/media?key=...` URLs 504'd
+    //            in the browser.
+    //   v2 → v3: dropped because the resolved `lh3.googleusercontent.com`
+    //            URLs ALSO 504'd. v3 entries store internal proxy URLs
+    //            (`/api/places/photo?name=...`) which always render.
+    // Old entries expire naturally after 30 days.
+    const cacheKey = generateCacheKey(destination, "destination_v3");
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
@@ -424,49 +427,25 @@ export async function GET(request: NextRequest) {
       return errors.notFound("Destination not found");
     }
 
-    // Resolve photo URLs server-side.
-    // **2026-05-24 live-test fix:** Returning the raw `/media?key=...`
-    // URL caused the browser to receive HTTP 504 on direct loads — the
-    // Places "New API" media endpoint is not designed for direct browser
-    // embed. Calling it server-side with `skipHttpRedirect=true` + the
-    // `X-Goog-Api-Key` header yields a JSON payload with a `photoUri`
-    // pointing to `lh3.googleusercontent.com`, which IS browser-friendly
-    // and doesn't expose our API key. We resolve every photo here so the
-    // cached entry stores already-browser-safe URLs.
-    const resolvePhotoUri = async (
-      photoName: string,
-      maxWidth: number,
-      maxHeight: number
-    ): Promise<string | null> => {
-      try {
-        const r = await fetch(
-          `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=${maxHeight}&maxWidthPx=${maxWidth}&skipHttpRedirect=true`,
-          { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY } }
-        );
-        if (!r.ok) return null;
-        const j = await r.json();
-        return typeof j.photoUri === "string" ? j.photoUri : null;
-      } catch {
-        return null;
-      }
-    };
+    // Return proxy URLs that stream the photo through our /api/places/photo
+    // route. **2026-05-24 live-test fix (revision 2):** Direct browser
+    // loads of both `places.googleapis.com/.../media` AND the resolved
+    // `lh3.googleusercontent.com/place-photos/...` URLs return HTTP 504.
+    // Proxying through our own server (which sets X-Goog-Api-Key and
+    // streams the bytes back) is the only path that reliably renders.
+    // Vercel CDN caches the proxy response for a year so cost = near-zero.
+    const proxyUrl = (photoName: string, w: number, h: number): string =>
+      `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
 
-    // Get cover image (first photo, high resolution) + gallery (next 4),
-    // resolved in parallel for speed.
     const coverPhoto = place.photos?.[0];
-    const galleryPhotosSrc = (place.photos?.slice(1, 5) || []) as PlacePhoto[];
-    const [coverImageUrl, ...resolvedGallery] = await Promise.all([
-      coverPhoto ? resolvePhotoUri(coverPhoto.name, 1920, 1200) : Promise.resolve(null),
-      ...galleryPhotosSrc.flatMap((p) => [
-        resolvePhotoUri(p.name, 800, 600),
-        resolvePhotoUri(p.name, 200, 150),
-      ]),
-    ]);
+    const coverImageUrl = coverPhoto ? proxyUrl(coverPhoto.name, 1920, 1200) : null;
 
-    const galleryPhotos = galleryPhotosSrc.map((_, i) => ({
-      url: resolvedGallery[i * 2] || "",
-      thumbnailUrl: resolvedGallery[i * 2 + 1] || "",
-    })).filter((p) => p.url);
+    const galleryPhotos = (place.photos?.slice(1, 5) || []).map(
+      (photo: PlacePhoto) => ({
+        url: proxyUrl(photo.name, 800, 600),
+        thumbnailUrl: proxyUrl(photo.name, 200, 150),
+      })
+    );
 
     const result = {
       placeId: place.id,

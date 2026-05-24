@@ -116,25 +116,11 @@ async function fetchFromGooglePlaces(query: string): Promise<string | null> {
       return null;
     }
 
-    // Resolve to a browser-friendly `lh3.googleusercontent.com` URL.
-    // See lib/images/activity.ts for the full rationale — the raw
-    // `/media?key=...` URL 504s in the browser because the Places "New
-    // API" media endpoint is server-side only.
-    try {
-      const resolveResponse = await fetch(
-        `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=400&maxWidthPx=600&skipHttpRedirect=true`,
-        { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY } }
-      );
-      if (resolveResponse.ok) {
-        const resolved = await resolveResponse.json();
-        if (typeof resolved.photoUri === "string" && resolved.photoUri) {
-          return resolved.photoUri;
-        }
-      }
-    } catch (resolveError) {
-      console.error("[Activity Images] Photo URI resolve error:", resolveError);
-    }
-    return null;
+    // Return our own proxy URL — see lib/images/activity.ts for full
+    // rationale. Direct browser loads of Google's Places photo URLs
+    // (both /media and lh3.googleusercontent) return 504, so we stream
+    // the image through /api/places/photo.
+    return `/api/places/photo?name=${encodeURIComponent(photo.name)}&w=600&h=400`;
   } catch (error) {
     console.error("[Activity Images] Google Places fetch error:", error);
     return null;

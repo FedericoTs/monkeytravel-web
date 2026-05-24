@@ -105,34 +105,18 @@ async function fetchFromGooglePlaces(query: string): Promise<string | null> {
       return null;
     }
 
-    // **2026-05-24 live-test fix:** Google Places "New API" `/media` URLs
-    // with a query-string key return **HTTP 504 to direct browser loads**.
-    // The endpoint is designed for server-side use — call it with the
-    // `X-Goog-Api-Key` HEADER and `skipHttpRedirect=true`, and Google
-    // returns JSON `{ photoUri: "https://lh3.googleusercontent.com/..." }`.
-    // That googleusercontent URL IS browser-friendly and cacheable.
-    // Effect: every activity card on the result page had a broken image
-    // (w=0/h=0) before this fix. Now the URL we hand to the client is the
-    // final CDN URL, no key leaked, and it loads.
-    try {
-      const resolveResponse = await fetch(
-        `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=400&maxWidthPx=600&skipHttpRedirect=true`,
-        {
-          headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY },
-        }
-      );
-      if (resolveResponse.ok) {
-        const resolved = await resolveResponse.json();
-        if (typeof resolved.photoUri === "string" && resolved.photoUri) {
-          return resolved.photoUri;
-        }
-      }
-    } catch {
-      // Fall through to the legacy URL (will likely 504 but lets the
-      // browser try; better than null since the UI falls back to a
-      // curated image when null comes back).
-    }
-    return null;
+    // **2026-05-24 live-test fix (revision 2):** Both the raw
+    // `places.googleapis.com/v1/.../media?key=...` URL AND the resolved
+    // `lh3.googleusercontent.com/place-photos/...` URL return HTTP 504
+    // to direct browser loads. (Verified via Chrome network panel —
+    // every request from monkeytravel.app got 504.) Google's Places
+    // photo endpoints are effectively server-side-only for us.
+    //
+    // We therefore return our own proxy URL pointing at
+    // `/api/places/photo?name=...`, which fetches and streams the JPEG
+    // server-side. The proxy hides the API key and lets Vercel's CDN
+    // cache the result for a year.
+    return `/api/places/photo?name=${encodeURIComponent(photo.name)}&w=600&h=400`;
   } catch {
     return null;
   }
