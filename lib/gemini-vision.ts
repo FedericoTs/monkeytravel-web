@@ -158,16 +158,76 @@ export async function extractTripContext(
       },
     });
   } else if (input.imageUrl) {
-    // Gemini supports HTTPS image URLs via fileData. For data: URLs we'd
-    // need to convert to base64 — caller's responsibility to use the
-    // imageBase64 path for those.
+    // **2026-05-24 live-test fix:** previously we passed `fileData.fileUri
+    // = imageUrl`, but Gemini's fileData only accepts files uploaded via
+    // the Gemini File API or gs:// URIs — NOT arbitrary HTTPS image URLs.
+    // Every Wikipedia/CDN image URL returned 503 silently. Now we fetch
+    // the bytes server-side and pass via inlineData.
+    //
+    // **SSRF guards** (basic — augment if abuse appears in logs):
+    //   - HTTPS only (no http:, no data:, no gopher:, etc.)
+    //   - Block obvious private/loopback hostnames (Vercel runtime
+    //     blocks most of these at network layer anyway)
+    //   - 10 MB size cap (Gemini Vision input limit, also memory cap)
+    //   - 8 s timeout (Vercel function will hard-cap us regardless)
     if (input.imageUrl.startsWith("data:")) {
       throw new Error("extract: pass data URLs via imageBase64, not imageUrl");
     }
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(input.imageUrl);
+    } catch {
+      throw new Error("imageUrl is not a valid URL");
+    }
+    if (parsedUrl.protocol !== "https:") {
+      throw new Error("imageUrl must use https://");
+    }
+    if (
+      /^(localhost|0\.0\.0\.0|127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|169\.254\.|::1$|fe80:)/i.test(
+        parsedUrl.hostname
+      )
+    ) {
+      throw new Error("imageUrl cannot point to a private network");
+    }
+    const ctrl = new AbortController();
+    const timeoutHandle = setTimeout(() => ctrl.abort(), 8000);
+    let fetchedBytes: ArrayBuffer;
+    let fetchedMime: string;
+    try {
+      const res = await fetch(input.imageUrl, {
+        signal: ctrl.signal,
+        redirect: "follow",
+        headers: {
+          // Some CDNs reject default Node fetch UA. Wikipedia/Pexels
+          // serve fine to anonymous browser-like requests.
+          "User-Agent": "Mozilla/5.0 (compatible; MonkeyTravelBot/1.0)",
+        },
+      });
+      if (!res.ok) {
+        throw new Error(`Image fetch returned HTTP ${res.status}`);
+      }
+      const contentLength = parseInt(res.headers.get("content-length") || "0", 10);
+      if (contentLength && contentLength > 10_000_000) {
+        throw new Error("Image too large (>10 MB)");
+      }
+      fetchedBytes = await res.arrayBuffer();
+      if (fetchedBytes.byteLength > 10_000_000) {
+        throw new Error("Image too large (>10 MB)");
+      }
+      fetchedMime =
+        (res.headers.get("content-type") || "").split(";")[0].trim() ||
+        input.imageMimeType ||
+        "image/jpeg";
+      if (!fetchedMime.startsWith("image/")) {
+        throw new Error(`URL did not return an image (got ${fetchedMime})`);
+      }
+    } finally {
+      clearTimeout(timeoutHandle);
+    }
     parts.push({
-      fileData: {
-        fileUri: input.imageUrl,
-        mimeType: input.imageMimeType || "image/jpeg",
+      inlineData: {
+        data: Buffer.from(fetchedBytes).toString("base64"),
+        mimeType: fetchedMime,
       },
     });
   }

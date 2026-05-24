@@ -4,6 +4,7 @@ import { logApiCall } from "@/lib/api-gateway";
 import { checkExtractRateLimit, recordExtract } from "@/lib/anonymous/rate-limit-extract";
 import { extractTripContext } from "@/lib/gemini-vision";
 import { createClient } from "@/lib/supabase/server";
+import { looksLikeUrlOnly, scrapeUrlText } from "@/lib/scrape/extract-text";
 
 /**
  * POST /api/ai/extract-trip-context
@@ -70,8 +71,35 @@ export async function POST(request: NextRequest) {
     const imageBase64 = typeof body.imageBase64 === "string" ? body.imageBase64 : undefined;
     const imageMimeType =
       typeof body.imageMimeType === "string" ? body.imageMimeType : undefined;
-    const websiteText = typeof body.websiteText === "string" ? body.websiteText : undefined;
+    let websiteText = typeof body.websiteText === "string" ? body.websiteText : undefined;
     const userContext = typeof body.userContext === "string" ? body.userContext : undefined;
+
+    // **2026-05-24 live-test fix:** if the websiteText is just a URL (no
+    // free-form text around it), scrape the page server-side and feed
+    // the visible body text to Gemini. Previously we passed the URL as
+    // literal text — Gemini could only guess from the slug, which worked
+    // for `wikipedia.org/wiki/Lisbon` but failed silently for opaque
+    // article URLs (NYTimes, Lonely Planet, etc.).
+    let scrapedFromUrl = false;
+    if (websiteText && looksLikeUrlOnly(websiteText)) {
+      try {
+        const scraped = await scrapeUrlText(websiteText.trim());
+        if (scraped && scraped.length > 50) {
+          websiteText = scraped;
+          scrapedFromUrl = true;
+        }
+        // If we got nothing useful (<50 chars), fall through with the
+        // original URL so Gemini can still guess from the slug.
+      } catch (scrapeErr) {
+        // Scrape failed (timeout, 404, blocked, non-HTML). Keep the
+        // original URL string as a fallback — Gemini might still infer
+        // the destination from the slug.
+        console.warn(
+          "[extract-trip-context] URL scrape failed, falling back to URL-as-text:",
+          scrapeErr instanceof Error ? scrapeErr.message : scrapeErr
+        );
+      }
+    }
 
     if (!imageUrl && !imageBase64 && !websiteText) {
       return errors.badRequest(
@@ -133,6 +161,7 @@ export async function POST(request: NextRequest) {
         vibes_count: context.vibes.length,
         had_image: Boolean(imageUrl || imageBase64),
         had_website_text: Boolean(websiteText),
+        scraped_from_url: scrapedFromUrl,
       },
     });
 

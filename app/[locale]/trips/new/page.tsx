@@ -1965,10 +1965,39 @@ export default function NewTripPage() {
               onExtracted={(fields, ctx) => {
                 if (fields.destination) {
                   setDestination(fields.destination);
-                  // Coordinates will be filled via the autocomplete or
-                  // server-side geocoding on submit — no need to block
-                  // here on a separate geocode call.
+                  // **2026-05-24 live-test fix:** previously this just
+                  // nulled `destinationCoords`, which meant the
+                  // SeasonalContextCard never updated its weather data
+                  // (it depends on coords). The user would see Kyoto's
+                  // weather on a Lisbon trip if they pivoted via Start
+                  // Anywhere. Now we kick off a Places lookup in the
+                  // background to populate coords → triggers the weather
+                  // refresh.
                   setDestinationCoords(null);
+                  (async () => {
+                    try {
+                      const r = await fetch(
+                        `/api/places?destination=${encodeURIComponent(fields.destination!)}`
+                      );
+                      if (!r.ok) return;
+                      const j = await r.json();
+                      const loc = j?.location;
+                      if (
+                        loc &&
+                        typeof loc.latitude === "number" &&
+                        typeof loc.longitude === "number"
+                      ) {
+                        setDestinationCoords({
+                          latitude: loc.latitude,
+                          longitude: loc.longitude,
+                        });
+                      }
+                    } catch {
+                      // Non-fatal — wizard still works without coords;
+                      // user just won't get the destination-specific
+                      // seasonal weather refresh.
+                    }
+                  })();
                   trackDestinationSelected({
                     destination: fields.destination,
                     // "manual" is the closest existing source label until the
