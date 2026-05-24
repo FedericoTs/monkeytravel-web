@@ -36,18 +36,21 @@ test.describe("Collab P0 fixes @prod", () => {
   }) => {
     await page.goto("/shared/00000000-0000-0000-0000-000000000000");
     // The new co-located not-found.tsx renders a friendly card with a
-    // CTA to plan a new trip. The previous global 404 didn't have these
-    // specific signals — they're the regression markers.
+    // specific heading + CTA. Asserting on these visible elements is
+    // enough — the heading text is the unique regression marker (the
+    // old global 404 monkey page used "Looks like you took a wrong
+    // turn" + "Back to Home", not these strings).
+    //
+    // We don't assert "wrong turn" is absent because body.textContent()
+    // also includes Next.js's serialized React Flight payload, which
+    // can reference other routes' bundled content even when they don't
+    // render. The visible-heading positive assertion is the safer test.
     await expect(
       page.getByRole("heading", { name: /shared trip isn.?t available/i })
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: /plan your own trip/i })
     ).toBeVisible();
-    // Make sure the generic "Page Not Found" monkey didn't render
-    // (would mean Next fell through to the global not-found).
-    const body = await page.locator("body").textContent();
-    expect(body).not.toMatch(/wrong turn/i);
   });
 });
 
