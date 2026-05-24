@@ -134,6 +134,12 @@ export default function NewTripPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
+  // Result-view UX state (parity with /trips/template/[id]).
+  // **2026-05-24 live-test:** the result view had no map toggle and no
+  // Cards/Timeline switcher. Added so users can hide the map (mobile
+  // screen real estate) and pick the view they prefer.
+  const [showMap, setShowMap] = useState(true);
+  const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
   // Streaming progress — set by the SSE consumer in handleGenerate. The
   // GenerationProgress component reads these to show real progress
   // ("Day 3 of 7") instead of fake-percentage phases.
@@ -1256,17 +1262,87 @@ export default function NewTripPage() {
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
-          {/* Interactive Map */}
+          {/* Interactive Map + View Controls */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">Trip Overview</h2>
-              <span className="text-sm text-slate-500">{generatedItinerary.destination.weather_note}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-semibold text-slate-900">Trip Overview</h2>
+                <span className="text-sm text-slate-500 line-clamp-2 sm:line-clamp-1">
+                  {generatedItinerary.destination.weather_note}
+                </span>
+              </div>
+
+              {/* View-mode + map toggles — added 2026-05-24 for parity with
+                  /trips/template/[id]. Cards is the dense rich view; Timeline
+                  is a vertical-rail compact view for skim-reading. */}
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setResultViewMode("cards")}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      resultViewMode === "cards"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Cards
+                  </button>
+                  <button
+                    onClick={() => setResultViewMode("timeline")}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      resultViewMode === "timeline"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Timeline
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowMap((v) => !v)}
+                  title={showMap ? "Hide Map" : "Show Map"}
+                  aria-pressed={showMap}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    showMap
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {showMap ? "Hide Map" : "Show Map"}
+                </button>
+              </div>
             </div>
-            <TripMap
-              days={generatedItinerary.days}
-              destination={fullDestination}
-              className="h-[350px]"
-            />
+
+            {showMap && (
+              <TripMap
+                days={generatedItinerary.days}
+                destination={fullDestination}
+                className="h-[350px]"
+                onActivityClick={(activity) => {
+                  // **2026-05-24 live-test fix:** map pin click → scroll
+                  // to the matching activity card. The InfoWindow "View
+                  // Details" button calls this; ActivityCard exposes a
+                  // stable `id` attribute we target here.
+                  const slug =
+                    activity.id
+                      ? `activity-${activity.id}`
+                      : `activity-${(activity.name || "unknown")
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .slice(0, 60)}`;
+                  const el = document.getElementById(slug);
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    el.classList.add("ring-2", "ring-[var(--primary)]");
+                    setTimeout(() => {
+                      el.classList.remove("ring-2", "ring-[var(--primary)]");
+                    }, 2000);
+                  }
+                }}
+              />
+            )}
           </div>
 
           {/* Summary Stats */}
@@ -1379,18 +1455,108 @@ export default function NewTripPage() {
                   )}
                 </div>
 
-                {/* Activities as Cards */}
-                <div className="grid gap-4">
-                  {day.activities.map((activity, idx) => (
-                    <ActivityCard
-                      key={idx}
-                      activity={activity}
-                      index={idx}
-                      currency={generatedItinerary.trip_summary.currency}
-                      showGallery={true}
-                    />
-                  ))}
-                </div>
+                {/* Activities — Cards or Timeline view */}
+                {resultViewMode === "cards" ? (
+                  <div className="grid gap-4">
+                    {day.activities.map((activity, idx) => (
+                      <ActivityCard
+                        key={idx}
+                        activity={activity}
+                        index={idx}
+                        currency={generatedItinerary.trip_summary.currency}
+                        showGallery={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  // Compact vertical-rail Timeline view (ported from
+                  // /trips/template/[id] for parity). Easier to skim than
+                  // full Cards — no images, just time/title/location.
+                  <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
+                    {day.activities.map((activity, idx) => {
+                      const activityDomId = activity.id
+                        ? `activity-${activity.id}`
+                        : `activity-${(activity.name || "unknown")
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .slice(0, 60)}`;
+                      return (
+                        <div
+                          key={activity.id || idx}
+                          id={activityDomId}
+                          className="relative scroll-mt-24"
+                        >
+                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+                          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                                  <span className="font-medium">
+                                    {activity.start_time}
+                                  </span>
+                                  {activity.duration_minutes && (
+                                    <>
+                                      <span>·</span>
+                                      <span>{activity.duration_minutes} min</span>
+                                    </>
+                                  )}
+                                </div>
+                                <h4 className="font-semibold text-slate-900">
+                                  {activity.name}
+                                </h4>
+                                {activity.description && (
+                                  <p className="text-sm text-slate-600 mt-1 line-clamp-2">
+                                    {activity.description}
+                                  </p>
+                                )}
+                                {(activity.address || activity.location) && (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                                    <svg
+                                      className="w-3.5 h-3.5 shrink-0"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                      />
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                      />
+                                    </svg>
+                                    <span className="truncate">
+                                      {activity.address || activity.location}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              {activity.estimated_cost && (
+                                <div className="text-right shrink-0">
+                                  <div className="font-medium text-slate-900 text-sm">
+                                    {convertCurrency(
+                                      activity.estimated_cost.amount,
+                                      activity.estimated_cost.currency ||
+                                        generatedItinerary.trip_summary.currency
+                                    ).formatted}
+                                  </div>
+                                  <span className="text-xs text-slate-500 capitalize">
+                                    {activity.type}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>

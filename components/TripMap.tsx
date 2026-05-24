@@ -94,10 +94,29 @@ export default function TripMap({
   days,
   destination,
   className = "",
-  selectedDay,
+  selectedDay: selectedDayProp,
   onActivityClick,
   disableApiCalls = false,
 }: TripMapProps) {
+  // Internal day-filter state — initialized from the prop but driven by
+  // the in-map Day chip clicks below. **2026-05-24 live-test fix:** the
+  // Day chip onClick previously only called fitBounds and never updated
+  // any filter state, so `filteredActivities` (which depends on
+  // selectedDay) was always the full set. UX-wise, the "Days" chip
+  // looked like a filter but did nothing to the pins. Now clicking a
+  // day toggles the filter (click same day again → clear), and we also
+  // fitBounds so the user sees the chosen day's pins zoomed in.
+  const [selectedDayInternal, setSelectedDayInternal] = useState<number | null>(
+    selectedDayProp ?? null
+  );
+  // Keep external prop in sync if the parent ever changes it.
+  useEffect(() => {
+    if (selectedDayProp !== undefined && selectedDayProp !== selectedDayInternal) {
+      setSelectedDayInternal(selectedDayProp);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDayProp]);
+  const selectedDay = selectedDayInternal;
   const t = useTranslations("common.map");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
@@ -318,31 +337,43 @@ export default function TripMap({
       <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:p-2 shadow-md max-w-[calc(100%-1.5rem)] sm:max-w-none">
         <div className="text-xs font-medium text-slate-700 mb-1.5 hidden sm:block">{t("days")}</div>
         <div className="flex flex-wrap gap-1 justify-center sm:justify-start">
-          {days.map((day) => (
-            <button
-              key={day.day_number}
-              onClick={() => {
-                const dayActivities = activities.filter(
-                  (a) => a.dayNumber === day.day_number && a.resolvedLocation
-                );
-                if (dayActivities.length > 0 && map) {
-                  const bounds = new google.maps.LatLngBounds();
-                  dayActivities.forEach((a) => {
-                    if (a.resolvedLocation) bounds.extend(a.resolvedLocation);
-                  });
-                  map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
-                }
-              }}
-              className={`w-6 h-6 sm:w-6 sm:h-6 rounded-full text-white text-[10px] sm:text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
-                selectedDay === day.day_number ? "ring-2 ring-offset-1 ring-slate-900" : ""
-              }`}
-              style={{
-                backgroundColor: DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length],
-              }}
-            >
-              {day.day_number}
-            </button>
-          ))}
+          {days.map((day) => {
+            const isActive = selectedDay === day.day_number;
+            return (
+              <button
+                key={day.day_number}
+                title={isActive ? `Show all days` : `Show only Day ${day.day_number}`}
+                onClick={() => {
+                  // Toggle: clicking the active day clears the filter,
+                  // clicking a different day switches to it.
+                  const nextSelected = isActive ? null : day.day_number;
+                  setSelectedDayInternal(nextSelected);
+                  // Always fitBounds — to that day's activities, or to
+                  // ALL activities when clearing.
+                  const target = nextSelected
+                    ? activities.filter(
+                        (a) => a.dayNumber === nextSelected && a.resolvedLocation
+                      )
+                    : activities.filter((a) => a.resolvedLocation);
+                  if (target.length > 0 && map) {
+                    const bounds = new google.maps.LatLngBounds();
+                    target.forEach((a) => {
+                      if (a.resolvedLocation) bounds.extend(a.resolvedLocation);
+                    });
+                    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+                  }
+                }}
+                className={`w-6 h-6 sm:w-6 sm:h-6 rounded-full text-white text-[10px] sm:text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
+                  isActive ? "ring-2 ring-offset-1 ring-slate-900" : ""
+                }`}
+                style={{
+                  backgroundColor: DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length],
+                }}
+              >
+                {day.day_number}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -170,9 +170,22 @@ function ActivityCard({
 
   const colors = getActivityTypeColors(activity.type);
 
+  // Stable DOM id for scroll targeting from map pin clicks.
+  // Falls back to a name-derived slug when the activity has no id yet
+  // (anonymous generation never persists an id until Save).
+  // **2026-05-24 live-test:** map pin clicks open the InfoWindow but
+  // the result page passes `onActivityClick` to scroll the page to the
+  // matching card. That handler needs to find the DOM node — this id
+  // is the address.
+  const activityDomId = activity.id
+    ? `activity-${activity.id}`
+    : `activity-${(activity.name || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 60)}`;
+
   return (
     <div
-      className={`bg-white rounded-xl border transition-all duration-300 ${
+      id={activityDomId}
+      data-activity-name={activity.name}
+      className={`bg-white rounded-xl border transition-all duration-300 scroll-mt-24 ${
         expanded ? "shadow-lg border-slate-300" : "shadow-sm border-slate-200 hover:shadow-md"
       }`}
     >
