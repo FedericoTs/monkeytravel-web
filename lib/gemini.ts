@@ -1789,11 +1789,15 @@ export async function* generateItineraryStream(
     throw err instanceof Error ? err : new Error(String(err));
   }
 
-  // Aggregate final response — for usage metadata. We still trust
-  // `fullText` for content (it's just the concatenation of deltas) since
-  // that's what we yielded incrementally and the client may have already
-  // parsed it.
+  // Aggregate final response. CRITICAL: the canonical text is
+  // finalResponse.text(), NOT the accumulated `fullText` from deltas.
+  // The async-iter `for await` can silently drop chunks under back-
+  // pressure (observed live: a 4-day Lisbon trip produced ~13KB of
+  // delta'd text but truncated mid-property at position 13018, while
+  // finalResponse.text() returned the complete 14KB JSON). Use the
+  // final aggregate as truth.
   const finalResponse = await result.response;
+  const canonicalText = finalResponse.text();
   const latencyMs = performance.now() - startTime;
   logCacheMetrics("generateItineraryStream", finalResponse.usageMetadata);
 
@@ -1816,7 +1820,7 @@ export async function* generateItineraryStream(
   yield {
     text: "",
     done: true,
-    fullText,
+    fullText: canonicalText,
     latencyMs,
     usageMetadata: finalResponse.usageMetadata as GeminiUsageMetadata,
   };
