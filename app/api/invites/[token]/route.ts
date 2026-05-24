@@ -197,6 +197,24 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return validation.errorResponse!;
     }
 
+    // SECURITY (bug-bounty 2026-05-24 P0): when the invite was sent
+    // to a specific email address (recipient_email set), enforce that
+    // ONLY that recipient can accept. Without this an email-scoped
+    // invite was acceptable by anyone with the token — defeating the
+    // point of single-recipient invites. Compare case-insensitively
+    // because email matching is case-insensitive per RFC 5321.
+    const inviteRecipient = (invite.recipient_email ?? null) as string | null;
+    if (inviteRecipient) {
+      const userEmail = (user.email ?? "").toLowerCase().trim();
+      const expected = inviteRecipient.toLowerCase().trim();
+      if (userEmail !== expected) {
+        return errors.forbidden(
+          "This invite was sent to a different email address. Sign in with that address to accept.",
+          "RECIPIENT_MISMATCH"
+        );
+      }
+    }
+
     // Check if user is the trip owner
     const { data: trip } = await supabaseAdmin
       .from("trips")

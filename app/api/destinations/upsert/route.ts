@@ -15,6 +15,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 interface UpsertRequest {
   name: string;
@@ -27,7 +28,19 @@ interface UpsertRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: UpsertRequest = await request.json();
+    // SECURITY (bug-bounty 2026-05-24 P0): previously unauthenticated —
+    // anyone could spam-insert rows into `destinations`, bloating the
+    // DB and polluting search. Require auth so abuse is at least
+    // rate-limited by signup friction.
+    const { errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
+
+    let body: UpsertRequest;
+    try {
+      body = (await request.json()) as UpsertRequest;
+    } catch {
+      return errors.badRequest("Body must be valid JSON");
+    }
     const { name, country, latitude, longitude, placeId, countryCode } = body;
 
     // Validate required fields

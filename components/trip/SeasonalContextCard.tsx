@@ -97,8 +97,17 @@ export default function SeasonalContextCard({
     );
     setSeasonalContext(context);
 
-    // Get vibe suggestions based on season and holidays
-    const month = new Date(startDate).getMonth() + 1;
+    // Get vibe suggestions based on season and holidays.
+    // Bug-bounty 2026-05-24 P1: getMonth() on `new Date("2026-12-31")`
+    // in negative-offset zones returns 10 (November) instead of 11
+    // (December) because the UTC midnight parse rolls back a day in
+    // local time. Parse YYYY-MM-DD as local instead.
+    const localStart = (() => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
+      if (!m) return new Date(startDate);
+      return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+    })();
+    const month = localStart.getMonth() + 1;
     const suggestions = getSeasonalVibeSuggestions(
       context.season,
       context.holidays,

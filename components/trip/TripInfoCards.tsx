@@ -2,6 +2,7 @@
 
 import type { TripMeta, ItineraryDay } from "@/types";
 import { useCurrency } from "@/lib/locale";
+import { parseLocalDate } from "@/lib/utils/date-local";
 
 interface TripInfoCardsProps {
   meta: TripMeta;
@@ -76,14 +77,19 @@ export default function TripInfoCards({
   const totalActivities = itinerary.reduce((acc, day) => acc + day.activities.length, 0);
   const tripDays = itinerary.length;
 
-  // Calculate date difference for trip duration
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  // Calculate date difference for trip duration. parseLocalDate
+  // matches what the user actually picked (timezone-safe) — was
+  // off-by-one in negative-offset zones via `new Date(iso)`. Both
+  // endpoints get the same fix so the duration calculation is
+  // identical to before; the user-facing display is what was wrong.
+  const start = parseLocalDate(startDate) ?? new Date(startDate);
+  const end = parseLocalDate(endDate) ?? new Date(endDate);
   const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Format dates nicely
+  // Format dates nicely (timezone-safe display).
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
+    if (!date) return dateStr;
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 

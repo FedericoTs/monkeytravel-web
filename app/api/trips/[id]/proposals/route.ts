@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type {
@@ -27,10 +27,23 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
+    // SECURITY: any authenticated caller previously could list proposals
+    // + voter PII for ANY trip just by knowing its UUID. Caught in the
+    // 2026-05-24 bug-bounty audit (P0). Owner or any collaborator
+    // (editor / voter / viewer) can read proposals — same scope as
+    // who can see the trip itself.
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
+
     // Parse query params for filtering
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status"); // pending, voting, approved, rejected, all
-    const dayFilter = searchParams.get("day"); // day number
+    const rawDay = searchParams.get("day"); // day number — VALIDATED below
+    const dayFilter = rawDay !== null && /^\d+$/.test(rawDay) ? rawDay : null;
     const timeSlotFilter = searchParams.get("timeSlot"); // morning, afternoon, evening
 
     // Build query

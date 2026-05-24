@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type {
@@ -25,6 +25,16 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     const { id: tripId, proposalId } = await context.params;
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+
+    // SECURITY (bug-bounty 2026-05-24 P0): any authenticated user
+    // could fetch any proposal — including voter PII — just by knowing
+    // tripId + proposalId. Require trip access first.
+    const { errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id
+    );
+    if (accessError) return accessError;
 
     // Fetch proposal
     const { data: proposal, error: proposalError } = await supabase

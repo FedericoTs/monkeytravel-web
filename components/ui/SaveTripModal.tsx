@@ -105,12 +105,20 @@ export default function SaveTripModal({
     };
   }, []);
 
-  // Calculate end date
+  // Calculate end date.
+  // Bug-bounty 2026-05-24 P1: parsing YYYY-MM-DD via `new Date()` gives
+  // UTC midnight; the subsequent .toLocaleDateString in this modal then
+  // displayed the wrong day in negative-offset zones. Build the date as
+  // local-midnight via the multi-arg constructor so the displayed day
+  // matches the user's pick.
   const endDate = startDate
     ? (() => {
-        const end = new Date(startDate);
-        end.setDate(end.getDate() + durationDays - 1);
-        return end;
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
+        const start = m
+          ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+          : new Date(startDate);
+        start.setDate(start.getDate() + durationDays - 1);
+        return start;
       })()
     : null;
 

@@ -197,6 +197,21 @@ export function useActivityVotes({
     }
   }, [enabled, tripId, fetchVotes]);
 
+  // Bug-bounty 2026-05-24 P1: `votes` was in the dep array, so the
+  // Realtime channel was torn down + recreated on every vote refresh
+  // — defeating the purpose of subscriptions AND racing with the
+  // subsequent vote that triggered it. Read the latest votes through
+  // a ref instead so the effect only re-mounts when tripId/enabled
+  // actually change.
+  const votesRef = useRef(votes);
+  useEffect(() => {
+    votesRef.current = votes;
+  }, [votes]);
+  const onVoteChangeRef = useRef(onVoteChange);
+  useEffect(() => {
+    onVoteChangeRef.current = onVoteChange;
+  }, [onVoteChange]);
+
   // Set up real-time subscription
   useEffect(() => {
     if (!enabled || !tripId) return;
@@ -224,11 +239,14 @@ export function useActivityVotes({
           // Refresh votes on any change
           fetchVotes();
 
-          // Notify callback if provided
-          if (onVoteChange && payload.new) {
+          // Notify callback if provided — read via ref so we always
+          // get the latest registered callback without forcing the
+          // subscription to re-mount.
+          const cb = onVoteChangeRef.current;
+          if (cb && payload.new) {
             const vote = payload.new as ActivityVote;
-            const activityVotes = votes[vote.activity_id] || [];
-            onVoteChange(vote.activity_id, activityVotes);
+            const activityVotes = votesRef.current[vote.activity_id] || [];
+            cb(vote.activity_id, activityVotes);
           }
         }
       )
@@ -259,7 +277,7 @@ export function useActivityVotes({
         channelRef.current = null;
       }
     };
-  }, [enabled, tripId, fetchVotes, onVoteChange, votes]);
+  }, [enabled, tripId, fetchVotes]);
 
   return {
     votes,

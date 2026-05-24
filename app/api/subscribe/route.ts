@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
       return errors.rateLimit("Too many subscription attempts. Please try again later.");
     }
 
-    const body = await request.json()
+    // Bug-bounty 2026-05-24 P1: unwrapped request.json() crashes on
+    // malformed body — should 400 not 500.
+    let body: { email?: string; source?: string };
+    try {
+      body = (await request.json()) as { email?: string; source?: string };
+    } catch {
+      return errors.badRequest('Body must be valid JSON');
+    }
     const { email, source = 'website' } = body
 
     // Validate email

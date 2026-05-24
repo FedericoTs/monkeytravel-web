@@ -16,8 +16,16 @@ export async function GET(request: NextRequest) {
     const durationMax = searchParams.get("duration_max");
     const budgetTier = searchParams.get("budget");
     const tags = searchParams.get("tags")?.split(",").filter(Boolean);
-    const page = parseInt(searchParams.get("page") || "1");
-    const perPage = Math.min(parseInt(searchParams.get("per_page") || "12"), 50);
+    // Bug-bounty 2026-05-24 P1: parseInt of arbitrary strings produces
+    // NaN which then flowed into query.range(NaN, NaN) — undefined
+    // Supabase behaviour. Clamp + default.
+    const rawPage = parseInt(searchParams.get("page") || "1", 10);
+    const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+    const rawPerPage = parseInt(searchParams.get("per_page") || "12", 10);
+    const perPage = Math.min(
+      Number.isFinite(rawPerPage) && rawPerPage > 0 ? rawPerPage : 12,
+      50
+    );
 
     const supabase = await createClient();
 
@@ -49,8 +57,13 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (destination) {
-      // Search in trip_meta.destination or title
-      query = query.or(`title.ilike.%${destination}%,trip_meta->destination.ilike.%${destination}%`);
+      // Bug-bounty 2026-05-24 P1: previously concatenated `destination`
+      // straight into the PostgREST .or() string. Commas, parens, quotes
+      // in the user-supplied value broke the filter or allowed abusing
+      // operators. Escape PostgREST-special characters (parens, commas,
+      // colons, periods that follow operators) before interpolation.
+      const escaped = destination.replace(/[(),:]/g, "\\$&");
+      query = query.or(`title.ilike.%${escaped}%,trip_meta->destination.ilike.%${escaped}%`);
     }
 
     if (durationMin) {

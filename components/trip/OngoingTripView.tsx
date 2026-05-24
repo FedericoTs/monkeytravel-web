@@ -16,6 +16,7 @@ import DaySummary from "./DaySummary";
 import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { parseLocalDate } from "@/lib/utils/date-local";
 
 // Dynamic import for TripMap
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -61,11 +62,18 @@ export default function OngoingTripView({
   // Ensure activity IDs
   const displayItinerary = useMemo(() => ensureActivityIds(itinerary), [itinerary]);
 
-  // Calculate current day based on trip dates
+  // Calculate current day based on trip dates.
+  // parseLocalDate (vs `new Date(iso)` which the previous version used)
+  // matters here: in negative-offset timezones the old code parsed
+  // "2026-06-15" as UTC midnight = local 4 PM June 14, then
+  // setHours(0,0,0,0) shifted it to LOCAL midnight on June 14 — so a
+  // user IN their actual Day 1 would have currentDayNumber = 2 and the
+  // "today" highlight would land on tomorrow's activities. parseLocalDate
+  // gives us local midnight of the picked date, which is correct.
   const currentDayNumber = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const start = new Date(startDate);
+    const start = parseLocalDate(startDate) ?? new Date(startDate);
     start.setHours(0, 0, 0, 0);
 
     const diffTime = today.getTime() - start.getTime();

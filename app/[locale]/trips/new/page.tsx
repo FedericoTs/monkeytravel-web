@@ -804,8 +804,13 @@ export default function NewTripPage() {
       // already has image_url populated on each activity.
       setGeneratedItinerary(data.itinerary || null);
 
-      // Track successful itinerary generation
-      const generationTime = Date.now() - performance.now();
+      // Track successful itinerary generation.
+      // Bug-bounty 2026-05-24 P1: previously `Date.now() - performance.now()`
+      // which is Unix-epoch minus page-life-ms — a giant nonsense
+      // number (~1.7 trillion). All historical generation_time_ms
+      // analytics through GA4 + PostHog have been wrong since launch.
+      // Use the actual start time of THIS generation request.
+      const generationTime = Date.now() - generationStartTime;
       const durationDaysGenerated = Math.ceil(
         (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
       ) + 1;

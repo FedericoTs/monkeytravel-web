@@ -24,11 +24,19 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const body: ApplyChangeRequest = await request.json();
+    let body: ApplyChangeRequest;
+    try {
+      body = (await request.json()) as ApplyChangeRequest;
+    } catch {
+      return errors.badRequest("Body must be valid JSON");
+    }
     const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities } = body;
 
-    // Validate based on change type
-    if (!tripId || !changeType || !dayNumber) {
+    // Validate based on change type.
+    // Bug-bounty 2026-05-24 P1: `!dayNumber` rejected `dayNumber === 0`
+    // (falsy) — but 0 is a perfectly valid first day in trips that use
+    // 0-indexed day numbering. Check type explicitly instead.
+    if (!tripId || !changeType || typeof dayNumber !== "number") {
       return errors.badRequest("Missing required fields: tripId, changeType, dayNumber");
     }
 

@@ -59,10 +59,16 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
 
-    // Update click count
+    // Update click count.
+    // Bug-bounty 2026-05-24 P1: `x || 0 + 1` evaluates as `x || (0+1)`
+    // due to operator precedence — `||` binds AFTER `+`. So the
+    // previous code always wrote `x || 1` and NEVER actually
+    // incremented (resulting in clicks frozen at 1). Use nullish
+    // coalescing and explicit parentheses.
+    const currentClicks = (referralCode as { total_clicks?: number }).total_clicks ?? 0;
     await supabase
       .from("referral_codes")
-      .update({ total_clicks: (referralCode as { total_clicks?: number }).total_clicks || 0 + 1 })
+      .update({ total_clicks: currentClicks + 1 })
       .eq("id", referralCode.id);
 
     // Actually increment properly using RPC (if available)

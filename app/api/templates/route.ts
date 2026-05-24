@@ -30,15 +30,21 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const searchParams = request.nextUrl.searchParams;
 
-    // Parse query parameters
+    // Parse query parameters.
+    // Bug-bounty 2026-05-24 P1: unchecked parseInt produced NaN that
+    // flowed into Supabase filters. Validate + clamp.
     const moods = searchParams.get("mood")?.split(",").filter(Boolean) || [];
-    const duration = searchParams.get("duration")
-      ? parseInt(searchParams.get("duration")!)
-      : null;
+    const durationRaw = searchParams.get("duration");
+    const durationParsed = durationRaw ? parseInt(durationRaw, 10) : NaN;
+    const duration = Number.isFinite(durationParsed) ? durationParsed : null;
     const budget = searchParams.get("budget");
     const destination = searchParams.get("destination");
     const featured = searchParams.get("featured") === "true";
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const limitRaw = parseInt(searchParams.get("limit") || "20", 10);
+    const limit = Math.min(
+      Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 20,
+      100
+    );
 
     // Build query
     let query = supabase

@@ -200,18 +200,18 @@ export function useGamification({
         newAchievements.push("first_steps");
       }
 
-      // Early Bird (before 9am)
-      if (!isUnlocked("early_bird")) {
-        const hour = parseInt(activity.start_time.split(":")[0], 10);
-        if (hour < 9) {
+      // Early Bird (before 9am).
+      // Bug-bounty 2026-05-24 P1: `activity.start_time.split(":")` blows
+      // up on undefined / null / empty start_time (some AI-generated
+      // activities don't include one). Guard before split + after
+      // parseInt to avoid achievement-check crashing the whole timeline.
+      const hourPart = activity.start_time?.split?.(":")[0];
+      const hour = hourPart ? parseInt(hourPart, 10) : NaN;
+      if (Number.isFinite(hour)) {
+        if (!isUnlocked("early_bird") && hour < 9) {
           newAchievements.push("early_bird");
         }
-      }
-
-      // Night Owl (after 9pm)
-      if (!isUnlocked("night_owl")) {
-        const hour = parseInt(activity.start_time.split(":")[0], 10);
-        if (hour >= 21) {
+        if (!isUnlocked("night_owl") && hour >= 21) {
           newAchievements.push("night_owl");
         }
       }
