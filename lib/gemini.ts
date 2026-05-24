@@ -1680,3 +1680,161 @@ Rules:
     throw new Error("Failed to generate more days: AI service unavailable");
   }
 }
+
+// ============================================================================
+// STREAMING ITINERARY GENERATION (Phase 2F)
+// ============================================================================
+
+/**
+ * Yield type for `generateItineraryStream`. Each chunk carries the
+ * incremental text Gemini emitted since the last yield. The terminal
+ * yield is signalled by `done=true` and includes the fully-accumulated
+ * text plus usage metadata.
+ */
+export interface StreamChunk {
+  text: string; // incremental delta this chunk
+  done: false;
+}
+
+export interface StreamFinal {
+  text: ""; // empty delta — fullText is the canonical accumulation
+  done: true;
+  fullText: string;
+  latencyMs: number;
+  usageMetadata?: GeminiUsageMetadata;
+}
+
+export type StreamYield = StreamChunk | StreamFinal;
+
+/**
+ * Streaming counterpart to `generateItinerary`. Returns an async
+ * generator that yields each partial-response chunk from Gemini, then
+ * a terminal {done:true, fullText} payload.
+ *
+ * Caller responsibilities:
+ *   - Maintain a streaming parser (see lib/streaming/day-parser.ts) to
+ *     extract complete day objects from the running text
+ *   - On terminal yield, do a full JSON.parse(fullText) to get the
+ *     canonical GeneratedItinerary (use for cache writes, sanitization,
+ *     image fetching)
+ *   - Emit SSE events as days arrive (see lib/streaming/sse.ts)
+ *
+ * Differences from `generateItinerary`:
+ *   - No retry-on-parse-failure loop. Streaming + retry would require
+ *     replaying earlier chunks to the client, which we don't want. If
+ *     the final parse fails, caller emits an SSE error.
+ *   - No coordinate-fix pass — caller runs it on the parsed result.
+ *   - No deduplication wrapper — concurrent streams to the same dest
+ *     are rare (cache layer handles popular dests) and dedup would
+ *     require fan-out, which is complex.
+ *
+ * Throws on Gemini API errors before the first chunk. Errors during
+ * streaming surface as a rejected `next()` call — caller should
+ * try/catch the `for await` block.
+ */
+export async function* generateItineraryStream(
+  params: TripCreationParams,
+  options?: GenerationOptions & { userId?: string }
+): AsyncGenerator<StreamYield, void, unknown> {
+  const startTime = performance.now();
+  const modelName = MODELS.fast;
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: {
+      temperature: 1.0,
+      topP: 0.95,
+      topK: 40,
+      maxOutputTokens: 8192,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const systemPrompt = await getPrompt("trip_generation_system");
+  const chat = model.startChat({
+    history: [
+      { role: "user", parts: [{ text: systemPrompt }] },
+      {
+        role: "model",
+        parts: [
+          {
+            text: "Understood. I will generate travel itineraries following these rules, returning only valid JSON matching the specified schema.",
+          },
+        ],
+      },
+    ],
+  });
+
+  const userPrompt = buildUserPrompt(params, options);
+
+  // sendMessageStream returns { stream: AsyncIterable, response: Promise }
+  // The `stream` iterates partial responses; `response` resolves to the
+  // final aggregated response after the stream completes.
+  const result = await chat.sendMessageStream(userPrompt);
+
+  let fullText = "";
+  try {
+    for await (const partial of result.stream) {
+      // Each partial may yield zero text if it's a control message
+      // (e.g. safety scores updated). Defensive: only yield when
+      // there's actual text.
+      const delta = partial.text();
+      if (delta) {
+        fullText += delta;
+        yield { text: delta, done: false };
+      }
+    }
+  } catch (err) {
+    // Async-iter rejections are silently dropped by `for await` in some
+    // engines; explicit rethrow keeps the caller's try/catch effective.
+    throw err instanceof Error ? err : new Error(String(err));
+  }
+
+  // Aggregate final response — for usage metadata. We still trust
+  // `fullText` for content (it's just the concatenation of deltas) since
+  // that's what we yielded incrementally and the client may have already
+  // parsed it.
+  const finalResponse = await result.response;
+  const latencyMs = performance.now() - startTime;
+  logCacheMetrics("generateItineraryStream", finalResponse.usageMetadata);
+
+  // Fire-and-forget LLM analytics — same shape as generateItinerary.
+  captureLLMGeneration({
+    distinctId: options?.userId || "anonymous",
+    model: modelName,
+    endpoint: "generateItineraryStream",
+    usageMetadata: finalResponse.usageMetadata as GeminiUsageMetadata,
+    latencyMs,
+    success: true,
+    properties: {
+      destination: params.destination,
+      budget_tier: params.budgetTier,
+      pace: params.pace,
+      vibes: params.vibes,
+    },
+  }).catch(() => {});
+
+  yield {
+    text: "",
+    done: true,
+    fullText,
+    latencyMs,
+    usageMetadata: finalResponse.usageMetadata as GeminiUsageMetadata,
+  };
+}
+
+/**
+ * Validate the streamed itinerary JSON and apply the post-processing
+ * the non-streaming path does (coordinate fixing). Returns the cleaned
+ * GeneratedItinerary or throws on parse/validation failure.
+ */
+export function parseStreamedItinerary(
+  fullText: string,
+  params: TripCreationParams
+): GeneratedItinerary {
+  const itinerary = JSON.parse(fullText) as GeneratedItinerary;
+  if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
+    throw new Error("Invalid itinerary structure");
+  }
+  itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
+  return itinerary;
+}

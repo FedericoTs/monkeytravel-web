@@ -16,6 +16,7 @@ import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/Destin
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
 import { buildSeasonalContext } from "@/lib/seasonal";
+import { streamGeneration } from "@/lib/streaming/client";
 
 // Post-generation + modal UI is gated by user action / state — split it
 // out of the initial wizard chunk so the form paints faster (P10).
@@ -121,6 +122,11 @@ export default function NewTripPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
+  // Streaming progress — set by the SSE consumer in handleGenerate. The
+  // GenerationProgress component reads these to show real progress
+  // ("Day 3 of 7") instead of fake-percentage phases.
+  const [streamedDayCount, setStreamedDayCount] = useState(0);
+  const [streamedTotalDays, setStreamedTotalDays] = useState(0);
 
   // Auth state for gradual engagement
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -679,43 +685,93 @@ export default function NewTripPage() {
         requirements: requirements || undefined,
       };
 
-      const response = await fetch("/api/ai/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-      });
+      // Reset stream progress for this generation.
+      setStreamedDayCount(0);
+      setStreamedTotalDays(0);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Check for early access gate
-        if (data.code === "NO_ACCESS" || data.code === "LIMIT_REACHED") {
-          setPendingGeneration(true);
-          // Show inline prompt instead of modal for better UX
-          setShowInlineLimitPrompt(true);
-          setLimitReachedMessage(data.error || "You've reached your usage limit");
-
-          // Track limit reached event
-          trackLimitReached({
-            limitType: "generation",
-            currentUsage: data.usage?.used || 0,
-            limit: data.usage?.limit || 3,
-          });
-          trackUpgradePromptShown({
-            trigger: "limit_reached",
-            limitType: "generation",
-            location: "trip_creation",
-          });
-
-          setGenerating(false);
-          return;
-        }
-        throw new Error(data.error || "Generation failed");
+      // 1. Try the streaming endpoint first. If it fails before any data
+      //    (rate-limit, validation, network), we fall through to the
+      //    classic JSON endpoint for compatibility.
+      // Explicit annotations: TypeScript narrows let-with-null-initial to
+      // `never` when only assigned inside callbacks. The annotations keep
+      // the conditional checks below well-typed.
+      let streamedItinerary: GeneratedItinerary | null = null as GeneratedItinerary | null;
+      let streamError: { error: string; code?: string } | null = null as { error: string; code?: string } | null;
+      try {
+        await streamGeneration(
+          params,
+          {
+            onMetadata: (meta) => {
+              setStreamedTotalDays(meta.totalDays);
+            },
+            onDay: () => {
+              // Don't push the day into generatedItinerary mid-stream —
+              // wait for `complete` to set the canonical (sanitized,
+              // image-enriched) version. Just bump the counter so the
+              // GenerationProgress UI shows "Day N of M".
+              setStreamedDayCount((c) => c + 1);
+            },
+            onComplete: (data) => {
+              streamedItinerary = data.itinerary as GeneratedItinerary;
+            },
+            onError: (data) => {
+              streamError = data;
+            },
+          },
+          {}
+        );
+      } catch (err) {
+        // Stream failed before any events. Most common: 429 (rate limit)
+        // or 503 (Gemini disabled). We log and fall through to the JSON
+        // endpoint, which surfaces the same errors with full client UX.
+        console.warn("[generate] streaming endpoint failed, falling back to JSON:", err);
       }
 
-      // Images are now fetched server-side in the API route
-      // The itinerary already has image_url populated on each activity
-      setGeneratedItinerary(data.itinerary);
+      if (streamError) {
+        throw new Error(streamError.error || "Generation failed");
+      }
+
+      // 2. Fallback to the classic JSON endpoint if streaming didn't
+      //    deliver a final itinerary (either it threw above, or it
+      //    completed without a `complete` event — both unusual but
+      //    possible on flaky networks).
+      let data: { itinerary?: GeneratedItinerary; usage?: { used?: number; limit?: number }; code?: string; error?: string };
+      if (streamedItinerary) {
+        data = { itinerary: streamedItinerary };
+      } else {
+        const response = await fetch("/api/ai/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+        });
+        data = await response.json();
+
+        if (!response.ok) {
+          // Check for early access gate
+          if (data.code === "NO_ACCESS" || data.code === "LIMIT_REACHED") {
+            setPendingGeneration(true);
+            setShowInlineLimitPrompt(true);
+            setLimitReachedMessage(data.error || "You've reached your usage limit");
+            trackLimitReached({
+              limitType: "generation",
+              currentUsage: data.usage?.used || 0,
+              limit: data.usage?.limit || 3,
+            });
+            trackUpgradePromptShown({
+              trigger: "limit_reached",
+              limitType: "generation",
+              location: "trip_creation",
+            });
+            setGenerating(false);
+            return;
+          }
+          throw new Error(data.error || "Generation failed");
+        }
+      }
+
+      // Images are fetched server-side in both endpoints; the itinerary
+      // already has image_url populated on each activity.
+      setGeneratedItinerary(data.itinerary || null);
 
       // Track successful itinerary generation
       const generationTime = Date.now() - performance.now();
@@ -1455,6 +1511,8 @@ export default function NewTripPage() {
       <GenerationProgress
         destination={destination}
         isGenerating={generating}
+        streamedDayCount={streamedDayCount}
+        streamedTotalDays={streamedTotalDays}
       />
     );
   }

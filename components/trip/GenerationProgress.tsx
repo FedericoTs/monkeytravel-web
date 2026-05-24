@@ -7,6 +7,17 @@ interface GenerationProgressProps {
   destination: string;
   isGenerating: boolean;
   onComplete?: () => void;
+  /**
+   * When streaming, the number of itinerary days received so far.
+   * Falsy / zero means the fake-percentage phase UI takes over (e.g.
+   * for the JSON fallback path, where there's no per-day signal).
+   */
+  streamedDayCount?: number;
+  /**
+   * When streaming, the total days the model is generating. Used to
+   * show "Day N of M". Falsy means the badge stays hidden.
+   */
+  streamedTotalDays?: number;
 }
 
 // Generation phases with timing weights
@@ -214,6 +225,8 @@ function TravelingPlane({ progress }: { progress: number }) {
 export default function GenerationProgress({
   destination,
   isGenerating,
+  streamedDayCount = 0,
+  streamedTotalDays = 0,
 }: GenerationProgressProps) {
   const t = useTranslations("common.generation");
   const [progress, setProgress] = useState(0);
@@ -306,7 +319,7 @@ export default function GenerationProgress({
         {/* Main content card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 border border-white/50 p-8 sm:p-10">
           {/* Animated destination badge */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-full border border-[var(--primary)]/20">
               <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
               <span className="text-sm font-medium text-[var(--primary)]">
@@ -314,6 +327,21 @@ export default function GenerationProgress({
               </span>
             </div>
           </div>
+
+          {/* Streaming day-progress badge. Only shows when we have a real
+              day count from the SSE stream — keeps the existing fake-phase
+              UI for the JSON-fallback path. */}
+          {streamedTotalDays > 0 && (
+            <div className="flex justify-center mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-xs font-semibold text-emerald-700">
+                  Day {Math.min(streamedDayCount, streamedTotalDays)} of {streamedTotalDays}
+                </span>
+              </div>
+            </div>
+          )}
+          {streamedTotalDays === 0 && <div className="mb-5" />}
 
           {/* Phase indicator with icons */}
           <div className="flex justify-between items-center mb-8 px-2">
