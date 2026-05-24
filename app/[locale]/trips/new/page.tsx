@@ -1055,6 +1055,19 @@ export default function NewTripPage() {
           destination={fullDestination}
         />
 
+        {/* Auth Prompt Modal — anonymous user clicks Save Trip on the
+            generated itinerary.
+            **2026-05-24 P0**: Previously only rendered in the wizard-form
+            return block (line ~1574), so setShowAuthModal(true) from
+            handleSaveTrip set state on a modal that was never mounted.
+            Result: anonymous Save Trip click was a dead button — peak
+            conversion moment, completely broken. */}
+        <AuthPromptModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          destination={destination}
+        />
+
         {/* Hero with Cover Image */}
         <DestinationHero
           destination={fullDestination}

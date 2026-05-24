@@ -105,20 +105,25 @@ export default function SaveTripModal({
     };
   }, []);
 
-  // Calculate end date.
-  // Bug-bounty 2026-05-24 P1: parsing YYYY-MM-DD via `new Date()` gives
-  // UTC midnight; the subsequent .toLocaleDateString in this modal then
-  // displayed the wrong day in negative-offset zones. Build the date as
-  // local-midnight via the multi-arg constructor so the displayed day
-  // matches the user's pick.
-  const endDate = startDate
+  // Parse YYYY-MM-DD strings as LOCAL midnight (not UTC midnight) so
+  // toLocaleDateString below renders the day the user actually picked.
+  // Shared helper because both `startLocal` and `endDate` need it.
+  // Bug-bounty 2026-05-24 P1 (end), Live-test 2026-05-24 P1 (start):
+  // the same bug existed on the Start display line below — input
+  // "2026-07-07" was rendered as "Jul 6" in any negative-offset zone.
+  const parseLocal = (yyyymmdd: string): Date => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(yyyymmdd);
+    return m
+      ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+      : new Date(yyyymmdd);
+  };
+
+  const startLocal = startDate ? parseLocal(startDate) : null;
+  const endDate = startLocal
     ? (() => {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
-        const start = m
-          ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
-          : new Date(startDate);
-        start.setDate(start.getDate() + durationDays - 1);
-        return start;
+        const d = new Date(startLocal);
+        d.setDate(d.getDate() + durationDays - 1);
+        return d;
       })()
     : null;
 
@@ -301,13 +306,13 @@ export default function SaveTripModal({
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none text-lg"
               />
 
-              {startDate && endDate && (
+              {startDate && startLocal && endDate && (
                 <div className="mt-4 p-4 bg-slate-50 rounded-xl">
                   <div className="flex items-center justify-between text-sm">
                     <div>
                       <span className="text-slate-500">{t("start")}</span>
                       <p className="font-semibold text-slate-900">
-                        {formatDate(new Date(startDate))}
+                        {formatDate(startLocal)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 text-slate-400">
