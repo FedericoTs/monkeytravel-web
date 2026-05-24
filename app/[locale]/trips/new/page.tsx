@@ -53,8 +53,9 @@ import {
   captureTripWizardFieldInteracted,
   captureTripGenerationStarted,
   captureTripGenerationCompleted,
+  captureTripIntentSelected,
 } from "@/lib/posthog/events";
-import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
+import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { useFlag } from "@/lib/posthog";
 import { FLAG_AUTO_SAVE_V1 } from "@/lib/posthog/flags";
@@ -127,6 +128,20 @@ export default function NewTripPage() {
   // ("Day 3 of 7") instead of fake-percentage phases.
   const [streamedDayCount, setStreamedDayCount] = useState(0);
   const [streamedTotalDays, setStreamedTotalDays] = useState(0);
+
+  // Solo vs Group intent — pure measurement experiment added 2026-05-24
+  // (docs/COLLAB_AUDIT.md "Phase 1: validate the bet"). Does NOT change
+  // the wizard flow today. PostHog `trip_intent_selected` + the same
+  // value forwarded on `trip_generation_started` / `_completed` tells
+  // us:
+  //   1. How many users actually want collab vs solo (raw distribution)
+  //   2. Of group-intent users, what % go on to share/invite after save
+  //
+  // If <15% pick group, the homepage promise is over-claimed and we
+  // should refocus on solo polish. If >30% pick group AND >50% share,
+  // we have the signal to invest in the full group-first restructure.
+  // "unspecified" = user clicked Continue without touching the toggle.
+  const [tripIntent, setTripIntent] = useState<TripIntent>("unspecified");
 
   // Auth state for gradual engagement
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -667,6 +682,10 @@ export default function NewTripPage() {
         ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
         : 0,
       budget_tier: budgetTier,
+      // Forward the Phase-1 intent signal so PostHog funnels can filter
+      // "started generation" by intent (solo vs group) and downstream
+      // share/save rates.
+      trip_intent: tripIntent,
     });
 
     try {
@@ -802,6 +821,7 @@ export default function NewTripPage() {
         budget_tier: budgetTier,
         generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
         success: true,
+        trip_intent: tripIntent,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -814,6 +834,7 @@ export default function NewTripPage() {
         generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
         success: false,
         error_type: err instanceof Error ? err.message : "unknown",
+        trip_intent: tripIntent,
       });
     } finally {
       setGenerating(false);
@@ -1661,6 +1682,60 @@ export default function NewTripPage() {
               <p className="text-slate-600">
                 Pick a destination and your travel dates
               </p>
+            </div>
+
+            {/* Who's coming? — Phase-1 measurement toggle.
+                See docs/COLLAB_AUDIT.md "Phase 1: validate the bet".
+                NO functional change today — just captures whether the
+                user is planning solo or with friends so we can decide
+                whether to invest in a full group-first restructure. */}
+            <div>
+              <div className="text-sm font-medium text-slate-700 mb-2">
+                Who&rsquo;s coming?
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { value: "solo", label: "Just me", emoji: "👤" },
+                    { value: "group", label: "With friends", emoji: "👥" },
+                  ] as const
+                ).map((opt) => {
+                  const isSelected = tripIntent === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        const changed =
+                          tripIntent !== "unspecified" &&
+                          tripIntent !== opt.value;
+                        setTripIntent(opt.value);
+                        captureTripIntentSelected({
+                          intent: opt.value,
+                          changed,
+                        });
+                      }}
+                      className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                        isSelected
+                          ? "border-[var(--primary)] bg-[var(--primary)]/5 text-slate-900"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                      aria-pressed={isSelected}
+                    >
+                      <span className="text-lg" aria-hidden>
+                        {opt.emoji}
+                      </span>
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {tripIntent === "group" && (
+                <p className="text-xs text-slate-500 mt-2">
+                  You&rsquo;ll be able to invite friends to vote after we
+                  generate the trip. Group-first planning is coming soon.
+                </p>
+              )}
             </div>
 
             {/* "Start Anywhere" — Gemini-Vision-powered prefill from image/URL.

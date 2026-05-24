@@ -11,6 +11,13 @@ interface InviteAcceptClientProps {
     token: string;
     role: Exclude<CollaboratorRole, "owner">;
     expiresAt: string;
+    /**
+     * Optional personal note the inviter typed when sending the email
+     * invite. Plumbed through from page.tsx → trip_invites.message.
+     * Rendered in a quoted card above the trip details — matches the
+     * styling of the same message in the invite email template.
+     */
+    message?: string | null;
   };
   trip: {
     id: string;
@@ -236,6 +243,23 @@ export default function InviteAcceptClient({
               </p>
             </div>
           </div>
+
+          {/* Personal message from the inviter — matches the email template
+              card styling (orange left-border, italic, attribution). Only
+              rendered when the inviter actually typed something. */}
+          {invite.message && (
+            <div
+              className="mb-5 p-4 bg-orange-50/60 rounded-xl border-l-4 border-[var(--primary)]"
+              aria-label="Personal note from the inviter"
+            >
+              <p className="text-sm italic text-slate-700 leading-relaxed">
+                &ldquo;{invite.message}&rdquo;
+              </p>
+              <p className="text-xs text-slate-500 mt-2">
+                — {displayInviter.displayName}
+              </p>
+            </div>
+          )}
 
           {/* Trip Title */}
           <h1 className="text-2xl font-bold text-slate-900 mb-2">{trip.title}</h1>

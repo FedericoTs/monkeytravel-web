@@ -30,7 +30,9 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Fetch invite with trip details
+    // Fetch invite with trip details. `message` is the inviter's personal
+    // note (added 2026-05-23 with the recipient_email flow) — surfaced in
+    // the accept-page UI so the recipient sees what was said about them.
     const { data: invite, error: inviteError } = await supabaseAdmin
       .from("trip_invites")
       .select(`
@@ -43,7 +45,8 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
         expires_at,
         max_uses,
         use_count,
-        is_active
+        is_active,
+        message
       `)
       .eq("token", token)
       .single();
@@ -128,6 +131,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
         token: invite.token,
         role: invite.role as Exclude<CollaboratorRole, "owner">,
         expiresAt: invite.expires_at,
+        message: (invite.message ?? null) as string | null,
       },
       trip: {
         id: trip.id,

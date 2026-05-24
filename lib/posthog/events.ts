@@ -220,10 +220,27 @@ export interface TripWizardFieldInteractedEvent {
   first_touch: boolean;
 }
 
+/**
+ * Who is the trip being planned for/with. Captured on wizard step 1 by
+ * the solo/group toggle (added 2026-05-24 as a measurement experiment —
+ * see docs/COLLAB_AUDIT.md "Phase 1: validate the bet"). No flow change
+ * yet; pure signal to decide whether to invest in a full group-first
+ * restructure.
+ */
+export type TripIntent = "solo" | "group" | "unspecified";
+
+export interface TripIntentSelectedEvent {
+  intent: TripIntent;
+  /** True if the user changed their intent (vs first-time selection). */
+  changed: boolean;
+}
+
 export interface TripGenerationStartedEvent {
   destination: string;
   duration_days: number;
   budget_tier: string;
+  /** Optional — present when the user interacted with the solo/group toggle. */
+  trip_intent?: TripIntent;
 }
 
 export interface TripGenerationCompletedEvent {
@@ -234,6 +251,8 @@ export interface TripGenerationCompletedEvent {
   generation_time_seconds: number;
   success: boolean;
   error_type?: string;
+  /** Optional — same as TripGenerationStartedEvent.trip_intent. */
+  trip_intent?: TripIntent;
 }
 
 // ============================================================================
@@ -505,6 +524,17 @@ export function captureTripWizardFieldInteracted(event: TripWizardFieldInteracte
 
 export function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
   posthog.capture("trip_generation_started", event);
+}
+
+/**
+ * Fires when the user picks "Just me" or "With friends" on wizard step 1.
+ * Drives the Phase-1 measurement that gates the full group-first
+ * restructure. PostHog funnel: count distinct users per intent value,
+ * then check what % of "group" pickers actually share the trip after
+ * generation.
+ */
+export function captureTripIntentSelected(event: TripIntentSelectedEvent) {
+  posthog.capture("trip_intent_selected", event);
 }
 
 export function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {

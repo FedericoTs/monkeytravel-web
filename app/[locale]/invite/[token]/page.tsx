@@ -15,10 +15,13 @@ async function getInviteData(token: string) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  // Fetch invite with only required fields (never select("*") with admin client)
+  // Fetch invite with only required fields (never select("*") with admin client).
+  // `message` was added 2026-05-23 along with recipient_email + recipient_locale
+  // for the invite-by-email flow — it's the inviter's personal note shown
+  // above the trip summary on this page.
   const { data: invite, error: inviteError } = await supabase
     .from("trip_invites")
-    .select("id, trip_id, token, role, created_by, created_at, expires_at, max_uses, use_count, is_active")
+    .select("id, trip_id, token, role, created_by, created_at, expires_at, max_uses, use_count, is_active, message")
     .eq("token", token)
     .single();
 
@@ -93,6 +96,11 @@ async function getInviteData(token: string) {
       token: invite.token,
       role: invite.role,
       expiresAt: invite.expires_at,
+      // Personal note from the inviter (may be null for shareable-link
+      // invites or when the inviter didn't add one). InviteAcceptClient
+      // renders it above the trip details — restores parity with the
+      // email template that already shows the same message.
+      message: (invite.message ?? null) as string | null,
     },
     trip: {
       id: trip.id,
@@ -120,14 +128,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { token } = await params;
   const data = await getInviteData(token);
 
+  // Root layout's title.template appends " | MonkeyTravel" — page-level
+  // titles must NOT include the suffix themselves, or we render the
+  // duplicated "X | MonkeyTravel | MonkeyTravel" caught in COLLAB_AUDIT B2.
   if ("error" in data) {
     return {
-      title: "Invalid Invite | MonkeyTravel",
+      title: "Invalid Invite",
     };
   }
 
   return {
-    title: `Join ${data.trip.title} | MonkeyTravel`,
+    title: `Join ${data.trip.title}`,
     description: `You've been invited to join a trip to ${data.trip.destination || data.trip.title}. Accept the invite to start planning together!`,
     openGraph: {
       title: `Join ${data.trip.title}`,
