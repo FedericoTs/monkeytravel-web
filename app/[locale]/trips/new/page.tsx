@@ -113,6 +113,17 @@ const BUDGET_TIER_STYLES = {
 const BUDGET_TIER_IDS = ["budget", "balanced", "premium"] as const;
 const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
+// LOAD-BEARING: hoisted OUT of the component so the array identity is
+// stable across renders. Was previously declared inside the component
+// → new reference every render → trackFieldInteraction's [STEP_NAMES_CONST]
+// dep changed every render → its useCallback recreated → handleVibesChange
+// (which depends on it) recreated → VibeSelector's React.memo broken
+// → step-2 vibe clicks tanked the renderer. Plus the abandonment-
+// listener effect's [STEP_NAMES_CONST] dep re-fired on every render, tearing
+// down + re-attaching window event listeners.
+// Caught in docs/JOURNEY_AUDIT.md after the third-round live test.
+const STEP_NAMES_CONST = ["destination_dates", "vibes_preferences"] as const;
+
 export default function NewTripPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -195,15 +206,15 @@ export default function NewTripPage() {
   // Reduced from 4 steps to cut drop-off by 50% (PostHog data: 76% activation drop-off)
   const TOTAL_STEPS = 2;
 
-  // Track wizard step views
-  const STEP_NAMES = ["destination_dates", "vibes_preferences"] as const;
+  // STEP_NAMES_CONST is hoisted to module scope above the component
+  // — see the load-bearing comment there. Don't redeclare it here.
 
   // Collapsible preferences state (budget/pace/requirements shown on demand in step 2)
   const [showAdvancedPrefs, setShowAdvancedPrefs] = useState(false);
   useEffect(() => {
     captureTripWizardStepViewed({
       step_number: step,
-      step_name: STEP_NAMES[step - 1],
+      step_name: STEP_NAMES_CONST[step - 1],
     });
   }, [step]);
 
@@ -279,13 +290,13 @@ export default function NewTripPage() {
         touchedFieldsThisStepRef.current.add(field);
         captureTripWizardFieldInteracted({
           step_number: stepRef.current,
-          step_name: STEP_NAMES[stepRef.current - 1],
+          step_name: STEP_NAMES_CONST[stepRef.current - 1],
           field,
           first_touch: true,
         });
       }
     },
-    [STEP_NAMES]
+    [STEP_NAMES_CONST]
   );
 
   // Memoized VibeSelector handler so the child's React.memo can actually
@@ -315,7 +326,7 @@ export default function NewTripPage() {
       const totalSeconds = Math.round((Date.now() - wizardMountedAtRef.current) / 1000);
       captureTripWizardAbandoned({
         last_step_completed: Math.max(0, stepRef.current - 1),
-        last_step_name: STEP_NAMES[stepRef.current - 1],
+        last_step_name: STEP_NAMES_CONST[stepRef.current - 1],
         total_time_seconds: totalSeconds,
         last_touched_field: lastTouchedFieldRef.current,
         had_destination: Boolean(destinationFieldRef.current),
@@ -339,7 +350,7 @@ export default function NewTripPage() {
       window.removeEventListener("pagehide", fireAbandoned);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [STEP_NAMES]);
+  }, [STEP_NAMES_CONST]);
 
   // Check authentication status and existing trips on mount
   useEffect(() => {
@@ -2023,7 +2034,7 @@ export default function NewTripPage() {
               onClick={() => {
                 captureTripWizardStepCompleted({
                   step_number: step,
-                  step_name: STEP_NAMES[step - 1],
+                  step_name: STEP_NAMES_CONST[step - 1],
                 });
                 // Per LIVE_AUDIT F2: pre-apply seasonal vibe suggestions
                 // when advancing into step 2. Previously the suggestions
