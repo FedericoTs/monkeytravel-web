@@ -28,6 +28,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google/generative-ai": "^0.24.1",
     "@next/third-parties": "^16.0.8",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
     "@react-google-maps/api": "^2.20.7",
     "@sentry/nextjs": "^10.29.0",
     "@supabase/ssr": "^0.8.0",
@@ -52,6 +54,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
+    "resend": "^6.12.3",
     "tailwind-merge": "^3.4.0",
     "tsx": "^4.21.0",
     "uuid": "^13.0.0"
