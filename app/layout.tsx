@@ -14,6 +14,10 @@ import dynamic from "next/dynamic";
 const SessionTracker = dynamic(
   () => import("@/components/analytics/SessionTracker")
 );
+// NativeBoot: service-worker registration + Android back-button handler.
+// Self-gates inside the Capacitor shell and on /trips/* paths — safe to
+// always mount, costs ~0 on marketing pages.
+const NativeBoot = dynamic(() => import("@/components/NativeBoot"));
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
@@ -181,6 +185,8 @@ export default async function RootLayout({
         <SpeedInsights />
         {/* Session tracking for retention analytics */}
         <SessionTracker />
+        {/* Service worker (offline trips) + Android back-button handler */}
+        <NativeBoot />
         {/* Google Analytics 4 - only load if measurement ID is configured */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />

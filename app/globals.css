@@ -631,12 +631,47 @@ h1, h2, h3 {
   padding-top: max(12px, env(safe-area-inset-top));
 }
 
+/* Horizontal safe-area for landscape iPhones — applied to full-bleed
+   bars (Navbar) so the content doesn't tuck under the rounded display
+   corners. */
+.px-safe {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Top-bar that sits flush against the system status bar. Without this,
+   on iPhone 14/15 inside the Capacitor WebView the navbar logo gets
+   half-eaten by the Dynamic Island. */
+.navbar-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
 /* Touch-friendly tap targets */
 @media (pointer: coarse) {
   button,
   a {
     min-height: 44px;
     min-width: 44px;
+  }
+}
+
+/* Mobile native-feel polish — applied to the whole app on touch
+   devices. Doesn't affect desktop. */
+@media (pointer: coarse) {
+  /* Kill the default blue tap-highlight overlay on Android Chrome /
+     iOS Safari — looks "webby" against custom button styles. */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Prevent accidental text selection on UI chrome — buttons, nav
+     items, etc. Content (paragraphs, headings) stays selectable. */
+  button, a, nav, header, footer, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Smooth momentum scrolling for any scrollable container on iOS. */
+  body, .scroll-area {
+    -webkit-overflow-scrolling: touch;
   }
 }
 

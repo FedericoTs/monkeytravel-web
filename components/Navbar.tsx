@@ -26,7 +26,10 @@ export default async function Navbar() {
   return (
     <nav
       data-monkey-nav
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-md"
+      // navbar-safe adds env(safe-area-inset-top) padding so the bar
+      // doesn't tuck under the iPhone notch / Dynamic Island inside
+      // the Capacitor WebView. Zero effect in regular web browsers.
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-md navbar-safe"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
