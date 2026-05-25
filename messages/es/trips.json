@@ -1,5 +1,7 @@
 {
   "wizard": {
+    "back": "Atrás",
+    "unlockAiFeatures": "Desbloquea las funciones de IA",
     "step1": {
       "title": "¿Adónde y cuándo?",
       "subtitle": "Elige un destino y las fechas de tu viaje",

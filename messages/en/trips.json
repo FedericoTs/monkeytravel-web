@@ -1,5 +1,7 @@
 {
   "wizard": {
+    "back": "Back",
+    "unlockAiFeatures": "Unlock AI Features",
     "step1": {
       "title": "Where and when?",
       "subtitle": "Pick a destination and your travel dates",

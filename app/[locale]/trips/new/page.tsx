@@ -1647,9 +1647,9 @@ export default function NewTripPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline">{t("wizard.back")}</span>
             </button>
-            <span className="font-semibold text-slate-900">Unlock AI Features</span>
+            <span className="font-semibold text-slate-900">{t("wizard.unlockAiFeatures")}</span>
             <div className="w-16" />
           </div>
         </header>
@@ -1798,7 +1798,7 @@ export default function NewTripPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="hidden sm:inline">Back</span>
+            <span className="hidden sm:inline">{t("wizard.back")}</span>
           </Link>
           <div className="flex items-center gap-2">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -2046,7 +2046,7 @@ export default function NewTripPage() {
                   trackFieldInteraction("destination_autocomplete");
                   handleDestinationSelect(p);
                 }}
-                placeholder="e.g., Paris, Tokyo, New York..."
+                placeholder={t("wizard.step1.placeholder")}
                 // autoFocus removed (2026-05-03) — on mobile it auto-opened
                 // the suggestions dropdown which covered the popular-
                 // destination pills below. Users tapping a pill ended up
@@ -2243,7 +2243,7 @@ export default function NewTripPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline">{t("wizard.back")}</span>
             </button>
           ) : (
             <div />
