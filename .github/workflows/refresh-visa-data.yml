@@ -1,0 +1,92 @@
+name: Refresh visa data
+
+# Nightly check against the imorte/passport-index-data upstream. Opens a
+# PR when the visa matrix diverges so the maintainer can eyeball the diff
+# before it ships to /tools/visa-checker.
+#
+# Why a PR (not auto-commit)
+# ─────────────────────────
+# Visa policy changes are user-facing safety data. A bad upstream day
+# (corruption, accidental wipe, deprecation) shouldn't silently land on
+# prod. PRs give a 30-second human eyeball + Vercel preview before merge.
+
+on:
+  schedule:
+    # 03:17 UTC daily — slightly off the hour to avoid GitHub's hourly
+    # cron contention. ~4-5am Europe, ~10-11pm Eastern.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    # Manual trigger from the Actions tab — handy for "refresh right now"
+    # after a known policy change.
+
+# Lock down token scope: only contents (to commit) and pull-requests (to open).
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: Pull latest matrix + open PR if drifted
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No npm install needed — the script uses only Node built-ins
+      # (fetch, fs/promises). Keeping it dep-free means a refresh never
+      # breaks because of an unrelated dependency hiccup.
+      - name: Pull fresh matrix
+        run: node scripts/refresh-visa-data.mjs
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain lib/visa/matrix.json)" ]; then
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            # Compact summary for the PR body — script already logged
+            # the verbose diff to stdout; grab just the headline.
+            echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+            git diff --stat lib/visa/matrix.json >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR with the refreshed snapshot
+        if: steps.changes.outputs.drifted == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(visa): refresh matrix from imorte/passport-index-data"
+          branch: chore/visa-data-refresh
+          # Keep the same branch reused across runs so we don't pile up
+          # one stale PR per night when nobody merges.
+          delete-branch: true
+          title: "chore(visa): refresh visa matrix from imorte upstream"
+          body: |
+            Automated nightly refresh of `lib/visa/matrix.json` from
+            [imorte/passport-index-data](https://github.com/imorte/passport-index-data)
+            (MIT-licensed source of truth used by `/tools/visa-checker`).
+
+            Workflow script: `scripts/refresh-visa-data.mjs`
+            (`node scripts/refresh-visa-data.mjs` runs the same logic locally).
+
+            **Diff stat**
+            ```
+            ${{ steps.changes.outputs.summary }}
+            ```
+
+            **Review checklist**
+            - [ ] Skim the file diff (passport rows are alphabetical by ISO-2 — diffs are localized)
+            - [ ] If a row deleted a destination column entirely, double-check it isn't an upstream regression
+            - [ ] If a status changed in either direction (`visa free → visa required` is more critical than the reverse), spot-check by Googling the affected country pair
+
+            Once merged, Vercel auto-deploys and the live tool reflects the new data on next render.
+          labels: |
+            data-refresh
+            visa-checker
