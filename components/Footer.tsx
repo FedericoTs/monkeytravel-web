@@ -36,7 +36,10 @@ export default async function Footer() {
       { label: t('joinWaitlist'), href: '/#hero' },
     ],
     support: [
-      { label: t('faq'), href: '/#support' },
+      // **2026-05-25 fix**: previously linked to `/#support` (no FAQ page
+      // exists, anchor doesn't exist on /). Point users to /contact where
+      // they can actually reach us; we can revisit when an FAQ page lands.
+      { label: t('faq'), href: '/contact' },
       { label: t('contact'), href: '/contact' },
       { label: t('sendFeedback'), href: 'mailto:feedback@monkeytravel.app' },
     ],
@@ -112,13 +115,31 @@ export default async function Footer() {
           <div>
             <h3 className="font-semibold mb-4 text-white/90">{t('support')}</h3>
             <ul className="space-y-3">
-              {footerLinks.support.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+              {footerLinks.support.map((link) => {
+                const isExternal =
+                  link.href.startsWith('mailto:') ||
+                  link.href.startsWith('http') ||
+                  link.href.startsWith('tel:');
+                const className =
+                  'text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm';
+                return (
+                  <li key={link.label}>
+                    {/* **2026-05-25 fix**: in-app routes (/contact, /faq)
+                        need next-intl's <Link> so the active locale is
+                        prefixed (was rendering /contact instead of /es/contact
+                        on the ES site). External/mailto stay as raw <a>. */}
+                    {isExternal ? (
+                      <a href={link.href} className={className}>
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link href={link.href} className={className}>
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
