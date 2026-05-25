@@ -20,6 +20,9 @@ export default async function Navbar() {
     { href: '/#features', label: t('navigation.features') },
     { href: '/#how-it-works', label: t('navigation.howItWorks') },
     { href: '/destinations', label: t('navigation.destinations') },
+    // **2026-05-25**: Tools were live but orphaned — no link from any
+    // nav surface. Adding here so the funnel works.
+    { href: '/tools', label: t('navigation.tools') },
     { href: '/blog', label: t('navigation.blog') },
   ];
 

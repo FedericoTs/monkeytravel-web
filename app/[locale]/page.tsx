@@ -863,6 +863,105 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
+            11.5 FREE TOOLS — discovery surface for /tools/*
+            **2026-05-25**: Tools were live but orphaned. Added this
+            section to give them a homepage entry-point alongside the
+            destinations + blog links.
+            ================================================================ */}
+        <section className="py-20 bg-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-[var(--primary)] mb-3">
+                {locale === "it" ? "Strumenti Gratuiti" : locale === "es" ? "Herramientas Gratis" : "Free Tools"}
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
+                {locale === "it"
+                  ? "Pianifica meglio in 10 secondi"
+                  : locale === "es"
+                    ? "Planifica mejor en 10 segundos"
+                    : "Plan smarter in 10 seconds"}
+              </h2>
+              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+                {locale === "it"
+                  ? "Strumenti gratuiti che ti fanno risparmiare ore prima della partenza. Senza registrazione."
+                  : locale === "es"
+                    ? "Herramientas gratuitas que te ahorran horas antes de viajar. Sin registro."
+                    : "Free utilities that save you hours before you go. No signup."}
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5 sm:gap-6 max-w-3xl mx-auto">
+              <Link
+                href="/tools/packing-list"
+                className="group rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 hover:border-[var(--primary)] hover:shadow-lg transition-all"
+              >
+                <div className="text-4xl mb-3">🧳</div>
+                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1.5">
+                  {locale === "it"
+                    ? "Generatore Lista Bagaglio"
+                    : locale === "es"
+                      ? "Generador de Lista de Equipaje"
+                      : "Packing List Generator"}
+                </h3>
+                <p className="text-sm text-[var(--foreground-muted)] mb-3">
+                  {locale === "it"
+                    ? "Lista personalizzata con AI in base a clima, attività e durata del viaggio."
+                    : locale === "es"
+                      ? "Lista personalizada con IA según clima, actividades y duración del viaje."
+                      : "AI-personalized by destination weather, activities, and trip length."}
+                </p>
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
+                  {locale === "it" ? "Provalo" : locale === "es" ? "Pruébalo" : "Try it"}
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </Link>
+
+              <Link
+                href="/tools/visa-checker"
+                className="group rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:p-7 hover:border-slate-300 transition-all"
+              >
+                <div className="text-4xl mb-3">🛂</div>
+                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1.5">
+                  {locale === "it"
+                    ? "Verifica Requisiti Visto"
+                    : locale === "es"
+                      ? "Verificador de Visa"
+                      : "Visa Requirements Checker"}
+                </h3>
+                <p className="text-sm text-[var(--foreground-muted)] mb-3">
+                  {locale === "it"
+                    ? "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio."
+                    : locale === "es"
+                      ? "Descubre en segundos si necesitas visa para tu próximo viaje."
+                      : "Find out in seconds whether you need a visa for your next trip."}
+                </p>
+                <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 bg-amber-100 text-amber-900 rounded-full">
+                  {locale === "it" ? "In arrivo" : locale === "es" ? "Próximamente" : "Coming soon"}
+                </span>
+              </Link>
+            </div>
+
+            <div className="text-center mt-8">
+              <Link
+                href="/tools"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
+              >
+                {locale === "it"
+                  ? "Tutti gli strumenti"
+                  : locale === "es"
+                    ? "Todas las herramientas"
+                    : "All tools"}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
             12. FAQ SECTION
             ================================================================ */}
         <section id="support" className="py-24 bg-white">

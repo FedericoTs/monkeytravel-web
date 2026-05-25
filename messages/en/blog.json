@@ -80,7 +80,9 @@
       "groupTripPlanner": "Group Trip Planner",
       "familyTripPlanner": "Family Trip Planner",
       "weekendTripPlanner": "Weekend Trip Planner",
-      "aiItineraryGenerator": "AI Itinerary Generator"
+      "aiItineraryGenerator": "AI Itinerary Generator",
+      "packingList": "Packing List Generator",
+      "visaChecker": "Visa Requirements Checker"
     }
   },
   "tag": {

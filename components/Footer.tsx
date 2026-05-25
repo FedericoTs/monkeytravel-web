@@ -25,6 +25,12 @@ export default async function Footer() {
     product: [
       { label: t('destinations'), href: '/destinations' },
       { label: t('blog'), href: '/blog' },
+      // **2026-05-25**: Tools row added — previously the Packing List
+      // and Visa Checker tools had no entry-points outside their own
+      // URLs. Listing two specific tool deep-links keeps the Product
+      // column scannable and gives both surfaces a footer-wide backlink.
+      { label: t('packingList'), href: '/tools/packing-list' },
+      { label: t('visaChecker'), href: '/tools/visa-checker' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
       { label: t('joinWaitlist'), href: '/#hero' },

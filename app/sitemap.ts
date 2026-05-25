@@ -83,9 +83,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const landingPages: MetadataRoute.Sitemap = [];
   const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner'];
 
+  // Free tools (× 3 locales). Listed alongside SEO landing pages since
+  // they have similar discovery characteristics and lifetime cadence.
+  // **2026-05-25**: added so /tools/* URLs are crawlable from day one
+  // (the pages exist but were orphaned — only the nav + footer + home
+  // section make them discoverable to humans; this makes them
+  // discoverable to Googlebot too).
+  const toolPaths = ['/tools', '/tools/packing-list', '/tools/visa-checker'];
+
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;
     for (const path of seoLandingPaths) {
+      landingPages.push({
+        url: `${baseUrl}${prefix}${path}`,
+        lastModified: LASTMOD_LANDING,
+        changeFrequency: 'monthly',
+        priority: PRIORITY_LANDING,
+      });
+    }
+    for (const path of toolPaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
         lastModified: LASTMOD_LANDING,

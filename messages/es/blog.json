@@ -80,7 +80,9 @@
       "groupTripPlanner": "Planificador de Viajes en Grupo",
       "familyTripPlanner": "Planificador de Viajes Familiares",
       "weekendTripPlanner": "Planificador de Escapadas de Fin de Semana",
-      "aiItineraryGenerator": "Generador de Itinerarios AI"
+      "aiItineraryGenerator": "Generador de Itinerarios AI",
+      "packingList": "Generador de Lista de Equipaje",
+      "visaChecker": "Verificador de Visa"
     }
   },
   "tag": {
