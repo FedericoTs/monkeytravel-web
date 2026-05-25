@@ -6,12 +6,30 @@ import { getTranslations } from 'next-intl/server';
 
 const BASE_URL = 'https://monkeytravel.app';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const path = locale === 'en' ? '/privacy' : `/${locale}/privacy`;
+  // **2026-05-25 fix**: was "Privacy Policy - MonkeyTravel" which combined
+  // with the root template "%s | MonkeyTravel" produced
+  // "Privacy Policy - MonkeyTravel | MonkeyTravel" (double brand). Drop
+  // the suffix here; let the root template own brand placement.
+  // Also wire locale-aware canonical + hreflang alternates.
   return {
-    title: 'Privacy Policy - MonkeyTravel',
-    description: 'Privacy Policy for MonkeyTravel - Learn how we collect, use, and protect your personal information.',
+    title: 'Privacy Policy',
+    description:
+      'Privacy Policy for MonkeyTravel — Learn how we collect, use, and protect your personal information.',
     alternates: {
-      canonical: `${BASE_URL}/privacy`,
+      canonical: `${BASE_URL}${path}`,
+      languages: {
+        en: `${BASE_URL}/privacy`,
+        es: `${BASE_URL}/es/privacy`,
+        it: `${BASE_URL}/it/privacy`,
+        'x-default': `${BASE_URL}/privacy`,
+      },
     },
   };
 }
