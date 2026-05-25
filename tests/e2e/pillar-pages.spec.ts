@@ -13,7 +13,7 @@ const PILLAR_PATHS = [
   "/budget-trip-planner",
   "/solo-trip-planner",
   "/group-trip-planner",
-  "/free-trip-planner",
+  "/free-ai-trip-planner",
 ] as const;
 
 /** Catches "trips.wizard.X" / "common.Y.Z" raw-key leaks. */
