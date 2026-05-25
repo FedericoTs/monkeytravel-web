@@ -122,7 +122,8 @@ ALTER TABLE trips
   ADD COLUMN author_display_name TEXT,
   ADD COLUMN author_note TEXT CHECK (length(author_note) <= 280),
   ADD COLUMN reported_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT false; -- moderator soft-delete
+  ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT false, -- moderator soft-delete
+  ADD COLUMN is_editors_pick BOOLEAN NOT NULL DEFAULT false; -- computed daily by cron
 
 CREATE INDEX idx_trips_parent ON trips(parent_trip_id) WHERE parent_trip_id IS NOT NULL;
 
@@ -293,9 +294,11 @@ Each public trip is an indexable URL via the existing `/shared/{token}` route. T
 ## 8. Phased rollout
 
 ### Week 1 — DB + APIs (no UI yet)
-- Migrations: `trip_likes`, `trip_saves`, `trips` ALTER, `trip_reports`, atomic RPCs, RLS.
+- Migrations: `trip_likes`, `trip_saves`, `trips` ALTER (incl. `is_editors_pick`), `trip_reports`, atomic RPCs, RLS.
 - API routes: `/like`, `/save`, `/fork`, `/publish`, `/report` — all unit + integration tested.
-- Extend `/api/explore/trips` response to include author + engagement counts.
+- Extend `/api/explore/trips` response to include author + engagement counts + `recentLikers[]`.
+- New API: `GET /api/trips/{id}/likers` (paginated full list, 50/page).
+- New cron route: `app/api/cron/recompute-editors-picks/route.ts` — protected by `CRON_SECRET`, runs daily (Vercel cron), flips `is_editors_pick` based on the 3-condition rule.
 - Seed: backfill `parent_trip_id` for trips already created from templates (so the parent's `fork_count` is non-zero from day 1).
 - Behind feature flag `EXPLORE_UGC_ENABLED` = false. APIs return 404 if flag off.
 
@@ -336,13 +339,33 @@ Each public trip is an indexable URL via the existing `/shared/{token}` route. T
 | **iVisa / Travelpayouts affiliate URL leakage in forked trips** | Fork strips the source's affiliate IDs and regenerates with the current site's IDs. |
 | **GDPR right-to-erasure on a popular forked trip** | Delete source → forks survive (parent_trip_id → NULL) but lose attribution link; user accepts this in publish-disclosure copy. |
 
-### Open questions for the user
-1. Should `author_display_name` be tied to the auth account's profile (single source of truth) or per-trip (lets users be "Tokyo foodie" on one trip and "Family in France" on another)? **Recommendation: per-trip**, lower friction.
-2. Editor's Picks / featured trips — manual flag, or algorithmic? **Recommendation: manual flag in v1**, algorithmic later.
-3. Per-vibe explore pages (`/explore/foodie`)? Or only the filtered grid? **Recommendation: filter only in v1**, evaluate after seeing search demand.
-4. Should public trips show the AI cost (✨ Gemini)? Hides the magic but builds trust. **Recommendation: no badge in v1**; revisit if users ask.
-5. Likes — public counts vs private? **Recommendation: public count, anonymous likers** (we know who liked but don't show it).
-6. Allow comments on trips? **Recommendation: NO in v1.** Doubles moderation burden. Only "like" + "save" + "fork".
+### Decisions locked (2026-05-25, user-confirmed)
+
+1. **`author_display_name` is per-trip.** Default to the user's account display_name, but editable per published trip ("Tokyo foodie" / "Family in France" can coexist for the same author). Lower friction; lets users curate their narrative per trip.
+
+2. **Editor's Picks is algorithmic.** No manual moderator queue. A trip earns the badge when:
+   - `age_days >= 7` AND
+   - `fork_count >= 5` AND
+   - `trending_score >= 50`
+   - Recomputed via a daily cron (Vercel scheduled function or Supabase pg_cron).
+   - Stored as `is_editors_pick BOOLEAN` so reads stay cheap; only the cron writes.
+   - Conservative thresholds in v1 — easier to relax than to retract.
+
+3. **Per-vibe explore pages: filter-only in v1, but URL-flexible for later.** Route stays `/explore?vibe=foodie`. We design the page so a future `/explore/foodie` SSR alias can be added by reading `params.vibe` and applying the same filter — no API changes needed. We pre-render the canonical query-string URL for now; add static `/explore/{vibe}` and `/explore/{destination}` segments later if SEO signals demand it.
+
+4. **No AI badge.** Forking + publishing implies the user has reviewed and personalized the trip — labeling it "AI-generated" undersells their curation. Activity-level "✨ AI-curated" hints stay on the wizard's intermediate steps only.
+
+5. **Likes show count + 3-5 recent-liker avatars.** Click the avatar cluster → modal lists all likers (paginated, 50/page). Anonymous likers (cookie-keyed) are NOT supported in v1 — likes require auth. Saves still work for anon.
+
+6. **No comments in v1.** Confirmed. Engagement = like / save / fork only. Comments would double the moderation surface and risk derailing the launch. Revisit in v2 once we have catalog scale + the moderation queue is proven.
+
+### Resolved-question deltas to the original plan
+
+- **Schema:** add `is_editors_pick BOOLEAN NOT NULL DEFAULT false` to `trips`. Add a daily cron job (Vercel `app/api/cron/recompute-editors-picks/route.ts`) protected by `CRON_SECRET`.
+- **API:** `GET /api/explore/trips` adds `recentLikers: Array<{ displayName: string; avatarUrl?: string | null }>` (up to 5) to each trip in the response. Add `GET /api/trips/{id}/likers?cursor=...` for the full paginated list.
+- **API:** `POST /api/trips/{id}/like` requires auth (returns 401 for anon). `POST /api/trips/{id}/save` keeps the anon-cookie path.
+- **Sitemap:** keep current cap of 500 trips. The filter-only URL approach (single `/explore` page) avoids the per-vibe sitemap-explosion question entirely.
+- **Routes:** structure the `/explore` page component to accept either querystring filters OR future path segments (`app/[locale]/explore/page.tsx` reads `searchParams`; later we'd add `app/[locale]/explore/[segment]/page.tsx` that re-uses the same `<ExploreFeed />` component).
 
 ---
 
