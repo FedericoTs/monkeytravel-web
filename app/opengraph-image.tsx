@@ -1,16 +1,16 @@
 import { ImageResponse } from "next/og";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { LOGO_DATA_URI } from "./_og-logo-data";
 
 export const alt = "MonkeyTravel - AI-Powered Trip Planning";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OGImage() {
-  const logoData = readFileSync(
-    join(process.cwd(), "public/images/logo.png")
-  );
-  const logoBase64 = `data:image/png;base64,${logoData.toString("base64")}`;
+  // **2026-05-25 fix**: was readFileSync(process.cwd() + 'public/...'),
+  // which works in dev but 404s on Vercel because public/ assets
+  // aren't bundled into serverless functions. Now uses the inlined
+  // base64 data URI from ./_og-logo-data.ts.
+  const logoBase64 = LOGO_DATA_URI;
 
   return new ImageResponse(
     (
