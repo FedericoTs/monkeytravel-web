@@ -123,6 +123,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const t = await getTranslations("destinations");
   const tBlog = await getTranslations("blog");
   const cityName = destination.name[loc];
+  const countryName = destination.country[loc];
 
   // Structured data
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
@@ -285,6 +286,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             slug={slug}
             ctaText={destination.content.ctaText[loc]}
             cityName={cityName}
+            countryName={countryName}
             locale={loc}
             t={t}
           />

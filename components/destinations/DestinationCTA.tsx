@@ -5,6 +5,16 @@ interface DestinationCTAProps {
   slug: string;
   ctaText: string;
   cityName: string;
+  /**
+   * Country name in the current locale (e.g. "France", "Portugal").
+   * Concatenated with `cityName` for the wizard pre-fill so the
+   * destination field matches the "City, Country" format used by the
+   * step-1 destination chips and the autocomplete.
+   * **2026-05-24 live-test fix:** previously the CTA passed just the
+   * slug → wizard showed "paris" alone, mildly disorienting and forced
+   * the user to re-disambiguate via autocomplete.
+   */
+  countryName?: string;
   locale: Locale;
   t: (key: string, values?: Record<string, string | number>) => string;
 }
@@ -13,8 +23,13 @@ export default function DestinationCTA({
   slug,
   ctaText,
   cityName,
+  countryName,
   t,
 }: DestinationCTAProps) {
+  const prefilledDestination = countryName
+    ? `${cityName}, ${countryName}`
+    : cityName;
+  const href = `/trips/new?destination=${encodeURIComponent(prefilledDestination)}`;
   return (
     <section className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +46,7 @@ export default function DestinationCTA({
             </p>
 
             <Link
-              href={`/trips/new?destination=${slug}`}
+              href={href}
               className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 text-lg"
               data-ph-capture-attribute-destination-slug={slug}
               data-ph-capture-attribute-destination-city={cityName}
