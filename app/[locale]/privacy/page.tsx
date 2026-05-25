@@ -34,16 +34,47 @@ export async function generateMetadata({
   };
 }
 
-export default async function PrivacyPolicy() {
+export default async function PrivacyPolicy({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations('common');
   const lastUpdated = 'January 25, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
+
+  // **2026-05-25**: page body is still English-only. Until we ship a
+  // properly reviewed legal translation, surface a banner on non-EN
+  // routes so IT/ES users aren't surprised by the English content.
+  const NON_EN_BANNER: Record<string, { msg: string; cta: string }> = {
+    it: {
+      msg: "La nostra Informativa sulla Privacy è attualmente disponibile solo in inglese. Stiamo lavorando alla traduzione.",
+      cta: "Vai alla versione inglese",
+    },
+    es: {
+      msg: "Nuestra Política de Privacidad está disponible actualmente solo en inglés. Estamos trabajando en la traducción.",
+      cta: "Ir a la versión en inglés",
+    },
+  };
+  const banner = locale && locale !== "en" ? NON_EN_BANNER[locale] : null;
 
   return (
     <>
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {banner && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+              <p className="text-amber-900">{banner.msg}</p>
+              <a
+                href="/privacy"
+                className="mt-1.5 inline-block text-amber-900 underline font-medium hover:no-underline"
+              >
+                {banner.cta} →
+              </a>
+            </div>
+          )}
           <div className="mb-8">
             <Link
               href="/"

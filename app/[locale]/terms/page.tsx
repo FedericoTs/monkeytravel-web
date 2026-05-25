@@ -32,15 +32,45 @@ export async function generateMetadata({
   };
 }
 
-export default function TermsOfService() {
+export default async function TermsOfService({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const lastUpdated = 'November 28, 2025';
   const contactEmail = 'legal@monkeytravel.app';
+
+  // **2026-05-25**: body still English-only; banner on /it /es until
+  // a reviewed legal translation lands.
+  const NON_EN_BANNER: Record<string, { msg: string; cta: string }> = {
+    it: {
+      msg: "I nostri Termini di Servizio sono attualmente disponibili solo in inglese. Stiamo lavorando alla traduzione.",
+      cta: "Vai alla versione inglese",
+    },
+    es: {
+      msg: "Nuestros Términos del Servicio están disponibles actualmente solo en inglés. Estamos trabajando en la traducción.",
+      cta: "Ir a la versión en inglés",
+    },
+  };
+  const banner = locale && locale !== "en" ? NON_EN_BANNER[locale] : null;
 
   return (
     <>
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {banner && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+              <p className="text-amber-900">{banner.msg}</p>
+              <a
+                href="/terms"
+                className="mt-1.5 inline-block text-amber-900 underline font-medium hover:no-underline"
+              >
+                {banner.cta} →
+              </a>
+            </div>
+          )}
           <div className="mb-8">
             <Link
               href="/"
