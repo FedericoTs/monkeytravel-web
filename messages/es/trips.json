@@ -2,6 +2,16 @@
   "wizard": {
     "back": "Atrás",
     "unlockAiFeatures": "Desbloquea las funciones de IA",
+    "datePicker": {
+      "checkInLabel": "Llegada",
+      "checkOutLabel": "Salida",
+      "selectDate": "Seleccionar fecha",
+      "selectCheckInDate": "Selecciona la fecha de llegada",
+      "selectCheckOutDate": "Selecciona la fecha de salida",
+      "maxDaysHint": "Selecciona las fechas del viaje (máx {days} días)",
+      "dayCount": "{count, plural, one {# día} other {# días}}",
+      "nightCount": "{count, plural, one {# noche} other {# noches}}"
+    },
     "step1": {
       "title": "¿Adónde y cuándo?",
       "subtitle": "Elige un destino y las fechas de tu viaje",

@@ -11,7 +11,8 @@
  * - Mobile-optimized touch interactions
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 interface DateRangePickerProps {
   startDate: string;
@@ -47,15 +48,36 @@ const getFirstDayOfMonth = (year: number, month: number): number => {
   return new Date(year, month, 1).getDay();
 };
 
-const formatDisplayDate = (dateStr: string): string => {
-  if (!dateStr) return "Select date";
+/**
+ * Display-formatter for the chip labels under Check-in / Check-out.
+ *
+ * Pre-2026-05-25 this was hardcoded to "en-US" + "Select date" fallback,
+ * so the IT/ES wizards showed English dates and an English placeholder.
+ * Now the locale comes from the active next-intl locale and the empty
+ * placeholder is passed in by the caller (already localized via t()).
+ */
+const formatDisplayDate = (
+  dateStr: string,
+  locale: string,
+  emptyPlaceholder: string
+): string => {
+  if (!dateStr) return emptyPlaceholder;
   const date = parseDate(dateStr);
-  if (!date) return "Select date";
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  if (!date) return emptyPlaceholder;
+  try {
+    return date.toLocaleDateString(locale, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    // Unrecognized BCP-47 tag — fall through to en-US.
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  }
 };
 
 const calculateTripDuration = (start: string, end: string): number => {
@@ -67,12 +89,41 @@ const calculateTripDuration = (start: string, end: string): number => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
 };
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+/**
+ * Build localized month + weekday arrays for the calendar grid via Intl.
+ * Memoized at the component level (via useMemo) so we don't allocate on
+ * every render. Falls back to English on any Intl explosion.
+ */
+function buildCalendarLabels(locale: string): {
+  months: string[];
+  weekdays: string[];
+} {
+  try {
+    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
+    const months = Array.from({ length: 12 }, (_, i) =>
+      monthFormatter.format(new Date(2024, i, 15))
+    );
+    // Weekdays in narrow form (Su/Mo/Tu/We/...) — start from Sunday to
+    // match the grid layout below.
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
+    // 2024-01-07 is a Sunday — use it as the seed for day-of-week iteration.
+    const sunday = new Date(2024, 0, 7);
+    const weekdays = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(sunday);
+      d.setDate(sunday.getDate() + i);
+      return weekdayFormatter.format(d);
+    });
+    return { months, weekdays };
+  } catch {
+    return {
+      months: [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ],
+      weekdays: ["S", "M", "T", "W", "T", "F", "S"],
+    };
+  }
+}
 
 export default function DateRangePicker({
   startDate,
@@ -83,6 +134,17 @@ export default function DateRangePicker({
   minDate,
   className = "",
 }: DateRangePickerProps) {
+  // **2026-05-25**: localized to IT + ES. Pre-fix, every label, the
+  // placeholder, the calendar header caption, the months and weekday
+  // headings, and the day/night plurals were hardcoded English.
+  const locale = useLocale();
+  const t = useTranslations("trips.wizard.datePicker");
+  const { months: MONTHS, weekdays: WEEKDAYS } = useMemo(
+    () => buildCalendarLabels(locale),
+    [locale]
+  );
+  const emptyDateLabel = t("selectDate");
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectingStart, setSelectingStart] = useState(true);
   const [viewDate, setViewDate] = useState(() => {
@@ -310,10 +372,10 @@ export default function DateRangePicker({
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-0.5">
-              Check-in
+              {t("checkInLabel")}
             </div>
             <div className={`font-semibold truncate ${startDate ? "text-slate-900" : "text-slate-400"}`}>
-              {formatDisplayDate(startDate)}
+              {formatDisplayDate(startDate, locale, emptyDateLabel)}
             </div>
           </div>
           <div className="absolute top-2 right-2">
@@ -350,10 +412,10 @@ export default function DateRangePicker({
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-0.5">
-              Check-out
+              {t("checkOutLabel")}
             </div>
             <div className={`font-semibold truncate ${endDate ? "text-slate-900" : "text-slate-400"}`}>
-              {formatDisplayDate(endDate)}
+              {formatDisplayDate(endDate, locale, emptyDateLabel)}
             </div>
           </div>
           <div className="absolute top-2 right-2">
@@ -370,10 +432,10 @@ export default function DateRangePicker({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-sm font-semibold text-amber-700">
-              {tripDuration} {tripDuration === 1 ? "day" : "days"}
+              {t("dayCount", { count: tripDuration })}
             </span>
             <span className="text-sm text-amber-600">
-              · {tripDuration - 1} {tripDuration - 1 === 1 ? "night" : "nights"}
+              · {t("nightCount", { count: tripDuration - 1 })}
             </span>
           </div>
         </div>
@@ -382,7 +444,7 @@ export default function DateRangePicker({
       {/* Max days hint */}
       {tripDuration === 0 && (
         <p className="mt-2 text-xs text-slate-400 text-center">
-          Select dates for your trip (max {maxDays} days)
+          {t("maxDaysHint", { days: maxDays })}
         </p>
       )}
 
@@ -404,7 +466,7 @@ export default function DateRangePicker({
                 {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
               </div>
               <div className="text-xs text-slate-500">
-                {selectingStart ? "Select check-in date" : "Select check-out date"}
+                {selectingStart ? t("selectCheckInDate") : t("selectCheckOutDate")}
               </div>
             </div>
             <button
