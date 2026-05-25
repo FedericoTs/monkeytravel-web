@@ -130,21 +130,185 @@ export function getSeasonalVibeSuggestions(
   return suggestions.slice(0, 2); // Return max 2 suggestions
 }
 
-// Major world holidays by month (simplified)
-export const MAJOR_HOLIDAYS: Record<number, string[]> = {
-  1: ["New Year's Day", "Three Kings Day"],
-  2: ["Valentine's Day", "Lunar New Year (varies)", "Carnival (varies)"],
-  3: ["St. Patrick's Day", "Holi (varies)"],
-  4: ["Easter (varies)", "Earth Day"],
-  5: ["Labor Day (varies)", "Mother's Day (varies)"],
-  6: ["Summer Solstice"],
-  7: ["Independence Day (US)", "Bastille Day (France)"],
-  8: ["Ferragosto (Italy)"],
-  9: ["Oktoberfest begins (Germany)", "Mid-Autumn Festival (varies)"],
-  10: ["Halloween", "Diwali (varies)"],
-  11: ["Day of the Dead (Mexico)", "Thanksgiving (US)"],
-  12: ["Christmas", "Hanukkah (varies)", "New Year's Eve"],
+// ---------------------------------------------------------------------------
+// Country-aware holiday data.
+// **2026-05-24 live-test fix:** the previous data was a flat list keyed by
+// month, with the only filter being "drop (US) holidays unless destination
+// is US". This produced absurd output like "Day of the Dead (Mexico)" on a
+// trip to Reykjavik and "Diwali" on a trip to Lisbon.
+//
+// New model: each entry has an optional `countries` allowlist. Empty / undefined
+// means the holiday is globally observed (e.g. New Year, Christmas in most of
+// the world). Otherwise we only surface the holiday when the destination's
+// country code is in the list.
+// ---------------------------------------------------------------------------
+
+interface HolidayEntry {
+  /** Display label (no "(US)" or "(Mexico)" suffix — we infer that from context). */
+  name: string;
+  /**
+   * ISO-3166-1 alpha-2 country codes where this holiday is widely observed.
+   * Omit (undefined) for genuinely global holidays.
+   */
+  countries?: string[];
+}
+
+export const HOLIDAYS_BY_MONTH: Record<number, HolidayEntry[]> = {
+  1: [
+    { name: "New Year's Day" },
+    { name: "Three Kings Day", countries: ["ES", "IT", "MX", "AR", "PT"] },
+    { name: "Lunar New Year (varies)", countries: ["CN", "VN", "KR", "SG", "TW", "MY"] },
+  ],
+  2: [
+    { name: "Valentine's Day" },
+    { name: "Carnival (varies)", countries: ["BR", "IT", "DE", "PT", "ES", "TT"] },
+  ],
+  3: [
+    { name: "St. Patrick's Day", countries: ["IE", "US", "GB", "CA", "AU"] },
+    { name: "Holi (varies)", countries: ["IN", "NP"] },
+    { name: "Las Fallas (Spain)", countries: ["ES"] },
+  ],
+  4: [
+    { name: "Easter (varies)" }, // Widely observed in Christian countries
+    { name: "King's Day (Netherlands)", countries: ["NL"] },
+    { name: "Songkran (Thai New Year)", countries: ["TH", "LA", "KH"] },
+  ],
+  5: [
+    { name: "Cinco de Mayo", countries: ["MX", "US"] },
+    { name: "Labor Day (varies)" }, // Many countries, May 1
+    { name: "Mother's Day (varies)" }, // Many countries, second Sunday
+  ],
+  6: [
+    { name: "Summer Solstice" },
+    { name: "Midsummer", countries: ["SE", "FI", "NO", "DK", "IS", "LV", "EE"] },
+    { name: "São João (Portugal)", countries: ["PT"] },
+  ],
+  7: [
+    { name: "Independence Day", countries: ["US"] },
+    { name: "Bastille Day", countries: ["FR"] },
+    { name: "Tour de France (varies)", countries: ["FR"] },
+  ],
+  8: [
+    { name: "Ferragosto", countries: ["IT"] },
+    { name: "Notting Hill Carnival", countries: ["GB"] },
+    { name: "Edinburgh Fringe", countries: ["GB"] },
+  ],
+  9: [
+    { name: "Oktoberfest begins", countries: ["DE"] },
+    { name: "Mid-Autumn Festival", countries: ["CN", "VN", "KR", "TW", "SG", "MY"] },
+  ],
+  10: [
+    { name: "Halloween", countries: ["US", "CA", "GB", "IE", "AU", "NZ"] },
+    { name: "Diwali (varies)", countries: ["IN", "NP", "SG", "MY", "GB"] },
+    { name: "Oktoberfest (ongoing)", countries: ["DE"] },
+    { name: "Republic Day (Portugal)", countries: ["PT"] },
+    { name: "Sports Day", countries: ["JP"] },
+    { name: "Day of the Spanish Nation", countries: ["ES"] },
+    { name: "Canadian Thanksgiving", countries: ["CA"] },
+  ],
+  11: [
+    { name: "Day of the Dead", countries: ["MX"] },
+    { name: "Thanksgiving", countries: ["US"] },
+    { name: "Guy Fawkes Night", countries: ["GB"] },
+    // Widely observed in Catholic countries + Latin America (Nov 1).
+    {
+      name: "All Saints' Day",
+      countries: ["ES", "PT", "IT", "FR", "PL", "AT", "BE", "DE", "MX", "BR", "AR", "CL", "CO", "PE", "GR", "HR", "HU"],
+    },
+    { name: "Singles' Day", countries: ["CN"] },
+    { name: "Bonfire Night", countries: ["GB"] }, // alt name for Guy Fawkes
+    { name: "Diwali (early Nov varies)", countries: ["IN", "NP", "SG", "MY"] },
+  ],
+  12: [
+    { name: "Christmas" }, // Widely celebrated
+    { name: "Hanukkah (varies)", countries: ["IL", "US"] },
+    { name: "New Year's Eve" },
+    { name: "Boxing Day", countries: ["GB", "CA", "AU", "NZ", "IE"] },
+  ],
 };
+
+/**
+ * Best-effort destination → ISO-3166-1 alpha-2 country code.
+ *
+ * Pattern-matches a basket of common country names + major-city names. Not
+ * exhaustive — designed to cover the destinations Gemini commonly returns
+ * from Start Anywhere extraction. Returns null when we can't confidently
+ * place the destination — callers then fall back to ONLY-global holidays.
+ *
+ * Order matters: more specific patterns first (e.g. "United Kingdom" must
+ * match before standalone "United" might collide with "United States").
+ */
+export function destinationCountryCode(destination: string): string | null {
+  const d = (destination || "").toLowerCase();
+  if (!d) return null;
+
+  // Country-name matches — explicit and unambiguous.
+  // Listed roughly by traffic volume in the planner.
+  if (/\bitaly\b|\brome\b|\bvenice\b|\bflorence\b|\bmilan\b|\bnaples\b|\bsicily\b|\btuscany\b/.test(d)) return "IT";
+  if (/\bfrance\b|\bparis\b|\blyon\b|\bmarseille\b|\bnice\b|\bbordeaux\b|\bprovence\b/.test(d)) return "FR";
+  if (/\bspain\b|\bmadrid\b|\bbarcelona\b|\bseville\b|\bvalencia\b|\bgranada\b|\bmallorca\b|\bibiza\b/.test(d)) return "ES";
+  if (/\bportugal\b|\blisbon\b|\bporto\b|\bmadeira\b|\balgarve\b/.test(d)) return "PT";
+  if (/\bgermany\b|\bberlin\b|\bmunich\b|\bhamburg\b|\bfrankfurt\b|\bcologne\b|\bdresden\b/.test(d)) return "DE";
+  if (/\bnetherlands\b|\bholland\b|\bamsterdam\b|\brotterdam\b|\butrecht\b/.test(d)) return "NL";
+  if (/\bbelgium\b|\bbrussels\b|\bbruges\b|\bantwerp\b|\bghent\b/.test(d)) return "BE";
+  if (/\bswitzerland\b|\bzurich\b|\bgeneva\b|\binterlaken\b|\blucerne\b/.test(d)) return "CH";
+  if (/\baustria\b|\bvienna\b|\bsalzburg\b|\binnsbruck\b/.test(d)) return "AT";
+  if (/\bgreece\b|\bathens\b|\bsantorini\b|\bmykonos\b|\bcrete\b|\brhodes\b/.test(d)) return "GR";
+  if (/\bunited kingdom\b|\bgreat britain\b|\bengland\b|\bscotland\b|\bwales\b|\blondon\b|\bedinburgh\b|\bmanchester\b|\bliverpool\b|\bglasgow\b|\bcardiff\b/.test(d)) return "GB";
+  if (/\bireland\b|\bdublin\b|\bgalway\b|\bcork\b/.test(d)) return "IE";
+  if (/\bnorway\b|\boslo\b|\bbergen\b|\btromsø\b|\btromso\b/.test(d)) return "NO";
+  if (/\bsweden\b|\bstockholm\b|\bgothenburg\b/.test(d)) return "SE";
+  if (/\bdenmark\b|\bcopenhagen\b|\baarhus\b/.test(d)) return "DK";
+  if (/\bfinland\b|\bhelsinki\b|\brovaniemi\b/.test(d)) return "FI";
+  if (/\biceland\b|\breykjavik\b/.test(d)) return "IS";
+  if (/\bczech\b|\bprague\b/.test(d)) return "CZ";
+  if (/\bpoland\b|\bwarsaw\b|\bkrakow\b|\bcracow\b|\bgdansk\b/.test(d)) return "PL";
+  if (/\bhungary\b|\bbudapest\b/.test(d)) return "HU";
+  if (/\bcroatia\b|\bzagreb\b|\bdubrovnik\b|\bsplit\b/.test(d)) return "HR";
+  if (/\bturkey\b|\bistanbul\b|\bcappadocia\b|\bantalya\b/.test(d)) return "TR";
+  if (/\brussia\b|\bmoscow\b|\bst\.? petersburg\b/.test(d)) return "RU";
+
+  // Americas
+  if (/\busa\b|united states|\bamerica\b|new york|\blos angeles\b|chicago|\bmiami\b|san francisco|\bvegas\b|\borlando\b|\bboston\b|\bseattle\b|\bhawaii\b/.test(d)) return "US";
+  if (/\bcanada\b|toronto|vancouver|montreal|quebec|banff/.test(d)) return "CA";
+  if (/\bmexico\b|cancun|cozumel|tulum|cabo|oaxaca|guadalajara/.test(d)) return "MX";
+  if (/\bbrazil\b|\brio de janeiro\b|\brio\b|sao paulo|salvador|brasilia/.test(d)) return "BR";
+  if (/\bargentina\b|buenos aires|patagonia|mendoza/.test(d)) return "AR";
+  if (/\bchile\b|santiago|valparaiso|atacama/.test(d)) return "CL";
+  if (/\bperu\b|lima|cusco|machu picchu/.test(d)) return "PE";
+  if (/\bcolombia\b|bogota|medellin|cartagena/.test(d)) return "CO";
+
+  // Asia
+  if (/\bjapan\b|\btokyo\b|\bkyoto\b|\bosaka\b|\bhokkaido\b|\bokinawa\b/.test(d)) return "JP";
+  if (/\bchina\b|\bbeijing\b|\bshanghai\b|\bguangzhou\b|\bxi'?an\b|\bchengdu\b/.test(d)) return "CN";
+  if (/\bsouth korea\b|\bkorea\b|\bseoul\b|\bbusan\b/.test(d)) return "KR";
+  if (/\bthailand\b|\bbangkok\b|\bphuket\b|\bchiang mai\b|\bkrabi\b/.test(d)) return "TH";
+  if (/\bvietnam\b|\bhanoi\b|\bho chi minh\b|\bda nang\b|\bhoi an\b/.test(d)) return "VN";
+  if (/\bindonesia\b|\bbali\b|\bjakarta\b|\byogyakarta\b/.test(d)) return "ID";
+  if (/\bmalaysia\b|\bkuala lumpur\b|\bpenang\b/.test(d)) return "MY";
+  if (/\bsingapore\b/.test(d)) return "SG";
+  if (/\bphilippines\b|\bmanila\b|\bcebu\b|\bpalawan\b/.test(d)) return "PH";
+  if (/\bindia\b|\bdelhi\b|\bmumbai\b|\bgoa\b|\bjaipur\b|\bbangalore\b|\bagra\b/.test(d)) return "IN";
+  if (/\bnepal\b|\bkathmandu\b/.test(d)) return "NP";
+  if (/\bcambodia\b|\bsiem reap\b|\bphnom penh\b|\bangkor\b/.test(d)) return "KH";
+  if (/\blaos\b|\bluang prabang\b|\bvientiane\b/.test(d)) return "LA";
+  if (/\bsri lanka\b|\bcolombo\b|\bkandy\b/.test(d)) return "LK";
+  if (/\bisrael\b|\btel aviv\b|\bjerusalem\b/.test(d)) return "IL";
+  if (/\buae\b|emirates|\bdubai\b|\babu dhabi\b/.test(d)) return "AE";
+
+  // Oceania
+  if (/\baustralia\b|\bsydney\b|\bmelbourne\b|\bbrisbane\b|\bperth\b|\buluru\b/.test(d)) return "AU";
+  if (/\bnew zealand\b|\bauckland\b|\bwellington\b|\bqueenstown\b/.test(d)) return "NZ";
+
+  // Africa
+  if (/\bmorocco\b|\bmarrakech\b|\bcasablanca\b|\bfez\b|\bfes\b/.test(d)) return "MA";
+  if (/\begypt\b|\bcairo\b|\balexandria\b|\bluxor\b|\baswan\b/.test(d)) return "EG";
+  if (/\bsouth africa\b|\bcape town\b|\bjohannesburg\b|\bkruger\b/.test(d)) return "ZA";
+  if (/\bkenya\b|\bnairobi\b|\bmaasai mara\b/.test(d)) return "KE";
+  if (/\btanzania\b|\bzanzibar\b|\bserengeti\b|\bkilimanjaro\b/.test(d)) return "TZ";
+
+  return null;
+}
 
 // Crowd level estimation based on season and holidays
 export function estimateCrowdLevel(
@@ -216,30 +380,54 @@ export function getAverageTemp(
   }
 }
 
+/**
+ * Pick the holidays that actually apply to the given destination + month.
+ *
+ * - Entries with no `countries` list are global → always kept.
+ * - Entries with a `countries` list are kept only if the destination's
+ *   resolved country code is in the list.
+ * - If the destination can't be mapped to a country, we keep ONLY the
+ *   global holidays — better to under-show than to show "Day of the Dead"
+ *   for a trip to a place we don't recognize.
+ *
+ * Exported for testing + reuse in other surfaces.
+ */
+export function relevantHolidaysForDestination(
+  destination: string,
+  month: number
+): string[] {
+  const entries = HOLIDAYS_BY_MONTH[month] || [];
+  const country = destinationCountryCode(destination);
+  return entries
+    .filter((h) => {
+      if (!h.countries || h.countries.length === 0) return true;
+      if (!country) return false; // unknown destination → only global
+      return h.countries.includes(country);
+    })
+    .map((h) => h.name);
+}
+
 // Build complete seasonal context
 export function buildSeasonalContext(
   destination: string,
   startDate: string,
   latitude?: number
 ): SeasonalContext {
-  const date = new Date(startDate);
+  // Parse YYYY-MM-DD as local midnight (not UTC) so we don't shift -1 day
+  // in negative-offset zones — same bug class fixed elsewhere on 2026-05-24.
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
+  const date = m
+    ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+    : new Date(startDate);
   const month = date.getMonth() + 1;
 
   // Default to northern hemisphere if latitude unknown
   const hemisphere = latitude ? getHemisphere(latitude) : "northern";
   const season = getSeason(date, hemisphere);
 
-  // Get holidays for this month
-  const holidays = MAJOR_HOLIDAYS[month] || [];
-
-  // Filter holidays that might be relevant (simplified)
-  const relevantHolidays = holidays.filter(
-    (h) =>
-      !h.includes("(US)") ||
-      destination.toLowerCase().includes("usa") ||
-      destination.toLowerCase().includes("united states") ||
-      destination.toLowerCase().includes("america")
-  );
+  // Destination-aware holiday filter (replaces the old (US)-only hack
+  // that surfaced "Day of the Dead (Mexico)" on a trip to Reykjavik).
+  const relevantHolidays = relevantHolidaysForDestination(destination, month);
 
   return {
     season,
@@ -251,3 +439,17 @@ export function buildSeasonalContext(
     crowdLevel: estimateCrowdLevel(season, relevantHolidays, destination),
   };
 }
+
+/**
+ * Legacy export kept for backward compat — some callers may import the
+ * old flat list. New code should use HOLIDAYS_BY_MONTH (typed entries)
+ * or relevantHolidaysForDestination() (filtered names).
+ *
+ * @deprecated Use HOLIDAYS_BY_MONTH + destinationCountryCode instead.
+ */
+export const MAJOR_HOLIDAYS: Record<number, string[]> = Object.fromEntries(
+  Object.entries(HOLIDAYS_BY_MONTH).map(([month, entries]) => [
+    Number(month),
+    entries.map((e) => e.name),
+  ])
+);
