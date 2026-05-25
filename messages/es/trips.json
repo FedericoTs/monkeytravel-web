@@ -36,6 +36,25 @@
     "step4": {
       "title": "Ultimos detalles",
       "subtitle": "Configura tu presupuesto, ritmo y requisitos especiales"
+    },
+    "result": {
+      "tripOverview": "Resumen del Viaje",
+      "viewCards": "Tarjetas",
+      "viewTimeline": "Cronología",
+      "hideMap": "Ocultar Mapa",
+      "showMap": "Mostrar Mapa",
+      "startOver": "Empezar de Nuevo",
+      "regenerate": "Regenerar",
+      "saveTrip": "Guardar Viaje",
+      "saving": "Guardando...",
+      "duration": "Duración",
+      "estBudget": "Presupuesto Estimado",
+      "activities": "Actividades",
+      "pace": "Ritmo",
+      "days": "{count, plural, one {# día} other {# días}}",
+      "dayLabel": "Día {n}",
+      "packingSuggestions": "Sugerencias de Equipaje",
+      "dailyBudget": "Presupuesto Estimado"
     }
   },
   "vibes": {

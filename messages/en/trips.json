@@ -36,6 +36,25 @@
     "step4": {
       "title": "Final details",
       "subtitle": "Set your budget, pace, and any special requirements"
+    },
+    "result": {
+      "tripOverview": "Trip Overview",
+      "viewCards": "Cards",
+      "viewTimeline": "Timeline",
+      "hideMap": "Hide Map",
+      "showMap": "Show Map",
+      "startOver": "Start Over",
+      "regenerate": "Regenerate",
+      "saveTrip": "Save Trip",
+      "saving": "Saving...",
+      "duration": "Duration",
+      "estBudget": "Est. Budget",
+      "activities": "Activities",
+      "pace": "Pace",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "dayLabel": "Day {n}",
+      "packingSuggestions": "Packing Suggestions",
+      "dailyBudget": "Est. Budget"
     }
   },
   "vibes": {

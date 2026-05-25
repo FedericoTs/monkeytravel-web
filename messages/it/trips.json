@@ -36,6 +36,25 @@
     "step4": {
       "title": "Ultimi dettagli",
       "subtitle": "Imposta il tuo budget, ritmo e requisiti speciali"
+    },
+    "result": {
+      "tripOverview": "Panoramica del Viaggio",
+      "viewCards": "Schede",
+      "viewTimeline": "Linea Temporale",
+      "hideMap": "Nascondi Mappa",
+      "showMap": "Mostra Mappa",
+      "startOver": "Ricomincia",
+      "regenerate": "Rigenera",
+      "saveTrip": "Salva Viaggio",
+      "saving": "Salvataggio...",
+      "duration": "Durata",
+      "estBudget": "Budget Stimato",
+      "activities": "Attività",
+      "pace": "Ritmo",
+      "days": "{count, plural, one {# giorno} other {# giorni}}",
+      "dayLabel": "Giorno {n}",
+      "packingSuggestions": "Cosa Mettere in Valigia",
+      "dailyBudget": "Budget Stimato"
     }
   },
   "vibes": {

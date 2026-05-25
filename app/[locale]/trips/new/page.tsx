@@ -1100,7 +1100,7 @@ export default function NewTripPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Start Over
+              {t("wizard.result.startOver")}
             </button>
 
             {/* Trip Summary */}
@@ -1167,11 +1167,11 @@ export default function NewTripPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Saving...
+                      {t("wizard.result.saving")}
                     </>
                   ) : (
                     <>
-                      Save Trip
+                      {t("wizard.result.saveTrip")}
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
@@ -1246,11 +1246,11 @@ export default function NewTripPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Saving...
+                    {t("wizard.result.saving")}
                   </>
                 ) : (
                   <>
-                    Save Trip
+                    {t("wizard.result.saveTrip")}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -1266,7 +1266,7 @@ export default function NewTripPage() {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-semibold text-slate-900">Trip Overview</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
                 <span className="text-sm text-slate-500 line-clamp-2 sm:line-clamp-1">
                   {generatedItinerary.destination.weather_note}
                 </span>
@@ -1285,7 +1285,7 @@ export default function NewTripPage() {
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    Cards
+                    {t("wizard.result.viewCards")}
                   </button>
                   <button
                     onClick={() => setResultViewMode("timeline")}
@@ -1295,14 +1295,14 @@ export default function NewTripPage() {
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    Timeline
+                    {t("wizard.result.viewTimeline")}
                   </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowMap((v) => !v)}
-                  title={showMap ? "Hide Map" : "Show Map"}
+                  title={showMap ? t("wizard.result.hideMap") : t("wizard.result.showMap")}
                   aria-pressed={showMap}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     showMap
@@ -1310,7 +1310,7 @@ export default function NewTripPage() {
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
-                  {showMap ? "Hide Map" : "Show Map"}
+                  {showMap ? t("wizard.result.hideMap") : t("wizard.result.showMap")}
                 </button>
               </div>
             </div>
@@ -1348,11 +1348,11 @@ export default function NewTripPage() {
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">Duration</div>
-              <div className="font-semibold text-xl text-slate-900">{generatedItinerary.days.length} days</div>
+              <div className="text-sm text-slate-500">{t("wizard.result.duration")}</div>
+              <div className="font-semibold text-xl text-slate-900">{t("wizard.result.days", { count: generatedItinerary.days.length })}</div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">Est. Budget</div>
+              <div className="text-sm text-slate-500">{t("wizard.result.estBudget")}</div>
               <div className="font-semibold text-xl text-slate-900">
                 {convertCurrency(
                   generatedItinerary.trip_summary.total_estimated_cost,
@@ -1361,13 +1361,13 @@ export default function NewTripPage() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">Activities</div>
+              <div className="text-sm text-slate-500">{t("wizard.result.activities")}</div>
               <div className="font-semibold text-xl text-slate-900">
                 {generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0)}
               </div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">Pace</div>
+              <div className="text-sm text-slate-500">{t("wizard.result.pace")}</div>
               <div className="font-semibold text-xl text-slate-900 capitalize">{pace}</div>
             </div>
           </div>
@@ -1438,13 +1438,13 @@ export default function NewTripPage() {
                       {day.day_number}
                     </div>
                     <div>
-                      <h2 className="font-bold text-xl text-slate-900">Day {day.day_number}</h2>
+                      <h2 className="font-bold text-xl text-slate-900">{t("wizard.result.dayLabel", { n: day.day_number })}</h2>
                       {day.theme && <p className="text-slate-500 text-sm">{day.theme}</p>}
                     </div>
                   </div>
                   {day.daily_budget && (
                     <div className="ml-auto text-right">
-                      <div className="text-sm text-slate-500">Est. Budget</div>
+                      <div className="text-sm text-slate-500">{t("wizard.result.dailyBudget")}</div>
                       <div className="font-semibold text-slate-900">
                         {convertCurrency(
                           day.daily_budget.total,
@@ -1568,7 +1568,7 @@ export default function NewTripPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                Packing Suggestions
+                {t("wizard.result.packingSuggestions")}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {generatedItinerary.trip_summary.packing_suggestions.map((item) => (
