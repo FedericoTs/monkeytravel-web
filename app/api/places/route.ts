@@ -440,7 +440,24 @@ export async function GET(request: NextRequest) {
     const coverPhoto = place.photos?.[0];
     const coverImageUrl = coverPhoto ? proxyUrl(coverPhoto.name, 1920, 1200) : null;
 
-    const galleryPhotos = (place.photos?.slice(1, 5) || []).map(
+    // **2026-05-25 P1 fix**: Google returns photos at their NATIVE aspect
+    // ratio capped to the requested box, so a portrait original asked for
+    // at 200x150 comes back as 68x150 — looks empty/letterboxed in our
+    // landscape gallery tiles. Filter to roughly-landscape photos before
+    // building the gallery so users see meaningful imagery.
+    const isLandscapeFriendly = (p: PlacePhoto): boolean => {
+      if (!p.widthPx || !p.heightPx) return true; // Be permissive on missing meta
+      const ratio = p.widthPx / p.heightPx;
+      return ratio >= 1.1; // Allow square-ish to wide; reject portraits
+    };
+
+    const candidates: PlacePhoto[] = (place.photos || []).slice(1);
+    const landscape = candidates.filter(isLandscapeFriendly);
+    // Fall back to any photos if filtering left nothing — better something
+    // (even an awkward portrait) than an empty gallery.
+    const galleryPhotosSource = (landscape.length >= 3 ? landscape : candidates).slice(0, 4);
+
+    const galleryPhotos = galleryPhotosSource.map(
       (photo: PlacePhoto) => ({
         url: proxyUrl(photo.name, 800, 600),
         thumbnailUrl: proxyUrl(photo.name, 200, 150),

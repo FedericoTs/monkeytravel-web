@@ -428,15 +428,23 @@ export default function NewTripPage() {
       const hasPendingGeneration = localStorage.getItem("pendingTripGeneration") === "true";
 
       if (hasPendingGeneration) {
-        // Auto-restore the draft silently (no banner) for seamless post-auth experience
-        // The draft contains form state (destination, dates, vibes, budget) but NOT generated itinerary
+        // Auto-restore the draft silently (no banner) for seamless post-auth experience.
+        // **2026-05-25 P0 fix**: previously only restored form state and dropped
+        // `draft.generatedItinerary`, then the useEffect at line ~380 would see
+        // !generatedItinerary and re-call handleGenerate(), producing a DIFFERENT
+        // itinerary than the one the user just saw and clicked Save on. Result:
+        // the trip the user intended to save was silently replaced. Now we
+        // restore the itinerary too so handleGenerate is NOT re-run and the
+        // post-auth Save Trip click persists the original itinerary.
         setDestination(draft.destination);
         setStartDate(draft.startDate);
         setEndDate(draft.endDate);
         setPace(draft.pace as "relaxed" | "moderate" | "active");
         setSelectedVibes(draft.vibes as TripVibe[]);
         setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
-        // Note: draft.generatedItinerary is null when saved before auth
+        if (draft.generatedItinerary) {
+          setGeneratedItinerary(draft.generatedItinerary);
+        }
         // Don't restore coordinates - they'll be re-fetched if needed
         setDraftAutoRestored(true);
         // Don't show the banner since we're auto-restoring

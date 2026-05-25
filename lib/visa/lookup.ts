@@ -17,9 +17,9 @@ import type {
   VisaStatus,
 } from "./types";
 
-// The JSON ships with ISO-2 codes in lowercase keys (e.g. "us", "gb").
-// We normalize inputs to lowercase before lookup and uppercase outputs
-// for display.
+// The JSON ships with ISO-2 codes in UPPERCASE keys (e.g. "US", "GB"
+// — verified 2026-05-25 by inspecting the snapshot). We normalize
+// inputs to uppercase before lookup.
 const matrix = matrixData as Record<string, Record<string, RawVisaCell | number>>;
 
 /**
@@ -53,14 +53,14 @@ export function lookupVisaRequirement(
   passportIso2: string,
   destinationIso2: string
 ): VisaLookupResult | null {
-  const from = passportIso2?.toLowerCase();
-  const to = destinationIso2?.toLowerCase();
+  const from = passportIso2?.toUpperCase();
+  const to = destinationIso2?.toUpperCase();
   if (!from || !to) return null;
 
   if (from === to) {
     return {
-      passport: from.toUpperCase(),
-      destination: to.toUpperCase(),
+      passport: from,
+      destination: to,
       status: "same country",
     };
   }
@@ -75,24 +75,24 @@ export function lookupVisaRequirement(
   if (typeof cell === "number") {
     if (cell === -1) {
       return {
-        passport: from.toUpperCase(),
-        destination: to.toUpperCase(),
+        passport: from,
+        destination: to,
         status: "same country",
       };
     }
     // Some forks use raw number cells for visa-free days. Map them
     // forward so we stay forward-compatible.
     return {
-      passport: from.toUpperCase(),
-      destination: to.toUpperCase(),
+      passport: from,
+      destination: to,
       status: "visa free",
       days: cell,
     };
   }
 
   return {
-    passport: from.toUpperCase(),
-    destination: to.toUpperCase(),
+    passport: from,
+    destination: to,
     status: coerceStatus(cell.status),
     days: typeof cell.days === "number" ? cell.days : undefined,
   };
@@ -103,6 +103,8 @@ export function lookupVisaRequirement(
  * select options for both passport and destination inputs.
  */
 export function getKnownIso2Codes(): string[] {
+  // Keys are already uppercase in the snapshot; the explicit toUpperCase
+  // is defensive in case a future refresh ships lowercase keys.
   return Object.keys(matrix).map((c) => c.toUpperCase()).sort();
 }
 
