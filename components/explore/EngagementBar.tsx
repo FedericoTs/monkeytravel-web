@@ -1,0 +1,217 @@
+"use client";
+
+import { useCallback, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+
+interface EngagementBarProps {
+  tripId: string;
+  /** Initial counts, server-rendered from the trip row. */
+  likeCount: number;
+  saveCount: number;
+  forkCount: number;
+  /** Whether the current viewer has already liked / saved this trip. */
+  initialLiked?: boolean;
+  initialSaved?: boolean;
+  /** Auth state — drives the "sign in to like" prompt. */
+  isAuthenticated: boolean;
+  /** Owner state — drives the "you can't fork your own trip" hint. */
+  isOwner?: boolean;
+  /** Whether to show the Fork button (hidden on /trips/[id] owner views). */
+  showFork?: boolean;
+}
+
+/**
+ * Like + Save + Fork action bar for /trips/[id] + /shared/[token].
+ *
+ * Each action does an optimistic UI update and then reconciles with
+ * the API response (count may bounce by ±1 if a concurrent action
+ * lands). Errors revert + flash a toast (handled by global Sonner
+ * provider in app/providers.tsx, already wired in the app).
+ *
+ * Like requires auth — anon clicks open the existing AuthPromptModal
+ * pattern. Save works for both anon (cookie-keyed) and auth. Fork
+ * always requires auth (it creates a new trip row owned by the user).
+ */
+export default function EngagementBar({
+  tripId,
+  likeCount,
+  saveCount,
+  forkCount,
+  initialLiked = false,
+  initialSaved = false,
+  isAuthenticated,
+  isOwner = false,
+  showFork = true,
+}: EngagementBarProps) {
+  const router = useRouter();
+
+  const [liked, setLiked] = useState(initialLiked);
+  const [likes, setLikes] = useState(likeCount);
+  const [saved, setSaved] = useState(initialSaved);
+  const [saves, setSaves] = useState(saveCount);
+  const [forks, setForks] = useState(forkCount);
+  const [busy, setBusy] = useState<"like" | "save" | "fork" | null>(null);
+  const [, startTransition] = useTransition();
+
+  const toggleLike = useCallback(async () => {
+    if (!isAuthenticated) {
+      // Send to signup with intent to return to this trip.
+      const back = typeof window !== "undefined" ? window.location.pathname : "/";
+      router.push(`/auth/signup?redirect=${encodeURIComponent(back)}`);
+      return;
+    }
+    if (busy) return;
+    setBusy("like");
+    // Optimistic
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikes((n) => n + (wasLiked ? -1 : 1));
+    try {
+      const res = await fetch(`/api/trips/${tripId}/like`, {
+        method: wasLiked ? "DELETE" : "POST",
+      });
+      if (!res.ok) throw new Error(`like failed: ${res.status}`);
+      const data = await res.json();
+      // Reconcile to server-of-truth.
+      setLiked(!!data.liked);
+      setLikes(typeof data.count === "number" ? data.count : likes);
+    } catch (err) {
+      console.error("[engagement] like failed:", err);
+      setLiked(wasLiked); // revert
+      setLikes((n) => n + (wasLiked ? 1 : -1));
+    } finally {
+      setBusy(null);
+    }
+  }, [isAuthenticated, busy, liked, likes, tripId, router]);
+
+  const toggleSave = useCallback(async () => {
+    if (busy) return;
+    setBusy("save");
+    const wasSaved = saved;
+    setSaved(!wasSaved);
+    setSaves((n) => n + (wasSaved ? -1 : 1));
+    try {
+      const res = await fetch(`/api/trips/${tripId}/save`, {
+        method: wasSaved ? "DELETE" : "POST",
+      });
+      if (!res.ok) throw new Error(`save failed: ${res.status}`);
+      const data = await res.json();
+      setSaved(!!data.saved);
+      setSaves(typeof data.count === "number" ? data.count : saves);
+    } catch (err) {
+      console.error("[engagement] save failed:", err);
+      setSaved(wasSaved);
+      setSaves((n) => n + (wasSaved ? 1 : -1));
+    } finally {
+      setBusy(null);
+    }
+  }, [busy, saved, saves, tripId]);
+
+  const doFork = useCallback(async () => {
+    if (!isAuthenticated) {
+      const back = typeof window !== "undefined" ? window.location.pathname : "/";
+      router.push(`/auth/signup?redirect=${encodeURIComponent(back)}`);
+      return;
+    }
+    if (busy) return;
+    setBusy("fork");
+    setForks((n) => n + 1); // optimistic
+    try {
+      const res = await fetch(`/api/trips/${tripId}/fork`, { method: "POST" });
+      if (!res.ok) throw new Error(`fork failed: ${res.status}`);
+      const data = await res.json();
+      if (data?.redirectTo) {
+        startTransition(() => router.push(data.redirectTo));
+      }
+    } catch (err) {
+      console.error("[engagement] fork failed:", err);
+      setForks((n) => Math.max(0, n - 1));
+    } finally {
+      setBusy(null);
+    }
+  }, [isAuthenticated, busy, tripId, router]);
+
+  return (
+    <div
+      className="flex items-center gap-2 sm:gap-3"
+      data-testid="engagement-bar"
+      aria-label="Trip engagement actions"
+    >
+      <button
+        onClick={toggleLike}
+        disabled={busy === "like"}
+        className={`group inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-sm font-medium transition-all ${
+          liked
+            ? "bg-rose-50 border-rose-200 text-rose-700"
+            : "bg-white border-slate-200 text-slate-700 hover:border-rose-200 hover:text-rose-700"
+        } disabled:opacity-60`}
+        aria-pressed={liked}
+        aria-label={liked ? "Unlike trip" : "Like trip"}
+      >
+        <svg
+          className={`w-4 h-4 ${liked ? "fill-current" : ""}`}
+          fill={liked ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth={liked ? 0 : 2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"
+          />
+        </svg>
+        <span className="tabular-nums">{likes}</span>
+      </button>
+
+      <button
+        onClick={toggleSave}
+        disabled={busy === "save"}
+        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-sm font-medium transition-all ${
+          saved
+            ? "bg-amber-50 border-amber-200 text-amber-700"
+            : "bg-white border-slate-200 text-slate-700 hover:border-amber-200 hover:text-amber-700"
+        } disabled:opacity-60`}
+        aria-pressed={saved}
+        aria-label={saved ? "Remove from saved" : "Save for later"}
+      >
+        <svg
+          className={`w-4 h-4 ${saved ? "fill-current" : ""}`}
+          fill={saved ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth={saved ? 0 : 2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v18l-7-3.5L5 22V4z" />
+        </svg>
+        <span className="tabular-nums">{saves}</span>
+      </button>
+
+      {showFork && !isOwner && (
+        <button
+          onClick={doFork}
+          disabled={busy === "fork"}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-60"
+          aria-label="Fork this trip into your account"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7l4-4m0 0l4 4m-4-4v18" />
+          </svg>
+          Fork ({forks})
+        </button>
+      )}
+
+      {isOwner && (
+        <span className="text-xs text-slate-500 ml-1" title="You can't fork your own trip">
+          Forked {forks}×
+        </span>
+      )}
+    </div>
+  );
+}

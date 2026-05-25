@@ -9,11 +9,18 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
  *
  * **2026-05-25 (Week 1 of /explore UGC build)**: extended the response
  * to include author info + engagement counts (likes/saves/forks) +
- * up to 5 recent-liker avatars per trip. The query stays gated by
- * EXPLORE_UGC_ENABLED env flag during Weeks 1-2; flips on at launch.
+ * Editor's Picks flag. NOTE: this GET is intentionally NOT gated by
+ * EXPLORE_UGC_ENABLED — the existing /explore page (template/featured
+ * trips) is already live + indexed and shouldn't 404 during the rollout
+ * window. Only the WRITE endpoints (like/save/fork/publish/report) are
+ * env-flag-gated.
  */
 export async function GET(request: NextRequest) {
-  if (!isExploreUgcEnabled()) return errors.notFound("Not Found");
+  // Mark the import as used even when the gate is removed — keeps the
+  // import-cleanup pass from removing it (we may flag the GET later if
+  // the catalog grows abuse-prone).
+  void isExploreUgcEnabled;
+
   try {
     const { searchParams } = new URL(request.url);
 
