@@ -68,8 +68,49 @@
   "visaChecker": {
     "breadcrumb": "Visa Checker",
     "h1": "Visa Requirements Checker",
-    "subtitle": "Find out in seconds whether you need a visa for your next trip.",
-    "comingSoonBanner": "Coming soon — we're curating accurate visa data for 30+ passports.",
-    "notifyMe": "Notify me when it launches"
+    "subtitle": "Find out in seconds whether you need a visa for your next trip. Covers 199 passports × 199 destinations.",
+    "passportLabel": "Your passport",
+    "destinationLabel": "Where you're going",
+    "selectPassport": "Select your passport",
+    "selectDestination": "Select destination",
+    "checkButton": "Check requirements",
+    "resultIntro": "If you hold a {passport} passport, going to {destination}:",
+    "status": {
+      "visa free": "✓ Visa-free",
+      "visa free days": "✓ Visa-free for up to {days} days",
+      "visa on arrival": "✓ Visa on arrival",
+      "visa on arrival days": "✓ Visa on arrival ({days} days)",
+      "eta": "✓ Electronic Travel Authorization (eTA)",
+      "eta days": "✓ Electronic Travel Authorization ({days} days)",
+      "e-visa": "📝 e-Visa required (apply online)",
+      "e-visa days": "📝 e-Visa required — up to {days} days stay",
+      "visa required": "📝 Visa required before travel",
+      "no admission": "✗ Entry not permitted",
+      "same country": "You don't need a visa to enter your own country."
+    },
+    "statusExplain": {
+      "visa free": "Just show up with your passport. Always check that your passport has at least 6 months validity from the date of entry.",
+      "visa on arrival": "You can get the visa at the border or airport on arrival. Bring cash for the fee (varies by country, usually $25-100 USD) and check whether you need a return ticket.",
+      "eta": "An online pre-authorization linked to your passport. Apply on the official government site before booking your flight — most are issued within minutes but some take 72 hours.",
+      "e-visa": "Apply online before you travel. Lead times range from 3-30 days depending on the country. Use the official government portal — there are scam sites that mimic them.",
+      "visa required": "You need to apply at the destination's embassy or consulate before traveling. Allow 2-8 weeks for processing. Some countries require an in-person appointment.",
+      "no admission": "Entry is currently not permitted, typically due to a travel ban, sanctions, or active conflict. Situations change — check the latest official guidance.",
+      "same country": ""
+    },
+    "officialSource": "Verify with the official source",
+    "officialSourcePrefix": "Always confirm with the official source before booking:",
+    "ivisaCta": "Apply for your {destination} visa now",
+    "ivisaSubtext": "iVisa handles the paperwork — get pre-filled forms and 24/7 support.",
+    "advisoryTitle": "Current travel advisory",
+    "advisoryUkSource": "Source: UK Foreign, Commonwealth & Development Office",
+    "swapButton": "Swap",
+    "shareLink": "Copy link",
+    "linkCopied": "Link copied",
+    "planTripCta": "Now plan your trip to {destination} →",
+    "disclaimer": "Visa rules change without notice. This tool is a planning aid based on the latest publicly available data — always verify with the official source for your specific situation (purpose of visit, nationality of birth vs. residence, dual citizenship, etc).",
+    "datasetCredit": "Data: imorte/passport-index-data (MIT) · last refreshed {date}",
+    "loadingResult": "Checking...",
+    "noResultTitle": "We don't have data for that pair yet",
+    "noResultSubtitle": "Try a different passport or destination, or check the official embassy site."
   }
 }

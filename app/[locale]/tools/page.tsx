@@ -97,7 +97,7 @@ export default async function ToolsLandingPage({
           : locale === "es"
             ? "Descubre en segundos si necesitas visa."
             : "Find out in seconds whether you need a visa.",
-      live: false,
+      live: true,
     },
   ];
 

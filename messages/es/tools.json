@@ -68,8 +68,49 @@
   "visaChecker": {
     "breadcrumb": "Verificador de Visa",
     "h1": "Verificador de Requisitos de Visa",
-    "subtitle": "Descubre en segundos si necesitas visa para tu próximo viaje.",
-    "comingSoonBanner": "Próximamente — estamos curando datos de visa precisos para más de 30 pasaportes.",
-    "notifyMe": "Avísame cuando esté listo"
+    "subtitle": "Descubre en segundos si necesitas visa para tu próximo viaje. Cubre 199 pasaportes × 199 destinos.",
+    "passportLabel": "Tu pasaporte",
+    "destinationLabel": "A dónde vas",
+    "selectPassport": "Selecciona tu pasaporte",
+    "selectDestination": "Selecciona destino",
+    "checkButton": "Verificar requisitos",
+    "resultIntro": "Con pasaporte de {passport}, para entrar a {destination}:",
+    "status": {
+      "visa free": "✓ Sin visa requerida",
+      "visa free days": "✓ Sin visa hasta {days} días",
+      "visa on arrival": "✓ Visa al llegar",
+      "visa on arrival days": "✓ Visa al llegar ({days} días)",
+      "eta": "✓ Autorización electrónica de viaje (eTA)",
+      "eta days": "✓ Autorización electrónica de viaje ({days} días)",
+      "e-visa": "📝 e-Visa requerida (solicita en línea)",
+      "e-visa days": "📝 e-Visa requerida — estancia hasta {days} días",
+      "visa required": "📝 Visa requerida antes de viajar",
+      "no admission": "✗ Entrada no permitida",
+      "same country": "No necesitas visa para entrar a tu propio país."
+    },
+    "statusExplain": {
+      "visa free": "Solo preséntate con tu pasaporte. Verifica siempre que tenga al menos 6 meses de validez desde la fecha de entrada.",
+      "visa on arrival": "Puedes obtener la visa en el aeropuerto o frontera al llegar. Lleva efectivo para la tasa (varía, normalmente 25-100 USD) y verifica si se requiere boleto de regreso.",
+      "eta": "Una pre-autorización en línea vinculada a tu pasaporte. Solicítala en el sitio oficial del gobierno antes de reservar el vuelo — la mayoría se emite en minutos, pero algunas tardan hasta 72 horas.",
+      "e-visa": "Solicítala en línea antes de viajar. Los tiempos van de 3 a 30 días según el país. Usa el portal oficial del gobierno — existen sitios fraudulentos que los imitan.",
+      "visa required": "Debes solicitarla en la embajada o consulado del destino antes de viajar. Prevé de 2 a 8 semanas para el trámite. Algunos países requieren cita presencial.",
+      "no admission": "Actualmente no se permite la entrada, generalmente por prohibiciones de viaje, sanciones o conflictos activos. Las situaciones cambian — verifica la información oficial más reciente.",
+      "same country": ""
+    },
+    "officialSource": "Verifica con la fuente oficial",
+    "officialSourcePrefix": "Confirma siempre con la fuente oficial antes de reservar:",
+    "ivisaCta": "Solicita tu visa para {destination} ahora",
+    "ivisaSubtext": "iVisa gestiona los trámites — formularios pre-llenados y soporte 24/7.",
+    "advisoryTitle": "Aviso de viaje actual",
+    "advisoryUkSource": "Fuente: UK Foreign, Commonwealth & Development Office",
+    "swapButton": "Invertir",
+    "shareLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado",
+    "planTripCta": "Ahora planifica tu viaje a {destination} →",
+    "disclaimer": "Las reglas de visa cambian sin previo aviso. Esta herramienta es una ayuda a la planificación basada en los últimos datos públicos — verifica siempre con la fuente oficial para tu situación específica (motivo del viaje, ciudadanía de nacimiento vs. residencia, doble nacionalidad, etc).",
+    "datasetCredit": "Datos: imorte/passport-index-data (MIT) · última actualización {date}",
+    "loadingResult": "Verificando...",
+    "noResultTitle": "No tenemos datos para esa combinación",
+    "noResultSubtitle": "Prueba otro pasaporte o destino, o consulta el sitio oficial de la embajada."
   }
 }

@@ -68,8 +68,49 @@
   "visaChecker": {
     "breadcrumb": "Verifica Visto",
     "h1": "Verifica Requisiti Visto",
-    "subtitle": "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio.",
-    "comingSoonBanner": "In arrivo — stiamo curando dati visa accurati per oltre 30 passaporti.",
-    "notifyMe": "Avvisami quando è disponibile"
+    "subtitle": "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio. Copre 199 passaporti × 199 destinazioni.",
+    "passportLabel": "Il tuo passaporto",
+    "destinationLabel": "Dove vai",
+    "selectPassport": "Seleziona il tuo passaporto",
+    "selectDestination": "Seleziona destinazione",
+    "checkButton": "Verifica requisiti",
+    "resultIntro": "Con passaporto {passport}, per andare in {destination}:",
+    "status": {
+      "visa free": "✓ Nessun visto richiesto",
+      "visa free days": "✓ Nessun visto fino a {days} giorni",
+      "visa on arrival": "✓ Visto all'arrivo",
+      "visa on arrival days": "✓ Visto all'arrivo ({days} giorni)",
+      "eta": "✓ Autorizzazione elettronica di viaggio (eTA)",
+      "eta days": "✓ Autorizzazione elettronica di viaggio ({days} giorni)",
+      "e-visa": "📝 e-Visa richiesto (richiesta online)",
+      "e-visa days": "📝 e-Visa richiesto — soggiorno fino a {days} giorni",
+      "visa required": "📝 Visto richiesto prima della partenza",
+      "no admission": "✗ Ingresso non consentito",
+      "same country": "Non serve un visto per entrare nel tuo paese."
+    },
+    "statusExplain": {
+      "visa free": "Basta presentarsi con il passaporto. Verifica sempre che abbia almeno 6 mesi di validità dalla data di ingresso.",
+      "visa on arrival": "Puoi ottenere il visto al confine o in aeroporto all'arrivo. Porta contanti per la tassa (varia, di solito 25-100 USD) e verifica se serve il biglietto di ritorno.",
+      "eta": "Una pre-autorizzazione online legata al passaporto. Richiedi sul sito ufficiale prima di prenotare il volo — di solito si ottiene in pochi minuti, ma alcuni richiedono fino a 72 ore.",
+      "e-visa": "Richiedi online prima di partire. I tempi vanno da 3 a 30 giorni a seconda del paese. Usa il portale ufficiale del governo — esistono siti truffa che li imitano.",
+      "visa required": "Devi richiederlo all'ambasciata o consolato della destinazione prima di partire. Prevedi 2-8 settimane per la procedura. Alcuni paesi richiedono un appuntamento in presenza.",
+      "no admission": "L'ingresso non è attualmente consentito, di solito per divieti di viaggio, sanzioni o conflitti attivi. Le situazioni cambiano — verifica le ultime informazioni ufficiali.",
+      "same country": ""
+    },
+    "officialSource": "Verifica con la fonte ufficiale",
+    "officialSourcePrefix": "Conferma sempre con la fonte ufficiale prima di prenotare:",
+    "ivisaCta": "Richiedi il visto per {destination} ora",
+    "ivisaSubtext": "iVisa gestisce la pratica — moduli precompilati e supporto 24/7.",
+    "advisoryTitle": "Avviso di viaggio attuale",
+    "advisoryUkSource": "Fonte: UK Foreign, Commonwealth & Development Office",
+    "swapButton": "Inverti",
+    "shareLink": "Copia link",
+    "linkCopied": "Link copiato",
+    "planTripCta": "Ora pianifica il tuo viaggio a {destination} →",
+    "disclaimer": "Le regole sui visti cambiano senza preavviso. Questo strumento è un supporto alla pianificazione basato sui dati pubblici più recenti — verifica sempre con la fonte ufficiale per la tua situazione specifica (motivo del viaggio, cittadinanza di nascita vs. residenza, doppia cittadinanza, ecc).",
+    "datasetCredit": "Dati: imorte/passport-index-data (MIT) · ultimo aggiornamento {date}",
+    "loadingResult": "Verifica in corso...",
+    "noResultTitle": "Non abbiamo dati per questa combinazione",
+    "noResultSubtitle": "Prova un altro passaporto o destinazione, o controlla il sito ufficiale dell'ambasciata."
   }
 }
