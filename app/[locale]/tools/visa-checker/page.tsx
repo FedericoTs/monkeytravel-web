@@ -10,19 +10,19 @@ const BASE_URL = "https://monkeytravel.app";
 const META: Record<string, { title: string; description: string }> = {
   en: {
     title:
-      "Visa Requirements Checker — Coming Soon | MonkeyTravel",
+      "Visa Requirements Checker — Coming Soon",
     description:
       "Find out in seconds whether you need a visa for your next trip. Free tool covering 30+ passports. Sign up to be notified at launch.",
   },
   it: {
     title:
-      "Verifica Requisiti Visto — In Arrivo | MonkeyTravel",
+      "Verifica Requisiti Visto — In Arrivo",
     description:
       "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio. Strumento gratuito per oltre 30 passaporti. Iscriviti per essere avvisato al lancio.",
   },
   es: {
     title:
-      "Verificador de Visa — Próximamente | MonkeyTravel",
+      "Verificador de Visa — Próximamente",
     description:
       "Descubre en segundos si necesitas visa para tu próximo viaje. Herramienta gratuita para más de 30 pasaportes. Suscríbete para ser avisado en el lanzamiento.",
   },

@@ -8,19 +8,19 @@ const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
   en: {
-    title: "Free Travel Tools — Packing List, Visa Checker & More | MonkeyTravel",
+    title: "Free Travel Tools — Packing List, Visa Checker & More",
     description:
       "Free travel tools that save you hours of trip planning. AI-personalized packing list, visa requirements, and more. No signup required.",
   },
   it: {
     title:
-      "Strumenti di Viaggio Gratuiti — Lista Bagaglio, Verifica Visto e Altro | MonkeyTravel",
+      "Strumenti di Viaggio Gratuiti — Lista Bagaglio, Verifica Visto e Altro",
     description:
       "Strumenti gratuiti che ti fanno risparmiare ore di pianificazione. Lista bagaglio personalizzata con AI, requisiti visa e altro. Senza registrazione.",
   },
   es: {
     title:
-      "Herramientas de Viaje Gratis — Lista de Equipaje, Verificador de Visa y Más | MonkeyTravel",
+      "Herramientas de Viaje Gratis — Lista de Equipaje, Verificador de Visa y Más",
     description:
       "Herramientas gratuitas que te ahorran horas de planificación. Lista de equipaje con IA, requisitos de visa y más. Sin registro.",
   },

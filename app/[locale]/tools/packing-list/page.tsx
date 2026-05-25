@@ -14,19 +14,19 @@ const BASE_URL = "https://monkeytravel.app";
 const META: Record<string, { title: string; description: string }> = {
   en: {
     title:
-      "Free Packing List Generator — Personalized by AI for Any Trip | MonkeyTravel",
+      "Free Packing List Generator — Personalized by AI for Any Trip",
     description:
       "Get a personalized packing list in 10 seconds. Our AI factors in destination weather, local outlets, and your planned activities. No signup, free forever.",
   },
   it: {
     title:
-      "Generatore Liste Bagaglio Gratuito — Personalizzato dall'AI | MonkeyTravel",
+      "Generatore Liste Bagaglio Gratuito — Personalizzato dall'AI",
     description:
       "Ricevi una lista bagaglio personalizzata in 10 secondi. La nostra AI considera clima, prese elettriche e le tue attività. Gratis, senza registrazione.",
   },
   es: {
     title:
-      "Generador Gratis de Lista de Equipaje — Personalizada por IA | MonkeyTravel",
+      "Generador Gratis de Lista de Equipaje — Personalizada por IA",
     description:
       "Recibe una lista de equipaje personalizada en 10 segundos. Nuestra IA considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
   },
