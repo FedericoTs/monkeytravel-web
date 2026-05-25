@@ -132,6 +132,22 @@ export const FLAG_LISTICLE_CTA_V1 = "listicle-cta-v1";
  */
 export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
 
+/**
+ * /explore UGC trip feed (2026-05-25)
+ * Gates the public-trip-catalog launch — /explore page, publish toggle,
+ * like / save / fork / report API routes, trending block on homepage.
+ * Plan: docs/PLAN_EXPLORE_UGC_FEED.md
+ *
+ * Week 1 build (migrations + APIs) ships behind this flag at 0%. APIs
+ * 404 to anyone not in the cohort. Week 3 launch: 10% → 50% → 100%
+ * over a week while watching:
+ *   - explore_trip_published       (intent)
+ *   - explore_trip_forked          (loop closure)
+ *   - explore_trip_reported        (abuse signal)
+ *   - trip_likes/save insert rate  (engagement)
+ */
+export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================

@@ -1,12 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { isExploreUgcEnabled } from "@/lib/explore/flag";
 
 /**
  * GET /api/explore/trips
- * Returns trending public trips with optional filters
+ * Returns trending public trips with optional filters.
+ *
+ * **2026-05-25 (Week 1 of /explore UGC build)**: extended the response
+ * to include author info + engagement counts (likes/saves/forks) +
+ * up to 5 recent-liker avatars per trip. The query stays gated by
+ * EXPLORE_UGC_ENABLED env flag during Weeks 1-2; flips on at launch.
  */
 export async function GET(request: NextRequest) {
+  if (!isExploreUgcEnabled()) return errors.notFound("Not Found");
   try {
     const { searchParams } = new URL(request.url);
 
@@ -29,7 +36,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Build query
+    // Build query — now includes the new engagement + author columns
+    // shipped in migration 20260525_explore_ugc_feed.sql.
     let query = supabase
       .from("trips")
       .select(`
@@ -47,9 +55,16 @@ export async function GET(request: NextRequest) {
         template_copy_count,
         budget,
         itinerary,
-        trip_meta
+        trip_meta,
+        like_count,
+        save_count,
+        fork_count,
+        author_display_name,
+        author_note,
+        is_editors_pick
       `, { count: "exact" })
       .eq("visibility", "public")
+      .eq("is_hidden", false)
       .not("share_token", "is", null)
       .not("submitted_to_trending_at", "is", null)
       .order("trending_score", { ascending: false })
@@ -128,7 +143,17 @@ export async function GET(request: NextRequest) {
         budgetTier: meta.budget_tier || "balanced",
         trendingScore: trip.trending_score,
         viewCount: trip.view_count || 0,
+        // copyCount kept for backward compat; forkCount is the new
+        // primary signal for UGC.
         copyCount: trip.template_copy_count || 0,
+        likeCount: trip.like_count || 0,
+        saveCount: trip.save_count || 0,
+        forkCount: trip.fork_count || 0,
+        author: {
+          displayName: trip.author_display_name || "Anonymous traveler",
+        },
+        authorNote: trip.author_note || null,
+        isEditorsPick: !!trip.is_editors_pick,
         sharedAt: trip.shared_at,
       };
     });
