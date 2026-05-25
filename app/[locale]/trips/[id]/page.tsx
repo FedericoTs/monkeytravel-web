@@ -4,6 +4,7 @@ import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import type { Metadata } from "next";
 import TripDetailClient from "./TripDetailClient";
+import TripEngagementSection from "@/components/explore/TripEngagementSection";
 
 export async function generateMetadata({
   params,
@@ -92,6 +93,17 @@ export default async function TripDetailPage({
   const cachedTravelDistances = tripMeta.travel_distances;
   const cachedTravelHash = tripMeta.travel_distances_hash;
 
+  // **2026-05-25 (/explore Week 3)**: owner-side engagement bar +
+  // publish toggle. Server-rendered into a prop slot so the existing
+  // TripDetailClient client component doesn't need to know about the
+  // explore feature at all.
+  const isOwnerView = userRole === "owner";
+  const isPublic = trip.visibility === "public" && !trip.is_hidden;
+  const ownerName =
+    typeof user.user_metadata?.display_name === "string"
+      ? (user.user_metadata.display_name as string)
+      : (user.email?.split("@")[0] ?? undefined);
+
   return (
     <TripDetailClient
       trip={{
@@ -115,6 +127,18 @@ export default async function TripDetailPage({
       isCollaborativeTrip={isCollaborativeTrip}
       userRole={userRole}
       collaboratorCount={totalVoters}
+      engagementSlot={
+        <TripEngagementSection
+          tripId={trip.id}
+          likeCount={trip.like_count ?? 0}
+          saveCount={trip.save_count ?? 0}
+          forkCount={trip.fork_count ?? 0}
+          isPublic={isPublic}
+          isOwner={isOwnerView}
+          showPublishToggle={isOwnerView}
+          ownerDisplayName={ownerName}
+        />
+      }
     />
   );
 }

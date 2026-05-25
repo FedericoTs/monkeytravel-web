@@ -33,9 +33,20 @@
     "app/api/admin/*/route.ts": {
       "maxDuration": 30,
       "memory": 256
+    },
+    "app/api/cron/*/route.ts": {
+      "maxDuration": 60,
+      "memory": 256
     }
   },
   "regions": ["iad1"],
+  "crons": [
+    {
+      "//": "Daily — recompute /explore Editor's Picks (age>=7d, fork_count>=5, trending_score>=50). Authenticated via CRON_SECRET env.",
+      "path": "/api/cron/recompute-editors-picks",
+      "schedule": "17 5 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path(.*)",

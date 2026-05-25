@@ -4,6 +4,7 @@ import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
+import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import {
   generateTripSchema,
   generateBreadcrumbSchema,
@@ -100,6 +101,12 @@ export default async function SharedTripPage({ params }: PageProps) {
     { name: trip.title, url: tripUrl },
   ]);
 
+  // **2026-05-25 (/explore Week 3)**: render the engagement bar above
+  // the trip view so anon visitors can like/save/fork without scrolling.
+  // The component no-ops if the explore flag is off OR the trip isn't
+  // public yet (private trips don't get the engagement UI exposed).
+  const isPublic = trip.visibility === "public" && !trip.is_hidden;
+
   return (
     <>
       {/* Structured Data for SEO */}
@@ -125,6 +132,15 @@ export default async function SharedTripPage({ params }: PageProps) {
         }}
         shareToken={token}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}
+        engagementSlot={
+          <TripEngagementSection
+            tripId={trip.id}
+            likeCount={trip.like_count ?? 0}
+            saveCount={trip.save_count ?? 0}
+            forkCount={trip.fork_count ?? 0}
+            isPublic={isPublic}
+          />
+        }
       />
     </>
   );

@@ -70,9 +70,17 @@ interface SharedTripViewProps {
   };
   shareToken: string;
   dateRange: string;
+  /**
+   * Optional server-rendered engagement bar (like + save + fork).
+   * Passed from /shared/[token]/page.tsx so the auth + flag + counts
+   * can resolve server-side without prop drilling DB state into a
+   * client component. Renders directly under the page header.
+   * **2026-05-25 (/explore Week 3)**
+   */
+  engagementSlot?: React.ReactNode;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, engagementSlot }: SharedTripViewProps) {
   const t = useTranslations('common');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
@@ -313,6 +321,16 @@ export default function SharedTripView({ trip, shareToken, dateRange }: SharedTr
             />
           </div>
         </div>
+
+        {/* /explore Week 3 (2026-05-25): like / save / fork action bar.
+            Server-rendered slot — empty when the explore flag is off
+            or the trip isn't public yet. Sits right above the map so
+            it's reachable without scrolling on mobile. */}
+        {engagementSlot && (
+          <div className="mb-6 flex items-center justify-start">
+            {engagementSlot}
+          </div>
+        )}
 
         {/* Interactive Map */}
         {showMap && displayItinerary.length > 0 && (

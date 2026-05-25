@@ -121,6 +121,12 @@ interface TripDetailClientProps {
   isCollaborativeTrip?: boolean;
   userRole?: CollaboratorRole;
   collaboratorCount?: number;
+  /**
+   * /explore Week 3 (2026-05-25): server-rendered EngagementBar +
+   * PublishToggle. Server component computes auth + flag state + counts;
+   * we just render the ReactNode in the action toolbar.
+   */
+  engagementSlot?: React.ReactNode;
 }
 
 export default function TripDetailClient({
@@ -129,6 +135,7 @@ export default function TripDetailClient({
   isCollaborativeTrip = false,
   userRole = "owner",
   collaboratorCount = 0,
+  engagementSlot,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
@@ -1253,6 +1260,16 @@ export default function TripDetailClient({
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* /explore Week 3 (2026-05-25): owner-side engagement bar +
+            Publish-to-Explore toggle. Null when the explore flag is
+            off. Sits at the top of <main> so the owner sees their
+            counts + publish state immediately on page load. */}
+        {engagementSlot && (
+          <div className="mb-6 flex items-center gap-3">
+            {engagementSlot}
+          </div>
+        )}
+
         {/* Planning Phase - Confirm Trip Action */}
         {currentStatus === "planning" && (
           <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
