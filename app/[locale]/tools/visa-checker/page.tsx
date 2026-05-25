@@ -214,7 +214,11 @@ export default async function VisaCheckerPage({
                   // next-intl is strict about which keys accept placeholders.
                   // "<status> days" variants take {days}; the bare statuses
                   // don't. Branch so we pass values only when expected.
-                  const key = (statusKey || "visa required") as string;
+                  // **2026-05-25 fix**: the lookup key needs the "status."
+                  // prefix — without it we get the raw key path rendered
+                  // (e.g. "tools.visaChecker.eta days") instead of the
+                  // localized label.
+                  const key = `status.${statusKey || "visa required"}`;
                   if (key.endsWith(" days") && typeof days === "number") {
                     return t(key as never, { days } as never);
                   }
