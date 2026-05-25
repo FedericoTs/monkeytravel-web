@@ -1,17 +1,32 @@
 {
   "wizard": {
     "step1": {
-      "title": "Dove vuoi andare?",
-      "subtitle": "Cerca una citta per iniziare a pianificare il tuo viaggio",
+      "title": "Dove e quando?",
+      "subtitle": "Scegli una destinazione e le date del tuo viaggio",
       "placeholder": "es., Parigi, Tokyo, New York...",
-      "popularDestinations": "Destinazioni popolari"
+      "popularDestinations": "Destinazioni popolari",
+      "whosComing": "Chi viene?",
+      "justMe": "Solo io",
+      "withFriends": "Con amici",
+      "startAnywhereTitle": "Parti da una foto o un URL",
+      "startAnywhereSubtitle": "Hai una foto, uno screenshot o un articolo di viaggio? Capiremo la destinazione per te.",
+      "destinationLabel": "Destinazione",
+      "travelDatesLabel": "Date del viaggio",
+      "checkin": "ARRIVO",
+      "checkout": "PARTENZA",
+      "selectDate": "Seleziona data",
+      "dateHelp": "Seleziona le date del tuo viaggio (massimo 14 giorni)",
+      "continue": "Continua"
     },
     "step2": {
-      "title": "Quando viaggi?",
-      "subtitle": "Seleziona le date del tuo viaggio (massimo 14 giorni)",
+      "title": "Definisci il tuo stile di viaggio",
+      "subtitle": "Scegli l'atmosfera per {destination}— personalizzeremo il tuo itinerario",
       "startDate": "Data di inizio",
       "endDate": "Data di fine",
-      "daysLabel": "{count} giorni"
+      "daysLabel": "{count} giorni",
+      "customize": "Personalizza budget, ritmo e preferenze",
+      "generate": "Genera Itinerario",
+      "back": "Indietro"
     },
     "step3": {
       "title": "Qual e il tuo stile di viaggio?",

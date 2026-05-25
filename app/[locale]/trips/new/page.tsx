@@ -1884,10 +1884,10 @@ export default function NewTripPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                Where and when?
+                {t("wizard.step1.title")}
               </h1>
               <p className="text-slate-600">
-                Pick a destination and your travel dates
+                {t("wizard.step1.subtitle")}
               </p>
             </div>
 
@@ -1895,16 +1895,19 @@ export default function NewTripPage() {
                 See docs/COLLAB_AUDIT.md "Phase 1: validate the bet".
                 NO functional change today — just captures whether the
                 user is planning solo or with friends so we can decide
-                whether to invest in a full group-first restructure. */}
+                whether to invest in a full group-first restructure.
+                **2026-05-24 i18n fix:** labels now read from messages
+                so /it and /es see localized copy. Previously all
+                hardcoded English on every locale. */}
             <div>
               <div className="text-sm font-medium text-slate-700 mb-2">
-                Who&rsquo;s coming?
+                {t("wizard.step1.whosComing")}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {(
                   [
-                    { value: "solo", label: "Just me", emoji: "👤" },
-                    { value: "group", label: "With friends", emoji: "👥" },
+                    { value: "solo", labelKey: "wizard.step1.justMe", emoji: "👤" },
+                    { value: "group", labelKey: "wizard.step1.withFriends", emoji: "👥" },
                   ] as const
                 ).map((opt) => {
                   const isSelected = tripIntent === opt.value;
@@ -1942,7 +1945,7 @@ export default function NewTripPage() {
                       >
                         {opt.emoji}
                       </span>
-                      <span>{opt.label}</span>
+                      <span>{t(opt.labelKey)}</span>
                     </button>
                   );
                 })}
@@ -2023,7 +2026,7 @@ export default function NewTripPage() {
 
             {/* Destination */}
             <div>
-              <div className="text-sm font-medium text-slate-700 mb-2">Destination</div>
+              <div className="text-sm font-medium text-slate-700 mb-2">{t("wizard.step1.destinationLabel")}</div>
               <DestinationAutocomplete
                 value={destination}
                 onChange={(v) => {
@@ -2084,7 +2087,7 @@ export default function NewTripPage() {
 
             {/* Dates — shown immediately below destination */}
             <div>
-              <div className="text-sm font-medium text-slate-700 mb-2">Travel dates</div>
+              <div className="text-sm font-medium text-slate-700 mb-2">{t("wizard.step1.travelDatesLabel")}</div>
               <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
@@ -2118,10 +2121,10 @@ export default function NewTripPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                Set your travel style
+                {t("wizard.step2.title")}
               </h1>
               <p className="text-slate-600">
-                Pick your vibe for {destination} — we&apos;ll tailor your itinerary
+                {t("wizard.step2.subtitle", { destination })}
               </p>
             </div>
 
@@ -2145,7 +2148,7 @@ export default function NewTripPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
-                  Customize budget, pace & preferences
+                  {t("wizard.step2.customize")}
                   {!showAdvancedPrefs && (
                     <span className="text-xs text-slate-400 font-normal">(defaults: Balanced budget, Moderate pace)</span>
                   )}
@@ -2296,7 +2299,7 @@ export default function NewTripPage() {
               disabled={!canProceed()}
               className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
             >
-              Continue →
+              {t("wizard.step1.continue")} →
             </button>
           ) : (
             <button
@@ -2307,7 +2310,7 @@ export default function NewTripPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Generate Itinerary
+              {t("wizard.step2.generate")}
             </button>
           )}
         </div>

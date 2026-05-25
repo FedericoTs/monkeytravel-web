@@ -1,17 +1,32 @@
 {
   "wizard": {
     "step1": {
-      "title": "Where do you want to go?",
-      "subtitle": "Search for a city to start planning your trip",
+      "title": "Where and when?",
+      "subtitle": "Pick a destination and your travel dates",
       "placeholder": "e.g., Paris, Tokyo, New York...",
-      "popularDestinations": "Popular destinations"
+      "popularDestinations": "Popular destinations",
+      "whosComing": "Who's coming?",
+      "justMe": "Just me",
+      "withFriends": "With friends",
+      "startAnywhereTitle": "Start from an image or URL",
+      "startAnywhereSubtitle": "Got a photo, screenshot, or travel blog? We'll figure out the destination.",
+      "destinationLabel": "Destination",
+      "travelDatesLabel": "Travel dates",
+      "checkin": "CHECK-IN",
+      "checkout": "CHECK-OUT",
+      "selectDate": "Select date",
+      "dateHelp": "Select dates for your trip (max 14 days)",
+      "continue": "Continue"
     },
     "step2": {
-      "title": "When are you traveling?",
-      "subtitle": "Select your trip dates (max 14 days)",
+      "title": "Set your travel style",
+      "subtitle": "Pick your vibe for {destination}— we'll tailor your itinerary",
       "startDate": "Start date",
       "endDate": "End date",
-      "daysLabel": "{count} days"
+      "daysLabel": "{count} days",
+      "customize": "Customize budget, pace & preferences",
+      "generate": "Generate Itinerary",
+      "back": "Back"
     },
     "step3": {
       "title": "What's your travel vibe?",
