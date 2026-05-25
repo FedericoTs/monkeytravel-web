@@ -7,7 +7,7 @@ publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Trip Planning"
 tags: ["honeymoon", "honeymoon destinations 2026", "honeymoon planning", "honeymoon budget", "romantic travel"]
-image: "/images/blog/honeymoon-planning-guide.jpg"
+image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Couple watching sunset from a private terrace overlooking the Aegean Sea"
 readingTime: 18
 seo:

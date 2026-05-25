@@ -7,7 +7,7 @@ publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Seasonal Travel"
 tags: ["spring travel", "summer travel", "summer destinations 2026", "spring break 2026", "coolcation", "shoulder season"]
-image: "/images/blog/spring-summer-travel-guide.jpg"
+image: "/images/blog/best-summer-destinations-2026.jpg"
 imageAlt: "Collage of summer beach, alpine mountain, and Mediterranean city — three styles of warm-season travel"
 readingTime: 16
 seo:
