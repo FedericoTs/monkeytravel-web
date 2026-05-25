@@ -41,8 +41,12 @@ test.describe("footer link integrity @prod", () => {
         const bad: string[] = [];
         for (const href of unique) {
           if (!expectsLocalePrefix(href)) continue;
-          // Should start with /<locale>/ OR be exactly /<locale>
-          if (!href.startsWith(`/${locale}/`) && href !== `/${locale}`) {
+          // Valid prefixes: `/<locale>/...`, exactly `/<locale>`, or
+          // `/<locale>#anchor` (locale-prefixed same-page anchors).
+          const okSlash = href.startsWith(`/${locale}/`);
+          const okExact = href === `/${locale}`;
+          const okAnchor = href.startsWith(`/${locale}#`);
+          if (!okSlash && !okExact && !okAnchor) {
             bad.push(href);
           }
         }
