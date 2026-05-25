@@ -1,0 +1,75 @@
+{
+  "landing": {
+    "title": "Free Travel Tools",
+    "subtitle": "Quick, free utilities that save you hours of trip planning. No signup required.",
+    "breadcrumb": "Tools",
+    "exploreLabel": "Explore all destinations",
+    "comingSoon": "Coming soon"
+  },
+  "packingList": {
+    "breadcrumb": "Packing List",
+    "h1": "Free Personalized Packing List Generator",
+    "subtitle": "Tell us where and when you're going. Our AI builds a packing list tailored to the weather, the local outlets, and what you actually plan to do.",
+    "destinationLabel": "Where are you going?",
+    "destinationPlaceholder": "e.g., Tokyo, Japan",
+    "startDateLabel": "Check-in",
+    "endDateLabel": "Check-out",
+    "styleLabel": "What kind of trip?",
+    "styles": {
+      "city": "City",
+      "beach": "Beach",
+      "adventure": "Adventure",
+      "business": "Business",
+      "wellness": "Wellness",
+      "mixed": "Mixed"
+    },
+    "activitiesLabel": "Planned activities (optional)",
+    "activities": {
+      "hiking": "Hiking",
+      "swimming": "Swimming",
+      "fine_dining": "Fine dining",
+      "nightlife": "Nightlife",
+      "skiing": "Skiing",
+      "diving": "Diving / snorkeling",
+      "yoga": "Yoga / wellness",
+      "photography": "Photography",
+      "museums": "Museums",
+      "shopping": "Shopping",
+      "religious_sites": "Religious sites",
+      "kids": "Travelling with kids"
+    },
+    "generate": "Generate My Packing List",
+    "generating": "Generating...",
+    "errorTitle": "Hmm, that didn't work",
+    "errorRetry": "Try again",
+    "rateLimitMessage": "You've hit the free hourly limit. Sign up to keep generating lists.",
+    "resultTitle": "Your {destination} packing list",
+    "essentialBadge": "Essential",
+    "checkAll": "Check all",
+    "uncheckAll": "Uncheck all",
+    "downloadCta": "Email me the printable PDF",
+    "emailPlaceholder": "you@email.com",
+    "emailSubmit": "Send me the PDF",
+    "emailSuccess": "Done! Check your inbox.",
+    "emailError": "Couldn't send. Try again?",
+    "planTripCta": "Now plan the full trip →",
+    "categories": {
+      "documents": "Documents",
+      "clothing": "Clothing",
+      "toiletries": "Toiletries",
+      "electronics": "Electronics",
+      "activity_gear": "Activity Gear",
+      "health": "Health",
+      "misc": "Other"
+    },
+    "shareCta": "Share this list",
+    "shareCopied": "Link copied!"
+  },
+  "visaChecker": {
+    "breadcrumb": "Visa Checker",
+    "h1": "Visa Requirements Checker",
+    "subtitle": "Find out in seconds whether you need a visa for your next trip.",
+    "comingSoonBanner": "Coming soon — we're curating accurate visa data for 30+ passports.",
+    "notifyMe": "Notify me when it launches"
+  }
+}

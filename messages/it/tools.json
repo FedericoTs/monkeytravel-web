@@ -1,0 +1,75 @@
+{
+  "landing": {
+    "title": "Strumenti di Viaggio Gratuiti",
+    "subtitle": "Piccole utility gratuite che ti fanno risparmiare ore di pianificazione. Nessuna registrazione richiesta.",
+    "breadcrumb": "Strumenti",
+    "exploreLabel": "Esplora tutte le destinazioni",
+    "comingSoon": "In arrivo"
+  },
+  "packingList": {
+    "breadcrumb": "Lista Bagaglio",
+    "h1": "Generatore Gratuito di Liste Bagaglio Personalizzate",
+    "subtitle": "Dicci dove e quando parti. La nostra AI costruisce una lista bagaglio calibrata sul clima, le prese elettriche locali e cosa hai davvero intenzione di fare.",
+    "destinationLabel": "Dove vai?",
+    "destinationPlaceholder": "es., Tokyo, Giappone",
+    "startDateLabel": "Arrivo",
+    "endDateLabel": "Partenza",
+    "styleLabel": "Che tipo di viaggio?",
+    "styles": {
+      "city": "Città",
+      "beach": "Mare",
+      "adventure": "Avventura",
+      "business": "Lavoro",
+      "wellness": "Wellness",
+      "mixed": "Misto"
+    },
+    "activitiesLabel": "Attività previste (opzionale)",
+    "activities": {
+      "hiking": "Escursionismo",
+      "swimming": "Nuoto",
+      "fine_dining": "Ristoranti raffinati",
+      "nightlife": "Vita notturna",
+      "skiing": "Sci",
+      "diving": "Diving / snorkeling",
+      "yoga": "Yoga / wellness",
+      "photography": "Fotografia",
+      "museums": "Musei",
+      "shopping": "Shopping",
+      "religious_sites": "Luoghi religiosi",
+      "kids": "In viaggio con bambini"
+    },
+    "generate": "Genera la Mia Lista",
+    "generating": "Generazione...",
+    "errorTitle": "Qualcosa è andato storto",
+    "errorRetry": "Riprova",
+    "rateLimitMessage": "Hai raggiunto il limite orario gratuito. Registrati per continuare a generare liste.",
+    "resultTitle": "La tua lista per {destination}",
+    "essentialBadge": "Essenziale",
+    "checkAll": "Seleziona tutto",
+    "uncheckAll": "Deseleziona tutto",
+    "downloadCta": "Inviami il PDF stampabile",
+    "emailPlaceholder": "tua@email.com",
+    "emailSubmit": "Inviami il PDF",
+    "emailSuccess": "Fatto! Controlla la tua casella.",
+    "emailError": "Invio fallito. Riprovi?",
+    "planTripCta": "Ora pianifica il viaggio completo →",
+    "categories": {
+      "documents": "Documenti",
+      "clothing": "Abbigliamento",
+      "toiletries": "Igiene personale",
+      "electronics": "Elettronica",
+      "activity_gear": "Attrezzatura",
+      "health": "Salute",
+      "misc": "Altro"
+    },
+    "shareCta": "Condividi questa lista",
+    "shareCopied": "Link copiato!"
+  },
+  "visaChecker": {
+    "breadcrumb": "Verifica Visto",
+    "h1": "Verifica Requisiti Visto",
+    "subtitle": "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio.",
+    "comingSoonBanner": "In arrivo — stiamo curando dati visa accurati per oltre 30 passaporti.",
+    "notifyMe": "Avvisami quando è disponibile"
+  }
+}
