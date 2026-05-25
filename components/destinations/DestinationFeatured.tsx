@@ -34,13 +34,21 @@ export default function DestinationFeatured({
       className="group block rounded-3xl overflow-hidden bg-white border border-slate-200/80 hover:border-[var(--accent)]/40 hover:shadow-2xl transition-all"
     >
       <div className="grid md:grid-cols-2">
-        <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[420px] overflow-hidden">
+        {/* bg-slate-200 gives the image container a visible neutral fill
+            before the JPEG starts painting — without it the priority
+            <Image> still flashes ~150-250ms of white on a fresh load
+            (2026-05-25 live-test: featured card looked broken at t=0).
+            blurDataURL is a tiny warm/cream 2x1 JPEG that fades into the
+            real photo via Next/Image's built-in blur transition. */}
+        <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[420px] overflow-hidden bg-slate-200">
           <Image
             src={`/images/destinations/${destination.slug}.jpg`}
             alt={cityName}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAABAAIDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQBAQAAAAAAAAAAAAAAAAAAAAj/2gAMAwEAAhADEAAAARP/2Q=="
             className="object-cover group-hover:scale-105 transition-transform duration-700"
           />
           <div className="md:hidden absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

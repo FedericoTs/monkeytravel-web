@@ -413,13 +413,14 @@ export default function NewTripPage() {
       const context = buildSeasonalContext(
         destination,
         startDate,
-        destinationCoords?.latitude // Pass latitude for correct hemisphere
+        destinationCoords?.latitude, // Pass latitude for correct hemisphere
+        endDate || undefined // Pass endDate so holidays outside the window drop
       );
       setSeasonalContext(context);
     } else {
       setSeasonalContext(null);
     }
-  }, [destination, startDate, destinationCoords]);
+  }, [destination, startDate, endDate, destinationCoords]);
 
   // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth
   useEffect(() => {

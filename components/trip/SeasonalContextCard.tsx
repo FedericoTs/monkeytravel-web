@@ -89,11 +89,14 @@ export default function SeasonalContextCard({
 
     setIsLoading(true);
 
-    // Build seasonal context with latitude for accurate hemisphere detection
+    // Build seasonal context with latitude for accurate hemisphere detection.
+    // endDate enables the trip-window holiday filter (2026-05-25 fix —
+    // previously surfaced holidays outside the trip range).
     const context = buildSeasonalContext(
       destination,
       startDate,
-      coordinates?.latitude // Pass latitude for correct hemisphere (fixes Southern Hemisphere bug)
+      coordinates?.latitude, // Pass latitude for correct hemisphere (fixes Southern Hemisphere bug)
+      endDate || undefined
     );
     setSeasonalContext(context);
 
@@ -116,7 +119,7 @@ export default function SeasonalContextCard({
     setVibeSuggestions(suggestions);
 
     setIsLoading(false);
-  }, [destination, startDate, coordinates]);
+  }, [destination, startDate, endDate, coordinates]);
 
   if (isLoading) {
     return (
