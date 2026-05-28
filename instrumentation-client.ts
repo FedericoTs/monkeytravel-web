@@ -119,6 +119,43 @@ function initMonitoring() {
         // Common user-initiated cancellations
         "AbortError",
         "The user aborted a request",
+        // React + browser-translator (Google Translate, Safari Reader, etc.)
+        // mutate the DOM out from under React's reconciler. We can't fix
+        // this in source — translators run after React commits. These are
+        // benign noise from real users browsing with translation enabled.
+        // See: https://github.com/facebook/react/issues/11538
+        "Failed to execute 'removeChild' on 'Node'",
+        "Failed to execute 'insertBefore' on 'Node'",
+        "The node to be removed is not a child of this node",
+        // Same family on WebKit/Safari (NotFoundError DOM exception):
+        // Safari throws this when the DOM tree it's traversing has been
+        // mutated by an extension or by the back/forward cache.
+        "The object can not be found here",
+        "NotFoundError: The object can not be found here",
+        // Vercel Speed Insights / Web Vitals beacon is blocked by privacy
+        // browsers (DuckDuckGo, Brave) and raises an "invalid origin" from
+        // its own internal beacon code. Not actionable — the beacon being
+        // blocked is the correct behavior in those browsers.
+        "invalid origin",
+        // ResizeObserver loop warnings — benign browser quirk, not a real bug
+        "ResizeObserver loop limit exceeded",
+        "ResizeObserver loop completed with undelivered notifications",
+      ],
+
+      // Drop events originating from third-party beacons we can't control.
+      // The /_vercel/speed-insights/vitals endpoint is loaded by Vercel's
+      // own script; when a privacy browser blocks it, the script itself
+      // throws — there's nothing we can fix in our code.
+      denyUrls: [
+        /\/_vercel\/speed-insights\//,
+        /\/_vercel\/insights\//,
+        // Third-party tag managers / extensions
+        /extensions\//i,
+        /^chrome:\/\//i,
+        /^chrome-extension:\/\//i,
+        /^moz-extension:\/\//i,
+        /^safari-extension:\/\//i,
+        /^webkit-masked-url:\/\//i,
       ],
 
       // Don't send PII by default
