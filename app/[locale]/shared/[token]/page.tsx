@@ -5,6 +5,7 @@ import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
+import { getTripDestination } from "@/lib/trips/destination";
 import {
   generateTripSchema,
   generateBreadcrumbSchema,
@@ -80,9 +81,10 @@ export default async function SharedTripPage({ params }: PageProps) {
   const cachedTravelDistances = tripMeta.travel_distances;
   const cachedTravelHash = tripMeta.travel_distances_hash;
 
-  // Extract destination from title (e.g., "Cusco Trip" -> "Cusco")
-  // Note: 'destination' is not a column in trips table, it's derived from title
-  const destination = trip.title.replace(/ Trip$/i, "");
+  // Prefer trip_meta.destination (canonical, set by wizard) — falls back
+  // to title-strip. Matters for SEO: this string feeds the JSON-LD
+  // tripSchema below, so a wrong value gets indexed by Google.
+  const destination = getTripDestination(trip);
 
   // Generate structured data for SEO
   const tripUrl = `https://monkeytravel.app/shared/${token}`;

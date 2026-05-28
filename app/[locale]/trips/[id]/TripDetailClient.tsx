@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { Undo2, Redo2, RefreshCw } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
+import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { ProposeActivitySheet, InlineProposalCard, VotingBottomSheet } from "@/components/collaboration/proposals";
@@ -230,8 +231,9 @@ export default function TripDetailClient({
   // Saved trips should use existing cover image or show gradient fallback.
   // No Places API calls allowed when viewing saved trips.
 
-  // Extract destination from title (e.g., "Rome Trip" -> "Rome")
-  const destination = trip.title.replace(/ Trip$/, "");
+  // Prefer trip_meta.destination (canonical) over title-strip — see
+  // lib/trips/destination.ts. Fixes non-English / renamed trips.
+  const destination = getTripDestination(trip);
 
   // Trip phase detection for Timeline feature
   const tripStartDate = useMemo(() => new Date(trip.startDate), [trip.startDate]);

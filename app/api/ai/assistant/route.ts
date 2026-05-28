@@ -13,6 +13,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { findMatchingActivity, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
+import { getTripDestination } from "@/lib/trips/destination";
 import type {
   ItineraryDay,
   Activity,
@@ -841,8 +842,11 @@ export async function POST(request: NextRequest) {
     const itinerary = (clientItinerary || trip.itinerary || []) as ItineraryDay[];
     console.log(`[AI Assistant] Itinerary has ${itinerary.length} days`);
 
-    // Fetch destination coordinates from database for generating activity coordinates
-    const destinationName = trip.title.replace(/ Trip$/, "");
+    // Prefer trip_meta.destination (canonical) over title-strip — see
+    // lib/trips/destination.ts. The AI assistant's quality depends on
+    // this string being correct (it's used to look up coordinates AND
+    // passed into the AI's tripContext below).
+    const destinationName = getTripDestination(trip);
     let destinationCoords: Coordinates | undefined;
 
     const { data: destData } = await supabase
@@ -864,7 +868,7 @@ export async function POST(request: NextRequest) {
     const tripContext: TripContext = {
       id: trip.id,
       title: trip.title,
-      destination: trip.title.replace(/ Trip$/, ""),
+      destination: destinationName,  // same canonical value resolved above
       startDate: trip.start_date,
       endDate: trip.end_date,
       budget: trip.budget,

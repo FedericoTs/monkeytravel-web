@@ -27,6 +27,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getTripDestination } from "@/lib/trips/destination";
 import type { ItineraryDay, TripVibe } from "@/types";
 
 type SupportedLanguage = "en" | "es" | "it";
@@ -146,8 +147,10 @@ export async function POST(request: NextRequest) {
         ["adventure", "cultural", "foodie", "wellness", "romantic", "urban", "nature", "offbeat", "wonderland", "movie-magic", "fairytale", "retro"].includes(t)
       );
 
-    // Destination — strip the " Trip" suffix the title carries (e.g. "Rome Trip" -> "Rome")
-    const destination = ((trip!.title as string | undefined) ?? "").replace(/ Trip$/, "") || (trip!.title as string);
+    // Destination — prefer trip_meta.destination (canonical), fall back
+    // to title-strip. The wrong value here directly degrades AI output
+    // quality (Gemini gets confused about which city to plan for).
+    const destination = getTripDestination(trip as { title?: string; trip_meta?: unknown });
 
     const language = await getUserLanguage();
 

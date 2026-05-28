@@ -6,6 +6,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
+import { getTripDestination } from "@/lib/trips/destination";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import ExportMenu from "@/components/trip/ExportMenu";
@@ -191,8 +192,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, engagement
     return converted.formatted;
   };
 
-  // Extract destination from title (e.g., "Rome Trip" -> "Rome")
-  const destination = trip.title.replace(/ Trip$/, "");
+  // Prefer trip_meta.destination (canonical) over title-strip — see
+  // lib/trips/destination.ts. Matters for non-English / renamed trips.
+  const destination = getTripDestination(trip);
 
   // Memoize ensureActivityIds to prevent generating new UUIDs on every render
   const displayItinerary = useMemo(
