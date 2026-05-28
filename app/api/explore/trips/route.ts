@@ -16,10 +16,16 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
  * env-flag-gated.
  */
 export async function GET(request: NextRequest) {
-  // Mark the import as used even when the gate is removed — keeps the
-  // import-cleanup pass from removing it (we may flag the GET later if
-  // the catalog grows abuse-prone).
-  void isExploreUgcEnabled;
+  // The `/explore` page is live and indexed — it ran on the LEGACY
+  // schema (no like/save/fork/is_hidden/etc.) before the UGC build, and
+  // it must keep working until BOTH the migration is applied AND the
+  // env flag is set. So we branch the query shape on the flag:
+  //   - flag OFF  → legacy SELECT, no new columns referenced. Safe even
+  //                 if the migration hasn't been applied yet.
+  //   - flag ON   → full SELECT with engagement/author/editors-pick
+  //                 columns. Requires migration 20260525_explore_ugc_feed.
+  // Migration: supabase/migrations/20260525_explore_ugc_feed.sql
+  const ugcOn = isExploreUgcEnabled();
 
   try {
     const { searchParams } = new URL(request.url);
@@ -43,39 +49,55 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Build query — now includes the new engagement + author columns
-    // shipped in migration 20260525_explore_ugc_feed.sql.
-    let query = supabase
+    // Loose row shape: the new engagement/author/editors-pick fields
+    // are optional because pre-migration they aren't in the SELECT.
+    // Runtime fallbacks below (`|| 0`, `|| null`) handle missing values.
+    type TripRow = {
+      id: string;
+      title: string;
+      description: string | null;
+      start_date: string;
+      end_date: string;
+      tags: string[] | null;
+      cover_image_url: string | null;
+      share_token: string;
+      shared_at: string | null;
+      trending_score: number | null;
+      view_count: number | null;
+      template_copy_count: number | null;
+      budget: unknown;
+      itinerary: unknown;
+      trip_meta: unknown;
+      like_count?: number;
+      save_count?: number;
+      fork_count?: number;
+      author_display_name?: string | null;
+      author_note?: string | null;
+      is_editors_pick?: boolean;
+    };
+
+    // Build query — column set depends on the flag (see top of handler).
+    // The two literal SELECTs are kept side-by-side so Supabase's TS
+    // plugin can parse each independently; we pick the right one at
+    // runtime and cast to TripRow to bridge the union.
+    const base = supabase
       .from("trips")
-      .select(`
-        id,
-        title,
-        description,
-        start_date,
-        end_date,
-        tags,
-        cover_image_url,
-        share_token,
-        shared_at,
-        trending_score,
-        view_count,
-        template_copy_count,
-        budget,
-        itinerary,
-        trip_meta,
-        like_count,
-        save_count,
-        fork_count,
-        author_display_name,
-        author_note,
-        is_editors_pick
-      `, { count: "exact" })
+      .select(
+        ugcOn
+          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick"
+          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta",
+        { count: "exact" }
+      )
       .eq("visibility", "public")
-      .eq("is_hidden", false)
       .not("share_token", "is", null)
       .not("submitted_to_trending_at", "is", null)
       .order("trending_score", { ascending: false })
       .order("shared_at", { ascending: false });
+
+    // is_hidden column is only present post-migration. Apply the filter
+    // only when the flag is on (post-migration). Pre-migration there's
+    // nothing to hide anyway.
+    let query = ugcOn ? base.eq("is_hidden", false) : base;
 
     // Apply filters
     if (destination) {
@@ -112,8 +134,10 @@ export async function GET(request: NextRequest) {
       return errors.internal("Failed to fetch trips", "Explore");
     }
 
-    // Post-process trips to extract relevant info
-    const processedTrips = (trips || []).map((trip) => {
+    // Post-process trips to extract relevant info. Cast to the loose
+    // TripRow because the SELECT shape depends on `ugcOn` at runtime —
+    // Supabase's TS plugin can't infer a union across both branches.
+    const processedTrips = ((trips ?? []) as unknown as TripRow[]).map((trip) => {
       const startDate = new Date(trip.start_date);
       const endDate = new Date(trip.end_date);
       const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
