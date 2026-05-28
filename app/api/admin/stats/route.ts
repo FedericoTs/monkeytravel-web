@@ -18,6 +18,18 @@ export interface AdminStats {
     activeLast30Days: number;
     withTrips: number;
     withoutTrips: number;
+    // Week-over-week delta: signups in the most-recent 7 days vs the 7
+    // days before that. Used by the headline KPI card to show direction.
+    deltaPctWoW: number;
+  };
+  // Activation funnel — replaces the old "Churn Analysis" card.
+  // Computes the real story: who actually got value from the product?
+  activation: {
+    signupToFirstTripPct: number;   // % of signups who created any trip
+    multiTripUsers: number;          // users with 2+ trips
+    multiTripPct: number;            // % of trip-creators with 2+ trips
+    sharedTripPct: number;           // % of trips that have a share_token
+    atRiskUsers: number;             // signed up but no trip + signed in >7d ago
   };
   // Churn Metrics
   churn: {
@@ -34,6 +46,7 @@ export interface AdminStats {
     last30Days: number;
     averagePerUser: number;
     sharedTrips: number;
+    deltaPctWoW: number;  // last 7 days vs the 7 before
   };
   // AI Usage Metrics
   ai: {
@@ -53,6 +66,8 @@ export interface AdminStats {
     };
     // Combined total cost in USD (assistant + generation)
     totalCostUsd: number;
+    deltaPctWoW: number;       // request count delta, last 7d vs prior 7d
+    costPerTripUsd: number;    // total AI cost ÷ total trips
   };
   // Email Subscribers
   subscribers: {
@@ -71,6 +86,7 @@ export interface AdminStats {
     byCity: { city: string; country: string; count: number }[];
     topPages: { path: string; count: number }[];
     uniqueVisitors: number;
+    deltaPctWoW: number;       // page-view delta, last 7d vs prior 7d
     traffic: {
       daily: { date: string; views: number; uniqueVisitors: number }[];
       bySection: { section: string; count: number; uniqueVisitors: number }[];
@@ -202,14 +218,21 @@ export async function GET() {
           });
           return { data: { totalCostUsd, generateCount, regenerateCount } };
         }),
-      // Top destinations
+      // Top destinations — prefer trip_meta.destination (set by the wizard)
+      // and only fall back to the title-strip when meta is absent. Old
+      // code derived destinations from `title.replace(/ Trip$/, "")` which
+      // missed every renamed trip and broke for non-English titles.
       supabase
         .from("trips")
-        .select("title")
+        .select("title, trip_meta")
         .then((res) => {
           const counts: Record<string, number> = {};
           res.data?.forEach((t) => {
-            const dest = t.title.replace(/ Trip$/, "");
+            const meta = (t.trip_meta ?? {}) as Record<string, unknown>;
+            const fromMeta =
+              typeof meta.destination === "string" ? meta.destination.trim() : "";
+            const dest = fromMeta || t.title.replace(/ Trip$/i, "").trim();
+            if (!dest) return;
             counts[dest] = (counts[dest] || 0) + 1;
           });
           return Object.entries(counts)
@@ -265,6 +288,14 @@ export async function GET() {
     const inactiveLast30Days = totalUsers - (userMetrics.activeLast30Days || 0);
     const retentionRate = totalUsers > 0 ? ((totalUsers - inactiveLast30Days) / totalUsers) * 100 : 0;
 
+    // Compute week-over-week deltas + activation block in parallel.
+    // Both are read-only count queries off the same tables we already
+    // hit above, so no schema change required.
+    const [deltas, activation] = await Promise.all([
+      fetchWoWDeltas(supabase),
+      fetchActivation(supabase, totalUsers, usersWithTripsCount, tripMetrics.total || 0, tripMetrics.sharedTrips || 0),
+    ]);
+
     // Build response
     const stats: AdminStats = {
       users: {
@@ -274,7 +305,9 @@ export async function GET() {
         activeLast30Days: userMetrics.activeLast30Days || 0,
         withTrips: usersWithTripsCount,
         withoutTrips: neverCreatedTrip,
+        deltaPctWoW: deltas.users,
       },
+      activation,
       churn: {
         neverCreatedTrip,
         inactiveLast30Days,
@@ -288,6 +321,7 @@ export async function GET() {
         last30Days: tripMetrics.last30Days || 0,
         averagePerUser: totalUsers > 0 ? Math.round((tripMetrics.total / totalUsers) * 10) / 10 : 0,
         sharedTrips: tripMetrics.sharedTrips || 0,
+        deltaPctWoW: deltas.trips,
       },
       ai: {
         totalRequests: aiMetrics.total || 0,
@@ -310,6 +344,14 @@ export async function GET() {
         totalCostUsd:
           ((aiTokensResult.data?.costCents || 0) / 100) +
           (generationCostsResult.data?.totalCostUsd || 0),
+        deltaPctWoW: deltas.ai,
+        costPerTripUsd: (tripMetrics.total || 0) > 0
+          ? Math.round(
+              ((((aiTokensResult.data?.costCents || 0) / 100) +
+                (generationCostsResult.data?.totalCostUsd || 0)) /
+                (tripMetrics.total || 1)) * 10000
+            ) / 10000
+          : 0,
       },
       subscribers: {
         total: subscriberMetrics.total || 0,
@@ -318,19 +360,22 @@ export async function GET() {
         verified: subscriberMetrics.verified || 0,
         unsubscribed: subscriberMetrics.unsubscribed || 0,
       },
-      geo: geoMetricsResult || {
-        totalPageViews: 0,
-        last7Days: 0,
-        last30Days: 0,
-        byCountry: [],
-        byCity: [],
-        topPages: [],
-        uniqueVisitors: 0,
-        traffic: {
-          daily: [],
-          bySection: [],
-          conversionFunnel: [],
-        },
+      geo: {
+        ...(geoMetricsResult || {
+          totalPageViews: 0,
+          last7Days: 0,
+          last30Days: 0,
+          byCountry: [],
+          byCity: [],
+          topPages: [],
+          uniqueVisitors: 0,
+          traffic: {
+            daily: [],
+            bySection: [],
+            conversionFunnel: [],
+          },
+        }),
+        deltaPctWoW: deltas.pageViews,
       },
       acquisition: {
         referrers: (referrerResult.data || []).map((r: { source: string; count: number }) => ({
@@ -366,6 +411,126 @@ export async function GET() {
     console.error("[Admin Stats] Error:", error);
     return errors.internal("Failed to fetch admin stats", "Admin Stats");
   }
+}
+
+// ---- Week-over-week deltas ---------------------------------------------
+//
+// For the four headline KPI cards we want a "+12%" / "-4%" chip showing
+// momentum. We compute it by counting rows in the last 7 days vs the 7
+// days before that. All four are tiny count(*) queries with head:true
+// so they don't pull rows.
+//
+// Returns percentage change as a number rounded to integer (no '%').
+// Special cases:
+//   - prev=0, current>0  → return 100 (clean "+100%" instead of Infinity)
+//   - prev=0, current=0  → return 0
+type WoWDeltas = { users: number; trips: number; ai: number; pageViews: number };
+
+async function fetchWoWDeltas(supabase: SupabaseClient): Promise<WoWDeltas> {
+  const now = Date.now();
+  const d7 = new Date(now - 7 * 86_400_000).toISOString();
+  const d14 = new Date(now - 14 * 86_400_000).toISOString();
+
+  const countBetween = async (table: string, dateCol: string, gte: string, lt: string) => {
+    const r = await supabase
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .gte(dateCol, gte)
+      .lt(dateCol, lt);
+    return r.count ?? 0;
+  };
+
+  const pct = (curr: number, prev: number): number => {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+
+  // 8 count queries in parallel — they're index-fast on created_at.
+  const [
+    uC, uP,
+    tC, tP,
+    aC, aP,
+    pC, pP,
+  ] = await Promise.all([
+    countBetween("users", "created_at", d7, new Date(now).toISOString()),
+    countBetween("users", "created_at", d14, d7),
+    countBetween("trips", "created_at", d7, new Date(now).toISOString()),
+    countBetween("trips", "created_at", d14, d7),
+    countBetween("ai_usage", "created_at", d7, new Date(now).toISOString()),
+    countBetween("ai_usage", "created_at", d14, d7),
+    countBetween("page_views", "created_at", d7, new Date(now).toISOString()),
+    countBetween("page_views", "created_at", d14, d7),
+  ]).catch((err) => {
+    // page_views might not exist in some envs; fail closed to zeros.
+    console.warn("[Admin Stats] WoW deltas partial fail:", err);
+    return [0, 0, 0, 0, 0, 0, 0, 0];
+  });
+
+  return {
+    users: pct(uC, uP),
+    trips: pct(tC, tP),
+    ai: pct(aC, aP),
+    pageViews: pct(pC, pP),
+  };
+}
+
+// ---- Activation block --------------------------------------------------
+//
+// Replaces the old "churn" card. Tells the real activation story:
+//   1. How many signups created their first trip?  (signupToFirstTripPct)
+//   2. Of trip-creators, how many came back for a 2nd?  (multiTripPct)
+//   3. Of all trips, how many were shared?  (sharedTripPct)
+//   4. Who's at risk?  (signed up, never created a trip, dormant > 7d)
+//
+// All derived from existing columns. No schema change.
+async function fetchActivation(
+  supabase: SupabaseClient,
+  totalUsers: number,
+  usersWithTrips: number,
+  totalTrips: number,
+  sharedTrips: number,
+): Promise<AdminStats["activation"]> {
+  // multiTripUsers: users that own >=2 trips. Fetch user_id list, count
+  // uniques with >1 occurrence client-side (cheap — usually small N).
+  const { data: tripOwners } = await supabase.from("trips").select("user_id");
+  const counts = new Map<string, number>();
+  (tripOwners ?? []).forEach((t) => {
+    if (!t.user_id) return;
+    counts.set(t.user_id, (counts.get(t.user_id) ?? 0) + 1);
+  });
+  let multiTripUsers = 0;
+  for (const c of counts.values()) {
+    if (c >= 2) multiTripUsers++;
+  }
+
+  // atRiskUsers: signed up + last_sign_in_at > 7d ago + no trips.
+  // We fetch user_ids of users-without-trips inactive >7d. A LEFT JOIN
+  // would be cleaner but we can do this client-side with two slim reads.
+  const d7Ago = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const { data: dormantUsers } = await supabase
+    .from("users")
+    .select("id")
+    .lt("last_sign_in_at", d7Ago);
+  const tripOwnerSet = new Set((tripOwners ?? []).map((t) => t.user_id).filter(Boolean));
+  let atRiskUsers = 0;
+  (dormantUsers ?? []).forEach((u) => {
+    if (!tripOwnerSet.has(u.id)) atRiskUsers++;
+  });
+
+  const signupToFirstTripPct =
+    totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0;
+  const multiTripPct =
+    usersWithTrips > 0 ? Math.round((multiTripUsers / usersWithTrips) * 1000) / 10 : 0;
+  const sharedTripPct =
+    totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0;
+
+  return {
+    signupToFirstTripPct,
+    multiTripUsers,
+    multiTripPct,
+    sharedTripPct,
+    atRiskUsers,
+  };
 }
 
 // Direct query fallbacks if RPC functions don't exist
@@ -621,8 +786,11 @@ function getCountryName(code: string): string {
 }
 
 // Fetch geo metrics from page_views table using proper SQL COUNT queries
-// This avoids the Supabase 1000 row default limit
-async function fetchGeoMetrics(supabase: SupabaseClient): Promise<AdminStats["geo"]> {
+// This avoids the Supabase 1000 row default limit.
+// deltaPctWoW is injected by the caller (computed in fetchWoWDeltas).
+async function fetchGeoMetrics(
+  supabase: SupabaseClient,
+): Promise<Omit<AdminStats["geo"], "deltaPctWoW">> {
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
