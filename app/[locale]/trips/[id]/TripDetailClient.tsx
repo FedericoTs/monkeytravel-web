@@ -1250,8 +1250,12 @@ export default function TripDetailClient({
         coverImageUrl={trip.coverImageUrl}
         disableApiCalls={true}
       >
-        {/* Status Badge - Floating */}
-        <div className="absolute top-4 right-4">
+        {/* Status Badge + Backpacker badge stack — top-right of hero.
+            Phase B2 (2026-05-28): Backpacker badge renders for trips
+            generated in Backpacker Mode. Visible signal for partner
+            demos + a self-evident "this is what backpacker mode looks
+            like" cue for the trip owner. */}
+        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <span
             className={`px-3 py-1.5 rounded-full text-sm font-medium shadow-lg ${
               statusColors[currentStatus as keyof typeof statusColors] || statusColors.planning
@@ -1259,6 +1263,12 @@ export default function TripDetailClient({
           >
             {getStatusLabel(currentStatus)}
           </span>
+          {trip.meta?.travel_style === "backpacker" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+              <span aria-hidden>🎒</span>
+              Backpacker route
+            </span>
+          )}
         </div>
       </DestinationHero>
 

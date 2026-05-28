@@ -243,11 +243,21 @@ export default function SharedTripView({ trip, shareToken, dateRange, engagement
         onBack={() => window.history.back()}
         disableApiCalls={true}
       >
-        {/* Shared Badge - Floating */}
-        <div className="absolute top-4 right-4">
+        {/* Shared + Backpacker badge stack — top-right of hero.
+            Phase B2 (2026-05-28): public viewers see a "Backpacker
+            route" emerald pill for trips generated in Backpacker Mode.
+            This is the badge we'll point Hostelworld at when sharing
+            sample trip URLs. */}
+        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
             Shared Trip
           </span>
+          {trip.meta?.travel_style === "backpacker" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
+              <span aria-hidden>🎒</span>
+              Backpacker route
+            </span>
+          )}
         </div>
       </DestinationHero>
 
