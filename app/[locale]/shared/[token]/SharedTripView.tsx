@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
+import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
 import ExportMenu from "@/components/trip/ExportMenu";
@@ -251,6 +252,20 @@ export default function SharedTripView({ trip, shareToken, dateRange, engagement
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Backpacker Mode — Hostelworld CTA. Only renders when the
+            trip was generated in Backpacker Mode (trip_meta.travel_style).
+            This is the revenue-signal piece of the Hostelworld
+            partnership wedge: show "we drove N clicks" when the time
+            comes to formalise. */}
+        {trip.meta?.travel_style === "backpacker" && (
+          <BackpackerHostelCta
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            className="mb-6"
+          />
+        )}
+
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back to home */}

@@ -9,6 +9,7 @@ import { Undo2, Redo2, RefreshCw } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
+import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { ProposeActivitySheet, InlineProposalCard, VotingBottomSheet } from "@/components/collaboration/proposals";
@@ -1262,6 +1263,20 @@ export default function TripDetailClient({
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Backpacker Mode — Hostelworld CTA. Renders only when the
+            trip was generated as backpacker (trip_meta.travel_style).
+            Placed above the engagement bar so it's the first thing
+            the owner sees on a backpacker trip — that's the surface
+            we want CTR on for the Hostelworld partnership signal. */}
+        {trip.meta?.travel_style === "backpacker" && (
+          <BackpackerHostelCta
+            destination={destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+            className="mb-6"
+          />
+        )}
+
         {/* /explore Week 3 (2026-05-25): owner-side engagement bar +
             Publish-to-Explore toggle. Null when the explore flag is
             off. Sits at the top of <main> so the owner sees their
