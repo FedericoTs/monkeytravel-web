@@ -25,6 +25,13 @@ export interface TripFormState {
   vibes: TripVibe[];
   /** Auto-derived from vibes — kept on input so the hook stays pure. */
   derivedInterests: string[];
+  /**
+   * Travel style preset from the wizard. Stored on the trip so the
+   * detail / share / explore views can light up backpacker-specific
+   * affordances (hostel CTAs, "Backpacker route" badge, etc.). Optional
+   * for backwards compat — old drafts have no value.
+   */
+  travelStyle?: "classic" | "backpacker";
 }
 
 export interface PersistInput {
@@ -72,6 +79,13 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     booking_links: itinerary.booking_links,
     destination_best_for: itinerary.destination.best_for,
     packing_suggestions: itinerary.trip_summary.packing_suggestions,
+    // Persist travel style on the trip so downstream views can branch on
+    // it without re-asking the wizard. Only write the field when it's
+    // explicitly "backpacker" — undefined defaults to classic, keeping
+    // existing rows readable as-is.
+    ...(formState.travelStyle === "backpacker"
+      ? { travel_style: "backpacker" as const }
+      : {}),
   };
 
   return {

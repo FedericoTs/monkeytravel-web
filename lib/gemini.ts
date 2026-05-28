@@ -437,6 +437,31 @@ IMPORTANT: Blend these vibes throughout the itinerary. For fantasy vibes (wonder
 `
     : "";
 
+  // Backpacker Mode — added 2026-05-28.
+  //
+  // When the traveller picked "Backpacker mode" in the wizard, inject a
+  // strong directive so Gemini optimises the entire itinerary for the
+  // budget / multi-city / social demographic — not just the budget tier.
+  // This is the strategic wedge for the Hostelworld partnership: the
+  // generated trips have to *look* like backpacker plans (hostels,
+  // walking tours, public transit, social food spots) for the partner
+  // demo to land.
+  const travelStyleSection = params.travelStyle === "backpacker"
+    ? `## Travel Style: BACKPACKER MODE
+This traveller is a budget-conscious backpacker. Optimise the itinerary accordingly:
+
+- **Accommodation**: Recommend hostels and budget guesthouses, not hotels. Mention specific neighbourhoods known for hostel density (e.g. Bairro Alto in Lisbon, Khao San in Bangkok). Avoid luxury or boutique accommodation suggestions.
+- **Activities**: Favour free walking tours, public museums on free days, viewpoints, markets, beaches, parks. Skip expensive guided tours and curated experiences unless they're a genuine highlight.
+- **Food**: Recommend street food, markets, local cafeterias, hostel-kitchen-friendly grocery options. One "splurge" meal at most, ideally local and not touristy.
+- **Transit**: Default to walking, public transit, intercity buses (FlixBus, BlaBlaCar). Avoid taxis unless safety / late-night. Mention specific transit cards or passes worth getting.
+- **Social**: Include at least one explicitly social-friendly activity per day (pub crawl, walking tour, language exchange, market, hostel-organised event). Backpackers want to meet people.
+- **Multi-city friendly**: If the trip is 5+ days, consider whether splitting between 2 cities would serve them better. Mention the transit option if so.
+- **Time of day**: Backpackers often arrive late after long bus/train rides; early activities on arrival days should be optional, not core.
+
+The traveller specifically wants the backpacker experience. Do NOT default to mid-range tourist plans.
+`
+    : "";
+
   // Build seasonal context section
   const seasonalSection = params.seasonalContext
     ? `## Seasonal Context
@@ -466,7 +491,7 @@ Consider these seasonal factors when selecting activities and timing. Include se
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace}
 
-${vibeSection}${seasonalSection}## Traveler Preferences
+${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}

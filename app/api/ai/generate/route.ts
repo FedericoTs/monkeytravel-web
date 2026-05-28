@@ -283,6 +283,11 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
+    // Whitelist travelStyle so untrusted strings can't flow into the AI
+    // system prompt. Anything other than "backpacker" → default "classic".
+    const travelStyle: "classic" | "backpacker" =
+      body.travelStyle === "backpacker" ? "backpacker" : "classic";
+
     const params: TripCreationParams = {
       destination: body.destination,
       startDate: body.startDate,
@@ -293,6 +298,7 @@ export async function POST(request: NextRequest) {
       seasonalContext: body.seasonalContext,
       interests: body.interests || [],
       requirements: body.requirements,
+      travelStyle,
       // Include profile preferences (automatically fetched from user profile)
       profilePreferences,
     };

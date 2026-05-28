@@ -158,6 +158,9 @@ export async function POST(request: NextRequest) {
     seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
     interests: (body.interests as string[]) || [],
     requirements: body.requirements as TripCreationParams["requirements"],
+    // Whitelist travelStyle (same pattern as the non-streaming route).
+    // Untrusted input can't flow into the AI system prompt.
+    travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     profilePreferences,
   };
 

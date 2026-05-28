@@ -14,6 +14,12 @@ export interface ItineraryDraft {
   pace: string;
   vibes: string[];
   budgetTier: string;
+  /**
+   * Wizard travel-style preset. Optional for back-compat with drafts
+   * saved before 2026-05-28 (they'll restore as undefined → treated as
+   * "classic" in the wizard).
+   */
+  travelStyle?: "classic" | "backpacker";
   savedAt: number;
   userId?: string;
 }

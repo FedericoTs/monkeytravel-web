@@ -199,6 +199,12 @@ export interface TripMeta {
   destination?: string;
   country_code?: string;           // ISO 3166-1 alpha-2 (e.g. "IT", "JP")
   budget_tier?: "budget" | "balanced" | "premium";
+  /**
+   * Travel style preset, copied from the wizard's TripCreationParams.
+   * "backpacker" trips light up hostel CTAs + multi-city affordances on
+   * the trip detail / share view (see Hostelworld partnership wedge).
+   */
+  travel_style?: "classic" | "backpacker";
   weather_note?: string;           // Weather info for the destination
   highlights?: string[];           // Trip highlights (3-5 bullet points)
   booking_links?: {                // Affiliate booking links
@@ -322,6 +328,18 @@ export interface TripCreationParams {
   seasonalContext?: SeasonalContext;
   interests: string[];
   requirements?: string;
+  /**
+   * Travel style preset. Shipped 2026-05-28 as the wedge for partner
+   * conversations (Hostelworld in particular — backpacker is their
+   * core demo).
+   *   - "classic"    → default behaviour (mid-range, hotel-eligible)
+   *   - "backpacker" → hostel-first, budget-conscious, multi-city
+   *                    friendly, social/free activities preferred
+   * When "backpacker", the AI receives an additional system directive
+   * (see lib/gemini.ts → buildUserPrompt). Defaults to "classic" when
+   * omitted so existing callers don't break.
+   */
+  travelStyle?: "classic" | "backpacker";
   // Profile-based preferences (fetched automatically from user profile)
   profilePreferences?: UserProfilePreferences;
 }

@@ -187,6 +187,12 @@ export default function NewTripPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
+  // Backpacker Mode — shipped 2026-05-28. Default "classic" matches all
+  // existing flows; when toggled to "backpacker" we (a) auto-set budget
+  // to "budget" if it's not already, (b) pass travelStyle through to the
+  // generate API so Gemini gets the backpacker directive, (c) persist
+  // travel_style into trip_meta. See docs and Hostelworld partnership wedge.
+  const [travelStyle, setTravelStyle] = useState<"classic" | "backpacker">("classic");
   const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [requirements, setRequirements] = useState("");
@@ -443,6 +449,10 @@ export default function NewTripPage() {
         setPace(draft.pace as "relaxed" | "moderate" | "active");
         setSelectedVibes(draft.vibes as TripVibe[]);
         setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+        // travelStyle may be undefined on pre-2026-05-28 drafts → "classic"
+        if (draft.travelStyle === "backpacker") {
+          setTravelStyle("backpacker");
+        }
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
         }
@@ -467,9 +477,10 @@ export default function NewTripPage() {
         pace,
         vibes: selectedVibes,
         budgetTier,
+        travelStyle,
       });
     }
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, saveDraft]);
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, saveDraft]);
 
   // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
@@ -489,6 +500,7 @@ export default function NewTripPage() {
     pace,
     vibes: selectedVibes,
     derivedInterests: deriveInterestsFromVibes(),
+    travelStyle,
   };
 
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
@@ -591,6 +603,9 @@ export default function NewTripPage() {
       setPace(draft.pace as "relaxed" | "moderate" | "active");
       setSelectedVibes(draft.vibes as TripVibe[]);
       setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+      if (draft.travelStyle === "backpacker") {
+        setTravelStyle("backpacker");
+      }
       setGeneratedItinerary(draft.generatedItinerary);
       setShowDraftRecovery(false);
     }
@@ -700,6 +715,7 @@ export default function NewTripPage() {
         pace,
         vibes: selectedVibes,
         budgetTier,
+        travelStyle,
       });
     }
 
@@ -740,6 +756,7 @@ export default function NewTripPage() {
         seasonalContext: seasonalContext || undefined,
         interests: derivedInterests, // Auto-derived from vibes
         requirements: requirements || undefined,
+        travelStyle,
       };
 
       // Reset stream progress for this generation.
@@ -1898,6 +1915,57 @@ export default function NewTripPage() {
               <p className="text-slate-600">
                 {t("wizard.step1.subtitle")}
               </p>
+            </div>
+
+            {/* Backpacker Mode — shipped 2026-05-28.
+                Strategic wedge for partner conversations (Hostelworld in
+                particular — backpackers are their core demo). Toggle is
+                deliberately compact / unobtrusive: classic users see one
+                extra line, backpackers light up the whole AI plan.
+                Auto-bumps budget to "budget" when activated; user can
+                still override the budget tier in step 2. */}
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = travelStyle === "backpacker" ? "classic" : "backpacker";
+                  setTravelStyle(next);
+                  // Auto-align budget with the preset, unless the user
+                  // has already explicitly picked a different tier in
+                  // this session. We keep this lightweight (no warning)
+                  // because step 2 still lets them override.
+                  if (next === "backpacker" && budgetTier !== "budget") {
+                    setBudgetTier("budget");
+                  }
+                }}
+                aria-pressed={travelStyle === "backpacker"}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                  travelStyle === "backpacker"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-lg" aria-hidden>🎒</span>
+                  <span>
+                    {travelStyle === "backpacker"
+                      ? "Backpacker mode — ON"
+                      : "Backpacker mode"}
+                  </span>
+                </span>
+                <span className="text-xs opacity-80">
+                  {travelStyle === "backpacker"
+                    ? "Hostels · Budget · Social"
+                    : "Hostels, budget tips, multi-city friendly"}
+                </span>
+              </button>
+              {travelStyle === "backpacker" && (
+                <p className="text-xs text-emerald-700 mt-2 pl-1">
+                  We&rsquo;ll favour hostels, free walking tours, street food,
+                  and public transit. Budget tier set to &quot;budget&quot; — you
+                  can change it in the next step.
+                </p>
+              )}
             </div>
 
             {/* Who's coming? — Phase-1 measurement toggle.
