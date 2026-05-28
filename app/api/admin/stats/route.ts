@@ -490,47 +490,78 @@ async function fetchActivation(
   totalTrips: number,
   sharedTrips: number,
 ): Promise<AdminStats["activation"]> {
-  // multiTripUsers: users that own >=2 trips. Fetch user_id list, count
-  // uniques with >1 occurrence client-side (cheap — usually small N).
-  const { data: tripOwners } = await supabase.from("trips").select("user_id");
-  const counts = new Map<string, number>();
-  (tripOwners ?? []).forEach((t) => {
-    if (!t.user_id) return;
-    counts.set(t.user_id, (counts.get(t.user_id) ?? 0) + 1);
-  });
-  let multiTripUsers = 0;
-  for (const c of counts.values()) {
-    if (c >= 2) multiTripUsers++;
-  }
-
-  // atRiskUsers: signed up + last_sign_in_at > 7d ago + no trips.
-  // We fetch user_ids of users-without-trips inactive >7d. A LEFT JOIN
-  // would be cleaner but we can do this client-side with two slim reads.
-  const d7Ago = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const { data: dormantUsers } = await supabase
-    .from("users")
-    .select("id")
-    .lt("last_sign_in_at", d7Ago);
-  const tripOwnerSet = new Set((tripOwners ?? []).map((t) => t.user_id).filter(Boolean));
-  let atRiskUsers = 0;
-  (dormantUsers ?? []).forEach((u) => {
-    if (!tripOwnerSet.has(u.id)) atRiskUsers++;
-  });
-
-  const signupToFirstTripPct =
-    totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0;
-  const multiTripPct =
-    usersWithTrips > 0 ? Math.round((multiTripUsers / usersWithTrips) * 1000) / 10 : 0;
-  const sharedTripPct =
-    totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0;
-
-  return {
-    signupToFirstTripPct,
-    multiTripUsers,
-    multiTripPct,
-    sharedTripPct,
-    atRiskUsers,
+  // Defensive: every read here is wrapped — if either query fails we
+  // return a zero-filled block instead of 500'ing the whole /admin
+  // page. (This matches the Promise.allSettled discipline used by the
+  // rest of this route.)
+  const empty: AdminStats["activation"] = {
+    signupToFirstTripPct:
+      totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0,
+    multiTripUsers: 0,
+    multiTripPct: 0,
+    sharedTripPct:
+      totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0,
+    atRiskUsers: 0,
   };
+
+  try {
+    const d7AgoIso = new Date(Date.now() - 7 * 86_400_000).toISOString();
+
+    // multiTripUsers + the trip-owner set (reused for at-risk exclusion).
+    const tripOwnersRes = await supabase.from("trips").select("user_id");
+    if (tripOwnersRes.error) throw tripOwnersRes.error;
+    const tripOwners = tripOwnersRes.data ?? [];
+    const counts = new Map<string, number>();
+    tripOwners.forEach((t) => {
+      if (!t.user_id) return;
+      counts.set(t.user_id, (counts.get(t.user_id) ?? 0) + 1);
+    });
+    let multiTripUsers = 0;
+    for (const c of counts.values()) {
+      if (c >= 2) multiTripUsers++;
+    }
+
+    // atRiskUsers: dormant (>7d since last sign-in) OR never returned
+    // (last_sign_in_at IS NULL AND signed up >7d ago), AND no trips.
+    //
+    // Bug-fix 2026-05-28: the original `.lt("last_sign_in_at", d7Ago)`
+    // dropped every row where last_sign_in_at is NULL because
+    // `NULL < X` is `unknown` in SQL — those are the MOST at-risk users.
+    // PostgREST OR syntax: comma-separated filters; `and(a,b)` nests.
+    const dormantRes = await supabase
+      .from("users")
+      .select("id")
+      .or(
+        `last_sign_in_at.lt.${d7AgoIso},and(last_sign_in_at.is.null,created_at.lt.${d7AgoIso})`,
+      );
+    if (dormantRes.error) throw dormantRes.error;
+
+    const tripOwnerSet = new Set(
+      tripOwners.map((t) => t.user_id).filter((id): id is string => !!id),
+    );
+    let atRiskUsers = 0;
+    (dormantRes.data ?? []).forEach((u) => {
+      if (!tripOwnerSet.has(u.id)) atRiskUsers++;
+    });
+
+    const signupToFirstTripPct =
+      totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0;
+    const multiTripPct =
+      usersWithTrips > 0 ? Math.round((multiTripUsers / usersWithTrips) * 1000) / 10 : 0;
+    const sharedTripPct =
+      totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0;
+
+    return {
+      signupToFirstTripPct,
+      multiTripUsers,
+      multiTripPct,
+      sharedTripPct,
+      atRiskUsers,
+    };
+  } catch (err) {
+    console.error("[Admin Stats] fetchActivation failed:", err);
+    return empty;
+  }
 }
 
 // Direct query fallbacks if RPC functions don't exist
