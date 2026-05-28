@@ -356,7 +356,14 @@ export async function POST(request: NextRequest) {
     // Determine if we should use incremental generation for long trips
     const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
 
-    const cachedItinerary = await getCachedItinerary(
+    // Bug fix 2026-05-28: skip cache for Backpacker Mode entirely. The
+    // destination_activity_cache schema keys on (destination, vibes,
+    // budget_tier, language) — adding travel_style would require a
+    // migration. Until we add the column, a backpacker user could pull
+    // a previously-cached classic itinerary and silently get a non-
+    // backpacker plan. Cost is one extra Gemini call per backpacker
+    // generation; correctness wins.
+    const cachedItinerary = params.travelStyle === "backpacker" ? null : await getCachedItinerary(
       supabase,
       params.destination,
       params.vibes,
@@ -410,8 +417,12 @@ export async function POST(request: NextRequest) {
         itinerary = await generateItinerary(params, { language: userLanguage });
       }
 
-      // Only cache full itineraries (not partial ones)
-      if (!isPartialGeneration) {
+      // Only cache full itineraries (not partial ones). Also skip cache
+      // writes for Backpacker Mode — see getCachedItinerary call above:
+      // until destination_activity_cache has a travel_style column, a
+      // cached backpacker result would leak to classic users (and vice
+      // versa).
+      if (!isPartialGeneration && params.travelStyle !== "backpacker") {
         await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, userLanguage, itinerary);
       }
 

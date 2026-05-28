@@ -84,11 +84,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify ownership AND fetch the fields we need in one round-trip.
+    // trip_meta added 2026-05-28: needed to read travel_style so a regen
+    // on a backpacker trip stays on-style instead of returning classic
+    // content (and to feed getTripDestination()).
     const { trip, errorResponse: ownershipError } = await verifyTripOwnership(
       supabase,
       tripId,
       user.id,
-      "id, user_id, title, itinerary, budget, tags"
+      "id, user_id, title, itinerary, budget, tags, trip_meta"
     );
     if (ownershipError) return ownershipError;
 
@@ -157,6 +160,14 @@ export async function POST(request: NextRequest) {
     // The surrounding days are everything except the one we're replacing.
     const surroundingDays = itinerary.filter((_, i) => i !== dayIndex);
 
+    // Read the trip's travel style so the regenerated day matches the
+    // rest of the itinerary. Bug fix 2026-05-28: without this, a "regen
+    // day 3" on a backpacker trip returned a classic day and the trip
+    // became internally inconsistent (hostels everywhere except day 3).
+    const tripMeta = (trip!.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+    const travelStyle: "classic" | "backpacker" =
+      tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";
+
     // Call Gemini
     let newDay: ItineraryDay;
     try {
@@ -169,6 +180,7 @@ export async function POST(request: NextRequest) {
         vibes: inferredVibes,
         surroundingDays,
         instructions: typeof instructions === "string" ? instructions : undefined,
+        travelStyle,
         language,
         userId: user.id,
       });

@@ -169,13 +169,29 @@ function buildGroundingPrompt(params: TripCreationParams): string {
   };
   const paceDescription = paceOptions[params.pace] || "3-4 activities per day";
 
+  // Backpacker Mode mirror of buildUserPrompt() in lib/gemini.ts.
+  // Bug fix 2026-05-28: maps-grounding has its own prompt builder, so
+  // the backpacker directive in lib/gemini.ts didn't reach this path.
+  // When USE_MAPS_GROUNDING=true, omitting this would silently turn
+  // Backpacker Mode into a no-op for the entire itinerary.
+  const backpackerDirective = params.travelStyle === "backpacker"
+    ? `
+
+BACKPACKER MODE — Override the defaults above:
+- Accommodation: hostels and budget guesthouses (not hotels). Mention specific hostel-dense neighbourhoods.
+- Food: street food, markets, local cafeterias. One splurge max.
+- Activities: free walking tours, viewpoints, markets, parks. Avoid expensive guided tours.
+- Transit: walking, public transit, intercity buses. Avoid taxis.
+- Social: include at least one explicitly social activity per day (pub crawl, walking tour, hostel-organised event).`
+    : "";
+
   return `Create a detailed ${duration}-day travel itinerary for ${params.destination}.
 
 Travel Preferences:
 - Style: ${vibesText}
 - Budget: ${budgetDescription}
 - Pace: ${paceDescription}
-- Dates: ${params.startDate} to ${params.endDate}
+- Dates: ${params.startDate} to ${params.endDate}${backpackerDirective}
 
 For each day, provide:
 - Day number and theme

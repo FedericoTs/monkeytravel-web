@@ -59,10 +59,12 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("Missing required fields");
     }
 
-    // Verify trip ownership
+    // Verify trip ownership. Include trip_meta so we can read the
+    // travel_style preset and pass it to regenerateSingleActivity (else
+    // a backpacker trip's replacement would default to classic).
     const { data: trip, error: tripError } = await supabase
       .from("trips")
-      .select("id, user_id, budget")
+      .select("id, user_id, budget, trip_meta")
       .eq("id", tripId)
       .eq("user_id", user.id)
       .single();
@@ -118,6 +120,14 @@ export async function POST(request: NextRequest) {
     // Get user language for localized output
     const language = await getUserLanguage();
 
+    // Read the trip's travel style so the suggested replacement matches
+    // the rest of the trip. Bug fix 2026-05-28: without this, the
+    // assistant could swap a hostel recommendation in a backpacker trip
+    // for a boutique hotel.
+    const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+    const travelStyle: "classic" | "backpacker" =
+      tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";
+
     // Generate new activity
     const newActivity = await regenerateSingleActivity({
       destination,
@@ -126,6 +136,7 @@ export async function POST(request: NextRequest) {
       budgetTier: budgetTier as "budget" | "balanced" | "premium",
       existingActivityNames,
       preferences,
+      travelStyle,
       language,
     });
 

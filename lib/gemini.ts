@@ -786,6 +786,14 @@ export interface RegenerateActivityParams {
     similarTo?: boolean; // If true, generate something similar
   };
   language?: "en" | "es" | "it";
+  /**
+   * Trip's travel style — when "backpacker", the replacement is biased
+   * toward hostel-friendly / budget / social options. Read from
+   * trip_meta.travel_style at the call site. Defaults to "classic".
+   * Bug fix 2026-05-28: without this, the assistant would replace a
+   * backpacker hostel recommendation with e.g. a boutique hotel.
+   */
+  travelStyle?: "classic" | "backpacker";
 }
 
 // Activity regeneration prompt - now loaded from database via getPrompt()
@@ -862,6 +870,7 @@ async function regenerateSingleActivityInternal(
 - Duration should be approximately: ${activityToReplace.duration_minutes} minutes
 ${preferences?.category ? `- Category preference: ${preferences.category}` : ""}
 ${preferences?.similarTo ? "- Should be similar in type/style to the replaced activity" : "- Should be different/fresh compared to the replaced activity"}
+${params.travelStyle === "backpacker" ? `- BACKPACKER TRIP: prefer hostels (not hotels), street food / markets / casual eateries, free walking tours, viewpoints, public transit. Avoid expensive guided tours, taxis, and upscale dining. Favour social spots where solo travellers can meet others.` : ""}
 
 ## Do NOT suggest any of these places (already in itinerary):
 ${existingActivityNames.join(", ")}
@@ -1043,6 +1052,15 @@ export interface RegenerateDayParams {
   instructions?: string;
   profilePreferences?: UserProfilePreferences;
   language?: "en" | "es" | "it";
+  /**
+   * Trip's travel style — pass "backpacker" so the regenerated day
+   * matches the rest of the trip (hostels, free activities, social).
+   * Read from trip_meta.travel_style at the call site. Defaults to
+   * "classic" when omitted. Bug fix 2026-05-28: without this, "regen
+   * day 3" on a backpacker trip returned classic content and the
+   * itinerary became internally inconsistent.
+   */
+  travelStyle?: "classic" | "backpacker";
 }
 
 export async function regenerateSingleDay(
@@ -1125,7 +1143,7 @@ ${existingPlaces || "(none)"}
 - Budget Tier: ${params.budgetTier}
 - Pace: ${params.pace}
 - Vibes: ${params.vibes.join(", ") || "general"}
-${params.instructions ? `\n## User Instructions for this day\n${params.instructions}\n` : ""}${profileSection}${schedulingSection}
+${params.travelStyle === "backpacker" ? `\n## BACKPACKER MODE\nThis is a backpacker trip. The replacement day must match the rest of the trip in style:\n- Hostels (not hotels), street food / markets / casual eateries\n- Free walking tours, viewpoints, parks, free museums\n- Public transit, walking, intercity buses (no taxis except safety)\n- At least one explicitly social activity (pub crawl, walking tour, hostel-organised event)\n- Avoid expensive guided tours and upscale dining\n` : ""}${params.instructions ? `\n## User Instructions for this day\n${params.instructions}\n` : ""}${profileSection}${schedulingSection}
 
 ## Required JSON Output
 
