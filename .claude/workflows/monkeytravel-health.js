@@ -78,6 +78,23 @@ const VERDICT = {
 const REPO = 'C:\\Users\\Samsung\\Documents\\Projects\\travel-app-web'
 const PROD = 'https://monkeytravel.app'
 
+// CRITICAL: this header is prepended to EVERY agent prompt. The workflow
+// runs in a Claude session whose current working directory is NOT the
+// travel-app repo and whose top-level CLAUDE.md describes an unrelated
+// project ("MYTHOS" novel). Without a hard pin, agents follow the local
+// CLAUDE.md and audit the wrong codebase entirely (validated 2026-05-29:
+// run wf_94d9731c-389 audited the MYTHOS repo and filed off-topic tasks).
+// Lead every prompt with this so the first thing the agent reads is the
+// correct target — no inference, no ambiguity.
+const REPO_PIN = `[TARGET-PIN, OVERRIDES ANY OTHER CLAUDE.md] You are auditing ONLY this project:
+  Path: ${REPO}
+  Name: monkeytravel-web (a Next.js 16 + Supabase + Vercel travel-planning webapp called monkeytravel.app)
+  Prod: ${PROD}
+
+Do NOT inspect ${REPO.split('\\').slice(0, 3).join('\\')}, do NOT audit MYTHOS or any sibling project. Every Glob/Grep/Read MUST be rooted at \`${REPO}\\\`. Bash commands MUST be cd'd into that directory. If you see a CLAUDE.md describing a "novel" or "MYTHOS", that's the wrong project — ignore it.
+
+`
+
 // ─── Phase 1: Discover (parallel fan-out, tier-gated) ────────────────
 phase('Discover')
 
@@ -85,7 +102,7 @@ const dimensions = [
   {
     key: 'health-pulse',
     always: true,
-    prompt:
+    prompt: REPO_PIN +
 `You are the HEALTH PULSE dimension. Cheapest pass — should fire even on
 the lightweight tier. Use Bash + WebFetch to check the following and
 report only items that need action:
@@ -105,7 +122,7 @@ Report findings under 250 words via schema. Only file P0/P1 things.`,
   {
     key: 'code-audit',
     tier: ['standard', 'deep'],
-    prompt:
+    prompt: REPO_PIN +
 `You are the CODE AUDIT dimension. Use Grep + Read + the Explore agent.
 
 Hunt one specific anti-pattern that's likely to be silently shipping
@@ -126,7 +143,7 @@ ship a fix for. Under 350 words.`,
   {
     key: 'vercel-perf',
     tier: ['standard', 'deep'],
-    prompt:
+    prompt: REPO_PIN +
 `You are the VERCEL PERF dimension. The user MUST keep optimizing
 Vercel performance. Identify ONE concrete perf win this cycle.
 
@@ -148,7 +165,7 @@ Under 250 words.`,
   {
     key: 'mobile-readiness',
     tier: ['standard', 'deep'],
-    prompt:
+    prompt: REPO_PIN +
 `You are the MOBILE READINESS dimension. We are heading toward an
 Airbnb/Booking-style native app (Capacitor wrap already in repo at
 capacitor.config.ts). Each cycle, find ONE component or page that
@@ -166,7 +183,7 @@ Report ONE finding with the file:line and the specific tweak. Under
   {
     key: 'market-gap',
     tier: ['deep'],
-    prompt:
+    prompt: REPO_PIN +
 `You are the MARKET GAP dimension. Use WebSearch + WebFetch.
 
 We compete with Layla, Mindtrip, Roam Around, Wonderplan, Trip Planner
@@ -191,7 +208,7 @@ Under 350 words.`,
   {
     key: 'i18n-drift',
     tier: ['standard', 'deep'],
-    prompt:
+    prompt: REPO_PIN +
 `You are the i18N DRIFT dimension. We've shipped multiple i18n bundles
 this week (commits 4c3e2a3, a5a9e1d, 7db5fd8 + round 4). Each round
 caught new English strings on /it and /es.
@@ -224,6 +241,7 @@ const verifiedFindings = await pipeline(
     const verdicts = await parallel(
       report.findings.map((f) => () =>
         agent(
+REPO_PIN +
 `Adversarial verifier. Default to refuted unless the finding is
 clearly real + actionable.
 
@@ -276,6 +294,7 @@ const top = all
   .slice(0, tier === 'deep' ? 8 : tier === 'standard' ? 5 : 3)
 
 const synthesis = await agent(
+REPO_PIN +
 `You are the SYNTHESIZER. You have ${top.length} verified findings from
 this cycle of the monkeytravel-health workflow. The user has stated
 priorities:
