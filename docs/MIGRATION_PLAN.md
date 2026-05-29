@@ -1,6 +1,6 @@
 # Migration plan — Trawell (sevfbahwmlbdlnbhqwyi)
 
-Updated: 2026-05-28.
+Updated: 2026-05-28 (Tier 1.2 + 1.3 added).
 Author: Claude session that applied the May 2026 migration backlog.
 
 This document is **the source of truth** for what's been applied to prod
@@ -10,7 +10,7 @@ it.
 
 ---
 
-## Just applied (2026-05-28)
+## Applied 2026-05-28 — round 1 (backlog catch-up)
 
 | Migration | Effect | Risk |
 |---|---|---|
@@ -19,7 +19,14 @@ it.
 | `email_log_and_invite_email` | New table `public.email_log` + 3 nullable columns on `trip_invites` (`recipient_email`, `recipient_locale`, `message`) | None — additive |
 | `explore_ugc_feed` | 9 new columns on `trips` (incl. `like_count`, `save_count`, `fork_count`, `is_hidden`, `is_editors_pick`, `parent_trip_id`), 3 new tables (`trip_likes`, `trip_saves`, `trip_reports`), 5 new RPCs for atomic counters, updated `update_trip_trending_score` formula, new `trips_explore_public_read` RLS policy | None — additive. All new columns have safe defaults. |
 
-State after: 122 applied migrations, 19 new advisor findings (all by-design or platform-level — see "Known unresolved advisors" below).
+## Applied 2026-05-28 — round 2 (Tier 1)
+
+| Tier | Migration | Effect | Code commit |
+|---|---|---|---|
+| 1.2 | `cache_travel_style` | `destination_activity_cache.travel_style TEXT NOT NULL DEFAULT 'classic'`; UNIQUE rebuilt to include it. Re-enables AI cache for Backpacker Mode (was skipping → ~$0.02-0.05/gen wasted) | `ac60c35` |
+| 1.3 | `hostelworld_clicks` | New service-role-only table for click attribution on the Backpacker → Hostelworld CTA. Powers the "we drove N searches to you" metric for the partnership pitch | `f2a6f84` |
+
+State after: 125 applied migrations, 1 ERROR-level advisor (`spatial_ref_sys` — requires dashboard).
 
 ---
 
@@ -72,15 +79,18 @@ These are the migrations the next few weeks of code will need. **Plan
 around them now so you can sequence them with the other Supabase
 project you're moving in parallel.**
 
-### Tier 1 — likely in the next 1–2 weeks
-*Small, targeted, fully scoped.*
+### Tier 1 — STATUS
 
-1. **`trips.travel_style` real column** (~5 min)
+1. **`trips.travel_style` real column** — **PENDING** (~5 min)
    - **Why**: Backpacker Mode currently stores `travel_style` in
      `trip_meta` JSONB. Promoting it to a real column enables:
-     - `/explore` filter chip "Backpacker"
+     - `/explore` filter chip "Backpacker" (blocked anyway until you
+       set `EXPLORE_UGC_ENABLED=true` in Vercel)
      - Indexed query for "show all backpacker trips" without JSONB extract
      - Sub-policies that key on style
+   - **Why pending**: /explore is still env-flag-gated. Doing this
+     before flipping the flag delivers no user-visible value. Pair this
+     with the env-flag flip.
    - **Migration shape**:
      ```sql
      ALTER TABLE public.trips
@@ -94,49 +104,23 @@ project you're moving in parallel.**
      CREATE INDEX IF NOT EXISTS idx_trips_travel_style
        ON public.trips(travel_style) WHERE travel_style <> 'classic';
      ```
-   - **Risk**: None — additive. Backfill is idempotent.
 
-2. **`destination_activity_cache.travel_style` column** (~5 min)
-   - **Why**: Backpacker generation currently SKIPS the cache (cost: 1
-     extra Gemini call per backpacker trip). Adding this column lets
-     backpacker results be cached and reused.
-   - **Migration shape**:
-     ```sql
-     ALTER TABLE public.destination_activity_cache
-       ADD COLUMN IF NOT EXISTS travel_style TEXT NOT NULL DEFAULT 'classic';
-     DROP INDEX IF EXISTS idx_destination_activity_cache_lookup;
-     CREATE INDEX idx_destination_activity_cache_lookup_v2
-       ON public.destination_activity_cache(destination_hash, budget_tier, language, travel_style);
-     ```
-   - **Code change required** in parallel: drop the
-     `if (params.travelStyle === "backpacker") skip cache` branch in
-     `app/api/ai/generate/route.ts` and add `travel_style` to the cache
-     key.
-   - **Risk**: None — additive. Old cache rows backfill as classic.
+2. **`destination_activity_cache.travel_style` column** — ✅ **DONE**
+   (migration `cache_travel_style` + commit `ac60c35`, applied
+   2026-05-28). Backpacker generations now hit cache like classic ones,
+   saving ~$0.02-0.05 per repeat backpacker destination.
 
-3. **`hostelworld_clicks` event table** (~10 min)
-   - **Why**: To bring real CTR numbers to the Hostelworld partnership
-     conversation, we need a dedicated table (or PostHog event) for
-     clicks on the "Find hostels for this trip" CTA. PostHog already
-     covers it via the `data-analytics-event` attribute, but a DB-side
-     table gives us a defensible "exact count" number for the pitch.
-   - **Migration shape**:
-     ```sql
-     CREATE TABLE IF NOT EXISTS public.hostelworld_clicks (
-       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-       trip_id UUID REFERENCES public.trips(id) ON DELETE SET NULL,
-       user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-       destination TEXT,
-       start_date DATE,
-       end_date DATE,
-       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-     );
-     CREATE INDEX idx_hostelworld_clicks_created_at
-       ON public.hostelworld_clicks(created_at DESC);
-     ALTER TABLE public.hostelworld_clicks ENABLE ROW LEVEL SECURITY;
-     -- Inserts via service-role API only (no client policy).
-     ```
-   - **Risk**: None — additive. New API route needed to write to it.
+3. **`hostelworld_clicks` event table** — ✅ **DONE**
+   (migration `hostelworld_clicks` + commit `f2a6f84`, applied
+   2026-05-28). Click tracking live. Pitch query for partnership:
+   ```sql
+   SELECT
+     count(*) AS total_clicks,
+     count(DISTINCT trip_id) AS trips_with_clicks,
+     count(DISTINCT user_id) AS unique_users
+   FROM public.hostelworld_clicks
+   WHERE created_at > now() - interval '30 days';
+   ```
 
 ### Tier 2 — possible in the next 4–6 weeks
 *Bigger, may need discussion before applying.*
