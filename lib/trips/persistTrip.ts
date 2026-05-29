@@ -105,6 +105,11 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     },
     tags: formState.derivedInterests,
     trip_meta: tripMeta,
+    // 2026-05-28 — Tier 1.1 migration promoted travel_style from JSONB
+    // to a real column. We write to BOTH (above + here) during the
+    // transition so any existing reader keeps working. trip_meta can
+    // be cleaned up in a later pass once no reader references it.
+    travel_style: formState.travelStyle === "backpacker" ? "backpacker" as const : "classic" as const,
     packing_list: itinerary.trip_summary.packing_suggestions,
   };
 }
