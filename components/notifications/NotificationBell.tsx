@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/lib/i18n/routing";
 import type { NotificationRow } from "@/lib/notifications/types";
@@ -26,6 +27,9 @@ interface NotificationsAPI {
 }
 
 export default function NotificationBell() {
+  // i18n: previously the bell dropdown was English-only across en/it/es.
+  // Caught via codebase audit 2026-05-28.
+  const t = useTranslations("common.share.notifications");
   const [authedUserId, setAuthedUserId] = useState<string | null>(null);
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [unread, setUnread] = useState(0);
@@ -181,7 +185,7 @@ export default function NotificationBell() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="relative p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
-        aria-label={unread > 0 ? `${unread} unread notifications` : "Notifications"}
+        aria-label={unread > 0 ? t("unreadLabel", { count: unread }) : t("bellLabel")}
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -211,13 +215,13 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[80vh] bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-900">Notifications</h3>
+            <h3 className="font-semibold text-slate-900">{t("title")}</h3>
             {unread > 0 && (
               <button
                 onClick={markAllRead}
                 className="text-xs font-medium text-[var(--primary)] hover:underline"
               >
-                Mark all read
+                {t("markAllRead")}
               </button>
             )}
           </div>
@@ -225,13 +229,13 @@ export default function NotificationBell() {
           <div className="overflow-y-auto max-h-[60vh]">
             {loading ? (
               <div className="px-4 py-8 text-center text-sm text-slate-400">
-                Loading…
+                {t("loading")}
               </div>
             ) : items.length === 0 ? (
               <div className="px-4 py-8 text-center">
-                <p className="text-sm text-slate-600">You're all caught up.</p>
+                <p className="text-sm text-slate-600">{t("allCaughtUp")}</p>
                 <p className="text-xs text-slate-400 mt-1">
-                  You'll see updates here when collaborators vote, comment, or accept invites.
+                  {t("emptyHint")}
                 </p>
               </div>
             ) : (
@@ -253,7 +257,7 @@ export default function NotificationBell() {
               className="block text-center text-xs font-medium text-[var(--primary)] hover:underline"
               onClick={() => setOpen(false)}
             >
-              View all settings
+              {t("viewAllSettings")}
             </Link>
           </div>
         </div>

@@ -70,7 +70,12 @@ interface TemplateCardProps {
 }
 
 function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // Eager-true when we already have a URL — next/image with `unoptimized`
+  // is effectively a raw <img> and onLoad doesn't fire for browser-cached
+  // images. See lib/hooks/useImageLoaded.ts for the explanation. (We can't
+  // use the ref-based hook here because next/image doesn't expose the
+  // underlying <img>; eager-true is the next-best.)
+  const [imageLoaded, setImageLoaded] = useState(Boolean(template.coverImageUrl));
   const [imageError, setImageError] = useState(false);
   const gradient = getGradient(template.destination);
 

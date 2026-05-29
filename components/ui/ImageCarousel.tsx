@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
@@ -34,13 +35,15 @@ export default function ImageCarousel({
   const [isAnimating, setIsAnimating] = useState(true);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Touch tracking refs
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const lastTouchRef = useRef({ x: 0, y: 0 });
   const velocityRef = useRef(0);
+  // imageRef is declared further down (line 45) — useImageLoaded is
+  // invoked after currentImage is resolved (around line 256). See the
+  // bottom of this hook block.
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
@@ -253,6 +256,10 @@ export default function ImageCarousel({
   if (!mounted) return null;
 
   const currentImage = images[currentIndex];
+  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
+  // navigating to an image the browser already has cached left the slide
+  // at opacity:0 until the next swipe.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(imageRef, currentImage?.url);
 
   const carouselContent = (
     <div

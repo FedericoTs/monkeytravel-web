@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { useTranslations } from "next-intl";
 import { useCurrency } from "@/lib/locale";
 /* eslint-disable @next/next/no-img-element */
@@ -110,7 +111,10 @@ export default function DestinationHero({
   const t = useTranslations("common.destination");
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const heroImgRef = useRef<HTMLImageElement | null>(null);
+  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
+  // the hero photo stayed at opacity:0 for repeat visitors.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, destinationData?.coverImageUrl);
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
@@ -178,6 +182,7 @@ export default function DestinationHero({
         {destinationData?.coverImageUrl ? (
           <>
             <img
+              ref={heroImgRef}
               src={destinationData.coverImageUrl}
               alt={destination}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${

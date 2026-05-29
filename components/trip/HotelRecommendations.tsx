@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { useTranslations } from "next-intl";
 import type { ItineraryDay } from "@/types";
 import { getHotelSearchCenter, type GeoCenter } from "@/lib/utils/geo";
@@ -161,7 +162,11 @@ function HotelCard({
 }) {
   const t = useTranslations("common.booking.hotels");
   const tc = useTranslations("common.buttons");
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // Cached-image race fix (see lib/hooks/useImageLoaded.ts). Without this,
+  // repeat visitors saw hotel cards render at opacity:0 forever because
+  // `<img onLoad>` doesn't fire for browser-cached images.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, hotel.photoUrl);
   const [showBookingMenu, setShowBookingMenu] = useState(false);
 
   return (
@@ -176,6 +181,7 @@ function HotelCard({
         {hotel.photoUrl ? (
           <>
             <img
+              ref={imgRef}
               src={hotel.photoUrl}
               alt={hotel.name}
               className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${

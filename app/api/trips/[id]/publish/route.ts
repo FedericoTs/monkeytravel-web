@@ -123,6 +123,15 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   }
 
   // Anti-spam: per-user publish rate.
+  // 2026-05-28: when MIN_TRIP_AGE_HOURS dropped to 0 (auto-prompt
+  // requirement) we lost the buffer that used to slow new-account abuse.
+  // Compensate with an age-aware cap: accounts under 7 days old can
+  // publish at most 3 trips/week. Older accounts retain the full 10.
+  // Still permissive enough that any honest backpacker hitting the
+  // auto-prompt once per trip won't notice.
+  const accountAgeDays =
+    (Date.now() - new Date(user.created_at).getTime()) / 86_400_000;
+  const weeklyCap = accountAgeDays < 7 ? 3 : MAX_PUBLISHED_PER_WEEK;
   const oneWeekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const { count: recentPublishes } = await supabase
     .from("trips")
@@ -130,9 +139,9 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     .eq("user_id", user.id)
     .eq("visibility", "public")
     .gte("shared_at", oneWeekAgo);
-  if ((recentPublishes ?? 0) >= MAX_PUBLISHED_PER_WEEK) {
+  if ((recentPublishes ?? 0) >= weeklyCap) {
     return errors.badRequest(
-      `You can publish up to ${MAX_PUBLISHED_PER_WEEK} trips per week`
+      `You can publish up to ${weeklyCap} trips per week`
     );
   }
 

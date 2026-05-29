@@ -30,6 +30,11 @@ export function PostHogProviderWrapper({ children }: ProvidersProps) {
   useEffect(() => {
     let cancelled = false;
     let pollInterval: ReturnType<typeof setInterval> | undefined;
+    // Track the 15s stop-polling timer so we can clear it on unmount —
+    // previously it leaked (the closure referenced the inner pollInterval
+    // for up to 15s even after the component unmounted). Caught via audit
+    // 2026-05-28.
+    let stopPollTimer: ReturnType<typeof setTimeout> | undefined;
 
     const loadPostHog = async () => {
       try {
@@ -54,8 +59,11 @@ export function PostHogProviderWrapper({ children }: ProvidersProps) {
           }
         }, 200);
 
-        // Stop polling after 15s (user may not have given consent)
-        setTimeout(() => {
+        // Stop polling after 15s (user may not have given consent).
+        // Stored in stopPollTimer so the outer cleanup can cancel it on
+        // unmount instead of waiting up to 15s for it to fire on a stale
+        // closure.
+        stopPollTimer = setTimeout(() => {
           if (pollInterval) clearInterval(pollInterval);
         }, 15000);
       } catch (err) {
@@ -70,6 +78,7 @@ export function PostHogProviderWrapper({ children }: ProvidersProps) {
         cancelled = true;
         cancelIdleCallback(idleId);
         if (pollInterval) clearInterval(pollInterval);
+        if (stopPollTimer) clearTimeout(stopPollTimer);
       };
     } else {
       const timeout = setTimeout(loadPostHog, 2000);
@@ -77,6 +86,7 @@ export function PostHogProviderWrapper({ children }: ProvidersProps) {
         cancelled = true;
         clearTimeout(timeout);
         if (pollInterval) clearInterval(pollInterval);
+        if (stopPollTimer) clearTimeout(stopPollTimer);
       };
     }
   }, []);

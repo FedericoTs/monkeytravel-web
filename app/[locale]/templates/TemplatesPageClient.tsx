@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,7 +94,9 @@ function getFlagEmoji(countryCode: string): string {
 
 // Featured Template Card - Mobile-first Hero style
 function FeaturedCard({ template }: { template: TemplateTrip }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
   const gradient = getGradient(template.destination);
 
   const budgetLabel =
@@ -121,6 +124,7 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
         {/* Cover image */}
         {template.coverImageUrl && (
           <img
+            ref={imgRef}
             src={template.coverImageUrl}
             alt={template.destination}
             onLoad={() => setImageLoaded(true)}
@@ -191,7 +195,9 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
 
 // Template Card Component - Mobile Optimized
 function TemplateCard({ template, index }: { template: TemplateTrip; index: number }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
   const [imageError, setImageError] = useState(false);
   const gradient = getGradient(template.destination);
 
@@ -224,6 +230,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
         >
           {template.coverImageUrl && !imageError && (
             <img
+              ref={imgRef}
               src={template.coverImageUrl}
               alt={template.destination}
               onLoad={() => setImageLoaded(true)}

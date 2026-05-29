@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,20 +27,29 @@ import type { BudgetTier } from "@/lib/explore/types";
  *     we fall back to a "coming soon" block so the route stays linkable
  */
 
-export const metadata: Metadata = {
-  // Root layout's title.template appends " | MonkeyTravel" — don't add
-  // the suffix here in metadata.title or the rendered <title> doubles.
-  title: "Explore Trending Trips",
-  description:
-    "Discover inspiring travel itineraries shared by the MonkeyTravel community. Browse trending destinations, copy trips, and start planning your next adventure.",
-  openGraph: {
-    title: "Explore Trending Trips | MonkeyTravel",
-    description:
-      "Discover inspiring travel itineraries shared by the MonkeyTravel community.",
-    type: "website",
-  },
-  alternates: { canonical: "https://monkeytravel.app/explore" },
-};
+// Locale-aware metadata generator. The previous static export hardcoded
+// English titles, breaking SEO + hreflang signals for /it /es. Localized
+// 2026-05-28 (bug-fix sweep).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "common.share.explore" });
+  return {
+    // Root layout's title.template appends " | MonkeyTravel" — don't add
+    // the suffix here or the rendered <title> doubles.
+    title: t("pageTitle"),
+    description: t("metaDescription"),
+    openGraph: {
+      title: `${t("pageTitle")} | MonkeyTravel`,
+      description: t("metaDescription"),
+      type: "website",
+    },
+    alternates: { canonical: "https://monkeytravel.app/explore" },
+  };
+}
 
 type SearchParams = {
   destination?: string;
@@ -88,6 +97,7 @@ export default async function ExplorePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "common.share.explore" });
 
   const sp = await searchParams;
   const filters = parseFilters(sp);
@@ -127,11 +137,10 @@ export default async function ExplorePage({
         <div className="absolute inset-0 bg-[url('/images/pattern-dots.svg')] opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
-            Explore trips
+            {t("h1")}
           </h1>
           <p className="text-white/85 text-base sm:text-lg max-w-2xl">
-            Real itineraries shared by travelers. Save the ones you like, or
-            fork any trip as a starting point for your own.
+            {t("lede")}
           </p>
         </div>
       </section>
@@ -139,10 +148,10 @@ export default async function ExplorePage({
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-slate-700">
-            Home
+            {t("breadcrumbHome")}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-slate-900">Explore</span>
+          <span className="text-slate-900">{t("breadcrumbCurrent")}</span>
         </nav>
 
         <ExploreFilters />
@@ -151,15 +160,12 @@ export default async function ExplorePage({
             returns null). Keeps the route valid for SEO + indexed URLs. */}
         {feed === null && (
           <div className="mt-8 rounded-2xl bg-amber-50 border border-amber-200 p-8 text-center">
-            <p className="text-slate-700">
-              The community feed is coming soon. In the meantime, plan your own
-              trip — it&apos;s free and takes less than a minute.
-            </p>
+            <p className="text-slate-700">{t("comingSoon")}</p>
             <Link
               href="/trips/new"
               className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
             >
-              Plan a trip →
+              {t("planATrip")} →
             </Link>
           </div>
         )}
@@ -170,12 +176,14 @@ export default async function ExplorePage({
             <div className="mt-6 mb-5 flex items-center justify-between">
               <p className="text-sm text-slate-500">
                 {total === 0
-                  ? "No trips match these filters"
-                  : `${total} ${total === 1 ? "trip" : "trips"}`}
+                  ? t("noResults")
+                  : total === 1
+                    ? t("tripCountSingular", { count: total })
+                    : t("tripCountPlural", { count: total })}
               </p>
               {totalPages > 1 && (
                 <p className="text-sm text-slate-500">
-                  Page {currentPage} of {totalPages}
+                  {t("pageOfPages", { current: currentPage, total: totalPages })}
                 </p>
               )}
             </div>
@@ -184,17 +192,16 @@ export default async function ExplorePage({
               <div className="rounded-2xl bg-slate-50 border border-slate-200 p-10 text-center">
                 <div className="text-5xl mb-3">🧭</div>
                 <h2 className="text-xl font-semibold text-slate-900 mb-2">
-                  Nothing here yet
+                  {t("nothingHereYet")}
                 </h2>
                 <p className="text-slate-600 mb-5 max-w-md mx-auto">
-                  Be the first to publish a trip matching these filters — or
-                  clear them and explore what others have shared.
+                  {t("beTheFirstToPublish")}
                 </p>
                 <Link
                   href="/explore"
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-white transition-all"
                 >
-                  Clear filters
+                  {t("clearFilters")}
                 </Link>
               </div>
             ) : (
@@ -219,14 +226,14 @@ export default async function ExplorePage({
                     className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                     rel="prev"
                   >
-                    ← Prev
+                    {t("prev")}
                   </Link>
                 ) : (
                   <span
                     aria-disabled="true"
                     className="px-3 py-2 rounded-lg border border-slate-200 text-slate-300 text-sm cursor-not-allowed"
                   >
-                    ← Prev
+                    {t("prev")}
                   </span>
                 )}
 
@@ -263,14 +270,14 @@ export default async function ExplorePage({
                     className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                     rel="next"
                   >
-                    Next →
+                    {t("next")}
                   </Link>
                 ) : (
                   <span
                     aria-disabled="true"
                     className="px-3 py-2 rounded-lg border border-slate-200 text-slate-300 text-sm cursor-not-allowed"
                   >
-                    Next →
+                    {t("next")}
                   </span>
                 )}
               </div>
