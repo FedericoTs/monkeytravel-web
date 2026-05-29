@@ -32,6 +32,23 @@ import {
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { identify } from "@/lib/posthog/identify";
+
+/**
+ * Module-level set of user.ids we've already PostHog-identified on this
+ * page-load. Task #207: AuthProvider fires a lightweight identify on every
+ * mount with a non-null user so returning-user page-loads (where neither
+ * the auth-callback nor the email login/signup forms run) still stitch
+ * PostHog events to the authenticated profile. We short-circuit duplicates
+ * so a re-render or a 2nd AuthProvider mount (theoretically impossible
+ * since it's in the [locale] layout, but defensive) doesn't churn.
+ *
+ * SessionTracker also identifies — with the full DB-derived property set —
+ * but that runs behind requestIdleCallback and can be 5s late. This early
+ * identify gets the user.id onto the distinct_id immediately so any event
+ * captured during the first 5s lands on the right profile.
+ */
+const identifiedThisPageLoad = new Set<string>();
 
 interface AuthContextValue {
   user: User | null;
@@ -95,6 +112,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Task #207: idempotent PostHog identify whenever we have a non-null
+  // user. Covers the returning-user page-load case (browser tab reopened,
+  // session restored from cookie) where the auth-callback and the
+  // signup/login forms never fire. Fire-and-forget — never blocks render.
+  useEffect(() => {
+    if (!user) return;
+    if (identifiedThisPageLoad.has(user.id)) return;
+    identifiedThisPageLoad.add(user.id);
+    identify(user.id, {
+      email: user.email,
+      name:
+        (user.user_metadata?.display_name as string | undefined) ||
+        (user.user_metadata?.full_name as string | undefined),
+    }).catch(() => {
+      // posthog-js not loaded yet (lazy import) or blocked by a privacy
+      // extension. SessionTracker will re-identify with full properties
+      // after requestIdleCallback fires; drop quietly here.
+      identifiedThisPageLoad.delete(user.id);
+    });
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

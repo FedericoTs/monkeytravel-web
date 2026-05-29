@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { cache } from "react";
 import matter from "gray-matter";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
@@ -212,8 +213,19 @@ export function getAllSlugs(): string[] {
 /**
  * Lightweight: returns only frontmatter for all posts (no HTML rendering).
  * Use this when you only need metadata, not full post content.
+ *
+ * Wrapped in React's cache() so a single request that touches blog frontmatter
+ * from multiple surfaces (Footer + page + ToC + related-posts + tag pages)
+ * pays the fs.readFileSync + gray-matter parse cost ONCE per locale per
+ * request. Without this, /blog and /trips were parsing all ~62 markdown
+ * files multiple times per request (Footer, page body, related, prev/next).
+ *
+ * The cache key is the locale arg; React's cache() identity-matches it.
+ * Per-request scope is sufficient: blog pages are statically generated /
+ * ISR'd, so the parse cost is amortized to ~1x per (locale, revalidate
+ * window) instead of N callers per render.
  */
-export function getAllFrontmatter(locale = "en"): BlogFrontmatter[] {
+export const getAllFrontmatter = cache((locale = "en"): BlogFrontmatter[] => {
   const slugs = getAllSlugs();
   return slugs
     .map((slug) => parseFrontmatter(slug, locale)?.frontmatter)
@@ -222,7 +234,7 @@ export function getAllFrontmatter(locale = "en"): BlogFrontmatter[] {
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
-}
+});
 
 export async function getAllPosts(locale = "en"): Promise<BlogPost[]> {
   const slugs = getAllSlugs();

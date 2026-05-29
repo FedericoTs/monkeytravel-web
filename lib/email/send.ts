@@ -44,6 +44,42 @@ export interface SendOutcome {
     | "failed";
   messageId?: string;
   error?: string;
+  /**
+   * True when the send went through but at least one email_log row failed
+   * to persist (insert or final-status update). The transactional email is
+   * still delivered — we never block a user-facing notification on logging
+   * — but a reconciler should sweep the Resend audit log against email_log
+   * to find these orphans. Set in the fail-open paths inside dispatchEmail.
+   */
+  needsReconciliation?: boolean;
+}
+
+/**
+ * Best-effort Sentry capture. Lazily imported so a missing/failed Sentry
+ * never breaks the email path. Mirrors the pattern in
+ * lib/usage-limits/check.ts and lib/gemini.ts.
+ */
+function captureToSentry(
+  err: unknown,
+  context: { stage: string; recipient?: string; idempotencyKey?: string }
+): void {
+  import("@sentry/nextjs")
+    .then((Sentry) => {
+      Sentry.captureException?.(err, {
+        tags: {
+          source: "email/send",
+          stage: context.stage,
+        },
+        extra: {
+          recipient: context.recipient,
+          idempotency_key: context.idempotencyKey,
+        },
+        level: "error",
+      });
+    })
+    .catch(() => {
+      /* Sentry not available — console.error is the fallback */
+    });
 }
 
 interface DispatchOptions {
@@ -102,12 +138,31 @@ export async function dispatchEmail(
   //    email_log enforces this at the DB layer too; we check first to
   //    return the right outcome shape.
   if (options.idempotencyKey) {
-    const { data: existing } = await admin
+    const { data: existing, error: idempErr } = await admin
       .from("email_log")
       .select("id, status, message_id")
       .eq("idempotency_key", options.idempotencyKey)
       .in("status", ["sent", "queued"])
       .maybeSingle();
+    if (idempErr) {
+      // FAIL CLOSED: if we can't confirm we haven't already sent, we must
+      // not send again. Better to drop one transactional email than to
+      // double-send (worse for deliverability reputation and user trust).
+      console.error(
+        "[email/send] idempotency read failed; refusing to send",
+        idempErr
+      );
+      captureToSentry(idempErr, {
+        stage: "idempotency_read",
+        recipient,
+        idempotencyKey: options.idempotencyKey,
+      });
+      return {
+        ok: false,
+        status: "failed",
+        error: "idempotency check failed",
+      };
+    }
     if (existing) {
       return {
         ok: true,
@@ -119,20 +174,53 @@ export async function dispatchEmail(
 
   // 2. Suppression check — has this address previously bounced or
   //    complained? Never re-send to them.
-  const { data: suppressed } = await admin
+  const { data: suppressed, error: suppErr } = await admin
     .from("email_log")
     .select("id")
     .eq("recipient_email", recipient)
     .in("status", ["bounced", "complained"])
     .limit(1);
+  if (suppErr) {
+    // FAIL CLOSED: if we can't confirm the address isn't suppressed, we
+    // refuse to send. Sending to a known-bounced/complained address torches
+    // sender reputation across the entire domain — far worse than dropping
+    // a single transactional email.
+    console.error(
+      "[email/send] suppression read failed; refusing to send",
+      suppErr
+    );
+    captureToSentry(suppErr, {
+      stage: "suppression_read",
+      recipient,
+      idempotencyKey: options.idempotencyKey,
+    });
+    return {
+      ok: false,
+      status: "failed",
+      error: "suppression check failed",
+    };
+  }
   if (suppressed && suppressed.length > 0) {
-    await admin.from("email_log").insert({
+    const { error: suppInsErr } = await admin.from("email_log").insert({
       recipient_email: recipient,
       template_id: options.template.id,
       status: "skipped_suppressed",
       idempotency_key: options.idempotencyKey ?? null,
       metadata: options.metadata ?? {},
     });
+    if (suppInsErr) {
+      // Audit-only insert — we still report the skip. The actionable
+      // outcome (didn't send) is unchanged.
+      console.error(
+        "[email/send] skipped_suppressed audit log insert failed",
+        suppInsErr
+      );
+      captureToSentry(suppInsErr, {
+        stage: "log_insert_skipped_suppressed",
+        recipient,
+        idempotencyKey: options.idempotencyKey,
+      });
+    }
     return { ok: true, status: "skipped_suppressed" };
   }
 
@@ -151,13 +239,27 @@ export async function dispatchEmail(
     const perType = ns[settingKey];
     const optedOut = emailMaster === false || perType === false;
     if (optedOut) {
-      await admin.from("email_log").insert({
+      const { error: disInsErr } = await admin.from("email_log").insert({
         recipient_email: recipient,
         template_id: options.template.id,
         status: "skipped_disabled",
         idempotency_key: options.idempotencyKey ?? null,
         metadata: options.metadata ?? {},
       });
+      if (disInsErr) {
+        // Audit-only insert — the actionable outcome (didn't send) is
+        // unchanged. Logging failure must not flip a user opt-out into a
+        // surprise send.
+        console.error(
+          "[email/send] skipped_disabled audit log insert failed",
+          disInsErr
+        );
+        captureToSentry(disInsErr, {
+          stage: "log_insert_skipped_disabled",
+          recipient,
+          idempotencyKey: options.idempotencyKey,
+        });
+      }
       return { ok: true, status: "skipped_disabled" };
     }
   }
@@ -203,7 +305,7 @@ export async function dispatchEmail(
     subject = rendered.subject;
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Template render failed";
-    await admin.from("email_log").insert({
+    const { error: failInsErr } = await admin.from("email_log").insert({
       recipient_email: recipient,
       template_id: options.template.id,
       status: "failed",
@@ -211,12 +313,31 @@ export async function dispatchEmail(
       idempotency_key: options.idempotencyKey ?? null,
       metadata: options.metadata ?? {},
     });
+    if (failInsErr) {
+      // The send already failed (render error) — we just couldn't audit
+      // the failure. Surface to Sentry so we still see render failures
+      // even when the audit table is sick.
+      console.error(
+        "[email/send] failed-template audit log insert failed",
+        failInsErr
+      );
+      captureToSentry(failInsErr, {
+        stage: "log_insert_failed_render",
+        recipient,
+        idempotencyKey: options.idempotencyKey,
+      });
+    }
     return { ok: false, status: "failed", error: msg };
   }
 
   // 5. Insert 'queued' row before sending — gives us the row id to
   //    update with the messageId after the send returns.
-  const { data: logRow } = await admin
+  //
+  //    If this insert fails, we proceed with the send anyway (transactional
+  //    email is more valuable than the audit trail) but stamp the outcome
+  //    with needsReconciliation so a sweeper can match Resend's record of
+  //    the send back to email_log.
+  const { data: logRow, error: queuedInsErr } = await admin
     .from("email_log")
     .insert({
       recipient_email: recipient,
@@ -227,6 +348,19 @@ export async function dispatchEmail(
     })
     .select("id")
     .single();
+  let needsReconciliation = false;
+  if (queuedInsErr) {
+    console.error(
+      "[email/send] queued log insert failed; sending without audit row",
+      queuedInsErr
+    );
+    captureToSentry(queuedInsErr, {
+      stage: "log_insert_queued",
+      recipient,
+      idempotencyKey: options.idempotencyKey,
+    });
+    needsReconciliation = true;
+  }
 
   // 6. Actually send. The client gracefully skips when RESEND_API_KEY
   //    is missing; we record that outcome distinctly.
@@ -263,17 +397,41 @@ export async function dispatchEmail(
     tags: [{ name: "template", value: options.template.id }],
   });
 
-  // 7. Update the log row with the final status.
-  if (logRow?.id) {
-    if (result.ok && result.skipped === "no_key") {
-      await admin
+  // 7. Update the log row with the final status. If the queued insert
+  //    failed earlier, logRow is undefined — we still report the true
+  //    send outcome to the caller (the send already happened or didn't,
+  //    independent of the audit row). The outcome is stamped with
+  //    needsReconciliation so an out-of-band sweeper can stitch the
+  //    Resend audit trail back to email_log.
+  if (result.ok && result.skipped === "no_key") {
+    if (logRow?.id) {
+      const { error: updErr } = await admin
         .from("email_log")
         .update({ status: "skipped_no_key" })
         .eq("id", logRow.id);
-      return { ok: true, status: "skipped_no_key" };
+      if (updErr) {
+        console.error(
+          "[email/send] skipped_no_key log update failed",
+          updErr
+        );
+        captureToSentry(updErr, {
+          stage: "log_update_skipped_no_key",
+          recipient,
+          idempotencyKey: options.idempotencyKey,
+        });
+        needsReconciliation = true;
+      }
     }
-    if (result.ok) {
-      await admin
+    return {
+      ok: true,
+      status: "skipped_no_key",
+      ...(needsReconciliation ? { needsReconciliation: true } : {}),
+    };
+  }
+
+  if (result.ok) {
+    if (logRow?.id) {
+      const { error: updErr } = await admin
         .from("email_log")
         .update({
           status: "sent",
@@ -281,21 +439,58 @@ export async function dispatchEmail(
           message_id: result.messageId ?? null,
         })
         .eq("id", logRow.id);
-      return { ok: true, status: "sent", messageId: result.messageId };
+      if (updErr) {
+        // The email already went out. We just can't mark it 'sent' in our
+        // audit table. Stamp needsReconciliation so a sweeper can correct
+        // the log from Resend's event stream.
+        console.error(
+          "[email/send] sent log update failed; email already delivered",
+          updErr
+        );
+        captureToSentry(updErr, {
+          stage: "log_update_sent",
+          recipient,
+          idempotencyKey: options.idempotencyKey,
+        });
+        needsReconciliation = true;
+      }
     }
-    await admin
+    return {
+      ok: true,
+      status: "sent",
+      messageId: result.messageId,
+      ...(needsReconciliation ? { needsReconciliation: true } : {}),
+    };
+  }
+
+  // Send failed.
+  if (logRow?.id) {
+    const { error: updErr } = await admin
       .from("email_log")
       .update({
         status: "failed",
         error: (result.error ?? "send failed").slice(0, 500),
       })
       .eq("id", logRow.id);
+    if (updErr) {
+      console.error(
+        "[email/send] failed log update failed",
+        updErr
+      );
+      captureToSentry(updErr, {
+        stage: "log_update_failed",
+        recipient,
+        idempotencyKey: options.idempotencyKey,
+      });
+      needsReconciliation = true;
+    }
   }
 
   return {
     ok: false,
     status: "failed",
     error: result.error ?? "send failed",
+    ...(needsReconciliation ? { needsReconciliation: true } : {}),
   };
 }
 

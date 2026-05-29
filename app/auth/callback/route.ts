@@ -62,11 +62,39 @@ export async function GET(request: Request) {
       }
 
       // Check if user profile exists
-      const { data: existingProfile } = await supabase
+      // NOTE: capture `error` here. On a transient Supabase failure we
+      // previously silently treated the returning user as a brand-new
+      // signup (existingProfile === null), routing them to /trips/new
+      // instead of `next=` and skipping the login_count bump.
+      // PGRST116 = "no rows returned" from .single() — that's the
+      // legitimate new-user path; anything else is a real error.
+      const { data: existingProfile, error: selectError } = await supabase
         .from("users")
         .select("id, onboarding_completed, welcome_completed, login_count")
         .eq("id", data.user.id)
         .single();
+
+      if (selectError && selectError.code !== "PGRST116") {
+        const userId = data.user.id;
+        console.error("[Auth Callback] users SELECT failed (PKCE):", selectError.message);
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureException?.(selectError, {
+              tags: {
+                source: "auth-callback",
+                step: "select-existing-user",
+                flow: "pkce",
+                user_id: userId,
+              },
+            });
+          })
+          .catch(() => {
+            /* Sentry not available — console.error above is the fallback */
+          });
+        return NextResponse.redirect(
+          `${origin}${getLocalePath("/auth/login?error=profile_lookup_failed")}`,
+        );
+      }
 
       // Email confirmation for new signup - profile was already created during signup
       // Just redirect them appropriately based on welcome/onboarding status
@@ -119,11 +147,37 @@ export async function GET(request: Request) {
 
     if (!error && data.user) {
       // Check if user profile exists, if not create one (for OAuth users)
-      const { data: existingProfile } = await supabase
+      // NOTE: capture `error` here. Without it, a transient Supabase failure
+      // returned existingProfile=null and silently flipped a returning user
+      // into the new-user upsert branch (resetting trial dates, free trips,
+      // preferences). PGRST116 = "no rows returned" = legitimate new user.
+      const { data: existingProfile, error: selectError } = await supabase
         .from("users")
         .select("id, login_count, profile_completed")
         .eq("id", data.user.id)
         .single();
+
+      if (selectError && selectError.code !== "PGRST116") {
+        const userId = data.user.id;
+        console.error("[Auth Callback] users SELECT failed (OAuth):", selectError.message);
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureException?.(selectError, {
+              tags: {
+                source: "auth-callback",
+                step: "select-existing-user",
+                flow: "oauth",
+                user_id: userId,
+              },
+            });
+          })
+          .catch(() => {
+            /* Sentry not available — console.error above is the fallback */
+          });
+        return NextResponse.redirect(
+          `${origin}${getLocalePath("/auth/login?error=profile_lookup_failed")}`,
+        );
+      }
 
       // Track whether this is a new user (signup) or returning user (login)
       const isNewUser = !existingProfile;
@@ -150,7 +204,11 @@ export async function GET(request: Request) {
         // — meaning most users were blocked immediately on their first attempt.
         const freeTripsRemaining = 2;
 
-        await supabase.from("users").upsert({
+        // Capture `error` here. Previously this upsert was fire-and-forget:
+        // if RLS rejected the row or the network blipped, the user proceeded
+        // to /trips/new with NO users row — silently breaking paywall, usage
+        // limits, notifications, and trial enforcement until they re-signed in.
+        const { error: upsertError } = await supabase.from("users").upsert({
           id: data.user.id,
           email: data.user.email,
           display_name: displayName,
@@ -185,6 +243,28 @@ export async function GET(request: Request) {
           // Add acquisition source if first-touch UTM cookie was set
           ...(acquisitionSource && { acquisition_source: acquisitionSource }),
         });
+
+        if (upsertError) {
+          const userId = data.user.id;
+          console.error("[Auth Callback] users upsert failed (OAuth):", upsertError.message);
+          import("@sentry/nextjs")
+            .then((Sentry) => {
+              Sentry.captureException?.(upsertError, {
+                tags: {
+                  source: "auth-callback",
+                  step: "oauth-profile-upsert",
+                  flow: "oauth",
+                  user_id: userId,
+                },
+              });
+            })
+            .catch(() => {
+              /* Sentry not available — console.error above is the fallback */
+            });
+          return NextResponse.redirect(
+            `${origin}${getLocalePath("/auth/login?error=profile_creation_failed")}`,
+          );
+        }
 
         // Skip welcome gate and onboarding — go straight to trip creation
         // Users can personalize their experience later in profile settings

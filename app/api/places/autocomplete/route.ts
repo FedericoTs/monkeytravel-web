@@ -16,9 +16,17 @@ import { createClient } from "@/lib/supabase/server";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { PlacePrediction } from "@/types";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
+
+// Per-IP rate limit for ANONYMOUS callers. Authed users are already bounded
+// by checkUsageLimit("placesAutocomplete") — this is the floor that keeps an
+// unauth'd visitor from running $0.00283/keystroke spend on our card. 60/min
+// is generous for human typing (debounce is 300ms client-side) while still
+// stopping a credit-card-DoS script cold. Task #200.
+const anonLimiter = createRateLimiter("places-autocomplete", 60, 60_000);
 
 // In-memory cache for autocomplete (per instance)
 // City name suggestions are very stable - cache longer to reduce API costs
@@ -173,6 +181,22 @@ export async function POST(request: NextRequest) {
     // Check authentication (optional - for usage tracking)
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Per-IP anon rate limit. Skip for authed users — they're already bounded
+    // by checkUsageLimit() below, which gives them per-day quotas tied to
+    // their tier instead of a coarse per-minute IP cap. This guards the
+    // open-door case: an anonymous visitor (or bot) hammering keystrokes
+    // straight into Google Places' $0.00283/req endpoint.
+    if (!user) {
+      const { allowed } = anonLimiter.check(request);
+      if (!allowed) {
+        await logAutocompleteApiRequest({
+          status: 429,
+          error: "ANON_RATE_LIMIT",
+        });
+        return errors.rateLimit("Too many searches. Please slow down.");
+      }
+    }
 
     // Check API access control first
     const access = await checkApiAccess("google_places_autocomplete");

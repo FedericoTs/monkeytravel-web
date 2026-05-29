@@ -7,6 +7,8 @@ import { useRouter, Link } from "@/lib/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
+import { captureUserSignedUp } from "@/lib/posthog/events";
+import { identify, aliasAnonToUser } from "@/lib/posthog/identify";
 import { getTrialEndDate } from "@/lib/trial";
 import {
   getLocalOnboardingPreferences,
@@ -226,6 +228,32 @@ function SignupForm() {
     trackSignup("email");
     if (data.user) {
       setUserId(data.user.id);
+
+      // PostHog (task #207) — fire-and-forget. NEVER block the redirect
+      // on these: the SDK lazy-loads and a slow network shouldn't park
+      // the user on the signup form post-submit.
+      const userId = data.user.id;
+      const userEmail = data.user.email ?? email;
+      // Alias FIRST so the captureUserSignedUp event lands on the merged
+      // identity instead of the soon-to-be-orphaned anon distinct_id.
+      aliasAnonToUser(userId).catch(() => {
+        /* posthog not loaded — drop */
+      });
+      identify(userId, {
+        email: userEmail,
+        name: displayName || undefined,
+        signupMethod: "email",
+        locale,
+      }).catch(() => {
+        /* posthog not loaded — SessionTracker will identify next visit */
+      });
+      captureUserSignedUp({
+        method: "email",
+        ...(referralCode && { referral_code: referralCode }),
+        from_onboarding: fromOnboarding,
+      }).catch(() => {
+        /* posthog not loaded — event dropped, GA4 still captured above */
+      });
     }
 
     // If email confirmation is disabled, redirect to welcome page

@@ -19,6 +19,11 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// 30 req/min/IP — covers a fast typist hammering AddActivityButton's debounced
+// search, blocks bots. Mirrors task #200 (places-autocomplete) cap.
+const limiter = createRateLimiter("activity-search", 30, 60_000);
 
 // Activity type categories for filtering — kept in sync with AddActivityButton's
 // ACTIVITY_CATEGORIES so the wizard pill UI lines up with what we send the RPC.
@@ -78,14 +83,30 @@ interface ActivityIndexRow {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit anon + authed callers alike — the Google fallback at $0.032/req
+    // and the trgm RPC are both worth protecting from runaway clients.
+    const { allowed } = limiter.check(request);
+    if (!allowed) {
+      return errors.rateLimit("Too many activity searches. Please slow down.");
+    }
+
     const body: SearchRequest = await request.json();
-    const { destination, query = "", types = [], limit = 10, includeGoogle = true } = body;
+    const { destination, query = "", types = [], limit = 10, includeGoogle: requestedIncludeGoogle = true } = body;
 
     if (!destination) {
       return errors.badRequest("Destination is required");
     }
 
     const supabase = await createClient();
+
+    // Only authed users can opt into the Google Places Text Search fallback
+    // ($0.032/req — 11× autocomplete). Anonymous callers are capped to the
+    // local activity_index MV (444 curated rows, $0/req). This caps cost
+    // exposure to the authed-user count, not the public visitor count.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const includeGoogle = requestedIncludeGoogle && !!user;
 
     // Step 1: Search activities from existing trips via the MV-backed RPC.
     const localResults = await searchLocalActivities(

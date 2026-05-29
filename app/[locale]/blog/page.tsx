@@ -16,12 +16,24 @@ import type { BlogFrontmatter } from "@/lib/blog/types";
 const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
-// Static params
+// Static params + ISR
 // ============================================================================
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+// Blog content is sourced from MDX files baked into the deploy — it can only
+// change on a new commit. 1h is the conservative ceiling: long enough to make
+// the page cacheable at the CDN, short enough that an accidental SSR fallback
+// (or a future change that drops the nonce / headers() call) recovers quickly.
+//
+// NOTE: this currently has no effect in production. `getNonce()` below calls
+// `headers()` for the strict CSP, which opts the route into dynamic rendering;
+// Next.js then ignores `revalidate`. Kept here as a forward-looking directive
+// so the page caches automatically if CSP enforcement ever moves out of the
+// page tree (e.g. nonce attached via a wrapper component or layout).
+export const revalidate = 3600;
 
 // ============================================================================
 // Metadata

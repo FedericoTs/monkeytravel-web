@@ -16,10 +16,22 @@ import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 
 const COOKIE_NAME = "mt_anon_voter";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year — votes are durable
+
+// Cookie-reset abuse guard: an attacker who curls in a loop with no cookie
+// would get a fresh voter id minted on every request and ballot-stuff. We
+// cap per-IP attempts well above honest usage (a real voter casts <5 votes
+// in a session) so legit no-cookie first-time voters still go through.
+const voteLimiter = createRateLimiter("shared-vote", 20, 60_000); // 20 votes/min/IP
+
+// Bot UAs that should never hit this endpoint without a cookie — they're
+// almost always abuse scripts. Honest browsers always send a UA and never
+// match these prefixes.
+const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
 
 interface VoteRequestBody {
   activity_id?: unknown;
@@ -40,6 +52,25 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     if (!token || !isUuid(token)) {
       return errors.badRequest("Invalid share token");
+    }
+
+    // Per-IP rate limit (20 votes/min). Honest voters cast a handful of
+    // votes per session — this only bites scripted ballot-stuffers who
+    // curl in a loop with no cookie to mint a fresh voter id every call.
+    const { allowed } = voteLimiter.check(request);
+    if (!allowed) {
+      return errors.rateLimit("Too many votes. Please slow down.");
+    }
+
+    // Cookie-less requests from obvious scripting UAs are abuse. Honest
+    // browsers always send a UA that doesn't match these. First-time
+    // voters from real browsers (no cookie yet) still pass through.
+    const existingCookie = (await cookies()).get(COOKIE_NAME)?.value;
+    if (!existingCookie) {
+      const ua = request.headers.get("user-agent") ?? "";
+      if (!ua || BOT_UA_REGEX.test(ua)) {
+        return errors.badRequest("Invalid request");
+      }
     }
 
     const body = (await request.json().catch(() => null)) as VoteRequestBody | null;

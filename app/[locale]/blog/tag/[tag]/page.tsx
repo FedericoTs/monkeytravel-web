@@ -14,7 +14,7 @@ import { Link } from "@/lib/i18n/routing";
 const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
-// Static params — every (locale, tag) combination
+// Static params + ISR — every (locale, tag) combination
 // ============================================================================
 
 export function generateStaticParams() {
@@ -22,6 +22,12 @@ export function generateStaticParams() {
     getAllTagSlugs(locale).map((tag) => ({ locale, tag }))
   );
 }
+
+// Same rationale as /blog index: tag archives derive from MDX frontmatter,
+// only change on commits, 1h is conservative. See note in ../page.tsx — the
+// `headers()` call inside `getNonce()` currently forces dynamic rendering and
+// neutralises this directive. Kept for forward-compat with future CSP wiring.
+export const revalidate = 3600;
 
 // ============================================================================
 // Metadata

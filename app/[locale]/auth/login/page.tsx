@@ -7,6 +7,8 @@ import { useRouter, Link } from "@/lib/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { trackLogin, setUserId } from "@/lib/analytics";
+import { captureUserLoggedIn } from "@/lib/posthog/events";
+import { identify, aliasAnonToUser } from "@/lib/posthog/identify";
 import {
   humanizeAuthError,
   validateLoginForm,
@@ -63,6 +65,24 @@ function LoginForm() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+
+        // PostHog (task #207) — fire-and-forget so we never block the
+        // redirect on analytics. The SDK lazy-loads; a stalled network
+        // shouldn't park the user on /auth/login post-signin.
+        const userId = user.id;
+        const userEmail = user.email ?? email;
+        aliasAnonToUser(userId).catch(() => {
+          /* posthog not loaded — drop */
+        });
+        identify(userId, {
+          email: userEmail,
+          locale,
+        }).catch(() => {
+          /* posthog not loaded — SessionTracker will identify next visit */
+        });
+        captureUserLoggedIn({ method: "email" }).catch(() => {
+          /* posthog not loaded — event dropped, GA4 still captured above */
+        });
 
         // Check if user needs to complete welcome flow first
         const { data: profile } = await supabase

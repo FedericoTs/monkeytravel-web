@@ -37,10 +37,13 @@ export {
   identifyUser,
   resetUser,
   aliasUser,
+  aliasAnonToUser,
+  identify,
   updateUserProperties,
   setOnceUserProperty,
   getDistinctId,
   type PostHogUserProperties,
+  type IdentifyProperties,
 } from "./identify";
 
 // Hooks

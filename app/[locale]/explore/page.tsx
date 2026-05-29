@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/lib/i18n/routing";
+import { Link, routing } from "@/lib/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TripCard from "@/components/explore/TripCard";
 import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import type { BudgetTier } from "@/lib/explore/types";
+
+const SITE_URL = "https://monkeytravel.app";
 
 /**
  * /explore — public UGC + seed-data trip feed.
@@ -37,6 +39,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "common.share.explore" });
+
+  // hreflang map — mirrors /blog pattern (task #204). Routing uses
+  // `localePrefix: 'as-needed'` with default 'en', so English URLs are
+  // unprefixed and IT/ES carry the locale segment. Without this map
+  // Google can't deduplicate /explore, /it/explore, /es/explore.
+  const languages: Record<string, string> = {};
+  for (const l of routing.locales) {
+    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
+    languages[l] = `${SITE_URL}${prefix}/explore`;
+  }
+  languages["x-default"] = `${SITE_URL}/explore`;
+
   return {
     // Root layout's title.template appends " | MonkeyTravel" — don't add
     // the suffix here or the rendered <title> doubles.
@@ -46,8 +60,12 @@ export async function generateMetadata({
       title: `${t("pageTitle")} | MonkeyTravel`,
       description: t("metaDescription"),
       type: "website",
+      url: languages[locale],
     },
-    alternates: { canonical: "https://monkeytravel.app/explore" },
+    alternates: {
+      canonical: languages[locale] ?? `${SITE_URL}/explore`,
+      languages,
+    },
   };
 }
 

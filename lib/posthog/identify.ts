@@ -136,6 +136,79 @@ export async function aliasUser(userId: string) {
 }
 
 /**
+ * Stitch the current anonymous distinct_id to a known user.id.
+ *
+ * Use right after signup/login so all pre-auth activity (homepage view,
+ * wizard step views, /shared visits) merges into the user's profile in
+ * PostHog. Safe to call multiple times — PostHog dedupes.
+ *
+ * Task #207: anon→known stitching. Without this, every funnel that starts
+ * before login (which is most of them after the anon-generation flip in
+ * task #9) shows a drop at signup because the events live on different
+ * distinct_ids.
+ */
+export async function aliasAnonToUser(userId: string) {
+  if (typeof window === "undefined") return;
+
+  const posthog = await getPosthog();
+  // Only alias if the current distinct_id is NOT already the target user
+  // — otherwise we'd alias a user.id to itself, which is a noop but
+  // generates noise in the alias table.
+  const currentDistinctId = posthog.get_distinct_id();
+  if (currentDistinctId && currentDistinctId !== userId) {
+    posthog.alias(userId);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[PostHog] Aliased anon distinct_id → user.id:", currentDistinctId, "→", userId);
+    }
+  }
+}
+
+/**
+ * Lightweight identify wrapper — task #207 spec form.
+ *
+ * Use at auth entry points (callback, signup, login, AuthProvider mount)
+ * where you only have userId + basic properties (no need to pass a full
+ * Supabase `User` object). For session-level identify with full DB-derived
+ * properties, prefer `identifyUser` (used by SessionTracker).
+ *
+ * Idempotent: PostHog dedupes identifies of the same distinct_id with
+ * the same property set, and the call sites short-circuit when the
+ * lib/posthog/identify-state module has already seen this userId on
+ * this page-load.
+ */
+export interface IdentifyProperties {
+  email?: string;
+  name?: string;
+  /**
+   * The method used to authenticate. Stamped as `signup_method` $set_once
+   * so we can segment cohorts by acquisition channel forever.
+   */
+  signupMethod?: "email" | "oauth-google";
+  locale?: string;
+}
+
+export async function identify(userId: string, properties: IdentifyProperties = {}) {
+  if (typeof window === "undefined") return;
+
+  const posthog = await getPosthog();
+  const { signupMethod, ...rest } = properties;
+  posthog.identify(userId, {
+    ...rest,
+    // Only the first identify for a user persists these — captures the
+    // ORIGINAL acquisition channel even if the user later logs in via a
+    // different method.
+    $set_once: {
+      first_seen_at: new Date().toISOString(),
+      ...(signupMethod && { signup_method: signupMethod }),
+    },
+  });
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[PostHog] identify():", userId, properties);
+  }
+}
+
+/**
  * Get current distinct ID
  *
  * Returns `undefined` if posthog-js hasn't loaded yet. Callers that need
