@@ -115,6 +115,13 @@ export default function DestinationHero({
   // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
   // the hero photo stayed at opacity:0 for repeat visitors.
   const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, destinationData?.coverImageUrl);
+  // Error fallback — when the <img> src 200s on direct fetch but the
+  // BROWSER fails to load it (Pexels 504 cached as failed, Vercel
+  // optimizer 400, CORS quirk), the element ends up `complete=true`
+  // + `naturalWidth=0` + opacity:0. The hero then renders as a pure
+  // grey block. Track the failure so we can swap to the gradient
+  // fallback. Caught via live audit 2026-05-29 on /it/trips/[id].
+  const [imageError, setImageError] = useState(false);
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
@@ -179,7 +186,7 @@ export default function DestinationHero({
       {/* Hero Image Container */}
       <div className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
         {/* Background Image */}
-        {destinationData?.coverImageUrl ? (
+        {destinationData?.coverImageUrl && !imageError ? (
           <>
             <img
               ref={heroImgRef}
@@ -189,12 +196,13 @@ export default function DestinationHero({
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
           </>
         ) : (
-          /* Fallback gradient */
+          /* Fallback gradient — also triggered on image-load failure */
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80" />
         )}
 

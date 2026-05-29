@@ -1,12 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 import ProfileClient from "./ProfileClient";
 
-export const metadata = {
-  // Strip brand suffix — root layout's title.template adds it.
-  title: "Profile",
-  description: "Manage your MonkeyTravel profile, preferences, and settings",
-};
+// Locale-aware <title>. Was static "Profile" before — caught in audit
+// 2026-05-29 on /it/profile (browser tab read English).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "common.navigation" });
+  return {
+    // Strip brand suffix — root layout's title.template adds it.
+    title: t("profile"),
+  };
+}
 
 export default async function ProfilePage() {
   const supabase = await createClient();

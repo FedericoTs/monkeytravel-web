@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import PublishTripModal from "./PublishTripModal";
 
 interface PublishToggleProps {
@@ -27,13 +28,16 @@ export default function PublishToggle({
   defaultAuthorName,
 }: PublishToggleProps) {
   const router = useRouter();
+  // i18n: the three button strings + confirm dialog were hardcoded English.
+  // Caught 2026-05-29 audit on /it/trips/[id].
+  const t = useTranslations("common.share.explore");
   const [modalOpen, setModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function unpublish() {
     if (busy) return;
-    if (!confirm("Remove this trip from Explore? You can re-publish anytime.")) {
+    if (!confirm(t("unpublishConfirm"))) {
       return;
     }
     setBusy(true);
@@ -61,7 +65,7 @@ export default function PublishToggle({
           onClick={unpublish}
           disabled={busy}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-medium hover:bg-emerald-100 transition-all disabled:opacity-60"
-          title="Click to remove from /explore"
+          title={t("removeFromExploreTitle")}
         >
           <svg
             className="w-4 h-4"
@@ -72,7 +76,7 @@ export default function PublishToggle({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          Public {busy ? "..." : "(Unpublish)"}
+          {t("publicBadge")} {busy ? "..." : t("unpublishAction")}
         </button>
       ) : (
         <button
@@ -88,7 +92,7 @@ export default function PublishToggle({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Publish to Explore
+          {t("publishToExploreCta")}
         </button>
       )}
 

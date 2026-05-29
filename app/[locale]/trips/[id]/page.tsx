@@ -28,9 +28,9 @@ export async function generateMetadata({
 export default async function TripDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const supabase = await createClient();
 
   const {
@@ -123,7 +123,7 @@ export default async function TripDetailPage({
         cachedTravelDistances,
         cachedTravelHash,
       }}
-      dateRange={formatDateRange(trip.start_date, trip.end_date)}
+      dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
       isCollaborativeTrip={isCollaborativeTrip}
       userRole={userRole}
       collaboratorCount={totalVoters}

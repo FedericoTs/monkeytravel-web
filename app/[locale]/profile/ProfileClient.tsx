@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useToast } from "@/components/ui/Toast";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
@@ -227,6 +227,9 @@ const LANGUAGES = [
 export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess }: ProfileClientProps) {
   const router = useRouter();
   const t = useTranslations("common");
+  // i18n: drive locale-aware date formatting (e.g. "Membro dal agosto 2025"
+  // instead of "Membro dal August 2025"). Caught in audit 2026-05-29.
+  const locale = useLocale();
   const { addToast } = useToast();
   const [profile, setProfile] = useState(initialProfile);
   const [savedProfile, setSavedProfile] = useState(initialProfile); // For rollback on error
@@ -448,8 +451,11 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
     }
   };
 
-  // Format member since date
-  const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
+  // Format member since date — locale-aware so /it/ shows "agosto 2025"
+  // instead of "August 2025". The translation key uses {date} interpolation
+  // and just inserts the formatted string verbatim, so locale-formatting
+  // here is the cleanest fix point. Caught 2026-05-29 audit.
+  const memberSince = new Date(profile.created_at).toLocaleDateString(locale, {
     month: "long",
     year: "numeric",
   });
