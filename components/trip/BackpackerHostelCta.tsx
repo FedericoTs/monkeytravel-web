@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   getHostelworldSearchUrl,
   isHostelworldAffiliateActive,
@@ -73,6 +74,9 @@ export default function BackpackerHostelCta({
   tripId,
   className,
 }: BackpackerHostelCtaProps) {
+  // i18n: three hardcoded English strings + the legally-important affiliate
+  // disclosure. Mirrors PublishToggle pattern (commit 7db5fd8).
+  const t = useTranslations("common.backpacker.hostelCta");
   const url = getHostelworldSearchUrl({ destination, startDate, endDate });
   const isAffiliate = isHostelworldAffiliateActive();
 
@@ -96,10 +100,10 @@ export default function BackpackerHostelCta({
       >
         <span className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>🎒</span>
-          <span>Find hostels for this trip</span>
+          <span>{t("findHostels")}</span>
         </span>
         <span className="flex items-center gap-1 text-emerald-50 group-hover:text-white text-sm">
-          on Hostelworld
+          {t("onHostelworld")}
           <svg
             className="w-4 h-4"
             fill="none"
@@ -118,7 +122,7 @@ export default function BackpackerHostelCta({
       </a>
       {isAffiliate && (
         <p className="text-[10px] text-slate-400 mt-1.5 px-1">
-          Affiliate link — we may earn a small commission at no extra cost to you.
+          {t("affiliateDisclosure")}
         </p>
       )}
     </div>

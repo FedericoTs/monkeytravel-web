@@ -1935,5 +1935,12 @@
       "signInFailed": "Sign in failed",
       "failedToSendMagicLink": "Failed to send magic link"
     }
+  },
+  "backpacker": {
+    "hostelCta": {
+      "findHostels": "Find hostels for this trip",
+      "onHostelworld": "on Hostelworld",
+      "affiliateDisclosure": "Affiliate link — we may earn a small commission at no extra cost to you."
+    }
   }
 }

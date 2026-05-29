@@ -1935,5 +1935,12 @@
       "signInFailed": "Error al iniciar sesión",
       "failedToSendMagicLink": "Error al enviar el enlace mágico"
     }
+  },
+  "backpacker": {
+    "hostelCta": {
+      "findHostels": "Encuentra hostales para este viaje",
+      "onHostelworld": "en Hostelworld",
+      "affiliateDisclosure": "Enlace de afiliado — podemos ganar una pequeña comisión sin coste adicional para ti."
+    }
   }
 }

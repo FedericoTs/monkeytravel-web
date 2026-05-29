@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "title": "Pianificatore di Viaggi Zaino in Spalla — Itinerari IA per Ostelli e Viaggi Low Cost",
+    "description": "Crea il tuo itinerario zaino in spalla in 30 secondi. Ostelli al posto degli hotel, free tour, street food, mezzi pubblici e attività sociali — un'IA che capisce davvero come si viaggia con lo zaino. Gratis al 100%, senza registrazione.",
+    "ogAlt": "MonkeyTravel — Pianificatore Viaggi Zaino in Spalla"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "backpacker": "Pianificatore Zaino in Spalla"
+  },
+  "hero": {
+    "badge": "Modalità Zaino in Spalla attiva",
+    "titleLead": "Un'IA che capisce davvero",
+    "titleHighlight": "i viaggi zaino in spalla",
+    "subtitle": "Ostelli prima degli hotel. Free tour a piedi. Street food. Mezzi pubblici. Attività sociali per conoscere altre persone quando viaggi da solo. Pronto in 30 secondi, gratis per sempre.",
+    "ctaPrimary": "Pianifica un viaggio zaino in spalla",
+    "ctaSecondary": "Vedi itinerari di esempio",
+    "trustSignals": {
+      "free": "100% gratis",
+      "noSignup": "Senza registrazione",
+      "fast": "Pronto in 30 secondi"
+    }
+  },
+  "stats": {
+    "label": "Backpacker su MonkeyTravel — ultimi 30 giorni",
+    "clicks": "ricerche di ostelli avviate",
+    "trips": "viaggi con ricerca ostello",
+    "visitors": "viaggiatori unici",
+    "footnote": "Aggiornato ogni ora. Dati reali, non stime."
+  },
+  "features": {
+    "title": "Costruito per come viaggia davvero chi parte con lo zaino",
+    "subtitle": "Quasi tutte le IA generano per default viaggi turistici di fascia media. Attivi la Modalità Zaino in Spalla e ogni dettaglio dell'itinerario cambia: alloggio, attività, cibo, trasporti e vita sociale.",
+    "items": {
+      "hostels": {
+        "title": "Ostelli al posto degli hotel",
+        "body": "Ti consiglia ostelli e pensioni economiche nei quartieri backpacker più frequentati. Niente hotel 4 stelle, niente boutique fuori budget."
+      },
+      "walking": {
+        "title": "Free tour a piedi e punti panoramici",
+        "body": "Free tour a piedi, punti panoramici, parchi e giorni gratuiti dei musei. Salta i tour guidati da 60 € a meno che non ne valgano davvero la pena."
+      },
+      "food": {
+        "title": "Street food e mercati",
+        "body": "Mercati locali, street food, tavole calde di quartiere e spesa per cucinare in ostello. Al massimo un pasto da concedersi — locale, non turistico."
+      },
+      "transit": {
+        "title": "Mezzi pubblici e bus a lunga percorrenza",
+        "body": "A piedi, metro, bus tra città (FlixBus, BlaBlaCar). Ti dice quali abbonamenti dei trasporti conviene fare. Niente taxi, salvo per motivi di sicurezza."
+      },
+      "social": {
+        "title": "Attività sociali integrate",
+        "body": "Almeno un'attività sociale al giorno: pub crawl, walking tour, evento organizzato dall'ostello, scambio linguistico. Chi viaggia da solo vuole conoscere persone."
+      },
+      "overland": {
+        "title": "Itinerari multi-città via terra",
+        "body": "Per viaggi di 5 giorni o più, l'IA valuta se dividere il viaggio tra 2 città con collegamenti via terra. Un classico backpacker: un viaggio, più tappe."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Come funziona",
+    "steps": {
+      "toggle": {
+        "title": "Attiva la modalità 🎒 Zaino in Spalla",
+        "body": "Step 1 del wizard. Attivi la modalità, scegli destinazione e date. Tutto qui."
+      },
+      "generate": {
+        "title": "Genera in 30 secondi",
+        "body": "L'IA costruisce un piano giorno per giorno pensato per viaggiare zaino in spalla: quartieri, trasporti, cibo e luoghi sociali."
+      },
+      "book": {
+        "title": "Prenota gli ostelli con un tap",
+        "body": "Ogni viaggio backpacker ha un pulsante \"Trova ostelli per questo viaggio\" che apre Hostelworld già filtrato sulla tua destinazione e sulle tue date."
+      }
+    }
+  },
+  "routes": {
+    "title": "Prova una di queste mete classiche da backpacker",
+    "subtitle": "Un clic precompila il wizard. Al resto pensa l'IA.",
+    "daysLabel": "{days} giorni",
+    "hostelZoneLabel": "Zona ostelli: {neighbourhood}",
+    "items": {
+      "lisbon": { "neighbourhood": "Bairro Alto" },
+      "barcelona": { "neighbourhood": "El Born / El Raval" },
+      "berlin": { "neighbourhood": "Friedrichshain" },
+      "prague": { "neighbourhood": "Žižkov" },
+      "budapest": { "neighbourhood": "VII Distretto" },
+      "athens": { "neighbourhood": "Plaka / Monastiraki" },
+      "bangkok": { "neighbourhood": "Khao San / Sukhumvit" },
+      "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
+    }
+  },
+  "faq": {
+    "title": "Domande frequenti",
+    "items": {
+      "different": {
+        "question": "Cosa rende diverso un itinerario zaino in spalla?",
+        "answer": "Viaggiare con lo zaino in spalla ottimizza cose diverse rispetto a una vacanza classica: ostelli invece di hotel, free tour al posto delle escursioni guidate, street food invece dei ristoranti gourmet, mezzi pubblici e bus tra città invece dei taxi, e attività sociali dove chi viaggia da solo può conoscere altre persone. La nostra IA tiene conto di tutto questo quando attivi la Modalità Zaino in Spalla, così l'itinerario finale sembra davvero un viaggio backpacker — non una versione annacquata di un piano di lusso."
+      },
+      "free": {
+        "question": "È davvero gratis? Dov'è la fregatura?",
+        "answer": "Sì, completamente gratis. Non serve registrarsi per generare un piano: crei un account solo se vuoi salvare il viaggio e ritrovarlo da un altro dispositivo. Non facciamo pagare la generazione con IA, né i suggerimenti, né nessuna funzionalità."
+      },
+      "vsHostelworld": {
+        "question": "In cosa è diverso da Hostelworld o Booking.com?",
+        "answer": "Hostelworld e Booking.com sono ottimi per prenotare un letto, ma non ti aiutano a organizzare le giornate in mezzo. Noi facciamo il contrario: pianifichiamo l'intero viaggio (giorno per giorno, quartiere per quartiere) e poi ti rimandiamo a Hostelworld per la prenotazione vera dell'ostello. Usali insieme."
+      },
+      "neighbourhoods": {
+        "question": "Mi consiglierà ostelli in quartieri buoni?",
+        "answer": "Sì. L'IA sa quali quartieri sono pieni di ostelli e più frequentati dai backpacker in ogni grande destinazione: Bairro Alto a Lisbona, El Born a Barcellona, Khao San a Bangkok, Friedrichshain a Berlino, e così via. Tiene anche conto della sicurezza, dell'accesso ai mezzi pubblici e della vicinanza a luoghi sociali come pub crawl e mercati notturni."
+      },
+      "multiCity": {
+        "question": "Posso fare un itinerario multi-città / via terra?",
+        "answer": "Assolutamente sì. Per viaggi di 5 giorni o più, l'IA valuta se dividere il viaggio tra 2 (o più) città offre un'esperienza migliore e suggerisce collegamenti via terra (FlixBus, BlaBlaCar, treni interurbani) quando hanno senso."
+      },
+      "comfort": {
+        "question": "E se voglio un piano un po' più comodo?",
+        "answer": "Disattiva la Modalità Zaino in Spalla nel wizard e rigenera. Otterrai un piano di fascia media con la stessa destinazione e le stesse date. Oppure lascia attiva la Modalità Zaino in Spalla ma alza il livello di budget allo step 2: il piano continuerà a privilegiare ostelli e attività sociali, con qualche sfizio in più."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Il tuo prossimo viaggio zaino in spalla è a 30 secondi.",
+    "subtitle": "Scegli una destinazione. Attiva la modalità Zaino in Spalla. Genera. Agli ostelli e ai collegamenti FlixBus pensiamo noi.",
+    "button": "Pianifica il mio viaggio zaino in spalla"
+  }
+}

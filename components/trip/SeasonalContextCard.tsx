@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { SeasonalContext } from "@/types";
 import {
   buildSeasonalContext,
@@ -49,12 +50,21 @@ export default function SeasonalContextCard({
   // Get user's temperature preference (Celsius or Fahrenheit)
   const { preferences } = useLocale();
 
-  // Fetch weather data from API
+  // Fetch weather data from API.
+  // Wizard date edits fire rapid useEffect runs — without an AbortController,
+  // out-of-order responses race and stale temps land in state. Mirror the
+  // canonical pattern in lib/hooks/useFetch.ts: abort the in-flight request
+  // on cleanup, then short-circuit any post-cleanup setState via a cancelled
+  // flag (covers the window between the response arriving and aborted being
+  // observable).
   useEffect(() => {
     if (!coordinates || !startDate || !endDate) {
       setWeatherData(null);
       return;
     }
+
+    const controller = new AbortController();
+    let cancelled = false;
 
     const fetchWeather = async () => {
       setWeatherLoading(true);
@@ -65,19 +75,38 @@ export default function SeasonalContextCard({
           startDate,
           endDate,
         });
-        const response = await fetch(`/api/weather?${params}`);
+        const response = await fetch(`/api/weather?${params}`, {
+          signal: controller.signal,
+        });
+        if (cancelled || controller.signal.aborted) return;
         if (response.ok) {
           const data = await response.json();
+          if (cancelled || controller.signal.aborted) return;
           setWeatherData(data.weather);
         }
       } catch (error) {
+        // AbortError fires when a newer fetch supersedes this one — expected,
+        // don't report. Anything else is a real failure: log + breadcrumb to
+        // Sentry so we catch silent weather outages in production.
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort || cancelled || controller.signal.aborted) return;
         console.error("Failed to fetch weather:", error);
+        Sentry.captureException(error, {
+          tags: { component: "SeasonalContextCard", endpoint: "/api/weather" },
+        });
       } finally {
-        setWeatherLoading(false);
+        if (!cancelled && !controller.signal.aborted) {
+          setWeatherLoading(false);
+        }
       }
     };
 
     fetchWeather();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [coordinates, startDate, endDate]);
 
   useEffect(() => {

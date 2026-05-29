@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "title": "Backpacker Trip Planner — AI Itineraries Built for Hostels & Budget Travel",
+    "description": "Plan a backpacker route in 30 seconds. Hostels-first accommodation, free walking tours, street food, public transit, social activities — AI that actually understands backpacker travel. 100% free, no signup needed.",
+    "ogAlt": "MonkeyTravel — Backpacker Trip Planner"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "backpacker": "Backpacker Trip Planner"
+  },
+  "hero": {
+    "badge": "Backpacker Mode is live",
+    "titleLead": "An AI trip planner that actually understands",
+    "titleHighlight": "backpacker travel",
+    "subtitle": "Hostels-first accommodation. Free walking tours. Street food. Public transit. Social activities where solo travellers actually meet people. Generated in 30 seconds, free forever.",
+    "ctaPrimary": "Plan a backpacker trip",
+    "ctaSecondary": "See sample routes",
+    "trustSignals": {
+      "free": "100% free",
+      "noSignup": "No signup",
+      "fast": "30-second generation"
+    }
+  },
+  "stats": {
+    "label": "Backpackers using MonkeyTravel — last 30 days",
+    "clicks": "hostel searches launched",
+    "trips": "trips with hostel intent",
+    "visitors": "unique travellers",
+    "footnote": "Updated hourly. Live data, not estimates."
+  },
+  "features": {
+    "title": "Built for how backpackers actually travel",
+    "subtitle": "Most AI trip planners default to mid-range tourist plans. Toggle Backpacker Mode and every line of the itinerary reorients around your demo — accommodation, activities, food, transit, social life.",
+    "items": {
+      "hostels": {
+        "title": "Hostels-first accommodation",
+        "body": "Suggests hostels and budget guesthouses in proven backpacker neighbourhoods. No 4-star hotel suggestions, no boutique places you can't afford."
+      },
+      "walking": {
+        "title": "Free walking tours + viewpoints",
+        "body": "Free city walking tours, viewpoints, public parks, free museum days. Skips the €60 guided experiences unless they're genuinely worth it."
+      },
+      "food": {
+        "title": "Street food + markets",
+        "body": "Local markets, street food, casual cafeterias, hostel-kitchen-friendly grocery options. One splurge meal at most — local, not touristy."
+      },
+      "transit": {
+        "title": "Public transit + intercity buses",
+        "body": "Walking, metro, intercity buses (FlixBus, BlaBlaCar). Mentions specific transit cards worth getting. No taxis unless safety dictates."
+      },
+      "social": {
+        "title": "Built-in social activities",
+        "body": "At least one explicitly social activity per day — pub crawl, walking tour, hostel-organised event, language exchange. Solo backpackers want to meet people."
+      },
+      "overland": {
+        "title": "Multi-city overland routes",
+        "body": "For 5+ day trips, the AI considers splitting between 2 cities with intercity transit suggestions. Backpacker classic — one trip, multiple stops."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "steps": {
+      "toggle": {
+        "title": "Toggle 🎒 Backpacker mode",
+        "body": "Step 1 of the wizard. Pick the toggle, pick a destination, pick dates. That's it."
+      },
+      "generate": {
+        "title": "Generate in 30 seconds",
+        "body": "The AI builds a day-by-day plan optimised for backpacker travel — neighbourhoods, transit, food, social spots."
+      },
+      "book": {
+        "title": "Book hostels in one tap",
+        "body": "Every backpacker trip has a \"Find hostels for this trip\" button that opens Hostelworld pre-filtered to your destination + dates."
+      }
+    }
+  },
+  "routes": {
+    "title": "Try one of these classic backpacker destinations",
+    "subtitle": "One click pre-fills the wizard. The AI handles the rest.",
+    "daysLabel": "{days} days",
+    "hostelZoneLabel": "Hostel zone: {neighbourhood}",
+    "items": {
+      "lisbon": { "neighbourhood": "Bairro Alto" },
+      "barcelona": { "neighbourhood": "El Born / El Raval" },
+      "berlin": { "neighbourhood": "Friedrichshain" },
+      "prague": { "neighbourhood": "Žižkov" },
+      "budapest": { "neighbourhood": "District VII" },
+      "athens": { "neighbourhood": "Plaka / Monastiraki" },
+      "bangkok": { "neighbourhood": "Khao San / Sukhumvit" },
+      "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
+    }
+  },
+  "faq": {
+    "title": "Frequently asked",
+    "items": {
+      "different": {
+        "question": "What makes a backpacker trip plan different?",
+        "answer": "Backpacker travel optimises for different things than a typical holiday: hostels instead of hotels, free walking tours over guided coaches, street food over fine dining, public transit and intercity buses over taxis, and social activities where solo travellers can meet others. Our AI accounts for all of this when Backpacker Mode is on, so the resulting itinerary actually looks like a backpacker trip — not a watered-down luxury plan."
+      },
+      "free": {
+        "question": "Is it really free? Where's the catch?",
+        "answer": "Yes, completely free. No signup needed to generate a plan — you only create an account if you want to save your trip and access it later from another device. We don't charge for the AI generation, the recommendations, or any of the features."
+      },
+      "vsHostelworld": {
+        "question": "How is this different from Hostelworld or Booking.com?",
+        "answer": "Hostelworld and Booking.com are amazing at letting you book a bed — but they don't help you plan the days in between. We do the opposite: we plan the entire trip (day-by-day itinerary, neighbourhood-by-neighbourhood) and then link out to Hostelworld for the actual hostel booking. Use both together."
+      },
+      "neighbourhoods": {
+        "question": "Will it suggest hostels in good neighbourhoods?",
+        "answer": "Yes. The AI knows which neighbourhoods are hostel-dense and backpacker-friendly in each major destination — Bairro Alto in Lisbon, El Born in Barcelona, Khao San in Bangkok, Friedrichshain in Berlin, and so on. It also factors in safety, public transit access, and proximity to social spots like pub crawls and night markets."
+      },
+      "multiCity": {
+        "question": "Can I do a multi-city / overland route?",
+        "answer": "Absolutely. For 5+ day trips, the AI considers whether splitting between 2 (or more) cities would give you a better experience, and suggests overland options (FlixBus, BlaBlaCar, intercity trains) where they make sense."
+      },
+      "comfort": {
+        "question": "What if I want a slightly more comfortable plan?",
+        "answer": "Toggle Backpacker Mode off in the wizard and regenerate. You'll get a more mid-range plan with the same destination + dates. Or keep Backpacker Mode on but bump the budget tier in step 2 — the plan will still favour hostels and social activities, just with the occasional splurge."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Your next backpacker trip is 30 seconds away.",
+    "subtitle": "Pick a destination. Toggle Backpacker mode. Generate. We'll handle the hostels and the FlixBus connections.",
+    "button": "Plan my backpacker trip"
+  }
+}

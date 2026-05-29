@@ -159,7 +159,7 @@ export default function DuplicateTripCTA({
   // Success state
   if (duplicateSuccess) {
     return (
-      <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 ${className}`}>
+      <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 pb-safe ${className}`}>
         <div className="max-w-xl mx-auto">
           <div className="flex items-center justify-center gap-3 py-4 px-6 bg-emerald-500 text-white rounded-xl shadow-lg">
             <Check className="w-6 h-6" />
@@ -173,7 +173,7 @@ export default function DuplicateTripCTA({
   return (
     <>
       {/* Floating CTA - Fixed at bottom for thumb accessibility */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 safe-area-pb ${className}`}>
+      <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-200 pb-safe ${className}`}>
         <div className="max-w-xl mx-auto">
           {/* Error message */}
           {error && (
