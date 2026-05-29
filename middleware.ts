@@ -66,6 +66,56 @@ function isGoneBlogPath(pathname: string): boolean {
   return GONE_BLOG_SLUGS.has(match[1]);
 }
 
+/**
+ * UTM attribution cookie — first-touch wins.
+ *
+ * When a request arrives with `?utm_source=…`, persist it as
+ * `mt_utm_source` cookie (60-day TTL) and `mt_utm_medium` /
+ * `mt_utm_campaign` siblings. On subsequent signup the auth callback
+ * reads these and stamps `users.acquisition_source` for partner
+ * reporting (e.g. "how many users came from Hostelworld").
+ *
+ * First-touch (not last-touch): once the cookie is set, subsequent
+ * UTM-tagged hits don't overwrite it. This matches the partnership
+ * mental model — credit the first surface that captured the user.
+ * Re-tagging would require explicit cookie clear.
+ *
+ * 60-day TTL because that's our typical "consider → sign up" window
+ * for inspiration-led traffic. Tunable.
+ */
+const UTM_COOKIE_NAMES = {
+  source: "mt_utm_source",
+  medium: "mt_utm_medium",
+  campaign: "mt_utm_campaign",
+} as const;
+const UTM_COOKIE_MAX_AGE_S = 60 * 24 * 60 * 60; // 60 days
+
+function captureUtmCookies(request: NextRequest, response: NextResponse): void {
+  const utm = request.nextUrl.searchParams.get("utm_source");
+  if (!utm) return;
+  // First-touch guard: if we already have a source cookie, leave it.
+  if (request.cookies.get(UTM_COOKIE_NAMES.source)) return;
+  // Whitelist + slice: never persist user-supplied data larger than 64
+  // chars. Stops `?utm_source=<malicious-payload>` from bloating the
+  // cookie or being reflected anywhere.
+  const safe = (v: string | null) =>
+    v ? v.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) : null;
+  const source = safe(utm);
+  if (!source) return;
+  const medium = safe(request.nextUrl.searchParams.get("utm_medium"));
+  const campaign = safe(request.nextUrl.searchParams.get("utm_campaign"));
+  const opts = {
+    maxAge: UTM_COOKIE_MAX_AGE_S,
+    path: "/",
+    sameSite: "lax" as const,
+    httpOnly: false, // analytics may need to read these client-side
+    secure: process.env.NODE_ENV === "production",
+  };
+  response.cookies.set(UTM_COOKIE_NAMES.source, source, opts);
+  if (medium) response.cookies.set(UTM_COOKIE_NAMES.medium, medium, opts);
+  if (campaign) response.cookies.set(UTM_COOKIE_NAMES.campaign, campaign, opts);
+}
+
 export async function middleware(request: NextRequest) {
   // Block AI-training and SEO-spam bots BEFORE any other work runs.
   // Returns 403 with no body — saves bandwidth + downstream compute.
@@ -126,10 +176,17 @@ export async function middleware(request: NextRequest) {
   // Run i18n middleware first to handle locale routing
   const intlResponse = intlMiddleware(request);
 
-  // If i18n middleware returned a redirect (3xx), follow it
+  // If i18n middleware returned a redirect (3xx), follow it.
+  // We DON'T capture UTMs on a redirect — the destination page will
+  // receive the same querystring (next-intl preserves it) and we'll
+  // capture there. Capturing on the redirect would double-fire on some
+  // edge configurations.
   if (intlResponse.status >= 300 && intlResponse.status < 400) {
     return intlResponse;
   }
+
+  // First-touch UTM cookie capture (see captureUtmCookies docstring).
+  captureUtmCookies(request, intlResponse);
 
   // Skip Supabase session refresh for public-only pages (saves serverless compute)
   // These pages never need auth state — no point refreshing tokens for anonymous visitors

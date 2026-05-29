@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
@@ -8,6 +9,39 @@ import {
 } from "@/lib/seo/structured-data";
 import { setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
+
+/**
+ * Server-side fetch for the 30-day Hostelworld click stats.
+ *
+ * Powers the social-proof counter below the hero. Caches at the Vercel
+ * edge for 1h via the route handler — this fetch reuses that cache so
+ * /backpacker page generation stays sub-100ms even under burst load.
+ *
+ * Returns null (and the page renders without the block) when stats
+ * aren't meaningful yet (zero traffic, env missing, fetch failed). We
+ * deliberately don't show "0 backpackers found hostels" — that hurts
+ * the partnership narrative more than the absent block would.
+ */
+async function fetchHostelworldStats(): Promise<{
+  clicks30d: number;
+  uniqueTrips30d: number;
+  uniqueVisitors30d: number;
+} | null> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  try {
+    const res = await fetch(`${proto}://${host}/api/affiliates/hostelworld/stats`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data?.clicks30d !== "number") return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * /backpacker landing page.
@@ -194,6 +228,12 @@ export default async function BackpackerLandingPage({
     { name: "Backpacker Trip Planner", url: `${BASE_URL}${prefix}${PAGE_PATH}` },
   ];
 
+  // Social-proof stats (30-day Hostelworld clicks). Render the block
+  // only when we have meaningful numbers — see fetchHostelworldStats
+  // for the "don't show zero" rationale.
+  const stats = await fetchHostelworldStats();
+  const showStatsBlock = stats !== null && stats.clicks30d >= 10;
+
   return (
     <>
       <script
@@ -232,7 +272,7 @@ export default async function BackpackerLandingPage({
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
-                href="/trips/new"
+                href="/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing"
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
               >
                 <span aria-hidden>🎒</span>
@@ -261,6 +301,51 @@ export default async function BackpackerLandingPage({
             </div>
           </div>
         </section>
+
+        {/* ============== SOCIAL PROOF (live Hostelworld clicks) ============== */}
+        {/* Render only when stats are meaningful (≥10 clicks in 30d) — see
+            fetchHostelworldStats for "don't show zero" rationale.
+            Numbers come straight from public.hostelworld_clicks. The
+            Hostelworld partnership manager can quote this internally
+            without us having to send a report. */}
+        {showStatsBlock && stats && (
+          <section className="py-12 bg-emerald-600 text-white">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <p className="text-center text-emerald-50 text-sm font-medium uppercase tracking-wider mb-6">
+                Backpackers using MonkeyTravel — last 30 days
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold tabular-nums">
+                    {stats.clicks30d.toLocaleString("en-US")}
+                  </div>
+                  <p className="mt-2 text-emerald-100 text-sm">
+                    hostel searches launched
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold tabular-nums">
+                    {stats.uniqueTrips30d.toLocaleString("en-US")}
+                  </div>
+                  <p className="mt-2 text-emerald-100 text-sm">
+                    trips with hostel intent
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold tabular-nums">
+                    {stats.uniqueVisitors30d.toLocaleString("en-US")}
+                  </div>
+                  <p className="mt-2 text-emerald-100 text-sm">
+                    unique travellers
+                  </p>
+                </div>
+              </div>
+              <p className="text-center text-emerald-100/80 text-xs mt-6">
+                Updated hourly. Live data, not estimates.
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* ============== FEATURES ============== */}
         <section className="py-20 bg-white">
@@ -326,7 +411,7 @@ export default async function BackpackerLandingPage({
               {ROUTES.map((r) => (
                 <Link
                   key={r.name}
-                  href={"/trips/new" as never}
+                  href={"/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing" as never}
                   className="group p-5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:shadow-md bg-white transition-all"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -388,7 +473,7 @@ export default async function BackpackerLandingPage({
                   We&rsquo;ll handle the hostels and the FlixBus connections.
                 </p>
                 <Link
-                  href="/trips/new"
+                  href="/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing"
                   className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg"
                 >
                   <span aria-hidden>🎒</span>

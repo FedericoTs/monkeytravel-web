@@ -1,7 +1,31 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getTrialEndDate } from "@/lib/trial";
 import type { EmailOtpType } from "@supabase/supabase-js";
+
+/**
+ * Read the first-touch UTM source captured by middleware.
+ *
+ * Returns null when there's no cookie OR the value looks malformed.
+ * Used by both auth paths (PKCE + OAuth) to stamp
+ * `users.acquisition_source` at profile-create time so partner-
+ * reporting queries can answer "how many users came from Hostelworld".
+ *
+ * Middleware sets the cookie via captureUtmCookies (middleware.ts).
+ */
+async function readUtmSource(): Promise<string | null> {
+  try {
+    const store = await cookies();
+    const raw = store.get("mt_utm_source")?.value;
+    if (!raw) return null;
+    // Match the middleware's whitelist for defence in depth.
+    const cleaned = raw.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
+    return cleaned || null;
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -112,6 +136,12 @@ export async function GET(request: Request) {
           data.user.email?.split("@")[0] ||
           "User";
 
+        // Acquisition source — captured from the mt_utm_source cookie
+        // set by middleware when the user first arrived with a
+        // `?utm_source=…` query. First-touch wins; never overwritten.
+        // Used for partner reporting (e.g. "users from Hostelworld").
+        const acquisitionSource = await readUtmSource();
+
         // Check if user already completed onboarding before signup
         // If from_onboarding=true, they completed anonymous onboarding first
         const onboardingCompleted = fromOnboarding;
@@ -152,6 +182,8 @@ export async function GET(request: Request) {
           },
           // Add referral code if present
           ...(referralCode && { referred_by_code: referralCode }),
+          // Add acquisition source if first-touch UTM cookie was set
+          ...(acquisitionSource && { acquisition_source: acquisitionSource }),
         });
 
         // Skip welcome gate and onboarding — go straight to trip creation

@@ -131,6 +131,17 @@ function SignupForm() {
       const localPrefs = getLocalOnboardingPreferences();
       const hasCompletedOnboarding = localPrefs?.completedAt !== null;
 
+      // First-touch UTM attribution. Middleware writes `mt_utm_source`
+      // with HttpOnly=false specifically so this client-side read works.
+      // Whitelist + slice mirrors the middleware sanitization.
+      const utmCookie = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("mt_utm_source="))
+        ?.split("=")[1];
+      const acquisitionSource = utmCookie
+        ? decodeURIComponent(utmCookie).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) || null
+        : null;
+
       // Build profile data based on whether onboarding was completed
       const profileData: Record<string, unknown> = {
         id: data.user.id,
@@ -150,6 +161,8 @@ function SignupForm() {
         },
         // Add referral code if present
         ...(referralCode && { referred_by_code: referralCode }),
+        // Add acquisition source from first-touch UTM cookie
+        ...(acquisitionSource && { acquisition_source: acquisitionSource }),
       };
 
       if (localPrefs && hasCompletedOnboarding) {
