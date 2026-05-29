@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from '@/lib/i18n/routing';
-import { createClient } from '@/lib/supabase/client';
 import { isAdmin } from '@/lib/admin';
-import type { User } from '@supabase/supabase-js';
+import { useAuth } from '@/components/auth/AuthProvider';
 import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 // Deep import (not the `@/components/tour` barrel) so the rest of the tour
@@ -41,16 +40,19 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
   const t = useTranslations('common');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  // Per LIVE_AUDIT F1: starting `loading=true` rendered the empty
+  // Per LIVE_AUDIT F1: starting in a "loading" state rendered empty
   // placeholder pills for ~1s on first paint — they looked broken to
-  // every fresh visitor. Default-to-logged-out instead: render the
-  // Sign In / Get Started CTAs immediately, then swap to the logged-in
-  // state if auth resolves to a user. The ~75% of visitors who ARE
-  // logged out see the right thing instantly; the ~25% who are logged
-  // in briefly see "Sign In" before the swap — much less wrong than
-  // empty pills.
-  const [loading, setLoading] = useState(false);
+  // every fresh visitor. We instead default-render the logged-out CTAs
+  // and let the AuthProvider swap us to the logged-in state if a user
+  // resolves. The ~75% of visitors who ARE logged out see the right
+  // thing instantly; the ~25% who are logged in briefly see "Sign In"
+  // before the swap — much less wrong than empty pills.
+  //
+  // Task #181: auth state now comes from the single AuthProvider mounted
+  // in app/[locale]/layout.tsx — no per-component getUser() / listener.
+  // We intentionally ignore `loading` here for the reason above.
+  const { user } = useAuth();
+  const loading = false;
   const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   useEffect(() => {
@@ -59,21 +61,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   // Mount a small style tag that adjusts the parent <nav>'s background on scroll.

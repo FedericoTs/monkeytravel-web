@@ -1,64 +1,47 @@
 "use client";
 
-import posthog from "posthog-js";
-
 /**
  * PostHog Client Module
  *
  * PostHog is initialized in instrumentation-client.ts (Next.js 15.3+ pattern).
- * This module provides the posthog instance and helper functions for components.
+ * This module exposes a couple of legacy helpers kept for backward compat.
+ *
+ * BUNDLE NOTE (perf task #179, 2026-05-29): we previously did
+ * `import posthog from "posthog-js"` at the top of this file, which
+ * dragged the ~120 KB SDK into the shared chunk via the
+ * `lib/posthog/index.ts` barrel re-export. We removed that. The only
+ * runtime users of posthog-js now lazy-load it themselves
+ * (events.ts, identify.ts) or read off `window.posthog`, which
+ * `instrumentation-client.ts` populates after the idle-callback init.
  *
  * @see /instrumentation-client.ts for initialization
  * @see https://posthog.com/docs/libraries/next-js
  */
 
+// Minimal shape of the global posthog handle set by instrumentation-client.ts
+type WindowPosthog = {
+  __loaded?: boolean;
+};
+
+function getWindowPosthog(): WindowPosthog | undefined {
+  if (typeof window === "undefined") return undefined;
+  return (window as typeof window & { posthog?: WindowPosthog }).posthog;
+}
+
 /**
- * Initialize PostHog client (legacy function for backward compatibility)
+ * Initialize PostHog client (legacy no-op kept for backward compatibility)
  *
- * In Next.js 15.3+, PostHog is automatically initialized via instrumentation-client.ts.
- * This function is kept for backward compatibility with existing code.
+ * In Next.js 15.3+, PostHog is automatically initialized via
+ * instrumentation-client.ts behind the user-consent gate. Calling this
+ * function does nothing — it exists so older imports don't break.
  */
 export function initPostHog() {
-  // PostHog is now initialized in instrumentation-client.ts
-  // This function is kept for backward compatibility
-  if (typeof window === "undefined") return;
-
-  // Check if already initialized (via instrumentation-client.ts)
-  const isInitialized = posthog.__loaded;
-
-  if (isInitialized) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[PostHog] Already initialized via instrumentation-client.ts");
-    }
-    return;
-  }
-
-  // Fallback initialization if instrumentation-client.ts didn't run
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com";
-
-  if (!key) {
-    console.warn("[PostHog] Missing NEXT_PUBLIC_POSTHOG_KEY environment variable");
-    return;
-  }
-
-  posthog.init(key, {
-    api_host: host,
-    capture_pageview: "history_change",
-    person_profiles: "identified_only",
-    persistence: "localStorage+cookie",
-    autocapture: true,
-    disable_session_recording: false,
-    capture_heatmaps: true,
-    debug: process.env.NODE_ENV === "development",
-  });
+  // No-op: init happens in instrumentation-client.ts behind consent.
 }
 
 /**
  * Check if PostHog is initialized
  */
 export function isPostHogInitialized(): boolean {
-  return typeof window !== "undefined" && posthog.__loaded === true;
+  return getWindowPosthog()?.__loaded === true;
 }
-
-export { posthog };

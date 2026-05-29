@@ -20,12 +20,14 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
     );
     if (accessError) return accessError;
 
+    // Timelines are SHARED per trip — see route.ts and the
+    // 20260529_activity_timelines_shared_rls.sql migration. Access control
+    // is the verifyTripAccess gate above + RLS on activity_timelines.
     const { data: timeline, error } = await supabase
       .from("activity_timelines")
       .select("*")
       .eq("trip_id", tripId)
       .eq("activity_id", activityId)
-      .eq("user_id", user.id)
       .single();
 
     if (error && error.code !== "PGRST116") {

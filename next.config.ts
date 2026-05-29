@@ -208,6 +208,19 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+
+  // Tree-shake barrel exports from heavy packages. Next rewrites
+  // `import { Foo } from 'pkg'` → deep imports at build time, saving
+  // ~30-60KB gz per route that touches these.
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      '@dnd-kit/utilities',
+    ],
+  },
 };
 
 // Sentry configuration options

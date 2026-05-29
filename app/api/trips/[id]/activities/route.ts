@@ -20,12 +20,15 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     );
     if (tripError) return tripError;
 
-    // Fetch all activity timelines for this trip
+    // Fetch all activity timelines for this trip.
+    // Timelines are SHARED per trip (one source-of-truth, owner-scoped writes)
+    // so collaborators read the same rows as the owner. Access control is
+    // handled by verifyTripAccess above plus the RLS policy on
+    // activity_timelines (see 20260529_activity_timelines_shared_rls.sql).
     const { data: timelines, error } = await supabase
       .from("activity_timelines")
       .select("*")
       .eq("trip_id", tripId)
-      .eq("user_id", user.id)
       .order("day_number", { ascending: true });
 
     if (error) {

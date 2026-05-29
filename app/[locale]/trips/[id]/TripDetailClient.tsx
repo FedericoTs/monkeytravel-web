@@ -12,15 +12,12 @@ import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
-import { ProposeActivitySheet, InlineProposalCard, VotingBottomSheet } from "@/components/collaboration/proposals";
-import { RouteOptimizationModal } from "@/components/trip/RouteOptimizationModal";
+import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
-import ExportMenu from "@/components/trip/ExportMenu";
-import AIAssistant from "@/components/ai/AIAssistant";
 import TripBookingLinks from "@/components/trip/TripBookingLinks";
-import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner, BookingDrawer } from "@/components/booking";
+import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/components/booking";
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
@@ -33,7 +30,6 @@ import {
   PreTripChecklist,
   LiveJourneyHeader,
   LiveActivityCard,
-  ActivityRatingModal,
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
 import { useToast } from "@/components/ui/Toast";
@@ -81,12 +77,6 @@ import {
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 
-// Collaborator onboarding for new non-owner collaborators
-import CollaboratorOnboarding from "@/components/collaboration/CollaboratorOnboarding";
-
-// Ongoing trip view with gamification
-import OngoingTripView from "@/components/trip/OngoingTripView";
-
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
@@ -96,6 +86,32 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
     </div>
   ),
 });
+
+// Lazy-load 8 components that are hidden behind state/conditions on first paint.
+// Modals (BookingDrawer, AIAssistant, RouteOptimizationModal, VotingBottomSheet,
+// ProposeActivitySheet, ActivityRatingModal) are closed by default — no SSR
+// benefit, defer to interaction. OngoingTripView only renders for active trips
+// (a small subset). CollaboratorOnboarding only renders for collaborative trips.
+// ExportMenu ships heavy PDF/iCal libraries and only matters once the user opens
+// its dropdown — defer.
+const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer"), { ssr: false });
+const AIAssistant = dynamic(() => import("@/components/ai/AIAssistant"), { ssr: false });
+const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
+const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
+const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
+const ActivityRatingModal = dynamic(() => import("@/components/timeline/ActivityRatingModal"), { ssr: false });
+const RouteOptimizationModal = dynamic(
+  () => import("@/components/trip/RouteOptimizationModal").then((m) => ({ default: m.RouteOptimizationModal })),
+  { ssr: false }
+);
+const VotingBottomSheet = dynamic(
+  () => import("@/components/collaboration/proposals/VotingBottomSheet").then((m) => ({ default: m.VotingBottomSheet })),
+  { ssr: false }
+);
+const ProposeActivitySheet = dynamic(
+  () => import("@/components/collaboration/proposals/ProposeActivitySheet").then((m) => ({ default: m.ProposeActivitySheet })),
+  { ssr: false }
+);
 
 interface TripDetailClientProps {
   trip: {

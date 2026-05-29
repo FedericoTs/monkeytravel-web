@@ -1,7 +1,5 @@
 "use client";
 
-import posthog from "posthog-js";
-
 /**
  * Type-safe PostHog event definitions
  *
@@ -9,7 +7,25 @@ import posthog from "posthog-js";
  * - Specific property types
  * - Documentation for tracking purpose
  * - Alignment with GA4 events where applicable
+ *
+ * BUNDLE NOTE (perf task #179, 2026-05-29): posthog-js is lazy-loaded via
+ * `getPosthog()` instead of a top-level import. Many components import the
+ * `captureXxx` helpers below (booking surfaces, wizard, content tracker,
+ * referral client), and a static import here would drag the full ~120 KB
+ * posthog-js SDK into the shared chunk of every route those components
+ * touch. SDK init still happens once in `instrumentation-client.ts`; this
+ * file just needs the same module instance to call `.capture()` on, which
+ * `import('posthog-js')` resolves to the already-loaded copy after the
+ * idle-callback init fires.
+ *
+ * Each capture function is fire-and-forget: callers can either `await` it
+ * or ignore the returned promise — events that race ahead of the SDK init
+ * are dropped silently (matches prior behavior when posthog wasn't loaded
+ * yet) but most call sites fire from user interactions that happen well
+ * after the idle-callback bootstrap.
  */
+
+const getPosthog = () => import("posthog-js").then((m) => m.default);
 
 // ============================================================================
 // CONTENT TRACKING EVENTS
@@ -348,8 +364,9 @@ export interface FeatureFlagExposedEvent {
 /**
  * Capture a trip creation event
  */
-export function captureTripCreated(event: TripCreatedEvent) {
-  posthog.capture("trip_created", event);
+export async function captureTripCreated(event: TripCreatedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_created", event);
 }
 
 /**
@@ -358,127 +375,145 @@ export function captureTripCreated(event: TripCreatedEvent) {
  * Distinct from trip_created so funnel analysis can tell whether
  * a user came back to refine vs. created from scratch.
  */
-export function captureTripUpdated(event: TripCreatedEvent) {
-  posthog.capture("trip_updated", event);
+export async function captureTripUpdated(event: TripCreatedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_updated", event);
 }
 
 /**
  * Capture user signup
  */
-export function captureUserSignedUp(event: UserSignedUpEvent) {
-  posthog.capture("user_signed_up", event);
+export async function captureUserSignedUp(event: UserSignedUpEvent) {
+  const ph = await getPosthog();
+  ph.capture("user_signed_up", event);
 }
 
 /**
  * Capture user login
  */
-export function captureUserLoggedIn(event: UserLoggedInEvent) {
-  posthog.capture("user_logged_in", event);
+export async function captureUserLoggedIn(event: UserLoggedInEvent) {
+  const ph = await getPosthog();
+  ph.capture("user_logged_in", event);
 }
 
 /**
  * Capture itinerary generation
  */
-export function captureItineraryGenerated(event: ItineraryGeneratedEvent) {
-  posthog.capture("itinerary_generated", event);
+export async function captureItineraryGenerated(event: ItineraryGeneratedEvent) {
+  const ph = await getPosthog();
+  ph.capture("itinerary_generated", event);
 }
 
 /**
  * Capture share prompt shown
  */
-export function captureSharePromptShown(event: SharePromptShownEvent) {
-  posthog.capture("share_prompt_shown", event);
+export async function captureSharePromptShown(event: SharePromptShownEvent) {
+  const ph = await getPosthog();
+  ph.capture("share_prompt_shown", event);
 }
 
 /**
  * Capture share prompt action
  */
-export function captureSharePromptAction(event: SharePromptActionEvent) {
-  posthog.capture("share_prompt_action", event);
+export async function captureSharePromptAction(event: SharePromptActionEvent) {
+  const ph = await getPosthog();
+  ph.capture("share_prompt_action", event);
 }
 
 /**
  * Capture trip shared
  */
-export function captureTripShared(event: TripSharedEvent) {
-  posthog.capture("trip_shared", event);
+export async function captureTripShared(event: TripSharedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_shared", event);
 }
 
 /**
  * Capture referral conversion
  */
-export function captureReferralConverted(event: ReferralConvertedEvent) {
-  posthog.capture("referral_converted", event);
+export async function captureReferralConverted(event: ReferralConvertedEvent) {
+  const ph = await getPosthog();
+  ph.capture("referral_converted", event);
 }
 
 /**
  * Capture limit reached
  */
-export function captureLimitReached(event: LimitReachedEvent) {
-  posthog.capture("limit_reached", event);
+export async function captureLimitReached(event: LimitReachedEvent) {
+  const ph = await getPosthog();
+  ph.capture("limit_reached", event);
 }
 
 /**
  * Capture upgrade prompt shown
  */
-export function captureUpgradePromptShown(event: UpgradePromptShownEvent) {
-  posthog.capture("upgrade_prompt_shown", event);
+export async function captureUpgradePromptShown(event: UpgradePromptShownEvent) {
+  const ph = await getPosthog();
+  ph.capture("upgrade_prompt_shown", event);
 }
 
 /**
  * Capture upgrade prompt action
  */
-export function captureUpgradePromptAction(event: UpgradePromptActionEvent) {
-  posthog.capture("upgrade_prompt_action", event);
+export async function captureUpgradePromptAction(event: UpgradePromptActionEvent) {
+  const ph = await getPosthog();
+  ph.capture("upgrade_prompt_action", event);
 }
 
 /**
  * Capture trial started
  */
-export function captureTrialStarted(event: TrialStartedEvent) {
-  posthog.capture("trial_started", event);
+export async function captureTrialStarted(event: TrialStartedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trial_started", event);
 }
 
 /**
  * Capture subscription started
  */
-export function captureSubscriptionStarted(event: SubscriptionStartedEvent) {
-  posthog.capture("subscription_started", event);
+export async function captureSubscriptionStarted(event: SubscriptionStartedEvent) {
+  const ph = await getPosthog();
+  ph.capture("subscription_started", event);
 }
 
 /**
  * Capture onboarding step viewed
  */
-export function captureOnboardingStepViewed(event: OnboardingStepViewedEvent) {
-  posthog.capture("onboarding_step_viewed", event);
+export async function captureOnboardingStepViewed(event: OnboardingStepViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("onboarding_step_viewed", event);
 }
 
 /**
  * Capture onboarding step completed
  */
-export function captureOnboardingStepCompleted(event: OnboardingStepCompletedEvent) {
-  posthog.capture("onboarding_step_completed", event);
+export async function captureOnboardingStepCompleted(event: OnboardingStepCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("onboarding_step_completed", event);
 }
 
 /**
  * Capture onboarding completed
  */
-export function captureOnboardingCompleted(event: OnboardingCompletedEvent) {
-  posthog.capture("onboarding_completed", event);
+export async function captureOnboardingCompleted(event: OnboardingCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("onboarding_completed", event);
 }
 
 /**
  * Capture activity completed
  */
-export function captureActivityCompleted(event: ActivityCompletedEvent) {
-  posthog.capture("activity_completed", event);
+export async function captureActivityCompleted(event: ActivityCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("activity_completed", event);
 }
 
 /**
  * Capture AI assistant usage
  */
-export function captureAIAssistantUsed(event: AIAssistantUsedEvent) {
-  posthog.capture("ai_assistant_used", event);
+export async function captureAIAssistantUsed(event: AIAssistantUsedEvent) {
+  const ph = await getPosthog();
+  ph.capture("ai_assistant_used", event);
 }
 
 // ============================================================================
@@ -488,47 +523,56 @@ export function captureAIAssistantUsed(event: AIAssistantUsedEvent) {
 /**
  * Capture a semantic content view (blog post, destination, index page)
  */
-export function captureContentViewed(event: ContentViewedEvent) {
-  posthog.capture("content_viewed", event);
+export async function captureContentViewed(event: ContentViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("content_viewed", event);
 }
 
 /**
  * Capture a content interaction (filter, paginate, scroll milestone)
  */
-export function captureContentInteraction(event: ContentInteractionEvent) {
-  posthog.capture("content_interaction", event);
+export async function captureContentInteraction(event: ContentInteractionEvent) {
+  const ph = await getPosthog();
+  ph.capture("content_interaction", event);
 }
 
 // ============================================================================
 // ACTIVATION FUNNEL CAPTURE FUNCTIONS
 // ============================================================================
 
-export function captureWelcomePageViewed(event: WelcomePageViewedEvent) {
-  posthog.capture("welcome_page_viewed", event);
+export async function captureWelcomePageViewed(event: WelcomePageViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("welcome_page_viewed", event);
 }
 
-export function captureWelcomeCompleted(event: WelcomeCompletedEvent) {
-  posthog.capture("welcome_completed", event);
+export async function captureWelcomeCompleted(event: WelcomeCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("welcome_completed", event);
 }
 
-export function captureTripWizardStepViewed(event: TripWizardStepViewedEvent) {
-  posthog.capture("trip_wizard_step_viewed", event);
+export async function captureTripWizardStepViewed(event: TripWizardStepViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_wizard_step_viewed", event);
 }
 
-export function captureTripWizardStepCompleted(event: TripWizardStepCompletedEvent) {
-  posthog.capture("trip_wizard_step_completed", event);
+export async function captureTripWizardStepCompleted(event: TripWizardStepCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_wizard_step_completed", event);
 }
 
-export function captureTripWizardAbandoned(event: TripWizardAbandonedEvent) {
-  posthog.capture("trip_wizard_abandoned", event);
+export async function captureTripWizardAbandoned(event: TripWizardAbandonedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_wizard_abandoned", event);
 }
 
-export function captureTripWizardFieldInteracted(event: TripWizardFieldInteractedEvent) {
-  posthog.capture("trip_wizard_field_interacted", event);
+export async function captureTripWizardFieldInteracted(event: TripWizardFieldInteractedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_wizard_field_interacted", event);
 }
 
-export function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
-  posthog.capture("trip_generation_started", event);
+export async function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_generation_started", event);
 }
 
 /**
@@ -538,12 +582,14 @@ export function captureTripGenerationStarted(event: TripGenerationStartedEvent) 
  * then check what % of "group" pickers actually share the trip after
  * generation.
  */
-export function captureTripIntentSelected(event: TripIntentSelectedEvent) {
-  posthog.capture("trip_intent_selected", event);
+export async function captureTripIntentSelected(event: TripIntentSelectedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_intent_selected", event);
 }
 
-export function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {
-  posthog.capture("trip_generation_completed", event);
+export async function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("trip_generation_completed", event);
 }
 
 // ============================================================================
@@ -554,42 +600,48 @@ export function captureTripGenerationCompleted(event: TripGenerationCompletedEve
  * Capture when user reaches an aha moment
  * Key for understanding what drives retention
  */
-export function captureAhaMomentReached(event: AhaMomentReachedEvent) {
-  posthog.capture("aha_moment_reached", event);
+export async function captureAhaMomentReached(event: AhaMomentReachedEvent) {
+  const ph = await getPosthog();
+  ph.capture("aha_moment_reached", event);
 }
 
 /**
  * Capture retention checkpoint (D1, D7, D30)
  * Used for cohort analysis
  */
-export function captureRetentionCheckpoint(event: RetentionCheckpointEvent) {
-  posthog.capture("retention_checkpoint", event);
+export async function captureRetentionCheckpoint(event: RetentionCheckpointEvent) {
+  const ph = await getPosthog();
+  ph.capture("retention_checkpoint", event);
 }
 
 /**
  * Capture first trip saved (critical aha moment candidate)
  */
-export function captureFirstTripSaved(event: FirstTripSavedEvent) {
-  posthog.capture("first_trip_saved", event);
+export async function captureFirstTripSaved(event: FirstTripSavedEvent) {
+  const ph = await getPosthog();
+  ph.capture("first_trip_saved", event);
 }
 
 /**
  * Capture activity modification (engagement signal)
  */
-export function captureActivityModified(event: ActivityModifiedEvent) {
-  posthog.capture("activity_modified", event);
+export async function captureActivityModified(event: ActivityModifiedEvent) {
+  const ph = await getPosthog();
+  ph.capture("activity_modified", event);
 }
 
 /**
  * Capture return visit (retention signal)
  */
-export function captureReturnVisit(event: ReturnVisitEvent) {
-  posthog.capture("return_visit", event);
+export async function captureReturnVisit(event: ReturnVisitEvent) {
+  const ph = await getPosthog();
+  ph.capture("return_visit", event);
 }
 
 /**
  * Generic event capture with type safety
  */
-export function capture(eventName: string, properties?: Record<string, unknown>) {
-  posthog.capture(eventName, properties);
+export async function capture(eventName: string, properties?: Record<string, unknown>) {
+  const ph = await getPosthog();
+  ph.capture(eventName, properties);
 }

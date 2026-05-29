@@ -30,32 +30,30 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Fetch invite with trip details. `message` is the inviter's personal
-    // note (added 2026-05-23 with the recipient_email flow) — surfaced in
-    // the accept-page UI so the recipient sees what was said about them.
-    const { data: invite, error: inviteError } = await supabaseAdmin
-      .from("trip_invites")
-      .select(`
-        id,
-        trip_id,
-        token,
-        role,
-        created_by,
-        created_at,
-        expires_at,
-        max_uses,
-        use_count,
-        is_active,
-        message
-      `)
-      .eq("token", token)
-      .single();
+    // SECURITY (task #170): use the get_invite_by_token SECURITY DEFINER
+    // RPC instead of a direct `.from('trip_invites').select()`. The old
+    // public-read RLS policy was dropped because it let anon clients dump
+    // every token in the table. The RPC returns at most one row and only
+    // when the invite is still usable, so the validateInvite() call below
+    // is now belt-and-suspenders (the RPC has already filtered out
+    // exhausted / expired / revoked invites — they appear as NOT_FOUND).
+    //
+    // `message` is the inviter's personal note (added 2026-05-23 with
+    // the recipient_email flow) — surfaced in the accept-page UI.
+    const { data: invites, error: inviteError } = await supabaseAdmin
+      .rpc("get_invite_by_token", { p_token: token });
+
+    const invite = Array.isArray(invites) ? invites[0] : null;
 
     if (inviteError || !invite) {
       return errors.notFound("Invalid invite link");
     }
 
-    // Use shared validation (checks max_uses, is_active, expires_at in correct order)
+    // Defense-in-depth: re-run the shared validator. The RPC already
+    // filters out non-usable invites (so any error path here should be
+    // unreachable for the GET case), but keeping the check means the
+    // app's user-facing error codes (MAX_USES / REVOKED / EXPIRED) still
+    // fire correctly if the RPC contract ever loosens.
     const validation = validateInvite(invite as InviteData);
     if (!validation.valid) {
       return validation.errorResponse!;
@@ -180,18 +178,23 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Fetch and validate invite
-    const { data: invite, error: inviteError } = await supabaseAdmin
-      .from("trip_invites")
-      .select("*")
-      .eq("token", token)
-      .single();
+    // SECURITY (task #170): same RPC path as the GET above. The RPC
+    // returns all the columns the accept flow needs (id, trip_id, role,
+    // created_by, use_count, max_uses, is_active, is_referral_eligible,
+    // recipient_email), so we can drop the `select("*")` against the
+    // table here too.
+    const { data: invites, error: inviteError } = await supabaseAdmin
+      .rpc("get_invite_by_token", { p_token: token });
+
+    const invite = Array.isArray(invites) ? invites[0] : null;
 
     if (inviteError || !invite) {
       return errors.notFound("Invalid invite link");
     }
 
-    // Use shared validation (checks max_uses, is_active, expires_at in correct order)
+    // Defense-in-depth — see GET above. The RPC already filters non-usable
+    // invites, but this keeps the user-facing MAX_USES / REVOKED / EXPIRED
+    // error codes correct if the RPC contract ever changes.
     const validation = validateInvite(invite as InviteData);
     if (!validation.valid) {
       return validation.errorResponse!;

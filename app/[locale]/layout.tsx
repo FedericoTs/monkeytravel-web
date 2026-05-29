@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import { ProfileCompletionProvider } from "@/components/profile";
 import { ConsentWrapper } from "@/components/consent";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { routing } from "@/lib/i18n/routing";
 
 // Generate static params for all supported locales
@@ -36,13 +37,15 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
-      <ConsentWrapper>
-        <ToastProvider>
-          <ProfileCompletionProvider>
-            <MaintenanceWrapper>{children}</MaintenanceWrapper>
-          </ProfileCompletionProvider>
-        </ToastProvider>
-      </ConsentWrapper>
+      <AuthProvider>
+        <ConsentWrapper>
+          <ToastProvider>
+            <ProfileCompletionProvider>
+              <MaintenanceWrapper>{children}</MaintenanceWrapper>
+            </ProfileCompletionProvider>
+          </ToastProvider>
+        </ConsentWrapper>
+      </AuthProvider>
     </NextIntlClientProvider>
   );
 }

@@ -38,6 +38,35 @@ const config: CapacitorConfig = {
     // Allow http during local dev (e.g. pointing at localhost:3000 with
     // `cleartext: true`) without permanently weakening prod. Default off.
     cleartext: false,
+    // Origins the WebView is allowed to navigate to in-process. Anything
+    // NOT in this list (and not the `server.url` origin) gets ejected to
+    // the system browser — which silently kills any flow that needs to
+    // return a session/result to the app (OAuth redirects, Stripe
+    // Checkout, Supabase auth callbacks).
+    //
+    // Keep this conservative — only domains the WebView genuinely
+    // navigates to during auth/payment handoff belong here. External
+    // booking/affiliate links (booking.com, hostelworld.com, etc.) should
+    // open via @capacitor/browser instead — see openExternal() helper.
+    allowNavigation: [
+      // Supabase auth callback + project subdomains
+      "*.supabase.co",
+      "*.supabase.in",
+      // OAuth providers (Google active today; Apple wired for v1.1)
+      "accounts.google.com",
+      "appleid.apple.com",
+      // Pexels image CDN (cover art on result/destination pages)
+      "images.pexels.com",
+      // Google Maps tile + static-asset hosts (embed/static-map fallback)
+      "maps.googleapis.com",
+      "maps.gstatic.com",
+      // Stripe Checkout + JS SDK + webhook-paired hosts
+      "checkout.stripe.com",
+      "js.stripe.com",
+      "hooks.stripe.com",
+      "m.stripe.com",
+      "m.stripe.network",
+    ],
   },
 
   // Each plugin's defaults are sensible — only override what we need to.

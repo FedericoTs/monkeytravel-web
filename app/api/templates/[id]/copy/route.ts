@@ -32,6 +32,21 @@ export async function POST(
       return errors.badRequest("startDate is required");
     }
 
+    // Validate startDate format and range before any date math.
+    // Bad input (empty string, malformed, far-future) would otherwise
+    // produce "Invalid Date" downstream and surface as a 500 RangeError.
+    const parsedStart = new Date(startDate);
+    if (isNaN(parsedStart.getTime())) {
+      return errors.badRequest("Invalid startDate");
+    }
+    const now = Date.now();
+    if (
+      parsedStart.getTime() < now - 365 * 24 * 3600 * 1000 ||
+      parsedStart.getTime() > now + 5 * 365 * 24 * 3600 * 1000
+    ) {
+      return errors.badRequest("startDate out of reasonable range");
+    }
+
     // Fetch the template
     const { data: template, error: fetchError } = await supabase
       .from("trips")

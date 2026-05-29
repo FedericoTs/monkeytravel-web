@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Copy, Sparkles, Check, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { prefs } from "@/lib/platform/storage";
 
 // Storage key for pending duplicate action
 const PENDING_DUPLICATE_KEY = "pendingTripDuplicate";
@@ -51,10 +52,10 @@ export default function DuplicateTripCTA({
 
       // Check if there's a pending duplicate action after login
       if (user) {
-        const pending = getPendingDuplicate();
+        const pending = await getPendingDuplicate();
         if (pending && pending.shareToken === shareToken) {
           // Auto-execute the pending duplicate
-          clearPendingDuplicate();
+          await clearPendingDuplicate();
           handleDuplicate();
         }
       }
@@ -67,13 +68,16 @@ export default function DuplicateTripCTA({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session?.user);
 
-      // Check for pending duplicate after login
+      // Check for pending duplicate after login. The listener callback
+      // is sync, so we fire-and-forget the async work inside an IIFE.
       if (event === "SIGNED_IN" && session?.user) {
-        const pending = getPendingDuplicate();
-        if (pending && pending.shareToken === shareToken) {
-          clearPendingDuplicate();
-          handleDuplicate();
-        }
+        (async () => {
+          const pending = await getPendingDuplicate();
+          if (pending && pending.shareToken === shareToken) {
+            await clearPendingDuplicate();
+            handleDuplicate();
+          }
+        })();
       }
     });
 
@@ -83,27 +87,29 @@ export default function DuplicateTripCTA({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shareToken]);
 
-  // Store pending duplicate action
-  const storePendingDuplicate = () => {
+  // Store pending duplicate action. Async because the native
+  // (Capacitor) backend writes to NSUserDefaults / SharedPreferences
+  // off the JS thread — callers MUST await before navigating away.
+  const storePendingDuplicate = async () => {
     const pending: PendingDuplicate = {
       shareToken,
       tripTitle,
       timestamp: Date.now(),
     };
-    localStorage.setItem(PENDING_DUPLICATE_KEY, JSON.stringify(pending));
+    await prefs.set(PENDING_DUPLICATE_KEY, JSON.stringify(pending));
   };
 
   // Get pending duplicate action
-  const getPendingDuplicate = (): PendingDuplicate | null => {
+  const getPendingDuplicate = async (): Promise<PendingDuplicate | null> => {
     try {
-      const stored = localStorage.getItem(PENDING_DUPLICATE_KEY);
+      const stored = await prefs.get(PENDING_DUPLICATE_KEY);
       if (!stored) return null;
 
       const pending = JSON.parse(stored) as PendingDuplicate;
 
       // Expire after 1 hour
       if (Date.now() - pending.timestamp > 60 * 60 * 1000) {
-        clearPendingDuplicate();
+        await clearPendingDuplicate();
         return null;
       }
 
@@ -114,15 +120,15 @@ export default function DuplicateTripCTA({
   };
 
   // Clear pending duplicate action
-  const clearPendingDuplicate = () => {
-    localStorage.removeItem(PENDING_DUPLICATE_KEY);
+  const clearPendingDuplicate = async (): Promise<void> => {
+    await prefs.remove(PENDING_DUPLICATE_KEY);
   };
 
   // Handle duplicate action
   const handleDuplicate = async () => {
     if (!isAuthenticated) {
       // Store pending action and redirect to login
-      storePendingDuplicate();
+      await storePendingDuplicate();
       router.push(`/auth/login?redirect=/shared/${shareToken}`);
       return;
     }
@@ -236,8 +242,8 @@ export default function DuplicateTripCTA({
               <p className="text-white/60 text-xs text-center mt-3 sm:hidden">
                 {t("alreadyHaveAccount")}{" "}
                 <button
-                  onClick={() => {
-                    storePendingDuplicate();
+                  onClick={async () => {
+                    await storePendingDuplicate();
                     router.push(`/auth/login?redirect=/shared/${shareToken}`);
                   }}
                   className="underline text-white/80 hover:text-white"
@@ -280,19 +286,23 @@ export default function DuplicateTripCTA({
 
 /**
  * Hook to check and execute pending duplicate action
- * Use this in the auth callback or login page
+ * Use this in the auth callback or login page.
+ *
+ * Both helpers are async: storage runs through `prefs` (web =
+ * localStorage, native = @capacitor/preferences) so callers must
+ * await. The native backend is async-only.
  */
 export function usePendingDuplicate() {
-  const getPending = (): PendingDuplicate | null => {
+  const getPending = async (): Promise<PendingDuplicate | null> => {
     try {
-      const stored = localStorage.getItem(PENDING_DUPLICATE_KEY);
+      const stored = await prefs.get(PENDING_DUPLICATE_KEY);
       if (!stored) return null;
 
       const pending = JSON.parse(stored) as PendingDuplicate;
 
       // Expire after 1 hour
       if (Date.now() - pending.timestamp > 60 * 60 * 1000) {
-        localStorage.removeItem(PENDING_DUPLICATE_KEY);
+        await prefs.remove(PENDING_DUPLICATE_KEY);
         return null;
       }
 
@@ -302,8 +312,8 @@ export function usePendingDuplicate() {
     }
   };
 
-  const clearPending = () => {
-    localStorage.removeItem(PENDING_DUPLICATE_KEY);
+  const clearPending = async (): Promise<void> => {
+    await prefs.remove(PENDING_DUPLICATE_KEY);
   };
 
   return { getPending, clearPending };

@@ -28,7 +28,11 @@
  */
 
 // Client-side exports
-export { initPostHog, posthog, isPostHogInitialized } from "./client";
+// Note: bare `posthog` instance is no longer re-exported (perf task #179)
+// — it leaked the SDK into the shared chunk. Use the lazy `capture()` /
+// `captureXxx()` helpers from ./events, or grab `window.posthog` at the
+// rare call site that genuinely needs the raw client.
+export { initPostHog, isPostHogInitialized } from "./client";
 export {
   identifyUser,
   resetUser,

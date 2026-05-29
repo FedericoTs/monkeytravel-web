@@ -16,6 +16,8 @@ let registered = false;
 export async function registerServiceWorker(): Promise<void> {
   if (typeof window === "undefined") return;
   if (registered) return;
+  const cap = (window as typeof window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  if (cap?.isNativePlatform?.()) return;
   if (!("serviceWorker" in navigator)) {
     // Older browsers / Capacitor on some old Android versions.
     return;

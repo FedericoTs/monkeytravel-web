@@ -15,31 +15,27 @@ async function getInviteData(token: string) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  // Fetch invite with only required fields (never select("*") with admin client).
+  // SECURITY (task #170): anonymous lookups go through the
+  // get_invite_by_token SECURITY DEFINER RPC, NOT a direct table select.
+  // The trip_invites table no longer has a public-read RLS policy — the
+  // old `USING (true)` policy let anon clients dump every token in the
+  // table. The RPC returns at most one row, and only when the invite is
+  // still usable (active, not expired, not exhausted), so a usable invite
+  // is the only case that returns data. Any non-usable state collapses
+  // to "INVALID_TOKEN" here, matching the safer anon-callable contract.
+  //
   // `message` was added 2026-05-23 along with recipient_email + recipient_locale
   // for the invite-by-email flow — it's the inviter's personal note shown
-  // above the trip summary on this page.
-  const { data: invite, error: inviteError } = await supabase
-    .from("trip_invites")
-    .select("id, trip_id, token, role, created_by, created_at, expires_at, max_uses, use_count, is_active, message")
-    .eq("token", token)
-    .single();
+  // above the trip summary on this page. The RPC returns it.
+  const { data: invites, error: inviteError } = await supabase
+    .rpc("get_invite_by_token", { p_token: token });
+
+  // The RPC RETURNS TABLE, so the client returns an array. The function
+  // body's `LIMIT 1` guarantees at most one row.
+  const invite = Array.isArray(invites) ? invites[0] : null;
 
   if (inviteError || !invite) {
     return { error: "INVALID_TOKEN" as const };
-  }
-
-  // Check if invite is still valid
-  if (!invite.is_active) {
-    return { error: "REVOKED" as const };
-  }
-
-  if (new Date(invite.expires_at) < new Date()) {
-    return { error: "EXPIRED" as const };
-  }
-
-  if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
-    return { error: "MAX_USES" as const };
   }
 
   // Fetch trip

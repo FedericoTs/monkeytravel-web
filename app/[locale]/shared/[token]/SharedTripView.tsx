@@ -10,7 +10,6 @@ import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DestinationHero from "@/components/DestinationHero";
 import ActivityCard from "@/components/ActivityCard";
-import ExportMenu from "@/components/trip/ExportMenu";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
@@ -50,6 +49,10 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
     </div>
   ),
 });
+
+// ExportMenu only matters once the user opens its dropdown — defer to keep its
+// PDF/iCal generation libs out of the initial /shared/[token] bundle.
+const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 
 interface SharedTripViewProps {
   trip: {

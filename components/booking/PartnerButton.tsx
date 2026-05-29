@@ -1,6 +1,7 @@
 "use client";
 
 import { PARTNERS, type PartnerKey } from "@/lib/affiliates";
+import { openExternal } from "@/lib/native/external-link";
 import { capture } from "@/lib/posthog";
 import { ExternalLink } from "lucide-react";
 
@@ -33,6 +34,11 @@ export default function PartnerButton({
 }: PartnerButtonProps) {
   const config = PARTNERS[partner];
 
+  // Switched from <a target="_blank"> to <button> + openExternal() so
+  // the CTA actually opens inside the Capacitor WebView (target="_blank"
+  // is silently swallowed on iOS). Tracking still fires first — same
+  // order as the old anchor onClick — and the data-* attrs preserve
+  // the rel="sponsored" / aria signal for downstream tooling.
   const handleClick = () => {
     capture("booking_partner_click", {
       partner,
@@ -43,6 +49,7 @@ export default function PartnerButton({
       trip_id: tripId || "unknown",
       url: href,
     });
+    openExternal(href);
   };
 
   const variantClasses = {
@@ -60,11 +67,13 @@ export default function PartnerButton({
   };
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
+    <button
+      type="button"
       onClick={handleClick}
+      data-partner={partner}
+      data-partner-href={href}
+      data-rel="sponsored noopener noreferrer"
+      aria-label={`${config.name} (opens external site)`}
       className={`
         inline-flex items-center justify-center rounded-lg font-medium
         transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -77,6 +86,6 @@ export default function PartnerButton({
       {showIcon && <span className="text-base">{config.icon}</span>}
       <span>{children || config.name}</span>
       {showExternal && <ExternalLink className="w-3.5 h-3.5 opacity-60" />}
-    </a>
+    </button>
   );
 }

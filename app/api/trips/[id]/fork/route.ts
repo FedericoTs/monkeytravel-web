@@ -50,6 +50,23 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     // empty body is fine
   }
 
+  // Validate user-supplied startDate before defaulting.
+  // Bad input (empty string, malformed, far-future) would otherwise
+  // produce "Invalid Date" downstream and surface as a 500 RangeError.
+  if (startDate !== null) {
+    const parsed = new Date(startDate);
+    if (isNaN(parsed.getTime())) {
+      return errors.badRequest("Invalid startDate");
+    }
+    const now = Date.now();
+    if (
+      parsed.getTime() < now - 365 * 24 * 3600 * 1000 ||
+      parsed.getTime() > now + 5 * 365 * 24 * 3600 * 1000
+    ) {
+      return errors.badRequest("startDate out of reasonable range");
+    }
+  }
+
   // Default: 30 days from today.
   if (!startDate) {
     const d = new Date();

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { X, Plane, MapPin, Clock } from "lucide-react";
 import { getCityIATA, CITY_IATA_CODES } from "@/lib/affiliates";
+import { openExternal } from "@/lib/native/external-link";
 import { capture } from "@/lib/posthog";
 import {
   generateTripComLink,
@@ -139,7 +140,11 @@ export default function BookingDrawer({
       trip_id: tripId,
     });
 
-    window.open(flightUrl, "_blank", "noopener,noreferrer");
+    // Use openExternal so the URL opens in SFSafariViewController on
+    // iOS Capacitor — window.open(_blank) gets silently swallowed
+    // inside the WKWebView and either does nothing or replaces the
+    // app's WebView. Tracking already fired above.
+    openExternal(flightUrl);
     onClose();
   }, [originCity, recentOrigins, destination, startDate, endDate, travelers, tripId, onClose]);
 

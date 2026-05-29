@@ -1,6 +1,5 @@
 "use client";
 
-import posthog from "posthog-js";
 import type { User } from "@supabase/supabase-js";
 
 /**
@@ -25,6 +24,16 @@ export interface PostHogUserProperties {
 }
 
 /**
+ * BUNDLE NOTE (perf task #179, 2026-05-29): posthog-js is lazy-loaded via
+ * `getPosthog()` instead of a top-level import so this module doesn't pull
+ * the ~120 KB SDK into every component chunk that calls `identifyUser`
+ * (SessionTracker, ShareAfterSaveModal, etc.). The SDK is initialized
+ * once in `instrumentation-client.ts`; this dynamic import resolves to
+ * the same module instance.
+ */
+const getPosthog = () => import("posthog-js").then((m) => m.default);
+
+/**
  * Identify a user in PostHog
  *
  * Call after:
@@ -35,9 +44,10 @@ export interface PostHogUserProperties {
  * @param user - Supabase user object
  * @param properties - Additional user properties for segmentation
  */
-export function identifyUser(user: User, properties?: PostHogUserProperties) {
+export async function identifyUser(user: User, properties?: PostHogUserProperties) {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   posthog.identify(user.id, {
     email: user.email,
     ...properties,
@@ -58,27 +68,30 @@ export function identifyUser(user: User, properties?: PostHogUserProperties) {
  *
  * Use when user is already identified but properties changed
  */
-export function updateUserProperties(properties: PostHogUserProperties) {
+export async function updateUserProperties(properties: PostHogUserProperties) {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   posthog.people.set(properties);
 }
 
 /**
  * Set a property only once (e.g., first purchase date)
  */
-export function setOnceUserProperty(key: string, value: unknown) {
+export async function setOnceUserProperty(key: string, value: unknown) {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   posthog.people.set_once({ [key]: value });
 }
 
 /**
  * Increment a numeric property (e.g., login count)
  */
-export function incrementUserProperty(key: string, amount: number = 1) {
+export async function incrementUserProperty(key: string, amount: number = 1) {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   // PostHog doesn't have a direct increment, use capture with $set
   posthog.capture("$set", {
     $set: { [key]: amount }, // This will be handled differently
@@ -93,9 +106,10 @@ export function incrementUserProperty(key: string, amount: number = 1) {
  * - Generate new anonymous distinct_id
  * - Prevent data leakage between users
  */
-export function resetUser() {
+export async function resetUser() {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   posthog.reset();
 
   if (process.env.NODE_ENV === "development") {
@@ -110,9 +124,10 @@ export function resetUser() {
  *
  * @param userId - New user ID (from Supabase)
  */
-export function aliasUser(userId: string) {
+export async function aliasUser(userId: string) {
   if (typeof window === "undefined") return;
 
+  const posthog = await getPosthog();
   posthog.alias(userId);
 
   if (process.env.NODE_ENV === "development") {
@@ -122,8 +137,12 @@ export function aliasUser(userId: string) {
 
 /**
  * Get current distinct ID
+ *
+ * Returns `undefined` if posthog-js hasn't loaded yet. Callers that need
+ * the distinct ID synchronously should fall back to a cookie-derived id.
  */
-export function getDistinctId(): string | undefined {
+export async function getDistinctId(): Promise<string | undefined> {
   if (typeof window === "undefined") return undefined;
+  const posthog = await getPosthog();
   return posthog.get_distinct_id();
 }

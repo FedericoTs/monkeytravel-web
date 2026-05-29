@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
+import { prefs } from "@/lib/platform/storage";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -135,8 +136,11 @@ export default function SaveTripModal({
       year: "numeric",
     });
 
-  // Store pending save action
-  const storePendingSave = () => {
+  // Store pending save action. Async because the native (Capacitor)
+  // backend writes to NSUserDefaults / SharedPreferences off the JS
+  // thread — callers MUST await before navigating so we don't race
+  // the redirect.
+  const storePendingSave = async () => {
     const pending: PendingSave = {
       templateId,
       shareToken,
@@ -144,7 +148,7 @@ export default function SaveTripModal({
       startDate,
       timestamp: Date.now(),
     };
-    localStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(pending));
+    await prefs.set(PENDING_SAVE_KEY, JSON.stringify(pending));
   };
 
   // Handle save action
@@ -156,7 +160,7 @@ export default function SaveTripModal({
 
     if (!isAuthenticated) {
       // Store pending action and redirect to login
-      storePendingSave();
+      await storePendingSave();
       const redirectPath = templateId
         ? `/trips/template/${templateId}`
         : `/shared/${shareToken}`;
@@ -367,8 +371,8 @@ export default function SaveTripModal({
                 <p className="text-center text-xs text-slate-500 mt-3">
                   {t("hasAccount")}{" "}
                   <button
-                    onClick={() => {
-                      storePendingSave();
+                    onClick={async () => {
+                      await storePendingSave();
                       const redirectPath = templateId
                         ? `/trips/template/${templateId}`
                         : `/shared/${shareToken}`;
@@ -417,19 +421,23 @@ export default function SaveTripModal({
 }
 
 /**
- * Hook to check for pending save action after login
+ * Hook to check for pending save action after login.
+ *
+ * Both helpers are async: storage runs through `prefs` (web =
+ * localStorage, native = @capacitor/preferences) so callers must
+ * await. The native backend is async-only.
  */
 export function usePendingSaveTripAction() {
-  const getPending = (): PendingSave | null => {
+  const getPending = async (): Promise<PendingSave | null> => {
     try {
-      const stored = localStorage.getItem(PENDING_SAVE_KEY);
+      const stored = await prefs.get(PENDING_SAVE_KEY);
       if (!stored) return null;
 
       const pending = JSON.parse(stored) as PendingSave;
 
       // Expire after 1 hour
       if (Date.now() - pending.timestamp > 60 * 60 * 1000) {
-        localStorage.removeItem(PENDING_SAVE_KEY);
+        await prefs.remove(PENDING_SAVE_KEY);
         return null;
       }
 
@@ -439,8 +447,8 @@ export function usePendingSaveTripAction() {
     }
   };
 
-  const clearPending = () => {
-    localStorage.removeItem(PENDING_SAVE_KEY);
+  const clearPending = async (): Promise<void> => {
+    await prefs.remove(PENDING_SAVE_KEY);
   };
 
   return { getPending, clearPending };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { prefs } from "@/lib/platform/storage";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
@@ -30,16 +31,19 @@ export default function AuthPromptModal({
 
   if (!isOpen) return null;
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     setIsNavigating(true);
-    // Store intent to auto-generate after signup
-    localStorage.setItem("pendingTripGeneration", "true");
+    // Store intent to auto-generate after signup. `await` so the value
+    // is durably persisted before we hand control to the router — the
+    // native Capacitor backend is async, and we'd race the navigation
+    // otherwise.
+    await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setIsNavigating(true);
-    localStorage.setItem("pendingTripGeneration", "true");
+    await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
   };
 

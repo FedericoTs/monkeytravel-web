@@ -18,6 +18,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Link } from "@/lib/i18n/routing";
 import type { NotificationRow } from "@/lib/notifications/types";
 
@@ -30,37 +31,19 @@ export default function NotificationBell() {
   // i18n: previously the bell dropdown was English-only across en/it/es.
   // Caught via codebase audit 2026-05-28.
   const t = useTranslations("common.share.notifications");
-  const [authedUserId, setAuthedUserId] = useState<string | null>(null);
+  // Task #181: auth state comes from the central AuthProvider — we no
+  // longer fire our own getUser() + onAuthStateChange just to know
+  // "is someone signed in?". Realtime channel subscription below is
+  // independent and stays.
+  const { user } = useAuth();
+  const authedUserId = user?.id ?? null;
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ----- 1. Auth state — only mount the real bell for signed-in users -----
-  useEffect(() => {
-    const supabase = createClient();
-    let mounted = true;
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!mounted) return;
-      setAuthedUserId(user?.id ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!mounted) return;
-        setAuthedUserId(session?.user?.id ?? null);
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // ----- 2. Initial fetch + refresh helper -----
+  // ----- 1. Initial fetch + refresh helper -----
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications?includeRead=1&limit=20", {
@@ -93,7 +76,7 @@ export default function NotificationBell() {
     refresh();
   }, [authedUserId, refresh]);
 
-  // ----- 3. Realtime subscription -----
+  // ----- 2. Realtime subscription -----
   // We listen for INSERTs scoped to this user. Migration enabled the table
   // on supabase_realtime; RLS still applies so even without the user_id
   // filter the user couldn't see others' rows — the filter is a network
@@ -125,7 +108,7 @@ export default function NotificationBell() {
     };
   }, [authedUserId, refresh]);
 
-  // ----- 4. Click-outside closes dropdown -----
+  // ----- 3. Click-outside closes dropdown -----
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {

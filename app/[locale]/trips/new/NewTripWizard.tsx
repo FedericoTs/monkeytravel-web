@@ -20,6 +20,7 @@ export interface PrefilledDestination {
   longitude: number;
 }
 import { createClient } from "@/lib/supabase/client";
+import { prefs } from "@/lib/platform/storage";
 import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
@@ -420,20 +421,34 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     checkAuth();
   }, []);
 
-  // Handle pending generation after signup (when draft is restored)
+  // Handle pending generation after signup (when draft is restored).
+  // The `pendingTripGeneration` flag now lives in `prefs` (durable on
+  // iOS WebView, was getting evicted under ITP / storage pressure as
+  // plain localStorage) — read is async, so we wrap in an inner fn
+  // and gate the side effect on the still-current cleanup state.
   useEffect(() => {
     // Only run if authenticated AND draft has been auto-restored
-    if (isAuthenticated && draftAutoRestored && localStorage.getItem("pendingTripGeneration") === "true") {
-      // Check if we have the required form state (from draft restoration)
-      if (destination && startDate && endDate && selectedVibes.length > 0 && !generating && !generatedItinerary) {
-        localStorage.removeItem("pendingTripGeneration");
-        // Small delay to ensure UI is ready and React state has propagated
-        const timer = setTimeout(() => {
-          handleGenerate();
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
+    if (!isAuthenticated || !draftAutoRestored) return;
+    if (!destination || !startDate || !endDate || selectedVibes.length === 0) return;
+    if (generating || generatedItinerary) return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    (async () => {
+      const pending = await prefs.get("pendingTripGeneration");
+      if (cancelled || pending !== "true") return;
+      await prefs.remove("pendingTripGeneration");
+      // Small delay to ensure UI is ready and React state has propagated
+      timer = setTimeout(() => {
+        if (!cancelled) handleGenerate();
+      }, 500);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, draftAutoRestored, destination, startDate, endDate, selectedVibes, generating, generatedItinerary]);
 
@@ -465,11 +480,19 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
   }, [destination, startDate, endDate, destinationCoords]);
 
-  // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth
+  // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth.
+  // The `pendingTripGeneration` flag lives in `prefs` (async on native
+  // Capacitor) — wrap the read in an inner async fn and use `cancelled`
+  // so we don't set state after unmount / dep change.
   useEffect(() => {
-    if (hasDraft && draft && !generatedItinerary && !draftAutoRestored) {
+    if (!hasDraft || !draft || generatedItinerary || draftAutoRestored) return;
+
+    let cancelled = false;
+
+    (async () => {
       // Check if we're coming back from auth with pending generation
-      const hasPendingGeneration = localStorage.getItem("pendingTripGeneration") === "true";
+      const hasPendingGeneration = (await prefs.get("pendingTripGeneration")) === "true";
+      if (cancelled) return;
 
       if (hasPendingGeneration) {
         // Auto-restore the draft silently (no banner) for seamless post-auth experience.
@@ -500,7 +523,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         // Normal draft recovery - show banner to let user choose
         setShowDraftRecovery(true);
       }
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hasDraft, draft, generatedItinerary, draftAutoRestored]);
 
   // Auto-save draft when itinerary is generated

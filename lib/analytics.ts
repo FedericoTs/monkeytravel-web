@@ -4,10 +4,19 @@
  * Centralized analytics tracking for Google Analytics 4 and Sentry.
  * Provides type-safe event tracking functions for key conversion events.
  *
+ * BUNDLE NOTE (perf task #179, 2026-05-29): @sentry/nextjs is lazy-loaded
+ * via `sentry()` instead of `import * as Sentry from "@sentry/nextjs"`.
+ * 23+ client components import helpers from this file (auth pages,
+ * SaveTripModal, AIAssistant, ShareModal, etc.); a static Sentry import
+ * here was dragging the whole SDK into the shared chunk. Sentry init
+ * still happens once in `instrumentation-client.ts` behind the idle
+ * callback — these helpers only need `addBreadcrumb` / `captureMessage`
+ * / `setUser`, which are no-ops if the SDK hasn't loaded yet.
+ *
  * @see https://developers.google.com/analytics/devguides/collection/ga4/events
  */
 
-import * as Sentry from "@sentry/nextjs";
+const sentry = () => import("@sentry/nextjs");
 
 // Type definitions for gtag
 declare global {
@@ -40,13 +49,20 @@ export function trackEvent(
     window.gtag!("event", eventName, params);
   }
 
-  // Also add breadcrumb to Sentry for debugging
-  Sentry.addBreadcrumb({
-    category: "analytics",
-    message: eventName,
-    data: params,
-    level: "info",
-  });
+  // Also add breadcrumb to Sentry for debugging — fire-and-forget so
+  // we don't make trackEvent async (would force every caller to await).
+  sentry()
+    .then((S) =>
+      S.addBreadcrumb({
+        category: "analytics",
+        message: eventName,
+        data: params,
+        level: "info",
+      })
+    )
+    .catch(() => {
+      /* SDK not loaded yet or blocked by privacy extension — drop silently */
+    });
 
   // Log in development
   if (process.env.NODE_ENV === "development") {
@@ -396,14 +412,20 @@ export function trackError(params: {
   });
 
   // Also report to Sentry as a non-fatal error
-  Sentry.captureMessage(params.errorMessage, {
-    level: "warning",
-    tags: {
-      errorType: params.errorType,
-      componentName: params.componentName,
-    },
-    extra: params.additionalData,
-  });
+  sentry()
+    .then((S) =>
+      S.captureMessage(params.errorMessage, {
+        level: "warning",
+        tags: {
+          errorType: params.errorType,
+          componentName: params.componentName,
+        },
+        extra: params.additionalData,
+      })
+    )
+    .catch(() => {
+      /* SDK not loaded yet — error already logged via gtag above */
+    });
 }
 
 // ============================================================================
@@ -444,7 +466,11 @@ export function setUserId(userId: string): void {
   }
 
   // Set in Sentry
-  Sentry.setUser({ id: userId });
+  sentry()
+    .then((S) => S.setUser({ id: userId }))
+    .catch(() => {
+      /* SDK not loaded yet — re-set on next identify */
+    });
 }
 
 /**
@@ -459,7 +485,11 @@ export function clearUserId(): void {
   }
 
   // Clear in Sentry
-  Sentry.setUser(null);
+  sentry()
+    .then((S) => S.setUser(null))
+    .catch(() => {
+      /* SDK not loaded yet — nothing to clear */
+    });
 }
 
 // ============================================================================
