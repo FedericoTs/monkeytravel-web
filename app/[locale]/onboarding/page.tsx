@@ -15,6 +15,7 @@ import {
   useOnboardingPreferences,
   type LocalOnboardingPreferences,
 } from "@/hooks/useOnboardingPreferences";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 
 // Step components
 import TravelStyleStep from "@/components/onboarding/TravelStyleStep";
@@ -42,7 +43,10 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/trips";
+  // Validate redirect — onboarding ultimately calls router.push(redirectUrl)
+  // for authenticated users and embeds it in /auth/signup?redirect= for
+  // anonymous ones. See lib/security/safe-next.ts.
+  const redirectUrl = safeNextOrDefault(searchParams.get("redirect"), "/trips");
 
   // Use localStorage hook for anonymous persistence
   const {

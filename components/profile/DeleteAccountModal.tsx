@@ -6,9 +6,22 @@ import { useTranslations } from "next-intl";
 interface DeleteAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  /**
+   * Called when the user confirms. The modal collects:
+   *   - confirmationText (the exact "delete my account" phrase)
+   *   - password (for step-up re-authentication on the server)
+   *
+   * Both are forwarded as-is so the API can re-check them server-side.
+   */
+  onConfirm: (args: {
+    confirmationText: string;
+    password: string;
+  }) => Promise<void>;
   isDeleting: boolean;
 }
+
+// Must match REQUIRED_CONFIRMATION on the server route.
+const REQUIRED_CONFIRMATION = "delete my account";
 
 export default function DeleteAccountModal({
   isOpen,
@@ -19,13 +32,23 @@ export default function DeleteAccountModal({
   const t = useTranslations('common.deleteAccount');
   const tc = useTranslations('common.buttons');
   const [confirmText, setConfirmText] = useState("");
-  const canDelete = confirmText === "DELETE";
+  const [password, setPassword] = useState("");
+  const phraseMatches =
+    confirmText.trim().toLowerCase() === REQUIRED_CONFIRMATION;
+  const canDelete = phraseMatches && password.length > 0;
 
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
     if (!canDelete || isDeleting) return;
-    await onConfirm();
+    await onConfirm({ confirmationText: confirmText.trim(), password });
+  };
+
+  const handleClose = () => {
+    if (isDeleting) return;
+    setConfirmText("");
+    setPassword("");
+    onClose();
   };
 
   return (
@@ -33,7 +56,7 @@ export default function DeleteAccountModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={isDeleting ? undefined : onClose}
+        onClick={handleClose}
       />
 
       {/* Modal */}
@@ -86,31 +109,55 @@ export default function DeleteAccountModal({
           {t('cannotUndo')}
         </p>
 
-        {/* Confirmation Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            {t('typeToConfirm')}{" "}
+        {/* Confirmation phrase */}
+        <div className="mb-4">
+          <label
+            htmlFor="delete-confirm-phrase"
+            className="block text-sm font-medium text-slate-700 mb-2"
+          >
+            Type{" "}
             <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">
-              {t('deleteWord')}
+              {REQUIRED_CONFIRMATION}
             </span>{" "}
-            {t('toConfirm')}
+            to confirm
           </label>
           <input
+            id="delete-confirm-phrase"
             type="text"
             value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+            onChange={(e) => setConfirmText(e.target.value)}
             className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-            placeholder={t('typePlaceholder')}
+            placeholder={REQUIRED_CONFIRMATION}
             disabled={isDeleting}
             autoComplete="off"
-            autoCapitalize="characters"
+            spellCheck={false}
+          />
+        </div>
+
+        {/* Password (step-up re-auth) */}
+        <div className="mb-6">
+          <label
+            htmlFor="delete-confirm-password"
+            className="block text-sm font-medium text-slate-700 mb-2"
+          >
+            Enter your password to confirm
+          </label>
+          <input
+            id="delete-confirm-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            placeholder="••••••••"
+            disabled={isDeleting}
+            autoComplete="current-password"
           />
         </div>
 
         {/* Buttons */}
         <div className="flex gap-3">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isDeleting}
             className="flex-1 px-4 py-3 rounded-xl font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >

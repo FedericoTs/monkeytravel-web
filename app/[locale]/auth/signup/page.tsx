@@ -20,6 +20,7 @@ import {
   validateSignupForm,
   type AuthError,
 } from "@/lib/auth-errors";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
@@ -38,8 +39,11 @@ function SignupForm() {
   const locale = useLocale();
   const t = useTranslations("auth.signup");
 
-  // Get redirect URL and check if coming from onboarding
-  const redirectUrl = searchParams.get("redirect") || "/trips/new";
+  // Get redirect URL and check if coming from onboarding.
+  // safeNextOrDefault locks this to a relative path — without it
+  // /auth/signup?redirect=https://evil.com would walk the user onto an
+  // attacker clone immediately after the OAuth round-trip.
+  const redirectUrl = safeNextOrDefault(searchParams.get("redirect"), "/trips/new");
   const fromOnboarding = searchParams.get("from") === "onboarding";
 
   // Helper to get locale-prefixed URL for OAuth redirects

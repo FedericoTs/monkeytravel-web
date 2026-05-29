@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   // trips; can't report already-hidden trips.)
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, visibility, is_hidden, reported_count")
+    .select("id, visibility, is_hidden")
     .eq("id", tripId)
     .single();
   if (!trip) return errors.notFound("Trip not found");
@@ -104,15 +104,22 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     return errors.internal("Failed to record report", "trip_reports.insert");
   }
 
-  // Bump the trip's reported_count and auto-hide if threshold reached.
-  const { data: bumped } = await svc
-    .from("trips")
-    .update({ reported_count: (trip.reported_count ?? 0) + 1 })
-    .eq("id", tripId)
-    .select("reported_count")
-    .single();
-
-  const newReportCount = bumped?.reported_count ?? trip.reported_count + 1;
+  // Bump the trip's reported_count atomically and auto-hide if the
+  // post-update count crosses the threshold. The RPC returns the new
+  // count in a single statement so two concurrent reports can't both
+  // read N and write N+1 (lost-increment race that the previous
+  // read-modify-write had). Mirrors the like / save / fork pattern in
+  // 20260525_explore_ugc_feed.sql.
+  const { data: newCount, error: bumpErr } = await svc.rpc(
+    "increment_trip_reported_count",
+    { p_trip_id: tripId }
+  );
+  if (bumpErr) {
+    // Counter didn't move — log for the daily reconcile job. Skip the
+    // auto-hide check since the threshold can't have crossed.
+    console.error("[trip-report] counter drift after insert:", bumpErr);
+  }
+  const newReportCount = typeof newCount === "number" ? newCount : 0;
   if (newReportCount >= AUTO_HIDE_THRESHOLD) {
     await svc
       .from("trips")

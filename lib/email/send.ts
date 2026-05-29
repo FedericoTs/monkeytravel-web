@@ -229,11 +229,31 @@ export async function dispatchEmail(
   //    this — being explicitly invited overrides general opt-out.
   const settingKey = NOTIFICATION_SETTING_KEY[options.template.id];
   if (settingKey && options.recipientUserId) {
-    const { data: prefs } = await admin
+    const { data: prefs, error: prefsErr } = await admin
       .from("users")
       .select("notification_settings")
       .eq("id", options.recipientUserId)
       .maybeSingle();
+    if (prefsErr) {
+      // FAIL CLOSED: if we can't read the recipient's notification_settings,
+      // we have no way to honor their opt-out. Sending anyway risks emailing
+      // a user who has explicitly disabled this notification type — worse
+      // for trust + GDPR/CASL than dropping a single notification email.
+      console.error(
+        "[email/send] notification_settings read failed; refusing to send",
+        prefsErr
+      );
+      captureToSentry(prefsErr, {
+        stage: "notification_settings_read",
+        recipient,
+        idempotencyKey: options.idempotencyKey,
+      });
+      return {
+        ok: false,
+        status: "failed",
+        error: "notification_settings_read_failed",
+      };
+    }
     const ns = (prefs?.notification_settings ?? {}) as Record<string, unknown>;
     const emailMaster = ns.emailNotifications;
     const perType = ns[settingKey];

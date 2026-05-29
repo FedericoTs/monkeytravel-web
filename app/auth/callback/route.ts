@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getTrialEndDate } from "@/lib/trial";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
 /**
@@ -32,7 +33,12 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/trips";
+  // CRITICAL: never trust `next` as a redirect target without validation.
+  // safeNextOrDefault rejects absolute URLs, protocol-relative URLs,
+  // backslash variants, and CR/LF injection — the OAuth callback is a
+  // post-auth surface where an open-redirect equals high-trust phishing.
+  // See lib/security/safe-next.ts.
+  const next = safeNextOrDefault(searchParams.get("next"), "/trips");
   const fromOnboarding = searchParams.get("from_onboarding") === "true";
   const referralCode = searchParams.get("ref");
   const locale = searchParams.get("locale") || "en";

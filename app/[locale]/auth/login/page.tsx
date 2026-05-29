@@ -14,6 +14,7 @@ import {
   validateLoginForm,
   type AuthError,
 } from "@/lib/auth-errors";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -25,7 +26,10 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations("auth.login");
-  const redirect = searchParams.get("redirect") || "/trips";
+  // Reject absolute/protocol-relative URLs in `?redirect=` so attackers
+  // can't dress a phishing target as a monkeytravel.app login link.
+  // See lib/security/safe-next.ts.
+  const redirect = safeNextOrDefault(searchParams.get("redirect"), "/trips");
   const errorParam = searchParams.get("error");
 
   // Helper to get locale-prefixed URL for OAuth redirects

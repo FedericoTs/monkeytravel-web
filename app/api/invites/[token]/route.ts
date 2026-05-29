@@ -158,7 +158,43 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
 }
 
 /**
+ * Shape of the jsonb returned by the accept_trip_invite SQL RPC.
+ * See supabase/migrations/20260529_atomic_accept_trip_invite.sql.
+ */
+type AcceptInviteRpcResult =
+  | {
+      error_code: "NOT_FOUND" | "MAX_USES" | "REVOKED" | "EXPIRED" | "TRIP_NOT_FOUND";
+    }
+  | {
+      ok: true;
+      trip_id: string;
+      role: string;
+      already_member: boolean;
+      is_owner: boolean;
+      collaborator_id?: string;
+      invite_id: string;
+      created_by: string | null;
+      is_referral_eligible: boolean | null;
+    };
+
+/**
  * POST /api/invites/[token] - Accept invite and join trip (requires auth)
+ *
+ * SECURITY (task #215): the previous flow did SELECT use_count → JS
+ * guard → INSERT collaborator → UPDATE use_count, which left a
+ * max_uses TOCTOU. Two simultaneous accepts on a 5-use invite at
+ * use_count=4 could both pass the guard and produce 6 collaborators.
+ * The atomic `accept_trip_invite` RPC pulls the lock/guard/insert/
+ * increment into one transaction (SELECT ... FOR UPDATE on the invite
+ * row), so concurrent callers serialise and the second one bounces
+ * with MAX_USES instead of slipping through.
+ *
+ * The RECIPIENT_MISMATCH check (bug-bounty 2026-05-24 P0) stays in
+ * route code because it depends on the authenticated user's email,
+ * which we don't want to pass into SQL. We do a cheap RPC-level read
+ * of recipient_email first via get_invite_by_token (still
+ * SECURITY DEFINER, no RLS surface change) before invoking the
+ * stateful accept RPC.
  */
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
@@ -178,27 +214,15 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // SECURITY (task #170): same RPC path as the GET above. The RPC
-    // returns all the columns the accept flow needs (id, trip_id, role,
-    // created_by, use_count, max_uses, is_active, is_referral_eligible,
-    // recipient_email), so we can drop the `select("*")` against the
-    // table here too.
-    const { data: invites, error: inviteError } = await supabaseAdmin
+    // Read-only precheck via the same SECURITY DEFINER RPC as GET.
+    // We need recipient_email to enforce RECIPIENT_MISMATCH before
+    // locking the row in the accept RPC. NOT_FOUND here can mean the
+    // invite is exhausted/expired/revoked — the atomic RPC below will
+    // surface the precise error_code, so we don't short-circuit on it.
+    const { data: invites } = await supabaseAdmin
       .rpc("get_invite_by_token", { p_token: token });
 
-    const invite = Array.isArray(invites) ? invites[0] : null;
-
-    if (inviteError || !invite) {
-      return errors.notFound("Invalid invite link");
-    }
-
-    // Defense-in-depth — see GET above. The RPC already filters non-usable
-    // invites, but this keeps the user-facing MAX_USES / REVOKED / EXPIRED
-    // error codes correct if the RPC contract ever changes.
-    const validation = validateInvite(invite as InviteData);
-    if (!validation.valid) {
-      return validation.errorResponse!;
-    }
+    const previewInvite = Array.isArray(invites) ? invites[0] : null;
 
     // SECURITY (bug-bounty 2026-05-24 P0): when the invite was sent
     // to a specific email address (recipient_email set), enforce that
@@ -206,10 +230,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // invite was acceptable by anyone with the token — defeating the
     // point of single-recipient invites. Compare case-insensitively
     // because email matching is case-insensitive per RFC 5321.
-    const inviteRecipient = (invite.recipient_email ?? null) as string | null;
-    if (inviteRecipient) {
+    if (previewInvite?.recipient_email) {
       const userEmail = (user.email ?? "").toLowerCase().trim();
-      const expected = inviteRecipient.toLowerCase().trim();
+      const expected = String(previewInvite.recipient_email).toLowerCase().trim();
       if (userEmail !== expected) {
         return errors.forbidden(
           "This invite was sent to a different email address. Sign in with that address to accept.",
@@ -218,93 +241,113 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       }
     }
 
-    // Check if user is the trip owner
-    const { data: trip } = await supabaseAdmin
-      .from("trips")
-      .select("id, user_id, title")
-      .eq("id", invite.trip_id)
-      .single();
+    // Atomic accept — SELECT FOR UPDATE on trip_invites, max_uses /
+    // is_active / expires_at guards, INSERT into trip_collaborators
+    // (ON CONFLICT DO NOTHING), increment use_count, all in one tx.
+    const { data: acceptData, error: rpcError } = await supabaseAdmin
+      .rpc("accept_trip_invite", { p_token: token, p_user_id: user.id });
 
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    if (trip.user_id === user.id) {
-      return apiSuccess({
-        success: true,
-        message: "You are the owner of this trip",
-        tripId: trip.id,
-        alreadyMember: true,
-      });
-    }
-
-    // Check if user is already a collaborator
-    const { data: existingCollab } = await supabaseAdmin
-      .from("trip_collaborators")
-      .select("id, role")
-      .eq("trip_id", invite.trip_id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (existingCollab) {
-      return apiSuccess({
-        success: true,
-        message: "You are already a collaborator on this trip",
-        tripId: trip.id,
-        role: existingCollab.role,
-        alreadyMember: true,
-      });
-    }
-
-    // Add user as collaborator
-    const { data: newCollab, error: collabError } = await supabaseAdmin
-      .from("trip_collaborators")
-      .insert({
-        trip_id: invite.trip_id,
-        user_id: user.id,
-        role: invite.role,
-        invited_by: invite.created_by,
-      })
-      .select()
-      .single();
-
-    if (collabError) {
-      console.error("[Invites] Error adding collaborator:", collabError);
+    if (rpcError) {
+      console.error("[Invites] accept_trip_invite RPC error:", rpcError);
       return errors.internal("Failed to join trip", "Invites");
     }
 
-    // Increment invite use count
-    // NOTE: We intentionally do NOT set is_active=false when max_uses is reached.
-    // The use_count check already prevents reuse, and keeping is_active=true
-    // allows for clearer error messages ("already used" vs "revoked by owner")
-    await supabaseAdmin
-      .from("trip_invites")
-      .update({ use_count: invite.use_count + 1 })
-      .eq("id", invite.id);
+    const result = acceptData as AcceptInviteRpcResult | null;
+    if (!result) {
+      return errors.internal("Failed to join trip", "Invites");
+    }
 
-    // Award bananas to the inviter (collaborator referral reward)
+    if ("error_code" in result) {
+      // Translate SQL error_codes back to HTTP statuses + the
+      // user-facing error codes already in use across the app
+      // (see lib/api/invite-validation.ts for the canonical list).
+      switch (result.error_code) {
+        case "NOT_FOUND":
+          return errors.notFound("Invalid invite link");
+        case "MAX_USES":
+          return errors.gone("This invite link has already been used", "MAX_USES");
+        case "REVOKED":
+          return errors.gone("This invite has been revoked by the trip owner", "REVOKED");
+        case "EXPIRED":
+          return errors.gone("This invite has expired", "EXPIRED");
+        case "TRIP_NOT_FOUND":
+          return errors.notFound("Trip not found");
+        default:
+          return errors.internal("Failed to join trip", "Invites");
+      }
+    }
+
+    // Owner accepting their own invite — same shape as the pre-#215
+    // route returned. No banana award, no DB writes happened.
+    if (result.is_owner) {
+      return apiSuccess({
+        success: true,
+        message: "You are the owner of this trip",
+        tripId: result.trip_id,
+        alreadyMember: true,
+      });
+    }
+
+    // Already-a-collaborator path — RPC took the ON CONFLICT branch,
+    // no seat consumed, no banana award. Look up the trip title for
+    // the response payload (cheap single-row read).
+    if (result.already_member) {
+      const { data: trip } = await supabaseAdmin
+        .from("trips")
+        .select("id, title")
+        .eq("id", result.trip_id)
+        .single();
+
+      return apiSuccess({
+        success: true,
+        message: "You are already a collaborator on this trip",
+        tripId: result.trip_id,
+        tripTitle: trip?.title,
+        role: result.role,
+        alreadyMember: true,
+      });
+    }
+
+    // Fresh join — fetch the trip title and the new collaborator row
+    // so the response keeps the same shape callers already consume.
+    const [{ data: trip }, { data: newCollab }] = await Promise.all([
+      supabaseAdmin
+        .from("trips")
+        .select("id, title")
+        .eq("id", result.trip_id)
+        .single(),
+      result.collaborator_id
+        ? supabaseAdmin
+            .from("trip_collaborators")
+            .select("*")
+            .eq("id", result.collaborator_id)
+            .single()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    // Award bananas to the inviter (collaborator referral reward).
+    // Same logic as before — runs OUTSIDE the atomic tx because it's
+    // best-effort and shouldn't block the join if banana bookkeeping
+    // fails. The invite seat is already consumed.
     let bananasAwarded = false;
     let tierUnlocked = false;
     let newTier = 0;
 
-    if (invite.created_by && invite.is_referral_eligible !== false) {
+    if (result.created_by && result.is_referral_eligible !== false) {
       try {
-        // Check if this is a new user who signed up via this invite
-        // Award bananas to the person who created the invite
-        const inviterTier = await getUserReferralTier(supabaseAdmin, invite.created_by);
+        const inviterTier = await getUserReferralTier(supabaseAdmin, result.created_by);
 
         const bananaResult = await addCollaborationBananas(
           supabaseAdmin,
-          invite.created_by,
-          invite.id,
+          result.created_by,
+          result.invite_id,
           inviterTier
         );
 
         if (bananaResult.success) {
           bananasAwarded = true;
 
-          // Check and unlock tier if eligible
-          const tierResult = await checkAndUnlockTier(supabaseAdmin, invite.created_by);
+          const tierResult = await checkAndUnlockTier(supabaseAdmin, result.created_by);
           tierUnlocked = tierResult.tierUnlocked;
           newTier = tierResult.tierInfo.currentTier;
         }
@@ -312,7 +355,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         // Track that this user joined via trip invite (for future referral attribution)
         await supabaseAdmin
           .from("users")
-          .update({ signed_up_via_trip_invite: invite.id })
+          .update({ signed_up_via_trip_invite: result.invite_id })
           .eq("id", user.id);
       } catch (bananaError) {
         console.error("[Invites] Error awarding collaboration bananas:", bananaError);
@@ -323,9 +366,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     return apiSuccess({
       success: true,
       message: "Successfully joined the trip!",
-      tripId: trip.id,
-      tripTitle: trip.title,
-      role: invite.role,
+      tripId: result.trip_id,
+      tripTitle: trip?.title,
+      role: result.role,
       collaborator: newCollab,
       bananas: {
         awarded: bananasAwarded,

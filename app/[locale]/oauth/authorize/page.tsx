@@ -12,6 +12,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSafeNext } from "@/lib/security/safe-next";
 import OAuthConsentClient from "./OAuthConsentClient";
 
 interface PageProps {
@@ -40,9 +41,17 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    // Redirect to login with return URL (login page uses 'redirect' param)
-    const returnUrl = `/oauth/authorize?authorization_id=${authorization_id}`;
-    redirect(`/auth/login?redirect=${encodeURIComponent(returnUrl)}`);
+    // Redirect to login with return URL (login page uses 'redirect' param).
+    // The authorization_id comes straight from query params, so guard against
+    // a tampered value being interpolated into the redirect target — every
+    // legitimate value is an alphanumeric/uuid token, so the safe-next
+    // allowlist comfortably covers it. See lib/security/safe-next.ts.
+    const returnUrl = `/oauth/authorize?authorization_id=${encodeURIComponent(authorization_id)}`;
+    redirect(
+      isSafeNext(returnUrl)
+        ? `/auth/login?redirect=${encodeURIComponent(returnUrl)}`
+        : "/auth/login",
+    );
   }
 
   // Get authorization details from Supabase

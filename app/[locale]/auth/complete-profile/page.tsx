@@ -8,6 +8,7 @@ import {
   getLocalOnboardingPreferences,
   clearLocalOnboardingPreferences,
 } from "@/hooks/useOnboardingPreferences";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 import Image from "next/image";
 
 /**
@@ -17,7 +18,10 @@ import Image from "next/image";
 export default function CompleteProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/trips/new";
+  // Belt-and-suspenders: even though /auth/callback already validates the
+  // upstream `next`, anyone can hit /auth/complete-profile?redirect=...
+  // directly once signed in. See lib/security/safe-next.ts.
+  const redirectUrl = safeNextOrDefault(searchParams.get("redirect"), "/trips/new");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("Setting up your personalized profile...");
 

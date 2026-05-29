@@ -383,15 +383,27 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   };
 
   // Delete account
-  const handleDeleteAccount = async () => {
+  //
+  // Sends POST with step-up credentials (confirmation phrase + password).
+  // The server re-checks the phrase, re-authenticates via signInWithPassword,
+  // then runs the transactional cascade RPC + auth.users delete.
+  const handleDeleteAccount = async (args: {
+    confirmationText: string;
+    password: string;
+  }) => {
     setIsDeleting(true);
     try {
       const response = await fetch("/api/profile/delete", {
-        method: "DELETE",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          confirmationText: args.confirmationText,
+          password: args.password,
+        }),
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.error || "Failed to delete account");
       }
 

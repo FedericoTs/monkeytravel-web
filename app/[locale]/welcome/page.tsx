@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { safeNextOrDefault } from "@/lib/security/safe-next";
 import WelcomeClient from "./WelcomeClient";
 
 export const metadata: Metadata = {
@@ -22,8 +23,11 @@ export default async function WelcomePage({ searchParams }: WelcomePageProps) {
     redirect("/auth/login?redirect=/welcome");
   }
 
-  // Get the intended destination (default to /trips for new users)
-  const intendedDestination = params.next || "/trips";
+  // Get the intended destination (default to /trips for new users).
+  // safeNextOrDefault closes the open-redirect on /welcome?next=…, which
+  // flows into both redirect() below and WelcomeClient's router.push.
+  // See lib/security/safe-next.ts.
+  const intendedDestination = safeNextOrDefault(params.next, "/trips");
 
   // Check if user already completed welcome
   const { data: profile } = await supabase
