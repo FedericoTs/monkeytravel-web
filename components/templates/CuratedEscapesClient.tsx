@@ -17,7 +17,6 @@ interface TemplateTrip {
   durationDays: number;
   budgetTier: "budget" | "moderate" | "luxury";
   moodTags: string[];
-  tags: string[];
   copyCount: number;
 }
 

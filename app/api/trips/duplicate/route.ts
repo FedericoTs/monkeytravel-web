@@ -30,6 +30,27 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("Share token is required");
     }
 
+    // Validate user-supplied startDate before using it downstream.
+    // Bad input (empty string, malformed, far-future) would otherwise
+    // produce "Invalid Date" downstream and surface as a 500 RangeError.
+    // Optional: when null/undefined we fall back to the source trip's dates.
+    if (startDate !== undefined && startDate !== null && startDate !== "") {
+      if (typeof startDate !== "string") {
+        return errors.badRequest("Invalid startDate");
+      }
+      const parsed = new Date(startDate);
+      if (isNaN(parsed.getTime())) {
+        return errors.badRequest("Invalid startDate");
+      }
+      const now = Date.now();
+      if (
+        parsed.getTime() < now - 5 * 365 * 24 * 3600 * 1000 ||
+        parsed.getTime() > now + 5 * 365 * 24 * 3600 * 1000
+      ) {
+        return errors.badRequest("startDate out of reasonable range");
+      }
+    }
+
     // Fetch the source trip by share token
     const { data: sourceTrip, error: fetchError } = await supabase
       .from("trips")

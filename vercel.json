@@ -44,6 +44,10 @@
     {
       "path": "/api/cron/recompute-editors-picks",
       "schedule": "17 5 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-activity-index",
+      "schedule": "23 4 * * *"
     }
   ],
   "redirects": [

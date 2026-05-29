@@ -2230,7 +2230,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
             {/* Destination */}
             <div>
-              <div className="text-sm font-medium text-slate-700 mb-2">{t("wizard.step1.destinationLabel")}</div>
+              <div
+                id="wizard-destination-label"
+                className="text-sm font-medium text-slate-700 mb-2"
+              >
+                {t("wizard.step1.destinationLabel")}
+              </div>
               <DestinationAutocomplete
                 value={destination}
                 onChange={(v) => {
@@ -2242,6 +2247,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   handleDestinationSelect(p);
                 }}
                 placeholder={t("wizard.step1.placeholder")}
+                // A11y (task #193): wire visible "Destination" header to the
+                // <input> so screen readers announce "Destination, edit" with
+                // context instead of bare "edit". aria-required reflects that
+                // this is a required wizard field.
+                ariaLabelledBy="wizard-destination-label"
+                ariaRequired
                 // autoFocus removed (2026-05-03) — on mobile it auto-opened
                 // the suggestions dropdown which covered the popular-
                 // destination pills below. Users tapping a pill ended up
@@ -2305,6 +2316,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 }}
                 maxDays={14}
                 minDate={new Date().toISOString().split("T")[0]}
+                // A11y (task #193): dates required to advance the wizard.
+                ariaRequired
               />
             </div>
 

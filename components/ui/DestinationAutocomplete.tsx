@@ -132,6 +132,26 @@ interface DestinationAutocompleteProps {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  /**
+   * A11y: id to apply to the underlying <input>. Useful when the parent
+   * renders a visible <label htmlFor={inputId}> and wants the click/focus
+   * association to work for screen readers.
+   */
+  inputId?: string;
+  /**
+   * A11y: explicit aria-label for the input. Use when there is no visible
+   * label in the DOM. Falls back to the localized placeholder.
+   */
+  ariaLabel?: string;
+  /**
+   * A11y: id(s) of element(s) that visually label this input. Preferred
+   * over ariaLabel when a visible header (e.g. "Destination") exists.
+   */
+  ariaLabelledBy?: string;
+  /**
+   * A11y: marks the input as required for assistive tech.
+   */
+  ariaRequired?: boolean;
 }
 
 export default function DestinationAutocomplete({
@@ -141,6 +161,10 @@ export default function DestinationAutocomplete({
   placeholder,
   className = "",
   autoFocus = false,
+  inputId,
+  ariaLabel,
+  ariaLabelledBy,
+  ariaRequired,
 }: DestinationAutocompleteProps) {
   const t = useTranslations("common.destinationSearch");
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
@@ -446,6 +470,7 @@ export default function DestinationAutocomplete({
         {/* Input Field */}
         <input
           ref={inputRef}
+          id={inputId}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -467,6 +492,17 @@ export default function DestinationAutocomplete({
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
+          // A11y: prefer aria-labelledby (visible header) over aria-label.
+          // Fall back to the localized placeholder so screen readers always
+          // announce *something* meaningful — never just "edit".
+          aria-label={
+            ariaLabelledBy ? undefined : ariaLabel || placeholder || t("placeholder")
+          }
+          aria-labelledby={ariaLabelledBy}
+          aria-required={ariaRequired || undefined}
+          aria-autocomplete="list"
+          aria-expanded={isOpen}
+          role="combobox"
           className="w-full pl-12 pr-12 py-4 text-lg rounded-xl border border-slate-300 bg-white
                      focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20
                      outline-none transition-all duration-200

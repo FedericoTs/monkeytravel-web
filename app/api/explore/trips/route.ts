@@ -71,8 +71,6 @@ export async function GET(request: NextRequest) {
       trending_score: number | null;
       view_count: number | null;
       template_copy_count: number | null;
-      budget: unknown;
-      itinerary: unknown;
       trip_meta: unknown;
       like_count?: number;
       save_count?: number;
@@ -90,9 +88,15 @@ export async function GET(request: NextRequest) {
     const base = supabase
       .from("trips")
       .select(
+        // 2026-05-29 FIX #188 — dropped `itinerary` + `budget` JSONB
+        // from the SELECT: neither flowed through to the response
+        // (itinerary was scanned only as a cover-image fallback, but
+        // every published trip in prod already has cover_image_url
+        // set — verified 7/7). `budget` had no consumer at all.
+        // Wire format unchanged; payload ~10-20x lighter per row.
         ugcOn
-          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
-          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta",
+          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
+          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, trip_meta",
         { count: "exact" }
       )
       .eq("visibility", "public")
@@ -156,22 +160,11 @@ export async function GET(request: NextRequest) {
       const endDate = new Date(trip.end_date);
       const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-      // Get cover image from first activity or trip_meta
-      let coverImage = trip.cover_image_url;
-      if (!coverImage && trip.itinerary) {
-        const itinerary = trip.itinerary as Array<{ activities?: Array<{ image?: string }> }>;
-        for (const day of itinerary) {
-          if (day.activities) {
-            for (const activity of day.activities) {
-              if (activity.image) {
-                coverImage = activity.image;
-                break;
-              }
-            }
-            if (coverImage) break;
-          }
-        }
-      }
+      // 2026-05-29 FIX #188 — itinerary fallback scan removed along
+      // with the JSONB column SELECT. Every published trip in prod has
+      // cover_image_url set; TripCard renders a gradient placeholder
+      // when null (TripCard.tsx L44-57).
+      const coverImage = trip.cover_image_url;
 
       const meta = trip.trip_meta as Record<string, unknown> || {};
 

@@ -22,6 +22,11 @@ interface DateRangePickerProps {
   maxDays?: number;
   minDate?: string;
   className?: string;
+  /**
+   * A11y: marks the start/end buttons as required for assistive tech.
+   * Wizard step 1 sets this to true (dates are required to continue).
+   */
+  ariaRequired?: boolean;
 }
 
 // Helper functions
@@ -133,6 +138,7 @@ export default function DateRangePicker({
   maxDays = 14,
   minDate,
   className = "",
+  ariaRequired,
 }: DateRangePickerProps) {
   // **2026-05-25**: localized to IT + ES. Pre-fix, every label, the
   // placeholder, the calendar header caption, the months and weekday
@@ -345,10 +351,16 @@ export default function DateRangePicker({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Start Date */}
         <button
+          type="button"
           onClick={() => {
             setIsOpen(true);
             setSelectingStart(true);
           }}
+          // A11y: SR reads "Check-in, Tue Jun 3" instead of just "edit".
+          aria-label={`${t("checkInLabel")}, ${formatDisplayDate(startDate, locale, emptyDateLabel)}`}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen && selectingStart}
+          aria-required={ariaRequired || undefined}
           className={`
             group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
             transition-all duration-300 bg-white
@@ -385,10 +397,16 @@ export default function DateRangePicker({
 
         {/* End Date */}
         <button
+          type="button"
           onClick={() => {
             setIsOpen(true);
             setSelectingStart(false);
           }}
+          // A11y: SR reads "Check-out, Sat Jun 7" instead of just "edit".
+          aria-label={`${t("checkOutLabel")}, ${formatDisplayDate(endDate, locale, emptyDateLabel)}`}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen && !selectingStart}
+          aria-required={ariaRequired || undefined}
           className={`
             group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
             transition-all duration-300 bg-white

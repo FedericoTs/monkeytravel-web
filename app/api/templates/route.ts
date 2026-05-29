@@ -46,23 +46,22 @@ export async function GET(request: NextRequest) {
       100
     );
 
-    // Build query
+    // Build query — card-shape only. Heavy JSONB blobs (itinerary, trip_meta,
+    // packing_list, budget) intentionally excluded; cards never render them
+    // and they dominate row weight (itinerary alone is 23-31 KB/row).
+    // SSR detail page (app/[locale]/trips/template/[id]/page.tsx) reads
+    // those columns from Supabase directly.
+    //
+    // `description` is kept defensively as a fallback for the rare case
+    // where template_short_description is null; ~125-360 B is rounding
+    // error vs the JSONB savings.
     let query = supabase
       .from("trips")
       .select(`
         id,
         title,
         description,
-        start_date,
-        end_date,
-        status,
         cover_image_url,
-        tags,
-        budget,
-        itinerary,
-        trip_meta,
-        packing_list,
-        is_template,
         template_mood_tags,
         template_duration_days,
         template_budget_tier,
@@ -114,11 +113,14 @@ export async function GET(request: NextRequest) {
       return errors.internal("Failed to fetch templates", "Templates");
     }
 
-    // Transform data for frontend
+    // Transform data for frontend — card shape only.
+    // itinerary / trip_meta / budget / packing_list intentionally omitted;
+    // template detail/preview reads them directly from Supabase in the SSR
+    // page (app/[locale]/trips/template/[id]/page.tsx).
     const formattedTemplates = (templates || []).map((template) => ({
       id: template.id,
       title: template.title,
-      description: template.template_short_description || template.description,
+      description: template.template_short_description || template.description || "",
       destination: template.template_destination,
       country: template.template_country,
       countryCode: template.template_country_code,
@@ -126,14 +128,8 @@ export async function GET(request: NextRequest) {
       durationDays: template.template_duration_days,
       budgetTier: template.template_budget_tier,
       moodTags: template.template_mood_tags || [],
-      tags: template.tags || [],
       copyCount: template.template_copy_count || 0,
       featuredOrder: template.template_featured_order,
-      // Include full data for preview/copy
-      itinerary: template.itinerary,
-      meta: template.trip_meta,
-      budget: template.budget,
-      packingList: template.packing_list,
     }));
 
     return apiSuccess({

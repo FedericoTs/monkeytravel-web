@@ -3,7 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import {
   generateItinerary,
   validateTripParams,
@@ -23,52 +23,14 @@ import { checkEarlyAccess, incrementEarlyAccessUsage, decrementFreeTrips } from 
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
-import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
+import type { TripCreationParams, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import {
   getCachedItinerary,
   cacheItinerary,
   adjustItineraryDates,
 } from "@/lib/ai/cache";
-import { cookies } from "next/headers";
-
-type SupportedLanguage = "en" | "es" | "it";
-
-/**
- * Get the user's preferred language from cookies or profile.
- * For anonymous users (userId === null) we use only the locale cookie.
- */
-async function getUserLanguage(
-  supabase: SupabaseClient,
-  userId: string | null
-): Promise<SupportedLanguage> {
-  // First check for locale cookie (set by next-intl middleware) — works for
-  // both authenticated and anonymous users.
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE");
-  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
-    return localeCookie.value as SupportedLanguage;
-  }
-
-  // Authenticated: fall back to profile preference
-  if (userId) {
-    try {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("preferred_language")
-        .eq("id", userId)
-        .single();
-
-      if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
-        return profile.preferred_language as SupportedLanguage;
-      }
-    } catch {
-      // Ignore errors, use default
-    }
-  }
-
-  return "en";
-}
+import { loadUserContext } from "@/lib/ai/user-context";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -95,75 +57,57 @@ export async function POST(request: NextRequest) {
     const user: User | null = maybeUser ?? null;
     const isAnonymous = user === null;
 
-    let anonLimit: Awaited<ReturnType<typeof checkAnonymousRateLimit>> | null = null;
-    if (isAnonymous) {
-      anonLimit = await checkAnonymousRateLimit();
-      if (!anonLimit.allowed) {
-        return errors.rateLimit(
-          anonLimit.message || "Free trip limit reached. Sign up to keep generating.",
-          { usage: anonLimit, signupUrl: "/auth/signup" }
-        );
-      }
+    // PERF (#190): Fan out the independent pre-Gemini reads.
+    //
+    // Previously these ran serially:
+    //   anon rate-limit → SELECT users(preferences,notification) →
+    //     cookie read → SELECT users(preferred_language) →
+    //     request.json → checkApiAccess
+    //
+    // None of them depend on each other (the request body parse is pure
+    // I/O, and the users-table reads were a duplicate). Promise.all
+    // collapses ~5 sequential RTTs into one parallel batch.
+    //
+    // Error semantics preserved: each member resolves to a result we
+    // inspect in the original priority order below (anon rate-limit →
+    // body validity → access kill-switch → quota). A rejection from
+    // request.json is caught and surfaced as a 400.
+    const [anonLimit, body, userContext, access] = await Promise.all([
+      isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
+      request.json().catch(() => null as Record<string, unknown> | null),
+      loadUserContext(supabase, user?.id ?? null),
+      checkApiAccess("gemini"),
+    ]);
+
+    if (isAnonymous && anonLimit && !anonLimit.allowed) {
+      return errors.rateLimit(
+        anonLimit.message || "Free trip limit reached. Sign up to keep generating.",
+        { usage: anonLimit, signupUrl: "/auth/signup" }
+      );
     }
 
-    // Personalization comes from the user profile — only for authenticated
-    // users. Anonymous users supply preferences directly in the wizard form.
-    let profilePreferences: UserProfilePreferences = {};
-    if (user) {
-      try {
-        const { data: userProfile } = await supabase
-          .from("users")
-          .select("preferences, notification_settings")
-          .eq("id", user.id)
-          .single();
-
-        if (userProfile?.preferences) {
-          const prefs = userProfile.preferences as Record<string, unknown>;
-          profilePreferences = {
-            dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
-            travelStyles: prefs.travelStyles as string[] | undefined,
-            accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
-          };
-        }
-
-        // Convert quiet hours to active hours for activity scheduling
-        // Quiet hours are when user rests, so active hours are the inverse
-        if (userProfile?.notification_settings) {
-          const notifSettings = userProfile.notification_settings as Record<string, unknown>;
-          const quietStart = notifSettings.quietHoursStart as number | undefined;
-          const quietEnd = notifSettings.quietHoursEnd as number | undefined;
-
-          if (quietStart !== undefined && quietEnd !== undefined) {
-            profilePreferences.activeHoursStart = quietEnd;
-            profilePreferences.activeHoursEnd = quietStart;
-          }
-        }
-      } catch (err) {
-        console.warn("[AI Generate] Could not fetch user preferences:", err);
-      }
+    if (!body || typeof body !== "object") {
+      return errors.badRequest("Body must be valid JSON");
     }
 
-    // Get preferred language for AI content localization (cookie-based for anon)
-    const userLanguage = await getUserLanguage(supabase, user?.id ?? null);
+    const { profilePreferences, userLanguage } = userContext;
     console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
 
-    // Parse request body
-    const body = await request.json();
     // Whitelist travelStyle so untrusted strings can't flow into the AI
     // system prompt. Anything other than "backpacker" → default "classic".
     const travelStyle: "classic" | "backpacker" =
       body.travelStyle === "backpacker" ? "backpacker" : "classic";
 
     const params: TripCreationParams = {
-      destination: body.destination,
-      startDate: body.startDate,
-      endDate: body.endDate,
-      budgetTier: body.budgetTier || "balanced",
-      pace: body.pace || "moderate",
-      vibes: body.vibes || [],
-      seasonalContext: body.seasonalContext,
-      interests: body.interests || [],
-      requirements: body.requirements,
+      destination: body.destination as string,
+      startDate: body.startDate as string,
+      endDate: body.endDate as string,
+      budgetTier: (body.budgetTier as TripCreationParams["budgetTier"]) || "balanced",
+      pace: (body.pace as TripCreationParams["pace"]) || "moderate",
+      vibes: (body.vibes as TripCreationParams["vibes"]) || [],
+      seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
+      interests: (body.interests as string[]) || [],
+      requirements: body.requirements as TripCreationParams["requirements"],
       travelStyle,
       // Include profile preferences (automatically fetched from user profile)
       profilePreferences,
@@ -175,8 +119,6 @@ export async function POST(request: NextRequest) {
       return errors.badRequest(validation.error);
     }
 
-    // Check API access control first
-    const access = await checkApiAccess("gemini");
     if (!access.allowed) {
       await logApiCall({
         apiName: "gemini",
@@ -194,10 +136,45 @@ export async function POST(request: NextRequest) {
     // Authenticated-tier usage limits (anonymous is rate-limited above via
     // cookie; authenticated users are unlimited per the 2026-05-23 free-tier
     // decision but we keep checkUsageLimit wired so analytics still tracks).
+    //
+    // PERF (#190): Run checkUsageLimit alongside the cross-user cache read.
+    // They hit different tables (usage_limits vs activity_cache) and share
+    // no state — running them sequentially was the single biggest avoidable
+    // wait in the cache-hit path.
+
+    // Calculate total trip duration
+    const totalDays = Math.ceil(
+      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+
+    // Determine if we should use incremental generation for long trips
+    const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
+
     const userIsAdmin = user ? isAdmin(user.email) : false;
-    const usageCheck = user
-      ? await checkUsageLimit(user.id, "aiGenerations", user.email)
-      : { allowed: true as const, used: 0, remaining: 999, limit: 999, message: undefined as string | undefined };
+
+    // 2026-05-28 follow-up: the cache now keys on travel_style (Tier 1.2
+    // migration), so backpacker hits its own cache pool — no leak into
+    // classic results and vice versa. The skip-cache hack is removed.
+    const [usageCheck, cachedItinerary] = await Promise.all([
+      user
+        ? checkUsageLimit(user.id, "aiGenerations", user.email)
+        : Promise.resolve({
+            allowed: true as const,
+            used: 0,
+            remaining: 999,
+            limit: 999,
+            message: undefined as string | undefined,
+          }),
+      getCachedItinerary(
+        supabase,
+        params.destination,
+        params.vibes,
+        params.budgetTier,
+        userLanguage,
+        params.travelStyle ?? "classic",
+      ),
+    ]);
 
     if (user && !usageCheck.allowed) {
       return errors.rateLimit(
@@ -212,27 +189,6 @@ export async function POST(request: NextRequest) {
     let cacheHit = false;
     let isPartialGeneration = false;
     let usedMapsGrounding = false;
-
-    // Calculate total trip duration
-    const totalDays = Math.ceil(
-      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
-
-    // Determine if we should use incremental generation for long trips
-    const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
-
-    // 2026-05-28 follow-up: the cache now keys on travel_style (Tier 1.2
-    // migration), so backpacker hits its own cache pool — no leak into
-    // classic results and vice versa. The skip-cache hack is removed.
-    const cachedItinerary = await getCachedItinerary(
-      supabase,
-      params.destination,
-      params.vibes,
-      params.budgetTier,
-      userLanguage,
-      params.travelStyle ?? "classic",
-    );
 
     if (cachedItinerary && cachedItinerary.days.length >= 1) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)

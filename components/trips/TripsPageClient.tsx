@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useId, Suspense } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -103,9 +103,79 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
   const [imageLoading, setImageLoading] = useState(!trip.cover_image_url);
   const [menuOpen, setMenuOpen] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  // Menu a11y plumbing (task #194): the action menu is a popup attached
+  // to a button. We need a stable id to wire aria-controls + give the
+  // items a roving-tabindex feel by focusing them via refs on arrow keys.
+  const menuId = useId();
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const gradient = getDestinationGradient(trip.title);
   const destination = trip.title.replace(/ Trip$/i, "").replace(/Trip to /i, "");
   const isArchived = trip.is_archived;
+
+  // When the menu opens, focus the first menu item so keyboard users
+  // can immediately arrow-navigate. When it closes (after action or
+  // Esc), restore focus to the trigger button. WAI-ARIA menu pattern.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const focusFrame = requestAnimationFrame(() => {
+      const firstItem = menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+      firstItem?.focus();
+    });
+
+    return () => cancelAnimationFrame(focusFrame);
+  }, [menuOpen]);
+
+  // Keyboard navigation inside the menu: ArrowUp/Down cycle items,
+  // Home/End jump to first/last, Esc closes and restores focus.
+  const handleMenuKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!menuRef.current) return;
+
+    const items = Array.from(
+      menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    );
+    if (items.length === 0) return;
+
+    const currentIndex = items.findIndex((el) => el === document.activeElement);
+
+    switch (e.key) {
+      case "ArrowDown": {
+        e.preventDefault();
+        const next = items[(currentIndex + 1) % items.length] ?? items[0];
+        next.focus();
+        break;
+      }
+      case "ArrowUp": {
+        e.preventDefault();
+        const prev = items[(currentIndex - 1 + items.length) % items.length] ?? items[items.length - 1];
+        prev.focus();
+        break;
+      }
+      case "Home": {
+        e.preventDefault();
+        items[0].focus();
+        break;
+      }
+      case "End": {
+        e.preventDefault();
+        items[items.length - 1].focus();
+        break;
+      }
+      case "Escape": {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+        break;
+      }
+      case "Tab": {
+        // Tabbing out closes the menu — matches native <select> popup behaviour.
+        setMenuOpen(false);
+        break;
+      }
+    }
+  }, []);
 
   // Fetch destination image if no cover_image_url. AbortController guards
   // against stale responses if the component unmounts (router.refresh,
@@ -256,13 +326,28 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
         {/* Action menu button */}
         <div className="absolute top-3 right-3">
           <button
+            ref={menuButtonRef}
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setMenuOpen(!menuOpen);
             }}
+            onKeyDown={(e) => {
+              // Down-arrow on the trigger opens the menu and lands focus
+              // on the first item — WAI-ARIA menubutton convention. Space
+              // and Enter already fire onClick natively.
+              if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !menuOpen) {
+                e.preventDefault();
+                e.stopPropagation();
+                setMenuOpen(true);
+              }
+            }}
             className="p-1.5 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
             aria-label={t('tripActions')}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -280,49 +365,63 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
                   e.stopPropagation();
                   setMenuOpen(false);
                 }}
+                aria-hidden="true"
               />
-              <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-200 py-1 min-w-[140px]">
+              <div
+                ref={menuRef}
+                id={menuId}
+                role="menu"
+                aria-label={t('tripActions')}
+                onKeyDown={handleMenuKeyDown}
+                className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-200 py-1 min-w-[140px]"
+              >
                 {isArchived ? (
                   <button
+                    type="button"
+                    role="menuitem"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setMenuOpen(false);
                       onAction(trip.id, trip.title, "unarchive");
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm text-green-600 hover:bg-green-50 focus:bg-green-50 focus:outline-none flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     {t('unarchiveTrip')}
                   </button>
                 ) : (
                   <button
+                    type="button"
+                    role="menuitem"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setMenuOpen(false);
                       onAction(trip.id, trip.title, "archive");
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 focus:bg-amber-50 focus:outline-none flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                     </svg>
                     {t('archiveTrip')}
                   </button>
                 )}
                 <button
+                  type="button"
+                  role="menuitem"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setMenuOpen(false);
                     onAction(trip.id, trip.title, "delete");
                   }}
-                  className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 focus:bg-red-50 focus:outline-none flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                   {t('deleteTrip')}

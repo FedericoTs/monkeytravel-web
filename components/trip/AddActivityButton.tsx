@@ -39,6 +39,11 @@ export default function AddActivityButton({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  // Mirrors the canonical pattern from DestinationAutocomplete (#160): abort
+  // the previous in-flight /api/activities/search when a newer keystroke (or
+  // category click, or initial-suggestion fetch) supersedes it. Without this,
+  // a slow "Barc" response can land on top of newer "Barcelona" results.
+  const abortRef = useRef<AbortController | null>(null);
 
   // Focus input when expanded
   useEffect(() => {
@@ -62,8 +67,15 @@ export default function AddActivityButton({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isExpanded]);
 
-  // Search activities
+  // Search activities. Cancels any prior in-flight request so a stale
+  // "Barc" response can't overwrite newer "Barcelona" results — same race
+  // shape as DestinationAutocomplete pre-#160. AbortError is the expected
+  // path when a newer call supersedes; everything else is logged.
   const searchActivities = useCallback(async (query: string, type: string | null) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsSearching(true);
     try {
       const response = await fetch("/api/activities/search", {
@@ -76,16 +88,28 @@ export default function AddActivityButton({
           limit: 8,
           includeGoogle: query.length >= 3,
         }),
+        signal: controller.signal,
       });
+
+      if (controller.signal.aborted) return;
 
       if (response.ok) {
         const data = await response.json();
+        if (controller.signal.aborted) return;
         setResults(data.results || []);
       }
     } catch (error) {
+      // Newer keystroke aborted this one — drop silently, the newer call
+      // owns the UI state now.
+      if (error instanceof Error && error.name === "AbortError") return;
       console.error("Activity search error:", error);
     } finally {
-      setIsSearching(false);
+      // Only the most recent request should clear the spinner; an aborted
+      // older one leaving `isSearching=false` while a newer one is still
+      // in flight would flash "no results" between keystrokes.
+      if (!controller.signal.aborted) {
+        setIsSearching(false);
+      }
     }
   }, [destination]);
 
@@ -158,6 +182,16 @@ export default function AddActivityButton({
       searchActivities("", null);
     }
   }, [isExpanded, results.length, searchQuery, searchActivities]);
+
+  // Abort any in-flight request on unmount so a late response can't try to
+  // setState on a torn-down component (React warns, and it's a real bug if
+  // the user closes the panel mid-search).
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   if (!isExpanded) {
     return (

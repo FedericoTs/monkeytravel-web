@@ -3,18 +3,25 @@
  *
  * POST /api/activities/search
  *
- * Local-first activity search that mines activities from existing trips.
- * Falls back to Google Places Text Search only when local results are insufficient.
+ * Local-first activity search backed by the `activity_index` materialized
+ * view (see supabase/migrations/20260530_activity_index_mview.sql). The MV
+ * flattens trips.itinerary into one row per activity with normalised text
+ * (lower + unaccent) and trigram GIN indexes for fuzzy match.
+ *
+ * Falls back to Google Places Text Search only when local results are
+ * insufficient AND the user query is specific enough to be worth $0.032.
  *
  * Cost: $0 (local) or $0.032 (Google Places Text Search)
+ *
+ * Refresh: daily Vercel cron — /api/cron/refresh-activity-index.
  */
 
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { Activity } from "@/types";
 
-// Activity type categories for filtering
+// Activity type categories for filtering — kept in sync with AddActivityButton's
+// ACTIVITY_CATEGORIES so the wizard pill UI lines up with what we send the RPC.
 const ACTIVITY_TYPE_CATEGORIES: Record<string, string[]> = {
   restaurant: ["restaurant", "food", "cafe", "bar", "foodie", "market"],
   attraction: ["attraction", "landmark", "museum", "cultural"],
@@ -52,6 +59,23 @@ interface SearchRequest {
   includeGoogle?: boolean;
 }
 
+// Shape of a row returned by the search_activities() RPC. Mirrors the
+// RETURNS TABLE definition in 20260530_activity_index_mview.sql.
+interface ActivityIndexRow {
+  row_key: string;
+  trip_id: string;
+  name: string;
+  type: string;
+  description: string | null;
+  address: string | null;
+  location: string | null;
+  coordinates: { lat: number; lng: number } | null;
+  duration_minutes: number | null;
+  estimated_cost: ActivitySearchResult["estimated_cost"] | null;
+  image_url: string | null;
+  similarity: number;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: SearchRequest = await request.json();
@@ -63,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Step 1: Search activities from existing trips
+    // Step 1: Search activities from existing trips via the MV-backed RPC.
     const localResults = await searchLocalActivities(
       supabase,
       destination,
@@ -112,7 +136,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Search activities from existing trips in the database
+ * Search activities from existing trips via the activity_index MV.
+ *
+ * Pre-refactor (#191) this SELECTed trips.id+title+itinerary LIMIT 100 and
+ * looped in Node using includes() — substring-only, no fuzzy/typo/accent
+ * tolerance, several MB of JSONB over the wire per call. The MV pushes all
+ * of that into Postgres with trigram indexes.
  */
 async function searchLocalActivities(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -121,29 +150,12 @@ async function searchLocalActivities(
   types: string[],
   limit: number
 ): Promise<ActivitySearchResult[]> {
-  // Query trips that match the destination
-  // The destination is stored in itinerary days or can be extracted from trip title
-  const { data: trips, error } = await supabase
-    .from("trips")
-    .select("id, title, itinerary")
-    .not("itinerary", "is", null)
-    .limit(100); // Get recent trips to mine activities from
-
-  if (error || !trips) {
-    console.error("[Activity Search] Error fetching trips:", error);
-    return [];
-  }
-
-  // Extract all activities from trips and filter by destination
-  const activityMap = new Map<string, ActivitySearchResult>();
-  const destinationLower = destination.toLowerCase();
-  const queryLower = query.toLowerCase();
-
-  // Expand type filters to include related types
+  // Expand the wizard's category pills (restaurant / attraction / activity /
+  // nature / shopping) into the flat type vocabulary stored in the MV. Empty
+  // array → no type filter (matches search_activities's NULL/empty-array branch).
   const expandedTypes = new Set<string>();
   types.forEach((type) => {
     expandedTypes.add(type);
-    // Add related types from categories
     Object.entries(ACTIVITY_TYPE_CATEGORIES).forEach(([category, relatedTypes]) => {
       if (relatedTypes.includes(type) || category === type) {
         relatedTypes.forEach((t) => expandedTypes.add(t));
@@ -151,78 +163,47 @@ async function searchLocalActivities(
     });
   });
 
-  for (const trip of trips) {
-    const itinerary = trip.itinerary as { activities: Activity[] }[] | null;
-    if (!itinerary || !Array.isArray(itinerary)) continue;
+  const { data, error } = await supabase.rpc("search_activities", {
+    q: query ?? "",
+    dest: destination,
+    types: expandedTypes.size > 0 ? Array.from(expandedTypes) : null,
+    lim: limit,
+  });
 
-    // Check if trip title or any activity location matches destination
-    const tripMatchesDestination =
-      trip.title?.toLowerCase().includes(destinationLower);
-
-    for (const day of itinerary) {
-      if (!day.activities || !Array.isArray(day.activities)) continue;
-
-      for (const activity of day.activities) {
-        // Check if activity location matches destination
-        const locationMatches =
-          tripMatchesDestination ||
-          activity.location?.toLowerCase().includes(destinationLower) ||
-          activity.address?.toLowerCase().includes(destinationLower);
-
-        if (!locationMatches) continue;
-
-        // Apply type filter if specified
-        if (expandedTypes.size > 0 && !expandedTypes.has(activity.type)) {
-          continue;
-        }
-
-        // Apply query filter if specified
-        if (queryLower) {
-          const nameMatches = activity.name?.toLowerCase().includes(queryLower);
-          const descMatches = activity.description?.toLowerCase().includes(queryLower);
-          const typeMatches = activity.type?.toLowerCase().includes(queryLower);
-          if (!nameMatches && !descMatches && !typeMatches) continue;
-        }
-
-        // Use activity name as key for deduplication
-        const key = activity.name?.toLowerCase().trim();
-        if (!key || activityMap.has(key)) continue;
-
-        activityMap.set(key, {
-          id: `local_${activity.id || crypto.randomUUID()}`,
-          name: activity.name,
-          type: activity.type,
-          description: activity.description || "",
-          address: activity.address,
-          coordinates: activity.coordinates,
-          duration_minutes: activity.duration_minutes || 90,
-          estimated_cost: activity.estimated_cost,
-          image_url: activity.image_url,
-          source: "local",
-        });
-      }
-    }
+  if (error) {
+    console.error("[Activity Search] search_activities RPC failed:", error);
+    return [];
   }
 
-  // Sort by relevance (exact name match first, then contains query)
-  const results = Array.from(activityMap.values());
-  if (queryLower) {
-    results.sort((a, b) => {
-      const aExact = a.name.toLowerCase() === queryLower;
-      const bExact = b.name.toLowerCase() === queryLower;
-      if (aExact && !bExact) return -1;
-      if (bExact && !aExact) return 1;
+  const rows = (data ?? []) as ActivityIndexRow[];
 
-      const aStarts = a.name.toLowerCase().startsWith(queryLower);
-      const bStarts = b.name.toLowerCase().startsWith(queryLower);
-      if (aStarts && !bStarts) return -1;
-      if (bStarts && !aStarts) return 1;
+  // Dedupe by lowercased name — multiple trips often reference the same place
+  // (e.g. "Sagrada Família" across every Barcelona itinerary). Highest similarity
+  // wins because the RPC already returns rows ordered by similarity DESC.
+  const seen = new Set<string>();
+  const results: ActivitySearchResult[] = [];
+  for (const row of rows) {
+    const key = row.name?.toLowerCase().trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
 
-      return 0;
+    results.push({
+      // Stable id so AddActivityButton's React keys don't churn between
+      // keystrokes for the same underlying activity row.
+      id: `local_${row.row_key}`,
+      name: row.name,
+      type: row.type,
+      description: row.description ?? "",
+      address: row.address ?? undefined,
+      coordinates: row.coordinates ?? undefined,
+      duration_minutes: row.duration_minutes ?? 90,
+      estimated_cost: row.estimated_cost ?? undefined,
+      image_url: row.image_url ?? undefined,
+      source: "local",
     });
   }
 
-  return results.slice(0, limit);
+  return results;
 }
 
 /**

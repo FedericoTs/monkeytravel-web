@@ -6,7 +6,7 @@ import {
   checkAnonymousRateLimit,
   recordAnonymousGeneration,
 } from "@/lib/anonymous/rate-limit";
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import {
   generateItineraryStream,
   parseStreamedItinerary,
@@ -26,12 +26,11 @@ import {
   cacheItinerary,
   adjustItineraryDates,
 } from "@/lib/ai/cache";
+import { loadUserContext } from "@/lib/ai/user-context";
 import type {
   TripCreationParams,
-  UserProfilePreferences,
   GeneratedItinerary,
 } from "@/types";
-import { cookies } from "next/headers";
 import {
   eventStreamFromGenerator,
   sseHeaders,
@@ -42,8 +41,6 @@ import {
   feedChunk,
   finalize,
 } from "@/lib/streaming/day-parser";
-
-type SupportedLanguage = "en" | "es" | "it";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -95,58 +92,43 @@ export async function POST(request: NextRequest) {
   const user: User | null = maybeUser ?? null;
   const isAnonymous = user === null;
 
-  if (isAnonymous) {
-    const anonLimit = await checkAnonymousRateLimit();
-    if (!anonLimit.allowed) {
-      return errors.rateLimit(
-        anonLimit.message ||
-          "Free trip limit reached. Sign up to keep generating.",
-        { usage: anonLimit, signupUrl: "/auth/signup" }
-      );
-    }
+  // PERF (#190): Fan out the independent pre-flight reads. None of these
+  // depend on each other:
+  //   - anon rate-limit reads a cookie
+  //   - request.json is pure I/O
+  //   - loadUserContext does ONE consolidated SELECT (preferences +
+  //     notification_settings + preferred_language) + cookie read in
+  //     parallel — replaces TWO duplicate user-table SELECTs in the
+  //     previous serial path
+  //   - checkApiAccess('gemini') is a kill-switch table read
+  //
+  // Each member resolves to a value we inspect in the original priority
+  // order so error semantics are preserved (anon limit → bad body →
+  // access denied → quota).
+  const [anonLimit, parsedBody, userContext, access] = await Promise.all([
+    isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
+    request
+      .json()
+      .then((b) => b as Record<string, unknown>)
+      .catch(() => null as Record<string, unknown> | null),
+    loadUserContext(supabase, user?.id ?? null),
+    checkApiAccess("gemini"),
+  ]);
+
+  if (isAnonymous && anonLimit && !anonLimit.allowed) {
+    return errors.rateLimit(
+      anonLimit.message ||
+        "Free trip limit reached. Sign up to keep generating.",
+      { usage: anonLimit, signupUrl: "/auth/signup" }
+    );
   }
 
-  // Parse + validate body
-  let body: Record<string, unknown>;
-  try {
-    body = (await request.json()) as Record<string, unknown>;
-  } catch {
+  if (!parsedBody) {
     return errors.badRequest("Body must be valid JSON");
   }
+  const body = parsedBody;
 
-  // Pull profile preferences (authenticated only)
-  let profilePreferences: UserProfilePreferences = {};
-  if (user) {
-    try {
-      const { data: userProfile } = await supabase
-        .from("users")
-        .select("preferences, notification_settings")
-        .eq("id", user.id)
-        .single();
-      if (userProfile?.preferences) {
-        const prefs = userProfile.preferences as Record<string, unknown>;
-        profilePreferences = {
-          dietaryPreferences: prefs.dietaryPreferences as string[] | undefined,
-          travelStyles: prefs.travelStyles as string[] | undefined,
-          accessibilityNeeds: prefs.accessibilityNeeds as string[] | undefined,
-        };
-      }
-      if (userProfile?.notification_settings) {
-        const ns = userProfile.notification_settings as Record<string, unknown>;
-        const qs = ns.quietHoursStart as number | undefined;
-        const qe = ns.quietHoursEnd as number | undefined;
-        if (qs !== undefined && qe !== undefined) {
-          profilePreferences.activeHoursStart = qe;
-          profilePreferences.activeHoursEnd = qs;
-        }
-      }
-    } catch (err) {
-      console.warn("[AI Generate Stream] preferences fetch failed:", err);
-    }
-  }
-
-  // Language (cookie-based, anonymous-friendly)
-  const userLanguage = await getUserLanguage(supabase, user?.id ?? null);
+  const { profilePreferences, userLanguage } = userContext;
 
   const params: TripCreationParams = {
     destination: body.destination as string,
@@ -174,25 +156,42 @@ export async function POST(request: NextRequest) {
     return errors.badRequest(validation.error);
   }
 
-  // API access kill-switch (Gemini circuit breaker)
-  const access = await checkApiAccess("gemini");
+  // API access kill-switch (Gemini circuit breaker) — already resolved
+  // above in the Promise.all batch.
   if (!access.allowed) {
     return errors.serviceUnavailable(
       access.message || "AI generation is currently disabled"
     );
   }
 
-  // Authenticated-tier quota check
+  // Authenticated-tier quota check + cross-user cache read in parallel.
+  // They hit different tables (usage_limits vs activity_cache) and the
+  // cache read needs userLanguage which is already resolved above. The
+  // TTFB tradeoff is documented: hoisting the cache read here delays
+  // SSE byte-0 by ~20-30ms but lets us skip the entire Gemini stream
+  // on a hit — a much larger win on the conversion-critical first-day
+  // event.
   const userIsAdmin = user ? isAdmin(user.email) : false;
-  const usageCheck = user
-    ? await checkUsageLimit(user.id, "aiGenerations", user.email)
-    : {
-        allowed: true as const,
-        used: 0,
-        remaining: 999,
-        limit: 999,
-        message: undefined as string | undefined,
-      };
+  const [usageCheck, preflightCachedItinerary] = await Promise.all([
+    user
+      ? checkUsageLimit(user.id, "aiGenerations", user.email)
+      : Promise.resolve({
+          allowed: true as const,
+          used: 0,
+          remaining: 999,
+          limit: 999,
+          message: undefined as string | undefined,
+        }),
+    getCachedItinerary(
+      supabase,
+      params.destination,
+      params.vibes,
+      params.budgetTier,
+      userLanguage,
+      params.travelStyle ?? "classic",
+    ),
+  ]);
+
   if (user && !usageCheck.allowed) {
     return errors.rateLimit(
       ("message" in usageCheck && usageCheck.message) ||
@@ -223,14 +222,10 @@ export async function POST(request: NextRequest) {
       //     Now: backpacker + classic each have their own cache pool
       //     (Tier 1.2 migration) and the streaming path checks them
       //     before calling Gemini.
-      const cached = await getCachedItinerary(
-        supabase,
-        params.destination,
-        params.vibes,
-        params.budgetTier,
-        userLanguage,
-        params.travelStyle ?? "classic",
-      );
+      // PERF (#190): the cache read was hoisted out of the SSE generator
+      // and is now part of the pre-flight Promise.all above. We just
+      // consume the pre-resolved value here.
+      const cached = preflightCachedItinerary;
       if (cached && cached.days.length >= 1) {
         const adjusted = adjustItineraryDates(
           cached,
@@ -472,41 +467,4 @@ export async function POST(request: NextRequest) {
     status: 200,
     headers: sseHeaders(),
   });
-}
-
-/**
- * Get the user's preferred language. Duplicates the helper in the
- * non-streaming route — pulling it into a shared module would mean
- * touching that route, which we want to avoid for risk reasons.
- */
-async function getUserLanguage(
-  supabase: SupabaseClient,
-  userId: string | null
-): Promise<SupportedLanguage> {
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE");
-  if (
-    localeCookie?.value &&
-    ["en", "es", "it"].includes(localeCookie.value)
-  ) {
-    return localeCookie.value as SupportedLanguage;
-  }
-  if (userId) {
-    try {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("preferred_language")
-        .eq("id", userId)
-        .single();
-      if (
-        profile?.preferred_language &&
-        ["en", "es", "it"].includes(profile.preferred_language)
-      ) {
-        return profile.preferred_language as SupportedLanguage;
-      }
-    } catch {
-      // ignore
-    }
-  }
-  return "en";
 }

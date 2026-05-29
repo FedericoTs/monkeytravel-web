@@ -38,6 +38,12 @@ export interface BaseModalProps {
   className?: string;
   /** Animation style: 'scale' | 'slide' | 'fade' | 'none' */
   animation?: "scale" | "slide" | "fade" | "none";
+  /** When true, drops BaseModal's default p-6 padding wrappers so children
+   *  can render edge-to-edge (e.g. full-bleed gradient headers). */
+  noPadding?: boolean;
+  /** Optional aria-label for the dialog itself (used when no title is
+   *  rendered but the modal still needs an accessible name). */
+  ariaLabel?: string;
 }
 
 /**
@@ -80,6 +86,8 @@ export default function BaseModal({
   disableBackdropClick = false,
   className = "",
   animation = "scale",
+  noPadding = false,
+  ariaLabel,
 }: BaseModalProps) {
   const t = useTranslations("common.buttons");
   const [mounted, setMounted] = useState(false);
@@ -178,6 +186,7 @@ export default function BaseModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "modal-title" : undefined}
+      aria-label={!title && ariaLabel ? ariaLabel : undefined}
     >
       {/* Backdrop */}
       <div
@@ -210,7 +219,7 @@ export default function BaseModal({
 
           {/* Header */}
           {(header || title) && (
-            <div className="p-6 pb-0">
+            <div className={noPadding ? "" : "p-6 pb-0"}>
               {header || (
                 <div>
                   {title && (
@@ -230,7 +239,7 @@ export default function BaseModal({
           )}
 
           {/* Content */}
-          <div className="p-6">{children}</div>
+          <div className={noPadding ? "" : "p-6"}>{children}</div>
         </div>
       </div>
     </div>

@@ -139,20 +139,69 @@ export default function ShareAfterSaveModal({
     }
   }, [isOpen, showDelayed, tripId, destination, tripDays, activeVariant]);
 
-  // Handle escape key
+  // Focus trap: cycle Tab/Shift+Tab inside the panel and capture initial focus
+  // so screen-reader users land inside the dialog. Framer-motion controls the
+  // visual mount/unmount, so BaseModal isn't a clean fit here — we add the
+  // dialog semantics inline instead. See BaseModal.tsx for the canonical
+  // implementation we mirror.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+    if (!isOpen || !showDelayed) return;
+
+    triggerRef.current = (document.activeElement as HTMLElement) ?? null;
+
+    // Focus the first focusable inside the panel on mount
+    const focusFirst = () => {
+      const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      focusable?.[0]?.focus();
+    };
+    // Wait one frame for framer-motion to mount the panel
+    const raf = requestAnimationFrame(focusFirst);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      // Restore focus to the trigger on unmount
+      triggerRef.current?.focus?.();
+    };
+  }, [isOpen, showDelayed]);
+
+  // Handle escape key + Tab focus trap
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (e.key === "Escape") {
         trackSharePromptAction({ tripId, action: "skip" });
         setIsExiting(true);
         setTimeout(() => {
           setIsExiting(false);
           onClose();
         }, 200);
+        return;
+      }
+
+      if (e.key === "Tab" && panelRef.current) {
+        const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, tripId, onClose]);
 
   const handleSkip = () => {
@@ -212,6 +261,10 @@ export default function ShareAfterSaveModal({
           onClick={handleSkip}
         >
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-after-save-title"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -224,9 +277,10 @@ export default function ShareAfterSaveModal({
               {/* Close button */}
               <button
                 onClick={handleSkip}
+                aria-label={t("buttons.closeModal")}
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Success animation */}
@@ -245,7 +299,7 @@ export default function ShareAfterSaveModal({
                 </motion.div>
               </motion.div>
 
-              <h2 className="text-xl font-bold text-center mb-1">{ts("afterSave.tripSaved")}</h2>
+              <h2 id="share-after-save-title" className="text-xl font-bold text-center mb-1">{ts("afterSave.tripSaved")}</h2>
               <p className="text-white/80 text-center text-sm">
                 {ts("afterSave.daysInDestination", { tripDays, destination })}
               </p>
