@@ -7,7 +7,9 @@ import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
-import { TourTrigger } from '@/components/tour';
+// Deep import (not the `@/components/tour` barrel) to keep framer-motion
+// out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
+import TourTrigger from '@/components/tour/TourTrigger';
 import { getTranslations } from 'next-intl/server';
 import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
@@ -65,13 +67,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
+   ----------------------------------------------------------------------------
+   Re-encoded from PNG → WebP (q=80) via sharp on 2026-05-29 to shed
+   ~85% of the LCP byte weight (task #161). The original PNGs are kept
+   alongside as fallback / source-of-truth for regeneration.
    ============================================================================ */
 const APP_SCREENSHOTS = {
-  hero: '/screenshots/trip-barcelona-hero.png' as string | undefined,
+  hero: '/screenshots/trip-barcelona-hero.webp' as string | undefined,
   preview: {
-    left: '/screenshots/trip-lisbon-hero.png' as string | undefined,
-    center: '/screenshots/trip-barcelona-itinerary.png' as string | undefined,
-    right: '/screenshots/trip-porto-hero.png' as string | undefined,
+    left: '/screenshots/trip-lisbon-hero.webp' as string | undefined,
+    center: '/screenshots/trip-barcelona-itinerary.webp' as string | undefined,
+    right: '/screenshots/trip-porto-hero.webp' as string | undefined,
   },
 };
 

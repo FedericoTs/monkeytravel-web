@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface EngagementBarProps {
   tripId: string;
@@ -44,6 +45,10 @@ export default function EngagementBar({
   showFork = true,
 }: EngagementBarProps) {
   const router = useRouter();
+  // i18n: every visible string (aria-labels + Fork button + owner hint)
+  // shipped in English on /it /es. Keys already exist under the
+  // share.explore.engagement namespace alongside PublishToggle.
+  const t = useTranslations("common.share.explore.engagement");
 
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(likeCount);
@@ -135,7 +140,7 @@ export default function EngagementBar({
     <div
       className="flex items-center gap-2 sm:gap-3"
       data-testid="engagement-bar"
-      aria-label="Trip engagement actions"
+      aria-label={t("barAriaLabel")}
     >
       <button
         onClick={toggleLike}
@@ -146,7 +151,7 @@ export default function EngagementBar({
             : "bg-white border-slate-200 text-slate-700 hover:border-rose-200 hover:text-rose-700"
         } disabled:opacity-60`}
         aria-pressed={liked}
-        aria-label={liked ? "Unlike trip" : "Like trip"}
+        aria-label={liked ? t("likeAriaUnlike") : t("likeAriaLike")}
       >
         <svg
           className={`w-4 h-4 ${liked ? "fill-current" : ""}`}
@@ -173,7 +178,7 @@ export default function EngagementBar({
             : "bg-white border-slate-200 text-slate-700 hover:border-amber-200 hover:text-amber-700"
         } disabled:opacity-60`}
         aria-pressed={saved}
-        aria-label={saved ? "Remove from saved" : "Save for later"}
+        aria-label={saved ? t("saveAriaRemove") : t("saveAriaSave")}
       >
         <svg
           className={`w-4 h-4 ${saved ? "fill-current" : ""}`}
@@ -192,7 +197,7 @@ export default function EngagementBar({
           onClick={doFork}
           disabled={busy === "fork"}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-60"
-          aria-label="Fork this trip into your account"
+          aria-label={t("forkAriaLabel")}
         >
           <svg
             className="w-4 h-4"
@@ -203,13 +208,13 @@ export default function EngagementBar({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7l4-4m0 0l4 4m-4-4v18" />
           </svg>
-          Fork ({forks})
+          {t("forkButton", { count: forks })}
         </button>
       )}
 
       {isOwner && (
-        <span className="text-xs text-slate-500 ml-1" title="You can't fork your own trip">
-          Forked {forks}×
+        <span className="text-xs text-slate-500 ml-1" title={t("ownerForkTooltip")}>
+          {t("forkedCount", { count: forks })}
         </span>
       )}
     </div>

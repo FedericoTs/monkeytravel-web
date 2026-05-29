@@ -208,7 +208,15 @@
   "ongoing": {
     "todayTab": "Hoy",
     "fullPlanTab": "Plan completo",
-    "fullPlan": "Plan completo"
+    "fullPlan": "Plan completo",
+    "loadingMap": "Cargando mapa...",
+    "todaysActivities": "Actividades de hoy",
+    "progressCompleted": "{completed}/{total} completadas",
+    "noActivitiesToday": "No hay actividades planeadas para hoy",
+    "dayComplete": "¡Día Completado!",
+    "allActivitiesCompleted": "Has completado todas las actividades de hoy",
+    "doneBadge": "✓ Hecho",
+    "skippedBadge": "Omitida"
   },
   "detail": {
     "regeneratingDay": "Regenerando Día {number}…"
@@ -336,5 +344,89 @@
     "message": "Esto descartara tu itinerario actual y empezara desde cero.",
     "confirm": "Si, Empezar de Nuevo",
     "cancel": "Mantener Viaje Actual"
+  },
+  "template": {
+    "loadingMap": "Cargando mapa...",
+    "curatedEscape": "Escapada Seleccionada",
+    "durationDays": "{count, plural, one {# día} other {# días}}",
+    "travelersUsed": "{count} viajeros lo han usado",
+    "backToTrips": "Volver a Viajes",
+    "cards": "Tarjetas",
+    "timeline": "Cronología",
+    "showMap": "Mostrar Mapa",
+    "hideMap": "Ocultar Mapa",
+    "dayFallback": "Día {number}",
+    "estBudget": "Presupuesto Est.",
+    "noItineraryTitle": "Sin Itinerario Disponible",
+    "noItineraryMessage": "Esta plantilla aún no tiene actividades.",
+    "curatedTitle": "Seleccionado por Expertos en Viajes",
+    "curatedDescription": "Este itinerario ha sido creado cuidadosamente con las mejores experiencias, restaurantes y joyas ocultas. Guárdalo en tu cuenta para personalizar fechas, cambiar actividades y hacerlo tuyo.",
+    "loveThisItinerary": "¿Te encanta este itinerario?",
+    "saveAndSetDates": "Guárdalo en tu cuenta y configura las fechas de tu viaje",
+    "saveToMyTrips": "Guardar en Mis Viajes",
+    "trustBadges": {
+      "freeForever": "Gratis para siempre",
+      "fullyEditable": "Totalmente editable",
+      "shareWithFriends": "Comparte con amigos"
+    },
+    "footer": {
+      "tagline": "Planificación de viajes con AI, fácil y rápida",
+      "createOwnTrip": "Crea Tu Propio Viaje"
+    },
+    "price": {
+      "free": "Gratis"
+    },
+    "budgetTier": {
+      "budget": "Económico",
+      "moderate": "Moderado",
+      "luxury": "Lujo"
+    },
+    "moods": {
+      "romantic": "Romántico",
+      "adventure": "Aventura",
+      "cultural": "Cultural",
+      "relaxation": "Relax",
+      "foodie": "Gastronomía",
+      "family": "Familia"
+    }
+  },
+  "seasonalContext": {
+    "seasonLabel": "Temporada de {season}",
+    "seasons": {
+      "spring": "Primavera",
+      "summer": "Verano",
+      "autumn": "Otoño",
+      "winter": "Invierno"
+    },
+    "crowd": {
+      "peak": "Temporada Alta",
+      "high": "Concurrida",
+      "moderate": "Moderada",
+      "low": "Temporada Baja"
+    },
+    "expectedWeather": "Clima Previsto",
+    "liveData": "Datos en Vivo",
+    "rainyDays": "~{count, plural, one {# día de lluvia previsto} other {# días de lluvia previstos}}",
+    "holidaysAndEvents": "Festividades y Eventos",
+    "suggestedVibes": "Estilos sugeridos para esta temporada",
+    "vibesHint": "Son sugerencias basadas en la temporada. Elegirás tus estilos en el siguiente paso.",
+    "vibeReasons": {
+      "christmas": "Perfecto para los mercados navideños y el ambiente invernal de cuento",
+      "festival": "Vive los festivales y celebraciones locales",
+      "valentine": "Ideal para una escapada romántica",
+      "spring": "Cerezos en flor y floraciones primaverales te esperan",
+      "summer": "Clima ideal para actividades al aire libre",
+      "autumnFoodie": "Temporada de cosecha con productos locales increíbles",
+      "autumnRetro": "Cafés vintage acogedores y colores otoñales",
+      "winter": "Perfecto para retiros de spa y escapadas acogedoras"
+    },
+    "weatherFallback": {
+      "tropicalWet": "Temporada de lluvias con chubascos por la tarde, húmedo",
+      "tropicalDry": "Temporada seca con temperaturas cálidas",
+      "spring": "Temperaturas suaves, lluvias ocasionales, flores en plena floración",
+      "summer": "De cálido a caluroso, días largos, sol pleno",
+      "autumn": "Temperaturas frescas, aire limpio, follaje colorido",
+      "winter": "Temperaturas frías, posible nieve, días más cortos"
+    }
   }
 }

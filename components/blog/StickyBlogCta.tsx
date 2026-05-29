@@ -40,7 +40,7 @@ export default function StickyBlogCta({ ctaHref = "/trips/new" }: StickyBlogCtaP
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-white/95 backdrop-blur-sm border-t border-slate-200 px-4 py-3 shadow-lg">
+      <div className="bg-white/95 backdrop-blur-sm border-t border-slate-200 px-4 py-3 shadow-lg pb-safe">
         <Link
           href={ctaHref}
           className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-[var(--accent)] text-slate-900 font-semibold text-sm active:bg-[var(--accent)]/80 transition-all min-h-[48px] shadow-sm"

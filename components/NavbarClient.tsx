@@ -7,7 +7,13 @@ import { isAdmin } from '@/lib/admin';
 import type { User } from '@supabase/supabase-js';
 import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
-import { TourTrigger } from '@/components/tour';
+// Deep import (not the `@/components/tour` barrel) so the rest of the tour
+// surface — ProductTour, slides, animations.ts and the framer-motion they
+// pull in — does not get dragged into the Navbar's chunk. Navbar renders on
+// every route, so the barrel was shipping ~50 KB gz of framer-motion to /,
+// /trips/new, /trips/[id], etc., even though TOUR_ENABLED is false and the
+// click handler short-circuits to router.push('/trips/new'). See task #146.
+import TourTrigger from '@/components/tour/TourTrigger';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTranslations } from 'next-intl';

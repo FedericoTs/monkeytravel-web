@@ -977,6 +977,16 @@
         "forkedCount": "Duplicato {count}×",
         "ownerForkTooltip": "Non puoi duplicare il tuo stesso viaggio"
       },
+      "card": {
+        "editorsPick": "Scelta dell'Editor",
+        "backpackerBadge": "Zaino in spalla",
+        "byAuthor": "di",
+        "days": "{count, plural, =1 {1 giorno} other {# giorni}}",
+        "likesTitle": "Mi piace",
+        "savesTitle": "Salvati",
+        "forksTitle": "Duplicati",
+        "viewAction": "Vedi →"
+      },
       "pageTitle": "Esplora Viaggi di Tendenza",
       "metaDescription": "Scopri itinerari di viaggio ispiratori condivisi dalla community MonkeyTravel. Sfoglia destinazioni di tendenza, copia viaggi e inizia a pianificare la tua prossima avventura.",
       "h1": "Esplora viaggi",

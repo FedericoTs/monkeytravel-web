@@ -208,7 +208,15 @@
   "ongoing": {
     "todayTab": "Oggi",
     "fullPlanTab": "Piano completo",
-    "fullPlan": "Piano completo"
+    "fullPlan": "Piano completo",
+    "loadingMap": "Caricamento mappa...",
+    "todaysActivities": "Attività di oggi",
+    "progressCompleted": "{completed}/{total} completate",
+    "noActivitiesToday": "Nessuna attività prevista per oggi",
+    "dayComplete": "Giornata Completata!",
+    "allActivitiesCompleted": "Hai completato tutte le attività di oggi",
+    "doneBadge": "✓ Fatto",
+    "skippedBadge": "Saltata"
   },
   "detail": {
     "regeneratingDay": "Rigenerazione Giorno {number}…"
@@ -336,5 +344,89 @@
     "message": "Questo eliminera il tuo itinerario attuale e ripartira da zero.",
     "confirm": "Si, Ricomincia",
     "cancel": "Mantieni Viaggio Attuale"
+  },
+  "template": {
+    "loadingMap": "Caricamento mappa...",
+    "curatedEscape": "Fuga Selezionata",
+    "durationDays": "{count, plural, one {# giorno} other {# giorni}}",
+    "travelersUsed": "{count} viaggiatori l'hanno usato",
+    "backToTrips": "Torna ai Viaggi",
+    "cards": "Schede",
+    "timeline": "Cronologia",
+    "showMap": "Mostra Mappa",
+    "hideMap": "Nascondi Mappa",
+    "dayFallback": "Giorno {number}",
+    "estBudget": "Budget Stimato",
+    "noItineraryTitle": "Nessun Itinerario Disponibile",
+    "noItineraryMessage": "Questo modello non ha ancora attività.",
+    "curatedTitle": "Selezionato dagli Esperti di Viaggio",
+    "curatedDescription": "Questo itinerario è stato creato con cura, scegliendo le migliori esperienze, ristoranti e gemme nascoste. Salvalo nel tuo account per personalizzare le date, sostituire le attività e renderlo tuo.",
+    "loveThisItinerary": "Ti piace questo itinerario?",
+    "saveAndSetDates": "Salvalo nel tuo account e imposta le date del viaggio",
+    "saveToMyTrips": "Salva nei Miei Viaggi",
+    "trustBadges": {
+      "freeForever": "Gratis per sempre",
+      "fullyEditable": "Completamente modificabile",
+      "shareWithFriends": "Condividi con gli amici"
+    },
+    "footer": {
+      "tagline": "Pianificazione viaggi con AI, semplice e veloce",
+      "createOwnTrip": "Crea il Tuo Viaggio"
+    },
+    "price": {
+      "free": "Gratis"
+    },
+    "budgetTier": {
+      "budget": "Economico",
+      "moderate": "Moderato",
+      "luxury": "Lusso"
+    },
+    "moods": {
+      "romantic": "Romantico",
+      "adventure": "Avventura",
+      "cultural": "Culturale",
+      "relaxation": "Relax",
+      "foodie": "Gastronomico",
+      "family": "Famiglia"
+    }
+  },
+  "seasonalContext": {
+    "seasonLabel": "Stagione {season}",
+    "seasons": {
+      "spring": "Primavera",
+      "summer": "Estate",
+      "autumn": "Autunno",
+      "winter": "Inverno"
+    },
+    "crowd": {
+      "peak": "Alta Stagione",
+      "high": "Affollata",
+      "moderate": "Moderata",
+      "low": "Bassa Stagione"
+    },
+    "expectedWeather": "Meteo Previsto",
+    "liveData": "Dati in Tempo Reale",
+    "rainyDays": "~{count, plural, one {# giorno di pioggia previsto} other {# giorni di pioggia previsti}}",
+    "holidaysAndEvents": "Festività ed Eventi",
+    "suggestedVibes": "Atmosfere suggerite per questa stagione",
+    "vibesHint": "Sono suggerimenti basati sulla stagione. Sceglierai le tue atmosfere nel prossimo step.",
+    "vibeReasons": {
+      "christmas": "Perfetto per i mercatini di Natale e l'atmosfera invernale da favola",
+      "festival": "Vivi i festival e le celebrazioni locali",
+      "valentine": "Ideale per una fuga romantica",
+      "spring": "Ciliegi in fiore e fioriture primaverili ti aspettano",
+      "summer": "Clima perfetto per attività all'aria aperta",
+      "autumnFoodie": "Stagione del raccolto con prodotti locali eccezionali",
+      "autumnRetro": "Caffè vintage accoglienti e colori autunnali",
+      "winter": "Ideale per ritiri termali e fughe accoglienti"
+    },
+    "weatherFallback": {
+      "tropicalWet": "Stagione delle piogge con acquazzoni pomeridiani, umido",
+      "tropicalDry": "Stagione secca con temperature calde",
+      "spring": "Temperature miti, piogge occasionali, fioriture",
+      "summer": "Da caldo a torrido, giornate lunghe, sole pieno",
+      "autumn": "Temperature fresche, aria frizzante, foliage colorato",
+      "winter": "Temperature rigide, possibili nevicate, giornate corte"
+    }
   }
 }

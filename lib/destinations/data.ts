@@ -1,3 +1,12 @@
+// `server-only` is a runtime + build-time guard: any client component that
+// transitively imports this module will fail the Next build. The dataset
+// itself is ~477 KB minified — keeping it off the wire on `/trips/new`
+// (the highest-traffic conversion page) and other client surfaces is
+// worth the maintenance overhead. Server components, route handlers, and
+// server-side helpers (Footer is server-rendered, sitemap.ts is build-
+// time, etc.) can still pull it freely. See task #152 / #167.
+import "server-only";
+
 import type { Destination, Locale } from "./types";
 
 export const destinations: Destination[] = [

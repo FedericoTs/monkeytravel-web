@@ -11,7 +11,7 @@
  * - Real-time search via Amadeus API
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { FlightOfferDisplay, LocationResult } from '@/lib/amadeus/types';
@@ -53,33 +53,57 @@ export default function FlightSearch({
 
   const debouncedOrigin = useDebounce(originInput, 300);
 
-  // Fetch airport/city suggestions
-  const fetchSuggestions = useCallback(async (keyword: string) => {
-    if (keyword.length < 2) {
+  // Fetch airport/city suggestions when debounced input changes.
+  // Amadeus location search is a paid quota — without an AbortController,
+  // every superseded keystroke still completes server-side (burning quota)
+  // and races to land in state. Mirror the SeasonalContextCard pattern:
+  // abort the in-flight request on cleanup (= next keystroke or unmount),
+  // and guard setState with both a cancelled flag and signal.aborted to
+  // cover the response-arrived-but-abort-not-yet-observable window.
+  useEffect(() => {
+    if (!debouncedOrigin || debouncedOrigin === selectedOrigin?.name) {
+      return;
+    }
+    if (debouncedOrigin.length < 2) {
       setOriginSuggestions([]);
       return;
     }
 
-    setLoadingSuggestions(true);
-    try {
-      const response = await fetch(
-        `/api/amadeus/locations/search?keyword=${encodeURIComponent(keyword)}`
-      );
-      const data = await response.json();
-      setOriginSuggestions(data.data || []);
-    } catch {
-      setOriginSuggestions([]);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  }, []);
+    const controller = new AbortController();
+    let cancelled = false;
 
-  // Trigger suggestions fetch when debounced input changes
-  useEffect(() => {
-    if (debouncedOrigin && debouncedOrigin !== selectedOrigin?.name) {
-      fetchSuggestions(debouncedOrigin);
-    }
-  }, [debouncedOrigin, fetchSuggestions, selectedOrigin?.name]);
+    const fetchSuggestions = async () => {
+      setLoadingSuggestions(true);
+      try {
+        const response = await fetch(
+          `/api/amadeus/locations/search?keyword=${encodeURIComponent(debouncedOrigin)}`,
+          { signal: controller.signal }
+        );
+        if (cancelled || controller.signal.aborted) return;
+        const data = await response.json();
+        if (cancelled || controller.signal.aborted) return;
+        setOriginSuggestions(data.data || []);
+      } catch (error) {
+        // AbortError fires when a newer keystroke supersedes this fetch —
+        // expected, don't clobber state. Anything else: swallow silently
+        // to preserve the prior catch-all behaviour for this UI.
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort || cancelled || controller.signal.aborted) return;
+        setOriginSuggestions([]);
+      } finally {
+        if (!cancelled && !controller.signal.aborted) {
+          setLoadingSuggestions(false);
+        }
+      }
+    };
+
+    fetchSuggestions();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [debouncedOrigin, selectedOrigin?.name]);
 
   // Search flights
   const searchFlights = async () => {

@@ -208,7 +208,15 @@
   "ongoing": {
     "todayTab": "Today",
     "fullPlanTab": "Full Plan",
-    "fullPlan": "Full Plan"
+    "fullPlan": "Full Plan",
+    "loadingMap": "Loading map...",
+    "todaysActivities": "Today's Activities",
+    "progressCompleted": "{completed}/{total} completed",
+    "noActivitiesToday": "No activities planned for today",
+    "dayComplete": "Day Complete!",
+    "allActivitiesCompleted": "You've completed all activities for today",
+    "doneBadge": "✓ Done",
+    "skippedBadge": "Skipped"
   },
   "detail": {
     "regeneratingDay": "Regenerating Day {number}…"
@@ -336,5 +344,89 @@
     "message": "This will discard your current itinerary and start fresh.",
     "confirm": "Yes, Start Over",
     "cancel": "Keep Current Trip"
+  },
+  "template": {
+    "loadingMap": "Loading map...",
+    "curatedEscape": "Curated Escape",
+    "durationDays": "{count, plural, one {# day} other {# days}}",
+    "travelersUsed": "{count} travelers used this",
+    "backToTrips": "Back to Trips",
+    "cards": "Cards",
+    "timeline": "Timeline",
+    "showMap": "Show Map",
+    "hideMap": "Hide Map",
+    "dayFallback": "Day {number}",
+    "estBudget": "Est. Budget",
+    "noItineraryTitle": "No Itinerary Available",
+    "noItineraryMessage": "This template doesn't have any activities yet.",
+    "curatedTitle": "Curated by Travel Experts",
+    "curatedDescription": "This itinerary has been carefully crafted with the best experiences, restaurants, and hidden gems. Save it to your account to customize dates, swap activities, and make it your own.",
+    "loveThisItinerary": "Love this itinerary?",
+    "saveAndSetDates": "Save it to your account and set your travel dates",
+    "saveToMyTrips": "Save to My Trips",
+    "trustBadges": {
+      "freeForever": "Free forever",
+      "fullyEditable": "Fully editable",
+      "shareWithFriends": "Share with friends"
+    },
+    "footer": {
+      "tagline": "AI-powered travel planning made simple",
+      "createOwnTrip": "Create Your Own Trip"
+    },
+    "price": {
+      "free": "Free"
+    },
+    "budgetTier": {
+      "budget": "Budget-Friendly",
+      "moderate": "Moderate",
+      "luxury": "Luxury"
+    },
+    "moods": {
+      "romantic": "Romantic",
+      "adventure": "Adventure",
+      "cultural": "Cultural",
+      "relaxation": "Relaxation",
+      "foodie": "Foodie",
+      "family": "Family"
+    }
+  },
+  "seasonalContext": {
+    "seasonLabel": "{season} Season",
+    "seasons": {
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn",
+      "winter": "Winter"
+    },
+    "crowd": {
+      "peak": "Peak Season",
+      "high": "Busy",
+      "moderate": "Moderate",
+      "low": "Low Season"
+    },
+    "expectedWeather": "Expected Weather",
+    "liveData": "Live Data",
+    "rainyDays": "~{count, plural, one {# rainy day} other {# rainy days}} expected",
+    "holidaysAndEvents": "Holidays & Events",
+    "suggestedVibes": "Suggested vibes for this season",
+    "vibesHint": "These are suggestions based on the season. Select your vibes in the next step.",
+    "vibeReasons": {
+      "christmas": "Perfect for Christmas markets and winter wonderland vibes",
+      "festival": "Experience local festivals and celebrations",
+      "valentine": "Ideal for romantic getaways",
+      "spring": "Cherry blossoms and spring blooms await",
+      "summer": "Great weather for outdoor activities",
+      "autumnFoodie": "Harvest season with amazing local produce",
+      "autumnRetro": "Cozy vintage cafes and autumn colors",
+      "winter": "Perfect for spa retreats and cozy escapes"
+    },
+    "weatherFallback": {
+      "tropicalWet": "Wet season with afternoon showers, humid",
+      "tropicalDry": "Dry season with warm temperatures",
+      "spring": "Mild temperatures, occasional rain, blooming flowers",
+      "summer": "Warm to hot, long days, peak sunshine",
+      "autumn": "Cool temperatures, crisp air, colorful foliage",
+      "winter": "Cold temperatures, possible snow, shorter days"
+    }
   }
 }

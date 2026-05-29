@@ -22,6 +22,7 @@
 
 import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
+import * as Sentry from "@sentry/nextjs";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PlacePrediction } from "@/types";
 
@@ -164,30 +165,52 @@ export default function DestinationAutocomplete({
     fetchPopularDestinations().then(setPopularDestinations);
   }, []);
 
-  // Search local destinations first, then optionally fall back to Google
-  const searchLocal = useCallback(async (input: string): Promise<PlacePrediction[]> => {
-    try {
-      const response = await fetch("/api/destinations/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input, limit: 8 }),
-      });
-      const data = await response.json();
-      return (data.predictions || []).map((p: PlacePrediction) => ({
-        ...p,
-        source: "local" as const,
-      }));
-    } catch (error) {
-      console.error("Local search error:", error);
-      return [];
-    }
-  }, []);
+  // Search local destinations first, then optionally fall back to Google.
+  // Accepts an AbortSignal so the debounced caller can cancel in-flight
+  // requests when a newer keystroke arrives — prevents stale "Bar"
+  // responses from overwriting newer "Barcelona" results. AbortError is
+  // re-thrown so the caller's cancelled-flag guard can short-circuit.
+  const searchLocal = useCallback(
+    async (input: string, signal?: AbortSignal): Promise<PlacePrediction[]> => {
+      try {
+        const response = await fetch("/api/destinations/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input, limit: 8 }),
+          signal,
+        });
+        const data = await response.json();
+        return (data.predictions || []).map((p: PlacePrediction) => ({
+          ...p,
+          source: "local" as const,
+        }));
+      } catch (error) {
+        // Propagate aborts — the effect cleanup uses them as the signal
+        // to drop the result. Don't log as an error.
+        if (error instanceof Error && error.name === "AbortError") {
+          throw error;
+        }
+        console.error("Local search error:", error);
+        return [];
+      }
+    },
+    []
+  );
 
   // Google Places API removed - we now use local-only search to minimize costs
   // If a destination isn't in our database, users can still type it manually
 
-  // Fetch predictions when debounced value changes - LOCAL FIRST, with caching
+  // Fetch predictions when debounced value changes - LOCAL FIRST, with caching.
+  // Wraps the request in an AbortController so rapid typing can't land a
+  // stale "Bar" response on top of a newer "Barcelona" one (P0 funnel bug —
+  // direct conversion hit on the wizard's #1 input). Mirrors the canonical
+  // pattern from components/trip/SeasonalContextCard.tsx + lib/hooks/useFetch.ts:
+  // cleanup aborts the in-flight fetch and flips a cancelled flag that
+  // covers the gap between response arrival and abort being observable.
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
     const fetchPredictions = async () => {
       // Skip searching if we just made a selection (prevents dropdown re-appearing)
       if (justSelectedRef.current) {
@@ -234,7 +257,10 @@ export default function DestinationAutocomplete({
 
       try {
         // LOCAL ONLY - no Google API calls to minimize costs
-        const localResults = await searchLocal(debouncedValue);
+        const localResults = await searchLocal(debouncedValue, controller.signal);
+
+        // Drop result if a newer keystroke has already superseded this one.
+        if (cancelled || controller.signal.aborted) return;
 
         if (localResults.length > 0) {
           // Found local results - use them and cache
@@ -255,14 +281,29 @@ export default function DestinationAutocomplete({
           setHighlightedIndex(-1);
         }
       } catch (error) {
+        // AbortError fires when a newer fetch supersedes this one — expected,
+        // don't report or clear state. Anything else is a real failure: log
+        // + breadcrumb to Sentry so we catch silent search outages in prod.
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort || cancelled || controller.signal.aborted) return;
         console.error("Autocomplete fetch error:", error);
+        Sentry.captureException(error, {
+          tags: { component: "DestinationAutocomplete", endpoint: "/api/destinations/search" },
+        });
         setPredictions([]);
       } finally {
-        setIsLoading(false);
+        if (!cancelled && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchPredictions();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [debouncedValue, searchLocal, showPopular, popularDestinations]);
 
 

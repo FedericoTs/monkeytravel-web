@@ -363,7 +363,7 @@ export function VotingBottomSheet({
             onClose();
           }
         }}
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] overflow-hidden"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90dvh] overflow-hidden"
       >
         {/* Drag Handle - Swipe down to close */}
         <div
@@ -376,7 +376,7 @@ export function VotingBottomSheet({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[calc(90vh-56px)] overscroll-contain">
+        <div className="px-5 pb-8 pb-safe space-y-5 overflow-y-auto max-h-[calc(90dvh-56px)] overscroll-contain">
 
           {/* Activity Preview Card */}
           <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-4">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations, useLocale as useNextIntlLocale } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import { SeasonalContext } from "@/types";
 import {
@@ -10,6 +11,29 @@ import {
   SeasonalVibeSuggestion,
 } from "@/lib/seasonal";
 import { useLocale, formatTemperatureRange } from "@/lib/locale";
+
+// The seasonal lib emits English `reason` strings (it's a pure-data lib with
+// no i18n coupling). We map those well-known strings back to translation keys
+// so the displayed tooltip respects the active locale. Mirrors the same
+// pattern used elsewhere when localizing strings produced by data-only libs.
+const VIBE_REASON_KEY_BY_ENGLISH: Record<string, string> = {
+  "Perfect for Christmas markets and winter wonderland vibes": "christmas",
+  "Experience local festivals and celebrations": "festival",
+  "Ideal for romantic getaways": "valentine",
+  "Cherry blossoms and spring blooms await": "spring",
+  "Great weather for outdoor activities": "summer",
+  "Harvest season with amazing local produce": "autumnFoodie",
+  "Cozy vintage cafes and autumn colors": "autumnRetro",
+  "Perfect for spa retreats and cozy escapes": "winter",
+};
+
+// next-intl BCP-47 locale → toLocaleDateString tag. Matches the convention
+// used in app/[locale]/backpacker/page.tsx for date display.
+function intlLocaleTag(locale: string): string {
+  if (locale === "es") return "es-ES";
+  if (locale === "it") return "it-IT";
+  return "en-US";
+}
 
 interface WeatherData {
   temperature: {
@@ -49,6 +73,10 @@ export default function SeasonalContextCard({
 
   // Get user's temperature preference (Celsius or Fahrenheit)
   const { preferences } = useLocale();
+  // next-intl translator + active locale for date formatting.
+  const t = useTranslations("trips.seasonalContext");
+  const tVibes = useTranslations("common.vibes.types");
+  const locale = useNextIntlLocale();
 
   // Fetch weather data from API.
   // Wizard date edits fire rapid useEffect runs — without an AbortController,
@@ -178,15 +206,19 @@ export default function SeasonalContextCard({
     const start = parseLocal(startDate);
     const end = endDate ? parseLocal(endDate) : null;
     const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
+    // Locale-aware date formatting — previously hardcoded "en-US" which
+    // shipped English month names ("Jun 15, 2026") even on /it /es pages.
+    const tag = intlLocaleTag(locale);
 
     if (end) {
-      return `${start.toLocaleDateString("en-US", options)} - ${end.toLocaleDateString("en-US", options)}`;
+      return `${start.toLocaleDateString(tag, options)} - ${end.toLocaleDateString(tag, options)}`;
     }
-    return start.toLocaleDateString("en-US", options);
+    return start.toLocaleDateString(tag, options);
   };
 
   const getSeasonLabel = () => {
-    return seasonalContext.season.charAt(0).toUpperCase() + seasonalContext.season.slice(1);
+    // "Spring Season" / "Stagione Primavera" / "Temporada de Primavera"
+    return t("seasonLabel", { season: t(`seasons.${seasonalContext.season}`) });
   };
 
   const getCrowdBadgeColor = () => {
@@ -213,7 +245,7 @@ export default function SeasonalContextCard({
             <span className="text-2xl">{SEASON_EMOJI[seasonalContext.season]}</span>
             <div>
               <div className="text-sm font-semibold text-slate-900">
-                {getSeasonLabel()} Season
+                {getSeasonLabel()}
               </div>
               <div className="text-xs text-slate-500">{formatDateRange()}</div>
             </div>
@@ -222,13 +254,7 @@ export default function SeasonalContextCard({
             <span
               className={`text-xs px-2 py-1 rounded-full border font-medium ${getCrowdBadgeColor()}`}
             >
-              {seasonalContext.crowdLevel === "peak"
-                ? "Peak Season"
-                : seasonalContext.crowdLevel === "high"
-                ? "Busy"
-                : seasonalContext.crowdLevel === "moderate"
-                ? "Moderate"
-                : "Low Season"}
+              {t(`crowd.${seasonalContext.crowdLevel}`)}
             </span>
           </div>
         </div>
@@ -261,10 +287,10 @@ export default function SeasonalContextCard({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <div className="text-sm font-semibold text-slate-900">Expected Weather</div>
+              <div className="text-sm font-semibold text-slate-900">{t("expectedWeather")}</div>
               {weatherData && (
                 <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">
-                  Live Data
+                  {t("liveData")}
                 </span>
               )}
             </div>
@@ -281,7 +307,7 @@ export default function SeasonalContextCard({
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                     </svg>
-                    ~{weatherData.precipitation.rainyDays} rainy days expected
+                    {t("rainyDays", { count: weatherData.precipitation.rainyDays })}
                   </div>
                 )}
               </>
@@ -290,7 +316,23 @@ export default function SeasonalContextCard({
                 <div className="text-xs text-slate-500 mt-0.5">
                   {formatTemperatureRange(seasonalContext.avgTemp.min, seasonalContext.avgTemp.max, preferences.temperatureUnit)}
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">{seasonalContext.weather}</div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  {/* Localize the fallback weather sentence. The seasonal lib
+                      returns English text keyed off (season, hemisphere); we
+                      reconstruct the same key here. Temperature ranges are
+                      stripped from the translated copy since formatTemperatureRange
+                      already renders the locale-aware number above. */}
+                  {(() => {
+                    if (seasonalContext.hemisphere === "tropical") {
+                      return t(
+                        seasonalContext.season === "summer"
+                          ? "weatherFallback.tropicalWet"
+                          : "weatherFallback.tropicalDry"
+                      );
+                    }
+                    return t(`weatherFallback.${seasonalContext.season}`);
+                  })()}
+                </div>
               </>
             )}
           </div>
@@ -315,7 +357,7 @@ export default function SeasonalContextCard({
               </svg>
             </div>
             <div>
-              <div className="text-sm font-medium text-slate-900">Holidays & Events</div>
+              <div className="text-sm font-medium text-slate-900">{t("holidaysAndEvents")}</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {seasonalContext.holidays.map((holiday) => (
                   <span
@@ -334,28 +376,43 @@ export default function SeasonalContextCard({
         {vibeSuggestions.length > 0 && (
           <div className="pt-3 border-t border-slate-100">
             <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
-              Suggested vibes for this season
+              {t("suggestedVibes")}
             </div>
             <div className="flex flex-wrap gap-2">
-              {vibeSuggestions.map((suggestion) => (
-                <div
-                  key={suggestion.vibeId}
-                  className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-100 cursor-default"
-                >
-                  <span className="text-sm font-medium text-purple-700">
-                    {suggestion.vibeId.charAt(0).toUpperCase() +
-                      suggestion.vibeId.slice(1).replace("-", " ")}
-                  </span>
-                  {/* Tooltip on hover */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                    {suggestion.reason}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+              {vibeSuggestions.map((suggestion) => {
+                // Reuse the canonical localized vibe label from common.vibes.types
+                // (the same labels the wizard chip-picker shows) instead of
+                // building a label from the raw vibeId. Fallback to a humanized
+                // vibeId if the catalog ever drifts ahead of translations.
+                let vibeLabel: string;
+                try {
+                  vibeLabel = tVibes(`${suggestion.vibeId}.label`);
+                } catch {
+                  vibeLabel =
+                    suggestion.vibeId.charAt(0).toUpperCase() +
+                    suggestion.vibeId.slice(1).replace("-", " ");
+                }
+                const reasonKey = VIBE_REASON_KEY_BY_ENGLISH[suggestion.reason];
+                const reasonText = reasonKey
+                  ? t(`vibeReasons.${reasonKey}`)
+                  : suggestion.reason; // safety net for future reasons
+                return (
+                  <div
+                    key={suggestion.vibeId}
+                    className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-100 cursor-default"
+                  >
+                    <span className="text-sm font-medium text-purple-700">{vibeLabel}</span>
+                    {/* Tooltip on hover */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                      {reasonText}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <p className="text-[10px] text-slate-400 mt-2 italic">
-              These are suggestions based on the season. Select your vibes in the next step.
+              {t("vibesHint")}
             </p>
           </div>
         )}

@@ -20,12 +20,13 @@ import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { parseLocalDate } from "@/lib/utils/date-local";
 
 // Dynamic import for TripMap
+// Loading placeholder is a pure visual skeleton (no text) because module-scope
+// dynamic loading callbacks can't access useTranslations. The animate-pulse +
+// gray bg communicates loading without leaking English on /it /es.
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-[300px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
-    </div>
+    <div className="h-[300px] bg-slate-100 rounded-xl animate-pulse" />
   ),
 });
 
@@ -290,16 +291,16 @@ export default function OngoingTripView({
             {/* Today's Activities */}
             <div className="px-4 py-6 space-y-3">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-semibold text-slate-900">Today&apos;s Activities</h2>
+                <h2 className="font-semibold text-slate-900">{t("ongoing.todaysActivities")}</h2>
                 <span className="text-sm text-slate-500">
-                  {todayProgress.completed}/{todayProgress.total} completed
+                  {t("ongoing.progressCompleted", { completed: todayProgress.completed, total: todayProgress.total })}
                 </span>
               </div>
 
               {todayActivities.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
                   <MapPin className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No activities planned for today</p>
+                  <p>{t("ongoing.noActivitiesToday")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -360,9 +361,9 @@ export default function OngoingTripView({
                   >
                     🎉
                   </motion.div>
-                  <h3 className="font-semibold text-emerald-800 text-lg">Day Complete!</h3>
+                  <h3 className="font-semibold text-emerald-800 text-lg">{t("ongoing.dayComplete")}</h3>
                   <p className="text-emerald-600 text-sm mt-1">
-                    You&apos;ve completed all activities for today
+                    {t("ongoing.allActivitiesCompleted")}
                   </p>
                 </motion.div>
               )}
@@ -434,7 +435,7 @@ export default function OngoingTripView({
                         {/* Day progress indicator */}
                         <div className="ml-auto text-right">
                           <div className="text-sm text-slate-500">
-                            {dayCompletedCount}/{day.activities.length} completed
+                            {t("ongoing.progressCompleted", { completed: dayCompletedCount, total: day.activities.length })}
                           </div>
                           <div className="w-24 h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden">
                             <div
@@ -482,7 +483,7 @@ export default function OngoingTripView({
                                           : "bg-orange-100 text-orange-700"
                                       }`}
                                     >
-                                      {isCompleted ? "✓ Done" : "Skipped"}
+                                      {isCompleted ? t("ongoing.doneBadge") : t("ongoing.skippedBadge")}
                                     </span>
                                   </div>
                                 )}

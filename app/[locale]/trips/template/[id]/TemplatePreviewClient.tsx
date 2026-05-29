@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import type { ItineraryDay, TripMeta } from "@/types";
 import { trackTemplateBrowsed } from "@/lib/analytics";
 import DestinationHero from "@/components/DestinationHero";
@@ -32,23 +33,26 @@ import {
 } from "lucide-react";
 
 // Dynamic import for TripMap
+// Loading fallback text is intentionally left untranslated — it's a brief
+// chunk-load flash and useTranslations cannot run at module scope.
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
+      <span className="text-slate-400" />
     </div>
   ),
 });
 
-// Mood tag configuration
-const MOOD_OPTIONS: Record<string, { label: string; emoji: string }> = {
-  romantic: { label: "Romantic", emoji: "💕" },
-  adventure: { label: "Adventure", emoji: "🏔️" },
-  cultural: { label: "Cultural", emoji: "🏛️" },
-  relaxation: { label: "Relaxation", emoji: "🌴" },
-  foodie: { label: "Foodie", emoji: "🍝" },
-  family: { label: "Family", emoji: "👨‍👩‍👧‍👦" },
+// Mood tag emoji mapping — labels resolved via t() at render time so they
+// stay locale-aware. Keep keys in sync with messages/{locale}/trips.json → template.moods.
+const MOOD_EMOJI: Record<string, string> = {
+  romantic: "💕",
+  adventure: "🏔️",
+  cultural: "🏛️",
+  relaxation: "🌴",
+  foodie: "🍝",
+  family: "👨‍👩‍👧‍👦",
 };
 
 interface TemplatePreviewClientProps {
@@ -74,6 +78,7 @@ interface TemplatePreviewClientProps {
 }
 
 export default function TemplatePreviewClient({ template }: TemplatePreviewClientProps) {
+  const t = useTranslations('trips.template');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -92,7 +97,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
-    if (amount === 0) return "Free";
+    if (amount === 0) return t('price.free');
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
   };
@@ -112,12 +117,12 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
     [displayItinerary]
   );
 
-  const budgetLabel =
-    template.budgetTier === "budget"
-      ? "Budget-Friendly"
-      : template.budgetTier === "luxury"
-      ? "Luxury"
-      : "Moderate";
+  // Map budget tier key to localized label; fall back to "moderate" for unknown tiers.
+  const budgetTierKey =
+    template.budgetTier === "budget" || template.budgetTier === "luxury"
+      ? template.budgetTier
+      : "moderate";
+  const budgetLabel = t(`budgetTier.${budgetTierKey}`);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
@@ -142,7 +147,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
         <div className="absolute top-4 right-4">
           <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" />
-            Curated Escape
+            {t('curatedEscape')}
           </span>
         </div>
       </DestinationHero>
@@ -154,7 +159,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             {/* Duration */}
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-slate-400" />
-              <span className="font-medium text-slate-700">{template.durationDays} days</span>
+              <span className="font-medium text-slate-700">{t('durationDays', { count: template.durationDays })}</span>
             </div>
 
             {/* Budget Tier */}
@@ -168,7 +173,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-slate-400" />
                 <span className="font-medium text-slate-700">
-                  {template.copyCount} travelers used this
+                  {t('travelersUsed', { count: template.copyCount })}
                 </span>
               </div>
             )}
@@ -177,13 +182,15 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           {/* Mood Tags */}
           <div className="flex flex-wrap gap-2">
             {template.moodTags.map((mood) => {
-              const option = MOOD_OPTIONS[mood];
+              const emoji = MOOD_EMOJI[mood];
+              // Known mood keys resolve via t(); unknown moods fall back to the raw tag.
+              const label = emoji ? t(`moods.${mood}`) : mood;
               return (
                 <span
                   key={mood}
                   className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700"
                 >
-                  {option?.emoji} {option?.label || mood}
+                  {emoji ? `${emoji} ` : ''}{label}
                 </span>
               );
             })}
@@ -201,7 +208,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Back to Trips</span>
+              <span className="hidden sm:inline">{t('backToTrips')}</span>
             </Link>
           </div>
 
@@ -218,7 +225,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
-                Cards
+                {t('cards')}
               </button>
               <button
                 onClick={() => setViewMode("timeline")}
@@ -229,7 +236,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                 }`}
               >
                 <List className="w-4 h-4" />
-                Timeline
+                {t('timeline')}
               </button>
             </div>
 
@@ -241,10 +248,10 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                   ? "bg-[var(--primary)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
-              title={showMap ? "Hide Map" : "Show Map"}
+              title={showMap ? t('hideMap') : t('showMap')}
             >
               {showMap ? <MapPinOff className="w-5 h-5 sm:w-4 sm:h-4" /> : <Map className="w-5 h-5 sm:w-4 sm:h-4" />}
-              <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
+              <span className="hidden sm:inline">{showMap ? t('hideMap') : t('showMap')}</span>
             </button>
           </div>
         </div>
@@ -294,7 +301,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                       </div>
                       <div>
                         <h2 className="font-bold text-xl text-slate-900">
-                          {day.title || `Day ${day.day_number}`}
+                          {day.title || t('dayFallback', { number: day.day_number })}
                         </h2>
                         {day.theme && (
                           <p className="text-slate-500 text-sm">{day.theme}</p>
@@ -303,7 +310,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                     </div>
                     {day.daily_budget && (
                       <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">Est. Budget</div>
+                        <div className="text-sm text-slate-500">{t('estBudget')}</div>
                         <div className="font-semibold text-slate-900">
                           {formatPrice(day.daily_budget.total, template.budget?.currency || "EUR")}
                         </div>
@@ -442,8 +449,8 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Available</h3>
-            <p className="text-slate-600">This template doesn't have any activities yet.</p>
+            <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noItineraryTitle')}</h3>
+            <p className="text-slate-600">{t('noItineraryMessage')}</p>
           </div>
         )}
 
@@ -465,12 +472,10 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             </div>
             <div>
               <h4 className="font-semibold text-blue-900 mb-1">
-                Curated by Travel Experts
+                {t('curatedTitle')}
               </h4>
               <p className="text-sm text-blue-800">
-                This itinerary has been carefully crafted with the best experiences,
-                restaurants, and hidden gems. Save it to your account to customize
-                dates, swap activities, and make it your own.
+                {t('curatedDescription')}
               </p>
             </div>
           </div>
@@ -487,11 +492,11 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                   <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
                     <Sparkles className="w-4 h-4 text-[var(--accent)]" />
                     <span className="text-white/80 text-sm font-medium">
-                      Love this itinerary?
+                      {t('loveThisItinerary')}
                     </span>
                   </div>
                   <p className="text-white text-xs opacity-80">
-                    Save it to your account and set your travel dates
+                    {t('saveAndSetDates')}
                   </p>
                 </div>
 
@@ -501,7 +506,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-base bg-white text-[var(--primary)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98] transition-all min-w-[180px]"
                 >
                   <Copy className="w-5 h-5" />
-                  <span>Save to My Trips</span>
+                  <span>{t('saveToMyTrips')}</span>
                 </button>
               </div>
             </div>
@@ -510,15 +515,15 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             <div className="flex items-center justify-center gap-4 mt-3 text-xs text-slate-500">
               <span className="flex items-center gap-1">
                 <Check className="w-3.5 h-3.5 text-emerald-500" />
-                Free forever
+                {t('trustBadges.freeForever')}
               </span>
               <span className="flex items-center gap-1">
                 <Check className="w-3.5 h-3.5 text-emerald-500" />
-                Fully editable
+                {t('trustBadges.fullyEditable')}
               </span>
               <span className="flex items-center gap-1">
                 <Check className="w-3.5 h-3.5 text-emerald-500" />
-                Share with friends
+                {t('trustBadges.shareWithFriends')}
               </span>
             </div>
           </div>
@@ -543,13 +548,13 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
               <span className="font-semibold text-slate-900">MonkeyTravel</span>
             </Link>
             <p className="text-sm text-slate-500">
-              AI-powered travel planning made simple
+              {t('footer.tagline')}
             </p>
             <Link
               href="/trips/new"
               className="text-sm text-[var(--primary)] hover:underline font-medium"
             >
-              Create Your Own Trip
+              {t('footer.createOwnTrip')}
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import type { ExploreTripCard } from "@/lib/explore/types";
 
@@ -22,6 +23,10 @@ interface TripCardProps {
  * card just surfaces the counts.
  */
 export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
+  // i18n: badges, "by {author}", day pluralization, count titles, and the
+  // "View →" CTA all shipped in English on /it /es. Keys live alongside
+  // PublishToggle + EngagementBar under share.explore.card.
+  const t = useTranslations("common.share.explore.card");
   const isCompact = variant === "compact";
   const isCarousel = variant === "carousel";
   const sizes = isCompact
@@ -59,13 +64,13 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              Editor&apos;s Pick
+              {t("editorsPick")}
             </div>
           )}
           {trip.travelStyle === "backpacker" && (
             <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md">
               <span aria-hidden>🎒</span>
-              Backpacker
+              {t("backpackerBadge")}
             </div>
           )}
         </div>
@@ -94,16 +99,16 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
         {/* Author + duration */}
         <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
           <span className="truncate">
-            by <span className="font-medium text-slate-700">{trip.author.displayName}</span>
+            {t("byAuthor")} <span className="font-medium text-slate-700">{trip.author.displayName}</span>
           </span>
           <span className="flex-shrink-0 ml-2">
-            {trip.durationDays} {trip.durationDays === 1 ? "day" : "days"}
+            {t("days", { count: trip.durationDays })}
           </span>
         </div>
 
         {/* Engagement counts */}
         <div className="flex items-center gap-3 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-1" title="Likes">
+          <span className="inline-flex items-center gap-1" title={t("likesTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -113,13 +118,13 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             </svg>
             {trip.likeCount}
           </span>
-          <span className="inline-flex items-center gap-1" title="Saves">
+          <span className="inline-flex items-center gap-1" title={t("savesTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
             </svg>
             {trip.saveCount}
           </span>
-          <span className="inline-flex items-center gap-1" title="Forks">
+          <span className="inline-flex items-center gap-1" title={t("forksTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -135,7 +140,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
           </span>
           {!isCompact && (
             <span className="ml-auto text-[var(--primary)] font-medium group-hover:underline">
-              View →
+              {t("viewAction")}
             </span>
           )}
         </div>

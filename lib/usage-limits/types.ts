@@ -57,6 +57,14 @@ export interface UsageCheckResult {
   periodType: UsagePeriodType;
   /** Human-readable message if not allowed */
   message?: string;
+  /**
+   * True when the limit could not be resolved against the database
+   * (e.g. transient Supabase error) and the response is a fail-open
+   * fallback. Callers may use this to decide whether to trust the
+   * `allowed=true` result for gating (e.g. paid features may proceed,
+   * paywall-critical surfaces may want to retry or degrade gracefully).
+   */
+  degraded?: boolean;
 }
 
 /**

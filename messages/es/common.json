@@ -977,6 +977,16 @@
         "forkedCount": "Duplicado {count}×",
         "ownerForkTooltip": "No puedes duplicar tu propio viaje"
       },
+      "card": {
+        "editorsPick": "Selección del Editor",
+        "backpackerBadge": "Mochilero",
+        "byAuthor": "por",
+        "days": "{count, plural, =1 {1 día} other {# días}}",
+        "likesTitle": "Me gusta",
+        "savesTitle": "Guardados",
+        "forksTitle": "Duplicados",
+        "viewAction": "Ver →"
+      },
       "pageTitle": "Explorar Viajes en Tendencia",
       "metaDescription": "Descubre itinerarios de viaje inspiradores compartidos por la comunidad MonkeyTravel. Explora destinos en tendencia, copia viajes y empieza a planificar tu próxima aventura.",
       "h1": "Explorar viajes",

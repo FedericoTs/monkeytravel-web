@@ -977,6 +977,16 @@
         "forkedCount": "Forked {count}×",
         "ownerForkTooltip": "You can't fork your own trip"
       },
+      "card": {
+        "editorsPick": "Editor's Pick",
+        "backpackerBadge": "Backpacker",
+        "byAuthor": "by",
+        "days": "{count, plural, =1 {1 day} other {# days}}",
+        "likesTitle": "Likes",
+        "savesTitle": "Saves",
+        "forksTitle": "Forks",
+        "viewAction": "View →"
+      },
       "pageTitle": "Explore Trending Trips",
       "metaDescription": "Discover inspiring travel itineraries shared by the MonkeyTravel community. Browse trending destinations, copy trips, and start planning your next adventure.",
       "h1": "Explore trips",
