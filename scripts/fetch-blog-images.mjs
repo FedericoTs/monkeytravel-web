@@ -113,6 +113,14 @@ const BLOG_QUERIES = {
   "trending-destinations-may-2026": "spring travel trending destination flowers scenic",
   "chatgpt-vs-ai-trip-planners": "AI chatbot travel planning smartphone map comparison",
   "solo-female-travel-safety-guide-2026": "solo woman traveler backpack scenic overlook confident",
+
+  // Phase 12 - 3 pillars from the 2026-05-06 consolidation. Originally
+  // missed by the script — live audit 2026-05-28 caught all 3 returning
+  // 404 in prod across en/it/es MDX. JPGs were hand-downloaded; adding
+  // entries here so any future re-run keeps them in sync.
+  "2026-travel-calendar": "passport world map travel planning year calendar",
+  "honeymoon-planning-guide": "romantic couple sunset honeymoon tropical beach",
+  "spring-summer-travel-guide": "summer beach turquoise water ocean vacation",
 };
 
 async function fetchPexels(query) {

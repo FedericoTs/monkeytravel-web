@@ -17,11 +17,40 @@ const RATES_CACHE_KEY = "monkeytravel-exchange-rates";
 const CACHE_DURATION_MS = 60 * 60 * 1000;
 
 /**
- * Fetch latest exchange rates from Frankfurter API
+ * Fetch latest exchange rates from Frankfurter API.
+ *
+ * Resilience:
+ *   - 5s AbortController timeout so a slow Frankfurter can't hang React
+ *   - Skip subsequent attempts in the same browser session if the last
+ *     one failed within FAIL_BACKOFF_MS — prevents the "200-frame
+ *     recursive stack trace" we saw in 2026-05-28 audit when CSP was
+ *     blocking the host. Even after the CSP fix lands, this gives us
+ *     a much quieter degradation path if Frankfurter is ever down.
+ *   - On any error: graceful throw — caller already handles it as
+ *     "no conversion, show original currency".
  */
+const FAIL_BACKOFF_MS = 5 * 60 * 1000; // 5 min before retry after a failure
+const FAIL_FLAG_KEY = "monkeytravel-exchange-rates-fail-at";
+
 export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Promise<ExchangeRates> {
+  // Backoff guard — skip if we failed recently. This prevents every
+  // page navigation from re-triggering a doomed fetch + console error.
   try {
-    const response = await fetch(`${FRANKFURTER_API}/latest?base=${baseCurrency}`);
+    const lastFailAt = Number(localStorage.getItem(FAIL_FLAG_KEY) || 0);
+    if (lastFailAt && Date.now() - lastFailAt < FAIL_BACKOFF_MS) {
+      throw new Error("rates-fetch-backoff");
+    }
+  } catch {
+    /* localStorage unavailable — fall through and try the fetch anyway */
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5_000);
+
+  try {
+    const response = await fetch(`${FRANKFURTER_API}/latest?base=${baseCurrency}`, {
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -36,17 +65,31 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Pr
       fetchedAt: Date.now(),
     };
 
-    // Cache the rates
+    // Cache the rates + clear any previous failure flag (we're healthy again).
     try {
       localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(rates));
+      localStorage.removeItem(FAIL_FLAG_KEY);
     } catch {
       // localStorage might not be available
     }
 
     return rates;
   } catch (error) {
-    console.error("Failed to fetch exchange rates:", error);
+    // Persist failure timestamp so the backoff guard above can short-
+    // circuit subsequent attempts in this session.
+    try {
+      localStorage.setItem(FAIL_FLAG_KEY, String(Date.now()));
+    } catch {
+      /* localStorage unavailable */
+    }
+    // Log once per failure (not on each render — the 5-min backoff
+    // means at most one log per page session under normal conditions).
+    if (error instanceof Error && error.message !== "rates-fetch-backoff") {
+      console.warn("[currency] exchange-rate fetch failed; will retry in 5 min:", error.message);
+    }
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 

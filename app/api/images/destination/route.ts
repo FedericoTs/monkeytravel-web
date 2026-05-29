@@ -10,8 +10,16 @@ const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
 const imageCache = new Map<string, { url: string; timestamp: number }>();
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days - images rarely change
 
-// Curated high-quality destination images as fallbacks
-// These are stable Pexels URLs that won't change
+// Curated high-quality destination images as fallbacks.
+// HISTORY: this map was originally annotated "These are stable Pexels URLs
+// that won't change" — false: Pexels deletes/rotates images. Live audit
+// 2026-05-28 found 4 IDs were 404 (Trieste 5007066, Edinburgh 803512,
+// Prague 161077, Ho Chi Minh 3019797). Those entries were removed so the
+// route falls through to fetchFromPexels() (live API search) instead of
+// returning a baked-in 404 URL. Re-validate this list quarterly via
+// scripts/probe-curated-images.mjs (or curl audit) — anything 404 should
+// be removed (not replaced, since the live Pexels search returns fresh
+// valid URLs for any destination on demand).
 const CURATED_DESTINATIONS: Record<string, string> = {
   // Major Cities
   paris: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
@@ -28,7 +36,8 @@ const CURATED_DESTINATIONS: Record<string, string> = {
   "hong kong": "https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   venice: "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   florence: "https://images.pexels.com/photos/2422461/pexels-photo-2422461.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  prague: "https://images.pexels.com/photos/161077/building-czech-prague-architecture-161077.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
+  // prague: removed 2026-05-28 — pexels id 161077 returns 404 (deleted).
+  // Falls through to fetchFromPexels() which returns a fresh URL.
   vienna: "https://images.pexels.com/photos/2351425/pexels-photo-2351425.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   lisbon: "https://images.pexels.com/photos/1534560/pexels-photo-1534560.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   madrid: "https://images.pexels.com/photos/3254729/pexels-photo-3254729.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
@@ -81,19 +90,19 @@ const CURATED_DESTINATIONS: Record<string, string> = {
   oslo: "https://images.pexels.com/photos/1559825/pexels-photo-1559825.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   helsinki: "https://images.pexels.com/photos/1538367/pexels-photo-1538367.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   dublin: "https://images.pexels.com/photos/2416653/pexels-photo-2416653.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  edinburgh: "https://images.pexels.com/photos/803512/pexels-photo-803512.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
+  // edinburgh: removed 2026-05-28 — pexels id 803512 returns 404.
   brussels: "https://images.pexels.com/photos/1595085/pexels-photo-1595085.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
 
   // Italian cities
   naples: "https://images.pexels.com/photos/4819547/pexels-photo-4819547.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   amalfi: "https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  trieste: "https://images.pexels.com/photos/5007066/pexels-photo-5007066.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
+  // trieste: removed 2026-05-28 — pexels id 5007066 returns 404.
 
   // Asian cities
   kyoto: "https://images.pexels.com/photos/1440476/pexels-photo-1440476.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   osaka: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   hanoi: "https://images.pexels.com/photos/2835436/pexels-photo-2835436.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  "ho chi minh": "https://images.pexels.com/photos/3019797/pexels-photo-3019797.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
+  // "ho chi minh": removed 2026-05-28 — pexels id 3019797 returns 404.
   taipei: "https://images.pexels.com/photos/2374939/pexels-photo-2374939.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   mumbai: "https://images.pexels.com/photos/2104152/pexels-photo-2104152.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   delhi: "https://images.pexels.com/photos/789750/pexels-photo-789750.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",

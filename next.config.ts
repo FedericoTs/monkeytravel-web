@@ -36,7 +36,13 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.googleapis.com https://*.vercel-insights.com https://*.open-meteo.com",
+      // Adding api.frankfurter.dev unblocks the in-app currency converter
+      // (FX rates for trip cost display). Without it, CSP rejected the
+      // fetch with "TypeError: Failed to fetch" and the same recursive
+      // React stack got logged on every render — bug found via live audit
+      // 2026-05-28 on /it/trips. The legacy stack-trace looked like a
+      // retry storm but was just React's reconciliation depth.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.googleapis.com https://*.vercel-insights.com https://*.open-meteo.com https://api.frankfurter.dev",
       "frame-src 'self' https://accounts.google.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
