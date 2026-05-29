@@ -23,8 +23,9 @@ import { randomUUID } from "node:crypto";
  * Anti-spam guards (refuse to publish if):
  *   - itinerary has < 3 activities total
  *   - duration > 30 days
- *   - trip is < 2 days old (let users edit before going public)
  *   - user has > 10 trips published in last 7 days
+ *   (the "trip must be N hours old" gate was removed 2026-05-28 to
+ *   unblock the post-save auto-prompt — see MIN_TRIP_AGE_HOURS below)
  *
  * DELETE = unpublish: visibility -> 'private', is_hidden untouched
  * (only moderators flip is_hidden).
@@ -33,7 +34,22 @@ import { randomUUID } from "node:crypto";
 type RouteCtx = { params: Promise<{ id: string }> };
 
 const MAX_PUBLISHED_PER_WEEK = 10;
-const MIN_TRIP_AGE_HOURS = 48;
+/**
+ * Originally 48h to give users time to edit before going public. Relaxed
+ * to 0 on 2026-05-28 so the post-save auto-prompt can actually publish
+ * (the prompt fires seconds after save — a 48h gate would always reject).
+ *
+ * Anti-spam is still well-defended by the remaining guards:
+ *   - MIN_ACTIVITIES (≥3) — generated trips always pass; empty drafts don't
+ *   - MAX_DURATION_DAYS (≤30) — caps fork-bombs
+ *   - MAX_PUBLISHED_PER_WEEK (≤10) — caps a single user's spam
+ * Plus publishing is reversible (DELETE on this same route) and the
+ * publish modal requires explicit user click + optional author note,
+ * so it's a conscious opt-in rather than an automatic flip.
+ *
+ * Raise back to 24-48 if we see drive-by spam in production.
+ */
+const MIN_TRIP_AGE_HOURS = 0;
 const MIN_ACTIVITIES = 3;
 const MAX_DURATION_DAYS = 30;
 const MAX_AUTHOR_NAME = 80;

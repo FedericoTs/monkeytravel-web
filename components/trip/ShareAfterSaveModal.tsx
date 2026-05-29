@@ -10,7 +10,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight } from "lucide-react";
+import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
 import { captureSharePromptShown, captureSharePromptAction } from "@/lib/posthog/events";
@@ -21,6 +21,12 @@ interface ShareAfterSaveModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInvite: () => void;
+  /**
+   * Optional: when provided, renders a second CTA that opens the
+   * Publish-to-Explore flow. Omit on surfaces where publishing isn't
+   * relevant (e.g. anon-saved trips, EXPLORE_UGC_ENABLED off).
+   */
+  onPublish?: () => void;
   tripId: string;
   tripTitle: string;
   tripDays: number;
@@ -46,6 +52,7 @@ export default function ShareAfterSaveModal({
   isOpen,
   onClose,
   onInvite,
+  onPublish,
   tripId,
   tripTitle,
   tripDays,
@@ -176,6 +183,21 @@ export default function ShareAfterSaveModal({
     onInvite();
   };
 
+  const handlePublish = () => {
+    // Reuse the same PostHog event so the explore-publish CTA shows up in
+    // the existing share_prompt funnel. We tag it with a distinct action
+    // string ("publish") so we can split-out the conversion in product
+    // analytics. GA4 falls back to "invite" since the legacy schema only
+    // accepts that union; not worth widening today.
+    trackSharePromptAction({ tripId, action: "invite" });
+    captureSharePromptAction({
+      trip_id: tripId,
+      action: "publish",
+      experiment_variant: activeVariant,
+    });
+    onPublish?.();
+  };
+
   // Don't render until delay has passed (for experiment variants)
   if (!isOpen || !showDelayed) return null;
 
@@ -275,6 +297,24 @@ export default function ShareAfterSaveModal({
                   {ts("afterSave.inviteTripBuddies")}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </motion.button>
+
+                {/* Publish-to-Explore secondary CTA. Only renders when
+                    the parent passes onPublish (i.e. EXPLORE_UGC_ENABLED
+                    + authed user). Same prominence tier as the invite
+                    button so the user sees publishing as a real option,
+                    not a hidden link — /explore needs UGC supply more
+                    than collaboration does right now. */}
+                {onPublish && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePublish}
+                    className="w-full py-3 px-4 bg-white text-[var(--primary)] border-2 border-[var(--primary)]/30 rounded-xl font-medium flex items-center justify-center gap-2 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                  >
+                    <Globe className="w-5 h-5" />
+                    {ts("afterSave.publishToExplore")}
+                  </motion.button>
+                )}
 
                 <button
                   onClick={handleSkip}

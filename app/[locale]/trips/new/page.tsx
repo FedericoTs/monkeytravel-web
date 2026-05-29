@@ -27,6 +27,7 @@ const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"),
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
+const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
 const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
@@ -58,7 +59,7 @@ import {
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { useFlag } from "@/lib/posthog";
-import { FLAG_AUTO_SAVE_V1 } from "@/lib/posthog/flags";
+import { FLAG_AUTO_SAVE_V1, FLAG_EXPLORE_UGC } from "@/lib/posthog/flags";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
 import {
   insertTrip as persistInsertTrip,
@@ -207,6 +208,11 @@ export default function NewTripPage() {
   // Post-save sharing modal state (critical for virality)
   const [showShareAfterSaveModal, setShowShareAfterSaveModal] = useState(false);
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
+  // Publish-to-Explore auto-prompt state. Wired into ShareAfterSaveModal's
+  // onPublish callback. Owner clicks → share modal closes → publish modal
+  // opens with their author name prefilled. See onPublish handler below.
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [authedDisplayName, setAuthedDisplayName] = useState<string>("");
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
@@ -491,6 +497,13 @@ export default function NewTripPage() {
   // are explicit (no auto-save until the flag has actually evaluated).
   const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
   const autoSaveEnabled = autoSaveEnabledRaw === true;
+  // Explore-UGC gate for the post-save Publish CTA. The PostHog flag
+  // mirrors the server-side EXPLORE_UGC_ENABLED env (server is the source
+  // of truth — the publish API itself 404s when env is off). We use the
+  // client flag only to hide the button when the user isn't in the cohort,
+  // so we don't surface a CTA that would silently fail.
+  const { enabled: exploreUgcFlagRaw } = useFlag(FLAG_EXPLORE_UGC);
+  const exploreUgcEnabled = exploreUgcFlagRaw === true;
 
   const autoSaveFormState: PersistTripFormState = {
     destination,
@@ -1035,6 +1048,20 @@ export default function NewTripPage() {
         sessionStorage.setItem("profile_modal_shown", "true");
       }
 
+      // Capture display name for the Publish-to-Explore prefill (best-
+      // effort: user_metadata > email local-part > empty). Falls back to
+      // "Anonymous traveler" inside PublishTripModal if both miss.
+      try {
+        const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+        const candidate =
+          (typeof meta.full_name === "string" && meta.full_name) ||
+          (typeof meta.name === "string" && meta.name) ||
+          (user.email ? user.email.split("@")[0] : "");
+        if (candidate) setAuthedDisplayName(String(candidate).slice(0, 80));
+      } catch {
+        /* non-fatal */
+      }
+
       // Show sharing prompt instead of immediate redirect (critical for virality)
       setSavedTripId(trip.id);
       setShowShareAfterSaveModal(true);
@@ -1081,11 +1108,45 @@ export default function NewTripPage() {
               router.push(`/trips/${savedTripId}?share=invite`);
             }
           }}
+          // Only expose the publish CTA when /explore is reachable for
+          // this user — flag mirrors the server gate, so hiding the
+          // button avoids a CTA that would 404 on submit.
+          onPublish={
+            exploreUgcEnabled && savedTripId
+              ? () => {
+                  setShowShareAfterSaveModal(false);
+                  setShowPublishModal(true);
+                }
+              : undefined
+          }
           tripId={savedTripId || ""}
           tripTitle={`${generatedItinerary.destination.name} Trip`}
           tripDays={generatedItinerary.days.length}
           destination={fullDestination}
         />
+
+        {/* Publish-to-Explore modal — chained off the ShareAfterSaveModal
+            "Publish" CTA. Stays mounted (cheap, dynamic) so React preserves
+            the user's typed authorName/Note across reopen. On close we send
+            the user to /trips/[id] regardless of outcome (same destination
+            as the share modal's skip path) so the post-save journey ends
+            somewhere coherent. On successful publish, jump straight to
+            /explore so the user immediately sees their card live. */}
+        {savedTripId && (
+          <PublishTripModal
+            tripId={savedTripId}
+            isOpen={showPublishModal}
+            defaultAuthorName={authedDisplayName}
+            onClose={() => {
+              setShowPublishModal(false);
+              router.push(`/trips/${savedTripId}`);
+            }}
+            onPublished={() => {
+              setShowPublishModal(false);
+              router.push("/explore");
+            }}
+          />
+        )}
 
         {/* Auth Prompt Modal — anonymous user clicks Save Trip on the
             generated itinerary.

@@ -76,7 +76,12 @@ export interface SharePromptShownEvent {
 
 export interface SharePromptActionEvent {
   trip_id: string;
-  action: "invite" | "skip" | "later";
+  /**
+   * "publish" added 2026-05-28 for the post-save Publish-to-Explore CTA.
+   * Surfaces in the same share_prompt funnel so we can A/B compare
+   * collaboration intent vs publish intent in the same chart.
+   */
+  action: "invite" | "skip" | "later" | "publish";
   /** A/B test variant (for share-modal-timing-exp) */
   experiment_variant?: "control" | "delayed-2s" | "delayed-5s";
 }
