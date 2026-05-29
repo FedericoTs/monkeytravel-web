@@ -45,7 +45,7 @@ const VIP_DOMAINS = new Set([
 
 export async function POST(request: NextRequest) {
   try {
-    const { allowed } = limiter.check(request);
+    const { allowed } = await limiter.check(request);
     if (!allowed) {
       return errors.rateLimit("Too many contact submissions. Please try again later.");
     }

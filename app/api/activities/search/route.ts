@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit anon + authed callers alike — the Google fallback at $0.032/req
     // and the trgm RPC are both worth protecting from runaway clients.
-    const { allowed } = limiter.check(request);
+    const { allowed } = await limiter.check(request);
     if (!allowed) {
       return errors.rateLimit("Too many activity searches. Please slow down.");
     }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link, routing } from "@/lib/i18n/routing";
+import { Link } from "@/lib/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TripCard from "@/components/explore/TripCard";
@@ -31,39 +31,66 @@ const SITE_URL = "https://monkeytravel.app";
 
 // Locale-aware metadata generator. The previous static export hardcoded
 // English titles, breaking SEO + hreflang signals for /it /es. Localized
-// 2026-05-28 (bug-fix sweep).
+// 2026-05-28 (bug-fix sweep). Hardened 2026-05-29 (tasks #209 + #210):
+//   - setRequestLocale is now called BEFORE getTranslations so the
+//     request scope is set for metadata resolution; without it next-intl
+//     can render with a fallback locale and Next's metadata cache may
+//     drop dynamically-built `alternates.languages` keys.
+//   - `alternates.languages` is now an inline object literal (matching
+//     the homepage + weekend-trip-planner pattern that ships hreflang
+//     correctly), not a computed for-loop. Computed bracket-assignment
+//     on a Record<string, string> was the only shape difference between
+//     this page and the pages where hreflang emits — swap eliminates the
+//     variable while we keep the parent route's default robots policy.
+//   - `robots` is now explicit. The root layout already publishes
+//     `index, follow`, but stating it on this leaf prevents any parent
+//     metadata cascade or Next.js error-fallback from silently turning
+//     /explore into `noindex` (which is what the #210 probe caught on
+//     /it/explore: the conflicting tags came from an error-boundary
+//     render falling back to noindex on top of the root's `index, follow`).
+//     /explore is the public discovery surface for /it /es /en — must
+//     be indexable.
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.share.explore" });
 
-  // hreflang map — mirrors /blog pattern (task #204). Routing uses
-  // `localePrefix: 'as-needed'` with default 'en', so English URLs are
-  // unprefixed and IT/ES carry the locale segment. Without this map
-  // Google can't deduplicate /explore, /it/explore, /es/explore.
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/explore`;
-  }
-  languages["x-default"] = `${SITE_URL}/explore`;
+  // hreflang map — inline literal matching homepage shape (task #209
+  // fix). Routing uses `localePrefix: 'as-needed'` with default 'en',
+  // so English URLs are unprefixed and IT/ES carry the locale segment.
+  // Without these tags Google can't deduplicate /explore, /it/explore,
+  // /es/explore — they get treated as three competing pages.
+  const languages = {
+    en: `${SITE_URL}/explore`,
+    es: `${SITE_URL}/es/explore`,
+    it: `${SITE_URL}/it/explore`,
+    "x-default": `${SITE_URL}/explore`,
+  } as const;
+  const canonical =
+    languages[locale as keyof typeof languages] ?? languages["x-default"];
 
   return {
     // Root layout's title.template appends " | MonkeyTravel" — don't add
     // the suffix here or the rendered <title> doubles.
     title: t("pageTitle"),
     description: t("metaDescription"),
+    // Explicit indexable policy — see header docblock for the #210
+    // rationale. Mirrors the root-layout default; stating it here pins
+    // intent so a future error-boundary or wrapping layout can't
+    // silently flip the page to noindex.
+    robots: { index: true, follow: true },
     openGraph: {
       title: `${t("pageTitle")} | MonkeyTravel`,
       description: t("metaDescription"),
       type: "website",
-      url: languages[locale],
+      url: canonical,
     },
     alternates: {
-      canonical: languages[locale] ?? `${SITE_URL}/explore`,
+      canonical,
       languages,
     },
   };

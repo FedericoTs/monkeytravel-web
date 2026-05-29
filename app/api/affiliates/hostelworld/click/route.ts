@@ -67,7 +67,7 @@ function isValidIsoDate(v: unknown): v is string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { allowed } = limiter.check(request);
+    const { allowed } = await limiter.check(request);
     if (!allowed) {
       // Silent 204 even when rate-limited — the metric isn't worth
       // bothering the user about. The limiter still drops the write.

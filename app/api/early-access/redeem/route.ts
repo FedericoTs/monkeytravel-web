@@ -10,7 +10,7 @@ const limiter = createRateLimiter("early-access-redeem", 5, 60 * 60 * 1000);
 export async function POST(request: NextRequest) {
   try {
     // Rate limit check
-    const { allowed } = limiter.check(request);
+    const { allowed } = await limiter.check(request);
     if (!allowed) {
       return errors.rateLimit("Too many redemption attempts. Please try again later.");
     }

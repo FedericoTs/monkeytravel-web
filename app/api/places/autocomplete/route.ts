@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     // open-door case: an anonymous visitor (or bot) hammering keystrokes
     // straight into Google Places' $0.00283/req endpoint.
     if (!user) {
-      const { allowed } = anonLimiter.check(request);
+      const { allowed } = await anonLimiter.check(request);
       if (!allowed) {
         await logAutocompleteApiRequest({
           status: 429,

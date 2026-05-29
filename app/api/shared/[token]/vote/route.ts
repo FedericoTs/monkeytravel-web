@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // Per-IP rate limit (20 votes/min). Honest voters cast a handful of
     // votes per session — this only bites scripted ballot-stuffers who
     // curl in a loop with no cookie to mint a fresh voter id every call.
-    const { allowed } = voteLimiter.check(request);
+    const { allowed } = await voteLimiter.check(request);
     if (!allowed) {
       return errors.rateLimit("Too many votes. Please slow down.");
     }
