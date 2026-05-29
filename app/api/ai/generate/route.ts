@@ -81,14 +81,20 @@ function hashDestination(destination: string): string {
 
 /**
  * Check if cached activities can be reused for this request
- * Matches by destination, vibes, budget tier, and language
+ * Matches by destination, vibes, budget tier, language, and travel style.
+ *
+ * 2026-05-28: travelStyle added to the cache key (migration
+ * `cache_travel_style`) so classic + backpacker rows can coexist.
+ * Previously we skipped cache entirely for backpacker which cost ~1
+ * extra Gemini call per backpacker generation.
  */
 async function getCachedItinerary(
   supabase: SupabaseClient,
   destination: string,
   vibes: string[],
   budgetTier: string,
-  language: SupportedLanguage
+  language: SupportedLanguage,
+  travelStyle: "classic" | "backpacker" = "classic",
 ): Promise<GeneratedItinerary | null> {
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
@@ -99,6 +105,7 @@ async function getCachedItinerary(
     .eq("destination_hash", destinationHash)
     .eq("budget_tier", budgetTier)
     .eq("language", language)
+    .eq("travel_style", travelStyle)
     .contains("vibes", sortedVibes)
     .gt("expires_at", new Date().toISOString())
     .order("hit_count", { ascending: false })
@@ -135,7 +142,13 @@ async function getCachedItinerary(
 }
 
 /**
- * Cache the generated itinerary for future users with similar queries
+ * Cache the generated itinerary for future users with similar queries.
+ *
+ * 2026-05-28: travelStyle added to the row so backpacker + classic
+ * trips coexist without leaking into each other. The unique constraint
+ * is now (destination_hash, budget_tier, vibes, language, travel_style)
+ * — `onConflict` lists the columns directly so we don't depend on the
+ * constraint's name (which changed in the migration).
  */
 async function cacheItinerary(
   supabase: SupabaseClient,
@@ -143,7 +156,8 @@ async function cacheItinerary(
   vibes: string[],
   budgetTier: string,
   language: SupportedLanguage,
-  itinerary: GeneratedItinerary
+  itinerary: GeneratedItinerary,
+  travelStyle: "classic" | "backpacker" = "classic",
 ): Promise<void> {
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
@@ -159,6 +173,7 @@ async function cacheItinerary(
         vibes: sortedVibes,
         budget_tier: budgetTier,
         language: language,
+        travel_style: travelStyle,
         activities: itinerary.days,
         trip_summary: {
           destination: itinerary.destination,
@@ -169,13 +184,13 @@ async function cacheItinerary(
         hit_count: 0,
         last_accessed_at: new Date().toISOString(),
       },
-      { onConflict: "unique_destination_cache_lang" }
+      { onConflict: "destination_hash,budget_tier,vibes,language,travel_style" }
     );
 
     if (error) {
       console.error(`[AI Generate] Cache write error for ${destination}:`, error.message, error.details);
     } else {
-      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier}, language: ${language})`);
+      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier}, language: ${language}, style: ${travelStyle})`);
     }
   } catch (err) {
     console.error("[AI Generate] Cache write exception:", err);
@@ -356,19 +371,16 @@ export async function POST(request: NextRequest) {
     // Determine if we should use incremental generation for long trips
     const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
 
-    // Bug fix 2026-05-28: skip cache for Backpacker Mode entirely. The
-    // destination_activity_cache schema keys on (destination, vibes,
-    // budget_tier, language) — adding travel_style would require a
-    // migration. Until we add the column, a backpacker user could pull
-    // a previously-cached classic itinerary and silently get a non-
-    // backpacker plan. Cost is one extra Gemini call per backpacker
-    // generation; correctness wins.
-    const cachedItinerary = params.travelStyle === "backpacker" ? null : await getCachedItinerary(
+    // 2026-05-28 follow-up: the cache now keys on travel_style (Tier 1.2
+    // migration), so backpacker hits its own cache pool — no leak into
+    // classic results and vice versa. The skip-cache hack is removed.
+    const cachedItinerary = await getCachedItinerary(
       supabase,
       params.destination,
       params.vibes,
       params.budgetTier,
-      userLanguage
+      userLanguage,
+      params.travelStyle ?? "classic",
     );
 
     if (cachedItinerary && cachedItinerary.days.length >= 1) {
@@ -417,13 +429,19 @@ export async function POST(request: NextRequest) {
         itinerary = await generateItinerary(params, { language: userLanguage });
       }
 
-      // Only cache full itineraries (not partial ones). Also skip cache
-      // writes for Backpacker Mode — see getCachedItinerary call above:
-      // until destination_activity_cache has a travel_style column, a
-      // cached backpacker result would leak to classic users (and vice
-      // versa).
-      if (!isPartialGeneration && params.travelStyle !== "backpacker") {
-        await cacheItinerary(supabase, params.destination, params.vibes, params.budgetTier, userLanguage, itinerary);
+      // Only cache full itineraries (not partial ones). Backpacker
+      // results now have their own cache pool (Tier 1.2 migration
+      // 2026-05-28), so the previous skip-cache hack is gone.
+      if (!isPartialGeneration) {
+        await cacheItinerary(
+          supabase,
+          params.destination,
+          params.vibes,
+          params.budgetTier,
+          userLanguage,
+          itinerary,
+          params.travelStyle ?? "classic",
+        );
       }
 
       // Populate activity bank in background for future activity additions
