@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useAuthOptional } from "@/components/auth/AuthProvider";
 import {
   trackSessionStart,
   trackUserReturn,
@@ -21,30 +20,40 @@ const SESSION_COUNT_KEY = "mt_session_count";
  * - Session start with user context
  * - User returns (how long since last visit)
  * - User properties for GA4 segmentation
+ *
+ * AUTH-SOURCE POST-MORTEM (2026-05-29, task #212):
+ * This component lives in app/layout.tsx (root layout, locale-agnostic) while
+ * AuthProvider lives in app/[locale]/layout.tsx — i.e. SessionTracker is a
+ * SIBLING of {children}, not a descendant. Cycle-5 task #181 attempted to
+ * consolidate it onto useAuth() from AuthProvider and the resulting
+ * `useContext` returned undefined → useAuth() threw "must be used within
+ * AuthProvider" → every SSR render 500'd (P0 incident 2026-05-29).
+ *
+ * The P0 patch swapped to useAuthOptional() which returns
+ * `{user: null, loading: false}` outside the provider tree, restoring SSR but
+ * silently breaking retention analytics: every logged-in user was tracked as
+ * anonymous because `user` was always null here.
+ *
+ * Fix: revert to the pre-#181 pattern — SessionTracker makes its own
+ * supabase.auth.getUser() call. We accept one extra round-trip; the
+ * "consolidation" goal of #181 only applies to [locale]-subtree consumers
+ * (Navbar, NotificationBell, etc.) — root-layout siblings cannot share
+ * the provider's state by definition.
  */
 export default function SessionTracker() {
   const hasTracked = useRef(false);
-  // Task #181 cleanup: read auth from the single AuthProvider rather than
-  // firing our own getUser(). Wait for `authLoading` to flip false before
-  // tracking — otherwise the requestIdleCallback path could race ahead and
-  // emit an "anonymous session" event for users who are actually logged in.
-  //
-  // P0 fix 2026-05-29: this component is mounted in app/layout.tsx (root,
-  // outside [locale]) while AuthProvider lives in app/[locale]/layout.tsx.
-  // The plain useAuth() threw "must be used within AuthProvider" on every
-  // SSR render, 500-ing the whole site. useAuthOptional returns the safe
-  // default ({ user: null, loading: false }) when called outside the
-  // provider, which lands SessionTracker on its "Anonymous session" branch
-  // — same behaviour as the pre-#181 getUser()-returning-null path.
-  const { user, loading: authLoading } = useAuthOptional();
 
   useEffect(() => {
     // Only track once per page load
     if (hasTracked.current) return;
-    if (authLoading) return;
     hasTracked.current = true;
 
     const trackSession = async () => {
+      // Fetch auth user directly — we cannot use useAuth() here, see docblock.
+      const supabaseAuth = createClient();
+      const {
+        data: { user },
+      } = await supabaseAuth.auth.getUser();
       // Calculate days since last visit
       const lastVisit = localStorage.getItem(SESSION_STORAGE_KEY);
       const sessionCount = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || "0", 10) + 1;
@@ -176,9 +185,10 @@ export default function SessionTracker() {
       const timeoutId = setTimeout(trackSession, 5000);
       return () => clearTimeout(timeoutId);
     }
-    // hasTracked guards re-fire — only the first post-auth-resolved render
-    // schedules the work, so we intentionally re-run when authLoading flips.
-  }, [authLoading, user]);
+    // hasTracked.current guards against React-StrictMode double-fire in dev.
+    // No external dependencies — getUser() is called inside trackSession.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // This component doesn't render anything
   return null;
