@@ -3,11 +3,25 @@ import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
 import { getAllPosts } from "@/lib/blog/api";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "My Trips",
-  robots: { index: false, follow: false },
-};
+// Locale-aware <title>. Previously a static export read "My Trips" for
+// every locale — Italian browser tab showed English. Caught in audit
+// 2026-05-29 (along with the /trips/new equivalent fix in 4c3e2a3+).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  // Pull from common.trips namespace which already has the page title
+  // localized (`myTrips`) since the navigation also references it.
+  const t = await getTranslations({ locale, namespace: "common.navigation" });
+  return {
+    title: t("myTrips"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function TripsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

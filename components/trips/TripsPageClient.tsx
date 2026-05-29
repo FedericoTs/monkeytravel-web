@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/datetime";
@@ -58,6 +58,10 @@ type FilterStatus = "all" | "planning" | "confirmed" | "active" | "completed" | 
 
 export default function TripsPageClient({ trips, displayName, lifetimeConversions, blogPosts = [] }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
+  // i18n: pass current locale to date formatters so trip cards show
+  // "24-29 mag 2026" on /it/ instead of "May 24-29, 2026". Caught
+  // 2026-05-29 audit.
+  const locale = useLocale();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
@@ -484,7 +488,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <span className="truncate">{formatDateRange(trip.start_date, trip.end_date)}</span>
+            <span className="truncate">{formatDateRange(trip.start_date, trip.end_date, locale)}</span>
           </div>
 
           {trip.description && (

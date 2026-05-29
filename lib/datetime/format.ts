@@ -51,15 +51,23 @@ export function formatDateShort(datetime: string | Date): string {
 }
 
 /**
- * Format date range: "Jun 15-20, 2025" or "Jun 15 - Jul 2, 2025"
- * Handles same-month and cross-month ranges intelligently
+ * Format date range: "Jun 15-20, 2025" / "15-20 giu 2025" / "15-20 jun 2025"
+ *
+ * Locale-aware as of 2026-05-29 — was hardcoded en-US, leaving Italian
+ * and Spanish users with English month names on trip cards. Pass the
+ * caller's locale (e.g. from next-intl's useLocale()) to render the
+ * native abbreviation. Defaults to en-US for backward compatibility
+ * with the 11 existing callers; client components on /[locale]/ pages
+ * should pass useLocale() explicitly.
+ *
+ * Handles same-month and cross-month ranges intelligently.
  */
-export function formatDateRange(start: Date | string, end: Date | string): string {
+export function formatDateRange(start: Date | string, end: Date | string, locale: string = "en-US"): string {
   const s = typeof start === "string" ? new Date(start) : start;
   const e = typeof end === "string" ? new Date(end) : end;
 
-  const startMonth = s.toLocaleDateString("en-US", { month: "short" });
-  const endMonth = e.toLocaleDateString("en-US", { month: "short" });
+  const startMonth = s.toLocaleDateString(locale, { month: "short" });
+  const endMonth = e.toLocaleDateString(locale, { month: "short" });
 
   if (startMonth === endMonth) {
     return `${startMonth} ${s.getDate()}-${e.getDate()}, ${e.getFullYear()}`;
