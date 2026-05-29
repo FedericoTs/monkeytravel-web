@@ -25,7 +25,11 @@ import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import type { TripCreationParams, UserProfilePreferences, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
-import crypto from "crypto";
+import {
+  getCachedItinerary,
+  cacheItinerary,
+  adjustItineraryDates,
+} from "@/lib/ai/cache";
 import { cookies } from "next/headers";
 
 type SupportedLanguage = "en" | "es" | "it";
@@ -70,162 +74,9 @@ async function getUserLanguage(
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
 const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
 
-/**
- * Generate a hash for destination-based cache lookup
- * Normalizes destination name for consistent matching
- */
-function hashDestination(destination: string): string {
-  const normalized = destination.toLowerCase().trim().replace(/\s+/g, " ");
-  return crypto.createHash("md5").update(normalized).digest("hex");
-}
-
-/**
- * Check if cached activities can be reused for this request
- * Matches by destination, vibes, budget tier, language, and travel style.
- *
- * 2026-05-28: travelStyle added to the cache key (migration
- * `cache_travel_style`) so classic + backpacker rows can coexist.
- * Previously we skipped cache entirely for backpacker which cost ~1
- * extra Gemini call per backpacker generation.
- */
-async function getCachedItinerary(
-  supabase: SupabaseClient,
-  destination: string,
-  vibes: string[],
-  budgetTier: string,
-  language: SupportedLanguage,
-  travelStyle: "classic" | "backpacker" = "classic",
-): Promise<GeneratedItinerary | null> {
-  const destinationHash = hashDestination(destination);
-  const sortedVibes = [...vibes].sort();
-
-  const { data, error } = await supabase
-    .from("destination_activity_cache")
-    .select("*")
-    .eq("destination_hash", destinationHash)
-    .eq("budget_tier", budgetTier)
-    .eq("language", language)
-    .eq("travel_style", travelStyle)
-    .contains("vibes", sortedVibes)
-    .gt("expires_at", new Date().toISOString())
-    .order("hit_count", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  // Update hit count atomically using raw SQL increment
-  Promise.resolve(
-    supabase.rpc("increment_cache_hit_count", { cache_id: data.id })
-  ).catch(() => {
-    // Fallback: non-atomic update if RPC not available
-    supabase
-      .from("destination_activity_cache")
-      .update({
-        hit_count: (data.hit_count || 0) + 1,
-        last_accessed_at: new Date().toISOString(),
-      })
-      .eq("id", data.id)
-      .then(() => {});
-  });
-
-  console.log(`[AI Generate] Cache HIT for ${destination} (vibes: ${vibes.join(", ")}, language: ${language})`);
-
-  return {
-    destination: data.trip_summary?.destination || { name: destination, country: "", description: "" },
-    days: data.activities,
-    trip_summary: data.trip_summary?.trip_summary,
-    booking_links: data.trip_summary?.booking_links,
-  } as GeneratedItinerary;
-}
-
-/**
- * Cache the generated itinerary for future users with similar queries.
- *
- * 2026-05-28: travelStyle added to the row so backpacker + classic
- * trips coexist without leaking into each other. The unique constraint
- * is now (destination_hash, budget_tier, vibes, language, travel_style)
- * — `onConflict` lists the columns directly so we don't depend on the
- * constraint's name (which changed in the migration).
- */
-async function cacheItinerary(
-  supabase: SupabaseClient,
-  destination: string,
-  vibes: string[],
-  budgetTier: string,
-  language: SupportedLanguage,
-  itinerary: GeneratedItinerary,
-  travelStyle: "classic" | "backpacker" = "classic",
-): Promise<void> {
-  const destinationHash = hashDestination(destination);
-  const sortedVibes = [...vibes].sort();
-
-  // Cache for 14 days (extended from 7)
-  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-
-  try {
-    const { error } = await supabase.from("destination_activity_cache").upsert(
-      {
-        destination_hash: destinationHash,
-        destination_name: destination,
-        vibes: sortedVibes,
-        budget_tier: budgetTier,
-        language: language,
-        travel_style: travelStyle,
-        activities: itinerary.days,
-        trip_summary: {
-          destination: itinerary.destination,
-          trip_summary: itinerary.trip_summary,
-          booking_links: itinerary.booking_links,
-        },
-        expires_at: expiresAt.toISOString(),
-        hit_count: 0,
-        last_accessed_at: new Date().toISOString(),
-      },
-      { onConflict: "destination_hash,budget_tier,vibes,language,travel_style" }
-    );
-
-    if (error) {
-      console.error(`[AI Generate] Cache write error for ${destination}:`, error.message, error.details);
-    } else {
-      console.log(`[AI Generate] Cached itinerary for ${destination} (vibes: ${sortedVibes.join(", ")}, budget: ${budgetTier}, language: ${language}, style: ${travelStyle})`);
-    }
-  } catch (err) {
-    console.error("[AI Generate] Cache write exception:", err);
-  }
-}
-
-/**
- * Adjust cached itinerary dates to match the user's requested dates
- */
-function adjustItineraryDates(
-  itinerary: GeneratedItinerary,
-  startDate: string,
-  endDate: string
-): GeneratedItinerary {
-  const start = new Date(startDate);
-  const requestedDays = Math.ceil(
-    (new Date(endDate).getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-  ) + 1;
-
-  // Adjust each day's date
-  const adjustedDays = itinerary.days.slice(0, requestedDays).map((day, index) => {
-    const dayDate = new Date(start);
-    dayDate.setDate(dayDate.getDate() + index);
-    return {
-      ...day,
-      day_number: index + 1,
-      date: dayDate.toISOString().split("T")[0],
-    };
-  });
-
-  return {
-    ...itinerary,
-    days: adjustedDays,
-  };
-}
+// Cache helpers extracted to lib/ai/cache.ts (2026-05-28) so the
+// streaming route can share them. See that file for the unique-key
+// shape + idempotency guarantees.
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();

@@ -21,6 +21,11 @@ import {
 } from "@/lib/early-access";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
+import {
+  getCachedItinerary,
+  cacheItinerary,
+  adjustItineraryDates,
+} from "@/lib/ai/cache";
 import type {
   TripCreationParams,
   UserProfilePreferences,
@@ -211,21 +216,70 @@ export async function POST(request: NextRequest) {
     let finalItinerary: GeneratedItinerary | null = null;
 
     try {
-      // Metadata event — always first, so the client knows total days
-      // and the destination name for the progress UI.
-      yield {
-        type: "metadata",
-        data: {
-          destination: { name: params.destination, country: "" },
-          totalDays,
-          language: userLanguage,
-          mode: "stream", // overwritten below if cache hit
-        },
-      };
+      // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
+      //     original streaming author noted was missing). Before this,
+      //     the streaming endpoint NEVER hit the cache — confirmed by
+      //     prod data: 0 cache hits across 158 generations in 30 days.
+      //     Now: backpacker + classic each have their own cache pool
+      //     (Tier 1.2 migration) and the streaming path checks them
+      //     before calling Gemini.
+      const cached = await getCachedItinerary(
+        supabase,
+        params.destination,
+        params.vibes,
+        params.budgetTier,
+        userLanguage,
+        params.travelStyle ?? "classic",
+      );
+      if (cached && cached.days.length >= 1) {
+        const adjusted = adjustItineraryDates(
+          cached,
+          params.startDate,
+          params.endDate,
+        );
+        finalItinerary = sanitizeItinerary(adjusted);
+        cacheHit = true;
 
-      // 3. Stream the model. No cache layer for streaming v1 — we want
-      //    to verify the streaming path works end-to-end before adding
-      //    the cache short-circuit. Adding it later is a 10-line patch.
+        // Metadata first — flag mode=cache so the client knows we
+        // didn't actually stream.
+        yield {
+          type: "metadata",
+          data: {
+            destination: finalItinerary.destination,
+            totalDays: finalItinerary.days.length,
+            language: userLanguage,
+            mode: "cache",
+          },
+        };
+
+        // Emit each day in order, same shape as the streaming path,
+        // so the existing client UI lights up day-by-day with no code
+        // change. Cached itineraries already have images; we skip the
+        // image fetch on the server (step 6).
+        for (const day of finalItinerary.days) {
+          generatedDays++;
+          yield {
+            type: "day",
+            data: day as unknown as import("@/lib/streaming/sse").SseDayData,
+          };
+        }
+        // Fall through to step 6+ (image-skip + logging + complete event)
+      }
+
+      if (!cacheHit) {
+        // Metadata event — always first when streaming, so the client
+        // knows total days + destination for the progress UI.
+        yield {
+          type: "metadata",
+          data: {
+            destination: { name: params.destination, country: "" },
+            totalDays,
+            language: userLanguage,
+            mode: "stream",
+          },
+        };
+
+      // 3b. Stream the model when there's no cached entry to serve.
       const parser = createDayParser();
       const stream = generateItineraryStream(params, {
         language: userLanguage,
@@ -282,16 +336,49 @@ export async function POST(request: NextRequest) {
         }
         generatedDays = finalItinerary.days.length;
       }
+      } // end if (!cacheHit) — streaming branch closes here
 
       // 6. Server-side image fetch. Same as the non-streaming path —
       //    prevents a race condition on the client. Skipped on cache hit
       //    (cached entries already have images).
+      // finalItinerary is guaranteed non-null here: either the cache
+      // branch set it, or the streaming branch parsed/rescued it.
+      if (!finalItinerary) {
+        // Defensive — should be unreachable, but TypeScript can't see the
+        // mutual exclusivity above. Emit error and bail.
+        yield {
+          type: "error",
+          data: { error: "Generation produced no itinerary", code: "upstream" },
+        };
+        return;
+      }
       if (!cacheHit) {
         try {
           await fetchActivityImages(finalItinerary.days, params.destination);
         } catch (imgErr) {
           console.error("[AI Generate Stream] image fetch error:", imgErr);
         }
+      }
+
+      // 6b. Cache write — only when we actually generated fresh.
+      // Backpacker + classic each have their own cache pool (Tier 1.2
+      // migration). Fire-and-forget via waitUntil so it never blocks
+      // the complete event.
+      if (!cacheHit) {
+        const cacheWriteItinerary = finalItinerary;
+        waitUntil(
+          cacheItinerary(
+            supabase,
+            params.destination,
+            params.vibes,
+            params.budgetTier,
+            userLanguage,
+            cacheWriteItinerary,
+            params.travelStyle ?? "classic",
+          ).catch((err) => {
+            console.error("[AI Generate Stream] cache write failed:", err);
+          }),
+        );
       }
 
       // 7. Sanitize before sending the canonical itinerary in `complete`.
