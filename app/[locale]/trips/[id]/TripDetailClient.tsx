@@ -1280,6 +1280,7 @@ export default function TripDetailClient({
             we want CTR on for the Hostelworld partnership signal. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
+            tripId={trip.id}
             destination={destination}
             startDate={trip.startDate}
             endDate={trip.endDate}

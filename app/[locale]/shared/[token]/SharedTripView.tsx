@@ -269,6 +269,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, engagement
             comes to formalise. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
+            tripId={trip.id}
             destination={destination}
             startDate={trip.startDate}
             endDate={trip.endDate}

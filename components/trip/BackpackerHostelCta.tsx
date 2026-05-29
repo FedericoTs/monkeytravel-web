@@ -12,8 +12,44 @@ interface BackpackerHostelCtaProps {
   startDate: string;
   /** Check-out date (YYYY-MM-DD). */
   endDate: string;
+  /** Optional trip id — included in the click log when present. */
+  tripId?: string;
   /** Optional class for parent-layout positioning. */
   className?: string;
+}
+
+/**
+ * Fire-and-forget click tracker. Posts to /api/affiliates/hostelworld/click
+ * which writes one row in public.hostelworld_clicks (shipped 2026-05-28
+ * as Tier 1.3 of MIGRATION_PLAN.md). Used to power the headline metric
+ * for the Hostelworld partnership conversation:
+ *   "We drove N hostel searches to you in the last 30 days."
+ *
+ * keepalive=true: the click navigates the browser away (target=_blank in
+ * a new tab — usually fine — but on some browsers/extensions it might
+ * still cancel the in-flight fetch). keepalive lets the request survive.
+ */
+function logClick(payload: {
+  tripId?: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+}) {
+  try {
+    fetch("/api/affiliates/hostelworld/click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        ...payload,
+        sourcePath: typeof window !== "undefined" ? window.location.pathname : null,
+      }),
+    }).catch(() => {
+      // Click logging is best-effort. Never bubble to user.
+    });
+  } catch {
+    /* noop */
+  }
 }
 
 /**
@@ -34,6 +70,7 @@ export default function BackpackerHostelCta({
   destination,
   startDate,
   endDate,
+  tripId,
   className,
 }: BackpackerHostelCtaProps) {
   const url = getHostelworldSearchUrl({ destination, startDate, endDate });
@@ -45,6 +82,14 @@ export default function BackpackerHostelCta({
         href={url}
         target="_blank"
         rel={isAffiliate ? "sponsored noopener noreferrer" : "noopener noreferrer"}
+        onClick={() => logClick({ tripId, destination, startDate, endDate })}
+        // Some users use middle-click / cmd-click which doesn't trigger
+        // onClick reliably in all browsers — auxclick covers it.
+        onAuxClick={(e) => {
+          if (e.button === 1) {
+            logClick({ tripId, destination, startDate, endDate });
+          }
+        }}
         className="group inline-flex w-full sm:w-auto items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
         data-analytics-event="backpacker_hostel_cta_clicked"
         data-analytics-destination={destination}
