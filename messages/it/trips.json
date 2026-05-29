@@ -28,7 +28,17 @@
       "checkout": "PARTENZA",
       "selectDate": "Seleziona data",
       "dateHelp": "Seleziona le date del tuo viaggio (massimo 14 giorni)",
-      "continue": "Continua"
+      "continue": "Continua",
+      "backpackerMode": "Modalità Backpacker",
+      "backpackerModeOn": "Modalità Backpacker — ATTIVA",
+      "backpackerModeSubtitle": "Ostelli, consigli per il budget, multi-città"
+    },
+    "returningUser": {
+      "welcomeBack": "Bentornato!",
+      "subtitle": "Hai già dei viaggi salvati. Vuoi continuare da dove avevi lasciato?",
+      "goToMyTrips": "Vai ai Miei Viaggi",
+      "startNewTrip": "Inizia un Nuovo Viaggio",
+      "dismiss": "Chiudi"
     },
     "step2": {
       "title": "Definisci il tuo stile di viaggio",

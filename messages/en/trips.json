@@ -28,7 +28,17 @@
       "checkout": "CHECK-OUT",
       "selectDate": "Select date",
       "dateHelp": "Select dates for your trip (max 14 days)",
-      "continue": "Continue"
+      "continue": "Continue",
+      "backpackerMode": "Backpacker mode",
+      "backpackerModeOn": "Backpacker mode — ON",
+      "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly"
+    },
+    "returningUser": {
+      "welcomeBack": "Welcome back!",
+      "subtitle": "You already have trips saved. Want to continue where you left off?",
+      "goToMyTrips": "Go to My Trips",
+      "startNewTrip": "Start New Trip",
+      "dismiss": "Dismiss"
     },
     "step2": {
       "title": "Set your travel style",

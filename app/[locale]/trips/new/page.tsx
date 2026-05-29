@@ -1906,29 +1906,29 @@ export default function NewTripPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-slate-900">Welcome back!</h3>
+                <h3 className="font-semibold text-slate-900">{t("wizard.returningUser.welcomeBack")}</h3>
                 <p className="text-sm text-slate-600 mt-1">
-                  You already have trips saved. Want to continue where you left off?
+                  {t("wizard.returningUser.subtitle")}
                 </p>
                 <div className="flex items-center gap-3 mt-3">
                   <Link
                     href="/trips"
                     className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
                   >
-                    Go to My Trips
+                    {t("wizard.returningUser.goToMyTrips")}
                   </Link>
                   <button
                     onClick={() => setShowReturningUserBanner(false)}
                     className="px-4 py-2 text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors"
                   >
-                    Start New Trip
+                    {t("wizard.returningUser.startNewTrip")}
                   </button>
                 </div>
               </div>
               <button
                 onClick={() => setShowReturningUserBanner(false)}
                 className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
-                aria-label="Dismiss"
+                aria-label={t("wizard.returningUser.dismiss")}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2010,14 +2010,14 @@ export default function NewTripPage() {
                   <span className="text-lg" aria-hidden>🎒</span>
                   <span>
                     {travelStyle === "backpacker"
-                      ? "Backpacker mode — ON"
-                      : "Backpacker mode"}
+                      ? t("wizard.step1.backpackerModeOn")
+                      : t("wizard.step1.backpackerMode")}
                   </span>
                 </span>
                 <span className="text-xs opacity-80">
                   {travelStyle === "backpacker"
                     ? "Hostels · Budget · Social"
-                    : "Hostels, budget tips, multi-city friendly"}
+                    : t("wizard.step1.backpackerModeSubtitle")}
                 </span>
               </button>
               {travelStyle === "backpacker" && (

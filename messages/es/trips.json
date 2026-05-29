@@ -28,7 +28,17 @@
       "checkout": "SALIDA",
       "selectDate": "Selecciona fecha",
       "dateHelp": "Selecciona las fechas de tu viaje (máximo 14 días)",
-      "continue": "Continuar"
+      "continue": "Continuar",
+      "backpackerMode": "Modo Mochilero",
+      "backpackerModeOn": "Modo Mochilero — ACTIVO",
+      "backpackerModeSubtitle": "Albergues, consejos de presupuesto, multi-ciudad"
+    },
+    "returningUser": {
+      "welcomeBack": "¡Bienvenido de nuevo!",
+      "subtitle": "Ya tienes viajes guardados. ¿Quieres continuar donde lo dejaste?",
+      "goToMyTrips": "Ir a Mis Viajes",
+      "startNewTrip": "Empezar un Viaje Nuevo",
+      "dismiss": "Cerrar"
     },
     "step2": {
       "title": "Define tu estilo de viaje",

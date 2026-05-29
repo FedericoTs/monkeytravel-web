@@ -13,6 +13,7 @@
  */
 
 import { useState, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { TripVibe } from "@/types";
 
 interface ExtractedContext {
@@ -93,6 +94,8 @@ function monthHintToDateRange(
 }
 
 export default function StartAnywhereSection({ onExtracted }: Props) {
+  // i18n — was hardcoded English; caught in 2026-05-29 audit on /it/.
+  const t = useTranslations("trips.wizard.step1");
   const [expanded, setExpanded] = useState(false);
   const [mode, setMode] = useState<"image" | "url">("image");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -202,10 +205,10 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900">
-              Start from an image or URL
+              {t("startAnywhereTitle")}
             </p>
             <p className="text-xs text-slate-600">
-              Got a photo, screenshot, or travel blog? We'll figure out the destination.
+              {t("startAnywhereSubtitle")}
             </p>
           </div>
           <svg
