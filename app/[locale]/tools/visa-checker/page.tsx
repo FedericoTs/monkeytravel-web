@@ -7,6 +7,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import { lookupVisaRequirement, getDatasetSize } from "@/lib/visa/lookup";
 import { getCountryOptions, getCountryName, iso2ToFlag } from "@/lib/visa/countries";
 import { buildIvisaAffiliateUrl, shouldShowIvisaCta } from "@/lib/visa/ivisa";
@@ -155,9 +156,11 @@ export default async function VisaCheckerPage({
   // Today as ISO date for the "data refreshed" credit.
   const refreshedDate = new Date().toISOString().split("T")[0];
 
+  const nonce = await getNonce();
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
       <Navbar />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">

@@ -6,6 +6,7 @@ import { routing } from "@/lib/i18n/routing";
 import { destinations } from "@/lib/destinations/data";
 import type { Locale } from "@/lib/destinations/types";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
@@ -91,9 +92,11 @@ export default async function DestinationStylePage({ params }: PageProps) {
     { name: tagLabel, url: `${SITE_URL}${localePrefix}/destinations/style/${tag}` },
   ]);
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
 
       <Navbar />
 

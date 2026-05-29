@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
-// Security headers for production
+// Security headers for production (CSP is set per-request in middleware.ts
+// with a nonce, so it's deliberately omitted from this static list — see
+// lib/security/csp.ts).
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
@@ -27,27 +29,6 @@ const securityHeaders = [
   {
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=(self)'
-  },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https:",
-      // Adding api.frankfurter.dev unblocks the in-app currency converter
-      // (FX rates for trip cost display). Without it, CSP rejected the
-      // fetch with "TypeError: Failed to fetch" and the same recursive
-      // React stack got logged on every render — bug found via live audit
-      // 2026-05-28 on /it/trips. The legacy stack-trace looked like a
-      // retry storm but was just React's reconciliation depth.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.googleapis.com https://*.vercel-insights.com https://*.open-meteo.com https://api.frankfurter.dev",
-      "frame-src 'self' https://accounts.google.com",
-      "frame-ancestors 'self'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; "),
   },
 ];
 

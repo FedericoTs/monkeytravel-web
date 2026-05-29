@@ -7,6 +7,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 // /explore Week 3 (2026-05-29): surface real backpacker trips on the
@@ -225,13 +226,15 @@ export default async function BackpackerLandingPage({
   const numberLocale =
     locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US";
 
+  const nonce = await getNonce();
+
   return (
     <>
       <script
         {...jsonLdScriptProps([
           generateFAQSchema(faqItems),
           generateBreadcrumbSchema(breadcrumbItems),
-        ])}
+        ], nonce)}
       />
 
       <Navbar />

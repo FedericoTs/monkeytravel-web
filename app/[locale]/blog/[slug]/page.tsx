@@ -16,6 +16,7 @@ import {
   generateFAQSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
@@ -242,9 +243,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
         })
       : null;
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps(schemas)} />
+      <script {...jsonLdScriptProps(schemas, nonce)} />
 
       <ContentTracker
         contentType="blog_post"

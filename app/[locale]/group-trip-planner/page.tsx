@@ -7,6 +7,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from '@/lib/seo/structured-data';
+import { getNonce } from '@/lib/security/nonce';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 
@@ -241,13 +242,15 @@ export default async function GroupTripPlannerPage({
     },
   ];
 
+  const nonce = await getNonce();
+
   return (
     <>
       <script
         {...jsonLdScriptProps([
           generateFAQSchema(faqItems),
           generateBreadcrumbSchema(breadcrumbItems),
-        ])}
+        ], nonce)}
       />
 
       <Navbar />

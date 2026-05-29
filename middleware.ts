@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { updateSession } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
+import { buildCspHeader, shouldEnforceCsp } from "@/lib/security/csp";
+import { generateNonce } from "@/lib/security/nonce";
 
 // Create the i18n middleware
 const intlMiddleware = createIntlMiddleware(routing);
@@ -132,6 +134,37 @@ export async function middleware(request: NextRequest) {
     });
   }
 
+  // Generate a fresh per-request nonce for the nonce-based CSP. We attach
+  // it to the request headers so server components / layouts can read it
+  // via headers().get('x-nonce') and stamp it on inline <script> tags
+  // (JSON-LD, etc.). The CSP response header is set at the bottom of the
+  // middleware on whichever response we ultimately return.
+  //
+  // We compute the nonce even in dev (cheap — 16 random bytes) so the
+  // request-header contract stays consistent, but the CSP itself is only
+  // attached in production (see attachSecurityHeaders below). Without
+  // that gate, React Fast Refresh + Turbopack's runtime would break on
+  // first dev save.
+  const nonce = generateNonce();
+  // Mutating request.headers in middleware propagates to downstream
+  // route handlers / RSC layouts via Next's edge runtime — this is the
+  // documented pattern for forwarding request metadata.
+  request.headers.set("x-nonce", nonce);
+
+  /**
+   * Attach the nonce-based CSP header to the response we're about to
+   * return. Gated on shouldEnforceCsp() so dev / static asset paths are
+   * untouched. Returns the same response for chaining.
+   */
+  const attachSecurityHeaders = (response: NextResponse): NextResponse => {
+    if (!shouldEnforceCsp(request.nextUrl.pathname)) return response;
+    response.headers.set("Content-Security-Policy", buildCspHeader(nonce));
+    // Echo the nonce on the response too so Vercel's edge logging /
+    // debugging surfaces can see which nonce was issued for this request.
+    response.headers.set("x-nonce", nonce);
+    return response;
+  };
+
   // www → apex redirect is handled at the Vercel edge by a domain-level
   // 308 redirect (configured 2026-05-02). The redirect fires before this
   // middleware ever runs, so removing the previous in-code redirect saves
@@ -142,16 +175,18 @@ export async function middleware(request: NextRequest) {
   // 410 Gone for deliberately-deleted blog posts. Tells Google to drop
   // these URLs from the index immediately (vs the slower 404 trickle).
   if (isGoneBlogPath(pathname)) {
-    return new NextResponse(
-      `<!doctype html><html><head><title>Gone</title><meta name="robots" content="noindex"></head><body><h1>410 Gone</h1><p>This article has been retired. <a href="/blog">Browse the blog</a>.</p></body></html>`,
-      {
-        status: 410,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "public, max-age=86400",
-          "X-Robots-Tag": "noindex",
-        },
-      }
+    return attachSecurityHeaders(
+      new NextResponse(
+        `<!doctype html><html><head><title>Gone</title><meta name="robots" content="noindex"></head><body><h1>410 Gone</h1><p>This article has been retired. <a href="/blog">Browse the blog</a>.</p></body></html>`,
+        {
+          status: 410,
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "public, max-age=86400",
+            "X-Robots-Tag": "noindex",
+          },
+        }
+      )
     );
   }
 
@@ -170,7 +205,7 @@ export async function middleware(request: NextRequest) {
 
   if (shouldSkipIntl) {
     // Just handle Supabase session for these routes
-    return await updateSession(request);
+    return attachSecurityHeaders(await updateSession(request));
   }
 
   // Run i18n middleware first to handle locale routing
@@ -182,7 +217,7 @@ export async function middleware(request: NextRequest) {
   // capture there. Capturing on the redirect would double-fire on some
   // edge configurations.
   if (intlResponse.status >= 300 && intlResponse.status < 400) {
-    return intlResponse;
+    return attachSecurityHeaders(intlResponse);
   }
 
   // First-touch UTM cookie capture (see captureUtmCookies docstring).
@@ -205,11 +240,11 @@ export async function middleware(request: NextRequest) {
     strippedPath.startsWith('/ai-itinerary-generator');
 
   if (isPublicOnly) {
-    return intlResponse;
+    return attachSecurityHeaders(intlResponse);
   }
 
   // For authenticated pages, chain Supabase session handling
-  return await updateSession(request, intlResponse);
+  return attachSecurityHeaders(await updateSession(request, intlResponse));
 }
 
 export const config = {

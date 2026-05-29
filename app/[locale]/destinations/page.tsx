@@ -5,6 +5,7 @@ import { routing } from "@/lib/i18n/routing";
 import type { Locale } from "@/lib/destinations/types";
 import { destinations } from "@/lib/destinations/data";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContentTracker from "@/components/analytics/ContentTracker";
@@ -105,9 +106,11 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
     )
   );
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
 
       <ContentTracker
         contentType="destination_index"

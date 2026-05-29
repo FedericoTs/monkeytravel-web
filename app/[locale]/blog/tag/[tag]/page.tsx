@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
@@ -110,9 +111,11 @@ export default async function BlogTagPage({ params }: PageProps) {
     { name: display, url: `${SITE_URL}${localePrefix}/blog/tag/${tag}` },
   ]);
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
 
       <Navbar />
 

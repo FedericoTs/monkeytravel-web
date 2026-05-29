@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllPosts } from "@/lib/blog/api";
+import { getAllFrontmatter } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogGrid from "@/components/blog/BlogGrid";
@@ -92,8 +93,12 @@ export default async function BlogIndexPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const t = await getTranslations("blog");
-  const posts = await getAllPosts(locale);
-  const allFrontmatter = posts.map((p) => p.frontmatter);
+  // Index page only needs frontmatter (title, slug, excerpt, cover, date,
+  // tags, readingTime — all metadata). Avoid getAllPosts here: that parses
+  // each MDX body through remark/rehype to produce HTML we never render,
+  // which dominated TTFB on /blog (~2-4s of pure markdown work per request).
+  // The frontmatter-only variant skips the markdown processor entirely.
+  const allFrontmatter = getAllFrontmatter(locale);
 
   // Curation — pure heuristics so we don't need to flag posts in markdown.
   // Featured = newest post overall. Each lane = newest 3 posts in a category
@@ -127,21 +132,23 @@ export default async function BlogIndexPage({ params }: PageProps) {
     name: t("index.title"),
     description: t("meta.description"),
     url: blogUrl,
-    posts: posts.map((post) => ({
-      url: `${blogUrl}/${post.frontmatter.slug}`,
-      name: t(`posts.${post.frontmatter.slug}.title`),
+    posts: allFrontmatter.map((fm) => ({
+      url: `${blogUrl}/${fm.slug}`,
+      name: t(`posts.${fm.slug}.title`),
     })),
   });
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps([breadcrumbSchema, collectionSchema])} />
+      <script {...jsonLdScriptProps([breadcrumbSchema, collectionSchema], nonce)} />
 
       <ContentTracker
         contentType="blog_index"
         contentId="blog"
         contentGroup="blog"
-        metadata={{ total_posts: posts.length }}
+        metadata={{ total_posts: allFrontmatter.length }}
       />
       <Navbar />
 
@@ -168,7 +175,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
                 </p>
               </div>
               <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary)]">
-                {posts.length}{" "}
+                {allFrontmatter.length}{" "}
                 <span className="text-slate-400 font-normal normal-case tracking-normal">
                   {t("index.articleCount")}
                 </span>
@@ -232,7 +239,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
         <nav aria-label={t("index.allPostsLabel")} className="sr-only">
           <h2>{t("index.allPostsLabel")}</h2>
           <ul>
-            {posts.map(({ frontmatter }) => (
+            {allFrontmatter.map((frontmatter) => (
               <li key={frontmatter.slug}>
                 <Link href={`/blog/${frontmatter.slug}`}>
                   {t(`posts.${frontmatter.slug}.title`)}

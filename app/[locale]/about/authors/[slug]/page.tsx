@@ -10,6 +10,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
@@ -90,9 +91,11 @@ export default async function AuthorPage({ params }: PageProps) {
     { name: author.name, url },
   ]);
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps([personSchema, breadcrumbSchema])} />
+      <script {...jsonLdScriptProps([personSchema, breadcrumbSchema], nonce)} />
 
       <Navbar />
 

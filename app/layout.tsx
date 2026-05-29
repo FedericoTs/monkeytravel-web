@@ -7,6 +7,7 @@ import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { getLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
+import { getNonce } from "@/lib/security/nonce";
 
 // Dynamic import: moves SessionTracker + its dependencies (supabase, analytics, posthog/identify)
 // to a separate chunk that loads after initial paint
@@ -160,13 +161,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  // Per-request CSP nonce, generated in middleware.ts and exposed via the
+  // `x-nonce` request header. Threaded into every inline <script> tag and
+  // every <Script>-based loader so the nonce-based CSP doesn't reject
+  // them in production. Undefined in dev (where CSP is not enforced) and
+  // during static generation.
+  const nonce = await getNonce();
   return (
     <html lang={locale}>
       <head>
         {/* Global Structured Data (JSON-LD) for SEO */}
-        <script {...jsonLdScriptProps(organizationSchema)} />
-        <script {...jsonLdScriptProps(webSiteSchema)} />
-        <script {...jsonLdScriptProps(softwareApplicationSchema)} />
+        <script {...jsonLdScriptProps(organizationSchema, nonce)} />
+        <script {...jsonLdScriptProps(webSiteSchema, nonce)} />
+        <script {...jsonLdScriptProps(softwareApplicationSchema, nonce)} />
 
         {/* DNS prefetch for deferred third-party origins (preconnect removed —
             both scripts load after idle, so early connections expire unused) */}
@@ -189,15 +196,20 @@ export default async function RootLayout({
         <SessionTracker />
         {/* Service worker (offline trips) + Android back-button handler */}
         <NativeBoot />
-        {/* Google Analytics 4 - only load if measurement ID is configured */}
+        {/* Google Analytics 4 - only load if measurement ID is configured.
+            The `nonce` prop is forwarded to GA's inline gtag init script +
+            the external gtag.js loader so both satisfy the nonce-based CSP. */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          <GoogleAnalytics
+            gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+            nonce={nonce}
+          />
         )}
         {/* Travelpayouts Affiliate Network — interaction-gated loader.
             Was contributing to the deep-scroll renderer hang in
             LIVE_AUDIT F7 because long pages never go truly idle and
             lazyOnload would fire mid-scroll. */}
-        <AffiliateScript />
+        <AffiliateScript nonce={nonce} />
       </body>
     </html>
   );

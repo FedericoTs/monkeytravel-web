@@ -22,7 +22,17 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 
-export default function AffiliateScript() {
+interface AffiliateScriptProps {
+  /**
+   * Per-request CSP nonce. Forwarded from the server `RootLayout` (which
+   * reads it via `getNonce()`). Required when the nonce-based CSP is
+   * enforced in production — without it the browser refuses to execute
+   * the Travelpayouts loader script.
+   */
+  nonce?: string;
+}
+
+export default function AffiliateScript({ nonce }: AffiliateScriptProps) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
@@ -59,6 +69,7 @@ export default function AffiliateScript() {
     <Script
       src="https://emrldco.com/NDgzOTk3.js?t=483997"
       strategy="lazyOnload"
+      nonce={nonce}
     />
   );
 }

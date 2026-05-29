@@ -12,6 +12,7 @@ import {
   generateFAQSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareRow from "@/components/ShareRow";
@@ -195,9 +196,11 @@ export default async function DestinationDetailPage({ params }: PageProps) {
     .filter((tl) => tl.destinations.length >= 2)
     .slice(0, 2);
 
+  const nonce = await getNonce();
+
   return (
     <>
-      <script {...jsonLdScriptProps([touristSchema, breadcrumbSchema, faqSchema])} />
+      <script {...jsonLdScriptProps([touristSchema, breadcrumbSchema, faqSchema], nonce)} />
 
       <ContentTracker
         contentType="destination"

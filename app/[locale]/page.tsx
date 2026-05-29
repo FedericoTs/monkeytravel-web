@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
+import { getNonce } from '@/lib/security/nonce';
 // Deep import (not the `@/components/tour` barrel) to keep framer-motion
 // out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
 import TourTrigger from '@/components/tour/TourTrigger';
@@ -108,12 +109,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     answer: t(`faq.items.${key}.answer`),
   }));
   const faqSchema = generateFAQSchema(faqs);
+  const nonce = await getNonce();
 
   // New/anonymous user - show landing page
   return (
     <>
       {/* FAQ Structured Data (Organization + WebSite + SoftwareApp rendered by root layout) */}
-      <script {...jsonLdScriptProps(faqSchema)} />
+      <script {...jsonLdScriptProps(faqSchema, nonce)} />
 
       <Navbar />
 

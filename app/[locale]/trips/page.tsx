@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
-import { getAllPosts } from "@/lib/blog/api";
+import { getAllFrontmatter } from "@/lib/blog/api";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
@@ -58,9 +58,13 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Traveler";
   const lifetimeConversions = profile?.lifetime_referral_conversions || 0;
 
-  // Fetch latest 3 blog posts for Travel Guides section
-  const allPosts = await getAllPosts(locale);
-  const blogPosts = allPosts.slice(0, 3).map((p) => p.frontmatter);
+  // Fetch latest 3 blog posts for Travel Guides section. Uses
+  // getAllFrontmatter — the Travel Guides strip only renders title/cover/
+  // excerpt/date/readingTime, all of which live in frontmatter. The full-
+  // post variant parses 62 markdown bodies through remark/rehype per
+  // request just for 3 to survive the .slice(0, 3), so we skip the
+  // markdown processor entirely here.
+  const blogPosts = getAllFrontmatter(locale).slice(0, 3);
 
   return (
     <TripsPageClient
