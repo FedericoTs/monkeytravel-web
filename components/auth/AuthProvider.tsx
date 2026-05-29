@@ -76,6 +76,24 @@ export function useAuth(): AuthContextValue {
   return ctx;
 }
 
+/**
+ * Non-throwing variant for components that may be mounted ABOVE the
+ * [locale] layout — i.e. in the root app/layout.tsx tree, which sits
+ * outside AuthProvider's scope. Returns the safe default (no user, not
+ * loading) so the consumer's "anonymous" branch runs cleanly instead
+ * of crashing SSR.
+ *
+ * Use this ONLY when the component must mount in the root layout for
+ * structural reasons (SessionTracker is the canonical example — it
+ * predates AuthProvider and stays in root for cross-locale session
+ * continuity). Inside the [locale] tree, prefer `useAuth()` so missing
+ * providers fail loud.
+ */
+export function useAuthOptional(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  return ctx ?? { user: null, loading: false };
+}
+
 interface AuthProviderProps {
   children: ReactNode;
 }

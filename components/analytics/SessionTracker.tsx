@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuthOptional } from "@/components/auth/AuthProvider";
 import {
   trackSessionStart,
   trackUserReturn,
@@ -28,7 +28,15 @@ export default function SessionTracker() {
   // firing our own getUser(). Wait for `authLoading` to flip false before
   // tracking — otherwise the requestIdleCallback path could race ahead and
   // emit an "anonymous session" event for users who are actually logged in.
-  const { user, loading: authLoading } = useAuth();
+  //
+  // P0 fix 2026-05-29: this component is mounted in app/layout.tsx (root,
+  // outside [locale]) while AuthProvider lives in app/[locale]/layout.tsx.
+  // The plain useAuth() threw "must be used within AuthProvider" on every
+  // SSR render, 500-ing the whole site. useAuthOptional returns the safe
+  // default ({ user: null, loading: false }) when called outside the
+  // provider, which lands SessionTracker on its "Anonymous session" branch
+  // — same behaviour as the pre-#181 getUser()-returning-null path.
+  const { user, loading: authLoading } = useAuthOptional();
 
   useEffect(() => {
     // Only track once per page load
