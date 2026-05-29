@@ -14,8 +14,47 @@
  */
 
 import crypto from "crypto";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary } from "@/types";
+
+/**
+ * Service-role client for cache reads/writes.
+ *
+ * Bug investigation 2026-05-28: 158 generations in 30 days produced
+ * zero cache rows. Root cause: the per-request `supabase` client
+ * created via @/lib/supabase/server uses cookies(), and waitUntil()
+ * tasks fire AFTER the request lifecycle ends → cookie reads throw,
+ * upserts silently fail. The JSON endpoint awaits the write so cookies
+ * are still live there, but it shared the same bug for a different
+ * reason — the existing RLS policies appear to allow the write but
+ * something in the @supabase/ssr lifecycle kept dropping it.
+ *
+ * Switching the cache to a service-role client (which uses the
+ * SUPABASE_SERVICE_ROLE_KEY env directly — no cookies, no per-request
+ * lifecycle) makes the write reliable in both routes. This is also
+ * architecturally correct: the cache is a system-internal table, not
+ * user-owned data.
+ *
+ * Lazy-init the client so callers pass `null` for `supabase` to opt
+ * into service-role, OR they can pass their own client (e.g. for
+ * tests / scripts that prefer explicit injection).
+ */
+let _cachedServiceClient: SupabaseClient | null = null;
+function getServiceClient(): SupabaseClient {
+  if (_cachedServiceClient) return _cachedServiceClient;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "[ai/cache] missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+    );
+  }
+  _cachedServiceClient = createServiceClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return _cachedServiceClient;
+}
 
 export type SupportedLanguage = "en" | "es" | "it";
 export type TravelStyle = "classic" | "backpacker";
@@ -62,7 +101,11 @@ export function adjustItineraryDates(
  * Also atomically bumps hit_count in the background (fire-and-forget).
  */
 export async function getCachedItinerary(
-  supabase: SupabaseClient,
+  // First arg kept for source-compat with existing callers (they pass
+  // their per-request supabase client). We ignore it and use the
+  // service-role client so the read works regardless of caller context.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _supabaseIgnored: SupabaseClient | null,
   destination: string,
   vibes: string[],
   budgetTier: string,
@@ -71,6 +114,7 @@ export async function getCachedItinerary(
 ): Promise<GeneratedItinerary | null> {
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
+  const supabase = getServiceClient();
 
   const { data, error } = await supabase
     .from("destination_activity_cache")
@@ -126,7 +170,10 @@ export async function getCachedItinerary(
  * their happy path blocked by a cache miss.
  */
 export async function cacheItinerary(
-  supabase: SupabaseClient,
+  // First arg kept for source-compat. Always uses service-role client
+  // internally — see getServiceClient() comment for the why.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _supabaseIgnored: SupabaseClient | null,
   destination: string,
   vibes: string[],
   budgetTier: string,
@@ -137,6 +184,7 @@ export async function cacheItinerary(
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const supabase = getServiceClient();
 
   try {
     const { error } = await supabase.from("destination_activity_cache").upsert(
