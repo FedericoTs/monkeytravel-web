@@ -966,6 +966,17 @@
       "unpublishAction": "(Despublicar)",
       "unpublishConfirm": "¿Eliminar este viaje de Explorar? Puedes volver a publicarlo en cualquier momento.",
       "removeFromExploreTitle": "Haz clic para eliminar de /explore",
+      "engagement": {
+        "barAriaLabel": "Acciones de interacción del viaje",
+        "likeAriaLike": "Me gusta este viaje",
+        "likeAriaUnlike": "Quitar me gusta del viaje",
+        "saveAriaSave": "Guardar para después",
+        "saveAriaRemove": "Quitar de guardados",
+        "forkAriaLabel": "Duplicar este viaje en tu cuenta",
+        "forkButton": "Duplicar ({count})",
+        "forkedCount": "Duplicado {count}×",
+        "ownerForkTooltip": "No puedes duplicar tu propio viaje"
+      },
       "pageTitle": "Explorar Viajes en Tendencia",
       "metaDescription": "Descubre itinerarios de viaje inspiradores compartidos por la comunidad MonkeyTravel. Explora destinos en tendencia, copia viajes y empieza a planificar tu próxima aventura.",
       "h1": "Explorar viajes",

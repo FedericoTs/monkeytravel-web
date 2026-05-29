@@ -195,6 +195,7 @@
   },
   "day": {
     "label": "Day {number}",
+    "todayBadge": "TODAY",
     "morning": "Morning",
     "afternoon": "Afternoon",
     "evening": "Evening",
@@ -203,6 +204,14 @@
     "walkingTime": "Walking",
     "drivingTime": "Driving",
     "current": "(current)"
+  },
+  "ongoing": {
+    "todayTab": "Today",
+    "fullPlanTab": "Full Plan",
+    "fullPlan": "Full Plan"
+  },
+  "detail": {
+    "regeneratingDay": "Regenerating Day {number}…"
   },
   "activity": {
     "duration": "{duration} min",

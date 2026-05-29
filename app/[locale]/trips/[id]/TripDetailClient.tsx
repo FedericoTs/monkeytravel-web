@@ -1656,7 +1656,7 @@ export default function TripDetailClient({
                       <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow border border-slate-200">
                         <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary)]" />
                         <span className="text-sm font-medium text-slate-700">
-                          Regenerating Day {day.day_number}…
+                          {t("detail.regeneratingDay", { number: day.day_number })}
                         </span>
                       </div>
                     </div>

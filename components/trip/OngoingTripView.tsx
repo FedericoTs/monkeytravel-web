@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, List, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
@@ -53,6 +54,10 @@ export default function OngoingTripView({
   cachedTravelDistances,
   cachedTravelHash,
 }: OngoingTripViewProps) {
+  // i18n — was rendering 'Day N', 'Today', 'Full Plan', 'TODAY' badge
+  // in English on /it/ and /es/. Caught 2026-05-29 audit.
+  const t = useTranslations("trips");
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<ViewTab>("today");
   const [recentXpGain, setRecentXpGain] = useState<XpGainEvent | null>(null);
   const [achievementQueue, setAchievementQueue] = useState<AchievementId[]>([]);
@@ -175,10 +180,11 @@ export default function OngoingTripView({
   const todayDate = displayItinerary.find((d) => d.day_number === currentDayNumber)?.date;
   const todayTheme = displayItinerary.find((d) => d.day_number === currentDayNumber)?.theme;
 
-  // Format date for display
+  // Format date for display — locale-aware (was hardcoded en-US, caught
+  // 2026-05-29 audit; the badge showed "Thursday, May 28" even on /it/).
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale, {
       weekday: "long",
       month: "short",
       day: "numeric",
@@ -210,7 +216,7 @@ export default function OngoingTripView({
 
           {/* Day indicator badge */}
           <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg">
-            <div className="text-sm text-slate-500">Day {currentDayNumber}</div>
+            <div className="text-sm text-slate-500">{t("day.label", { number: currentDayNumber })}</div>
             <div className="font-semibold text-slate-900">
               {todayDate && formatDate(todayDate)}
             </div>
@@ -224,7 +230,7 @@ export default function OngoingTripView({
               className="px-3 py-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg text-sm font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1.5"
             >
               <List className="w-4 h-4" />
-              Full Plan
+              {t("ongoing.fullPlan")}
             </button>
           </div>
         </div>
@@ -255,7 +261,7 @@ export default function OngoingTripView({
             }`}
           >
             <Calendar className="w-4 h-4" />
-            Today
+            {t("ongoing.todayTab")}
           </button>
           <button
             onClick={() => setActiveTab("full")}
@@ -266,7 +272,7 @@ export default function OngoingTripView({
             }`}
           >
             <List className="w-4 h-4" />
-            Full Plan
+            {t("ongoing.fullPlanTab")}
           </button>
         </div>
       </div>
@@ -413,10 +419,10 @@ export default function OngoingTripView({
                           </div>
                           <div>
                             <h2 className="font-bold text-xl text-slate-900">
-                              Day {day.day_number}
+                              {t("day.label", { number: day.day_number })}
                               {isCurrentDay && (
                                 <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full align-middle">
-                                  TODAY
+                                  {t("day.todayBadge")}
                                 </span>
                               )}
                             </h2>

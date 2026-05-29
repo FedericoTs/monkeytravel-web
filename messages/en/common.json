@@ -966,6 +966,17 @@
       "unpublishAction": "(Unpublish)",
       "unpublishConfirm": "Remove this trip from Explore? You can re-publish anytime.",
       "removeFromExploreTitle": "Click to remove from /explore",
+      "engagement": {
+        "barAriaLabel": "Trip engagement actions",
+        "likeAriaLike": "Like trip",
+        "likeAriaUnlike": "Unlike trip",
+        "saveAriaSave": "Save for later",
+        "saveAriaRemove": "Remove from saved",
+        "forkAriaLabel": "Fork this trip into your account",
+        "forkButton": "Fork ({count})",
+        "forkedCount": "Forked {count}×",
+        "ownerForkTooltip": "You can't fork your own trip"
+      },
       "pageTitle": "Explore Trending Trips",
       "metaDescription": "Discover inspiring travel itineraries shared by the MonkeyTravel community. Browse trending destinations, copy trips, and start planning your next adventure.",
       "h1": "Explore trips",
