@@ -9,6 +9,7 @@
 
 export type BudgetTier = "budget" | "balanced" | "premium";
 export type SortKey = "trending" | "recent" | "most-liked" | "most-forked";
+export type TravelStyle = "classic" | "backpacker";
 
 /** Trip card payload — what /api/explore/trips returns per trip. */
 export interface ExploreTripCard {
@@ -31,6 +32,8 @@ export interface ExploreTripCard {
   author: { displayName: string };
   authorNote: string | null;
   isEditorsPick: boolean;
+  /** Travel-style preset from the wizard (classic | backpacker). */
+  travelStyle: TravelStyle;
   sharedAt: string | null;
 }
 

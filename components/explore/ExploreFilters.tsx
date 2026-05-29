@@ -94,11 +94,13 @@ export default function ExploreFilters() {
   const activeTag = params.get("tags");
   const activeDurationMin = params.get("duration_min");
   const activeDurationMax = params.get("duration_max");
+  const activeTravelStyle = params.get("travel_style");
   const hasAny =
     params.get("budget") ||
     params.get("tags") ||
     params.get("destination") ||
-    params.get("duration_min");
+    params.get("duration_min") ||
+    params.get("travel_style");
 
   return (
     <div className="flex flex-col gap-4">
@@ -119,6 +121,28 @@ export default function ExploreFilters() {
         className="w-full sm:max-w-md rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
         aria-label="Search by destination"
       />
+
+      {/* Travel style — single Backpacker toggle (binary filter).
+          Emerald to match the wizard toggle + the per-trip badge.
+          Sits at the top of the chip stack because it's the most
+          opinionated filter and the Hostelworld partnership wedge. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 mr-1">
+          Style:
+        </span>
+        <button
+          onClick={() => toggle("travel_style", "backpacker")}
+          aria-pressed={activeTravelStyle === "backpacker"}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors ${
+            activeTravelStyle === "backpacker"
+              ? "bg-emerald-500 text-white border-emerald-500"
+              : "bg-white text-slate-700 border-slate-300 hover:border-emerald-500"
+          }`}
+        >
+          <span aria-hidden>🎒</span>
+          Backpacker
+        </button>
+      </div>
 
       {/* Budget chips */}
       <div className="flex flex-wrap items-center gap-2">

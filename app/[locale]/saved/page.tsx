@@ -62,6 +62,7 @@ type TripRow = {
   author_display_name: string | null;
   author_note: string | null;
   is_editors_pick: boolean;
+  travel_style: "classic" | "backpacker" | null;
   trip_meta: Record<string, unknown> | null;
   visibility: string;
   is_hidden: boolean;
@@ -94,6 +95,7 @@ function mapRowToCard(t: TripRow): ExploreTripCard {
     author: { displayName: t.author_display_name ?? "Anonymous traveler" },
     authorNote: t.author_note,
     isEditorsPick: !!t.is_editors_pick,
+    travelStyle: t.travel_style === "backpacker" ? "backpacker" : "classic",
     sharedAt: t.shared_at,
   };
 }
@@ -159,8 +161,8 @@ export default async function SavedPage({
           `id, title, description, share_token, cover_image_url, tags,
            start_date, end_date, shared_at, trending_score, view_count,
            template_copy_count, like_count, save_count, fork_count,
-           author_display_name, author_note, is_editors_pick, trip_meta,
-           visibility, is_hidden`
+           author_display_name, author_note, is_editors_pick, travel_style,
+           trip_meta, visibility, is_hidden`
         )
         .in("id", savedTripIds)
         .eq("visibility", "public")

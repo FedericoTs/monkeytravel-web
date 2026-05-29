@@ -36,6 +36,12 @@ export async function GET(request: NextRequest) {
     const durationMax = searchParams.get("duration_max");
     const budgetTier = searchParams.get("budget");
     const tags = searchParams.get("tags")?.split(",").filter(Boolean);
+    // 2026-05-28 — Tier 1.1 column is now live; we filter on the real
+    // trips.travel_style column rather than parsing trip_meta JSONB.
+    // Whitelist to avoid an arbitrary string flowing into the WHERE.
+    const travelStyleParam = searchParams.get("travel_style");
+    const travelStyle: "backpacker" | null =
+      travelStyleParam === "backpacker" ? "backpacker" : null;
     // Bug-bounty 2026-05-24 P1: parseInt of arbitrary strings produces
     // NaN which then flowed into query.range(NaN, NaN) — undefined
     // Supabase behaviour. Clamp + default.
@@ -74,6 +80,7 @@ export async function GET(request: NextRequest) {
       author_display_name?: string | null;
       author_note?: string | null;
       is_editors_pick?: boolean;
+      travel_style?: "classic" | "backpacker" | null;
     };
 
     // Build query — column set depends on the flag (see top of handler).
@@ -84,7 +91,7 @@ export async function GET(request: NextRequest) {
       .from("trips")
       .select(
         ugcOn
-          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick"
+          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
           : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, budget, itinerary, trip_meta",
         { count: "exact" }
       )
@@ -121,6 +128,13 @@ export async function GET(request: NextRequest) {
 
     if (tags && tags.length > 0) {
       query = query.contains("tags", tags);
+    }
+
+    // Travel style filter — only meaningful post-Tier-1.1 migration when
+    // the column exists. The migration is applied in prod so this is
+    // always safe; the column defaults to 'classic' for every old row.
+    if (travelStyle === "backpacker" && ugcOn) {
+      query = query.eq("travel_style", "backpacker");
     }
 
     // Pagination
@@ -185,6 +199,9 @@ export async function GET(request: NextRequest) {
         },
         authorNote: trip.author_note || null,
         isEditorsPick: !!trip.is_editors_pick,
+        // Mirror the new column on the wire so TripCard can render the
+        // "🎒 Backpacker" badge without re-fetching trip_meta.
+        travelStyle: trip.travel_style ?? "classic",
         sharedAt: trip.shared_at,
       };
     });

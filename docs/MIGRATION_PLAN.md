@@ -63,6 +63,51 @@ This loses all geometry data unless you `pg_dump` the affected columns first. Re
 
 **Until Supabase actions Path A or we plan a maintenance window for Path B:** the advisor stays at 1 ERROR. The risk is theoretical — `spatial_ref_sys` contains EPSG coordinate-system reference codes (e.g. "WGS84"), not user data. Worst case if Supabase enforces the new rule: PostgREST exposes the table to anon reads, which is what it does today anyway. No real security impact.
 
+**DECISION LOCKED 2026-05-28** (per user):
+> Wait for Supabase support to action Path A. If they don't (or set a hard enforcement deadline), fall back to Path B with a planned maintenance window. The on-call procedure for Path B is captured below so it's ready when needed.
+
+### Path B runbook (only if Supabase support declines / runs late)
+
+Pre-flight (read-only):
+1. `pg_dump -Fc -t public.destinations -t public.users -t public.valid_detail -t public.geometry_dump` — backup every table that has a PostGIS column.
+2. Confirm app code does NOT call `ST_*` functions unqualified during the window (or accept the brief query failure window).
+
+The migration (transactional):
+```sql
+BEGIN;
+-- 1. Capture data we need to restore
+CREATE TEMP TABLE _bk_dest AS SELECT id, ST_AsEWKT(location) AS loc FROM public.destinations WHERE location IS NOT NULL;
+CREATE TEMP TABLE _bk_user AS SELECT id, ST_AsEWKT(current_location) AS loc FROM public.users WHERE current_location IS NOT NULL;
+-- 2. Drop columns + indexes that depend on PostGIS
+DROP INDEX IF EXISTS public.idx_destinations_location;
+DROP INDEX IF EXISTS public.idx_users_location;
+ALTER TABLE public.destinations DROP COLUMN location;
+ALTER TABLE public.users DROP COLUMN current_location;
+-- 3. Drop the extension (cascades to spatial_ref_sys + all ST_* functions)
+DROP EXTENSION postgis CASCADE;
+DROP EXTENSION pg_trgm CASCADE;
+-- 4. Recreate in the right schema
+CREATE EXTENSION postgis SCHEMA extensions;
+CREATE EXTENSION pg_trgm SCHEMA extensions;
+-- 5. Update search_path so unqualified ST_* keeps working
+ALTER ROLE authenticator SET search_path = "$user", public, extensions;
+ALTER ROLE anon          SET search_path = "$user", public, extensions;
+ALTER ROLE authenticated SET search_path = "$user", public, extensions;
+ALTER ROLE service_role  SET search_path = "$user", public, extensions;
+ALTER ROLE postgres      SET search_path = "$user", public, extensions;
+-- 6. Re-create columns + indexes (now resolved via extensions schema)
+ALTER TABLE public.destinations ADD COLUMN location geography(Point, 4326);
+ALTER TABLE public.users        ADD COLUMN current_location geography(Point, 4326);
+CREATE INDEX idx_destinations_location ON public.destinations USING gist (location);
+CREATE INDEX idx_users_location        ON public.users        USING gist (current_location);
+-- 7. Restore data
+UPDATE public.destinations d SET location = ST_GeogFromEWKT(b.loc) FROM _bk_dest b WHERE d.id = b.id;
+UPDATE public.users        u SET current_location = ST_GeogFromEWKT(b.loc) FROM _bk_user b WHERE u.id = b.id;
+COMMIT;
+```
+
+Estimated window: ~5-15 min downtime for any /destinations or /profile query that reads location. Other surfaces unaffected. Rollback: `ROLLBACK` before COMMIT — DB unchanged.
+
 ### 2. Auth settings (dashboard → Authentication → Providers/Settings)
 - **OTP expiry**: currently >1 hour. Recommended: 1 hour or less.
 - **Leaked password protection**: disable → enable. Checks new passwords
