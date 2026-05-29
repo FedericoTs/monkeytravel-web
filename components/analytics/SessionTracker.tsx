@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   trackSessionStart,
   trackUserReturn,
@@ -23,16 +24,19 @@ const SESSION_COUNT_KEY = "mt_session_count";
  */
 export default function SessionTracker() {
   const hasTracked = useRef(false);
+  // Task #181 cleanup: read auth from the single AuthProvider rather than
+  // firing our own getUser(). Wait for `authLoading` to flip false before
+  // tracking — otherwise the requestIdleCallback path could race ahead and
+  // emit an "anonymous session" event for users who are actually logged in.
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     // Only track once per page load
     if (hasTracked.current) return;
+    if (authLoading) return;
     hasTracked.current = true;
 
     const trackSession = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
       // Calculate days since last visit
       const lastVisit = localStorage.getItem(SESSION_STORAGE_KEY);
       const sessionCount = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || "0", 10) + 1;
@@ -61,6 +65,8 @@ export default function SessionTracker() {
 
       // Set user ID for cross-session tracking
       setUserId(user.id);
+
+      const supabase = createClient();
 
       // Fetch all user data in parallel for better performance
       const [
@@ -162,7 +168,9 @@ export default function SessionTracker() {
       const timeoutId = setTimeout(trackSession, 5000);
       return () => clearTimeout(timeoutId);
     }
-  }, []);
+    // hasTracked guards re-fire — only the first post-auth-resolved render
+    // schedules the work, so we intentionally re-run when authLoading flips.
+  }, [authLoading, user]);
 
   // This component doesn't render anything
   return null;

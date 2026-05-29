@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export interface EarlyAccessLimits {
   generations: { limit: number | null; used: number };
@@ -35,29 +35,29 @@ interface UseEarlyAccessReturn {
  * Hook to manage early access state and gate AI features
  */
 export function useEarlyAccess(): UseEarlyAccessReturn {
+  // Task #181 cleanup: read auth from the single AuthProvider. We used to
+  // call getUser() + register our own onAuthStateChange listener to re-fetch
+  // status on SIGNED_IN / SIGNED_OUT. Now `user` updates flow through the
+  // central context and we just rerun fetchStatus when it changes.
+  const { user, loading: authLoading } = useAuth();
   const [status, setStatus] = useState<EarlyAccessStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Fetch early access status
+  const isAuthenticated = !!user;
+
+  // Fetch early access status. Depends on the current user (so we re-run
+  // on auth transitions) but the user lookup itself is now context-cheap.
   const fetchStatus = useCallback(async () => {
     try {
       setError(null);
 
-      // Check if user is authenticated first
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) {
-        setIsAuthenticated(false);
         setStatus({ hasAccess: false, isAdmin: false, accessType: "none" });
         setIsLoading(false);
         return;
       }
-
-      setIsAuthenticated(true);
 
       const response = await fetch("/api/early-access/status");
 
@@ -75,23 +75,13 @@ export function useEarlyAccess(): UseEarlyAccessReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  // Initial fetch and auth state listener
+  // Initial fetch — re-runs when auth state resolves or the user changes.
   useEffect(() => {
+    if (authLoading) return;
     fetchStatus();
-
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-        fetchStatus();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [fetchStatus]);
+  }, [authLoading, fetchStatus]);
 
   // Redeem a code
   const redeemCode = useCallback(async (code: string): Promise<boolean> => {

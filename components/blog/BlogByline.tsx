@@ -50,7 +50,6 @@ export default function BlogByline({
             alt={author.name}
             width={44}
             height={44}
-            unoptimized
             className="w-full h-full object-cover"
           />
         </Link>
@@ -89,7 +88,6 @@ export default function BlogByline({
           alt={logoAlt}
           width={36}
           height={36}
-          unoptimized
           className="w-7 h-7 object-contain"
         />
       </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
 
 interface InviteAcceptClientProps {
@@ -51,9 +52,17 @@ export default function InviteAcceptClient({
   const t = useTranslations("common.invitePage");
   const tRoles = useTranslations("common.roles");
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Task #181 cleanup: pull auth from the single AuthProvider. We project
+  // it into the existing `{ id, email }` shape the JSX below already
+  // expects, so the render tree is untouched. `isCheckingAuth` maps to
+  // the provider's `loading` so the spinner state still works.
+  const { user: authUser, loading: isCheckingAuth } = useAuth();
+  const user = authUser ? { id: authUser.id, email: authUser.email || "" } : null;
+  // Track previous user id so we only auto-accept on the null → set
+  // transition (i.e. the actual SIGNED_IN event). Equivalent to the
+  // removed per-component onAuthStateChange("SIGNED_IN") listener.
+  const prevUserIdRef = useRef<string | null>(null);
 
   const roleInfo = ROLE_INFO[invite.role];
   const displayInviter = inviter || owner;
@@ -101,34 +110,32 @@ export default function InviteAcceptClient({
     }
   }, [router, t]);
 
-  // Check authentication status
+  // Auto-accept on the null → set user transition that happens AFTER the
+  // central AuthProvider has resolved its initial getUser(). The original
+  // code only auto-accepted on the SIGNED_IN event (which does NOT fire
+  // on initial hydration of an existing session), so we must NOT fire
+  // here for users who were already logged in on first paint — they get
+  // the manual "Join Trip" button. We initialize prevUserIdRef to the
+  // resolved user id the first time loading flips false, then watch for
+  // subsequent transitions.
+  const sessionResolvedRef = useRef(false);
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        setUser({ id: user.id, email: user.email || "" });
-      }
-      setIsCheckingAuth(false);
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        setUser({ id: session.user.id, email: session.user.email || "" });
-        // Auto-accept after sign in - handleAcceptInvite is stable via useCallback
-        handleAcceptInvite();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [handleAcceptInvite]);
+    if (isCheckingAuth) return;
+    if (!sessionResolvedRef.current) {
+      // First post-resolution render — seed the ref with whatever the
+      // initial session was (could be null for anon or a string for
+      // already-logged-in). Either way: no auto-accept fires here.
+      prevUserIdRef.current = authUser?.id ?? null;
+      sessionResolvedRef.current = true;
+      return;
+    }
+    const currentId = authUser?.id ?? null;
+    if (currentId && !prevUserIdRef.current) {
+      // User just signed in — auto-accept the invite.
+      handleAcceptInvite();
+    }
+    prevUserIdRef.current = currentId;
+  }, [authUser, isCheckingAuth, handleAcceptInvite]);
 
   // Sign in with provider
   const handleSignIn = async (provider: "google" | "apple") => {

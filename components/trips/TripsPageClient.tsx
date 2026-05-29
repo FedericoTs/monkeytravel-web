@@ -1004,6 +1004,18 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
               </svg>
               {t('planFirstTrip')}
             </Link>
+            {/* **2026-05-29 (/explore Week 3)**: secondary CTA so first-time
+                visitors with zero trips have a low-friction discovery path
+                (browse community trips → fork) in parallel to the high-friction
+                "Plan a trip from scratch" path. Mirrors Layla/Wonderplan. */}
+            <div className="mt-3">
+              <Link
+                href="/explore"
+                className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-[var(--primary)] underline underline-offset-4 transition-colors"
+              >
+                {t('orBrowseExplore')} →
+              </Link>
+            </div>
           </div>
         )}
 

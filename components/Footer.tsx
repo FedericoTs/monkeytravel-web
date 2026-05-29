@@ -24,6 +24,13 @@ export default async function Footer() {
   const footerLinks = {
     product: [
       { label: t('destinations'), href: '/destinations' },
+      // **2026-05-29 (/explore Week 3)**: surface the community feed +
+      // bookmarked-trips list site-wide. /saved had ZERO entry points
+      // outside direct URL; /explore was only reachable via post-save
+      // auto-prompt or the new Navbar entry. Sitewide footer link flows
+      // PageRank to both and gives users a stable backstop.
+      { label: t('explore'), href: '/explore' },
+      { label: t('saved'), href: '/saved' },
       { label: t('blog'), href: '/blog' },
       // **2026-05-25**: Tools row added — previously the Packing List
       // and Visa Checker tools had no entry-points outside their own
@@ -70,7 +77,6 @@ export default async function Footer() {
                 alt={tCommon('logoAlt')}
                 width={36}
                 height={36}
-                unoptimized
                 className="w-9 h-9 object-contain"
               />
               <span className="text-lg font-bold">MonkeyTravel</span>

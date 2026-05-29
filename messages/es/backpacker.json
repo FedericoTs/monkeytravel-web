@@ -91,6 +91,11 @@
       "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
     }
   },
+  "trendingTrips": {
+    "title": "Mira viajes backpacker reales",
+    "subtitle": "Itinerarios que otros viajeros publicaron en modo Backpacker. Forkea cualquiera para empezar a planificar el tuyo.",
+    "browseAll": "Ver todos en Explorar →"
+  },
   "faq": {
     "title": "Preguntas frecuentes",
     "items": {

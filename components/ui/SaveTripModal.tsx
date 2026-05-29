@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 import { prefs } from "@/lib/platform/storage";
@@ -69,7 +69,12 @@ export default function SaveTripModal({
 }: SaveTripModalProps) {
   const router = useRouter();
   const t = useTranslations("common.saveTrip");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // Task #181 cleanup: read auth from the single AuthProvider. We expose
+  // a tri-state through `isAuthenticated` (true / false / null) to preserve
+  // the original "don't render the auth-dependent CTA copy until we know"
+  // behavior — keep that semantic by mapping `loading` to `null`.
+  const { user, loading: authLoading } = useAuth();
+  const isAuthenticated: boolean | null = authLoading ? null : !!user;
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,26 +90,6 @@ export default function SaveTripModal({
       setSaveSuccess(false);
     }
   }, [isOpen]);
-
-  // Check auth status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-    };
-
-    checkAuth();
-
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session?.user);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   // Parse YYYY-MM-DD strings as LOCAL midnight (not UTC midnight) so
   // toLocaleDateString below renders the day the user actually picked.

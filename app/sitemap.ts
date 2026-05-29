@@ -91,6 +91,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // discoverable to Googlebot too).
   const toolPaths = ['/tools', '/tools/packing-list', '/tools/visa-checker'];
 
+  // **2026-05-29 (/explore Week 3)**: /explore is the freshest-content
+  // page on the site (community UGC feed) and was completely absent
+  // from the sitemap. PRIORITY_INDEX + daily changefreq signals high
+  // crawl value. /saved is noindexed by design (personal list) — don't
+  // include. We deliberately do NOT enumerate every filter combination
+  // (e.g. /explore?budget=premium) to concentrate PageRank on a single
+  // canonical entry-point rather than diluting it across N facets.
+  const explorePaths = ['/explore'];
+
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;
     for (const path of seoLandingPaths) {
@@ -107,6 +116,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: LASTMOD_LANDING,
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
+      });
+    }
+    for (const path of explorePaths) {
+      landingPages.push({
+        url: `${baseUrl}${prefix}${path}`,
+        lastModified: LASTMOD_HOMEPAGE,
+        // Daily — explore feed re-ranks via trending_score every cron tick
+        // and new UGC trips land continuously. We want Googlebot to come
+        // back often, not the monthly cadence the SEO landing pages use.
+        changeFrequency: 'daily',
+        priority: PRIORITY_INDEX,
       });
     }
   }

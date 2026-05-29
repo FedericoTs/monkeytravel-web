@@ -118,6 +118,17 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             >
               {t('navigation.myTrips')}
             </Link>
+            {/* **2026-05-29 (/explore Week 3)**: Saved link for authed users.
+                /saved had ZERO entry points anywhere in the app pre-Week 3 —
+                users who tap Save on an explore card had no way to find their
+                saves. Sits next to My Trips as the natural sibling. */}
+            <Link
+              href="/saved"
+              className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+              title={t('navigation.saved')}
+            >
+              {t('navigation.saved')}
+            </Link>
             {/* Bell sits between My Trips and Profile. Self-hides for anon visitors. */}
             <NotificationBell />
             <Link
@@ -210,6 +221,19 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('navigation.myTrips')}
+                  </Link>
+                  {/* Mobile sibling for the desktop "Saved" link added above
+                      (/explore Week 3, 2026-05-29). Mounted between My Trips
+                      and Profile so it's discoverable on mobile too. */}
+                  <Link
+                    href="/saved"
+                    className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-slate-200 text-[var(--foreground)] font-medium hover:bg-slate-50 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    {t('navigation.saved')}
                   </Link>
                   <Link
                     href="/profile"

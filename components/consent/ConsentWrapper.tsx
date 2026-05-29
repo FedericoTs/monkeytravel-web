@@ -16,37 +16,23 @@
  * `bannerStatus !== "visible"`, so it's safe to always render too.
  */
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { ConsentProvider } from "@/lib/consent";
 import { CookieConsentBanner } from "./CookieConsentBanner";
 import { CookieSettingsModal } from "./CookieSettingsModal";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface ConsentWrapperProps {
   children: ReactNode;
 }
 
 export function ConsentWrapper({ children }: ConsentWrapperProps) {
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth
-      .getUser()
-      .then(({ data: { user } }) => setUserId(user?.id ?? null))
-      .catch(() => setUserId(null));
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // Task #181 cleanup: read auth state from the single AuthProvider
+  // instead of running our own getUser() + onAuthStateChange listener.
+  // ConsentProvider tolerates `userId={null}` and re-runs its effect
+  // when userId becomes set — same shape as before, fewer round-trips.
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
 
   return (
     <ConsentProvider userId={userId}>

@@ -84,7 +84,9 @@
     "moreDestinations": "More Destinations to Explore",
     "popularDestinations": "Popular Destinations",
     "relatedArticles": "Travel Tips & Guides",
-    "exploreByStyle": "More {tag} Destinations"
+    "exploreByStyle": "More {tag} Destinations",
+    "trendingTripsIn": "Trending trips to {city}",
+    "browseAllTripsTo": "Browse all trips to {city} →"
   },
   "cta": {
     "generateItinerary": "Generate My {city} Itinerary",

@@ -116,7 +116,6 @@ export default async function AuthorPage({ params }: PageProps) {
                   alt={author.name}
                   width={160}
                   height={160}
-                  unoptimized
                   className="w-full h-full object-cover"
                   // If the file doesn't exist yet, the gradient fallback shows through
                 />

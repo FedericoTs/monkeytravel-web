@@ -9,6 +9,12 @@ import {
 } from "@/lib/seo/structured-data";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
+// /explore Week 3 (2026-05-29): surface real backpacker trips on the
+// Hostelworld wedge landing page. The exact social-proof asset that
+// would convert this segment was already built (/explore feed +
+// TripCard) but had no link from /backpacker — closing the loop.
+import TripCard from "@/components/explore/TripCard";
+import type { ExploreFeedResponse } from "@/lib/explore/types";
 
 /**
  * Server-side fetch for the 30-day Hostelworld click stats.
@@ -38,6 +44,31 @@ async function fetchHostelworldStats(): Promise<{
     const data = await res.json();
     if (typeof data?.clicks30d !== "number") return null;
     return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch /api/explore/trips filtered to travel_style=backpacker.
+ *
+ * Mirrors the helper in app/[locale]/explore/page.tsx — the typed
+ * fetchExploreFeed wrapper doesn't expose travel_style on its Filters
+ * interface (it's a UI-layer concept) but the API route reads it
+ * from the URL. Same host + 60s revalidate so this stays consistent
+ * with the cached default-filter path on the /explore page.
+ */
+async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const url = `${proto}://${host}/api/explore/trips?travel_style=backpacker&page=1`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!Array.isArray(json?.trips)) return null;
+    return json as ExploreFeedResponse;
   } catch {
     return null;
   }
@@ -180,6 +211,13 @@ export default async function BackpackerLandingPage({
   // for the "don't show zero" rationale.
   const stats = await fetchHostelworldStats();
   const showStatsBlock = stats !== null && stats.clicks30d >= 10;
+
+  // /explore Week 3 (2026-05-29): live backpacker trips for the
+  // social-proof block below sample routes. Renders nothing when there
+  // are no published trips yet — empty section would weaken the
+  // partnership narrative more than its absence would.
+  const backpackerFeed = await fetchBackpackerTrips();
+  const backpackerTrips = backpackerFeed?.trips?.slice(0, 6) ?? [];
 
   // Locale-aware number formatting for the stats counters. en-US, es-ES,
   // it-IT all format thousands identically in the user-perceived sense
@@ -390,6 +428,40 @@ export default async function BackpackerLandingPage({
             </div>
           </div>
         </section>
+
+        {/* ============== TRENDING BACKPACKER TRIPS ============== */}
+        {/* /explore Week 3 (2026-05-29): live community trips filtered to
+            Backpacker mode. Sits between sample routes and FAQ so visitors
+            who liked the curated routes see proof other travelers actually
+            use the product. Renders nothing on empty feed — see
+            fetchBackpackerTrips rationale. */}
+        {backpackerTrips.length > 0 && (
+          <section className="py-20 bg-emerald-50/30 border-t border-emerald-100">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+                  {t("trendingTrips.title")}
+                </h2>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                  {t("trendingTrips.subtitle")}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                {backpackerTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} variant="compact" />
+                ))}
+              </div>
+              <div className="text-center mt-10">
+                <Link
+                  href={"/explore?travel_style=backpacker" as never}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-emerald-200 text-emerald-700 font-semibold hover:bg-emerald-50 transition-all"
+                >
+                  {t("trendingTrips.browseAll")}
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ============== FAQ ============== */}
         <section className="py-20 bg-slate-50">

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { capture } from "@/lib/posthog";
+import { openExternal } from "@/lib/native/external-link";
 
 export type BookingType =
   | "flight"
@@ -111,6 +112,7 @@ export default function BookingCTA({
       trip_id: tripId || "unknown",
       url: href,
     });
+    openExternal(href);
   };
 
   const variantClasses = {
@@ -129,11 +131,10 @@ export default function BookingCTA({
   };
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
+    <button
+      type="button"
       onClick={handleClick}
+      data-rel="sponsored noopener noreferrer"
       className={`
         inline-flex items-center justify-center rounded-lg font-medium
         transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -145,6 +146,6 @@ export default function BookingCTA({
     >
       {ICONS[type]}
       <span>{t(labelKeys[type])}</span>
-    </a>
+    </button>
   );
 }

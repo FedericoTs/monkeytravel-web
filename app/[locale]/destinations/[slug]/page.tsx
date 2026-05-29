@@ -28,6 +28,13 @@ import {
   DestinationSectionNav,
 } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
+// **2026-05-29 (/explore Week 3)**: surface real community trips on the
+// per-destination page. Highest-intent integration miss in the audit —
+// visitors browsing /destinations/paris should see actual itineraries for
+// Paris, not just static "sample day" copy. Lives below SampleDay so it
+// catches the user who liked the sample and wants real examples.
+import { fetchExploreFeed } from "@/lib/explore/fetcher";
+import TripCard from "@/components/explore/TripCard";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -159,6 +166,17 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
   const { prev: prevDest, next: nextDest } = getPrevNextDestinations(slug, loc);
 
+  // /explore Week 3 (2026-05-29): pull live community trips for this
+  // destination. Server-side fetch with the default 60s revalidate
+  // — page is statically generated per locale so this hits the cached
+  // response for ~all production traffic. Falls back to nothing when
+  // the explore flag is off OR there are no matching trips.
+  const exploreFeed = await fetchExploreFeed({
+    destination: cityName,
+    page: 1,
+  }).catch(() => null);
+  const trendingTrips = exploreFeed?.trips?.slice(0, 6) ?? [];
+
   const sectionNavEntries = [
     { id: "overview",   label: t("nav.overview") },
     { id: "best-time",  label: t("nav.bestTime") },
@@ -270,6 +288,34 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             t={t}
           />
         </section>
+
+        {/* /explore Week 3 (2026-05-29): real community trips for this
+            destination. Highest-intent integration point — visitor is
+            already looking for {city} content; show them actual planned
+            itineraries. Renders nothing when there are no matches so
+            the page stays clean on lower-traffic destinations. */}
+        {trendingTrips.length > 0 && (
+          <section className="py-16 bg-white border-t border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)]">
+                  {t("sections.trendingTripsIn", { city: cityName })}
+                </h2>
+                <Link
+                  href={`/explore?destination=${encodeURIComponent(cityName)}`}
+                  className="text-sm font-medium text-[var(--primary)] hover:underline"
+                >
+                  {t("sections.browseAllTripsTo", { city: cityName })}
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                {trendingTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} variant="compact" />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section id="faq" className="scroll-mt-32">

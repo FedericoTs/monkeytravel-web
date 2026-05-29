@@ -18,6 +18,7 @@ import {
   type PartnerKey,
 } from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
+import { openExternal } from "@/lib/native/external-link";
 import AffiliateDisclosure from "./AffiliateDisclosure";
 
 interface EnhancedBookingPanelProps {
@@ -56,14 +57,14 @@ function PartnerLink({ partner, href, isPrimary, tripId, destination, category }
       trip_id: tripId,
       is_primary: isPrimary,
     });
+    openExternal(href);
   };
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
+    <button
+      type="button"
       onClick={handleClick}
+      data-rel="sponsored noopener noreferrer"
       className={`
         flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
         ${isPrimary
@@ -75,7 +76,7 @@ function PartnerLink({ partner, href, isPrimary, tripId, destination, category }
       <span>{config.icon}</span>
       <span className="flex-1">{config.name}</span>
       <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-    </a>
+    </button>
   );
 }
 

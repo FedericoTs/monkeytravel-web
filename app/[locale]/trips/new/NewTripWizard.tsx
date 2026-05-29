@@ -20,6 +20,7 @@ export interface PrefilledDestination {
   longitude: number;
 }
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
 import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
@@ -186,8 +187,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // "unspecified" = user clicked Continue without touching the toggle.
   const [tripIntent, setTripIntent] = useState<TripIntent>("unspecified");
 
-  // Auth state for gradual engagement
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // Auth state for gradual engagement — task #181: read auth from the
+  // single AuthProvider instead of running our own getUser() listener.
+  // isAuthenticated keeps its existing tri-state shape (null=loading,
+  // true/false otherwise) so the downstream JSX gating doesn't change.
+  const { user: authUser, loading: authLoading } = useAuth();
+  const isAuthenticated: boolean | null = authLoading ? null : !!authUser;
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
@@ -402,24 +407,25 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     };
   }, [STEP_NAMES_CONST]);
 
-  // Check authentication status and existing trips on mount
+  // Existing-trips check — task #181: auth state itself flows from the
+  // central AuthProvider above. We only need this effect for the trips
+  // count, which gets re-evaluated whenever the user resolves or changes.
   useEffect(() => {
-    const checkAuth = async () => {
+    if (authLoading) return;
+    if (!authUser) {
+      setHasExistingTrips(false);
+      return;
+    }
+    const checkExistingTrips = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-
-      // For authenticated users, check if they have existing trips
-      if (user) {
-        const { count } = await supabase
-          .from("trips")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id);
-        setHasExistingTrips((count ?? 0) > 0);
-      }
+      const { count } = await supabase
+        .from("trips")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", authUser.id);
+      setHasExistingTrips((count ?? 0) > 0);
     };
-    checkAuth();
-  }, []);
+    checkExistingTrips();
+  }, [authLoading, authUser]);
 
   // Handle pending generation after signup (when draft is restored).
   // The `pendingTripGeneration` flag now lives in `prefs` (durable on
@@ -982,10 +988,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
     setLoading(true);
     try {
+      // Task #181: read auth from the central AuthProvider rather than
+      // firing another getUser() round-trip. The subsequent supabase
+      // INSERT below still goes through the per-request client (RLS will
+      // re-verify the session on the wire).
+      const user = authUser;
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
 
       if (!user) {
         // **2026-05-23**: This is now the auth wall (moved from Generate).

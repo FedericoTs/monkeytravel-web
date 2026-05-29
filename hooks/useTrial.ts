@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   AccessLevel,
   getUserAccessLevel,
@@ -20,6 +21,11 @@ interface TrialStatus {
 }
 
 export function useTrial(): TrialStatus {
+  // Task #181 cleanup: read auth from the single AuthProvider. The hook
+  // itself stays — we still need to fetch users.is_pro / trial_ends_at
+  // and re-derive the status struct — we just don't fire our own
+  // getUser() round-trip anymore.
+  const { user, loading: authLoading } = useAuth();
   const [status, setStatus] = useState<TrialStatus>({
     isLoading: true,
     accessLevel: "free",
@@ -31,12 +37,11 @@ export function useTrial(): TrialStatus {
   });
 
   useEffect(() => {
-    const fetchTrialStatus = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    // Defer until the central AuthProvider has resolved so we don't briefly
+    // mark a logged-in trial user as "free".
+    if (authLoading) return;
 
+    const fetchTrialStatus = async () => {
       if (!user) {
         setStatus({
           isLoading: false,
@@ -51,6 +56,7 @@ export function useTrial(): TrialStatus {
       }
 
       // Fetch user's trial/pro status
+      const supabase = createClient();
       const { data: profile } = await supabase
         .from("users")
         .select("is_pro, trial_ends_at")
@@ -86,7 +92,7 @@ export function useTrial(): TrialStatus {
     };
 
     fetchTrialStatus();
-  }, []);
+  }, [authLoading, user]);
 
   return status;
 }

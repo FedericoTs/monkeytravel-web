@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Copy, Sparkles, Check, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
@@ -38,39 +38,36 @@ export default function DuplicateTripCTA({
 }: DuplicateTripCTAProps) {
   const t = useTranslations("common.duplicateTrip");
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // Task #181 cleanup: read auth from the single AuthProvider. The CTA
+  // copy/icon depends on whether the user is signed in, plus we run a
+  // pending-duplicate handoff when a user transitions from null → set
+  // (equivalent to the old SIGNED_IN listener).
+  const { user, loading: authLoading } = useAuth();
+  const isAuthenticated: boolean | null = authLoading ? null : !!user;
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [duplicateSuccess, setDuplicateSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track when the AuthProvider has resolved, and the previous user id,
+  // so we differentiate "already logged in on mount" from "just signed in".
+  // Both paths need to drain the pending-duplicate cookie, mirroring the
+  // original code's behavior (mount check + SIGNED_IN listener).
+  const sessionResolvedRef = useRef(false);
+  const prevUserIdRef = useRef<string | null>(null);
 
-  // Check auth status on mount
+  // Mount-time + post-signin pending-duplicate handoff. Replaces the
+  // pair of (a) inline getUser() on mount and (b) onAuthStateChange
+  // SIGNED_IN listener — both now share one effect driven by the
+  // central auth context.
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
+    if (authLoading) return;
+    const currentId = user?.id ?? null;
+    const wasFirstResolve = !sessionResolvedRef.current;
 
-      // Check if there's a pending duplicate action after login
-      if (user) {
-        const pending = await getPendingDuplicate();
-        if (pending && pending.shareToken === shareToken) {
-          // Auto-execute the pending duplicate
-          await clearPendingDuplicate();
-          handleDuplicate();
-        }
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth state changes
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session?.user);
-
-      // Check for pending duplicate after login. The listener callback
-      // is sync, so we fire-and-forget the async work inside an IIFE.
-      if (event === "SIGNED_IN" && session?.user) {
+    if (wasFirstResolve) {
+      sessionResolvedRef.current = true;
+      prevUserIdRef.current = currentId;
+      if (currentId) {
+        // Already logged in on first paint — same as the old mount check.
         (async () => {
           const pending = await getPendingDuplicate();
           if (pending && pending.shareToken === shareToken) {
@@ -79,13 +76,22 @@ export default function DuplicateTripCTA({
           }
         })();
       }
-    });
+      return;
+    }
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Subsequent renders: detect the null → set transition (SIGNED_IN).
+    if (currentId && !prevUserIdRef.current) {
+      (async () => {
+        const pending = await getPendingDuplicate();
+        if (pending && pending.shareToken === shareToken) {
+          await clearPendingDuplicate();
+          handleDuplicate();
+        }
+      })();
+    }
+    prevUserIdRef.current = currentId;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shareToken]);
+  }, [authLoading, user, shareToken]);
 
   // Store pending duplicate action. Async because the native
   // (Capacitor) backend writes to NSUserDefaults / SharedPreferences

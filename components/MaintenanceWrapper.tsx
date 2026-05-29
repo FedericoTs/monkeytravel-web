@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { isAdmin } from "@/lib/admin";
 import MaintenancePage from "./MaintenancePage";
 
@@ -44,6 +45,11 @@ async function hasValidTesterAccess(
 
 export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
   const pathname = usePathname();
+  // Task #181 cleanup: read auth state from the single AuthProvider
+  // instead of firing our own getUser(). `loading` is used to defer the
+  // maintenance check until we actually know whether there's a user —
+  // otherwise admins could see a flash of MaintenancePage on first paint.
+  const { user, loading: authLoading } = useAuth();
   const [isBlocked, setIsBlocked] = useState(false);
   const [config, setConfig] = useState<SiteConfig | null>(null);
 
@@ -59,10 +65,6 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
         setIsBlocked(false);
         return;
       }
-
-      // Check if user is authenticated
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
 
       // If not authenticated, block access (they'll see maintenance page)
       if (!user) {
@@ -84,6 +86,7 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
       }
 
       // Check if user has redeemed an early access code
+      const supabase = createClient();
       if (await hasValidTesterAccess(supabase, user.id)) {
         setIsBlocked(false);
         return;
@@ -96,7 +99,7 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
       // On error, allow access to prevent locking everyone out
       setIsBlocked(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Skip maintenance check for certain paths
@@ -114,8 +117,12 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
     const shouldSkip = skipPaths.some(path => pathname.startsWith(path));
     if (shouldSkip) return;
 
+    // Wait for the central AuthProvider to resolve before deciding — otherwise
+    // we'd treat the brief pre-hydration window as "no user" and block admins.
+    if (authLoading) return;
+
     checkAccess();
-  }, [pathname, checkAccess]);
+  }, [pathname, checkAccess, authLoading]);
 
   // Render children by default — Googlebot and the first paint both get full
   // page content immediately. The async maintenance check runs in useEffect; if

@@ -10,6 +10,7 @@ import {
   PARTNERS,
 } from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
+import { openExternal } from "@/lib/native/external-link";
 
 interface ActivityBookingCTAProps {
   activityName: string;
@@ -51,6 +52,7 @@ export default function ActivityBookingCTA({
       destination,
       trip_id: tripId,
     });
+    openExternal(url);
   };
 
   const getPartnerLink = (partner: ActivityPartner): string => {
@@ -75,11 +77,10 @@ export default function ActivityBookingCTA({
     const partner = bestPartner;
 
     return (
-      <a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
+      <button
+        type="button"
         onClick={() => handleClick(partner, link)}
+        data-rel="sponsored noopener noreferrer"
         className={`
           inline-flex items-center justify-center rounded-lg font-medium
           bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90
@@ -91,7 +92,7 @@ export default function ActivityBookingCTA({
         <Ticket className={size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4"} />
         <span>{t("bookNow")}</span>
         <ExternalLink className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} />
-      </a>
+      </button>
     );
   }
 
@@ -109,12 +110,11 @@ export default function ActivityBookingCTA({
     return (
       <div className={`flex gap-2 ${className}`}>
         {showPartners.map((partner, index) => (
-          <a
+          <button
             key={partner}
-            href={getPartnerLink(partner)}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+            type="button"
             onClick={() => handleClick(partner, getPartnerLink(partner))}
+            data-rel="sponsored noopener noreferrer"
             className={`
               inline-flex items-center justify-center rounded-lg font-medium
               transition-colors
@@ -128,7 +128,7 @@ export default function ActivityBookingCTA({
             <span>{PARTNERS[partner].icon}</span>
             <span>{partner === "getyourguide" ? "GYG" : PARTNERS[partner].name}</span>
             <ExternalLink className="w-3 h-3" />
-          </a>
+          </button>
         ))}
       </div>
     );
@@ -137,11 +137,10 @@ export default function ActivityBookingCTA({
   // Triple buttons - show all three partners
   return (
     <div className={`flex gap-2 ${className}`}>
-      <a
-        href={getYourGuideLink}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
+      <button
+        type="button"
         onClick={() => handleClick("getyourguide", getYourGuideLink)}
+        data-rel="sponsored noopener noreferrer"
         className={`
           inline-flex items-center justify-center rounded-lg font-medium
           transition-colors
@@ -155,13 +154,12 @@ export default function ActivityBookingCTA({
         <span>{PARTNERS.getyourguide.icon}</span>
         <span>GYG</span>
         <ExternalLink className="w-3 h-3" />
-      </a>
+      </button>
 
-      <a
-        href={klookLink}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
+      <button
+        type="button"
         onClick={() => handleClick("klook", klookLink)}
+        data-rel="sponsored noopener noreferrer"
         className={`
           inline-flex items-center justify-center rounded-lg font-medium
           transition-colors
@@ -175,13 +173,12 @@ export default function ActivityBookingCTA({
         <span>{PARTNERS.klook.icon}</span>
         <span>Klook</span>
         <ExternalLink className="w-3 h-3" />
-      </a>
+      </button>
 
-      <a
-        href={tiqetsLink}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
+      <button
+        type="button"
         onClick={() => handleClick("tiqets", tiqetsLink)}
+        data-rel="sponsored noopener noreferrer"
         className={`
           inline-flex items-center justify-center rounded-lg font-medium
           transition-colors
@@ -195,7 +192,7 @@ export default function ActivityBookingCTA({
         <span>{PARTNERS.tiqets.icon}</span>
         <span>Tiqets</span>
         <ExternalLink className="w-3 h-3" />
-      </a>
+      </button>
     </div>
   );
 }

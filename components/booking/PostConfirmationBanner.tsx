@@ -10,6 +10,7 @@ import {
   generateGetYourGuideLink,
 } from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
+import { openExternal } from "@/lib/native/external-link";
 
 interface PostConfirmationBannerProps {
   tripId: string;
@@ -49,6 +50,7 @@ export default function PostConfirmationBanner({
       trip_id: tripId,
       url,
     });
+    openExternal(url);
   };
 
   return (
@@ -86,15 +88,14 @@ export default function PostConfirmationBanner({
             <span className="font-medium text-slate-900">{t("activitiesTitle")}</span>
           </div>
           <p className="text-sm text-slate-600 mb-3">{t("activitiesDescription")}</p>
-          <a
-            href={getYourGuideLink}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+          <button
+            type="button"
             onClick={() => handleServiceClick("getyourguide", getYourGuideLink)}
-            className="block text-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+            data-rel="sponsored noopener noreferrer"
+            className="block w-full text-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
           >
             GetYourGuide
-          </a>
+          </button>
         </div>
 
         {/* eSIM Card */}
@@ -105,24 +106,22 @@ export default function PostConfirmationBanner({
           </div>
           <p className="text-sm text-slate-600 mb-3">{t("esimDescription")}</p>
           <div className="flex gap-2">
-            <a
-              href={yesimLink}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+            <button
+              type="button"
               onClick={() => handleServiceClick("yesim", yesimLink)}
+              data-rel="sponsored noopener noreferrer"
               className="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Yesim
-            </a>
-            <a
-              href={sailyLink}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+            </button>
+            <button
+              type="button"
               onClick={() => handleServiceClick("saily", sailyLink)}
+              data-rel="sponsored noopener noreferrer"
               className="flex-1 text-center px-3 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
             >
               Saily
-            </a>
+            </button>
           </div>
         </div>
 
@@ -137,15 +136,14 @@ export default function PostConfirmationBanner({
           <p className="text-sm text-slate-600 mb-3">
             {t("flightIssuesDescription")}
           </p>
-          <a
-            href={airHelpLink}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+          <button
+            type="button"
             onClick={() => handleServiceClick("airhelp", airHelpLink)}
-            className="block text-center px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors"
+            data-rel="sponsored noopener noreferrer"
+            className="block w-full text-center px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors"
           >
             {t("checkAirHelp")}
-          </a>
+          </button>
         </div>
       </div>
 

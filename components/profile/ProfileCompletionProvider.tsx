@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileCompletionModal from "./ProfileCompletionModal";
 
 interface ProfileCompletionContextType {
@@ -43,10 +44,19 @@ export default function ProfileCompletionProvider({
   const [isProfileComplete, setIsProfileComplete] = useState(true); // Default to true to prevent flash
   const [profileData, setProfileData] = useState<Partial<UserProfileData>>({});
   const [hasChecked, setHasChecked] = useState(false);
+  // Task #181 cleanup: read auth from the single AuthProvider. We still own
+  // the per-session sessionStorage gate and the post-mount DB lookup — only
+  // the "who's the current user?" question is delegated to the context.
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    // Defer the check until the central AuthProvider has resolved — otherwise
+    // we'd mark logged-in users as anonymous on first paint and skip the
+    // completion prompt entirely.
+    if (authLoading) return;
     checkProfileCompletion();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id]);
 
   const checkProfileCompletion = async () => {
     // Check if we've already shown the modal this session
@@ -59,16 +69,12 @@ export default function ProfileCompletionProvider({
     }
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       if (!user) {
         setHasChecked(true);
         return;
       }
 
+      const supabase = createClient();
       const { data: profile } = await supabase
         .from("users")
         .select("login_count, profile_completed, display_name, home_country, home_city, languages, bio")
