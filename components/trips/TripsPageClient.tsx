@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, Suspense } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -244,8 +244,18 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
   const TripCard = ({ trip }: { trip: Trip }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(trip.cover_image_url || null);
     const [imageError, setImageError] = useState(false);
-    const [imageLoading, setImageLoading] = useState(true);
+    // Initial imageLoading: false when trip already has a cover URL — the
+    // <img> mounts with that src and either fires onLoad from the network
+    // OR (for cached images) skips onLoad entirely. The pre-fix behaviour
+    // — initial true + relying on onLoad — left repeat visitors stuck at
+    // opacity:0 forever because browser-cached images don't trigger
+    // onLoad. Live audit 2026-05-28 caught the user's "all 6 covers
+    // missing" report despite the network actually returning the bytes.
+    // For the lazy-fetch path (no cover_image_url yet) we flip to true so
+    // the skeleton still shimmers while we wait for /api/images/destination.
+    const [imageLoading, setImageLoading] = useState(!trip.cover_image_url);
     const [menuOpen, setMenuOpen] = useState(false);
+    const imgRef = useRef<HTMLImageElement | null>(null);
     const gradient = getDestinationGradient(trip.title);
     const destination = trip.title.replace(/ Trip$/i, "").replace(/Trip to /i, "");
     const isArchived = trip.is_archived;
@@ -269,6 +279,17 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
         fetchImage();
       }
     }, [trip.cover_image_url, destination, imageUrl]);
+
+    // Safety net for cached images: if the <img> is already complete by
+    // the time React commits (browser cache hit), onLoad never fires.
+    // Reconcile state by inspecting the ref after every imageUrl change.
+    useEffect(() => {
+      if (!imageUrl) return;
+      const img = imgRef.current;
+      if (img && img.complete && img.naturalWidth > 0) {
+        setImageLoading(false);
+      }
+    }, [imageUrl]);
 
     // Check if image URL is valid and usable
     const hasValidImage = imageUrl && !imageError;
@@ -327,6 +348,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
           {/* Actual Image with error handling */}
           {imageUrl && !imageError && (
             <img
+              ref={imgRef}
               src={imageUrl}
               alt={trip.title}
               onError={handleImageError}
