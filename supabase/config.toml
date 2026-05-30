@@ -1,0 +1,47 @@
+# Supabase project config for hosted environment.
+#
+# IMPORTANT: `supabase config push` does NOT do partial pushes — every value
+# absent here defaults to the CLI's built-in defaults and OVERWRITES hosted.
+# So this file must explicitly mirror the values we want on hosted, including
+# the ones we never change.
+#
+# Apply with:
+#   export SEND_EMAIL_HOOK_SECRET="v1,whsec_..."   # set on Vercel too
+#   npx supabase config push
+#
+# Generate a new secret with:
+#   echo "v1,whsec_$(openssl rand -hex 32)"
+
+project_id = "trawell"
+
+# Email auth — restore the production values that `config push` clobbered
+# when we shipped the auth hook 2026-05-29.
+[auth.email]
+enable_confirmations = true       # require email verification before login
+double_confirm_changes = true     # email change needs old + new confirmation
+secure_password_change = false
+max_frequency = "1s"
+otp_length = 6
+otp_expiry = 86400                # 24h confirmation link validity
+
+# MFA — keep TOTP enrollment + verification ON
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+
+# Send Email auth hook — replaces default Supabase auth emails (signup
+# confirmation, magic link, password reset, email change, invite) with
+# branded Resend-sent emails via the app/api/auth/send-email route.
+# Mirror the SEND_EMAIL_HOOK_SECRET into Vercel env vars so the route
+# can verify the Svix-style signature.
+[auth.hook.send_email]
+enabled = true
+uri = "https://monkeytravel.app/api/auth/send-email"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"
