@@ -149,9 +149,7 @@
     "calendarDescription": "Compatibile con la maggior parte dei calendari",
     "addToCalendar": "Aggiungi al Calendario",
     "googleCalendar": "Google Calendar",
-    "googleCalendarDescription": "Aggiungi viaggio a Google Calendar",
-    "appleCalendar": "Apple Calendar",
-    "appleCalendarDescription": "Apri in Apple Calendar"
+    "googleCalendarDescription": "Aggiungi viaggio a Google Calendar"
   },
   "activity": {
     "booking": "Prenotazione",

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
+import type { ParsedBooking } from "@/lib/email-parse/extract";
 
 /**
  * Minimum email body length we'll bother sending to Gemini. Anything
@@ -15,27 +16,104 @@ import { useToast } from "@/components/ui/Toast";
 const MIN_BODY_LENGTH = 40;
 
 /**
- * Shape we expect back from /api/trips/[id]/parse-confirmation. Kept
- * intentionally loose — the route is the source of truth and may
- * evolve (e.g. add confidence scores) without forcing every consumer
- * to rev. Fields we render fall back to "—" when missing so a partial
- * parse doesn't blow up the preview card.
+ * Editable shape backing the preview form.
+ *
+ * The canonical `ParsedBooking` from the server carries `startAt` /
+ * `endAt` as ISO 8601 strings, but the user-facing form has separate
+ * date + time inputs (and HTML date/time inputs need YYYY-MM-DD and
+ * HH:MM respectively). We split on incoming `{parsed}` from the API
+ * via `toDraft()` and recombine via `toParsed()` before POSTing to
+ * /api/trips/[id]/activities/from-booking.
+ *
+ * Wire history: an earlier draft of this modal used a snake_case
+ * `ParsedBookingPreview` type (`type`, `date`, `start_time`,
+ * `confirmation_number`, etc.) and keyed off `data.booking` — both of
+ * which mismatched the server. That meant every successful Gemini
+ * parse fell into the "no booking found" branch. Keep this shape in
+ * lockstep with `ParsedBooking` going forward.
  */
-interface ParsedBookingPreview {
-  type?: "flight" | "hotel" | "activity" | "transport" | "restaurant" | string;
-  name?: string;
-  description?: string;
-  location?: string;
-  address?: string;
-  start_time?: string; // "HH:MM"
-  date?: string; // "YYYY-MM-DD"
-  duration_minutes?: number;
-  confirmation_number?: string;
-  booking_url?: string;
-  estimated_cost?: {
-    amount?: number;
-    currency?: string;
+interface DraftBooking {
+  kind: ParsedBooking["kind"];
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  startDate: string; // "YYYY-MM-DD"
+  startTime: string; // "HH:MM"
+  endDate: string;
+  endTime: string;
+  confirmationNumber: string;
+  raw_excerpt: string;
+}
+
+/**
+ * Pull YYYY-MM-DD + HH:MM out of an ISO 8601 string. The server emits
+ * `2026-05-27T14:00:00` (or with a `+02:00` offset). We deliberately
+ * read the string parts rather than going through `new Date()` so we
+ * don't lose the local-time intent to UTC conversion — the email said
+ * "Check-in 14:00" and that's what the user should see in the form.
+ */
+function splitIso(iso: string): { date: string; time: string } {
+  if (!iso) return { date: "", time: "" };
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+  if (m) return { date: m[1], time: m[2] };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: "", time: "" };
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
   };
+}
+
+function toDraft(parsed: ParsedBooking): DraftBooking {
+  const start = splitIso(parsed.startAt);
+  const end = parsed.endAt ? splitIso(parsed.endAt) : { date: "", time: "" };
+  return {
+    kind: parsed.kind,
+    name: parsed.name || "",
+    address: parsed.address || "",
+    city: parsed.city || "",
+    country: parsed.country || "",
+    startDate: start.date,
+    startTime: start.time,
+    endDate: end.date,
+    endTime: end.time,
+    confirmationNumber: parsed.confirmationNumber || "",
+    raw_excerpt: parsed.raw_excerpt || "",
+  };
+}
+
+/**
+ * Rebuild a canonical ParsedBooking for the from-booking endpoint.
+ * - When time is blank we fall back to 09:00 (start) / 11:00 (end) —
+ *   same defaults the route uses when extracting time-of-day from a
+ *   timeless ISO.
+ * - Omits optional fields when the user emptied them so the server
+ *   sees `undefined` rather than empty strings (matches the schema's
+ *   "absent" contract).
+ */
+function toParsed(draft: DraftBooking): ParsedBooking {
+  const startAt = draft.startDate
+    ? `${draft.startDate}T${draft.startTime || "09:00"}:00`
+    : "";
+  const endAt = draft.endDate
+    ? `${draft.endDate}T${draft.endTime || "11:00"}:00`
+    : undefined;
+  const result: ParsedBooking = {
+    kind: draft.kind,
+    name: draft.name.trim(),
+    startAt,
+    raw_excerpt: draft.raw_excerpt,
+  };
+  if (draft.address.trim()) result.address = draft.address.trim();
+  if (draft.city.trim()) result.city = draft.city.trim();
+  if (draft.country.trim()) result.country = draft.country.trim();
+  if (endAt) result.endAt = endAt;
+  if (draft.confirmationNumber.trim()) {
+    result.confirmationNumber = draft.confirmationNumber.trim();
+  }
+  return result;
 }
 
 interface PasteBookingModalProps {
@@ -107,7 +185,7 @@ function PasteBookingModalInner({
   const [isParsing, setIsParsing] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [preview, setPreview] = useState<ParsedBookingPreview | null>(null);
+  const [preview, setPreview] = useState<DraftBooking | null>(null);
 
   // Full reset — invoked on close and after a successful add so that
   // reopening the modal doesn't show stale state.
@@ -152,13 +230,34 @@ function PasteBookingModalInner({
         return;
       }
 
-      const data = (await res.json()) as { booking?: ParsedBookingPreview };
-      if (!data.booking || typeof data.booking !== "object") {
+      // Server returns either { parsed: ParsedBooking } on success or
+      // { error: 'too_short' | 'no_booking_found' | 'parse_failed' } as
+      // 200 with an error tag (see parse-confirmation route header).
+      const data = (await res.json()) as
+        | { parsed?: ParsedBooking; error?: string }
+        | null;
+
+      if (!data) {
+        setErrorMessage(t("errorParseFailed"));
+        return;
+      }
+      if (typeof data.error === "string") {
+        // Map the typed errors back to user-facing messages.
+        if (data.error === "no_booking_found") {
+          setErrorMessage(t("errorNoBooking"));
+        } else if (data.error === "too_short") {
+          setErrorMessage(t("errorTooShort"));
+        } else {
+          setErrorMessage(t("errorParseFailed"));
+        }
+        return;
+      }
+      if (!data.parsed || typeof data.parsed !== "object") {
         setErrorMessage(t("errorNoBooking"));
         return;
       }
 
-      setPreview(data.booking);
+      setPreview(toDraft(data.parsed));
     } catch (err) {
       console.error("[PasteBookingModal] Parse failed:", err);
       setErrorMessage(t("errorParseFailed"));
@@ -170,7 +269,7 @@ function PasteBookingModalInner({
   // Lift any field of the preview (the user is allowed to correct
   // Gemini's extraction before confirming).
   const updatePreviewField = useCallback(
-    <K extends keyof ParsedBookingPreview>(key: K, value: ParsedBookingPreview[K]) => {
+    <K extends keyof DraftBooking>(key: K, value: DraftBooking[K]) => {
       setPreview((prev) => (prev ? { ...prev, [key]: value } : prev));
     },
     []
@@ -181,10 +280,12 @@ function PasteBookingModalInner({
     setErrorMessage(null);
     setIsConfirming(true);
     try {
+      // Server expects { parsed, day_id?, day_number?, time_slot? } —
+      // matches the `parsed` key used by the parse-confirmation response.
       const res = await fetch(`/api/trips/${tripId}/activities/from-booking`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking: preview }),
+        body: JSON.stringify({ parsed: toParsed(preview) }),
       });
 
       if (!res.ok) {
@@ -297,19 +398,19 @@ function PasteBookingModalInner({
 
             <FieldRow
               label={t("fieldName")}
-              value={preview.name ?? ""}
+              value={preview.name}
               onChange={(v) => updatePreviewField("name", v)}
               disabled={isConfirming}
             />
             <FieldRow
               label={t("fieldLocation")}
-              value={preview.location ?? ""}
-              onChange={(v) => updatePreviewField("location", v)}
+              value={preview.city}
+              onChange={(v) => updatePreviewField("city", v)}
               disabled={isConfirming}
             />
             <FieldRow
               label={t("fieldAddress")}
-              value={preview.address ?? ""}
+              value={preview.address}
               onChange={(v) => updatePreviewField("address", v)}
               disabled={isConfirming}
             />
@@ -317,15 +418,15 @@ function PasteBookingModalInner({
             <div className="grid grid-cols-2 gap-3">
               <FieldRow
                 label={t("fieldDate")}
-                value={preview.date ?? ""}
-                onChange={(v) => updatePreviewField("date", v)}
+                value={preview.startDate}
+                onChange={(v) => updatePreviewField("startDate", v)}
                 disabled={isConfirming}
                 placeholder="YYYY-MM-DD"
               />
               <FieldRow
                 label={t("fieldStartTime")}
-                value={preview.start_time ?? ""}
-                onChange={(v) => updatePreviewField("start_time", v)}
+                value={preview.startTime}
+                onChange={(v) => updatePreviewField("startTime", v)}
                 disabled={isConfirming}
                 placeholder="HH:MM"
               />
@@ -333,8 +434,8 @@ function PasteBookingModalInner({
 
             <FieldRow
               label={t("fieldConfirmation")}
-              value={preview.confirmation_number ?? ""}
-              onChange={(v) => updatePreviewField("confirmation_number", v)}
+              value={preview.confirmationNumber}
+              onChange={(v) => updatePreviewField("confirmationNumber", v)}
               disabled={isConfirming}
             />
           </div>

@@ -149,9 +149,7 @@
     "calendarDescription": "Works with most calendars",
     "addToCalendar": "Add to Calendar",
     "googleCalendar": "Google Calendar",
-    "googleCalendarDescription": "Add trip to Google Calendar",
-    "appleCalendar": "Apple Calendar",
-    "appleCalendarDescription": "Open in Apple Calendar"
+    "googleCalendarDescription": "Add trip to Google Calendar"
   },
   "activity": {
     "booking": "Booking",
