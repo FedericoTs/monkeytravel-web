@@ -6,6 +6,7 @@ import { ASSIGNABLE_ROLES, isValidAssignableRole } from "@/lib/api/constants";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole, TripInvite } from "@/types";
 import { dispatchEmail } from "@/lib/email/send";
+import { normalizeEmailLocale } from "@/lib/email/copy";
 
 // RFC 5322 / WHATWG-compatible loose email regex. Strict-enough to reject
 // obvious typos ("not an email") without rejecting legitimate addresses
@@ -168,6 +169,9 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
         const result = await dispatchEmail({
           recipientEmail: normalizedEmail,
           recipientUserId: null, // recipient may not exist yet — no opt-out check
+          // Recipient has no account yet, so default the shell to the
+          // inviter's language (the email is about their trip).
+          locale: normalizeEmailLocale(user.user_metadata?.locale),
           idempotencyKey: `invite:${invite.id}`,
           template: {
             id: "invite",

@@ -11,6 +11,7 @@
 
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
+import { inviteCopy, layoutCopy, type EmailLocale } from "../copy";
 
 export interface InviteEmailProps {
   inviterName: string;
@@ -31,14 +32,9 @@ export interface InviteEmailProps {
    * to the generic /profile/notifications URL.
    */
   unsubscribeUrl?: string;
+  /** Recipient UI language — localizes the shared shell. */
+  locale?: EmailLocale;
 }
-
-const ROLE_DESCRIPTION: Record<InviteEmailProps["role"], string> = {
-  editor: "You'll be able to add, remove, and rearrange activities.",
-  voter:
-    "You'll be able to vote on activities and suggest new ones — the trip owner has final say.",
-  viewer: "You'll be able to see the trip details, but can't make changes.",
-};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -51,16 +47,19 @@ export default function InviteEmail({
   inviteUrl,
   message,
   unsubscribeUrl,
+  locale = "en",
 }: InviteEmailProps) {
-  const preview = `${inviterName} invited you to plan ${tripDestination}`;
+  const t = inviteCopy[locale];
+  const preview = t.subject(inviterName, tripDestination);
 
   return (
     <EmailLayout
       preview={preview}
       unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
+      locale={locale}
     >
       <Heading as="h1" style={h1}>
-        {inviterName} invited you to a trip
+        {t.heading(inviterName)}
       </Heading>
 
       <Text style={leadText}>
@@ -75,16 +74,16 @@ export default function InviteEmail({
         </Section>
       )}
 
-      <Text style={bodyText}>{ROLE_DESCRIPTION[role]}</Text>
+      <Text style={bodyText}>{t.roleDescription[role]}</Text>
 
       <Section style={{ textAlign: "center", margin: "32px 0" }}>
         <Button href={inviteUrl} style={button}>
-          Open the trip
+          {t.cta}
         </Button>
       </Section>
 
       <Text style={smallText}>
-        Or copy this link:{" "}
+        {t.copyLink}{" "}
         <span style={linkText}>{inviteUrl}</span>
       </Text>
     </EmailLayout>
@@ -98,23 +97,33 @@ export default function InviteEmail({
  * accessible alt.
  */
 export function inviteEmailText(props: InviteEmailProps): string {
+  const locale = props.locale ?? "en";
+  const t = inviteCopy[locale];
   const lines = [
-    `${props.inviterName} invited you to a trip on MonkeyTravel.`,
+    t.heading(props.inviterName),
     "",
     `Trip: ${props.tripTitle || props.tripDestination}`,
     props.tripDates ? `Dates: ${props.tripDates}` : "",
-    `Role: ${props.role} — ${ROLE_DESCRIPTION[props.role]}`,
+    `${props.role} — ${t.roleDescription[props.role]}`,
     "",
-    props.message ? `Note from ${props.inviterName}:` : "",
+    props.message ? `${props.inviterName}:` : "",
     props.message ? `  "${props.message}"` : "",
     props.message ? "" : "",
-    `Open the trip: ${props.inviteUrl}`,
+    `${t.cta}: ${props.inviteUrl}`,
     "",
     "—",
-    "MonkeyTravel · AI-powered trip planning",
-    `Manage preferences: ${APP_URL}/profile/notifications`,
+    `MonkeyTravel · ${layoutCopy[locale].tagline}`,
   ];
   return lines.filter((l) => l !== undefined).join("\n");
+}
+
+/** Localized subject line. */
+export function inviteSubject(
+  inviterName: string,
+  destination: string,
+  locale: EmailLocale = "en"
+): string {
+  return inviteCopy[locale].subject(inviterName, destination);
 }
 
 // Inline styles

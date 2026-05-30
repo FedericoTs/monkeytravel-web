@@ -19,10 +19,12 @@ import { sendEmail } from "./client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import InviteEmail, {
   inviteEmailText,
+  inviteSubject,
   type InviteEmailProps,
 } from "./templates/Invite";
 import VoteCastEmail, {
   voteCastEmailText,
+  voteCastSubject,
   type VoteCastEmailProps,
 } from "./templates/VoteCast";
 import TripReminderEmail, {
@@ -30,6 +32,7 @@ import TripReminderEmail, {
   type TripReminderEmailProps,
 } from "./templates/TripReminder";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
+import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
 export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
@@ -105,6 +108,15 @@ interface DispatchOptions {
   idempotencyKey?: string;
   /** Extra metadata persisted to email_log.metadata. */
   metadata?: Record<string, unknown>;
+  /**
+   * Recipient UI language for the rendered template + shell. When omitted,
+   * dispatchEmail resolves it from the recipient's users.preferred_language
+   * (if recipientUserId is set), falling back to English. Callers that
+   * already know the locale (e.g. the trip-reminder cron) can pass it to
+   * skip the lookup; transactional sends to non-users (invites) can pass
+   * the sender's locale.
+   */
+  locale?: EmailLocale;
 }
 
 const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
@@ -235,6 +247,11 @@ export async function dispatchEmail(
     return { ok: true, status: "skipped_suppressed" };
   }
 
+  // Recipient language for the rendered template + shell. Caller-provided
+  // locale wins; otherwise we read users.preferred_language (folded into the
+  // opt-out lookup below to avoid an extra round-trip), then fall back to en.
+  let recipientLocale: EmailLocale | undefined = options.locale;
+
   // 3. Opt-out check (only for non-transactional templates and only when
   //    we have a recipient user). Transactional emails (invites) skip
   //    this — being explicitly invited overrides general opt-out.
@@ -242,7 +259,7 @@ export async function dispatchEmail(
   if (settingKey && options.recipientUserId) {
     const { data: prefs, error: prefsErr } = await admin
       .from("users")
-      .select("notification_settings")
+      .select("notification_settings, preferred_language")
       .eq("id", options.recipientUserId)
       .maybeSingle();
     if (prefsErr) {
@@ -264,6 +281,11 @@ export async function dispatchEmail(
         status: "failed",
         error: "notification_settings_read_failed",
       };
+    }
+    if (!recipientLocale) {
+      recipientLocale = normalizeEmailLocale(
+        (prefs as { preferred_language?: unknown } | null)?.preferred_language
+      );
     }
     const ns = (prefs?.notification_settings ?? {}) as Record<string, unknown>;
     const emailMaster = ns.emailNotifications;
@@ -329,6 +351,13 @@ export async function dispatchEmail(
         );
       }
     }
+
+    // Inject the resolved recipient locale so the template + shared shell
+    // (EmailLayout) render in the right language. Defaults to English.
+    template = {
+      ...template,
+      props: { ...template.props, locale: recipientLocale ?? "en" },
+    } as EmailTemplate;
 
     const rendered = await renderTemplate(template);
     html = rendered.html;
@@ -537,13 +566,20 @@ async function renderTemplate(
     case "invite": {
       const html = await render(InviteEmail(template.props));
       const text = inviteEmailText(template.props);
-      const subject = `${template.props.inviterName} invited you to plan ${template.props.tripDestination}`;
+      const subject = inviteSubject(
+        template.props.inviterName,
+        template.props.tripDestination,
+        template.props.locale
+      );
       return { html, text, subject };
     }
     case "vote_cast": {
       const html = await render(VoteCastEmail(template.props));
       const text = voteCastEmailText(template.props);
-      const subject = `New feedback on your ${template.props.tripDestination} trip`;
+      const subject = voteCastSubject(
+        template.props.tripDestination,
+        template.props.locale
+      );
       return { html, text, subject };
     }
     case "trip_reminder": {

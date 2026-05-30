@@ -339,6 +339,9 @@ async function processRow(
     // Per-(trip, slot) idempotency — covers the (rare) case of two
     // overlapping cron runs grabbing the same row before status flips.
     idempotencyKey: `trip_reminder:${row.trip_id}:${row.slot}`,
+    // Already resolved above for the translated body — pass it so the shared
+    // shell (header/footer) matches and dispatchEmail skips the re-lookup.
+    locale,
     template: {
       id: "trip_reminder",
       props: {

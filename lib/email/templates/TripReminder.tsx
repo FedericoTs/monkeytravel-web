@@ -18,6 +18,7 @@
 
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
+import type { EmailLocale } from "../copy";
 
 /**
  * Slot discriminator. Matches the CHECK constraint in
@@ -47,6 +48,8 @@ export interface TripReminderEmailProps {
   tripUrl: string;
   /** Optional pre-built HMAC unsubscribe URL (key='tripReminders'). */
   unsubscribeUrl?: string;
+  /** Recipient UI language — localizes the shared shell. */
+  locale?: EmailLocale;
 }
 
 /** Slot → emoji. Visual hook, not load-bearing for the message. */
@@ -69,6 +72,7 @@ export default function TripReminderEmail({
   ctaLabel,
   tripUrl,
   unsubscribeUrl,
+  locale = "en",
 }: TripReminderEmailProps) {
   const preview = `${SLOT_EMOJI[slot]} ${heading} — ${destination}`;
 
@@ -76,6 +80,7 @@ export default function TripReminderEmail({
     <EmailLayout
       preview={preview}
       unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
+      locale={locale}
     >
       <Heading as="h1" style={h1}>
         {SLOT_EMOJI[slot]} {heading}

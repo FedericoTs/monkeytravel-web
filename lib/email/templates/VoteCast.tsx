@@ -9,6 +9,7 @@
 
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
+import { voteCastCopy, layoutCopy, type EmailLocale } from "../copy";
 
 export interface VoteCastEmailProps {
   voterName: string;
@@ -25,14 +26,9 @@ export interface VoteCastEmailProps {
    * out of vote notifications without leaving the email.
    */
   unsubscribeUrl?: string;
+  /** Recipient UI language — localizes the shared shell. */
+  locale?: EmailLocale;
 }
-
-const VOTE_PHRASE: Record<VoteCastEmailProps["voteType"], string> = {
-  love: "loved",
-  flexible: "is flexible on",
-  concerns: "raised concerns about",
-  no: "voted no on",
-};
 
 const VOTE_EMOJI: Record<VoteCastEmailProps["voteType"], string> = {
   love: "❤️",
@@ -51,21 +47,23 @@ export default function VoteCastEmail({
   activityLabel,
   tripUrl,
   unsubscribeUrl,
+  locale = "en",
 }: VoteCastEmailProps) {
-  const preview = `${voterName} ${VOTE_PHRASE[voteType]} ${activityLabel}`;
+  const t = voteCastCopy[locale];
+  const phrase = t.votePhrase[voteType];
+  const preview = `${voterName} ${phrase} ${activityLabel}`;
 
   return (
     <EmailLayout
       preview={preview}
       unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
+      locale={locale}
     >
       <Heading as="h1" style={h1}>
-        {VOTE_EMOJI[voteType]} New activity feedback
+        {VOTE_EMOJI[voteType]} {t.heading}
       </Heading>
 
-      <Text style={leadText}>
-        {voterName} {VOTE_PHRASE[voteType]} an activity in your trip.
-      </Text>
+      <Text style={leadText}>{t.lead(voterName, phrase)}</Text>
 
       <Section style={tripBox}>
         <Text style={tripLabel}>
@@ -76,14 +74,14 @@ export default function VoteCastEmail({
 
       <Section style={{ textAlign: "center", margin: "32px 0" }}>
         <Button href={tripUrl} style={button}>
-          See the trip
+          {t.cta}
         </Button>
       </Section>
 
       <Text style={smallText}>
-        Don't want these? You can turn them off in{" "}
+        {t.turnOffPrefix}{" "}
         <a href={`${APP_URL}/profile/notifications`} style={linkText}>
-          notification settings
+          {t.turnOffLink}
         </a>
         .
       </Text>
@@ -93,17 +91,27 @@ export default function VoteCastEmail({
 
 /** Plain-text fallback. Hand-written. */
 export function voteCastEmailText(props: VoteCastEmailProps): string {
+  const locale = props.locale ?? "en";
+  const t = voteCastCopy[locale];
   return [
-    `${props.voterName} ${VOTE_PHRASE[props.voteType]} an activity in your trip.`,
+    t.lead(props.voterName, t.votePhrase[props.voteType]),
     "",
     `Trip: ${props.tripTitle || props.tripDestination}`,
     `Activity: ${props.activityLabel}`,
     "",
-    `See the trip: ${props.tripUrl}`,
+    `${t.cta}: ${props.tripUrl}`,
     "",
     "—",
-    `Turn off: ${APP_URL}/profile/notifications`,
+    `MonkeyTravel · ${layoutCopy[locale].tagline}`,
   ].join("\n");
+}
+
+/** Localized subject line. */
+export function voteCastSubject(
+  destination: string,
+  locale: EmailLocale = "en"
+): string {
+  return voteCastCopy[locale].subject(destination);
 }
 
 const h1: React.CSSProperties = {

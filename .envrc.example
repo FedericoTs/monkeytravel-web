@@ -24,6 +24,11 @@
 # once to persist the project link.
 export SUPABASE_ACCESS_TOKEN="sbp_paste_monkeytravel_pat_here"
 export SUPABASE_PROJECT_REF="sevfbahwmlbdlnbhqwyi"
+# REQUIRED for the supabase-monkey MCP server: .mcp.json launches it with
+# `--access-token ${SUPABASE_PAT_MONKEY}`, so this exact name must be set (it
+# can hold the same PAT as SUPABASE_ACCESS_TOKEN above). Claude Code reads it
+# at launch — set it, then RESTART Claude Code for the MCP to pick it up.
+export SUPABASE_PAT_MONKEY="sbp_paste_monkeytravel_pat_here"
 
 # ─── Vercel (MonkeyTravel project) ─────────────────────────────────────────
 # Get an access token at: https://vercel.com/account/tokens
