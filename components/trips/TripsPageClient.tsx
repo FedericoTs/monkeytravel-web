@@ -574,18 +574,28 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
   // below that would otherwise diverge between server and client renders.
   const now = useNow();
 
-  // Calculate trip statistics (only for active, non-archived trips)
+  // Calculate trip statistics (only for active, non-archived trips).
+  //
+  // Time-bucket counts (upcoming/past/active) live in a separate `null`
+  // state until the post-mount useNow() tick lands. The render path emits
+  // a `—` placeholder for those — which is what the server emits too, since
+  // server-side `now` is also null on the first render of this client
+  // component. Match guaranteed at the text-node level.
+  //
+  // Why null + render placeholder instead of `0` + suppressHydrationWarning:
+  // empirically (2026-05-30 live audit, fiber inspection in browser),
+  // `suppressHydrationWarning` ONLY silences the dev-mode console warning
+  // in React 19. The recoverable error still throws in prod, gets caught
+  // by error reporting, and pollutes Sentry. Rendering an identical text
+  // node ("—") on both sides is the only bulletproof fix that doesn't
+  // depend on React's hydration timing heuristics changing under us.
   const stats = useMemo(() => {
     if (!now) {
-      // Pre-hydration: server-stable counts. Total + archived are
-      // deterministic; the three bucket counts only make sense once we
-      // have a wall-clock to compare against, so they start at 0 and
-      // re-populate after the useEffect fires.
       return {
         total: activeTrips.length,
-        upcoming: 0,
-        past: 0,
-        active: 0,
+        upcoming: null,
+        past: null,
+        active: null,
         destinations: new Set(activeTrips.map(t => t.title.replace(/ Trip$/, ""))).size,
         archived: archivedTrips.length,
       };
@@ -710,10 +720,16 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
         <div className="flex items-center gap-2 mb-4">
           {icon}
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          {/* Count differs SSR → client because groupedTrips bucketing is
-              time-relative (see useMemo above). Mark expected divergence to
-              prevent React error #418. */}
-          <span className="text-sm text-slate-500" suppressHydrationWarning>({trips.length})</span>
+          {/* Count is time-relative because groupedTrips bucketing depends
+              on the post-mount `now`. Pre-mount, groupedTrips lumps every
+              filtered trip into the "past" array (see useMemo above) which
+              keeps the rendered count stable across SSR → first paint as
+              long as the SAME bucket is read each side. The Past section
+              reads `trips.length` and gets the same value both renders;
+              the Upcoming + Current sections start at 0 on both. After
+              `now` lands, the buckets re-distribute and counts update
+              cleanly. No suppressHydrationWarning needed — text matches. */}
+          <span className="text-sm text-slate-500">({trips.length})</span>
         </div>
         {trips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -800,14 +816,13 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 </div>
                 <span className="text-xs sm:text-sm text-slate-500">{t('upcoming')}</span>
               </div>
-              <div
-                className="text-xl sm:text-2xl font-bold text-slate-900"
-                // SSR renders 0 (time bucket not computed yet), client renders
-                // the real count after the mount-effect populates `now`. React
-                // would normally throw error #418 for the text mismatch; this
-                // tells it the divergence is expected. Same below.
-                suppressHydrationWarning
-              >{stats.upcoming}</div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900">
+                {/* `null` placeholder pre-mount → renders as the em-dash. After
+                    useNow() populates `now`, the memo emits the real count and
+                    this re-renders. Both SSR and first client paint produce the
+                    same character — hydration cannot mismatch. */}
+                {stats.upcoming ?? "—"}
+              </div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
@@ -819,10 +834,9 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 </div>
                 <span className="text-xs sm:text-sm text-slate-500">{t('completed')}</span>
               </div>
-              <div
-                className="text-xl sm:text-2xl font-bold text-slate-900"
-                suppressHydrationWarning
-              >{stats.past}</div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900">
+                {stats.past ?? "—"}
+              </div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
