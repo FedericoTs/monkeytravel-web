@@ -64,18 +64,29 @@ function TripConciergeChatInner({
     if (!q) return;
     setLoading(true);
     setLastQuestion(q);
-    setAnswer(null);
+    setAnswer("");
     try {
+      // Streaming path (perf task #245). The server emits SSE events:
+      //   data: {"type":"chunk","text":"…"}
+      //   data: {"type":"done","isLiveTrip":bool,"dayNumber":n}
+      //   data: {"type":"error","message":"…"}
+      // We accumulate `chunk.text` into the answer state on each event so
+      // text appears as it's generated — perceived latency drops from
+      // ~3s to ~200ms for the first token.
       const res = await fetch("/api/ai/concierge", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Asking for the streaming variant. The route falls back to
+          // non-streaming JSON when this header is absent — keeps the
+          // contract dual-mode for callers that can't read streams.
+          Accept: "text/event-stream",
+        },
         body: JSON.stringify({ tripId, question: q }),
       });
+
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        // 403 with USAGE_LIMIT_REACHED is the most common non-bug
-        // failure — surface it inline rather than as a generic toast so
-        // the user understands what happened.
         if (res.status === 403 && err?.code === "USAGE_LIMIT_REACHED") {
           setAnswer(t("errorQuota"));
         } else {
@@ -83,14 +94,71 @@ function TripConciergeChatInner({
         }
         return;
       }
-      const data = (await res.json()) as {
-        answer: string;
-        isLiveTrip: boolean;
-        dayNumber: number | null;
-      };
-      setAnswer(data.answer || "");
-      setIsLiveTrip(Boolean(data.isLiveTrip));
-      setQuestion("");
+
+      // If the server gave us plain JSON anyway (older deploy, no
+      // streaming support), fall back to the original blocking path.
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("text/event-stream") || !res.body) {
+        const data = (await res.json()) as {
+          answer: string;
+          isLiveTrip: boolean;
+          dayNumber: number | null;
+        };
+        setAnswer(data.answer || "");
+        setIsLiveTrip(Boolean(data.isLiveTrip));
+        setQuestion("");
+        return;
+      }
+
+      // Read the stream incrementally. The SSE wire format is "data: <json>\n\n"
+      // — we buffer partial frames across read boundaries since one read
+      // is not guaranteed to align with an event boundary.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulated = "";
+      let streamError: string | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Split on the double-newline event delimiter.
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? ""; // keep the trailing partial frame for next read
+
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payloadStr = trimmed.slice(5).trim();
+          if (!payloadStr) continue;
+          try {
+            const event = JSON.parse(payloadStr) as
+              | { type: "chunk"; text: string }
+              | { type: "done"; isLiveTrip: boolean; dayNumber: number | null }
+              | { type: "error"; message: string };
+            if (event.type === "chunk") {
+              accumulated += event.text;
+              setAnswer(accumulated);
+            } else if (event.type === "done") {
+              setIsLiveTrip(Boolean(event.isLiveTrip));
+            } else if (event.type === "error") {
+              streamError = event.message || t("errorGeneric");
+            }
+          } catch (parseErr) {
+            console.warn("[concierge] SSE parse failed", parseErr, payloadStr);
+          }
+        }
+      }
+
+      if (streamError) {
+        setAnswer(streamError);
+      } else {
+        // Strip any trailing whitespace artifacts from Gemini chunking.
+        setAnswer(accumulated.trim());
+        setQuestion("");
+      }
     } catch (err) {
       console.error("[concierge] ask failed", err);
       addToast(t("errorGeneric"), "error");
@@ -151,14 +219,24 @@ function TripConciergeChatInner({
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">
                   {t("answer")}
                 </p>
-                {loading ? (
+                {loading && !answer ? (
+                  /* No tokens yet — show the "thinking" indicator. */
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                     <span>{t("thinking")}</span>
                   </div>
                 ) : (
+                  /* Streaming response — render the accumulating text.
+                     While loading, append a blinking caret so the user
+                     sees the answer is still being generated. */
                   <p className="text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">
                     {answer}
+                    {loading && (
+                      <span
+                        className="inline-block w-1.5 h-4 ml-0.5 -mb-0.5 bg-violet-500 animate-pulse"
+                        aria-hidden="true"
+                      />
+                    )}
                   </p>
                 )}
               </div>

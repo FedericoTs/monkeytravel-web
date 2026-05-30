@@ -11,9 +11,11 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
-import TravelAdvisoryBanner from "@/components/trip/TravelAdvisoryBanner";
-import ExpenseLedger from "@/components/trip/ExpenseLedger";
-import TripConciergeChat from "@/components/trip/TripConciergeChat";
+// TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are pulled in
+// dynamically below — see the next/dynamic block. They were imported
+// eagerly when first wired (commit dd6ff90); moving them here keeps
+// the initial trip-page chunk lean (perf task #244, follows the same
+// pattern as #180 for the other deferred components).
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
@@ -123,6 +125,29 @@ const ProposeActivitySheet = dynamic(
 const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingModal"), {
   ssr: false,
 });
+
+// Travel advisory banner — async-fetches the FCDO data on mount. No reason
+// to ship the component JS in the initial chunk; it self-hides when there
+// is no advisory anyway, so a brief tick-after-hydrate is invisible to the
+// user. (perf task #244)
+const TravelAdvisoryBanner = dynamic(
+  () => import("@/components/trip/TravelAdvisoryBanner"),
+  { ssr: false }
+);
+
+// Expense ledger — flag-gated (renders null when off) and renders below
+// the booking panel, well below the fold for first paint. (perf task #244)
+const ExpenseLedger = dynamic(
+  () => import("@/components/trip/ExpenseLedger"),
+  { ssr: false }
+);
+
+// Concierge chat — flag-gated + only useful after the user clicks the
+// trigger pill. Same lazy pattern as AIAssistant above. (perf task #244)
+const TripConciergeChat = dynamic(
+  () => import("@/components/trip/TripConciergeChat"),
+  { ssr: false }
+);
 
 interface TripDetailClientProps {
   trip: {
