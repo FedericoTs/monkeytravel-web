@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useNow } from "@/lib/hooks/useNow";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
@@ -76,17 +77,11 @@ export default function OngoingTripView({
   // user IN their actual Day 1 would have currentDayNumber = 2 and the
   // "today" highlight would land on tomorrow's activities. parseLocalDate
   // gives us local midnight of the picked date, which is correct.
-  // `now` is deferred to a mount-only useEffect so the SSR + first client
-  // render produce identical text (no React error #418). Server-rendered
-  // HTML is often CDN-cached and served minutes-to-hours after generation;
-  // by the time the browser hydrates, `new Date()` lands on a different
-  // calendar day than the server computed, and currentDayNumber differs
-  // → text content mismatch. Same pattern fixed in TripsPageClient
-  // (commit ca58851 / 2026-05-30).
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-  }, []);
+  // Hydration-safe `now` — see lib/hooks/useNow.ts. Same pattern as
+  // TripsPageClient. Without this, currentDayNumber differs between
+  // server and client renders when the SSR HTML is cached past a midnight
+  // boundary → React error #418.
+  const now = useNow();
 
   const currentDayNumber = useMemo(() => {
     // Pre-hydration: default to day 1 so the SSR/initial-client render

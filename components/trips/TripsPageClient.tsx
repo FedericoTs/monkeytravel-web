@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef, useId, Suspense } from "react";
+import { useNow } from "@/lib/hooks/useNow";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -567,22 +568,11 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
   const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
   const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
 
-  // Defer all time-relative bucketing to AFTER hydration. `new Date()` on
-  // the server (when the SSR output is generated and then often CDN-cached)
-  // doesn't agree with `new Date()` in the browser at view time — even
-  // seconds of clock drift could flip a trip from "upcoming" to "past",
-  // changing the displayed count and triggering React hydration error #418
-  // (text content mismatch). By initialising `now` to null on the server
-  // and only populating it in useEffect, the first client render matches
-  // the SSR output exactly; the re-bucketing flicker happens once, after
-  // hydration is safe.
-  //
-  // 2026-05-30: caught via live UI verify on /it/trips → /es/trips → /trips
-  // all logging React error #418 to the console.
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-  }, []);
+  // Hydration-safe `now` — null on SSR / first client paint, then a
+  // real Date after mount. See lib/hooks/useNow.ts for the why. This
+  // prevents React error #418 from the stats + groupedTrips bucketing
+  // below that would otherwise diverge between server and client renders.
+  const now = useNow();
 
   // Calculate trip statistics (only for active, non-archived trips)
   const stats = useMemo(() => {
