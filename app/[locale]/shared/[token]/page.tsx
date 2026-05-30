@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { formatDateRange } from "@/lib/datetime";
@@ -17,15 +18,31 @@ interface PageProps {
   params: Promise<{ token: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { token } = await params;
+/**
+ * Request-scoped cache for the trip lookup. Both `generateMetadata` and
+ * the page render need the same row; without the cache wrapper Next.js
+ * runs them as two separate Supabase queries per request. React's
+ * `cache()` memoizes by the token argument for the lifetime of a single
+ * request, so the second call resolves from the cached promise.
+ *
+ * 2026-05-30 perf pass: previously was generateMetadata SELECT (3 cols) +
+ * page SELECT * (all cols), now one SELECT * shared. Net: -1 DB RTT per
+ * shared-trip view (a top-traffic surface).
+ */
+const getSharedTrip = cache(async (token: string) => {
   const supabase = await createClient();
-
-  const { data: trip } = await supabase
+  const { data, error } = await supabase
     .from("trips")
-    .select("title, description, cover_image_url")
+    .select("*")
     .eq("share_token", token)
     .single();
+  if (error) return null;
+  return data;
+});
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  const trip = await getSharedTrip(token);
 
   if (!trip) {
     return {
@@ -60,16 +77,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SharedTripPage({ params }: PageProps) {
   const { token } = await params;
-  const supabase = await createClient();
+  const trip = await getSharedTrip(token);
 
-  // Fetch trip by share token
-  const { data: trip, error } = await supabase
-    .from("trips")
-    .select("*")
-    .eq("share_token", token)
-    .single();
-
-  if (error || !trip) {
+  if (!trip) {
     notFound();
   }
 

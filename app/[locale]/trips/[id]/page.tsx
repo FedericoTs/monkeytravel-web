@@ -6,21 +6,16 @@ import type { Metadata } from "next";
 import TripDetailClient from "./TripDetailClient";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const supabase = await createClient();
-  const { data: trip } = await supabase
-    .from("trips")
-    .select("title")
-    .eq("id", id)
-    .single();
-
+export async function generateMetadata(): Promise<Metadata> {
+  // Title is intentionally generic — pulling the actual trip title here
+  // would (a) require a DB round-trip every page view duplicating the
+  // owner/collaborator check in the page render and (b) leak the title
+  // to anyone holding the trip ID even when they lack access. The page
+  // itself sets a more informative document.title via the hero component
+  // once auth resolves. robots: noindex because trip pages are personal
+  // data — never want them in search results.
   return {
-    title: trip?.title || "Trip Details",
+    title: "Trip Details",
     robots: { index: false, follow: false },
   };
 }
