@@ -598,7 +598,11 @@
     "loadingLocations": "Cargando ubicaciones...",
     "days": "Días",
     "openInMaps": "Abrir en Maps",
-    "viewDetails": "Ver detalles"
+    "viewDetails": "Ver detalles",
+    "showRoute": "Mostrar ruta",
+    "hideRoute": "Ocultar ruta",
+    "segmentDuration": "{minutes} min a pie",
+    "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor."
   },
   "maintenance": {
     "title": "En Mantenimiento",

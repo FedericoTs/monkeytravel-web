@@ -598,7 +598,11 @@
     "loadingLocations": "Loading locations...",
     "days": "Days",
     "openInMaps": "Open in Maps",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "showRoute": "Show route",
+    "hideRoute": "Hide route",
+    "segmentDuration": "{minutes} min walk",
+    "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer."
   },
   "maintenance": {
     "title": "Under Maintenance",

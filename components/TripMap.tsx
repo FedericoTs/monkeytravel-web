@@ -1,14 +1,34 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   GoogleMap,
   useJsApiLoader,
   Marker,
   InfoWindow,
+  Polyline,
+  OverlayView,
 } from "@react-google-maps/api";
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, TimeSlot } from "@/types";
+import {
+  haversineKm,
+  walkingMinutes,
+  formatDuration,
+  midpoint,
+} from "@/lib/map/geo";
+
+// Env flag: gate the per-day polyline + walking-time labels.
+// Default OFF until we flip NEXT_PUBLIC_MAP_ROUTES_ENABLED=true on Vercel.
+const ROUTES_DEFAULT_ENABLED =
+  process.env.NEXT_PUBLIC_MAP_ROUTES_ENABLED === "true";
+
+// Used to sort same-start-time activities into a consistent order.
+const TIME_SLOT_ORDER: Record<TimeSlot, number> = {
+  morning: 0,
+  afternoon: 1,
+  evening: 2,
+};
 
 // IMPORTANT: Define libraries outside component to prevent infinite re-renders
 const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
@@ -33,6 +53,16 @@ interface TripMapProps {
    * Used for saved trips to ensure zero external API costs.
    */
   disableApiCalls?: boolean;
+  /**
+   * Draw a polyline per day connecting consecutive activities, with
+   * straight-line walking-time labels on each segment. Zero external
+   * API calls — uses haversine + a flat speed multiplier. See
+   * `lib/map/geo.ts` for the math and the honesty disclaimer.
+   *
+   * Defaults to NEXT_PUBLIC_MAP_ROUTES_ENABLED so the feature is
+   * flag-gated at the env level, but callers can override per-surface.
+   */
+  showRoutes?: boolean;
 }
 
 const mapContainerStyle = {
@@ -97,7 +127,19 @@ export default function TripMap({
   selectedDay: selectedDayProp,
   onActivityClick,
   disableApiCalls = false,
+  showRoutes: showRoutesProp,
 }: TripMapProps) {
+  // User-toggleable route visibility. Starts from the prop (or the env
+  // flag default) and the in-map toolbar can flip it.
+  const [showRoutes, setShowRoutes] = useState<boolean>(
+    showRoutesProp ?? ROUTES_DEFAULT_ENABLED
+  );
+  useEffect(() => {
+    if (showRoutesProp !== undefined) {
+      setShowRoutes(showRoutesProp);
+    }
+  }, [showRoutesProp]);
+  const locale = useLocale();
   // Internal day-filter state — initialized from the prop but driven by
   // the in-map Day chip clicks below. **2026-05-24 live-test fix:** the
   // Day chip onClick previously only called fitBounds and never updated
@@ -308,6 +350,81 @@ export default function TripMap({
     ? activities.filter((a) => a.dayNumber === selectedDay)
     : activities;
 
+  /**
+   * Per-day ordered routes: for each day visible in the current filter,
+   * sort the activities (by time_slot then start_time), keep only those
+   * with a resolved location, and emit the consecutive segments.
+   *
+   * Each segment carries its day color + a pre-computed walking-time
+   * label so the render path stays cheap (no math in the JSX).
+   */
+  const dayRoutes = useMemo(() => {
+    if (!showRoutes) return [];
+
+    // Group filtered activities by day for ordering.
+    const byDay = new Map<number, MapActivity[]>();
+    for (const act of filteredActivities) {
+      if (!act.resolvedLocation) continue;
+      const bucket = byDay.get(act.dayNumber) ?? [];
+      bucket.push(act);
+      byDay.set(act.dayNumber, bucket);
+    }
+
+    type Segment = {
+      key: string;
+      from: { lat: number; lng: number };
+      to: { lat: number; lng: number };
+      mid: { lat: number; lng: number };
+      minutes: number;
+      color: string;
+    };
+
+    type DayRoute = {
+      dayNumber: number;
+      color: string;
+      path: { lat: number; lng: number }[];
+      segments: Segment[];
+    };
+
+    const result: DayRoute[] = [];
+
+    for (const [dayNumber, acts] of byDay) {
+      if (acts.length < 2) continue;
+
+      const sorted = [...acts].sort((a, b) => {
+        const slotDiff =
+          (TIME_SLOT_ORDER[a.time_slot] ?? 99) -
+          (TIME_SLOT_ORDER[b.time_slot] ?? 99);
+        if (slotDiff !== 0) return slotDiff;
+        return (a.start_time || "").localeCompare(b.start_time || "");
+      });
+
+      const color = DAY_COLORS[(dayNumber - 1) % DAY_COLORS.length];
+      const path = sorted.map((a) => a.resolvedLocation!) ;
+      const segments: Segment[] = [];
+
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const from = sorted[i].resolvedLocation!;
+        const to = sorted[i + 1].resolvedLocation!;
+        const km = haversineKm(from, to);
+        // Skip noise: two pins on top of each other don't deserve a "0 min" badge.
+        if (km < 0.02) continue;
+        segments.push({
+          key: `${dayNumber}-${i}`,
+          from,
+          to,
+          mid: midpoint(from, to),
+          minutes: walkingMinutes(km, "walking"),
+          color,
+        });
+      }
+
+      result.push({ dayNumber, color, path, segments });
+    }
+
+    return result;
+  }, [filteredActivities, showRoutes]);
+
   if (loadError) {
     return (
       <div className={`bg-slate-100 rounded-xl flex items-center justify-center ${className}`}>
@@ -332,6 +449,33 @@ export default function TripMap({
           {t("loadingLocations")}
         </div>
       )}
+
+      {/* Route toggle + straight-line disclaimer. Only rendered when
+          there's at least one multi-pin day to draw a route through —
+          no point offering a toggle that does nothing. */}
+      {dayRoutes.length > 0 || (showRoutes && filteredActivities.length > 1) ? (
+        <div className="absolute top-3 left-3 z-10 flex items-start gap-2 max-w-[calc(100%-1.5rem)] sm:max-w-xs">
+          <button
+            type="button"
+            onClick={() => setShowRoutes((v) => !v)}
+            aria-pressed={showRoutes}
+            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium text-slate-700 shadow-md hover:bg-white active:scale-95 transition-transform flex items-center gap-1.5"
+          >
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${
+                showRoutes ? "bg-emerald-500" : "bg-slate-300"
+              }`}
+              aria-hidden
+            />
+            {showRoutes ? t("hideRoute") : t("showRoute")}
+          </button>
+          {showRoutes && dayRoutes.length > 0 && (
+            <span className="bg-white/85 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] leading-tight text-slate-500 shadow-sm hidden sm:inline-block">
+              {t("disclaimerStraightLine")}
+            </span>
+          )}
+        </div>
+      ) : null}
 
       {/* Day Legend - compact on mobile, detailed on desktop */}
       <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:p-2 shadow-md max-w-[calc(100%-1.5rem)] sm:max-w-none">
@@ -385,6 +529,59 @@ export default function TripMap({
         onUnmount={onUnmount}
         options={mapOptions}
       >
+        {/* Per-day route polylines + walking-time segment badges.
+            Drawn behind the markers (Polyline zIndex defaults below
+            Marker), so pins always stay clickable. */}
+        {showRoutes &&
+          dayRoutes.map((route) => (
+            <Polyline
+              key={`route-${route.dayNumber}`}
+              path={route.path}
+              options={{
+                strokeColor: route.color,
+                strokeOpacity: 0,
+                strokeWeight: 0,
+                geodesic: false,
+                clickable: false,
+                icons: [
+                  {
+                    icon: {
+                      path: "M 0,-1 0,1",
+                      strokeOpacity: 0.9,
+                      strokeWeight: 3,
+                      scale: 3,
+                    },
+                    offset: "0",
+                    repeat: "12px",
+                  },
+                ],
+              }}
+            />
+          ))}
+
+        {showRoutes &&
+          dayRoutes.flatMap((route) =>
+            route.segments.map((seg) => (
+              <OverlayView
+                key={`seg-${seg.key}`}
+                position={seg.mid}
+                mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                getPixelPositionOffset={(w, h) => ({
+                  x: -(w / 2),
+                  y: -(h / 2),
+                })}
+              >
+                <div
+                  className="pointer-events-none select-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-slate-700 shadow-sm border"
+                  style={{ borderColor: seg.color }}
+                  title={t("segmentDuration", { minutes: seg.minutes })}
+                >
+                  {formatDuration(seg.minutes, locale)}
+                </div>
+              </OverlayView>
+            ))
+          )}
+
         {filteredActivities.map((activity, idx) =>
           activity.resolvedLocation ? (
             <Marker
