@@ -137,6 +137,11 @@ export default async function SharedTripPage({ params }: PageProps) {
         }}
         shareToken={token}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}
+        // Forward the persisted cover image so the hero renders the
+        // actual photo for anon viewers instead of the gradient fallback.
+        // The OpenGraph tag above already reads this — it's been in the
+        // DB the whole time, just never threaded down to the client.
+        coverImageUrl={trip.cover_image_url ?? null}
         engagementSlot={
           <TripEngagementSection
             tripId={trip.id}

@@ -76,6 +76,19 @@ interface SharedTripViewProps {
   shareToken: string;
   dateRange: string;
   /**
+   * Persisted cover image URL (column `trips.cover_image_url`). When set,
+   * the hero renders this directly — no Google Places call from anon
+   * viewers, no gradient fallback. Threaded through from page.tsx; the
+   * trips row already has it populated for every published trip (see
+   * the explore TripCard for the same trip ID — same column).
+   *
+   * 2026-05-30: caught via live UI verify. /shared was passing
+   * disableApiCalls={true} to DestinationHero without forwarding the
+   * cover URL, so the component went straight to gradient even though
+   * the data was already in the DB.
+   */
+  coverImageUrl?: string | null;
+  /**
    * Optional server-rendered engagement bar (like + save + fork).
    * Passed from /shared/[token]/page.tsx so the auth + flag + counts
    * can resolve server-side without prop drilling DB state into a
@@ -85,7 +98,7 @@ interface SharedTripViewProps {
   engagementSlot?: React.ReactNode;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, engagementSlot }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot }: SharedTripViewProps) {
   const t = useTranslations('common');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
@@ -244,6 +257,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, engagement
         tags={trip.tags}
         showBackButton={true}
         onBack={() => window.history.back()}
+        coverImageUrl={coverImageUrl}
         disableApiCalls={true}
       >
         {/* Shared + Backpacker badge stack — top-right of hero.
