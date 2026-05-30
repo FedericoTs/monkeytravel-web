@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -28,7 +27,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 export async function DELETE(
   _request: Request,
   context: { params: Promise<{ token: string }> }
-): Promise<NextResponse> {
+) {
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;

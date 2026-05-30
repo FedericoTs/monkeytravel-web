@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type {
@@ -46,7 +45,7 @@ import type {
  *     sufficient pre-fan-out; the dispatcher catches malformed
  *     tokens via the APNs/FCM error response anyway.
  */
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(request: Request) {
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
