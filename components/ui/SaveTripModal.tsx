@@ -8,6 +8,7 @@ import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 import { prefs } from "@/lib/platform/storage";
 import { hapticSuccess, hapticError } from "@/lib/native/haptics";
+import { markFirstTripSaved } from "@/components/native/PushOptInSheet";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -211,6 +212,12 @@ export default function SaveTripModal({
       // redirect lands; signals "your trip is saved, you're set."
       // No-op on web.
       hapticSuccess();
+
+      // Mark first-trip-saved so PushOptInSheet can show on the next
+      // visit to /trips. Idempotent. Web-safe. The sheet itself
+      // self-gates on isNativePlatform + a 30-day cooldown on
+      // dismissal — see components/native/PushOptInSheet.tsx.
+      markFirstTripSaved();
 
       // Callback or redirect
       if (onSuccess) {

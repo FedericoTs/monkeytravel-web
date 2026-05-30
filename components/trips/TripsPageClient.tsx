@@ -40,6 +40,15 @@ const ReferralProgressBanner = dynamic(
   }
 );
 
+// Push opt-in soft-prompt — Phase B1. Self-gates on native + has-saved-
+// trip flag + 30-day dismissal cooldown. ssr:false because the sheet
+// is purely a client interaction surface (uses localStorage gates +
+// portal modal); no SEO value in rendering it server-side.
+const PushOptInSheet = dynamic(
+  () => import("@/components/native/PushOptInSheet"),
+  { ssr: false, loading: () => null }
+);
+
 type TFn = (key: string) => string;
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
@@ -799,6 +808,12 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
         threshold={80}
       />
 
+      {/* Push opt-in soft-prompt — Phase B1 last-mile. Renders nothing
+          on web or until the user has saved their first trip AND not
+          recently dismissed. See PushOptInSheet.tsx for full gating
+          logic. */}
+      <PushOptInSheet />
+
       {/* OAuth event tracking (handles auth_event query param) */}
       <Suspense fallback={null}>
         <AuthEventTracker />
@@ -831,7 +846,30 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </Link>
-            <form action="/auth/signout" method="post">
+            <form
+              action="/auth/signout"
+              method="post"
+              onSubmit={async (e) => {
+                // Unregister this device's push token BEFORE the
+                // server clears the Supabase session. DELETE
+                // /api/devices/[token] needs auth. Web no-op via
+                // isNativePlatform gate. Best-effort — we never
+                // block sign-out on the unregister failing.
+                e.preventDefault();
+                try {
+                  const { unregisterPushOnSignOut } = await import(
+                    "@/lib/native/push"
+                  );
+                  await unregisterPushOnSignOut().catch(() => undefined);
+                } finally {
+                  // Submit the form whether unregister succeeded or
+                  // not. The form was the original target — clearing
+                  // .preventDefault and re-firing via .submit() runs
+                  // the normal browser POST + redirect.
+                  (e.target as HTMLFormElement).submit();
+                }
+              }}
+            >
               <button
                 type="submit"
                 className="text-slate-500 hover:text-slate-700 text-xs sm:text-sm px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"

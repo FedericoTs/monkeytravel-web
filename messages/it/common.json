@@ -2100,5 +2100,14 @@
       "heading": "Giorno di partenza",
       "body": "Ci siamo. Il tuo itinerario completo per {destination} è a un tocco — aprilo quando ti servono indicazioni, orari o cosa fare dopo."
     }
+  },
+  "push": {
+    "optIn": {
+      "title": "Vuoi rimanere aggiornato?",
+      "body": "Ricevi notifiche quando i collaboratori aggiungono attività, votano sul tuo viaggio o si avvicina la partenza. Solo quando serve — niente spam.",
+      "allow": "Sì, avvisami",
+      "allowing": "Configurazione…",
+      "notNow": "Non ora"
+    }
   }
 }

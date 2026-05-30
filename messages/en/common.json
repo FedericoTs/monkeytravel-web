@@ -2100,5 +2100,14 @@
       "heading": "Travel day",
       "body": "Today's the day. Your full {destination} itinerary is one tap away — open it whenever you need directions, opening hours, or what's next."
     }
+  },
+  "push": {
+    "optIn": {
+      "title": "Stay in the loop?",
+      "body": "Get notified when collaborators add activities, vote on your trip, or your departure date is near. Only when something needs you — no spam.",
+      "allow": "Yes, notify me",
+      "allowing": "Setting up…",
+      "notNow": "Not now"
+    }
   }
 }

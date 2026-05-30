@@ -376,6 +376,15 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   // Sign out
   const handleSignOut = async () => {
     setSaving(true);
+    // Unregister this device from push BEFORE clearing the session —
+    // the DELETE /api/devices/[token] endpoint is auth-gated, and the
+    // device token row needs to be removed so the next user on the
+    // same phone doesn't inherit pushes meant for the previous one.
+    // Web no-op (helper self-gates on isNativePlatform), so safe to
+    // call unconditionally. Best-effort — never block sign-out on a
+    // failed DELETE.
+    const { unregisterPushOnSignOut } = await import("@/lib/native/push");
+    await unregisterPushOnSignOut().catch(() => undefined);
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");

@@ -2100,5 +2100,14 @@
       "heading": "Día de viaje",
       "body": "Llegó el día. Tu itinerario completo de {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
     }
+  },
+  "push": {
+    "optIn": {
+      "title": "¿Quieres estar al tanto?",
+      "body": "Recibe notificaciones cuando los colaboradores añadan actividades, voten en tu viaje o se acerque la fecha de salida. Solo cuando hace falta — sin spam.",
+      "allow": "Sí, avísame",
+      "allowing": "Configurando…",
+      "notNow": "Ahora no"
+    }
   }
 }
