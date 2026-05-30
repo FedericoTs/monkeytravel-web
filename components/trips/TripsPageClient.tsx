@@ -567,9 +567,39 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
   const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
   const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
 
+  // Defer all time-relative bucketing to AFTER hydration. `new Date()` on
+  // the server (when the SSR output is generated and then often CDN-cached)
+  // doesn't agree with `new Date()` in the browser at view time — even
+  // seconds of clock drift could flip a trip from "upcoming" to "past",
+  // changing the displayed count and triggering React hydration error #418
+  // (text content mismatch). By initialising `now` to null on the server
+  // and only populating it in useEffect, the first client render matches
+  // the SSR output exactly; the re-bucketing flicker happens once, after
+  // hydration is safe.
+  //
+  // 2026-05-30: caught via live UI verify on /it/trips → /es/trips → /trips
+  // all logging React error #418 to the console.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   // Calculate trip statistics (only for active, non-archived trips)
   const stats = useMemo(() => {
-    const now = new Date();
+    if (!now) {
+      // Pre-hydration: server-stable counts. Total + archived are
+      // deterministic; the three bucket counts only make sense once we
+      // have a wall-clock to compare against, so they start at 0 and
+      // re-populate after the useEffect fires.
+      return {
+        total: activeTrips.length,
+        upcoming: 0,
+        past: 0,
+        active: 0,
+        destinations: new Set(activeTrips.map(t => t.title.replace(/ Trip$/, ""))).size,
+        archived: archivedTrips.length,
+      };
+    }
     const upcoming = activeTrips.filter(t => new Date(t.start_date) > now).length;
     const past = activeTrips.filter(t => new Date(t.end_date) < now).length;
     const active = activeTrips.filter(t => {
@@ -589,7 +619,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
       destinations: destinations.size,
       archived: archivedTrips.length,
     };
-  }, [activeTrips, archivedTrips]);
+  }, [activeTrips, archivedTrips, now]);
 
   // Filter and sort trips (only non-archived trips)
   const filteredTrips = useMemo(() => {
@@ -629,12 +659,21 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
     return result;
   }, [activeTrips, searchQuery, sortBy, filterStatus]);
 
-  // Group trips by timeline
+  // Group trips by timeline. Uses the hydration-safe `now` from above;
+  // before the client-side clock is available (initial SSR + first paint),
+  // we put everything in `past` so the rendered tree is identical to what
+  // the server emitted (which also used null → past). The bucketing
+  // re-runs as soon as `now` is set, with no hydration error in between.
   const groupedTrips = useMemo(() => {
-    const now = new Date();
     const upcoming: Trip[] = [];
     const current: Trip[] = [];
     const past: Trip[] = [];
+
+    if (!now) {
+      // Pre-hydration: lump everything into "past" (stable across SSR/client).
+      filteredTrips.forEach(trip => past.push(trip));
+      return { upcoming, current, past };
+    }
 
     filteredTrips.forEach(trip => {
       const start = new Date(trip.start_date);
@@ -650,7 +689,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
     });
 
     return { upcoming, current, past };
-  }, [filteredTrips]);
+  }, [filteredTrips, now]);
 
   // Get translated status label - "completed" displays as "Memories"
   const getStatusLabel = useCallback((status: string) => {
