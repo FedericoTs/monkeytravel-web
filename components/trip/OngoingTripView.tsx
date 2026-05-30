@@ -243,14 +243,32 @@ export default function OngoingTripView({
           {/* Gradient overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent" />
 
-          {/* Day indicator badge */}
-          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg">
-            <div className="text-sm text-slate-500">{t("day.label", { number: currentDayNumber })}</div>
-            <div className="font-semibold text-slate-900">
-              {todayDate && formatDate(todayDate)}
+          {/* Day indicator badge — gated on `now` because currentDayNumber
+              is wall-clock-derived. Pre-mount currentDayNumber defaults
+              to 1 (so downstream computations don't crash) but rendering
+              "Day 1" SSR-side when the user is actually on Day 3 would
+              fire React #418 the same way TripsPageClient did before its
+              em-dash fix (see commit 8e788f7 + task #266 for the full
+              story on why suppressHydrationWarning isn't enough in
+              React 19). Rendering the badge only after `now` populates
+              guarantees server + first client paint match (both show
+              the skeleton); the badge appears as a normal state-driven
+              update after mount, not a hydration step. Skeleton matches
+              real badge dimensions so layout doesn't jump. */}
+          {now ? (
+            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg">
+              <div className="text-sm text-slate-500">{t("day.label", { number: currentDayNumber })}</div>
+              <div className="font-semibold text-slate-900">
+                {todayDate && formatDate(todayDate)}
+              </div>
+              {todayTheme && <div className="text-sm text-[var(--primary)]">{todayTheme}</div>}
             </div>
-            {todayTheme && <div className="text-sm text-[var(--primary)]">{todayTheme}</div>}
-          </div>
+          ) : (
+            <div
+              className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg min-w-[140px] min-h-[72px]"
+              aria-hidden="true"
+            />
+          )}
 
           {/* View Full Plan button */}
           <div className="absolute top-4 right-4">

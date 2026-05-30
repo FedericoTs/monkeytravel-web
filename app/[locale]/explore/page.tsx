@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import TripCard from "@/components/explore/TripCard";
 import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
@@ -332,6 +333,14 @@ export default async function ExplorePage({
       </main>
 
       <Footer />
+
+      {/* Mobile bottom tab bar — highlights the Explore tab when on
+          this page (closes the B3 follow-up from commit c7748bc). The
+          5-tab nav already imported on /trips + /profile + /trips/[id];
+          adding here makes the Explore tab feel like a real native
+          surface instead of a dead-end click target. sm:hidden — desktop
+          web shows the regular Navbar above. */}
+      <MobileBottomNav activePage="explore" />
     </div>
   );
 }
