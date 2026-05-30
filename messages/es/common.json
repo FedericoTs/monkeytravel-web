@@ -1972,6 +1972,61 @@
     "downloadIcs": "Añadir al calendario",
     "downloadIcsSubtitle": "Compatible con Apple Calendar, Google Calendar y Outlook"
   },
+  "concierge": {
+    "triggerLabel": "Preguntar al concierge",
+    "modalTitle": "Concierge del viaje",
+    "inputLabel": "Pregunta al concierge",
+    "placeholder": "Pregunta lo que quieras sobre tu viaje — \"¿qué hay cerca del hotel del Día 3 para cenar?\", \"¿cuánto se tarda al Castello di Miramare desde la ciudad?\"",
+    "hint": "Solo lectura — no modificará tu itinerario.",
+    "send": "Preguntar",
+    "sending": "Preguntando…",
+    "thinking": "Pensando…",
+    "yourQuestion": "Preguntaste",
+    "answer": "El concierge dice",
+    "liveTripHint": "Hoy está dentro de las fechas de tu viaje — las respuestas se basan en las actividades de hoy.",
+    "errorQuota": "Límite diario de IA alcanzado. Inténtalo mañana.",
+    "errorGeneric": "No pude responder ahora. Inténtalo de nuevo en un momento."
+  },
+  "expenses": {
+    "title": "Gastos del viaje",
+    "emptyHint": "Registra cuánto gastas realmente",
+    "addButton": "Añadir gasto",
+    "fieldAmount": "Importe",
+    "fieldCurrency": "Moneda",
+    "fieldDate": "Fecha",
+    "fieldCategory": "Categoría",
+    "fieldDescription": "Descripción",
+    "descriptionPlaceholder": "ej. Cena en La Trattoria",
+    "category": {
+      "transport": "Transporte",
+      "accommodation": "Alojamiento",
+      "food": "Comida y bebida",
+      "activity": "Actividades",
+      "shopping": "Compras",
+      "other": "Otro"
+    },
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "loading": "Cargando gastos…",
+    "empty": "Aún no hay gastos registrados.",
+    "toastAdded": "Gasto añadido.",
+    "toastDeleted": "Gasto eliminado.",
+    "errorAmountRequired": "Introduce un importe mayor que cero.",
+    "errorAddFailed": "No se pudo añadir el gasto — inténtalo de nuevo.",
+    "errorDeleteFailed": "No se pudo eliminar el gasto — inténtalo de nuevo.",
+    "deleteAriaLabel": "Eliminar este gasto"
+  },
+  "advisory": {
+    "level": {
+      "advisory": "Aviso de viaje",
+      "high": "Evita viajes no esenciales",
+      "extreme": "Evita todos los viajes"
+    },
+    "sourceLabel": "Fuente: {source}",
+    "readFullAdvisory": "Leer aviso completo",
+    "lastUpdated": "Actualizado {date}"
+  },
   "publishToExplore": {
     "title": "Publicar en Explorar",
     "subtitle": "Comparte tu viaje con la comunidad",

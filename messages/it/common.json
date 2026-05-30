@@ -1972,6 +1972,61 @@
     "downloadIcs": "Aggiungi al calendario",
     "downloadIcsSubtitle": "Funziona con Apple Calendar, Google Calendar e Outlook"
   },
+  "concierge": {
+    "triggerLabel": "Chiedi al concierge",
+    "modalTitle": "Concierge del viaggio",
+    "inputLabel": "Chiedi al concierge",
+    "placeholder": "Chiedi qualsiasi cosa sul viaggio — \"cosa c'è vicino all'hotel del Giorno 3 per cena?\", \"quanto ci vuole per arrivare al Castello di Miramare dalla città?\"",
+    "hint": "Solo lettura — non modificherà il tuo itinerario.",
+    "send": "Chiedi",
+    "sending": "Sto chiedendo…",
+    "thinking": "Sto pensando…",
+    "yourQuestion": "Hai chiesto",
+    "answer": "Il concierge dice",
+    "liveTripHint": "Oggi rientra nelle date del tuo viaggio — le risposte si basano sulle attività di oggi.",
+    "errorQuota": "Limite giornaliero AI raggiunto. Riprova domani.",
+    "errorGeneric": "Non sono riuscito a rispondere. Riprova tra poco."
+  },
+  "expenses": {
+    "title": "Spese del viaggio",
+    "emptyHint": "Tieni traccia di quanto spendi davvero",
+    "addButton": "Aggiungi spesa",
+    "fieldAmount": "Importo",
+    "fieldCurrency": "Valuta",
+    "fieldDate": "Data",
+    "fieldCategory": "Categoria",
+    "fieldDescription": "Descrizione",
+    "descriptionPlaceholder": "es. Cena alla Trattoria",
+    "category": {
+      "transport": "Trasporti",
+      "accommodation": "Alloggio",
+      "food": "Cibo e bevande",
+      "activity": "Attività",
+      "shopping": "Shopping",
+      "other": "Altro"
+    },
+    "cancel": "Annulla",
+    "save": "Salva",
+    "saving": "Salvataggio…",
+    "loading": "Caricamento spese…",
+    "empty": "Nessuna spesa registrata.",
+    "toastAdded": "Spesa aggiunta.",
+    "toastDeleted": "Spesa rimossa.",
+    "errorAmountRequired": "Inserisci un importo maggiore di zero.",
+    "errorAddFailed": "Impossibile aggiungere la spesa — riprova.",
+    "errorDeleteFailed": "Impossibile eliminare la spesa — riprova.",
+    "deleteAriaLabel": "Elimina questa spesa"
+  },
+  "advisory": {
+    "level": {
+      "advisory": "Avviso di viaggio",
+      "high": "Evita viaggi non essenziali",
+      "extreme": "Evita ogni viaggio"
+    },
+    "sourceLabel": "Fonte: {source}",
+    "readFullAdvisory": "Leggi l'avviso completo",
+    "lastUpdated": "Aggiornato {date}"
+  },
   "publishToExplore": {
     "title": "Pubblica su Esplora",
     "subtitle": "Condividi il tuo viaggio con la community",

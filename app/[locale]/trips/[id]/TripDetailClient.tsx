@@ -11,6 +11,9 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
+import TravelAdvisoryBanner from "@/components/trip/TravelAdvisoryBanner";
+import ExpenseLedger from "@/components/trip/ExpenseLedger";
+import TripConciergeChat from "@/components/trip/TripConciergeChat";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
@@ -1520,6 +1523,18 @@ export default function TripDetailClient({
         {/* Planning/Confirmed Phase - Full Itinerary View */}
         {!isActiveTripPhase && (
           <>
+        {/* Travel advisory banner — sourced from UK FCDO (task #222).
+            Hides itself entirely when the destination has no active alert,
+            so it never adds visual noise to safe-destination trips. */}
+        <TravelAdvisoryBanner country={destination} className="mb-4" />
+
+        {/* In-trip Concierge (F4 / task #242). Flag-gated; renders null
+            when the env flag is off so we can ship the wiring now and
+            flip it on per-environment. */}
+        <div className="mb-4">
+          <TripConciergeChat tripId={trip.id} />
+        </div>
+
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back button */}
@@ -1783,6 +1798,16 @@ export default function TripDetailClient({
             className="mb-8"
           />
         )}
+
+        {/* Post-booking expense tracking (task #220). Behind
+            NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED flag — renders null when off,
+            so the existing layout is unchanged for environments that
+            haven't opted in yet. */}
+        <ExpenseLedger
+          tripId={trip.id}
+          defaultCurrency={trip.budget?.currency || "EUR"}
+          className="mb-8"
+        />
 
         {/* Hotel Recommendations - After Map */}
         {/* DISABLED for saved trips - Hotels API calls are expensive */}

@@ -1972,6 +1972,61 @@
     "downloadIcs": "Add to Calendar",
     "downloadIcsSubtitle": "Works with Apple Calendar, Google Calendar, Outlook"
   },
+  "concierge": {
+    "triggerLabel": "Ask concierge",
+    "modalTitle": "Trip concierge",
+    "inputLabel": "Ask the concierge",
+    "placeholder": "Ask anything about your trip — \"what's near our Day 3 hotel for dinner?\", \"how long to Castello di Miramare from the city?\"",
+    "hint": "Read-only — won't change your itinerary.",
+    "send": "Ask",
+    "sending": "Asking…",
+    "thinking": "Thinking…",
+    "yourQuestion": "You asked",
+    "answer": "Concierge says",
+    "liveTripHint": "Today is in your trip window — answers ground in today's activities.",
+    "errorQuota": "Daily AI limit reached. Try again tomorrow.",
+    "errorGeneric": "Couldn't answer right now. Try again in a moment."
+  },
+  "expenses": {
+    "title": "Trip expenses",
+    "emptyHint": "Track what you actually spend",
+    "addButton": "Add expense",
+    "fieldAmount": "Amount",
+    "fieldCurrency": "Currency",
+    "fieldDate": "Date",
+    "fieldCategory": "Category",
+    "fieldDescription": "Description",
+    "descriptionPlaceholder": "e.g., Dinner at La Trattoria",
+    "category": {
+      "transport": "Transport",
+      "accommodation": "Stay",
+      "food": "Food & drink",
+      "activity": "Activities",
+      "shopping": "Shopping",
+      "other": "Other"
+    },
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "loading": "Loading expenses…",
+    "empty": "No expenses logged yet.",
+    "toastAdded": "Expense added.",
+    "toastDeleted": "Expense removed.",
+    "errorAmountRequired": "Enter an amount greater than zero.",
+    "errorAddFailed": "Couldn't add the expense — try again.",
+    "errorDeleteFailed": "Couldn't delete the expense — try again.",
+    "deleteAriaLabel": "Delete this expense"
+  },
+  "advisory": {
+    "level": {
+      "advisory": "Travel advisory",
+      "high": "Avoid all but essential travel",
+      "extreme": "Avoid all travel"
+    },
+    "sourceLabel": "Source: {source}",
+    "readFullAdvisory": "Read full advisory",
+    "lastUpdated": "Updated {date}"
+  },
   "publishToExplore": {
     "title": "Publish to Explore",
     "subtitle": "Share your trip with the community",
