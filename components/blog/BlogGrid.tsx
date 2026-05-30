@@ -102,12 +102,12 @@ export default function BlogGrid({ posts }: BlogGridProps) {
             {t("filter.all")}
           </button>
           {categories.map((cat) => {
-            let categoryLabel: string;
-            try {
-              categoryLabel = t(`categories.${cat}`);
-            } catch {
-              categoryLabel = cat;
-            }
+            // Use t.has() (next-intl v4) instead of try/catch — the
+            // throwing path floods the browser console with errors when
+            // a post category isn't in the translation set. .has() is a
+            // silent boolean check.
+            const categoryKey = `categories.${cat}`;
+            const categoryLabel = t.has(categoryKey) ? t(categoryKey) : cat;
             return (
               <button
                 key={cat}
@@ -168,24 +168,19 @@ export default function BlogGrid({ posts }: BlogGridProps) {
       {/* Post Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {paginatedPosts.map((post) => {
-          let postTitle: string;
-          let postDescription: string;
-          let categoryLabel: string;
-          try {
-            postTitle = t(`posts.${post.slug}.title`);
-          } catch {
-            postTitle = post.title;
-          }
-          try {
-            postDescription = t(`posts.${post.slug}.description`);
-          } catch {
-            postDescription = post.description;
-          }
-          try {
-            categoryLabel = t(`categories.${post.category}`);
-          } catch {
-            categoryLabel = post.category;
-          }
+          // Same defensive lookup as the category buttons above — .has()
+          // avoids the throw-and-log noise from missing translation keys
+          // (new blog posts shipped before translations land, etc.).
+          const titleKey = `posts.${post.slug}.title`;
+          const descriptionKey = `posts.${post.slug}.description`;
+          const categoryKey = `categories.${post.category}`;
+          const postTitle = t.has(titleKey) ? t(titleKey) : post.title;
+          const postDescription = t.has(descriptionKey)
+            ? t(descriptionKey)
+            : post.description;
+          const categoryLabel = t.has(categoryKey)
+            ? t(categoryKey)
+            : post.category;
           return (
             <BlogCard
               key={post.slug}

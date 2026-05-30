@@ -209,6 +209,41 @@ export default function TripDetailClient({
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  // Cache the resolved cover URL across re-renders so the hero
+  // doesn't re-fetch after the first PATCH lands. We seed from props
+  // (DB value) and overwrite on the persist callback fire-and-forget.
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null | undefined>(
+    trip.coverImageUrl
+  );
+  // Re-seed whenever the inbound trip changes (route param flip etc.).
+  useEffect(() => {
+    setCoverImageUrl(trip.coverImageUrl);
+  }, [trip.coverImageUrl, trip.id]);
+  // Persist a freshly-resolved cover image back to the trip row so we
+  // never re-fetch Google Places on subsequent visits — cost + reliability
+  // win (task #252). Owner-only to respect the PATCH /api/trips/[id] RLS.
+  // Fire-and-forget — if the PATCH fails the in-memory state still keeps
+  // the hero visible for this session.
+  const isOwner = userRole === "owner";
+  const handleCoverImageFetched = useCallback(
+    (fetchedUrl: string) => {
+      if (!isOwner) return;
+      if (!fetchedUrl) return;
+      // Optimistically update local state so the hero stops flickering
+      // through future re-renders.
+      setCoverImageUrl(fetchedUrl);
+      // Fire-and-forget PATCH — failure here is a non-event (next visit
+      // will just re-fetch). Don't await; don't toast on error.
+      fetch(`/api/trips/${trip.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cover_image_url: fetchedUrl }),
+      }).catch((err) => {
+        console.warn("[trip-cover] persist failed", err);
+      });
+    },
+    [isOwner, trip.id]
+  );
   // **2026-05-23**: Foreground the AI assistant — it's the killer feature
   // (the "make Day 2 cheaper" loop) and was previously hidden behind a small
   // floating pill that most users never noticed. We now auto-open it on
@@ -1370,8 +1405,15 @@ export default function TripDetailClient({
         tags={trip.tags}
         showBackButton={true}
         onBack={() => window.history.back()}
-        coverImageUrl={trip.coverImageUrl}
-        disableApiCalls={true}
+        coverImageUrl={coverImageUrl}
+        // When the trip has a persisted cover URL, skip the Places API
+        // entirely. Without one, allow ONE fetch + persist it via the
+        // callback below so subsequent visits read straight from the DB.
+        // This was the gradient-on-old-trips bug — pre-#188 trips had
+        // null cover_image_url and the previous unconditional
+        // disableApiCalls=true left them looking forever broken.
+        disableApiCalls={!!coverImageUrl}
+        onCoverImageFetched={handleCoverImageFetched}
       >
         {/* Status Badge + Backpacker badge stack — top-right of hero.
             Phase B2 (2026-05-28): Backpacker badge renders for trips

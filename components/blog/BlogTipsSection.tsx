@@ -36,17 +36,28 @@ export default function BlogTipsSection({ posts }: BlogTipsSectionProps) {
 
       {/* Blog cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {posts.map((post) => (
-          <BlogCard
-            key={post.slug}
-            post={post}
-            title={t(`posts.${post.slug}.title`)}
-            description={t(`posts.${post.slug}.description`)}
-            category={t(`categories.${post.category}`)}
-            readMoreLabel={t("index.readMore")}
-            minuteReadLabel={t("index.minuteRead", { minutes: post.readingTime })}
-          />
-        ))}
+        {posts.map((post) => {
+          // Defensive lookup — see BlogGrid / BlogLane for the same shim.
+          // Prevents missing translation keys from throwing into the console.
+          const titleKey = `posts.${post.slug}.title`;
+          const descriptionKey = `posts.${post.slug}.description`;
+          const categoryKey = `categories.${post.category}`;
+          return (
+            <BlogCard
+              key={post.slug}
+              post={post}
+              title={t.has(titleKey) ? t(titleKey) : post.title}
+              description={
+                t.has(descriptionKey) ? t(descriptionKey) : post.description
+              }
+              category={
+                t.has(categoryKey) ? t(categoryKey) : post.category
+              }
+              readMoreLabel={t("index.readMore")}
+              minuteReadLabel={t("index.minuteRead", { minutes: post.readingTime })}
+            />
+          );
+        })}
       </div>
     </section>
   );
