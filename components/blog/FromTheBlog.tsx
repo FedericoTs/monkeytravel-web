@@ -30,19 +30,37 @@ export default async function FromTheBlog({ slugs, locale }: FromTheBlogProps) {
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {posts.map((post) => (
-            <BlogCard
-              key={post.frontmatter.slug}
-              post={post.frontmatter}
-              title={tb(`posts.${post.frontmatter.slug}.title`)}
-              description={tb(`posts.${post.frontmatter.slug}.description`)}
-              category={tb(`categories.${post.frontmatter.category}`)}
-              readMoreLabel={tc("fromTheBlog.readMore")}
-              minuteReadLabel={tb("index.minuteRead", {
-                minutes: post.frontmatter.readingTime,
-              })}
-            />
-          ))}
+          {posts.map((post) => {
+            // Defensive lookup — server-side getTranslations() throws
+            // on missing keys (e.g. a localized-frontmatter category that
+            // doesn't match the translation set). Use t.has() to fall
+            // back to the frontmatter value, matching BlogGrid /
+            // BlogLane / BlogTipsSection behaviour.
+            const titleKey = `posts.${post.frontmatter.slug}.title`;
+            const descriptionKey = `posts.${post.frontmatter.slug}.description`;
+            const categoryKey = `categories.${post.frontmatter.category}`;
+            return (
+              <BlogCard
+                key={post.frontmatter.slug}
+                post={post.frontmatter}
+                title={tb.has(titleKey) ? tb(titleKey) : post.frontmatter.title}
+                description={
+                  tb.has(descriptionKey)
+                    ? tb(descriptionKey)
+                    : post.frontmatter.description
+                }
+                category={
+                  tb.has(categoryKey)
+                    ? tb(categoryKey)
+                    : post.frontmatter.category
+                }
+                readMoreLabel={tc("fromTheBlog.readMore")}
+                minuteReadLabel={tb("index.minuteRead", {
+                  minutes: post.frontmatter.readingTime,
+                })}
+              />
+            );
+          })}
         </div>
       </div>
     </section>

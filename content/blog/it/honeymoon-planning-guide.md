@@ -5,7 +5,7 @@ description: "Destinazioni per la luna di miele e consigli di pianificazione per
 author: "Francesca A."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
-category: "Pianificazione del viaggio"
+category: "Trip Planning"
 tags: ["luna di miele", "destinazioni luna di miele 2026", "pianificazione luna di miele", "budget luna di miele", "viaggi romantici"]
 image: "/images/blog/honeymoon-planning-guide.jpg"
 imageAlt: "Una coppia guarda il tramonto da una terrazza privata affacciata sul mar Egeo"
