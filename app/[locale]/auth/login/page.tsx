@@ -22,6 +22,7 @@ function LoginForm() {
   const [error, setError] = useState<AuthError | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
@@ -140,6 +141,38 @@ function LoginForm() {
     }
   };
 
+  // Sign in with Apple. Required by App Store Review Guideline 4.8: any
+  // app offering third-party OAuth (we have Google) MUST also offer Apple.
+  // Without this button, the iOS submission is rejected on first review
+  // and we'd burn a 1-3 day review cycle to find out. Web flow uses
+  // Supabase's OAuth redirect (Apple JS SDK under the hood); native flow
+  // (when Capacitor wraps the page) will need the @capacitor-community/
+  // apple-sign-in plugin to call signInWithIdToken with a token from the
+  // native AuthorizationController — see MOBILE_CONVERSION_PLAN.md A3.
+  //
+  // The button is intentionally a no-op until the Apple provider is
+  // enabled in Supabase (Auth → Providers → Apple). Once that's done with
+  // a valid Service ID + .p8 key + Team ID + Key ID, this flow lights up
+  // automatically. Until then, clicking it surfaces an auth error to the
+  // user via the normal error handler, which is the correct behavior.
+  const handleAppleLogin = async () => {
+    setAppleLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${redirect}&locale=${locale}`,
+      },
+    });
+
+    if (authError) {
+      setError(humanizeAuthError(authError.message));
+      setAppleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
       {/* Header */}
@@ -183,11 +216,54 @@ function LoginForm() {
               </div>
             )}
 
+            {/* Sign in with Apple — App Store Rule 4.8 requires this be
+                offered alongside any third-party OAuth (we have Google).
+                Apple's Human Interface Guidelines say their button should
+                appear no less prominently than other sign-in methods —
+                placing it first satisfies that and matches the convention
+                travelers see in Booking/Airbnb iOS apps. Black variant per
+                Apple's brand guidelines for light backgrounds. */}
+            <button
+              type="button"
+              onClick={handleAppleLogin}
+              disabled={appleLoading || googleLoading || loading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+              aria-label={t("appleButton")}
+            >
+              {appleLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                </svg>
+              )}
+              {t("appleButton")}
+            </button>
+
             {/* Google Sign In */}
             <button
               type="button"
               onClick={handleGoogleLogin}
-              disabled={googleLoading || loading}
+              disabled={googleLoading || appleLoading || loading}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {googleLoading ? (

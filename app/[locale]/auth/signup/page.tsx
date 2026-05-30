@@ -30,6 +30,7 @@ function SignupForm() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [hasOnboardingPrefs, setHasOnboardingPrefs] = useState(false);
@@ -71,25 +72,52 @@ function SignupForm() {
     }
   }, [searchParams]);
 
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    setError(null);
-
-    // Pass onboarding status and referral code to callback
+  // Build the OAuth callback URL once so Google/Apple paths share the same
+  // attribution (onboarding flag, referral code, locale). Extracting this
+  // also prevents the two handlers from drifting apart on parameter shape
+  // — every callback-consumed field needs to be in the URL for both.
+  const buildOAuthCallback = () => {
     const callbackParams = new URLSearchParams({
       next: redirectUrl,
       ...(hasOnboardingPrefs && { from_onboarding: "true" }),
       ...(referralCode && { ref: referralCode }),
     });
-
-    // Add locale to callback params for locale-aware redirects
     callbackParams.append("locale", locale);
+    return `${window.location.origin}/auth/callback?${callbackParams.toString()}`;
+  };
+
+  // Sign up with Apple. App Store Rule 4.8 — Apple sign-in must be
+  // offered alongside Google. Same flow as Apple on /auth/login;
+  // duplicated rather than shared so the signup-specific UTM/referral
+  // attribution survives the round-trip. See MOBILE_CONVERSION_PLAN.md
+  // A3 for the Supabase + Apple Developer setup the user still needs
+  // to complete before this button does anything beyond surfacing an
+  // "Apple provider not configured" error.
+  const handleAppleSignup = async () => {
+    setAppleLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: { redirectTo: buildOAuthCallback() },
+    });
+
+    if (authError) {
+      setError(humanizeAuthError(authError.message));
+      setAppleLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    setError(null);
 
     const supabase = createClient();
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?${callbackParams.toString()}`,
+        redirectTo: buildOAuthCallback(),
       },
     });
 
@@ -438,11 +466,51 @@ function SignupForm() {
               </div>
             )}
 
+            {/* Sign up with Apple — App Store Rule 4.8. See login page
+                for full rationale. Black button per Apple HIG; placed
+                above Google so Apple-first iOS users see it without
+                scrolling. */}
+            <button
+              type="button"
+              onClick={handleAppleSignup}
+              disabled={appleLoading || googleLoading || loading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+              aria-label={t("appleButton")}
+            >
+              {appleLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                </svg>
+              )}
+              {t("appleButton")}
+            </button>
+
             {/* Google Sign Up */}
             <button
               type="button"
               onClick={handleGoogleSignup}
-              disabled={googleLoading || loading}
+              disabled={googleLoading || appleLoading || loading}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {googleLoading ? (
