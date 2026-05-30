@@ -197,21 +197,36 @@ export default async function BlogIndexPage({ params }: PageProps) {
         </section>
 
         {/* Featured editor's pick */}
-        {featured && (
-          <section className="py-10 sm:py-12 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FeaturedHero
-                post={featured}
-                title={t(`posts.${featured.slug}.title`)}
-                description={t(`posts.${featured.slug}.description`)}
-                category={t(`categories.${featured.category}`)}
-                readMoreLabel={t("index.readMore")}
-                minuteReadLabel={t("index.minuteRead", { minutes: featured.readingTime })}
-                eyebrowLabel={t("index.featured")}
-              />
-            </div>
-          </section>
-        )}
+        {featured && (() => {
+          // Defensive lookup (next-intl v4 t.has) — the locale's blog.json
+          // may not have a per-slug translation for every post yet. When
+          // that's the case the frontmatter (which is already authored in
+          // the active locale, see content/blog/{locale}/*.md) is the
+          // correct fallback. Matches BlogGrid / BlogLane / BlogTipsSection.
+          //
+          // 2026-05-30: caught via live UI verify — the /it featured card
+          // was rendering the EN description because the per-post key was
+          // missing in messages/it/blog.json and t() was falling back to
+          // the EN default locale instead of the IT frontmatter.
+          const titleKey = `posts.${featured.slug}.title`;
+          const descKey = `posts.${featured.slug}.description`;
+          const catKey = `categories.${featured.category}`;
+          return (
+            <section className="py-10 sm:py-12 bg-white">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <FeaturedHero
+                  post={featured}
+                  title={t.has(titleKey) ? t(titleKey) : featured.title}
+                  description={t.has(descKey) ? t(descKey) : featured.description}
+                  category={t.has(catKey) ? t(catKey) : featured.category}
+                  readMoreLabel={t("index.readMore")}
+                  minuteReadLabel={t("index.minuteRead", { minutes: featured.readingTime })}
+                  eyebrowLabel={t("index.featured")}
+                />
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Curated lanes */}
         <div className="bg-white">

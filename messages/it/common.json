@@ -1718,7 +1718,7 @@
   "profile": {
     "title": "Profilo",
     "back": "Indietro",
-    "memberSince": "Membro dal {date}",
+    "memberSince": "Membro da {date}",
     "stats": {
       "trips": "Viaggi",
       "upcoming": "In arrivo",
