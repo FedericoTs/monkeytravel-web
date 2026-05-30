@@ -16,6 +16,7 @@
 import { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/sw/register";
 import { installBackButtonHandler } from "@/lib/native/back-button";
+import { installDeepLinkHandler } from "@/lib/native/deep-links";
 
 export default function NativeBoot() {
   useEffect(() => {
@@ -33,16 +34,28 @@ export default function NativeBoot() {
     // SW registration — fire-and-forget, helper is self-gated.
     registerServiceWorker().catch(() => undefined);
 
-    // Back-button — returns an unsubscribe function we honour on unmount.
-    let unsubscribe: (() => void) | null = null;
+    // Each native handler returns an unsubscribe function; collect them
+    // so we tear down cleanly on unmount (StrictMode + HMR friendly).
+    const unsubs: Array<() => void> = [];
+
     installBackButtonHandler()
       .then((unsub) => {
-        unsubscribe = unsub;
+        unsubs.push(unsub);
+      })
+      .catch(() => undefined);
+
+    // Deep-link routing — Universal Links / App Links / push-payload URLs
+    // (Phase B2). Without this, taps land via cold app launch which loses
+    // in-flight state + flashes a splash; with it, we navigate inside the
+    // WebView for a native-feel transition. No-op outside Capacitor shell.
+    installDeepLinkHandler()
+      .then((unsub) => {
+        unsubs.push(unsub);
       })
       .catch(() => undefined);
 
     return () => {
-      unsubscribe?.();
+      unsubs.forEach((unsub) => unsub());
     };
   }, []);
 
