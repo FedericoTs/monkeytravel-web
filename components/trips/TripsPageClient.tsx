@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef, useId, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useNow } from "@/lib/hooks/useNow";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -11,9 +12,30 @@ import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection from "@/components/blog/BlogTipsSection";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
-import ReferralProgressBanner from "@/components/bananas/ReferralProgressBanner";
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
+
+// Client-only import — the banner's localStorage-driven `isDismissed`
+// state means the SSR + first-paint render emits a placeholder, then
+// post-mount the real banner replaces it. Even after switching to a
+// same-height placeholder (6cdc991), React 19's hydration matcher was
+// still throwing #418 on /trips because the post-mount banner insertion
+// shifted the dom enough that React couldn't reconcile the subtree
+// against the SSR HTML. Marking ssr:false tells Next.js to skip the
+// component entirely on the server and only mount it on the client —
+// hydration has nothing to compare, so nothing can mismatch. The
+// `loading` placeholder fills the same vertical space so layout doesn't
+// jump when the real banner arrives. Allowed from a "use client"
+// component (the ssr:false restriction is server-component only).
+const ReferralProgressBanner = dynamic(
+  () => import("@/components/bananas/ReferralProgressBanner"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[64px] mb-6 sm:mb-8" aria-hidden="true" />
+    ),
+  }
+);
 
 type TFn = (key: string) => string;
 
