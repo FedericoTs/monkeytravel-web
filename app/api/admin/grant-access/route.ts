@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // Find the target user by email
     const { data: targetUser, error: userError } = await supabase
       .from("users")
-      .select("id, email, full_name")
+      .select("id, email, display_name")
       .eq("email", user_email.toLowerCase().trim())
       .single();
 
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
       user: {
         id: targetUser.id,
         email: targetUser.email,
-        name: targetUser.full_name,
+        name: targetUser.display_name,
       },
       code: normalizedCode,
       limits: {
@@ -160,7 +160,7 @@ export async function GET(request: Request) {
     // Find the target user
     const { data: targetUser, error: userError } = await supabase
       .from("users")
-      .select("id, email, full_name")
+      .select("id, email, display_name")
       .eq("email", email.toLowerCase().trim())
       .single();
 
@@ -179,7 +179,7 @@ export async function GET(request: Request) {
       user: {
         id: targetUser.id,
         email: targetUser.email,
-        name: targetUser.full_name,
+        name: targetUser.display_name,
       },
       hasAccess: !!access,
       access: access || null,
