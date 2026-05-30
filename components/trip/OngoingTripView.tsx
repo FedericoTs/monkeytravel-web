@@ -76,8 +76,25 @@ export default function OngoingTripView({
   // user IN their actual Day 1 would have currentDayNumber = 2 and the
   // "today" highlight would land on tomorrow's activities. parseLocalDate
   // gives us local midnight of the picked date, which is correct.
+  // `now` is deferred to a mount-only useEffect so the SSR + first client
+  // render produce identical text (no React error #418). Server-rendered
+  // HTML is often CDN-cached and served minutes-to-hours after generation;
+  // by the time the browser hydrates, `new Date()` lands on a different
+  // calendar day than the server computed, and currentDayNumber differs
+  // → text content mismatch. Same pattern fixed in TripsPageClient
+  // (commit ca58851 / 2026-05-30).
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   const currentDayNumber = useMemo(() => {
-    const today = new Date();
+    // Pre-hydration: default to day 1 so the SSR/initial-client render
+    // matches exactly. The auto-select effect below re-runs once `now`
+    // populates and snaps the highlight to the real day.
+    if (!now) return 1;
+
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
     const start = parseLocalDate(startDate) ?? new Date(startDate);
     start.setHours(0, 0, 0, 0);
@@ -87,7 +104,7 @@ export default function OngoingTripView({
 
     // Clamp to valid day range
     return Math.max(1, Math.min(diffDays, displayItinerary.length));
-  }, [startDate, displayItinerary.length]);
+  }, [startDate, displayItinerary.length, now]);
 
   // Auto-select today's day in Full Plan tab on first switch
   useEffect(() => {
