@@ -591,7 +591,14 @@ export default function TripMap({
                 })}
               >
                 <div
-                  className="pointer-events-none select-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-slate-700 shadow-sm border"
+                  // `whitespace-nowrap` is the fix for the 2026-05-30 bug
+                  // where travel-time pills wrapped to 2–4 lines (e.g.
+                  // "1 / h / 14 / min" stacked vertically). OverlayView
+                  // mounts the div with shrink-to-fit width — without
+                  // nowrap, even short labels broke at every space. The
+                  // `leading-none` keeps the pill pleasingly compact now
+                  // that height is single-line.
+                  className="pointer-events-none select-none whitespace-nowrap leading-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm border"
                   style={{ borderColor: seg.color }}
                   title={t("segmentDuration", { minutes: seg.minutes })}
                 >
