@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 import { prefs } from "@/lib/platform/storage";
+import { hapticSuccess, hapticError } from "@/lib/native/haptics";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -205,6 +206,12 @@ export default function SaveTripModal({
         isFromTemplate: !!templateId,
       });
 
+      // Native success haptic — this is the post-auth-wall conversion
+      // peak. iPhone users will feel the success buzz before the
+      // redirect lands; signals "your trip is saved, you're set."
+      // No-op on web.
+      hapticSuccess();
+
       // Callback or redirect
       if (onSuccess) {
         onSuccess(newTripId);
@@ -216,6 +223,7 @@ export default function SaveTripModal({
     } catch (err) {
       setError(err instanceof Error ? err.message : t("saveFailed"));
       setIsSaving(false);
+      hapticError();
     }
   };
 

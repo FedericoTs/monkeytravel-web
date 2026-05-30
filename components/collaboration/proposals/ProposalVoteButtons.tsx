@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import type { VoteType } from "@/types";
 import { VOTE_INFO } from "@/types";
+import { hapticMedium, hapticError, hapticSelection } from "@/lib/native/haptics";
 
 interface ProposalVoteButtonsProps {
   currentVote?: VoteType | null;
@@ -38,6 +39,9 @@ export function ProposalVoteButtons({
     if (VOTE_INFO[voteType].requiresComment && !comment.trim()) {
       setPendingVote(voteType);
       setShowCommentInput(true);
+      // Light selection haptic — we're advancing UI state (showing the
+      // comment input), not committing the vote yet.
+      hapticSelection();
       return;
     }
 
@@ -47,8 +51,13 @@ export function ProposalVoteButtons({
       setComment('');
       setShowCommentInput(false);
       setPendingVote(null);
+      // Medium impact — the vote landed. Group decisions are a
+      // collaboration-loop moment that deserves a deliberate haptic;
+      // matches the "you just committed something" mental model.
+      hapticMedium();
     } catch (error) {
       console.error('Failed to vote:', error);
+      hapticError();
     } finally {
       setIsLoading(false);
     }
@@ -68,8 +77,10 @@ export function ProposalVoteButtons({
       setComment('');
       setShowCommentInput(false);
       setPendingVote(null);
+      hapticMedium();
     } catch (error) {
       console.error('Failed to vote:', error);
+      hapticError();
     } finally {
       setIsLoading(false);
     }

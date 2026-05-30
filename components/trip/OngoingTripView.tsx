@@ -19,6 +19,7 @@ import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { parseLocalDate } from "@/lib/utils/date-local";
+import { hapticSuccess, hapticLight, hapticError } from "@/lib/native/haptics";
 
 // Dynamic import for TripMap
 // Loading placeholder is a pure visual skeleton (no text) because module-scope
@@ -160,10 +161,21 @@ export default function OngoingTripView({
           setAchievementQueue((prev) => [...prev, ...xpEvent.newAchievements]);
         }
 
+        // Native success haptic — fires alongside the XP gain animation
+        // so users feel the reward immediately even before they look at
+        // the toast. No-op on web (zero overhead). Booking + Airbnb both
+        // fire success haptics on booking-confirmation moments; activity
+        // completion is the closest analog in our flow.
+        hapticSuccess();
+
         // Clear XP animation after delay
         setTimeout(() => setRecentXpGain(null), 2500);
       } catch (error) {
         console.error("Failed to complete activity:", error);
+        // Error haptic gives in-trip users an immediate "this didn't
+        // land" signal even if they're glancing at the screen, not
+        // reading the console.error toast.
+        hapticError();
       }
     },
     [completeActivity, currentDayNumber, recordCompletion]
@@ -177,8 +189,12 @@ export default function OngoingTripView({
       try {
         await skipActivity(activity.id, currentDayNumber);
         recordSkip(activity.id);
+        // Light tap — skip is a low-stakes action, contrast with the
+        // success haptic on completion keeps both feeling meaningful.
+        hapticLight();
       } catch (error) {
         console.error("Failed to skip activity:", error);
+        hapticError();
       }
     },
     [skipActivity, currentDayNumber, recordSkip]
