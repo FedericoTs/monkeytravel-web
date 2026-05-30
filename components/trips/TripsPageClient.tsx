@@ -3,11 +3,14 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useId, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useNow } from "@/lib/hooks/useNow";
+import { usePullToRefresh } from "@/lib/hooks/usePullToRefresh";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { formatDateRange } from "@/lib/datetime";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import { PullToRefreshIndicator } from "@/components/ui/PullToRefreshIndicator";
+import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection from "@/components/blog/BlogTipsSection";
 import type { BlogFrontmatter } from "@/lib/blog/types";
@@ -516,6 +519,24 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
+  // Pull-to-refresh — the canonical iOS gesture. router.refresh() re-runs
+  // the server component for /trips, picking up any new trips that were
+  // added on another device or via collab. Light haptic confirms the
+  // gesture landed before the refresh actually completes. No-op on
+  // desktop (no touch events).
+  const handlePullRefresh = useCallback(async () => {
+    hapticLight();
+    router.refresh();
+    // router.refresh is synchronous from the caller's POV; give the
+    // server a moment to respond so the spinner doesn't flash on/off.
+    // 600ms is the empirical sweet spot — long enough to feel
+    // intentional, short enough that snappy networks don't feel laggy.
+    await new Promise((resolve) => setTimeout(resolve, 600));
+  }, [router]);
+
+  const { isRefreshing: ptrRefreshing, pullDistance: ptrDistance } =
+    usePullToRefresh(handlePullRefresh, { threshold: 80 });
+
   // Action modal state
   const [actionModal, setActionModal] = useState<{
     isOpen: boolean;
@@ -768,6 +789,16 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white overflow-x-hidden">
+      {/* Pull-to-refresh indicator — fixed-position spinner that translates
+          with the finger. Renders nothing when idle. Sits in front of the
+          sticky header (z-60) so the spinner is visible during the
+          gesture. */}
+      <PullToRefreshIndicator
+        distance={ptrDistance}
+        isRefreshing={ptrRefreshing}
+        threshold={80}
+      />
+
       {/* OAuth event tracking (handles auth_event query param) */}
       <Suspense fallback={null}>
         <AuthEventTracker />
