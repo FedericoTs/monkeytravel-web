@@ -205,6 +205,31 @@ function initMonitoring() {
     hasAnalyticsConsent // Only init with consent
   ) {
     import("posthog-js").then(({ default: posthog }) => {
+      // ╔══════════════════════════════════════════════════════════════╗
+      // ║ ATT-COMPLIANCE GUARDRAIL — DO NOT ADD IDFA / DEVICE-ID OPTS  ║
+      // ║                                                              ║
+      // ║ This config is intentionally minimal. The App Privacy        ║
+      // ║ Nutrition Label we ship to Apple (see                        ║
+      // ║ docs/legal/app-privacy-label.md §10) declares "Device ID:    ║
+      // ║ NO". That answer is only true as long as PostHog stays in    ║
+      // ║ anonymous-distinct-id mode. The moment any of these options  ║
+      // ║ is added, the answer flips to YES and the app crosses the    ║
+      // ║ App Tracking Transparency threshold — we'd then HAVE to ship ║
+      // ║ the OS ATT prompt on iOS 14.5+, which has ~25% opt-in rates  ║
+      // ║ and tanks measurement quality across the funnel.             ║
+      // ║                                                              ║
+      // ║ BANNED options (PostHog SDK):                                ║
+      // ║   - `advertising_id_collection_enabled: true`                ║
+      // ║   - `enable_collect_everything: true` with PII fields        ║
+      // ║   - `cross_subdomain_cookie: true` AND a domain that spans   ║
+      // ║     beyond first-party (would qualify as cross-app tracking) ║
+      // ║   - Any session-recording option that bypasses               ║
+      // ║     hasSessionRecordingConsent                               ║
+      // ║                                                              ║
+      // ║ Before adding ANY new option here, re-read                   ║
+      // ║ docs/legal/app-privacy-label.md and confirm the change       ║
+      // ║ doesn't flip a declared-NO field to a YES.                   ║
+      // ╚══════════════════════════════════════════════════════════════╝
       posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST!,
         defaults: "2025-05-24",
