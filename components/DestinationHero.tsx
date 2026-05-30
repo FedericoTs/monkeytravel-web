@@ -112,9 +112,6 @@ export default function DestinationHero({
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
   const heroImgRef = useRef<HTMLImageElement | null>(null);
-  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
-  // the hero photo stayed at opacity:0 for repeat visitors.
-  const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, destinationData?.coverImageUrl);
   // Error fallback — when the <img> src 200s on direct fetch but the
   // BROWSER fails to load it (Pexels 504 cached as failed, Vercel
   // optimizer 400, CORS quirk), the element ends up `complete=true`
@@ -122,6 +119,29 @@ export default function DestinationHero({
   // grey block. Track the failure so we can swap to the gradient
   // fallback. Caught via live audit 2026-05-29 on /it/trips/[id].
   const [imageError, setImageError] = useState(false);
+  // Retry-once shim for intermittent <img> load failures.
+  // 2026-05-30 bug: hero photo sometimes never renders until hard refresh.
+  // Root cause is upstream (Google Places /media transient 5xx — also
+  // mitigated server-side in /api/places/photo retry). Belt-and-braces:
+  // if onError fires once, bump the retry counter, which appends `?_r=N`
+  // to the src and forces the browser to re-fetch (defeating the negative
+  // HTTP cache for the failed URL). Only THEN do we fall through to the
+  // gradient if it still fails.
+  const MAX_IMAGE_RETRIES = 1;
+  const [imageRetry, setImageRetry] = useState(0);
+  // Build the effective src — cache-bust on retry only, to keep the first
+  // attempt CDN-cacheable. `?_r=N` is harmless to our /api/places/photo
+  // proxy (it ignores unknown params) and defeats the browser's image cache.
+  const baseCoverUrl = destinationData?.coverImageUrl;
+  const effectiveCoverUrl = baseCoverUrl
+    ? imageRetry === 0
+      ? baseCoverUrl
+      : `${baseCoverUrl}${baseCoverUrl.includes("?") ? "&" : "?"}_r=${imageRetry}`
+    : null;
+  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
+  // the hero photo stayed at opacity:0 for repeat visitors. Track the
+  // *effective* (retry-suffixed) src so a remount on retry resets state.
+  const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, effectiveCoverUrl);
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
@@ -131,6 +151,14 @@ export default function DestinationHero({
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
   };
+
+  // Reset image-level error/retry state whenever the underlying destination
+  // or pre-fetched URL changes — otherwise a previous trip's failure could
+  // bleed into the next render and skip straight to the gradient.
+  useEffect(() => {
+    setImageError(false);
+    setImageRetry(0);
+  }, [destination, coverImageUrl]);
 
   useEffect(() => {
     // If we already have a saved cover image, use it directly - NO API call
@@ -155,14 +183,21 @@ export default function DestinationHero({
       return;
     }
 
+    // AbortController so a fast re-mount / destination switch cancels the
+    // in-flight fetch instead of racing the new one. Prevents stale data
+    // from clobbering the latest destination and the corresponding
+    // "Can't perform a React state update on an unmounted component" warn.
+    const controller = new AbortController();
     const fetchDestination = async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/places?destination=${encodeURIComponent(destination)}`
+          `/api/places?destination=${encodeURIComponent(destination)}`,
+          { signal: controller.signal }
         );
         if (response.ok) {
           const data = await response.json();
+          if (controller.signal.aborted) return;
           setDestinationData(data);
           // Callback to save the fetched image URL for future use
           if (data.coverImageUrl && onCoverImageFetched) {
@@ -170,15 +205,20 @@ export default function DestinationHero({
           }
         }
       } catch (error) {
-        console.error("Failed to fetch destination:", error);
+        // AbortError is expected on cleanup — only log real failures.
+        if ((error as { name?: string })?.name !== "AbortError") {
+          console.error("Failed to fetch destination:", error);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     if (destination) {
       fetchDestination();
     }
+
+    return () => controller.abort();
   }, [destination, coverImageUrl, onCoverImageFetched, disableApiCalls]);
 
   return (
@@ -186,17 +226,30 @@ export default function DestinationHero({
       {/* Hero Image Container */}
       <div className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
         {/* Background Image */}
-        {destinationData?.coverImageUrl && !imageError ? (
+        {effectiveCoverUrl && !imageError ? (
           <>
             <img
+              // `key` bound to retry counter so a retry truly remounts the
+              // <img>, defeating any React reconciliation that might
+              // preserve the failed element/state across src changes.
+              key={`hero-${imageRetry}`}
               ref={heroImgRef}
-              src={destinationData.coverImageUrl}
+              src={effectiveCoverUrl}
               alt={destination}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
+              onError={() => {
+                // First onError: bump the retry counter to remount with a
+                // cache-busted src and give the upstream one more shot.
+                // Second onError: commit to the gradient fallback.
+                if (imageRetry < MAX_IMAGE_RETRIES) {
+                  setImageRetry((n) => n + 1);
+                } else {
+                  setImageError(true);
+                }
+              }}
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />

@@ -34,6 +34,56 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // alphanumerics + a small set of separators.
 const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
 
+/**
+ * Retry transient 5xx + network errors from Google's media endpoint.
+ *
+ * Live observation 2026-05-30 (hero-image intermittent-load bug):
+ * Google's `places.googleapis.com/.../media` returns occasional 503/504
+ * even on repeat fetches that succeed seconds later. Without a retry,
+ * the failure surfaces in the browser as a broken <img> → DestinationHero
+ * flips to its gradient fallback → user has to hard-refresh to recover.
+ *
+ * Strategy: one retry, 250ms backoff, only for 5xx and network errors
+ * (NEVER for 4xx — those are legit failures we shouldn't paper over).
+ * Total worst-case latency added on the success path: 0ms. On retry:
+ * ~250ms + one extra Google round-trip. Acceptable for the cure.
+ */
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 1,
+  delayMs = 250
+): Promise<Response> {
+  let attempt = 0;
+  // We re-enter the loop only on retryable failure; success or 4xx returns immediately.
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const res = await fetch(url, init);
+      const retryable = res.status >= 500 && res.status < 600;
+      if (retryable && attempt < maxRetries) {
+        // Drain the body so the connection can be reused; ignore drain errors.
+        try {
+          await res.arrayBuffer();
+        } catch {
+          /* ignore */
+        }
+        attempt += 1;
+        await new Promise((r) => setTimeout(r, delayMs));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt < maxRetries) {
+        attempt += 1;
+        await new Promise((r) => setTimeout(r, delayMs));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
@@ -54,7 +104,7 @@ export async function GET(request: NextRequest) {
   const upstream = `https://places.googleapis.com/v1/${name}/media?maxHeightPx=${h}&maxWidthPx=${w}`;
   let res: Response;
   try {
-    res = await fetch(upstream, {
+    res = await fetchWithRetry(upstream, {
       headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY },
       // Server-side fetches follow the 302 redirect to the actual image.
       redirect: "follow",
