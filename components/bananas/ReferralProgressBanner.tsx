@@ -35,7 +35,23 @@ export default function ReferralProgressBanner({
   onInvite,
 }: ReferralProgressBannerProps) {
   const t = useTranslations("bananas");
-  const [isDismissed, setIsDismissed] = useState(true); // Start hidden to prevent flash
+  // Tri-state: null = pre-mount (don't know yet), true = dismissed, false = visible.
+  //
+  // Previously initialised to `true` ("hidden by default to prevent flash"),
+  // which had the side effect of: SSR rendered `null` → first client paint
+  // rendered `null` → useEffect read localStorage → setIsDismissed(false) →
+  // re-render inserts the whole banner into the DOM. That insertion shifts
+  // every sibling that comes after on /trips, and the resulting DOM no
+  // longer aligns with what the SSR HTML emitted → React 19 throws #418
+  // ("Text content does not match server-rendered HTML") even though the
+  // BANNER itself never produced mismatched text.
+  //
+  // The fix: render the banner's footprint as a transparent placeholder
+  // sized like the real banner BEFORE we know whether to show it. SSR
+  // emits the placeholder; first client paint emits the same placeholder
+  // (deterministic); then post-mount the real banner or `null` replaces
+  // it in place. Siblings don't shift. No hydration mismatch.
+  const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
 
   // Get translated tier name
   const getTierName = (tier: ReferralTierLevel): string => {
@@ -52,6 +68,22 @@ export default function ReferralProgressBanner({
     const dismissed = localStorage.getItem(STORAGE_KEY);
     setIsDismissed(dismissed === "true");
   }, []);
+
+  // Pre-mount placeholder: same outer wrapper as the real banner so layout
+  // is stable across SSR → first paint → post-effect render. Empty content
+  // (aria-hidden, visually invisible because no inner text or padding-driven
+  // background) means it costs ~0 vertical space if the user has dismissed,
+  // and ~64px if the real banner is about to appear. That's a worst-case
+  // 64px of pre-mount blank space — acceptable trade vs the hydration error.
+  if (isDismissed === null) {
+    return (
+      <div
+        className={`min-h-[64px] ${className}`}
+        aria-hidden="true"
+        suppressHydrationWarning
+      />
+    );
+  }
 
   // Don't show if dismissed or max tier reached
   if (isDismissed || currentTier === 3) return null;
