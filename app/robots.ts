@@ -10,6 +10,9 @@ import { MetadataRoute } from "next";
 // here so it doesn't leak into Google's index via internal links.
 const DISALLOW_PATHS = [
   "/api/",
+  "/api/calendar/", // personalised .ics subscription URLs (Phase 1B) — already
+                    // covered by /api/ above, listed for clarity since the
+                    // tokens in these URLs are user-stable secrets.
   "/auth/",
   "/admin/",
   "/admin",

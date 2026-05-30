@@ -25,11 +25,16 @@ import VoteCastEmail, {
   voteCastEmailText,
   type VoteCastEmailProps,
 } from "./templates/VoteCast";
+import TripReminderEmail, {
+  tripReminderEmailText,
+  type TripReminderEmailProps,
+} from "./templates/TripReminder";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 
 export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
-  | { id: "vote_cast"; props: VoteCastEmailProps };
+  | { id: "vote_cast"; props: VoteCastEmailProps }
+  | { id: "trip_reminder"; props: TripReminderEmailProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -109,6 +114,11 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   invite: null,
   // Vote-cast is collaboration — gated by emailNotifications + collabVotes
   vote_cast: "collabVotes",
+  // Pre-trip cascade — gated by emailNotifications + tripReminders. The
+  // tripReminders key is already populated at signup
+  // (app/auth/callback/route.ts + app/[locale]/auth/signup/page.tsx);
+  // we just honour it here. Read failure is fail-closed per cycle-7 #216.
+  trip_reminder: "tripReminders",
 };
 
 /**
@@ -121,6 +131,7 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
 const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   invite: null, // transactional — recipient may not have an account yet
   vote_cast: "collabVotes",
+  trip_reminder: "tripReminders",
 };
 
 /**
@@ -533,6 +544,15 @@ async function renderTemplate(
       const html = await render(VoteCastEmail(template.props));
       const text = voteCastEmailText(template.props);
       const subject = `New feedback on your ${template.props.tripDestination} trip`;
+      return { html, text, subject };
+    }
+    case "trip_reminder": {
+      // The cron route resolves the slot-specific subject in the
+      // recipient's locale and passes it via props.heading — we mirror
+      // it as the subject so the email subject + heading stay in sync.
+      const html = await render(TripReminderEmail(template.props));
+      const text = tripReminderEmailText(template.props);
+      const subject = `${template.props.heading} — ${template.props.destination}`;
       return { html, text, subject };
     }
   }

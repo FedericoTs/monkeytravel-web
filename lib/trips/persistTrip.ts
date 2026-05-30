@@ -15,6 +15,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary, TripVibe } from "@/types";
+import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 
 export interface TripFormState {
   destination: string;
@@ -136,6 +137,13 @@ export async function insertTrip(
 
   if (error) throw error;
   if (!data?.id) throw new Error("Trip insert returned no id");
+
+  // Fire-and-forget enqueue of the pre-trip reminder cascade. Internally
+  // gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; a failed enqueue logs
+  // + Sentry-captures but never re-throws — saving a trip must NEVER
+  // fail because the reminder queue is sick. See
+  // lib/notifications/scheduling.ts for the full contract.
+  void scheduleTripNotifications({ tripId: data.id, userId });
 
   return {
     tripId: data.id,

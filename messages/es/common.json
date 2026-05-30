@@ -425,7 +425,12 @@
     "tripConfirmed": "Viaje confirmado",
     "tripCancelled": "Viaje cancelado",
     "readyToConfirm": "¿Listo para confirmar tu viaje?",
-    "confirmTripDescription": "Una vez confirmado, tendrás una cuenta regresiva hasta tu partida y acceso a tu lista de preparativos."
+    "confirmTripDescription": "Una vez confirmado, tendrás una cuenta regresiva hasta tu partida y acceso a tu lista de preparativos.",
+    "gcalSyncDone": "Se sincronizaron {count} eventos en tu Google Calendar.",
+    "gcalSyncDoneNoCount": "Viaje sincronizado con Google Calendar.",
+    "gcalSyncPartial": "Sincronización parcial: se añadieron {count} eventos. Algunos fallaron; vuelve a intentarlo más tarde.",
+    "gcalSyncDenied": "La sincronización con Google Calendar se canceló. Puedes volver a intentarlo cuando quieras.",
+    "gcalSyncError": "No se pudo sincronizar con Google Calendar. Inténtalo de nuevo."
   },
   "booking": {
     "bookYourTrip": "Reserva Tu Viaje",
@@ -1956,6 +1961,54 @@
       "findHostels": "Encuentra hostales para este viaje",
       "onHostelworld": "en Hostelworld",
       "affiliateDisclosure": "Enlace de afiliado — podemos ganar una pequeña comisión sin coste adicional para ti."
+    }
+  },
+  "calendar": {
+    "downloadIcs": "Añadir al calendario",
+    "downloadIcsSubtitle": "Compatible con Apple Calendar, Google Calendar y Outlook"
+  },
+  "addFromEmail": {
+    "button": "Añadir desde email",
+    "modalTitle": "Añadir reserva desde email",
+    "placeholder": "Pega aquí tu confirmación de reserva — vuelo, hotel, restaurante, cualquier cosa con fecha y hora.",
+    "parseAction": "Analizar",
+    "parsing": "Leyendo tu email…",
+    "preview": "Revisa y edita",
+    "confirm": "Añadir al viaje",
+    "confirming": "Añadiendo…",
+    "cancel": "Cancelar",
+    "errorTooShort": "Esto no parece una confirmación de reserva — pega el email completo e inténtalo de nuevo.",
+    "errorParseFailed": "No pudimos leer este email. Asegúrate de que sea una confirmación de reserva.",
+    "errorNoBooking": "No encontramos ninguna reserva en este email. Prueba a pegar la confirmación completa.",
+    "toastAdded": "Reserva añadida a tu viaje.",
+    "fieldName": "Nombre",
+    "fieldLocation": "Lugar",
+    "fieldAddress": "Dirección",
+    "fieldDate": "Fecha",
+    "fieldStartTime": "Hora de inicio",
+    "fieldConfirmation": "Nº de confirmación"
+  },
+  "tripReminderEmail": {
+    "cta": "Abre tu viaje",
+    "pack_early_14d": {
+      "heading": "Dos semanas para el viaje",
+      "body": "Tu viaje a {destination} es en dos semanas. Buen momento para revisar el pasaporte, esbozar la lista de equipaje y reservar los vuelos u hoteles que tenías en mente."
+    },
+    "visa_check_7d": {
+      "heading": "Una semana — revisa el visado",
+      "body": "Aviso: tu viaje a {destination} es en siete días. Es el momento ideal para revisar visados, vacunas o formularios de entrada — sin sorpresas en el aeropuerto."
+    },
+    "weather_3d": {
+      "heading": "Tres días para {destination}",
+      "body": "Viaje en tres días. Echa un vistazo al tiempo, cierra la maleta y organiza el transporte al aeropuerto. Tu itinerario está listo cuando lo necesites."
+    },
+    "confirm_1d": {
+      "heading": "Mañana — últimos detalles",
+      "body": "Mañana sales hacia {destination}. Checklist rápido: tarjetas de embarque descargadas, alojamientos confirmados, cargadores en la maleta, pasaporte contigo. Buen viaje."
+    },
+    "morning_of": {
+      "heading": "Día de viaje",
+      "body": "Llegó el día. Tu itinerario completo de {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
     }
   }
 }

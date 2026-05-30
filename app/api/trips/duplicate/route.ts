@@ -6,6 +6,7 @@ import type { ItineraryDay, Activity } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 
 /**
  * POST /api/trips/duplicate - Duplicate a shared trip to user's account
@@ -142,6 +143,12 @@ export async function POST(request: NextRequest) {
       console.error("[Trip Duplicate] Error inserting:", insertError);
       return errors.internal("Failed to save trip to your account", "Trip Duplicate");
     }
+
+    // Fire-and-forget enqueue of the pre-trip reminder cascade. Gated
+    // by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; failures log + Sentry
+    // but never re-throw — the user's duplicate succeeded, the
+    // reminder queue being sick must not surface here.
+    void scheduleTripNotifications({ tripId: newTripId, userId: user.id });
 
     // Complete referral if this is user's first trip (fire and forget)
     void (async () => {

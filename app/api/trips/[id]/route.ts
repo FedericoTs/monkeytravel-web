@@ -4,6 +4,7 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { ItineraryDay } from "@/types";
+import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -68,7 +69,9 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       updates.itinerary = ensureActivityIds(itinerary);
     }
 
-    // Handle other allowed fields
+    // Handle other allowed fields. `start_date` and `end_date` are
+    // accepted as ISO-date strings (YYYY-MM-DD); `reminders_muted`
+    // is the per-trip pre-trip cascade mute toggle.
     const allowedFields = [
       "title",
       "description",
@@ -76,12 +79,23 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       "tags",
       "budget",
       "cover_image_url",
+      "start_date",
+      "end_date",
+      "reminders_muted",
     ];
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updates[field] = body[field];
       }
     }
+
+    // CAUSALITY: capture whether this PATCH touches start_date / mute
+    // BEFORE the update so we can re-enqueue the reminder cascade
+    // after success. enqueue_trip_notifications(tripId, userId) is
+    // idempotent (wipes pending → re-inserts), so this is safe to
+    // call on every change without risking duplicates.
+    const startDateChanged = body.start_date !== undefined;
+    const muteChanged = body.reminders_muted !== undefined;
 
     // Update trip
     const { data: updatedTrip, error: updateError } = await supabase
@@ -95,6 +109,15 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     if (updateError) {
       console.error("[Trips] Error updating trip:", updateError);
       return errors.internal("Failed to update trip", "Trips");
+    }
+
+    // Re-enqueue (or wipe) the pre-trip cascade if the start_date or
+    // mute toggle moved. Fire-and-forget — gated internally by the
+    // calendar-export env flag and fail-closed against the user via
+    // logging only (never re-throws). See
+    // lib/notifications/scheduling.ts for details.
+    if (startDateChanged || muteChanged) {
+      void scheduleTripNotifications({ tripId: id, userId: user.id });
     }
 
     return apiSuccess({ success: true, trip: updatedTrip });

@@ -10,6 +10,7 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
+import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
@@ -112,6 +113,13 @@ const ProposeActivitySheet = dynamic(
   () => import("@/components/collaboration/proposals/ProposeActivitySheet").then((m) => ({ default: m.ProposeActivitySheet })),
   { ssr: false }
 );
+// Hidden by default — only mounts once the user clicks "Add from email".
+// Flag-gated internally; the dynamic import still happens on chunk load
+// when the trigger button is rendered, but next/dynamic + ssr:false means
+// it's never in the initial server payload.
+const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingModal"), {
+  ssr: false,
+});
 
 interface TripDetailClientProps {
   trip: {
@@ -158,6 +166,11 @@ export default function TripDetailClient({
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
   const tButtons = useTranslations('common.buttons');
+  // 'common' is the namespace that holds calendar.* and addFromEmail.*
+  // — added with the calendar-export + email-parse rollout. We don't
+  // want to re-namespace the existing tButtons / tTrips translators
+  // because that would force a sweep through every existing call site.
+  const tCommon = useTranslations('common');
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
@@ -217,6 +230,16 @@ export default function TripDetailClient({
   // Booking drawer state (for collecting flight origin)
   const [isBookingDrawerOpen, setIsBookingDrawerOpen] = useState(false);
 
+  // "Add from email" modal — flag-gated paste-confirmation flow.
+  // The PasteBookingModal early-returns null when
+  // NEXT_PUBLIC_EMAIL_PARSE_ENABLED !== "true", but we also avoid
+  // rendering the trigger button (and therefore the dynamic chunk
+  // load) when the flag is off so the action bar stays tidy. The
+  // flag is inlined at build time on Vercel — toggling it is a
+  // 60-second redeploy.
+  const emailParseEnabled = process.env.NEXT_PUBLIC_EMAIL_PARSE_ENABLED === "true";
+  const [isPasteBookingOpen, setIsPasteBookingOpen] = useState(false);
+
   // Feature flag for enhanced booking panel
   const { enabled: useEnhancedBooking } = useFlag(FLAG_ENHANCED_BOOKING);
 
@@ -273,6 +296,62 @@ export default function TripDetailClient({
 
   // Toast notifications
   const { addToast } = useToast();
+
+  // ---------------------------------------------------------------
+  // Google Calendar sync result toast
+  // ---------------------------------------------------------------
+  // The OAuth callback (app/api/calendar/google/callback/route.ts)
+  // redirects here with ?gcal_sync=<status>&gcal_count=<n>. Fire a
+  // toast on first paint, then strip the param so a refresh doesn't
+  // re-trigger it.
+  //
+  // CAUSALITY: keep this in sync with the SyncStatusQuery union in
+  // the callback route. If you add a new status (e.g. 'reauth'),
+  // add a branch here too — otherwise the param sits in the URL
+  // and produces no UX feedback.
+  useEffect(() => {
+    const status = searchParams.get("gcal_sync");
+    if (!status) return;
+    const countRaw = searchParams.get("gcal_count");
+    const count = countRaw ? Number.parseInt(countRaw, 10) : undefined;
+    const reason = searchParams.get("gcal_reason") || undefined;
+
+    if (status === "done") {
+      const msg =
+        typeof count === "number" && Number.isFinite(count) && count > 0
+          ? tTrips("gcalSyncDone", { count })
+          : tTrips("gcalSyncDoneNoCount");
+      addToast(msg, "success");
+    } else if (status === "partial") {
+      addToast(
+        tTrips("gcalSyncPartial", { count: count ?? 0 }),
+        "success"
+      );
+    } else if (status === "denied") {
+      addToast(tTrips("gcalSyncDenied"), "info");
+    } else if (status === "failed" || status === "error") {
+      addToast(tTrips("gcalSyncError"), "error");
+      if (reason && process.env.NODE_ENV !== "production") {
+        // Help in dev only — never leak operator detail to prod toasts.
+        console.warn("[gcal-sync] error reason:", reason);
+      }
+    }
+
+    // Strip gcal_* params from the URL so refresh / back-button
+    // doesn't re-fire the toast. router.replace + scroll: false to
+    // avoid a perceived nav.
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.delete("gcal_sync");
+    sp.delete("gcal_count");
+    sp.delete("gcal_reason");
+    const qs = sp.toString();
+    const nextPath = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    router.replace(nextPath, { scroll: false });
+    // We only react to the value at mount + when status actually
+    // changes — `searchParams` reference can churn on unrelated
+    // history events, so we depend on the resolved status string.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get("gcal_sync")]);
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled") => {
@@ -1524,6 +1603,40 @@ export default function TripDetailClient({
               />
             )}
 
+            {/* Add to Calendar (.ics download). Self-gates on
+                NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED — renders nothing
+                when the flag is off, so the wrapper is safe to leave
+                unconditional alongside the other action buttons. */}
+            {!isEditMode && <DownloadIcsButton tripId={trip.id} showSubtext={false} />}
+
+            {/* Add from email (paste booking → Gemini parse). Gated
+                in TWO places: the trigger button below (so the chunk
+                doesn't even load when off) AND the modal itself (so
+                if any caller forgets the env guard, nothing renders). */}
+            {!isEditMode && emailParseEnabled && (
+              <button
+                onClick={() => setIsPasteBookingOpen(true)}
+                className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                title={tCommon('addFromEmail.button')}
+              >
+                <svg
+                  className="w-5 h-5 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="hidden sm:inline">{tCommon('addFromEmail.button')}</span>
+              </button>
+            )}
+
             {/* Edit Mode Toggle - Acts as both enter and save/exit */}
             {!isEditMode ? (
               <button
@@ -1603,6 +1716,26 @@ export default function TripDetailClient({
           travelers={collaboratorCount || 2}
           tripId={trip.id}
         />
+
+        {/* Paste Booking Modal — "Add from email" flow. Mount only
+            when the flag is on AND the user has opened it (lazy chunk
+            already deferred via next/dynamic + ssr:false). Refresh
+            on success so the new activity shows up in the itinerary. */}
+        {emailParseEnabled && isPasteBookingOpen && (
+          <PasteBookingModal
+            tripId={trip.id}
+            isOpen={isPasteBookingOpen}
+            onClose={() => setIsPasteBookingOpen(false)}
+            onBookingAdded={() => {
+              // Re-pull the trip from the server — same hook the AI
+              // assistant uses after autonomous edits. Keeps the
+              // itinerary state in sync without a hard page reload.
+              handleRefetchTrip().catch((err) => {
+                console.error("[PasteBookingModal] Refetch failed:", err);
+              });
+            }}
+          />
+        )}
 
         {/* Interactive Map - First */}
         {showMap && displayItinerary.length > 0 && (

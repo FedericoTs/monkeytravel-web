@@ -41,7 +41,11 @@ export type UnsubKey =
   | "collabComments"
   | "inviteAccepted"
   | "weeklyDigest"
-  | "marketingNotifications";
+  | "marketingNotifications"
+  // Pre-trip cascade (14d / 7d / 3d / 1d / morning-of). Gates the
+  // TripReminderEmail dispatch path. Mirrors the existing
+  // notification_settings.tripReminders key already populated at signup.
+  | "tripReminders";
 
 interface UnsubPayload {
   u: string; // user_id

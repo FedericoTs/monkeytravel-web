@@ -48,6 +48,10 @@
     {
       "path": "/api/cron/refresh-activity-index",
       "schedule": "23 4 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-notifications",
+      "schedule": "*/15 * * * *"
     }
   ],
   "redirects": [

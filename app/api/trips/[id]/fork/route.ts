@@ -4,6 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import type { ItineraryDay, Activity } from "@/types";
 
 /**
@@ -154,6 +155,12 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     new_trip_id: created.id,
     start_date: startDate,
   });
+
+  // Fire-and-forget enqueue of the 5-slot pre-trip cascade for the
+  // forked trip. Gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED;
+  // failures log + Sentry-capture but never re-throw — a fork
+  // succeeding is more important than its reminder queue.
+  void scheduleTripNotifications({ tripId: created.id, userId: user.id });
 
   return apiSuccess({
     newTripId: created.id,

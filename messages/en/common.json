@@ -425,7 +425,12 @@
     "tripConfirmed": "Trip confirmed",
     "tripCancelled": "Trip cancelled",
     "readyToConfirm": "Ready to confirm your trip?",
-    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
+    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist.",
+    "gcalSyncDone": "Synced {count} events to your Google Calendar.",
+    "gcalSyncDoneNoCount": "Synced your trip to Google Calendar.",
+    "gcalSyncPartial": "Partially synced — {count} events added. Some failed; try again later.",
+    "gcalSyncDenied": "Google Calendar sync was cancelled. You can try again any time.",
+    "gcalSyncError": "Couldn't sync to Google Calendar. Please try again."
   },
   "booking": {
     "bookYourTrip": "Book Your Trip",
@@ -1956,6 +1961,54 @@
       "findHostels": "Find hostels for this trip",
       "onHostelworld": "on Hostelworld",
       "affiliateDisclosure": "Affiliate link — we may earn a small commission at no extra cost to you."
+    }
+  },
+  "calendar": {
+    "downloadIcs": "Add to Calendar",
+    "downloadIcsSubtitle": "Works with Apple Calendar, Google Calendar, Outlook"
+  },
+  "addFromEmail": {
+    "button": "Add from email",
+    "modalTitle": "Add booking from email",
+    "placeholder": "Paste your booking confirmation here — flight, hotel, restaurant reservation, anything with a date and time.",
+    "parseAction": "Parse",
+    "parsing": "Reading your email…",
+    "preview": "Review and edit",
+    "confirm": "Add to trip",
+    "confirming": "Adding…",
+    "cancel": "Cancel",
+    "errorTooShort": "That doesn't look like a booking confirmation — paste the whole email and try again.",
+    "errorParseFailed": "Couldn't parse this email. Make sure it's a booking confirmation.",
+    "errorNoBooking": "We couldn't find a booking in that email. Try pasting the full confirmation.",
+    "toastAdded": "Booking added to your trip.",
+    "fieldName": "Name",
+    "fieldLocation": "Location",
+    "fieldAddress": "Address",
+    "fieldDate": "Date",
+    "fieldStartTime": "Start time",
+    "fieldConfirmation": "Confirmation #"
+  },
+  "tripReminderEmail": {
+    "cta": "Open your trip",
+    "pack_early_14d": {
+      "heading": "Two weeks to go",
+      "body": "Your {destination} trip is two weeks away. A great time to make sure your passport is valid, draft your packing list, and lock in any flights or hotels you've been eyeing."
+    },
+    "visa_check_7d": {
+      "heading": "One week out — visa check",
+      "body": "Heads up: your {destination} trip is in seven days. Now's the moment to double-check visa, vaccination, or entry-form requirements so nothing surprises you at the airport."
+    },
+    "weather_3d": {
+      "heading": "Three days to {destination}",
+      "body": "Trip in three days. Peek at the weather, finalise your packing, and confirm transport to the airport. We've got your itinerary ready when you need it."
+    },
+    "confirm_1d": {
+      "heading": "Tomorrow — final checks",
+      "body": "You leave for {destination} tomorrow. Quick checklist: boarding passes downloaded, accommodations confirmed, chargers packed, passport on you. Have an amazing trip."
+    },
+    "morning_of": {
+      "heading": "Travel day",
+      "body": "Today's the day. Your full {destination} itinerary is one tap away — open it whenever you need directions, opening hours, or what's next."
     }
   }
 }

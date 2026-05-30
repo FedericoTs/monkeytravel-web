@@ -21,6 +21,10 @@ const KEY_LABEL: Record<UnsubKey, string> = {
   inviteAccepted: "invite-accepted notifications",
   weeklyDigest: "the weekly digest",
   marketingNotifications: "marketing emails",
+  // Pre-trip cascade — keyed by the same UnsubKey the email-send
+  // orchestrator stamps on the List-Unsubscribe header for
+  // TripReminderEmail (lib/email/send.ts UNSUB_KEY).
+  tripReminders: "pre-trip reminder emails",
 };
 
 /**
