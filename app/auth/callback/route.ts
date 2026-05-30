@@ -219,6 +219,10 @@ export async function GET(request: Request) {
           email: data.user.email,
           display_name: displayName,
           avatar_url: data.user.user_metadata?.avatar_url || null,
+          // UI language at signup time — drives the language we email them
+          // in. `locale` comes from the OAuth callback query param the
+          // signup/login pages append.
+          preferred_language: locale,
           preferences: {}, // Will be filled by complete-profile page if from onboarding
           onboarding_completed: true, // Skip onboarding — users can personalize later in profile settings
           free_trips_remaining: freeTripsRemaining,

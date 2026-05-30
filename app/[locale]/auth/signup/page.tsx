@@ -121,6 +121,10 @@ function SignupForm() {
       options: {
         data: {
           display_name: displayName,
+          // Persist the UI locale into auth user_metadata so the Supabase
+          // "Send Email" hook can localize the confirmation email — the
+          // users row may not be committed yet when that hook fires.
+          locale,
         },
       },
     });
@@ -153,6 +157,9 @@ function SignupForm() {
         id: data.user.id,
         email: email,
         display_name: displayName || email.split("@")[0],
+        // UI language the user signed up in — drives the language we email
+        // them in (users.preferred_language: 'en' | 'es' | 'it').
+        preferred_language: locale,
         trial_ends_at: getTrialEndDate().toISOString(), // Keep trial for existing users compatibility
         is_pro: false,
         welcome_completed: false, // New users need to see welcome page
