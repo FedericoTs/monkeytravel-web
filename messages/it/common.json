@@ -966,6 +966,14 @@
     "titleWithInvite": "Condividi e Invita",
     "shareLink": "Link di Condivisione",
     "shareVia": "Condividi tramite",
+    "savedHero": {
+      "aiTitle": "Itinerario generato dall'AI con dati verificati",
+      "aiDescription": "Questo itinerario è stato creato dall'AI e arricchito con dati in tempo reale da Google Places. Foto, recensioni e fasce di prezzo sono verificate, ma ti consigliamo di ricontrollare orari di apertura e disponibilità prima del viaggio. Clicca \"Altro\" su qualsiasi attività per vedere dettagli verificati e foto.",
+      "loveTitle": "Ti piace questo itinerario?",
+      "loveDescription": "Salvalo sul tuo account e personalizzalo. Modifica gli orari, scambia le attività, aggiungi note e condividilo con i tuoi compagni di viaggio.",
+      "saveButton": "Salva nei Miei Viaggi",
+      "saveSubtitle": "Salva questo itinerario e personalizzalo per le tue date"
+    },
     "platforms": {
       "twitter": "Twitter",
       "whatsapp": "WhatsApp",

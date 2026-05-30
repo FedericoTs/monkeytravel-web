@@ -620,12 +620,10 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             </div>
             <div>
               <h4 className="font-semibold text-amber-900 mb-1">
-                AI-Generated Itinerary with Verified Data
+                {t("share.savedHero.aiTitle")}
               </h4>
               <p className="text-sm text-amber-800">
-                This itinerary was created by AI and enriched with real-time data from Google Places.
-                Photos, ratings, and price levels are verified, but we recommend double-checking opening hours
-                and availability before your trip. Click "More" on any activity to see verified details and photos.
+                {t("share.savedHero.aiDescription")}
               </p>
             </div>
           </div>
@@ -643,11 +641,10 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             </div>
             <div>
               <h4 className="font-semibold text-purple-900 mb-1">
-                Love this itinerary?
+                {t("share.savedHero.loveTitle")}
               </h4>
               <p className="text-sm text-purple-800">
-                Save it to your account and make it your own. Edit times, swap activities,
-                add notes, and share with your travel companions.
+                {t("share.savedHero.loveDescription")}
               </p>
             </div>
           </div>
@@ -661,10 +658,10 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
               className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
             >
               <Sparkles className="w-5 h-5" />
-              Save to My Trips
+              {t("share.savedHero.saveButton")}
             </button>
             <p className="text-center text-xs text-slate-500 mt-2">
-              Save this itinerary and customize it for your dates
+              {t("share.savedHero.saveSubtitle")}
             </p>
           </div>
         </div>
