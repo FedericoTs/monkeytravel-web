@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logApiCall } from "@/lib/api-gateway";
+import { recordAiOutcome } from "@/lib/ai/observability";
 import { checkExtractRateLimit, recordExtract } from "@/lib/anonymous/rate-limit-extract";
 import { extractTripContext } from "@/lib/gemini-vision";
 import { createClient } from "@/lib/supabase/server";
@@ -169,6 +170,16 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Internal error";
     console.error("[Extract] Unexpected error:", message);
+
+    // Capture to Sentry (task #223). Extract is on the wizard's
+    // conversion path — silent failures mean lost trip generations.
+    void recordAiOutcome({
+      endpoint: "extract-trip-context",
+      outcome: "failure",
+      durationMs: 0,
+      error: err,
+    });
+
     return errors.internal(message, "ExtractTripContext");
   }
 }

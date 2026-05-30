@@ -21,6 +21,7 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
+import { recordAiOutcome } from "@/lib/ai/observability";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -308,6 +309,14 @@ export async function POST(request: NextRequest) {
       costUsd: 0,
       error: error instanceof Error ? error.message : "Unknown error",
     });
+    // Capture to Sentry alongside DB log (task #223).
+    void recordAiOutcome({
+      endpoint: "regenerate-day",
+      outcome: "failure",
+      durationMs: Date.now() - startTime,
+      error,
+    });
+
     return errors.internal(
       "Failed to regenerate day. Please try again.",
       "Day Regeneration"

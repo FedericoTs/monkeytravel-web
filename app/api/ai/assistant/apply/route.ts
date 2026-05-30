@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { recordAiOutcome } from "@/lib/ai/observability";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -195,6 +196,17 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[AI Assistant Apply] Error:", error);
+
+    // Capture to Sentry (task #223). Apply failures = silently lost
+    // edits — user thinks the AI applied the change but it didn't.
+    void recordAiOutcome({
+      endpoint: "assistant",
+      outcome: "failure",
+      durationMs: 0,
+      error,
+      metadata: { subroute: "apply" },
+    });
+
     return errors.internal("Failed to apply change", "AI Assistant Apply");
   }
 }

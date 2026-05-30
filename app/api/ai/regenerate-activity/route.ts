@@ -8,6 +8,7 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { recordAiOutcome } from "@/lib/ai/observability";
 
 type SupportedLanguage = "en" | "es" | "it";
 
@@ -191,6 +192,14 @@ export async function POST(request: NextRequest) {
       cacheHit: false,
       costUsd: 0,
       error: error instanceof Error ? error.message : "Unknown error",
+    });
+
+    // Capture to Sentry alongside DB log (task #223).
+    void recordAiOutcome({
+      endpoint: "regenerate-activity",
+      outcome: "failure",
+      durationMs: Date.now() - startTime,
+      error,
     });
 
     return errors.internal("Failed to regenerate activity. Please try again.", "Activity Regeneration");

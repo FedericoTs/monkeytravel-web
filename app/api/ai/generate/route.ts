@@ -31,6 +31,7 @@ import {
   adjustItineraryDates,
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
+import { recordAiOutcome } from "@/lib/ai/observability";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -326,6 +327,29 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Fire-and-forget Sentry breadcrumb for the success rate dashboard.
+    // The success-rate denominator needs both successes and failures, and
+    // logApiCall above only writes to api_calls_log — Sentry would
+    // otherwise only see failures, making the rate calc meaningless.
+    void recordAiOutcome({
+      endpoint: "generate",
+      outcome: "success",
+      model: cacheHit
+        ? "cache"
+        : usedMapsGrounding
+          ? "maps-grounding"
+          : "gemini-2.5-flash-lite",
+      cacheHit,
+      durationMs: generationTime,
+      userId: user?.id ?? null,
+      metadata: {
+        destination: params.destination,
+        duration_days: totalDays,
+        generated_days: generatedDays,
+        is_partial: isPartialGeneration,
+      },
+    });
+
     // Increment usage counters (only for non-cache hits — cache hits cost $0).
     let updatedUsage = usageCheck;
     if (!cacheHit) {
@@ -382,6 +406,15 @@ export async function POST(request: NextRequest) {
       cacheHit: false,
       costUsd: 0,
       error: error instanceof Error ? error.message : "Unknown error",
+    });
+
+    // Capture to Sentry. Previously this only hit console + DB —
+    // generation failures were invisible to alerting (task #223).
+    void recordAiOutcome({
+      endpoint: "generate",
+      outcome: "failure",
+      durationMs: Date.now() - startTime,
+      error,
     });
 
     return errors.internal("Failed to generate itinerary. Please try again.", "AI Generate");

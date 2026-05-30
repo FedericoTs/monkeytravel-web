@@ -11,6 +11,7 @@ import {
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { recordAiOutcome } from "@/lib/ai/observability";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { findMatchingActivity, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
 import { getTripDestination } from "@/lib/trips/destination";
@@ -1638,6 +1639,19 @@ Respond with valid JSON only.`;
     return apiSuccess(responsePayload);
   } catch (error) {
     console.error("[AI Assistant] POST error:", error);
+
+    // Capture to Sentry — Assistant failures previously only hit console
+    // + the centralized response wrapper without an exception event.
+    // Task #223. Duration is not tracked at this scope because the POST
+    // handler doesn't capture startTime; we pass 0 so the field is
+    // still set and dashboards don't break on missing data.
+    void recordAiOutcome({
+      endpoint: "assistant",
+      outcome: "failure",
+      durationMs: 0,
+      error,
+    });
+
     return errors.internal("Failed to process request", "AI Assistant");
   }
 }

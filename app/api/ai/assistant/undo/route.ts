@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { recordAiOutcome } from "@/lib/ai/observability";
 
 interface UndoRequest {
   tripId: string;
@@ -56,6 +57,17 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[AI Assistant Undo] Error:", error);
+
+    // Capture to Sentry (task #223). Undo failures = trip stuck in a
+    // bad state with no easy recovery, prioritize visibility.
+    void recordAiOutcome({
+      endpoint: "assistant",
+      outcome: "failure",
+      durationMs: 0,
+      error,
+      metadata: { subroute: "undo" },
+    });
+
     return errors.internal("Failed to undo change", "AI Assistant Undo");
   }
 }
