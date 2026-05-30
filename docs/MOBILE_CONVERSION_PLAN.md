@@ -67,6 +67,21 @@ into 4 phases:
 | **C — Compete with the Leaders** | Native maps, biometric, IAP (if Pro tier), in-app review prompts, Live Updates | 3-4 dev-weeks | 6-8 weeks |
 | **D — Growth & Retention** | A/B testing infra, cohort analysis, push CTR optimization, ASO loop | ongoing | rolling |
 
+> **STATUS as of 2026-05-30 (massive autonomous shipping run):**
+> Phase A is **CODE-COMPLETE**. Phase B is **CODE-COMPLETE** — every
+> item B1–B6 except B7 (icon polish, needs design assets) is shipped.
+> All migrations applied to Trawell (Supabase project
+> `sevfbahwmlbdlnbhqwyi`). The mobile app is genuinely shippable now —
+> only blocker is the dashboard work (Apple Developer Services ID,
+> Firebase project + service-account JSON, APNs .p8 key, Supabase
+> Apple provider config, App Store + Play Console listing paste,
+> screenshot generation). All of those are documented in
+> `docs/legal/store-listings.md`, `docs/legal/app-privacy-label.md`,
+> and `docs/MOBILE_HANDOFF.md`.
+>
+> Phase C remains **DEFERRED BY DESIGN** — only invest when data
+> justifies, not on schedule (per the strategic discussion).
+
 ---
 
 ## Phase A — Submit & Survive (3 dev-days)
