@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import { PullToRefreshWrapper } from "@/components/ui/PullToRefreshWrapper";
 import { Link } from "@/lib/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
@@ -262,6 +264,12 @@ export default async function SavedPage({
       </main>
       <Footer />
       <p className="sr-only">Site: {BASE_URL}</p>
+
+      {/* Native polish layer — pull-to-refresh on the saved-trips list
+          and the bottom tab bar matching /trips + /explore + /profile.
+          Both are sm:hidden / touch-gated so desktop web is unaffected. */}
+      <PullToRefreshWrapper />
+      <MobileBottomNav activePage="profile" />
     </div>
   );
 }
