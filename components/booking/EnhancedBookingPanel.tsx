@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Plane, Hotel, Car, Ticket, Train, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import {
   generateAllHotelLinks,
@@ -92,6 +92,7 @@ export default function EnhancedBookingPanel({
   onSetOrigin,
 }: EnhancedBookingPanelProps) {
   const t = useTranslations("common.booking");
+  const locale = useLocale();
   const [isExpanded, setIsExpanded] = useState(variant === "expanded");
 
   // Generate all links
@@ -157,7 +158,7 @@ export default function EnhancedBookingPanel({
           <div>
             <h3 className="font-semibold text-slate-900">{t("bookYourTrip")}</h3>
             <p className="text-sm text-slate-600">
-              {destination} · {formatDateRange(startDate, endDate)} · {travelers} {t("travelers")}
+              {destination} · {formatDateRange(startDate, endDate, locale)} · {t("travelersCount", { count: travelers })}
             </p>
           </div>
           <button
@@ -321,16 +322,21 @@ export default function EnhancedBookingPanel({
   );
 }
 
-// Helper function
-function formatDateRange(start: string, end: string): string {
+// Helper function.
+//
+// Accepts the active locale so the month abbreviation matches the user's
+// language ("mag" on /it, "may" on /es, "May" on /en). Previously hardcoded
+// "en-US" and showed English month abbreviations on every locale — caught
+// in live UI test 2026-05-30, task #241.
+function formatDateRange(start: string, end: string, locale: string): string {
   const startDate = new Date(start);
   const endDate = new Date(end);
 
   const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
 
   if (startDate.getMonth() === endDate.getMonth()) {
-    return `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.getDate()}`;
+    return `${startDate.toLocaleDateString(locale, options)} - ${endDate.getDate()}`;
   }
 
-  return `${startDate.toLocaleDateString("en-US", options)} - ${endDate.toLocaleDateString("en-US", options)}`;
+  return `${startDate.toLocaleDateString(locale, options)} - ${endDate.toLocaleDateString(locale, options)}`;
 }

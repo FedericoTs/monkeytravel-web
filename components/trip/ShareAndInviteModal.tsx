@@ -751,12 +751,33 @@ export default function ShareAndInviteModal({
   }
 
   // Desktop: Traditional centered modal
+  //
+  // a11y note (task #238, 2026-05-30 round-2): screen readers must see
+  // this as a dialog. Bare divs without role/aria-modal don't trigger
+  // SR dialog announcement and bypass focus management. We don't fully
+  // migrate to BaseModal here (the share modal pre-dates that wrapper
+  // and has its own desktop-vs-mobile split via BottomSheet for ≤sm),
+  // but the desktop branch gets the three required attributes:
+  //   role="dialog", aria-modal="true", aria-labelledby={id}
+  // plus an Esc keydown handler.
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-and-invite-title"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal */}
@@ -783,7 +804,7 @@ export default function ShareAndInviteModal({
                 <Share2 className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-slate-900">{ts("titleWithInvite")}</h3>
+                <h3 id="share-and-invite-title" className="text-lg font-semibold text-slate-900">{ts("titleWithInvite")}</h3>
                 <p className="text-sm text-slate-500 truncate">{tripTitle}</p>
               </div>
             </div>

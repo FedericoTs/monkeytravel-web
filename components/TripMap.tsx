@@ -425,6 +425,25 @@ export default function TripMap({
     return result;
   }, [filteredActivities, showRoutes]);
 
+  /**
+   * Whether there is at least one day with 2+ geocoded activities — i.e.
+   * a route COULD be drawn. We compute this INDEPENDENTLY of `showRoutes`
+   * so the in-map toggle button stays visible even when the user has
+   * turned routes off (otherwise hiding routes also hides the only way
+   * to turn them back on — bug found via live UI test, see task #240).
+   */
+  const hasRoutablePairs = useMemo(() => {
+    const perDay = new Map<number, number>();
+    for (const act of filteredActivities) {
+      if (!act.resolvedLocation) continue;
+      perDay.set(act.dayNumber, (perDay.get(act.dayNumber) || 0) + 1);
+    }
+    for (const count of perDay.values()) {
+      if (count >= 2) return true;
+    }
+    return false;
+  }, [filteredActivities]);
+
   if (loadError) {
     return (
       <div className={`bg-slate-100 rounded-xl flex items-center justify-center ${className}`}>
@@ -453,7 +472,7 @@ export default function TripMap({
       {/* Route toggle + straight-line disclaimer. Only rendered when
           there's at least one multi-pin day to draw a route through —
           no point offering a toggle that does nothing. */}
-      {dayRoutes.length > 0 || (showRoutes && filteredActivities.length > 1) ? (
+      {hasRoutablePairs ? (
         <div className="absolute top-3 left-3 z-10 flex items-start gap-2 max-w-[calc(100%-1.5rem)] sm:max-w-xs">
           <button
             type="button"

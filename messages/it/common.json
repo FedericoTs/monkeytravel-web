@@ -540,6 +540,7 @@
       "disclaimer": "Prezzi e disponibilità potrebbero variare. Clicca per confrontare su ogni piattaforma."
     },
     "travelers": "viaggiatori",
+    "travelersCount": "{count, plural, =1 {1 viaggiatore} other {# viaggiatori}}",
     "activitiesAttractions": "Attività e Attrazioni",
     "trainsBuses": "Treni e Autobus",
     "flightsNeedOrigin": "Imposta la tua città di partenza per cercare voli",
@@ -1970,6 +1971,27 @@
   "calendar": {
     "downloadIcs": "Aggiungi al calendario",
     "downloadIcsSubtitle": "Funziona con Apple Calendar, Google Calendar e Outlook"
+  },
+  "publishToExplore": {
+    "title": "Pubblica su Esplora",
+    "subtitle": "Condividi il tuo viaggio con la community",
+    "disclosureHeader": "Quando pubblichi:",
+    "disclosure1Pre": "Il tuo viaggio appare nel feed pubblico ",
+    "disclosure1Bold": "Esplora",
+    "disclosure1Post": "",
+    "disclosure2": "Chiunque può visualizzare, salvare o copiare (\"fork\") il tuo viaggio come punto di partenza",
+    "disclosure3": "Puoi annullare la pubblicazione in qualsiasi momento dallo stesso interruttore",
+    "authorNameLabel": "Nome autore",
+    "optional": "(opzionale)",
+    "authorNamePlaceholder": "Viaggiatore anonimo",
+    "authorNameHelp": "Come verrai accreditato sulla scheda esplora. {count}/{max}",
+    "noteLabel": "Nota viaggio",
+    "notePlaceholder": "es. Luna di miele a maggio, abbiamo dato priorità a luoghi nascosti e mattinate rilassate",
+    "noteHelp": "Una breve descrizione mostrata sotto il titolo. {count}/{max}",
+    "cancel": "Annulla",
+    "publishAction": "Pubblica viaggio",
+    "publishing": "Pubblicazione...",
+    "errorFallback": "Pubblicazione fallita"
   },
   "addFromEmail": {
     "button": "Aggiungi da email",

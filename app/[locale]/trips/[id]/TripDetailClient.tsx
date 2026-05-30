@@ -1538,8 +1538,16 @@ export default function TripDetailClient({
           {/* Right side - Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* View Mode Toggle - Hidden on mobile */}
-            <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
+            <div
+              className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1"
+              role="tablist"
+              aria-label={t('detail.viewToggle')}
+            >
               <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === "cards"}
+                tabIndex={viewMode === "cards" ? 0 : -1}
                 onClick={() => setViewMode("cards")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   viewMode === "cards"
@@ -1550,6 +1558,10 @@ export default function TripDetailClient({
                 {t('detail.cards')}
               </button>
               <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === "timeline"}
+                tabIndex={viewMode === "timeline" ? 0 : -1}
                 onClick={() => setViewMode("timeline")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   viewMode === "timeline"

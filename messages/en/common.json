@@ -540,6 +540,7 @@
       "disclaimer": "Prices and availability may vary. Click to compare on each platform."
     },
     "travelers": "travelers",
+    "travelersCount": "{count, plural, =1 {1 traveler} other {# travelers}}",
     "activitiesAttractions": "Activities & Attractions",
     "trainsBuses": "Trains & Buses",
     "flightsNeedOrigin": "Set your departure city to search flights",
@@ -1970,6 +1971,27 @@
   "calendar": {
     "downloadIcs": "Add to Calendar",
     "downloadIcsSubtitle": "Works with Apple Calendar, Google Calendar, Outlook"
+  },
+  "publishToExplore": {
+    "title": "Publish to Explore",
+    "subtitle": "Share your trip with the community",
+    "disclosureHeader": "When you publish:",
+    "disclosure1Pre": "Your trip appears in the public ",
+    "disclosure1Bold": "Explore",
+    "disclosure1Post": " feed",
+    "disclosure2": "Anyone can view, save, or copy (\"fork\") it as a starting point",
+    "disclosure3": "You can unpublish anytime from the same toggle",
+    "authorNameLabel": "Author name",
+    "optional": "(optional)",
+    "authorNamePlaceholder": "Anonymous traveler",
+    "authorNameHelp": "How you'll be credited on the explore card. {count}/{max}",
+    "noteLabel": "Trip note",
+    "notePlaceholder": "e.g., Honeymoon in May, prioritized hidden gems and slow mornings",
+    "noteHelp": "A short blurb shown under the title. {count}/{max}",
+    "cancel": "Cancel",
+    "publishAction": "Publish trip",
+    "publishing": "Publishing...",
+    "errorFallback": "Publish failed"
   },
   "addFromEmail": {
     "button": "Add from email",

@@ -540,6 +540,7 @@
       "disclaimer": "Los precios y disponibilidad pueden variar. Haz clic para comparar en cada plataforma."
     },
     "travelers": "viajeros",
+    "travelersCount": "{count, plural, =1 {1 viajero} other {# viajeros}}",
     "activitiesAttractions": "Actividades y Atracciones",
     "trainsBuses": "Trenes y Autobuses",
     "flightsNeedOrigin": "Configura tu ciudad de salida para buscar vuelos",
@@ -1970,6 +1971,27 @@
   "calendar": {
     "downloadIcs": "Añadir al calendario",
     "downloadIcsSubtitle": "Compatible con Apple Calendar, Google Calendar y Outlook"
+  },
+  "publishToExplore": {
+    "title": "Publicar en Explorar",
+    "subtitle": "Comparte tu viaje con la comunidad",
+    "disclosureHeader": "Cuando publicas:",
+    "disclosure1Pre": "Tu viaje aparece en el feed público ",
+    "disclosure1Bold": "Explorar",
+    "disclosure1Post": "",
+    "disclosure2": "Cualquiera puede ver, guardar o copiar (\"fork\") tu viaje como punto de partida",
+    "disclosure3": "Puedes dejar de publicarlo en cualquier momento desde el mismo interruptor",
+    "authorNameLabel": "Nombre del autor",
+    "optional": "(opcional)",
+    "authorNamePlaceholder": "Viajero anónimo",
+    "authorNameHelp": "Cómo se te acreditará en la tarjeta de explorar. {count}/{max}",
+    "noteLabel": "Nota del viaje",
+    "notePlaceholder": "ej. Luna de miel en mayo, priorizamos lugares ocultos y mañanas tranquilas",
+    "noteHelp": "Una breve descripción mostrada bajo el título. {count}/{max}",
+    "cancel": "Cancelar",
+    "publishAction": "Publicar viaje",
+    "publishing": "Publicando...",
+    "errorFallback": "Publicación fallida"
   },
   "addFromEmail": {
     "button": "Añadir desde email",
