@@ -17,6 +17,7 @@ import { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/sw/register";
 import { installBackButtonHandler } from "@/lib/native/back-button";
 import { installDeepLinkHandler } from "@/lib/native/deep-links";
+import { initPushOnce } from "@/lib/native/push";
 
 export default function NativeBoot() {
   useEffect(() => {
@@ -53,6 +54,16 @@ export default function NativeBoot() {
         unsubs.push(unsub);
       })
       .catch(() => undefined);
+
+    // Push notifications (Phase B1). initPushOnce() self-gates:
+    //   - no-op on web
+    //   - no-op on native unless the user has previously opted in
+    //     via the soft-prompt (markSoftPromptGranted in
+    //     lib/native/push.ts).
+    // Refreshes the device token on every cold launch and re-registers
+    // it with /api/devices/register if it changed. Wires the tap
+    // handler that routes deep-link payloads on notification touch.
+    void initPushOnce();
 
     return () => {
       unsubs.forEach((unsub) => unsub());

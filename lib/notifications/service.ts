@@ -17,6 +17,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { dispatchEmail } from "@/lib/email/send";
+import { dispatchPush } from "@/lib/push/dispatch";
+import type {
+  NotificationPayload as PushPayload,
+  NotificationType as PushNotificationType,
+} from "@/lib/push/types";
 import type {
   NotificationPayload,
   NotificationRow,
@@ -63,6 +68,15 @@ export async function enqueueNotification({
     // self-skips if no template / opted-out / no API key.
     void dispatchEmailForNotification({
       notificationId: inserted?.id,
+      userId,
+      notification,
+    });
+
+    // Fire-and-forget push dispatch. Self-skips if push not configured
+    // (APNS_* / FCM_* env unset) or user has no active devices. Same
+    // best-effort pattern as email — never fails the upstream action
+    // for a missing tap notification.
+    void dispatchPushForNotification({
       userId,
       notification,
     });
@@ -132,6 +146,111 @@ async function dispatchEmailForNotification(args: {
   } catch (err) {
     console.error("[notifications] email dispatch exception", {
       notificationId: args.notificationId,
+      userId: args.userId,
+      type: args.notification.type,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/**
+ * For a freshly-inserted notification row, fan out to push if the user
+ * has any active iOS/Android device tokens. Maps the existing
+ * notification payload shape to the push wire format (title, body,
+ * data.url) — per-type because the user-facing copy differs by
+ * notification type and we want push messages to read naturally, not
+ * mechanically.
+ *
+ * Best-effort. Logs + swallows; never re-throws into the originating
+ * route. Self-skips if isApnsConfigured() + isFcmConfigured() both
+ * return false (no env wired), if user has no active devices, or if
+ * the notification type is one we haven't decided to push yet.
+ *
+ * Adding a new notification type → add a case to the switch below
+ * + ensure the corresponding NotificationType literal is in
+ * lib/push/types.ts. The push types stay narrower than the bell
+ * types intentionally: not everything that warrants a bell ping
+ * warrants a phone buzz.
+ */
+async function dispatchPushForNotification(args: {
+  userId: string;
+  notification: NotificationPayload;
+}): Promise<void> {
+  try {
+    const APP_URL =
+      process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
+    // Map (bell type → push payload). Returns null for bell types we
+    // don't push (e.g. system messages — those are read in-app, no
+    // value buzzing the user's phone).
+    let push: PushPayload | null = null;
+    switch (args.notification.type) {
+      case "collab_vote": {
+        const d = args.notification.data;
+        push = {
+          // Reuse the bell type as the push type — they're the same
+          // event from the user's POV. Add a matching literal to
+          // lib/push/types.ts when a new bell type starts pushing.
+          type: "collab_activity_added" as PushNotificationType,
+          title: `${d.voter_name} voted`,
+          body: `${d.vote_type === "up" ? "👍" : "👎"} on "${d.activity_label}"`,
+          sound: "default",
+          data: {
+            url: d.href ?? `/trips/${d.trip_id}/edit`,
+            tripId: d.trip_id,
+          },
+        };
+        break;
+      }
+      case "collab_proposal": {
+        const d = args.notification.data;
+        push = {
+          type: "collab_activity_added" as PushNotificationType,
+          title: `${d.proposer_name} proposed an activity`,
+          body: `Day ${d.day_number}: ${d.proposed_activity}`,
+          sound: "default",
+          data: {
+            url: d.href ?? `/trips/${d.trip_id}/edit`,
+            tripId: d.trip_id,
+          },
+        };
+        break;
+      }
+      case "invite_accepted": {
+        const d = args.notification.data;
+        push = {
+          type: "collab_activity_added" as PushNotificationType,
+          title: `${d.collaborator_name} joined your trip`,
+          body: "They can now view + edit the itinerary.",
+          sound: "default",
+          data: {
+            url: d.href ?? `/trips/${d.trip_id}`,
+            tripId: d.trip_id,
+          },
+        };
+        break;
+      }
+      // collab_comment, trip_shared, system → bell-only for now.
+      // Adding push is one switch case + a new literal in push/types.
+      default:
+        return;
+    }
+
+    if (!push) return;
+
+    const result = await dispatchPush(args.userId, push);
+    if (!result.ok && result.error && result.error !== "no_active_devices") {
+      // Log non-trivial failures. "no_active_devices" is expected for
+      // every web-only user — silent.
+      console.warn("[notifications] push dispatch incomplete", {
+        userId: args.userId,
+        type: args.notification.type,
+        error: result.error,
+        sent: result.sentCount,
+        bounce: result.bounceCount,
+      });
+    }
+  } catch (err) {
+    console.error("[notifications] push dispatch exception", {
       userId: args.userId,
       type: args.notification.type,
       error: err instanceof Error ? err.message : String(err),
