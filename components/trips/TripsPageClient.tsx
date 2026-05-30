@@ -720,7 +720,10 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
         <div className="flex items-center gap-2 mb-4">
           {icon}
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <span className="text-sm text-slate-500">({trips.length})</span>
+          {/* Count differs SSR → client because groupedTrips bucketing is
+              time-relative (see useMemo above). Mark expected divergence to
+              prevent React error #418. */}
+          <span className="text-sm text-slate-500" suppressHydrationWarning>({trips.length})</span>
         </div>
         {trips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -807,7 +810,14 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 </div>
                 <span className="text-xs sm:text-sm text-slate-500">{t('upcoming')}</span>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.upcoming}</div>
+              <div
+                className="text-xl sm:text-2xl font-bold text-slate-900"
+                // SSR renders 0 (time bucket not computed yet), client renders
+                // the real count after the mount-effect populates `now`. React
+                // would normally throw error #418 for the text mismatch; this
+                // tells it the divergence is expected. Same below.
+                suppressHydrationWarning
+              >{stats.upcoming}</div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
@@ -819,7 +829,10 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 </div>
                 <span className="text-xs sm:text-sm text-slate-500">{t('completed')}</span>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.past}</div>
+              <div
+                className="text-xl sm:text-2xl font-bold text-slate-900"
+                suppressHydrationWarning
+              >{stats.past}</div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
