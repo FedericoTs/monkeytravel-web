@@ -51,7 +51,7 @@
     },
     {
       "path": "/api/cron/scheduled-notifications",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 7 * * *"
     }
   ],
   "redirects": [

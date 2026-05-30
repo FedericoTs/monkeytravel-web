@@ -561,7 +561,9 @@
     "esimDescription": "Get an eSIM data plan for your destination. Works in 150+ countries.",
     "flightIssuesTitle": "Flight Issues?",
     "flightIssuesDescription": "Delayed or cancelled flight? You may be entitled to up to $700 compensation.",
-    "checkAirHelp": "Check Compensation"
+    "checkAirHelp": "Check Compensation",
+    "hotelsLabel": "Hotels",
+    "flightsLabel": "Flights"
   },
   "destination": {
     "back": "Back",

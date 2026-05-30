@@ -561,7 +561,9 @@
     "esimDescription": "Obtén un plan de datos eSIM para tu destino. Funciona en más de 150 países.",
     "flightIssuesTitle": "¿Problemas con el Vuelo?",
     "flightIssuesDescription": "¿Vuelo retrasado o cancelado? Podrías tener derecho a hasta 700€ de compensación.",
-    "checkAirHelp": "Verificar Compensación"
+    "checkAirHelp": "Verificar Compensación",
+    "hotelsLabel": "Hoteles",
+    "flightsLabel": "Vuelos"
   },
   "destination": {
     "back": "Volver",

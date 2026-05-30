@@ -174,7 +174,7 @@ export default function EnhancedBookingPanel({
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Hotel className="w-4 h-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">{t("hotels")}</span>
+            <span className="text-sm font-medium text-slate-700">{t("hotelsLabel")}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <PartnerLink
@@ -208,7 +208,7 @@ export default function EnhancedBookingPanel({
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Plane className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-medium text-slate-700">{t("flights")}</span>
+              <span className="text-sm font-medium text-slate-700">{t("flightsLabel")}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <PartnerLink
@@ -241,7 +241,7 @@ export default function EnhancedBookingPanel({
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Plane className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-medium text-slate-700">{t("flights")}</span>
+              <span className="text-sm font-medium text-slate-700">{t("flightsLabel")}</span>
             </div>
             <div className="bg-slate-50 rounded-lg p-3 text-center">
               <p className="text-sm text-slate-600">{t("flightsNeedOrigin")}</p>
