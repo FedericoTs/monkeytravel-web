@@ -105,17 +105,114 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fileToBase64 = (file: File): Promise<string> =>
+  /**
+   * Decode → resize → re-encode an image client-side before upload.
+   *
+   * Why this exists (2026-05-30 bug fix):
+   *   iPhone photos straight from the camera roll are 3-12 MB and often
+   *   HEIC. Two problems hit them at once:
+   *     1. Vercel's serverless body limit is 4.5 MB — anything bigger
+   *        returns a generic "Request Entity Too Large" / opaque 413
+   *        BEFORE our route handler runs. Users see a cryptic error.
+   *     2. Even when small enough to upload, HEIC isn't accepted by
+   *        Gemini Vision (officially supported but inconsistent across
+   *        models — Flash sometimes rejects it as "the string is
+   *        invalid"). User reported exactly that message.
+   *
+   * Fix: decode via <img>, paint to a <canvas> resized to a max
+   * 1920px on the longest edge, re-export as JPEG quality 0.85, then
+   * base64-encode the resulting blob. After this, even a 12 MB HEIC
+   * becomes a ~200-400 KB JPEG that's well under any limit and in a
+   * format Gemini Vision always accepts.
+   *
+   * HEIC decode caveat: Safari + iOS Chrome can decode HEIC via <img>;
+   * desktop Chrome cannot. We fall through to a clear error message in
+   * that case rather than uploading a broken file.
+   *
+   * Returns:
+   *   - `data`: raw base64 (no `data:` prefix)
+   *   - `mimeType`: always "image/jpeg" because we re-encode
+   *   - `originalSize` / `resizedSize` for telemetry / debug overlays
+   */
+  const resizeAndEncodeImage = (
+    file: File
+  ): Promise<{ data: string; mimeType: string; originalSize: number; resizedSize: number }> =>
     new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Strip the "data:image/png;base64," prefix — the API wants raw base64
-        const comma = result.indexOf(",");
-        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      const MAX_EDGE_PX = 1920;
+      const JPEG_QUALITY = 0.85;
+
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+
+      const cleanup = () => URL.revokeObjectURL(objectUrl);
+
+      img.onload = () => {
+        const { naturalWidth: w, naturalHeight: h } = img;
+        if (!w || !h) {
+          cleanup();
+          reject(new Error("Image has invalid dimensions"));
+          return;
+        }
+
+        // Scale longest edge to MAX_EDGE_PX; preserve aspect ratio.
+        const scale = Math.min(1, MAX_EDGE_PX / Math.max(w, h));
+        const targetW = Math.round(w * scale);
+        const targetH = Math.round(h * scale);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          cleanup();
+          reject(new Error("Canvas 2D context unavailable"));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+
+        canvas.toBlob(
+          (blob) => {
+            cleanup();
+            if (!blob) {
+              reject(new Error("Failed to encode resized image"));
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              const comma = result.indexOf(",");
+              const base64 = comma >= 0 ? result.slice(comma + 1) : result;
+              resolve({
+                data: base64,
+                mimeType: "image/jpeg",
+                originalSize: file.size,
+                resizedSize: blob.size,
+              });
+            };
+            reader.onerror = () => reject(new Error("Failed to read resized blob"));
+            reader.readAsDataURL(blob);
+          },
+          "image/jpeg",
+          JPEG_QUALITY
+        );
       };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+
+      img.onerror = () => {
+        cleanup();
+        // Most likely cause: browser can't decode the format (HEIC on
+        // desktop Chrome is the typical case). Give the user clear
+        // guidance instead of a cryptic upload failure later.
+        const isLikelyHeic = /\.heic$|\.heif$/i.test(file.name) || /heic|heif/i.test(file.type);
+        reject(
+          new Error(
+            isLikelyHeic
+              ? "Your browser can't read HEIC files. Open the photo in Photos / Gallery and save it as JPEG, or upload a different image."
+              : "Couldn't decode that image. Try a different file (JPEG or PNG works best)."
+          )
+        );
+      };
+
+      img.src = objectUrl;
     });
 
   const handleExtract = useCallback(async () => {
@@ -126,8 +223,15 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
 
       if (mode === "image") {
         if (imageFile) {
-          const base64 = await fileToBase64(imageFile);
-          body = { imageBase64: base64, imageMimeType: imageFile.type || "image/jpeg" };
+          // 2026-05-30: was fileToBase64() — naive read-as-data-URL which
+          // bricked on iPhone HEIC photos (Gemini Vision rejected them
+          // as "the string is invalid") AND on any image >4.5MB (Vercel
+          // serverless body cap, hit before our route handler ran).
+          // resizeAndEncodeImage() decodes → resizes to 1920px → re-encodes
+          // as JPEG, so a 12MB iPhone HEIC becomes a ~300KB JPEG. Works
+          // on any browser that can decode the source format.
+          const { data, mimeType } = await resizeAndEncodeImage(imageFile);
+          body = { imageBase64: data, imageMimeType: mimeType };
         } else if (imageUrl.startsWith("http")) {
           body = { imageUrl };
         } else {
