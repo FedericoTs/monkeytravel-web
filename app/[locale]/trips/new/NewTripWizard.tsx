@@ -300,6 +300,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
   // Collapsible preferences state (budget/pace/requirements shown on demand in step 2)
   const [showAdvancedPrefs, setShowAdvancedPrefs] = useState(false);
+  // Day-4 bug fix (P2.6): trackWizardEvent was firing 2-3× per page
+  // load because the dep-only-[step] effect re-runs on React 19 dev
+  // StrictMode double-mount AND on any client-side remount (back nav,
+  // Start Over, draft-recovery setState). PostHog dedupes server-side
+  // so captureTripWizardStepViewed was clean, but Supabase has no
+  // dedupe → wizard_step_events accumulated 2-3 rows per actual step
+  // view, inflating step_1 by ~3× and under-stating funnel conversion.
+  // Mirrors the ref-guard pattern already used for abandonedFiredRef
+  // and wizardCompletedRef below.
+  const trackedStepsRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     captureTripWizardStepViewed({
       step_number: step,
@@ -311,6 +321,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     // saved/abandoned) are fired from their own handlers. `locale` is
     // included on step 1 only because it's the only field guaranteed
     // to be meaningful at that point.
+    //
+    // Gate on trackedStepsRef so we fire exactly once per step per
+    // wizard mount lifetime. Step transitions (1→2→1) still re-fire
+    // because the Set is per-component-instance; a true full remount
+    // (route nav) resets the ref, which is correct — that's a new
+    // session view.
+    if (trackedStepsRef.current.has(step)) {
+      return;
+    }
+    trackedStepsRef.current.add(step);
     if (step === 1) {
       void trackWizardEvent("step_1_destination_dates", { locale });
     } else if (step === 2) {

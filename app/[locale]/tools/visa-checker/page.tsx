@@ -14,6 +14,7 @@ import { buildIvisaAffiliateUrl, shouldShowIvisaCta } from "@/lib/visa/ivisa";
 import { fetchGovukAdvisory } from "@/lib/visa/govuk-advisory";
 import VisaCheckerForm from "./VisaCheckerForm";
 import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
+import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -145,14 +146,18 @@ export default async function VisaCheckerPage({
   const showIvisa = status ? shouldShowIvisaCta(status) : false;
   const ivisaUrl = showIvisa ? buildIvisaAffiliateUrl(to, from) : null;
 
-  // Official source — for now, link to GOV.UK if we have it, else
-  // an embassy search on Google. Hand-curated official URLs are a
+  // Official source — when no GOV.UK advisory exists, fall back to an
+  // embassy search on Google. When an advisory IS present we hide this
+  // card entirely (see render below): the advisory card already cites
+  // the same GOV.UK page, so showing both creates two CTAs pointing at
+  // the identical URL — Day-4 bug #7. Hand-curated official URLs are a
   // Phase B refinement.
-  const officialSourceUrl =
-    advisory?.url ||
-    `https://www.google.com/search?q=${encodeURIComponent(
-      `${toName} visa requirements for ${fromName} passport site:gov`
-    )}`;
+  const hasOfficialSource = !advisory; // when advisory exists it IS the official source
+  const officialSourceUrl = hasOfficialSource
+    ? `https://www.google.com/search?q=${encodeURIComponent(
+        `${toName} visa requirements for ${fromName} passport site:gov`
+      )}`
+    : null;
 
   // Today as ISO date for the "data refreshed" credit.
   const refreshedDate = new Date().toISOString().split("T")[0];
@@ -162,6 +167,19 @@ export default async function VisaCheckerPage({
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      {/* Day-4 bug fix #10: when the SSR result renders for a shared
+          ?from=XX&to=YY link, the form's onSubmit never fires, so the
+          tools_visa_checker_query event was missing the shared-link
+          cohort entirely. This tiny client tracker fires it once on
+          mount when the page rendered with a query. */}
+      {hasQuery && (
+        <VisaCheckerSsrTracker
+          from={from}
+          to={to}
+          locale={locale}
+          hasResult={!!result}
+        />
+      )}
       <Navbar />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
@@ -236,13 +254,24 @@ export default async function VisaCheckerPage({
               )}
             </div>
 
-            {status !== "same country" && (
+            {/* Day-4 bug fix #7: hide the "Official source" card when a
+                GOV.UK advisory is present, because the advisory card
+                below cites the same URL. Both CTAs pointing at the
+                identical URL was confusing users and inflating clicks. */}
+            {status !== "same country" && officialSourceUrl && (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                 <p className="mb-2">{t("officialSourcePrefix")}</p>
                 <ExternalLinkButton
                   href={officialSourceUrl}
                   rel="noopener noreferrer nofollow"
                   className="inline-flex items-center gap-2 font-medium text-[var(--primary)] hover:underline"
+                  captureEvent="tools_visa_checker_external_click"
+                  captureProps={{
+                    kind: "official",
+                    from,
+                    to,
+                    locale,
+                  }}
                 >
                   🔗 {t("officialSource")}
                 </ExternalLinkButton>
@@ -261,6 +290,13 @@ export default async function VisaCheckerPage({
                   href={advisory.url}
                   rel="noopener noreferrer nofollow"
                   className="text-sm text-[var(--primary)] hover:underline"
+                  captureEvent="tools_visa_checker_external_click"
+                  captureProps={{
+                    kind: "advisory",
+                    from,
+                    to,
+                    locale,
+                  }}
                 >
                   {t("advisoryUkSource")} →
                 </ExternalLinkButton>
@@ -272,6 +308,14 @@ export default async function VisaCheckerPage({
                 href={ivisaUrl}
                 rel="noopener sponsored nofollow"
                 className="block w-full text-left rounded-2xl border border-emerald-300 bg-emerald-50 p-5 hover:bg-emerald-100 transition"
+                captureEvent="tools_visa_checker_external_click"
+                captureProps={{
+                  kind: "ivisa",
+                  from,
+                  to,
+                  locale,
+                  partner: "ivisa",
+                }}
               >
                 <p className="font-semibold text-emerald-900">
                   {t("ivisaCta", { destination: toName })}

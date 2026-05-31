@@ -118,7 +118,11 @@ export async function GET(request: NextRequest) {
       // operators. Escape PostgREST-special characters (parens, commas,
       // colons, periods that follow operators) before interpolation.
       const escaped = destination.replace(/[(),:]/g, "\\$&");
-      query = query.or(`title.ilike.%${escaped}%,trip_meta->destination.ilike.%${escaped}%`);
+      // Day-4 bug fix: `trip_meta->destination` returns JSONB. ILIKE has
+      // no operator for JSONB → PostgREST raised 42883 → 500 on every
+      // /destinations/[slug] page since /explore went live. Use `->>`
+      // (text extraction) so the ILIKE actually applies.
+      query = query.or(`title.ilike.%${escaped}%,trip_meta->>destination.ilike.%${escaped}%`);
     }
 
     if (durationMin) {

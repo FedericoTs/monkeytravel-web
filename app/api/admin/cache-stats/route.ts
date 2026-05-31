@@ -4,6 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getCacheStats, CACHE_TTL, CACHE_TTL_DAYS } from "@/lib/cache";
 import { getCacheStats as getAmadeusCacheStats } from "@/lib/amadeus/cache";
 import { getDedupStats } from "@/lib/gemini-dedup";
+import { isAdmin } from "@/lib/admin";
 
 /**
  * GET /api/admin/cache-stats - Get cache statistics for monitoring
@@ -20,17 +21,14 @@ import { getDedupStats } from "@/lib/gemini-dedup";
  */
 export async function GET(request: NextRequest) {
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Verify admin access
-    const { data: profile } = await supabase
-      .from("users")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.is_admin) {
+    // Day-4 bug fix: was querying `users.is_admin` which doesn't exist
+    // (45-column users table has is_pro / subscription_tier — no is_admin).
+    // Returned 403 for every legitimate admin since this route shipped.
+    // Match the email-whitelist pattern every other admin route uses.
+    if (!isAdmin(user.email)) {
       return errors.forbidden("Admin access required");
     }
 

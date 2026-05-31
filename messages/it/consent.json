@@ -1,8 +1,8 @@
 {
   "banner": {
-    "title": "La tua privacy e importante",
+    "title": "La tua privacy è importante",
     "description": "Utilizziamo i cookie per migliorare la tua esperienza di navigazione, analizzare il traffico del sito e personalizzare i contenuti. Puoi scegliere quali cookie accettare.",
-    "learnMore": "Scopri di piu",
+    "learnMore": "Scopri di più",
     "acceptAll": "Accetta tutti",
     "essentialOnly": "Solo essenziali",
     "customize": "Personalizza",
@@ -11,7 +11,7 @@
   },
   "settings": {
     "title": "Impostazioni cookie",
-    "description": "Gestisci le tue preferenze sui cookie. I cookie essenziali sono sempre abilitati perche necessari per il corretto funzionamento del sito.",
+    "description": "Gestisci le tue preferenze sui cookie. I cookie essenziali sono sempre abilitati perché necessari per il corretto funzionamento del sito.",
     "required": "Obbligatorio",
     "moreInfo": "Per maggiori informazioni su come utilizziamo i tuoi dati, consulta la nostra",
     "privacyPolicy": "Informativa sulla Privacy",
