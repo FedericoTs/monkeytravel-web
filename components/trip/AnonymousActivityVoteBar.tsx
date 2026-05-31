@@ -49,7 +49,7 @@ export function AnonymousActivityVoteBar({
   pending = false,
   onVote,
 }: AnonymousActivityVoteBarProps) {
-  const t = useTranslations("shared.vote");
+  const t = useTranslations("common.shared.vote");
   // Local state for the name prompt — only opens after a click, never on its own.
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [pendingVoteType, setPendingVoteType] = useState<"up" | "down" | null>(null);

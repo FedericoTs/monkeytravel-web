@@ -253,9 +253,15 @@ export async function callMapsGrounding(
       },
     },
     generationConfig: {
-      temperature: 0.7,
+      // 2026-05-31: lowered from 0.7 → 0.4 (structured grounded output).
+      // Maps Grounding produces a constrained list of nearby places + facts;
+      // the value is in the retrieval (latLng) layer, not the sampler. Lower
+      // temp tightens the JSON-ish shape the downstream parser expects,
+      // improves prompt-cache hit rate, and makes failures reproducible for
+      // debugging. Cannot use responseMimeType: "application/json" with Maps
+      // Grounding, so deterministic-leaning sampling is our shape guarantee.
+      temperature: 0.4,
       maxOutputTokens: 8192,
-      // NOTE: Cannot use responseMimeType: "application/json" with Maps Grounding
     },
   };
 

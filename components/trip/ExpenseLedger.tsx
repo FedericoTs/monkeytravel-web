@@ -2,8 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Plus, Trash2, Wallet, Loader2, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Wallet,
+  Loader2,
+  AlertCircle,
+  Scale,
+} from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import SettleUpView from "@/components/trip/SettleUpView";
 
 /**
  * Per-trip expense ledger (task #220).
@@ -112,6 +120,11 @@ function ExpenseLedgerInner({
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Settle-up modal lives inside the ledger so trip members can see
+  // recommended transfers without leaving the spend timeline. Hidden
+  // until at least one expense exists — settling an empty ledger has
+  // no signal.
+  const [showSettle, setShowSettle] = useState(false);
 
   // Add-form state
   const [amount, setAmount] = useState("");
@@ -333,16 +346,40 @@ function ExpenseLedgerInner({
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowAdd((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:opacity-90 transition-opacity flex-shrink-0"
-          aria-expanded={showAdd}
-        >
-          <Plus className="w-4 h-4" aria-hidden="true" />
-          {t("addButton")}
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Settle-up is only useful with at least one expense logged.
+              Rendering it on an empty ledger would invite a click into a
+              guaranteed-empty modal. */}
+          {expenses.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowSettle(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+              aria-haspopup="dialog"
+            >
+              <Scale className="w-4 h-4" aria-hidden="true" />
+              {t("settle.openButton")}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowAdd((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
+            aria-expanded={showAdd}
+          >
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            {t("addButton")}
+          </button>
+        </div>
       </div>
+
+      {/* Settle-up modal — controlled here so we own the open/close
+          lifecycle alongside the ledger's other modal-adjacent state. */}
+      <SettleUpView
+        tripId={tripId}
+        isOpen={showSettle}
+        onClose={() => setShowSettle(false)}
+      />
 
       {/* Add form */}
       {showAdd && (

@@ -1,5 +1,9 @@
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import {
+  isValidPaymentHandle,
+  PAYMENT_PROVIDERS,
+} from "@/lib/payments/handle-links";
 
 export async function GET() {
   try {
@@ -24,7 +28,10 @@ export async function GET() {
         privacy_settings,
         stats,
         created_at,
-        last_sign_in_at
+        last_sign_in_at,
+        paypal_handle,
+        venmo_handle,
+        wise_handle
       `)
       .eq("id", user.id)
       .single();
@@ -79,6 +86,9 @@ export async function PATCH(request: Request) {
       "preferences",
       "notification_settings",
       "privacy_settings",
+      "paypal_handle",
+      "venmo_handle",
+      "wise_handle",
     ];
 
     const filteredUpdates: Record<string, unknown> = {};
@@ -119,6 +129,38 @@ export async function PATCH(request: Request) {
         if (val === null || typeof val !== "object" || Array.isArray(val)) {
           return errors.badRequest(`${jsonField} must be a JSON object`);
         }
+      }
+    }
+
+    // Validate payment handles. Empty string is allowed (treated as a
+    // delete — normalised to null below); non-empty strings must match
+    // the provider's published handle format (see lib/payments/handle-links).
+    // Hard cap at 64 chars before validation to avoid wasting cycles on
+    // pathological inputs.
+    for (const provider of PAYMENT_PROVIDERS) {
+      const col = `${provider}_handle`;
+      if (filteredUpdates[col] !== undefined) {
+        const raw = filteredUpdates[col];
+        if (raw === null || raw === "") {
+          // Treat empty input as a clear — store NULL, not "".
+          filteredUpdates[col] = null;
+          continue;
+        }
+        if (typeof raw !== "string") {
+          return errors.badRequest(`${col} must be a string or null`);
+        }
+        const trimmed = raw.trim();
+        if (trimmed.length > 64) {
+          return errors.badRequest(
+            `${col} is too long (max 64 characters)`,
+          );
+        }
+        if (!isValidPaymentHandle(provider, trimmed)) {
+          return errors.badRequest(
+            `${col} is not a valid ${provider} handle`,
+          );
+        }
+        filteredUpdates[col] = trimmed;
       }
     }
 

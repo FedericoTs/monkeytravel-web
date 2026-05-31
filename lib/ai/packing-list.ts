@@ -186,7 +186,13 @@ export async function generatePackingList(
     // packing-list → gemini-2.5-flash-lite (deterministic list, cheap).
     model: getModelForPurpose("packing-list"),
     generationConfig: {
-      temperature: 0.4, // Slightly creative for personality but mostly deterministic
+      // 2026-05-31: lowered from 0.4 → 0.2 (deterministic utility task).
+      // Packing lists for the same destination/dates/preferences should be
+      // near-identical across calls — that's a feature, not a bug. Tighter
+      // sampling → higher prompt-cache hit rate, lower output cost, and
+      // reproducible behavior for E2E tests. Personality lives in the
+      // prompt template, not in the sampler.
+      temperature: 0.2,
       responseMimeType: "application/json",
       maxOutputTokens: 2048,
     },

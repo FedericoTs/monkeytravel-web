@@ -863,7 +863,13 @@ async function regenerateSingleActivityInternal(
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      temperature: retryCount > 0 ? 0.8 : 1.2, // Higher temperature for variety
+      // 2026-05-31: lowered from 1.2/0.8 → 0.5/0.3 (deterministic utility task).
+      // Single-activity regenerate is a utility call — users want the swap to
+      // be reproducible enough that two clicks on the same activity surface
+      // similar shapes, and prompt-cache hits go up materially as the sampling
+      // distribution narrows. Creative variety is still preserved via the
+      // exclusion list of existing activity names in the prompt itself.
+      temperature: retryCount > 0 ? 0.3 : 0.5,
       topP: 0.95,
       topK: 40,
       maxOutputTokens: 2048,
@@ -1121,9 +1127,14 @@ async function regenerateSingleDayInternal(
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      // Slightly hotter than whole-trip generation — we want a *different*
-      // shape than the day the user is replacing.
-      temperature: retryCount > 0 ? 0.8 : 1.1,
+      // 2026-05-31: lowered from 1.1/0.8 → 0.5/0.3 (deterministic utility task).
+      // Day-regenerate is a utility call — the "different shape than the day
+      // being replaced" pressure is already supplied by the surrounding-days
+      // context + existing-places exclusion list, so the temperature lift was
+      // double-counting it. Lower temp → better prompt-cache reuse on the
+      // common case (same trip, same day, retry) and reproducible behavior
+      // for debugging / E2E tests.
+      temperature: retryCount > 0 ? 0.3 : 0.5,
       topP: 0.95,
       topK: 40,
       maxOutputTokens: 2048, // One day is ~500-800 tokens; this leaves headroom.

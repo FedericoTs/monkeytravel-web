@@ -2038,7 +2038,56 @@
     "errorDeleteFailed": "Impossibile eliminare la spesa — riprova.",
     "errorLoadFailed": "Impossibile caricare le spese. Riprova.",
     "retry": "Riprova",
-    "deleteAriaLabel": "Elimina questa spesa"
+    "deleteAriaLabel": "Elimina questa spesa",
+    "settle": {
+      "openButton": "Liquidare",
+      "title": "Liquidare",
+      "subtitleCount": "{count, plural, =1 {# trasferimento da chiudere} other {# trasferimenti da chiudere}}",
+      "loading": "Calcolo dei conti in corso…",
+      "errorLoad": "Impossibile caricare i conti — riprova.",
+      "retry": "Riprova",
+      "empty": "Tutti i conti sono pari!",
+      "emptyHint": "Ogni saldo del viaggio è in pareggio. Ben fatto.",
+      "owes": "deve a",
+      "payAction": "Paga",
+      "payComingSoon": "Paga (in arrivo)"
+    },
+    "payments": {
+      "provider": {
+        "paypal": "PayPal",
+        "venmo": "Venmo",
+        "wise": "Wise"
+      },
+      "payVia": {
+        "paypal": "Paga con PayPal",
+        "venmo": "Paga con Venmo",
+        "wise": "Paga con Wise"
+      },
+      "recipientHasNoHandles": "Il destinatario non ha impostato i suoi account di pagamento. Chiedigli di aggiungerne uno dalle Impostazioni.",
+      "recipientHandlesInvalid": "Gli account di pagamento del destinatario non sono validi. Chiedigli di aggiornarli dalle Impostazioni.",
+      "settings": {
+        "title": "Account di pagamento",
+        "description": "Salva i tuoi username PayPal, Venmo e Wise così i compagni di viaggio possono pagarti con un tocco dalla schermata Liquidare.",
+        "breadcrumbProfile": "Profilo",
+        "loading": "Caricamento dei tuoi account…",
+        "errorLoadFailed": "Impossibile caricare i tuoi account di pagamento. Riprova.",
+        "retry": "Riprova",
+        "save": "Salva account",
+        "saving": "Salvataggio…",
+        "cancel": "Annulla",
+        "toastSaved": "Account di pagamento salvati.",
+        "errorSaveFailed": "Salvataggio non riuscito — riprova.",
+        "errorTooLong": "Troppo lungo (max 64 caratteri).",
+        "errorInvalidHandle": "Non sembra un username valido per questo servizio.",
+        "errorFixBeforeSave": "Correggi l'username evidenziato prima di salvare.",
+        "help": {
+          "paypal": "Il tuo username PayPal.me — la parte dopo paypal.me/ nel tuo link. Lettere, numeri, punti, trattini, underscore.",
+          "venmo": "Il tuo username Venmo — la parte dopo @ nel tuo handle. 5-30 caratteri.",
+          "wise": "Il tuo username Wise (TransferWise), es. @alyssaperez. Assicurati di aver abilitato 'Ricevi pagamenti' nel tuo account Wise."
+        },
+        "privacyNote": "Solo i compagni di viaggio con cui condividi una spesa possono vedere questi account. Non vediamo né gestiamo i pagamenti — i link aprono direttamente l'app del servizio."
+      }
+    }
   },
   "advisory": {
     "level": {

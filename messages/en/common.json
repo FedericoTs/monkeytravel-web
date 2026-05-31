@@ -2038,7 +2038,56 @@
     "errorDeleteFailed": "Couldn't delete the expense — try again.",
     "errorLoadFailed": "Could not load expenses. Try again.",
     "retry": "Try again",
-    "deleteAriaLabel": "Delete this expense"
+    "deleteAriaLabel": "Delete this expense",
+    "settle": {
+      "openButton": "Settle up",
+      "title": "Settle Up",
+      "subtitleCount": "{count, plural, =1 {# transfer to close out} other {# transfers to close out}}",
+      "loading": "Calculating who owes what…",
+      "errorLoad": "Couldn't load settlements — try again.",
+      "retry": "Try again",
+      "empty": "All settled up!",
+      "emptyHint": "Every balance on this trip is even. Nice work.",
+      "owes": "owes",
+      "payAction": "Pay",
+      "payComingSoon": "Pay (coming soon)"
+    },
+    "payments": {
+      "provider": {
+        "paypal": "PayPal",
+        "venmo": "Venmo",
+        "wise": "Wise"
+      },
+      "payVia": {
+        "paypal": "Pay via PayPal",
+        "venmo": "Pay via Venmo",
+        "wise": "Pay via Wise"
+      },
+      "recipientHasNoHandles": "Recipient hasn't set payment handles. Ask them to add one in Settings.",
+      "recipientHandlesInvalid": "Recipient's payment handles aren't valid. Ask them to update them in Settings.",
+      "settings": {
+        "title": "Payment handles",
+        "description": "Save your PayPal, Venmo, and Wise usernames so trip mates can pay you back with one tap from the Settle Up view.",
+        "breadcrumbProfile": "Profile",
+        "loading": "Loading your handles…",
+        "errorLoadFailed": "Could not load your payment handles. Try again.",
+        "retry": "Try again",
+        "save": "Save handles",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "toastSaved": "Payment handles saved.",
+        "errorSaveFailed": "Couldn't save — try again.",
+        "errorTooLong": "Too long (max 64 characters).",
+        "errorInvalidHandle": "That doesn't look like a valid handle for this provider.",
+        "errorFixBeforeSave": "Fix the highlighted handle before saving.",
+        "help": {
+          "paypal": "Your PayPal.me username — the part after paypal.me/ in your link. Letters, numbers, dots, dashes, underscores.",
+          "venmo": "Your Venmo username — the part after @ in your Venmo handle. 5-30 characters.",
+          "wise": "Your Wise (TransferWise) username, e.g. @alyssaperez. Make sure 'Get paid' is enabled in your Wise account."
+        },
+        "privacyNote": "Only trip members you share an expense with can see these handles. We never see or process the payments — links open the provider's app directly."
+      }
+    }
   },
   "advisory": {
     "level": {
