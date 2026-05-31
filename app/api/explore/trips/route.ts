@@ -112,16 +112,26 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (destination) {
-      // Bug-bounty 2026-05-24 P1: previously concatenated `destination`
-      // straight into the PostgREST .or() string. Commas, parens, quotes
-      // in the user-supplied value broke the filter or allowed abusing
-      // operators. Escape PostgREST-special characters (parens, commas,
-      // colons, periods that follow operators) before interpolation.
-      const escaped = destination.replace(/[(),:]/g, "\\$&");
-      // Day-4 bug fix: `trip_meta->destination` returns JSONB. ILIKE has
-      // no operator for JSONB → PostgREST raised 42883 → 500 on every
-      // /destinations/[slug] page since /explore went live. Use `->>`
-      // (text extraction) so the ILIKE actually applies.
+      // Day-5 backstop on top of Day-4 P1.2: PostgREST `.or()` syntax
+      // uses comma as the clause separator. Backslash-escaping commas
+      // inside a value (the old approach below) does NOT work — PostgREST
+      // still parses them as separators and returns 400. Live logs caught
+      // 5 such 400s for "Paris, France" / "Tokyo, Japan" / "Rome, Italy"
+      // / "Barcelona, Spain" / "Parigi, Francia" — the /destinations/[slug]
+      // page calls fetchExploreFeed({destination: cityName}) and cityName
+      // is "City, Country" in the curated dataset.
+      //
+      // Fix: split on the first comma and only match against the city
+      // portion. The country suffix doesn't add matching value (trips
+      // typically have just "Paris" in title, not "Paris, France"), and
+      // we still escape % + _ (the genuine ILIKE wildcards) plus parens
+      // and colons (PostgREST operator syntax) for the rare city names
+      // that include them.
+      const cityOnly = destination.split(",")[0].trim();
+      const escaped = cityOnly.replace(/[()%_:]/g, "\\$&");
+      // `trip_meta->>destination` uses `->>` (text extraction). The earlier
+      // single-arrow form returned JSONB and ILIKE could not apply →
+      // 42883 → 500 on every /destinations/[slug] page (Day-4 P1.2).
       query = query.or(`title.ilike.%${escaped}%,trip_meta->>destination.ilike.%${escaped}%`);
     }
 
