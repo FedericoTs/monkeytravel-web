@@ -52,7 +52,13 @@ const nextConfig: NextConfig = {
       ["where-to-go-in-january",   "2026-travel-calendar#january"],
       ["where-to-go-in-february",  "2026-travel-calendar#february"],
       ["where-to-go-in-march",     "2026-travel-calendar#march"],
-      ["where-to-go-in-april",     "2026-travel-calendar#april"],
+      // 2026-05-30: where-to-go-in-april redirect REMOVED.
+      // GSC showed 50k impressions/qtr leaking through the 308 chain to
+      // /blog/2026-travel-calendar#april. The standalone post at
+      // content/blog/where-to-go-in-april.md now serves the queries
+      // ("places to visit in april 2026", "where to travel april 2026",
+      // ~50 long-tail variants ranking pos 6.36) with a real 200 response
+      // and a CTR-friendly hero, table, and 12 destination sections.
       ["where-to-go-in-may",       "2026-travel-calendar#may"],
       ["where-to-go-in-june",      "2026-travel-calendar#june"],
       ["where-to-go-in-july",      "2026-travel-calendar#july"],
@@ -65,8 +71,13 @@ const nextConfig: NextConfig = {
       ["best-summer-destinations-2026",  "spring-summer-travel-guide"],
       ["spring-break-destinations-2026", "spring-summer-travel-guide"],
       ["coolcation-destinations-2026",   "spring-summer-travel-guide"],
-      // 2 honeymoon dupes → honeymoon pillar
-      ["best-honeymoon-destinations-2026", "honeymoon-planning-guide"],
+      // 1 honeymoon dupe → honeymoon pillar
+      // 2026-05-30: best-honeymoon-destinations-2026 redirect REMOVED.
+      // GSC showed 27k impressions/qtr leaking through the 308 chain to
+      // /blog/honeymoon-planning-guide. The standalone post at
+      // content/blog/best-honeymoon-destinations-2026.md now serves the
+      // destination-intent queries (planning guide kept as the process
+      // pillar; destination listicle is its companion piece).
       ["honeymoon-on-a-budget-2026",       "honeymoon-planning-guide"],
     ];
 
