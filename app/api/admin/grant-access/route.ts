@@ -1,5 +1,6 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Admin endpoint to grant early access to a user
@@ -7,8 +8,14 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
  */
 export async function POST(request: Request) {
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
+    // Auth + admin check uses user-context (RLS-respecting) client to read the
+    // calling admin's own row. The cross-user reads/writes below must use the
+    // service-role client — RLS on `users`/`user_tester_access` otherwise
+    // blocks lookups for users other than the admin themselves, and previous
+    // "user not found" errors here were RLS, not actual data state.
+    const { user, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
+    const supabase = createAdminClient();
 
     const body = await request.json();
     const { user_email, code } = body;
@@ -147,8 +154,11 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    // Same RLS-bypass pattern as POST above — admin needs to look up arbitrary
+    // users by email, which the RLS-gated user-context client can't do.
+    const { errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
+    const supabase = createAdminClient();
 
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");

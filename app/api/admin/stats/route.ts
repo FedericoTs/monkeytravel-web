@@ -1,5 +1,6 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Cohort retention data for matrix visualization
@@ -134,8 +135,21 @@ export interface AdminStats {
 
 export async function GET() {
   try {
-    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    // 1. Verify the caller is an authenticated admin. This still uses the
+    //    user-context client so the RLS-gated `users` row lookup and the
+    //    isAdmin email check both work the way the rest of the app expects.
+    const { errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
+
+    // 2. THEN swap to the service-role client for every cross-user metric
+    //    query below. The user-context client honours RLS on `trips`,
+    //    `users`, `activity_timelines`, etc. — so counts came back filtered
+    //    to "trips the admin user can see" rather than "all trips in the
+    //    DB." Result: Alyssa's private trips never appeared in /admin
+    //    stats (reported 2026-05-31). The admin email check above is the
+    //    authorization boundary; once past it, queries should see the
+    //    whole dataset.
+    const supabase: SupabaseClient = createAdminClient();
 
     // Fetch all metrics in parallel — use allSettled so one failure doesn't crash the dashboard
     const settled = await Promise.allSettled([
