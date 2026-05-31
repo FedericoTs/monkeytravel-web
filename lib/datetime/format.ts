@@ -61,18 +61,39 @@ export function formatDateShort(datetime: string | Date): string {
  * should pass useLocale() explicitly.
  *
  * Handles same-month and cross-month ranges intelligently.
+ *
+ * TZ HANDLING (2026-05-31): Trip dates are wall-clock DATE values in
+ * Postgres ("2026-05-31"), which `new Date(s)` parses as UTC midnight.
+ * Without an explicit `timeZone`, the server (Vercel = UTC) and the
+ * client (user's local TZ) call `getDate()` / `getMonth()` against the
+ * same instant and disagree by ±1 whenever the viewer is west of UTC
+ * (e.g. UTC-7 PT: "2026-05-31" → server renders "May 31", client
+ * renders "May 30"). That text-node divergence on every TripCard is
+ * the root cause of React #418 on /trips. Forcing `timeZone: "UTC"`
+ * + reading parts via `Intl.DateTimeFormat` with `timeZone: "UTC"`
+ * pins both sides to the same calendar arithmetic, eliminating the
+ * mismatch. Correct semantics too: a trip starting "May 31" should
+ * read May 31 in Tokyo and May 31 in Los Angeles — it's a wall-clock
+ * date, not a zoned moment. Bug #266.
  */
 export function formatDateRange(start: Date | string, end: Date | string, locale: string = "en-US"): string {
   const s = typeof start === "string" ? new Date(start) : start;
   const e = typeof end === "string" ? new Date(end) : end;
 
-  const startMonth = s.toLocaleDateString(locale, { month: "short" });
-  const endMonth = e.toLocaleDateString(locale, { month: "short" });
+  const startMonth = s.toLocaleDateString(locale, { month: "short", timeZone: "UTC" });
+  const endMonth = e.toLocaleDateString(locale, { month: "short", timeZone: "UTC" });
+
+  // Use UTC getters so day/year extraction matches the UTC-anchored
+  // month string above. Mixing `s.getDate()` (local) with a UTC month
+  // string would re-introduce the same TZ mismatch we just fixed.
+  const startDay = s.getUTCDate();
+  const endDay = e.getUTCDate();
+  const endYear = e.getUTCFullYear();
 
   if (startMonth === endMonth) {
-    return `${startMonth} ${s.getDate()}-${e.getDate()}, ${e.getFullYear()}`;
+    return `${startMonth} ${startDay}-${endDay}, ${endYear}`;
   }
-  return `${startMonth} ${s.getDate()} - ${endMonth} ${e.getDate()}, ${e.getFullYear()}`;
+  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${endYear}`;
 }
 
 /**

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
 // Bundle-size note (task #152/#167): we used to import
@@ -140,6 +140,42 @@ const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 // Caught in docs/JOURNEY_AUDIT.md after the third-round live test.
 const STEP_NAMES_CONST = ["destination_dates", "vibes_preferences"] as const;
 
+// Server-side funnel mirror — additive to the PostHog tracking already
+// in place so we can write SQL cross-cuts against Supabase (joins to
+// users / trips / referrals / acquisition_source). See
+// app/api/wizard-event/route.ts and the 20260531_wizard_step_events.sql
+// migration for the rationale. Task #293.
+//
+// Fire-and-forget by design: we never await this from a render path,
+// never surface the result to the user, and swallow any throw.
+// `keepalive: true` so the "abandoned" event survives a tab close.
+// Module-scoped (not inside the component) so the function identity is
+// stable and we don't invalidate effect deps that pass it around.
+type WizardEventStep =
+  | "step_1_destination_dates"
+  | "step_2_vibes"
+  | "generating"
+  | "result"
+  | "save_clicked"
+  | "saved"
+  | "abandoned";
+
+async function trackWizardEvent(
+  step: WizardEventStep,
+  extra: Record<string, unknown> = {}
+): Promise<void> {
+  try {
+    await fetch("/api/wizard-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step, ...extra }),
+      keepalive: true,
+    });
+  } catch {
+    // Swallow — telemetry must never break the wizard.
+  }
+}
+
 interface NewTripWizardProps {
   /**
    * Server-resolved destination metadata from the optional
@@ -157,6 +193,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations("trips");
+  // Locale is forwarded into the wizard_step_events rows so the funnel
+  // can be sliced by language without joining back to URL paths. See
+  // /api/wizard-event + the trackWizardEvent helper above.
+  const locale = useLocale();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -265,6 +305,34 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       step_number: step,
       step_name: STEP_NAMES_CONST[step - 1],
     });
+    // Mirror the step view into Supabase. Step 1 fires `step_1_*`,
+    // step 2 fires `step_2_vibes`. This is the entry-point event for
+    // each step — downstream events (generating/result/save_clicked/
+    // saved/abandoned) are fired from their own handlers. `locale` is
+    // included on step 1 only because it's the only field guaranteed
+    // to be meaningful at that point.
+    if (step === 1) {
+      void trackWizardEvent("step_1_destination_dates", { locale });
+    } else if (step === 2) {
+      void trackWizardEvent("step_2_vibes", {
+        destination: destinationFieldRef.current || undefined,
+        duration_days:
+          startDateRef.current && endDateRef.current
+            ? Math.max(
+                1,
+                Math.ceil(
+                  (new Date(endDateRef.current).getTime() -
+                    new Date(startDateRef.current).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                ) + 1
+              )
+            : undefined,
+        group_size: tripIntent,
+        backpacker_mode: travelStyle === "backpacker",
+        locale,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   // ── Wizard funnel diagnostics ────────────────────────────────────────────
@@ -389,6 +457,38 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         had_dates: Boolean(startDateRef.current && endDateRef.current),
         had_vibes: vibesRef.current.length > 0,
       });
+      // Supabase funnel mirror — terminal `abandoned` state. We use
+      // the same step-name vocabulary as the other wizard events so
+      // SQL funnel queries can self-join the table on
+      // (session_id, step) without name translation. Task #293.
+      // keepalive=true on the fetch is what makes this survive the
+      // beforeunload / pagehide path on most browsers.
+      const lastStepName: WizardEventStep =
+        stepRef.current === 1
+          ? "step_1_destination_dates"
+          : "step_2_vibes";
+      void trackWizardEvent("abandoned", {
+        destination: destinationFieldRef.current || undefined,
+        duration_days:
+          startDateRef.current && endDateRef.current
+            ? Math.max(
+                1,
+                Math.ceil(
+                  (new Date(endDateRef.current).getTime() -
+                    new Date(startDateRef.current).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                ) + 1
+              )
+            : undefined,
+        locale,
+        // Surface the last in-wizard step the user reached, plus the
+        // last field they touched, so we can answer "which field did
+        // people quit on?" in SQL the same way we already can in
+        // PostHog.
+        last_step: lastStepName,
+        last_touched_field: lastTouchedFieldRef.current ?? undefined,
+        total_time_seconds: totalSeconds,
+      });
     }
 
     function handleVisibility() {
@@ -471,20 +571,43 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
   }, [generatedItinerary]);
 
-  // Build seasonal context when destination and dates are set
-  // Uses latitude for accurate hemisphere detection (fixes Southern Hemisphere bug)
+  // Build seasonal context when destination and dates are set.
+  // Uses latitude for accurate hemisphere detection (fixes Southern Hemisphere bug).
+  //
+  // **Bug #294 (2026-05-31)** — investigated as the suspected cause of the
+  // wizard freeze on autocomplete destination select. Verdict: NOT the cause.
+  // `buildSeasonalContext` is pure-synchronous regex + ~50-entry table lookup,
+  // runs in well under 1ms; live repro on /trips/new clocked the entire
+  // autocomplete-click handler chain at 68ms sync + one 159ms long task,
+  // with no `buildSeasonalContext` call at all on the click path (this effect
+  // short-circuits to setSeasonalContext(null) when startDate is empty, which
+  // it always is at autocomplete-select time).
+  //
+  // **Defensive change kept from the investigation:** defer the synchronous
+  // setState into a microtask via queueMicrotask. The seasonal context only
+  // feeds non-critical UI (the post-dates SeasonalContextCard + the vibe-
+  // suggestion seed on Continue) — never block an interaction frame on it.
+  // If the lib ever grows (e.g. fetched holidays, weather lookup) this guard
+  // keeps the interaction handler responsive.
   useEffect(() => {
-    if (destination && startDate) {
+    if (!destination || !startDate) {
+      setSeasonalContext(null);
+      return;
+    }
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
       const context = buildSeasonalContext(
         destination,
         startDate,
         destinationCoords?.latitude, // Pass latitude for correct hemisphere
         endDate || undefined // Pass endDate so holidays outside the window drop
       );
-      setSeasonalContext(context);
-    } else {
-      setSeasonalContext(null);
-    }
+      if (!cancelled) setSeasonalContext(context);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [destination, startDate, endDate, destinationCoords]);
 
   // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth.
@@ -616,6 +739,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           duration: durationDays,
           budgetTier,
           isFromTemplate: false,
+        });
+        // Supabase funnel mirror — `saved` terminal state for the
+        // auto-save path. Only on insert (first save), so we don't
+        // double-count regenerates as separate funnel completions.
+        // Task #293.
+        void trackWizardEvent("saved", {
+          destination,
+          duration_days: durationDays,
+          group_size: tripIntent,
+          backpacker_mode: travelStyle === "backpacker",
+          locale,
         });
         // Fire first_trip_saved unconditionally — same rationale as the
         // manual handleSaveTrip path (Task #319, 2026-05-31). Both save
@@ -834,6 +968,25 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // share/save rates.
       trip_intent: tripIntent,
     });
+    // Supabase mirror — fired alongside the PostHog event so the funnel
+    // is queryable in SQL. Task #293.
+    void trackWizardEvent("generating", {
+      destination,
+      duration_days:
+        startDate && endDate
+          ? Math.max(
+              1,
+              Math.ceil(
+                (new Date(endDate).getTime() -
+                  new Date(startDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1
+            )
+          : undefined,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      locale,
+    });
 
     try {
       // Derive interests from vibes for API compatibility
@@ -949,6 +1102,29 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // already has image_url populated on each activity.
       setGeneratedItinerary(data.itinerary || null);
 
+      // Supabase funnel mirror — fired only when we actually have an
+      // itinerary to render. Task #293.
+      if (data.itinerary) {
+        const durationDaysResult =
+          startDate && endDate
+            ? Math.max(
+                1,
+                Math.ceil(
+                  (new Date(endDate).getTime() -
+                    new Date(startDate).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                ) + 1
+              )
+            : undefined;
+        void trackWizardEvent("result", {
+          destination,
+          duration_days: durationDaysResult,
+          group_size: tripIntent,
+          backpacker_mode: travelStyle === "backpacker",
+          locale,
+        });
+      }
+
       // Track successful itinerary generation.
       // Bug-bounty 2026-05-24 P1: previously `Date.now() - performance.now()`
       // which is Unix-epoch minus page-life-ms — a giant nonsense
@@ -1010,6 +1186,27 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     // is set, but a child component (DestinationHero onSave at line 1200)
     // could still invoke it.
     if (autoSaveEnabled && autoSave.savedTripId) return;
+
+    // Supabase funnel mirror — fired on the user's Save tap regardless
+    // of auth state. This captures the "peak intent" event before the
+    // auth modal potentially intercepts. Task #293.
+    void trackWizardEvent("save_clicked", {
+      destination,
+      duration_days:
+        startDate && endDate
+          ? Math.max(
+              1,
+              Math.ceil(
+                (new Date(endDate).getTime() -
+                  new Date(startDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1
+            )
+          : undefined,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      locale,
+    });
 
     setLoading(true);
     try {
@@ -1117,6 +1314,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         duration: durationDays,
         budgetTier,
         isFromTemplate: false,
+      });
+
+      // Supabase funnel mirror — fired on successful manual-save INSERT.
+      // The auto-save path fires its own `saved` event in handlePersisted
+      // below so both flows reach this terminal funnel state. Task #293.
+      void trackWizardEvent("saved", {
+        destination,
+        duration_days: durationDays,
+        group_size: tripIntent,
+        backpacker_mode: travelStyle === "backpacker",
+        locale,
       });
 
       // Fire first_trip_saved unconditionally (organic + referred). Was

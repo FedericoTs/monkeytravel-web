@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
@@ -71,6 +71,12 @@ export default function SaveTripModal({
 }: SaveTripModalProps) {
   const router = useRouter();
   const t = useTranslations("common.saveTrip");
+  // 2026-05-31 audit P2: formatDate below was pinned to "en-US" so
+  // /it and /es users saw "Wed, Jun 3, 2026" instead of "mer, 3 giu
+  // 2026" / "mié, 3 jun 2026". Read the active next-intl locale and
+  // pass it to toLocaleDateString. The `weekday: "short"` option
+  // resolves through the browser's CLDR for every locale we ship.
+  const locale = useLocale();
   // Task #181 cleanup: read auth from the single AuthProvider. We expose
   // a tri-state through `isAuthenticated` (true / false / null) to preserve
   // the original "don't render the auth-dependent CTA copy until we know"
@@ -116,7 +122,7 @@ export default function SaveTripModal({
     : null;
 
   const formatDate = (date: Date) =>
-    date.toLocaleDateString("en-US", {
+    date.toLocaleDateString(locale, {
       weekday: "short",
       month: "short",
       day: "numeric",
@@ -237,12 +243,26 @@ export default function SaveTripModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    // 2026-05-31 audit P1 / task #302: outer container was
+    // `fixed inset-0 flex items-center justify-center p-4` with no
+    // scroll recovery. On iPhone SE with the native date picker
+    // open the close button clipped ~52px off-screen and the
+    // primary CTA was unreachable on 300px-tall reduced viewports.
+    // Mirror BaseModal.tsx:184-216 (commit 7fdde8d): outer becomes
+    // a scroll container, inner handles dvh + safe-area positioning.
+    // `min-h-screen` stays as a fallback for ancient browsers that
+    // don't support dvh.
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
+
+      {/* Positioning container — dvh excludes iOS Safari URL bar +
+          home indicator; safe-area padding keeps content above the
+          notch / home strip on Capacitor wrap. */}
+      <div className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
 
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
@@ -399,6 +419,7 @@ export default function SaveTripModal({
             </div>
           </>
         )}
+      </div>
       </div>
 
       <style jsx>{`

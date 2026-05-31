@@ -116,13 +116,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Single subscription — replaces N per-component listeners.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       setUser(session?.user ?? null);
       // Subsequent state changes are not "loading" — only the first
       // hydration is. Once we've heard from auth at least once we're
       // out of the loading state regardless of which path resolved first.
       setLoading(false);
+
+      // 2026-05-31 mobile-audit P2: re-register the push device row on
+      // in-session sign-in. NativeBoot only calls initPushOnce() on
+      // cold launch, so a user who signs in mid-session never gets a
+      // user_id-linked device row → every server-side push silently
+      // no-ops with `no_active_devices` until the next cold launch.
+      // Capacitor.isNativePlatform() gate keeps web users from paying
+      // for the dynamic import or the @capacitor/push-notifications
+      // chunk on every login.
+      if (event === "SIGNED_IN") {
+        const cap = (
+          window as typeof window & {
+            Capacitor?: { isNativePlatform?: () => boolean };
+          }
+        ).Capacitor;
+        if (cap?.isNativePlatform?.()) {
+          void import("@/lib/native/push")
+            .then(({ initPushOnce }) => initPushOnce())
+            .catch(() => undefined);
+        }
+      }
     });
 
     return () => {

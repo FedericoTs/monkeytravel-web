@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { hapticMedium, hapticError } from "@/lib/native/haptics";
 import type {
   ProposalWithVotes,
   ProposalVoteType,
@@ -138,9 +139,17 @@ export function VotingBottomSheet({
       setComment("");
       setShowCommentInput(false);
       setSelectedOption(null);
+      // 2026-05-31 audit P2: this is the mobile-first voting surface
+      // (per the file docstring "Premium mobile-first voting
+      // experience"), so the missing haptic is worse here than the
+      // ProposalVoteButtons sibling — which DOES fire hapticMedium on
+      // success. Match that contract: medium impact on commit,
+      // error on failure.
+      hapticMedium();
       onClose();
     } catch {
       // Error handling done by parent
+      hapticError();
     } finally {
       setIsSubmitting(false);
     }
@@ -152,9 +161,11 @@ export function VotingBottomSheet({
 
     try {
       await onRemoveVote();
+      hapticMedium();
       onClose();
     } catch {
       // Error handling done by parent
+      hapticError();
     } finally {
       setIsSubmitting(false);
     }
@@ -166,9 +177,11 @@ export function VotingBottomSheet({
 
     try {
       await onForceResolve(action);
+      hapticMedium();
       onClose();
     } catch {
       // Error handling done by parent
+      hapticError();
     } finally {
       setIsSubmitting(false);
     }

@@ -14,7 +14,8 @@
     "test:e2e:ui": "playwright test --ui",
     "video:preview": "remotion studio video/index.ts",
     "video:render": "ts-node scripts/render-video.ts",
-    "verify:deploy": "tsx scripts/verify-deploy-smoke.ts"
+    "verify:deploy": "tsx scripts/verify-deploy-smoke.ts",
+    "test:bananas": "tsx scripts/banana-load-test.mts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",

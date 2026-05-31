@@ -454,9 +454,22 @@ export async function POST(request: NextRequest) {
           metadata: { user_id: user?.id ?? "anonymous" },
         }).catch(() => undefined)
       );
+      // Sanitize the SSE error payload — the raw Gemini SDK message
+      // can leak the upstream URL, the model ID, and credential-state
+      // strings like "API key was reported as leaked". The non-stream
+      // sibling at /api/ai/generate already returns the generic
+      // "Failed to generate itinerary. Please try again." via
+      // errors.internal(); mirror that here. The raw `msg` is still
+      // captured server-side via console.error + logApiCall above for
+      // ops visibility — only the client view is scrubbed. Keep
+      // `code: "upstream"` so the wizard can distinguish upstream
+      // failures from other SSE error types.
       yield {
         type: "error",
-        data: { error: msg, code: "upstream" },
+        data: {
+          error: "Generation failed. Please try again.",
+          code: "upstream",
+        },
       };
     }
   };

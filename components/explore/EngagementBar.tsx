@@ -3,6 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { hapticLight, hapticMedium, hapticError } from "@/lib/native/haptics";
 
 interface EngagementBarProps {
   tripId: string;
@@ -80,10 +81,15 @@ export default function EngagementBar({
       // Reconcile to server-of-truth.
       setLiked(!!data.liked);
       setLikes(typeof data.count === "number" ? data.count : likes);
+      // Medium impact — like is a meaningful collaboration-loop
+      // moment (the trip author gets a notification + a count bump).
+      // Matches ProposalVoteButtons' "you committed something" model.
+      hapticMedium();
     } catch (err) {
       console.error("[engagement] like failed:", err);
       setLiked(wasLiked); // revert
       setLikes((n) => n + (wasLiked ? 1 : -1));
+      hapticError();
     } finally {
       setBusy(null);
     }
@@ -103,10 +109,16 @@ export default function EngagementBar({
       const data = await res.json();
       setSaved(!!data.saved);
       setSaves(typeof data.count === "number" ? data.count : saves);
+      // Light impact — save is a low-stakes confirmation per the
+      // haptics docblock ("Trip saved successfully" is the canonical
+      // example). Anon users can save too, so we don't want to over-
+      // signal commitment.
+      hapticLight();
     } catch (err) {
       console.error("[engagement] save failed:", err);
       setSaved(wasSaved);
       setSaves((n) => n + (wasSaved ? 1 : -1));
+      hapticError();
     } finally {
       setBusy(null);
     }
@@ -125,12 +137,18 @@ export default function EngagementBar({
       const res = await fetch(`/api/trips/${tripId}/fork`, { method: "POST" });
       if (!res.ok) throw new Error(`fork failed: ${res.status}`);
       const data = await res.json();
+      // Medium impact — fork creates a new trip row owned by the user
+      // and we're about to navigate away. The haptic fires before the
+      // route transition so the user feels the commit before the
+      // visual changes.
+      hapticMedium();
       if (data?.redirectTo) {
         startTransition(() => router.push(data.redirectTo));
       }
     } catch (err) {
       console.error("[engagement] fork failed:", err);
       setForks((n) => Math.max(0, n - 1));
+      hapticError();
     } finally {
       setBusy(null);
     }
