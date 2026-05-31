@@ -180,6 +180,8 @@ function ForgotPasswordForm() {
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
+                  name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Twitter, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { openExternal } from "@/lib/native/external-link";
 
 interface ReferralStats {
   clicks: number;
@@ -74,12 +75,12 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const handleShareTwitter = () => {
     const text = encodeURIComponent(t("share.twitterText"));
     const url = encodeURIComponent(referralUrl);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+    void openExternal(`https://twitter.com/intent/tweet?text=${text}&url=${url}`);
   };
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(`${t("share.whatsappText")} ${referralUrl}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    void openExternal(`https://wa.me/?text=${text}`);
   };
 
   const handleShareEmail = () => {

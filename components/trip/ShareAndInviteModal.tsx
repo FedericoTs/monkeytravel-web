@@ -14,6 +14,8 @@ import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
 import { useToast } from "@/components/ui/Toast";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { openExternal } from "@/lib/native/external-link";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
@@ -88,19 +90,20 @@ export default function ShareAndInviteModal({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch current user
+  // Current user from AuthContext.
+  //
+  // 2026-05-31 P1 fix (Task #312): this previously called fetch("/api/auth/session")
+  // which is a 404 — no such endpoint exists. currentUserId never set →
+  // `canManage` (line 723: collaborators[0].user_id === currentUserId) was
+  // always false → role-change dropdown + remove-collaborator button never
+  // rendered. Owner was read-only inside their own share modal. AuthContext
+  // gives us the user directly with no extra round-trip.
+  const { user: authUser } = useAuth();
   useEffect(() => {
-    if (isOpen) {
-      fetch("/api/auth/session")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.user?.id) {
-            setCurrentUserId(data.user.id);
-          }
-        })
-        .catch(console.error);
+    if (isOpen && authUser?.id) {
+      setCurrentUserId(authUser.id);
     }
-  }, [isOpen]);
+  }, [isOpen, authUser?.id]);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -176,17 +179,21 @@ export default function ShareAndInviteModal({
     }
   };
 
-  // Social sharing
+  // Social sharing.
+  // 2026-05-31 P1 fix (Task #313): `window.open(_, "_blank")` is silently
+  // swallowed by the iOS WKWebView in Capacitor — taps did nothing on
+  // native. openExternal() routes through @capacitor/browser
+  // (SFSafariViewController) on native, falls back to window.open on web.
   const handleShareTwitter = () => {
     const text = encodeURIComponent(ts("socialText.twitterShare", { tripTitle }));
     const url = encodeURIComponent(shareUrl);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+    void openExternal(`https://twitter.com/intent/tweet?text=${text}&url=${url}`);
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(`${ts("socialText.whatsappShare", { tripTitle })}\n${shareUrl}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    void openExternal(`https://wa.me/?text=${text}`);
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
@@ -735,16 +742,25 @@ export default function ShareAndInviteModal({
   );
 
   // Mobile: Use BottomSheet for better UX
+  //
+  // 2026-05-31 P1 fix (Task #311): TabButtons + ModalContent are arrow
+  // functions defined INSIDE this component (lines 341, 392). Used as
+  // `<TabButtons />` they were treated by React as fresh component types
+  // on every parent render — unmounting + remounting the entire subtree,
+  // killing the email input's focus on every keystroke and dismissing
+  // iOS's on-screen keyboard. Calling them as plain functions
+  // (`{TabButtons({})}` / `{ModalContent()}`) sidesteps the type-identity
+  // remount: React just sees the returned JSX as part of the parent.
   if (isMobile) {
     return (
       <BottomSheet isOpen={isOpen} onClose={onClose} title={ts("titleWithInvite")}>
         <div className="px-4 pb-6">
           {/* Tabs */}
           <div className="border-b border-slate-200 mb-4">
-            <TabButtons />
+            {TabButtons({})}
           </div>
           {/* Content */}
-          <ModalContent />
+          {ModalContent()}
         </div>
       </BottomSheet>
     );
@@ -829,12 +845,12 @@ export default function ShareAndInviteModal({
             </div>
 
             {/* Tabs */}
-            <TabButtons className="px-6" />
+            {TabButtons({ className: "px-6" })}
           </div>
 
           {/* Content */}
           <div className="p-6 max-h-[60vh] overflow-y-auto">
-            <ModalContent />
+            {ModalContent()}
           </div>
         </div>
       </div>

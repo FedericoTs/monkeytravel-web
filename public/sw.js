@@ -126,7 +126,7 @@ self.addEventListener("fetch", (event) => {
   if (
     url.pathname.startsWith("/images/") ||
     url.pathname.startsWith("/icon-") ||
-    url.pathname === "/apple-touch-icon.png" ||
+    url.pathname === "/apple-icon" ||
     url.pathname === "/favicon.ico"
   ) {
     event.respondWith(cacheFirst(req, CACHE_IMAGES, IMAGE_TTL_MS));

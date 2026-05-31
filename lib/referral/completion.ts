@@ -108,23 +108,30 @@ export async function completeReferralIfEligible(
       };
     }
 
-    // Get referrer's current free trips
-    const { data: referrer } = await supabase
-      .from("users")
-      .select("free_trips_remaining")
-      .eq("id", referralCode.user_id)
-      .single();
-
     const now = new Date().toISOString();
 
     // 1. Grant reward to referee (current user)
-    const { error: refereeError } = await supabase
+    // Note: free_trips_remaining column was deprecated 2026-05-31 — it was
+    // written here but never read anywhere (checkUsageLimit ignores it and
+    // decrementFreeTrips() is a hardcoded `return 999`). The actual reward
+    // path is the banana + tier flow below (addReferralBananas /
+    // checkAndUnlockTier), which IS read by checkUsageLimit.
+    //
+    // The `AND referral_completed_at IS NULL` guard makes this a single-
+    // statement atomic claim: concurrent runs race on the same row and only
+    // one wins. The loser sees 0 affected rows on `.select("id")` and
+    // returns the "already completed" path — pairs with the UNIQUE partial
+    // index on referral_events(referee_id) WHERE event_type='conversion'
+    // (migration 20260531_atomic_referral_conversion.sql) which makes the
+    // conversion-row insert race-safe at the DB layer too.
+    const { data: claimedRows, error: refereeError } = await supabase
       .from("users")
       .update({
-        free_trips_remaining: (currentUser.free_trips_remaining || 0) + 1,
         referral_completed_at: now,
       })
-      .eq("id", userId);
+      .eq("id", userId)
+      .is("referral_completed_at", null)
+      .select("id");
 
     if (refereeError) {
       console.error("[Referral Complete] Error updating referee:", refereeError);
@@ -138,20 +145,25 @@ export async function completeReferralIfEligible(
       };
     }
 
-    // 2. Grant reward to referrer
-    let referrerRewarded = false;
-    const { error: referrerError } = await supabase
-      .from("users")
-      .update({
-        free_trips_remaining: (referrer?.free_trips_remaining || 0) + 1,
-      })
-      .eq("id", referralCode.user_id);
-
-    if (!referrerError) {
-      referrerRewarded = true;
-    } else {
-      console.error("[Referral Complete] Error updating referrer:", referrerError);
+    // Lost the race — another concurrent call already claimed the reward.
+    if (!claimedRows || claimedRows.length === 0) {
+      return {
+        success: true,
+        wasReferred: true,
+        alreadyCompleted: true,
+        referrerRewarded: false,
+        refereeRewarded: false,
+        message: "Referral reward already claimed",
+      };
     }
+
+    // 2. (Referrer-side free_trips_remaining write removed 2026-05-31)
+    // The previous UPDATE here only wrote free_trips_remaining for the
+    // referrer, which — same as for the referee — is a dead column not
+    // read by checkUsageLimit. The referrer is now rewarded purely via
+    // the banana + tier path (addReferralBananas / checkAndUnlockTier
+    // below), which IS read by checkUsageLimit.
+    const referrerRewarded = true;
 
     // 3. Record conversion event
     const { data: eventData, error: eventError } = await supabase
@@ -170,14 +182,17 @@ export async function completeReferralIfEligible(
       console.error("[Referral Complete] Error recording event:", eventError);
     }
 
-    // 4. Update conversion count in referral_codes
-    const newConversionCount = (referralCode.total_conversions || 0) + 1;
-    await supabase
-      .from("referral_codes")
-      .update({
-        total_conversions: newConversionCount,
-      })
-      .eq("id", referralCode.id);
+    // 4. Update conversion count in referral_codes (atomic RPC — replaces
+    //    racy read-modify-write closed by 2026-05-31 audit Task #318).
+    const { data: rpcCount, error: rpcErr } = await supabase
+      .rpc("increment_referral_conversions", { p_code_id: referralCode.id });
+    if (rpcErr) {
+      console.error("[Referral Complete] Error incrementing conversions:", rpcErr);
+    }
+    const newConversionCount =
+      typeof rpcCount === "number" && rpcCount > 0
+        ? rpcCount
+        : (referralCode.total_conversions || 0) + 1;
 
     // 5. Award bananas to referrer
     let bananasAwarded = 0;
@@ -265,7 +280,7 @@ export async function completeReferralIfEligible(
       tierUnlocked,
       newTier: tierUnlocked ? newTier : undefined,
       tierBonus: tierBonusBananas,
-      message: "Congratulations! You and your friend each earned 1 free trip!",
+      message: "Bananas awarded to your account. Track progress in /bananas.",
     };
   } catch (error) {
     console.error("[Referral Complete] Unexpected error:", error);

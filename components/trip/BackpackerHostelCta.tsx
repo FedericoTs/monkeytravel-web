@@ -5,6 +5,7 @@ import {
   getHostelworldSearchUrl,
   isHostelworldAffiliateActive,
 } from "@/lib/affiliates/hostelworld";
+import { openExternal } from "@/lib/native/external-link";
 
 interface BackpackerHostelCtaProps {
   /** Trip's destination string (e.g. "Barcelona" or "Barcelona, Spain"). */
@@ -82,21 +83,16 @@ export default function BackpackerHostelCta({
 
   return (
     <div className={className}>
-      <a
-        href={url}
-        target="_blank"
-        rel={isAffiliate ? "sponsored noopener noreferrer" : "noopener noreferrer"}
-        onClick={() => logClick({ tripId, destination, startDate, endDate })}
-        // Some users use middle-click / cmd-click which doesn't trigger
-        // onClick reliably in all browsers — auxclick covers it.
-        onAuxClick={(e) => {
-          if (e.button === 1) {
-            logClick({ tripId, destination, startDate, endDate });
-          }
+      <button
+        type="button"
+        onClick={() => {
+          logClick({ tripId, destination, startDate, endDate });
+          void openExternal(url);
         }}
         className="group inline-flex w-full sm:w-auto items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
         data-analytics-event="backpacker_hostel_cta_clicked"
         data-analytics-destination={destination}
+        data-affiliate={isAffiliate ? "sponsored" : undefined}
       >
         <span className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>🎒</span>
@@ -119,7 +115,7 @@ export default function BackpackerHostelCta({
             />
           </svg>
         </span>
-      </a>
+      </button>
       {isAffiliate && (
         <p className="text-[10px] text-slate-400 mt-1.5 px-1">
           {t("affiliateDisclosure")}

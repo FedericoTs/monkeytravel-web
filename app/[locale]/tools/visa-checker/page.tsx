@@ -13,6 +13,7 @@ import { getCountryOptions, getCountryName, iso2ToFlag } from "@/lib/visa/countr
 import { buildIvisaAffiliateUrl, shouldShowIvisaCta } from "@/lib/visa/ivisa";
 import { fetchGovukAdvisory } from "@/lib/visa/govuk-advisory";
 import VisaCheckerForm from "./VisaCheckerForm";
+import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -238,14 +239,13 @@ export default async function VisaCheckerPage({
             {status !== "same country" && (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                 <p className="mb-2">{t("officialSourcePrefix")}</p>
-                <a
+                <ExternalLinkButton
                   href={officialSourceUrl}
-                  target="_blank"
                   rel="noopener noreferrer nofollow"
                   className="inline-flex items-center gap-2 font-medium text-[var(--primary)] hover:underline"
                 >
                   🔗 {t("officialSource")}
-                </a>
+                </ExternalLinkButton>
               </div>
             )}
 
@@ -257,23 +257,21 @@ export default async function VisaCheckerPage({
                 <p className="text-slate-700 leading-relaxed mb-3">
                   {advisory.summary}
                 </p>
-                <a
+                <ExternalLinkButton
                   href={advisory.url}
-                  target="_blank"
                   rel="noopener noreferrer nofollow"
                   className="text-sm text-[var(--primary)] hover:underline"
                 >
                   {t("advisoryUkSource")} →
-                </a>
+                </ExternalLinkButton>
               </div>
             )}
 
             {showIvisa && ivisaUrl && (
-              <a
+              <ExternalLinkButton
                 href={ivisaUrl}
-                target="_blank"
                 rel="noopener sponsored nofollow"
-                className="block rounded-2xl border border-emerald-300 bg-emerald-50 p-5 hover:bg-emerald-100 transition"
+                className="block w-full text-left rounded-2xl border border-emerald-300 bg-emerald-50 p-5 hover:bg-emerald-100 transition"
               >
                 <p className="font-semibold text-emerald-900">
                   {t("ivisaCta", { destination: toName })}
@@ -281,7 +279,7 @@ export default async function VisaCheckerPage({
                 <p className="text-sm text-emerald-800 mt-1">
                   {t("ivisaSubtext")}
                 </p>
-              </a>
+              </ExternalLinkButton>
             )}
 
             {/* CTA to the full trip planner — convert tool users into

@@ -2101,6 +2101,38 @@
       "body": "Today's the day. Your full {destination} itinerary is one tap away — open it whenever you need directions, opening hours, or what's next."
     }
   },
+  "explore": {
+    "filters": {
+      "searchPlaceholder": "Search destination (Paris, Tokyo, ...)",
+      "searchAriaLabel": "Search by destination",
+      "style": "Style:",
+      "backpacker": "Backpacker",
+      "budgetLabel": "Budget:",
+      "lengthLabel": "Length:",
+      "vibeLabel": "Vibe:",
+      "clearAll": "Clear all filters",
+      "budget": {
+        "budget": "Budget",
+        "balanced": "Balanced",
+        "premium": "Premium"
+      },
+      "duration": {
+        "weekend": "Weekend",
+        "week": "Week",
+        "tenPlus": "10+ days"
+      },
+      "tags": {
+        "foodie": "Foodie",
+        "adventure": "Adventure",
+        "cultural": "Cultural",
+        "relaxation": "Relaxation",
+        "nature": "Nature",
+        "urban": "Urban",
+        "romantic": "Romantic",
+        "family": "Family"
+      }
+    }
+  },
   "push": {
     "optIn": {
       "title": "Stay in the loop?",

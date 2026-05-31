@@ -5,6 +5,7 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
+import { completeReferralIfEligible } from "@/lib/referral/completion";
 import type { ItineraryDay, Activity } from "@/types";
 
 /**
@@ -161,6 +162,18 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   // failures log + Sentry-capture but never re-throw — a fork
   // succeeding is more important than its reminder queue.
   void scheduleTripNotifications({ tripId: created.id, userId: user.id });
+
+  // Fire-and-forget referral completion. Fork is a valid "first trip"
+  // path for a referred user (they may land on /explore from a referral
+  // link and convert via fork instead of the wizard) — without this the
+  // referrer never gets credit. Mirrors /api/trips/duplicate.
+  void (async () => {
+    try {
+      await completeReferralIfEligible(supabase, user.id, created.id);
+    } catch (e) {
+      console.error("[fork] referral completion failed", e);
+    }
+  })();
 
   return apiSuccess({
     newTripId: created.id,

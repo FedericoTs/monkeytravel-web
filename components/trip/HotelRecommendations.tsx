@@ -19,6 +19,7 @@ import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { useTranslations } from "next-intl";
 import type { ItineraryDay } from "@/types";
 import { getHotelSearchCenter, type GeoCenter } from "@/lib/utils/geo";
+import { openExternal } from "@/lib/native/external-link";
 
 interface HotelResult {
   id: string;
@@ -303,11 +304,10 @@ function HotelCard({
             {showBookingMenu && (
               <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-10 animate-fade-in-up">
                 <div className="p-2 space-y-1">
-                  <a
-                    href={hotel.bookingLinks.google}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => void openExternal(hotel.bookingLinks.google)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors w-full text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
@@ -321,12 +321,11 @@ function HotelCard({
                       <div className="text-sm font-medium text-slate-900">{t("googleHotels")}</div>
                       <div className="text-xs text-slate-500">{t("comparePrices")}</div>
                     </div>
-                  </a>
-                  <a
-                    href={hotel.bookingLinks.booking}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void openExternal(hotel.bookingLinks.booking)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors w-full text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
                       B
@@ -335,12 +334,11 @@ function HotelCard({
                       <div className="text-sm font-medium text-slate-900">Booking.com</div>
                       <div className="text-xs text-slate-500">{t("bookDirectly")}</div>
                     </div>
-                  </a>
-                  <a
-                    href={hotel.bookingLinks.hotels}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void openExternal(hotel.bookingLinks.hotels)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors w-full text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white text-xs font-bold">
                       H
@@ -349,12 +347,11 @@ function HotelCard({
                       <div className="text-sm font-medium text-slate-900">Hotels.com</div>
                       <div className="text-xs text-slate-500">{t("collectRewards")}</div>
                     </div>
-                  </a>
-                  <a
-                    href={hotel.bookingLinks.expedia}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void openExternal(hotel.bookingLinks.expedia)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-lg transition-colors w-full text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-white text-xs font-bold">
                       E
@@ -363,7 +360,7 @@ function HotelCard({
                       <div className="text-sm font-medium text-slate-900">Expedia</div>
                       <div className="text-xs text-slate-500">{t("bundleSave")}</div>
                     </div>
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

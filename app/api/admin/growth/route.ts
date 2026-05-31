@@ -1,5 +1,6 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Growth metrics for Sean Ellis framework
 export interface GrowthStats {
@@ -159,8 +160,15 @@ export interface GrowthStats {
 
 export async function GET() {
   try {
-    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    // Auth + admin gate via user-context client (RLS-respecting).
+    const { errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
+    // Then swap to service-role for cross-user reads. Same fix shape as
+    // /api/admin/stats commit 8acd2eb — without it, every count below
+    // (trips, trip_collaborators, banana_transactions, ai_conversations,
+    // referral_codes, etc.) silently under-reports to the admin's own
+    // RLS slice (-55% to -83% measured per the audit).
+    const supabase = createAdminClient();
 
     const now = new Date();
     const nowISO = now.toISOString();

@@ -2101,6 +2101,38 @@
       "body": "Llegó el día. Tu itinerario completo de {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
     }
   },
+  "explore": {
+    "filters": {
+      "searchPlaceholder": "Buscar destino (París, Tokio, ...)",
+      "searchAriaLabel": "Buscar por destino",
+      "style": "Estilo:",
+      "backpacker": "Mochilero",
+      "budgetLabel": "Presupuesto:",
+      "lengthLabel": "Duración:",
+      "vibeLabel": "Ambiente:",
+      "clearAll": "Borrar filtros",
+      "budget": {
+        "budget": "Económico",
+        "balanced": "Equilibrado",
+        "premium": "Premium"
+      },
+      "duration": {
+        "weekend": "Fin de semana",
+        "week": "Semana",
+        "tenPlus": "10+ días"
+      },
+      "tags": {
+        "foodie": "Gastronomía",
+        "adventure": "Aventura",
+        "cultural": "Cultura",
+        "relaxation": "Relax",
+        "nature": "Naturaleza",
+        "urban": "Urbano",
+        "romantic": "Romántico",
+        "family": "Familia"
+      }
+    }
+  },
   "push": {
     "optIn": {
       "title": "¿Quieres estar al tanto?",

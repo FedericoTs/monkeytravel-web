@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { BookingLink } from "@/types";
+import { openExternal } from "@/lib/native/external-link";
 
 interface TripBookingLinksProps {
   bookingLinks?: {
@@ -127,11 +128,10 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
             {activeLinks?.map((link, idx) => {
               const style = getProviderStyle(link.provider);
               return (
-                <a
+                <button
                   key={idx}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  type="button"
+                  onClick={() => void openExternal(link.url)}
                   className={`group relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-transparent ${style.bgColor} transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-amber-200`}
                 >
                   {/* Provider Icon */}
@@ -158,7 +158,7 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </div>
-                </a>
+                </button>
               );
             })}
           </div>

@@ -69,6 +69,7 @@ import {
   captureTripGenerationStarted,
   captureTripGenerationCompleted,
   captureTripIntentSelected,
+  captureFirstTripSaved,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
@@ -616,6 +617,21 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           budgetTier,
           isFromTemplate: false,
         });
+        // Fire first_trip_saved unconditionally — same rationale as the
+        // manual handleSaveTrip path (Task #319, 2026-05-31). Both save
+        // paths emit the event so cohort math works regardless of which
+        // flow the user falls through.
+        try {
+          captureFirstTripSaved({
+            trip_id: tripId,
+            destination,
+            duration_days: durationDays,
+            time_to_value_minutes: 0,
+            from_template: false,
+          });
+        } catch (e) {
+          console.error("[Auto-save] first_trip_saved error:", e);
+        }
         handleTripCreatedWithReferral(
           tripId,
           destination,
@@ -878,14 +894,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         console.warn("[generate] streaming endpoint failed, falling back to JSON:", err);
       }
 
-      if (streamError) {
-        throw new Error(streamError.error || "Generation failed");
-      }
-
       // 2. Fallback to the classic JSON endpoint if streaming didn't
-      //    deliver a final itinerary (either it threw above, or it
-      //    completed without a `complete` event — both unusual but
-      //    possible on flaky networks).
+      //    deliver a final itinerary. Three cases get us here:
+      //      (a) streamGeneration() threw before any events (rate-limit,
+      //          dev-key revoked, network 5xx) — caught above.
+      //      (b) it completed without a `complete` event (rare).
+      //      (c) the server emitted HTTP 200 then an SSE `error` event
+      //          mid-flight (transient Gemini upstream blip, parser
+      //          exception, model overload). 2026-05-31 audit fix
+      //          (Task #310): previously we threw on `streamError`
+      //          BEFORE this fallback, hard-failing every transient
+      //          upstream blip even though the JSON route has cache
+      //          hits + a graceful LIMIT_REACHED UI gate. Now we let
+      //          the fallback run; only re-throw if the JSON path
+      //          ALSO fails to produce an itinerary.
       let data: { itinerary?: GeneratedItinerary; usage?: { used?: number; limit?: number }; code?: string; error?: string };
       if (streamedItinerary) {
         data = { itinerary: streamedItinerary };
@@ -916,7 +938,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             setGenerating(false);
             return;
           }
-          throw new Error(data.error || "Generation failed");
+          // If the stream errored AND the JSON fallback also failed,
+          // surface the stream error message (more specific) when
+          // available, otherwise fall back to the JSON error.
+          throw new Error(streamError?.error || data.error || "Generation failed");
         }
       }
 
@@ -1093,6 +1118,24 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         budgetTier,
         isFromTemplate: false,
       });
+
+      // Fire first_trip_saved unconditionally (organic + referred). Was
+      // gated inside handleTripCreatedWithReferral on wasReferred — so
+      // organic users (the bulk of saves) never produced the event.
+      // Dup-firing on a 2nd save is acceptable cost for full cohort
+      // coverage; the event name is aspirational, the data is what
+      // matters for PMF analysis (Task #319, 2026-05-31).
+      try {
+        captureFirstTripSaved({
+          trip_id: trip.id,
+          destination,
+          duration_days: durationDays,
+          time_to_value_minutes: 0, // signup-time not threaded here
+          from_template: false,
+        });
+      } catch (e) {
+        console.error("[Trip Save] first_trip_saved error:", e);
+      }
 
       // Track in PostHog + Complete referral if eligible (async, non-blocking)
       handleTripCreatedWithReferral(

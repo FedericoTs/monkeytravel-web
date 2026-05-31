@@ -18,7 +18,10 @@ async function generateIcons() {
   const sizes = [
     { size: 16, name: 'favicon-16x16.png' },
     { size: 32, name: 'favicon-32x32.png' },
-    { size: 180, name: 'apple-touch-icon.png' },
+    // NOTE: apple-touch-icon.png is intentionally NOT emitted to /public.
+    // Next.js file-conventions auto-generate the Apple touch icon from
+    // app/apple-icon.png (see step 3 below), served at /apple-icon.
+    // Layout metadata + manifest.json + sw.js all reference /apple-icon.
     { size: 192, name: 'icon-192.png' },
     { size: 512, name: 'icon-512.png' },
   ];

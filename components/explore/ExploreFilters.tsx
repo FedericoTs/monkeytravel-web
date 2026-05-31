@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import type { BudgetTier } from "@/lib/explore/types";
 
 /**
@@ -19,16 +20,16 @@ import type { BudgetTier } from "@/lib/explore/types";
  * the vibe→tag mapping at the publish step.
  */
 
-const BUDGET_OPTIONS: { value: BudgetTier; label: string }[] = [
-  { value: "budget", label: "Budget" },
-  { value: "balanced", label: "Balanced" },
-  { value: "premium", label: "Premium" },
+const BUDGET_OPTIONS: { value: BudgetTier; labelKey: string }[] = [
+  { value: "budget", labelKey: "budget.budget" },
+  { value: "balanced", labelKey: "budget.balanced" },
+  { value: "premium", labelKey: "budget.premium" },
 ];
 
-const DURATION_OPTIONS = [
-  { value: "weekend", min: 1, max: 3, label: "Weekend" },
-  { value: "week", min: 4, max: 9, label: "Week" },
-  { value: "longer", min: 10, max: 30, label: "10+ days" },
+const DURATION_OPTIONS: { value: string; min: number; max: number; labelKey: string }[] = [
+  { value: "weekend", min: 1, max: 3, labelKey: "duration.weekend" },
+  { value: "week", min: 4, max: 9, labelKey: "duration.week" },
+  { value: "longer", min: 10, max: 30, labelKey: "duration.tenPlus" },
 ];
 
 const TAG_OPTIONS = [
@@ -46,6 +47,7 @@ export default function ExploreFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("common.explore.filters");
 
   const params = useMemo(() => new URLSearchParams(searchParams?.toString() ?? ""), [
     searchParams,
@@ -107,7 +109,7 @@ export default function ExploreFilters() {
       {/* Destination free-text */}
       <input
         type="search"
-        placeholder="Search destination (Paris, Tokyo, ...)"
+        placeholder={t("searchPlaceholder")}
         defaultValue={params.get("destination") ?? ""}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
@@ -119,7 +121,7 @@ export default function ExploreFilters() {
           router.push(`${pathname}?${next.toString()}`, { scroll: false });
         }}
         className="w-full sm:max-w-md rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        aria-label="Search by destination"
+        aria-label={t("searchAriaLabel")}
       />
 
       {/* Travel style — single Backpacker toggle (binary filter).
@@ -128,7 +130,7 @@ export default function ExploreFilters() {
           opinionated filter and the Hostelworld partnership wedge. */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 mr-1">
-          Style:
+          {t("style")}
         </span>
         <button
           onClick={() => toggle("travel_style", "backpacker")}
@@ -140,14 +142,14 @@ export default function ExploreFilters() {
           }`}
         >
           <span aria-hidden>🎒</span>
-          Backpacker
+          {t("backpacker")}
         </button>
       </div>
 
       {/* Budget chips */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 mr-1">
-          Budget:
+          {t("budgetLabel")}
         </span>
         {BUDGET_OPTIONS.map((opt) => {
           const isActive = activeBudget === opt.value;
@@ -162,7 +164,7 @@ export default function ExploreFilters() {
               }`}
               aria-pressed={isActive}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           );
         })}
@@ -171,7 +173,7 @@ export default function ExploreFilters() {
       {/* Duration chips */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 mr-1">
-          Length:
+          {t("lengthLabel")}
         </span>
         {DURATION_OPTIONS.map((opt) => {
           const isActive =
@@ -188,7 +190,7 @@ export default function ExploreFilters() {
               }`}
               aria-pressed={isActive}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           );
         })}
@@ -197,7 +199,7 @@ export default function ExploreFilters() {
       {/* Tag chips */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 mr-1">
-          Vibe:
+          {t("vibeLabel")}
         </span>
         {TAG_OPTIONS.map((tag) => {
           const isActive = activeTag === tag;
@@ -205,14 +207,14 @@ export default function ExploreFilters() {
             <button
               key={tag}
               onClick={() => toggle("tags", tag)}
-              className={`px-3 py-1.5 rounded-full border text-sm capitalize transition-colors ${
+              className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
                 isActive
                   ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-300 hover:border-[var(--primary)]"
               }`}
               aria-pressed={isActive}
             >
-              {tag}
+              {t(`tags.${tag}`)}
             </button>
           );
         })}
@@ -223,7 +225,7 @@ export default function ExploreFilters() {
           onClick={clearAll}
           className="self-start text-sm text-slate-500 underline hover:text-slate-900"
         >
-          Clear all filters
+          {t("clearAll")}
         </button>
       )}
     </div>

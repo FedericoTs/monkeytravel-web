@@ -9,7 +9,6 @@
 
 import {
   captureReferralConverted,
-  captureFirstTripSaved,
   captureTripCreated,
 } from "@/lib/posthog/events";
 
@@ -112,17 +111,13 @@ export async function handleTripCreatedWithReferral(
     if (referralResult.success) {
       result.referralCompleted = true;
 
-      // Track additional events if referral was processed
+      // Track additional events if referral was processed.
+      // Note: first_trip_saved is no longer fired here — it's fired
+      // unconditionally from the trip-save success handler in
+      // NewTripWizard so organic (non-referred) users get the event too
+      // (Task #319, 2026-05-31). Referral-specific telemetry stays at
+      // lib/referral/completion.ts (referral_converted, server-side).
       if (referralResult.wasReferred && referralResult.referee_rewarded) {
-        // Track first trip saved (client-side supplement)
-        captureFirstTripSaved({
-          trip_id: tripId,
-          destination,
-          duration_days: durationDays,
-          time_to_value_minutes: 0, // Would need signup time to calculate
-          from_template: isFromTemplate,
-        });
-
         // Track bananas if awarded
         if (referralResult.bananas?.awarded) {
           result.bananasAwarded = true;

@@ -190,7 +190,7 @@ function SignupForm() {
         preferred_language: locale,
         trial_ends_at: getTrialEndDate().toISOString(), // Keep trial for existing users compatibility
         is_pro: false,
-        welcome_completed: false, // New users need to see welcome page
+        welcome_completed: true, // Email signup skips /welcome and lands directly in the wizard
         privacy_settings: {
           showLocation: false,
           showRealName: true,
@@ -295,10 +295,11 @@ function SignupForm() {
       });
     }
 
-    // If email confirmation is disabled, redirect to welcome page
-    // Welcome page will then redirect to onboarding if needed
+    // If email confirmation is disabled, drop the user straight into the
+    // trip wizard — mirrors the OAuth flow (app/auth/callback/route.ts)
+    // which also bypasses /welcome and lands in /trips/new.
     if (data.session) {
-      router.push("/welcome?auth_event=signup_email");
+      router.push("/trips/new?auth_event=signup_email");
       router.refresh();
     }
   };
@@ -577,6 +578,8 @@ function SignupForm() {
                 <input
                   id="displayName"
                   type="text"
+                  autoComplete="name"
+                  name="name"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={50}
@@ -597,6 +600,8 @@ function SignupForm() {
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
+                  name="email"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -624,6 +629,8 @@ function SignupForm() {
                 <input
                   id="password"
                   type="password"
+                  autoComplete="new-password"
+                  name="password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);

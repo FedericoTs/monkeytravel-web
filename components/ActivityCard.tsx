@@ -12,6 +12,7 @@ import {
   type VerifiedPriceData,
 } from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
+import { openExternal } from "@/lib/native/external-link";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -397,40 +398,37 @@ function ActivityCard({
 
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-2 mt-3">
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => void openExternal(googleMapsUrl)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
                 {t('buttons.maps')}
-              </a>
-              <a
-                href={googleSearchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                type="button"
+                onClick={() => void openExternal(googleSearchUrl)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
                 </svg>
                 {t('buttons.verify')}
-              </a>
+              </button>
               {activity.official_website && (
-                <a
-                  href={activity.official_website}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => void openExternal(activity.official_website!)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium rounded-lg transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                   {t('buttons.website')}
-                </a>
+                </button>
               )}
               <button
                 onClick={handleMoreClick}

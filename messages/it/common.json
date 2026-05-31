@@ -2101,6 +2101,38 @@
       "body": "Ci siamo. Il tuo itinerario completo per {destination} è a un tocco — aprilo quando ti servono indicazioni, orari o cosa fare dopo."
     }
   },
+  "explore": {
+    "filters": {
+      "searchPlaceholder": "Cerca destinazione (Parigi, Tokyo, ...)",
+      "searchAriaLabel": "Cerca per destinazione",
+      "style": "Stile:",
+      "backpacker": "Zaino in spalla",
+      "budgetLabel": "Budget:",
+      "lengthLabel": "Durata:",
+      "vibeLabel": "Atmosfera:",
+      "clearAll": "Cancella filtri",
+      "budget": {
+        "budget": "Economico",
+        "balanced": "Equilibrato",
+        "premium": "Premium"
+      },
+      "duration": {
+        "weekend": "Weekend",
+        "week": "Settimana",
+        "tenPlus": "10+ giorni"
+      },
+      "tags": {
+        "foodie": "Cucina",
+        "adventure": "Avventura",
+        "cultural": "Cultura",
+        "relaxation": "Relax",
+        "nature": "Natura",
+        "urban": "Urbano",
+        "romantic": "Romantico",
+        "family": "Famiglia"
+      }
+    }
+  },
   "push": {
     "optIn": {
       "title": "Vuoi rimanere aggiornato?",
