@@ -100,7 +100,12 @@ export default async function VisaCheckerPage({
   setRequestLocale(locale);
   const t = await getTranslations("tools.visaChecker");
   const tToolsLanding = await getTranslations("tools.landing");
-  const tBreadcrumbs = await getTranslations("breadcrumbs");
+  // Day-7 fix: namespace path is `common.breadcrumbs`, NOT `breadcrumbs` —
+  // the root i18n config only loads top-level files (common.json, auth.json,
+  // ...) so calling getTranslations("breadcrumbs") finds nothing and
+  // next-intl renders the literal "breadcrumbs.home" key. Fixed by using
+  // the full path. Same pattern would bite any future breadcrumb caller.
+  const tBreadcrumbs = await getTranslations("common.breadcrumbs");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
