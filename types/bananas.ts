@@ -12,7 +12,10 @@
 export type BananaTransactionType =
   | 'referral'        // Earned from successful referral
   | 'tier_bonus'      // One-time tier unlock bonus
-  | 'trip_complete'   // Earned from completing a trip
+  | 'trip_complete'   // Earned from completing a trip (all activities done)
+  | 'activity_completion' // Earned per activity check-off (gamification loop)
+  | 'achievement_bonus'   // Earned from unlocking an achievement (gamification loop)
+  | 'first_trip_bonus'    // One-time bonus on the user's first ever trip completion
   | 'signup_bonus'    // New user signup bonus
   | 'review'          // Earned from leaving a review
   | 'collaboration'   // Earned from collaborator referral

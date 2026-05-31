@@ -343,6 +343,84 @@ export function useGamification({
         });
       });
 
+      // 2026-05-31 fix: persist bananas to users.banana_balance via the
+      // /api/bananas/award endpoint. Historically this hook ONLY updated
+      // local React state + fired analytics — banana_balance stayed at 0
+      // and banana_transactions had zero entries even after users earned
+      // dozens of rewards. Discovered when Alyssa reported 0 bananas
+      // despite finishing 4 trips' worth of activities.
+      //
+      // Fire-and-forget — the local state update + animation already
+      // played; persistence happens in the background. The endpoint is
+      // idempotent on (user, type, reference_id) so a network blip
+      // never double-credits. Anonymous users (no session) get a 401
+      // back which we silently drop — they have no account to credit.
+      if (activity.id) {
+        void fetch("/api/bananas/award", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "activity_completion",
+            tripId,
+            referenceId: activity.id,
+          }),
+        }).catch(() => {
+          /* silent — the local XP+animation already fired */
+        });
+
+        // Award a bigger bonus for each new achievement, keyed on
+        // achievementId+tripId so the same achievement on a different
+        // trip can also earn (e.g. "first_steps" once per trip).
+        newAchievements.forEach((achievementId) => {
+          void fetch("/api/bananas/award", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "achievement_bonus",
+              tripId,
+              referenceId: `${tripId}:${achievementId}`,
+              description: `Unlocked: ${ACHIEVEMENTS[achievementId].name}`,
+            }),
+          }).catch(() => {
+            /* silent */
+          });
+        });
+
+        // If this completion crossed the finish line (every activity in
+        // the trip done), fire the trip_complete + first_trip_bonus
+        // awards. Idempotent so re-clicking the last activity won't
+        // double-credit.
+        if (newAchievements.includes("finish_line")) {
+          void fetch("/api/bananas/award", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "trip_complete",
+              tripId,
+              referenceId: tripId,
+            }),
+          }).catch(() => {
+            /* silent */
+          });
+
+          // first_trip_bonus uses a stable key ("first_trip") so it can
+          // only ever be earned once per user — re-completing a trip OR
+          // completing a second trip both no-op on the idempotency
+          // check after the first credit.
+          void fetch("/api/bananas/award", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "first_trip_bonus",
+              tripId,
+              referenceId: "first_trip",
+            }),
+          }).catch(() => {
+            /* silent */
+          });
+        }
+      }
+
       return {
         baseXp,
         streakMultiplier: multiplier,
