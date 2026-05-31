@@ -159,8 +159,41 @@ export async function POST(request: NextRequest) {
   );
 
   if (!result.success) {
-    console.error("[/api/bananas/award] addBananas failed:", result.error);
-    return errors.internal(result.error ?? "Award failed", "BananasAward");
+    // The 2026-05-30 migration added a DB-level UNIQUE constraint on
+    // (user_id, transaction_type, reference_id) WHERE amount > 0 — so
+    // concurrent races between the SELECT-then-INSERT pre-check above
+    // and this RPC will surface here as a Postgres 23505. Map it to
+    // the same idempotent-success response the pre-check returns so
+    // the client UX is consistent regardless of which guard fired.
+    //
+    // Substring match because the supabase-js error doesn't always
+    // preserve the code field — we look for the unique-violation
+    // signature OR the index name directly. Anything else is a real
+    // failure and should still 500.
+    const errMsg = result.error ?? "Award failed";
+    const isDupRace =
+      /duplicate key|already exists|23505|uniq_banana_tx_credit_idempotency/i.test(
+        errMsg
+      );
+
+    if (isDupRace) {
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("banana_balance")
+        .eq("id", user.id)
+        .maybeSingle();
+      const balance =
+        (userRow as { banana_balance?: number } | null)?.banana_balance ?? 0;
+      return apiSuccess({
+        ok: true,
+        awarded: 0,
+        newBalance: balance,
+        duplicate: true,
+      });
+    }
+
+    console.error("[/api/bananas/award] addBananas failed:", errMsg);
+    return errors.internal(errMsg, "BananasAward");
   }
 
   return apiSuccess({
