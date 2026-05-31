@@ -3,8 +3,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { geolocation } from "@vercel/functions";
 
-// Track page views with geo data (non-blocking)
-async function trackPageView(request: NextRequest, userId?: string) {
+// Track page views with geo data (non-blocking).
+// Returns the session_id that was used (so the caller can set the cookie on
+// the response when this was a brand-new session).
+//
+// **2026-05-30 fix**: previously read `request.cookies.get("session_id")` but
+// NOTHING in the codebase ever SET that cookie — so 100% of inserts had
+// session_id=null. GSC + Supabase analytics couldn't count unique sessions.
+// Now generates a UUID on first visit and the caller persists it as a cookie.
+function trackPageView(request: NextRequest, userId?: string): string | null {
   // Skip tracking for API routes, static assets, and admin pages
   const path = request.nextUrl.pathname;
   if (
@@ -13,8 +20,14 @@ async function trackPageView(request: NextRequest, userId?: string) {
     path.startsWith("/admin") ||
     path.includes(".")
   ) {
-    return;
+    return null;
   }
+
+  // Read existing session_id or mint a fresh one for first-time visitors.
+  // crypto.randomUUID() is available on the Edge runtime that powers
+  // Next.js middleware — no polyfill needed.
+  const existingSessionId = request.cookies.get("mt_session_id")?.value;
+  const sessionId = existingSessionId || crypto.randomUUID();
 
   try {
     // Get geo data from Vercel's geolocation
@@ -31,7 +44,7 @@ async function trackPageView(request: NextRequest, userId?: string) {
       longitude: geo.longitude ? parseFloat(geo.longitude) : null,
       user_agent: request.headers.get("user-agent") || null,
       user_id: userId || null,
-      session_id: request.cookies.get("session_id")?.value || null,
+      session_id: sessionId,
     };
 
     // Fire and forget - don't await to avoid blocking the response
@@ -50,6 +63,8 @@ async function trackPageView(request: NextRequest, userId?: string) {
   } catch {
     // Silently ignore errors
   }
+
+  return sessionId;
 }
 
 export async function updateSession(request: NextRequest, baseResponse?: NextResponse) {
@@ -90,8 +105,19 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Track page view with geo data (non-blocking)
-  trackPageView(request, user?.id);
+  // Track page view with geo data (non-blocking).
+  // Returns the session_id (existing-or-fresh) so we can persist it as a cookie
+  // for subsequent requests in the same session. 30-day sliding expiry.
+  const sessionId = trackPageView(request, user?.id);
+  if (sessionId && !request.cookies.get("mt_session_id")) {
+    supabaseResponse.cookies.set("mt_session_id", sessionId, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    });
+  }
 
   // Protected routes - redirect to login if not authenticated
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)

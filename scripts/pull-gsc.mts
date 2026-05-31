@@ -263,7 +263,7 @@ writeFileSync(join(outDir, "summary.json"), JSON.stringify(summary, null, 2));
 
 const lines: string[] = [];
 const push = (s = "") => lines.push(s);
-const pad = (s: string | number | undefined, n: number) => String(s ?? "").padStart(n);
+const pad = (s: string | number | null | undefined, n: number) => String(s ?? "").padStart(n);
 
 push(`# GSC Pull — ${targetSite}`);
 push(`Date range: ${summary.meta.date_range.start} → ${summary.meta.date_range.end} (${summary.meta.date_range.days} days)`);
