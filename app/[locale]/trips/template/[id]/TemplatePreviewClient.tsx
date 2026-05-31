@@ -110,15 +110,32 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   // 100x+ inflated values whenever the template was generated in a different
   // currency. Summing the converted per-activity amounts is the single
   // source of truth — eliminates the entire bug class.
+  // Day-9 SSR-null fix: on initial server-render exchangeRates is null
+  // (loaded in a client useEffect). convertCurrency() then returns the
+  // unconverted source-currency value but the OLD code formatted that
+  // raw integer in `preferredCurrency` — producing €27,600 (raw JPY
+  // with EUR symbol) for a Tokyo template. Track the currency the
+  // converter ACTUALLY returns and format in that, so SSR shows
+  // ¥27,600 (correct source currency) and client-after-hydration
+  // shows €178 (correctly converted). First activity's returned
+  // currency wins for consistency across the day total.
   const formatDayBudget = (day: ItineraryDay): string => {
-    const total = day.activities.reduce((acc, activity) => {
+    let total = 0;
+    let displayCurrency = preferredCurrency;
+    let displaySet = false;
+    for (const activity of day.activities) {
       const amount = activity.estimated_cost?.amount;
       const currency = activity.estimated_cost?.currency;
-      if (!amount || !currency) return acc;
-      return acc + convertCurrency(amount, currency).value;
-    }, 0);
+      if (!amount || !currency) continue;
+      const converted = convertCurrency(amount, currency);
+      total += converted.value;
+      if (!displaySet) {
+        displayCurrency = converted.currency;
+        displaySet = true;
+      }
+    }
     if (total === 0) return t('price.free');
-    return formatCurrency(total, preferredCurrency);
+    return formatCurrency(total, displayCurrency);
   };
 
   // Memoize ensureActivityIds
