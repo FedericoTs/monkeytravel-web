@@ -21,13 +21,14 @@ image: /images/blog/etias-europe-travel-authorization-2026.jpg
 imageAlt: European Union flag with a passport and digital travel authorization screen
 readingTime: 12
 seo:
-  title: >-
-    ETIAS 2026 for Americans: Complete Guide to Europe's New Travel
-    Authorization
+  # GSC 2026-05: 8,963 impr, pos 9.53, CTR 0.06% — title was 78 chars and the
+  # exact-match query "etias launch date 2026 status" (267 impr) wasn't matched.
+  # Rewritten 2026-05-30 to lead with year + the literal launch context.
+  title: 'ETIAS 2026: Europe''s New Travel Authorization Explained'
   description: >-
-    ETIAS launches Q4 2026 for Americans and 60+ nationalities. Learn the cost
-    (€7), application process, which 30 countries require it, and how it differs
-    from a visa.
+    ETIAS launches Q4 2026 for Americans and 60+ nationalities. Cost (€7),
+    application process, the 30 countries that require it, and how it differs
+    from a Schengen visa.
   keywords:
     - etias 2026
     - etias for americans

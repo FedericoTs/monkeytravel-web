@@ -18,13 +18,15 @@ image: /images/blog/cheapest-destinations-in-europe.jpg
 imageAlt: Colorful old town streets in a budget-friendly European city
 readingTime: 12
 seo:
-  title: >-
-    Europe on €40/Day: 15 Cheapest Cities in 2026 [Real Prices Tested] |
-    MonkeyTravel
+  # GSC 2026-05: 52,581 impr, pos 9.35, CTR 0.12% — title 81 chars, exact-match
+  # keyword ("cheapest countries in europe") buried after the price hook.
+  # Rewritten 2026-05-30. "Cheapest countries to visit in europe 2026" already
+  # ranks pos 1.95 with 470 impressions — strong demand for the literal phrase.
+  title: 'Cheapest Countries in Europe 2026: 15 Cities Under €40/Day'
   description: >-
-    After testing 30+ European cities, these 15 averaged under €40/day all-in.
-    Real expense breakdowns, the best month for each city, and one destination
-    where €22 covers everything. Updated April 2026.
+    Real expense breakdowns from 30+ European cities tested in 2026. 15
+    averaged under €40/day all-in. One costs just €22. Plus the booking trick
+    that saves 30%.
   keywords:
     - cheapest countries in europe 2026
     - cheapest destinations in europe

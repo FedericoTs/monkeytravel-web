@@ -20,13 +20,14 @@ imageAlt: >-
   representing the 2026 Passport Power Index
 readingTime: 12
 seo:
-  title: >-
-    Passport Power 2026: Can YOUR Passport Get You There? [Full Rankings] |
-    MonkeyTravel
+  # GSC 2026-05: 55,142 impr, pos 8.77, CTR 0.05% — title 86 chars (truncated
+  # mid-question), brand suffix wasted real estate. Rewritten 2026-05-30 to lead
+  # with "Passport Power Index 2026" (matches top query family — henley, arton).
+  title: 'Passport Power Index 2026: Full Rankings (Henley + Arton)'
   description: >-
-    Find your country in the 2026 passport power rankings. Henley & Arton
-    Capital compared — the 3 countries that jumped most, why the US slipped to
-    10th, and what it means for your next trip. Updated April 2026.
+    2026 passport rankings — Henley and Arton Capital side by side. Find your
+    country, see visa-free counts, the 3 nations that jumped most, and why the
+    US slipped.
   keywords:
     - passport power index 2026
     - strongest passports 2026

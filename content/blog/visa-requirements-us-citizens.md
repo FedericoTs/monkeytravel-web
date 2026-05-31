@@ -17,13 +17,15 @@ image: /images/blog/visa-requirements-us-citizens.jpg
 imageAlt: US passport on a world map with boarding passes and travel stamps
 readingTime: 11
 seo:
-  title: >-
-    Do You Need a Visa? US Travel Requirements 2026 (Every Country, Including
-    APEC) | MonkeyTravel
+  # GSC 2026-05: 18,546 impr, pos 9.88, CTR 0.05% — title was 96 chars (worst
+  # offender) with a curiosity question that doesn't match search intent. The
+  # parent query "visa requirements 2026" gets 4,435 impressions at pos 11.32
+  # — striking distance. Rewritten 2026-05-30 with literal keyword match.
+  title: 'Visa Requirements for US Citizens 2026: Every Country'
   description: >-
-    Which countries require a visa for US passport holders in 2026? Full list of
-    20+ visa-required countries, APEC visa rules, e-visas, ETAs, costs, and the
-    new ETIAS & UK ETA changes.
+    Complete 2026 visa guide for US passport holders. Visa-free countries,
+    e-visas, APEC rules, ETIAS, UK ETA. Costs, processing times, what changed
+    this year.
   keywords:
     - visa requirements us citizens 2026
     - us passport visa requirements

@@ -23,13 +23,15 @@ imageAlt: >-
   with a frozen lake in the foreground
 readingTime: 11
 seo:
-  title: >-
-    Best Places to See the Northern Lights in 2026 — Before the Solar Peak Ends
-    ($100/Night) | MonkeyTravel
+  # GSC 2026-05: 16,802 impr, pos 8.91, CTR 0.16% — title was 107 chars (most
+  # severe truncation case in the audit). "Solar Peak" hook didn't render in
+  # SERPs at all. Rewritten 2026-05-30 — strip everything but the keyword and
+  # the ranking promise.
+  title: 'Best Places to See the Northern Lights 2026: 12 Spots Ranked'
   description: >-
-    See the aurora borealis before Solar Cycle 25 fades. 12 destinations from
-    $100/night ranked by clear-sky probability (up to 90%), with best months,
-    budget breakdowns, and hidden cheaper alternatives.
+    12 aurora borealis destinations ranked by clear-sky probability (up to
+    90%). Real costs from $100/night, best months for each, and the cheaper
+    alternatives nobody tells you about.
   keywords:
     - northern lights 2026
     - best places to see northern lights

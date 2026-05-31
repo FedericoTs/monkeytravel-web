@@ -83,6 +83,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.5",
+    "googleapis": "^173.0.0",
     "jsdom": "^29.1.1",
     "playwright": "^1.59.1",
     "remotion": "^4.0.434",

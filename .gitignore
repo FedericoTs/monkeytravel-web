@@ -36,6 +36,16 @@ yarn-error.log*
 .env.*.local
 !.env.example
 
+# Google Cloud service-account JSON keys (NEVER commit — they're full credentials)
+# Matches files like gen-lang-client-*.json, *-service-account.json, etc.
+gen-lang-client-*.json
+*-service-account*.json
+*-credentials*.json
+google-credentials*.json
+gsc-*.json
+ga4-*.json
+service-account-*.json
+
 # direnv — per-project SUPABASE_ACCESS_TOKEN / VERCEL_TOKEN. The
 # committed template is .envrc.example; .envrc holds real secrets.
 .envrc
@@ -81,3 +91,13 @@ next-env.d.ts
 test-results/
 playwright-report/
 .audit/raw-data.json
+# GSC + GA4 exports — competitive intel, not for public repo
+.audit/gsc-manual/
+.audit/gsc/
+.audit/ga4/
+
+# Marketing ad assets (large binaries; keep .md docs trackable)
+marketing/screenshots/*.png
+marketing/**/*.mp4
+marketing/*.mp4
+marketing/sample-clip.log
