@@ -172,8 +172,12 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   // — page is statically generated per locale so this hits the cached
   // response for ~all production traffic. Falls back to nothing when
   // the explore flag is off OR there are no matching trips.
+  // NB: filter uses the canonical English city name (destination.name.en)
+  // because trip titles + trip_meta->>destination in the DB are English-only.
+  // Using the localized `cityName` here (e.g. "Parigi" on /it) matches zero
+  // rows and silently hides the trending-trips section on non-EN locales.
   const exploreFeed = await fetchExploreFeed({
-    destination: cityName,
+    destination: destination.name.en,
     page: 1,
   }).catch(() => null);
   const trendingTrips = exploreFeed?.trips?.slice(0, 6) ?? [];

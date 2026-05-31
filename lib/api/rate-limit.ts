@@ -61,14 +61,34 @@ export function createRateLimiter(
   const store = stores.get(namespace)!;
 
   return {
+    /**
+     * Check whether the current request is within the rate limit.
+     *
+     * @param request - The incoming NextRequest. Used to derive the bucket key
+     *                  via x-forwarded-for / x-real-ip when no customKey is
+     *                  provided.
+     * @param customKey - Optional explicit bucket key. When provided, this
+     *                    is used INSTEAD of the IP. Lets callers key by
+     *                    session_id, user_id, token, etc. without losing
+     *                    the Upstash-shared semantics. Existing callers that
+     *                    omit this argument keep their original IP-keyed
+     *                    behavior unchanged.
+     */
     async check(
-      request: NextRequest
+      request: NextRequest,
+      customKey?: string
     ): Promise<{ allowed: boolean; remaining: number }> {
-      const ip = getClientIP(request);
+      const bucketKey = customKey ?? getClientIP(request);
 
       if (redis) {
         try {
-          return await checkRedis(redis, namespace, ip, limit, windowMs);
+          return await checkRedis(
+            redis,
+            namespace,
+            bucketKey,
+            limit,
+            windowMs
+          );
         } catch (err) {
           // Network/KV error — degrade to in-memory rather than failing open
           // or open-503ing the consumer. The fallback at least limits within
@@ -80,7 +100,7 @@ export function createRateLimiter(
         }
       }
 
-      return checkMemory(store, ip, limit, windowMs);
+      return checkMemory(store, bucketKey, limit, windowMs);
     },
   };
 }
@@ -88,11 +108,11 @@ export function createRateLimiter(
 async function checkRedis(
   client: Redis,
   namespace: string,
-  ip: string,
+  bucketKey: string,
   limit: number,
   windowMs: number
 ): Promise<{ allowed: boolean; remaining: number }> {
-  const key = `ratelimit:${namespace}:${ip}`;
+  const key = `ratelimit:${namespace}:${bucketKey}`;
   const count = await client.incr(key);
 
   // First hit in the window — set the TTL. We use EXPIRE rather than
@@ -112,15 +132,15 @@ async function checkRedis(
 
 function checkMemory(
   store: Map<string, RateLimitRecord>,
-  ip: string,
+  bucketKey: string,
   limit: number,
   windowMs: number
 ): { allowed: boolean; remaining: number } {
   const now = Date.now();
-  const record = store.get(ip);
+  const record = store.get(bucketKey);
 
   if (!record || now > record.resetAt) {
-    store.set(ip, { count: 1, resetAt: now + windowMs });
+    store.set(bucketKey, { count: 1, resetAt: now + windowMs });
     return { allowed: true, remaining: limit - 1 };
   }
 

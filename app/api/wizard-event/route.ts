@@ -62,40 +62,29 @@ const BodySchema = z.object({
 // Task #285 ghost-user funnel dashboards) with unlimited rows from a
 // single IP and inflate Supabase storage on a no-retention table.
 //
+// Day-4 P2.5 follow-up: the session-keyed bucket originally lived in a
+// per-process in-memory Map. On Vercel each lambda instance has its own
+// Map, so 71 sequential POSTs with the same mt_session_id distributed
+// across N cold-start instances all returned 204 (Task #208 had already
+// proven this pattern doesn't work). Replaced with a SECOND createRateLimiter
+// call that shares the Upstash backend with the IP-keyed one — bucket
+// state is now consistent across function instances.
+//
 // Fix: keep the session-keyed bucket (catches a single legitimate user
 // in a stuck React effect loop) AND add a per-IP bucket via the shared
-// Upstash limiter (catches the cookie-rotation bypass). The stricter
-// of the two fires. IP bucket is generous (300/min) because legitimate
-// shared NAT (offices, cafes) can run multiple wizard sessions in
-// parallel — 300/min still cuts the attack at ~1/200 of its open rate.
-type RateBucket = { count: number; resetAt: number };
-const SESSION_RATE_LIMIT = 60;
-const SESSION_RATE_WINDOW_MS = 60 * 1000;
-const buckets = new Map<string, RateBucket>();
-
-function checkSessionRateLimit(sessionId: string): boolean {
-  const now = Date.now();
-  const bucket = buckets.get(sessionId);
-  if (!bucket || now > bucket.resetAt) {
-    buckets.set(sessionId, { count: 1, resetAt: now + SESSION_RATE_WINDOW_MS });
-    // Lazy GC: bound the Map size by sweeping expired entries when we
-    // mint a new bucket. Cheap (Map iteration over ~few hundred items).
-    if (buckets.size > 5_000) {
-      for (const [k, v] of buckets) {
-        if (now > v.resetAt) buckets.delete(k);
-      }
-    }
-    return true;
-  }
-  if (bucket.count >= SESSION_RATE_LIMIT) return false;
-  bucket.count++;
-  return true;
-}
-
-// IP-keyed limiter — caches Upstash check across function instances.
-// 300/min/IP absorbs shared-NAT legitimacy while shutting down the
-// cookie-rotation bypass (which would otherwise issue 1 row per req).
+// Upstash limiter (catches the cookie-rotation bypass). Both are now
+// Upstash-backed via createRateLimiter; we pass an explicit customKey
+// for the session limiter so it keys on session_id instead of the
+// caller IP. The stricter of the two fires. IP bucket is generous
+// (300/min) because legitimate shared NAT (offices, cafes) can run
+// multiple wizard sessions in parallel — 300/min still cuts the attack
+// at ~1/200 of its open rate.
 const ipLimiter = createRateLimiter("wizard-event-ip", 300, 60 * 1000);
+const sessionLimiter = createRateLimiter(
+  "wizard-event-session",
+  60,
+  60 * 1000
+);
 
 export async function POST(request: NextRequest) {
   // 1. Parse the body. Malformed JSON → 400, not 500.
@@ -123,12 +112,16 @@ export async function POST(request: NextRequest) {
 
   // 3. Composite rate limit: IP-keyed (catches cookie-rotation bypass)
   //    AND session-keyed (catches a single legitimate user in a stuck
-  //    effect loop). Stricter of the two fires.
+  //    effect loop). Stricter of the two fires. Both buckets share
+  //    Upstash state across Vercel function instances — the session
+  //    limiter takes an explicit customKey so it doesn't default to
+  //    the caller IP.
   const ipCheck = await ipLimiter.check(request);
   if (!ipCheck.allowed) {
     return errors.rateLimit("Too many wizard events from this IP");
   }
-  if (!checkSessionRateLimit(sessionId)) {
+  const sessionCheck = await sessionLimiter.check(request, sessionId);
+  if (!sessionCheck.allowed) {
     return errors.rateLimit("Too many wizard events for this session");
   }
 
@@ -149,36 +142,36 @@ export async function POST(request: NextRequest) {
     userId = null;
   }
 
-  // 4a. Day-4 bug fix (P2.6, server-side backstop): client-side React
-  //     ref guards are unreliable here — Suspense flicker, route-level
-  //     remounts, and parent key changes all defeat per-instance refs.
-  //     Live verification showed 4 inserts per page load even with the
-  //     ref in place. Server-side dedupe is bulletproof: skip inserts
-  //     for (session_id, step) within a 5-second window. Real step
-  //     transitions are >5s apart (a user has to read + interact); a
-  //     remount-driven re-fire is always sub-second.
+  // 5. Insert with atomic DB-level dedupe.
   //
-  //     This is a soft dedupe (SELECT-then-INSERT) — it could race with
-  //     a concurrent insert across two function instances, but the
-  //     worst-case is 2 rows instead of 4, still a massive improvement
-  //     for funnel-arithmetic purposes. A hard dedupe via UNIQUE
-  //     constraint on (session_id, step, minute_bucket) is the
-  //     follow-up if this proves insufficient.
-  const { data: recentRow } = await supabase
-    .from("wizard_step_events")
-    .select("id")
-    .eq("session_id", sessionId)
-    .eq("step", body.step)
-    .gt("created_at", new Date(Date.now() - 5_000).toISOString())
-    .limit(1)
-    .maybeSingle();
-  if (recentRow) {
-    return new NextResponse(null, { status: 204 });
-  }
-
-  // 5. Insert. Fire-and-forget from the client's perspective, but we
-  //    do await here so the DB error path surfaces in server logs +
-  //    Sentry rather than being swallowed.
+  //    Day-4 P2.6 first tried a client-side ref guard, then a server-
+  //    side SELECT-then-INSERT. Both failed: the SELECT-then-INSERT
+  //    raced across parallel function instances (3 sequential POSTs
+  //    within 1.14s in prod all read "no recent row" and all inserted
+  //    because none of the prior INSERTs had committed yet by the time
+  //    their SELECTs ran).
+  //
+  //    Day-5 fix: atomic UNIQUE constraint on
+  //    (session_id, step, dedupe_bucket) where dedupe_bucket is a
+  //    1-second integer epoch bucket auto-populated by a BEFORE INSERT
+  //    trigger (set_wizard_dedupe_bucket — see
+  //    supabase/migrations/20260531_wizard_step_events_atomic_dedupe.sql).
+  //
+  //    We do NOT write dedupe_bucket from here — the trigger owns it.
+  //    The .insert() call below is rejected by the unique index
+  //    (SQLSTATE 23505) on every duplicate within the same second. We
+  //    treat that rejection as success (return 204) because dedupe-as-
+  //    success is the contract we want: the row is already there,
+  //    funnel state is correct, the wizard sees the same 204 it would
+  //    have seen for a real insert.
+  //
+  //    Why not .upsert({...}, { onConflict: '...', ignoreDuplicates: true })?
+  //    The conflict column (dedupe_bucket) is set by the trigger, not
+  //    by the client payload. Supabase JS's .upsert() resolves the
+  //    conflict-target columns against the payload it ships; with
+  //    dedupe_bucket missing from the payload, the upsert doesn't know
+  //    what to conflict on. .insert() + catch-23505 is the correct
+  //    shape here.
   const { error } = await supabase.from("wizard_step_events").insert({
     session_id: sessionId,
     user_id: userId,
@@ -191,6 +184,15 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
+    // Postgres unique_violation — the trigger + index just dedup'd a
+    // concurrent or near-concurrent duplicate insert. That's the
+    // expected happy path for the bug we're fixing here. Return 204
+    // so the wizard sees "success" exactly as it would for a real
+    // insert, and don't log (these will dominate the 4xx-ish signals
+    // on this route and we don't want to flood Sentry).
+    if (error.code === "23505") {
+      return new NextResponse(null, { status: 204 });
+    }
     console.error("[wizard-event] insert failed:", error);
     // Non-fatal for the client — but return 500 so Sentry/Vercel
     // surfaces the failure. The wizard swallows non-2xx anyway.

@@ -135,6 +135,9 @@
     "explore": "Explorar",
     "profile": "Perfil"
   },
+  "breadcrumbs": {
+    "home": "Inicio"
+  },
   "language": {
     "select": "Seleccionar Idioma",
     "english": "English",
@@ -147,10 +150,7 @@
     "pdfItinerary": "Itinerario PDF",
     "pdfDescription": "Descargar como archivo PDF",
     "calendarFile": "Archivo de Calendario (.ics)",
-    "calendarDescription": "Compatible con la mayoría de calendarios",
-    "addToCalendar": "Añadir al Calendario",
-    "googleCalendar": "Google Calendar",
-    "googleCalendarDescription": "Añadir viaje a Google Calendar"
+    "calendarDescription": "Compatible con la mayoría de calendarios"
   },
   "activity": {
     "booking": "Reserva",
@@ -212,7 +212,19 @@
     "signUpToSave": "Regístrate para Guardar",
     "rateLimit": "Límite de votos alcanzado — inténtalo de nuevo en un minuto.",
     "voteFailed": "No se pudo guardar el voto — inténtalo de nuevo.",
-    "networkError": "No se pudo guardar el voto — comprueba la conexión."
+    "networkError": "No se pudo guardar el voto — comprueba la conexión.",
+    "vote": {
+      "yourVote": "Tu voto",
+      "upvoteAria": "Votar a favor de esta actividad",
+      "removeUpvoteAria": "Quitar tu voto positivo",
+      "downvoteAria": "Votar en contra de esta actividad",
+      "removeDownvoteAria": "Quitar tu voto negativo",
+      "nameQuestion": "¿Cómo te llamas?",
+      "nameHint": "(para que quien creó el viaje sepa quién votó)",
+      "namePlaceholder": "Sara",
+      "submit": "Votar",
+      "skip": "Omitir"
+    }
   },
   "emailSubscribe": {
     "placeholder": "Tu correo electrónico",
@@ -427,12 +439,7 @@
     "tripConfirmed": "Viaje confirmado",
     "tripCancelled": "Viaje cancelado",
     "readyToConfirm": "¿Listo para confirmar tu viaje?",
-    "confirmTripDescription": "Una vez confirmado, tendrás una cuenta regresiva hasta tu partida y acceso a tu lista de preparativos.",
-    "gcalSyncDone": "Se sincronizaron {count} eventos en tu Google Calendar.",
-    "gcalSyncDoneNoCount": "Viaje sincronizado con Google Calendar.",
-    "gcalSyncPartial": "Sincronización parcial: se añadieron {count} eventos. Algunos fallaron; vuelve a intentarlo más tarde.",
-    "gcalSyncDenied": "La sincronización con Google Calendar se canceló. Puedes volver a intentarlo cuando quieras.",
-    "gcalSyncError": "No se pudo sincronizar con Google Calendar. Inténtalo de nuevo."
+    "confirmTripDescription": "Una vez confirmado, tendrás una cuenta regresiva hasta tu partida y acceso a tu lista de preparativos."
   },
   "booking": {
     "bookYourTrip": "Reserva Tu Viaje",

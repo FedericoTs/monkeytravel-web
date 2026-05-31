@@ -100,10 +100,11 @@ export default async function VisaCheckerPage({
   setRequestLocale(locale);
   const t = await getTranslations("tools.visaChecker");
   const tToolsLanding = await getTranslations("tools.landing");
+  const tBreadcrumbs = await getTranslations("breadcrumbs");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: "Home", url: BASE_URL },
+    { name: tBreadcrumbs("home"), url: BASE_URL },
     { name: tToolsLanding("breadcrumb"), url: `${BASE_URL}${localePrefix}/tools` },
     {
       name: t("breadcrumb"),
@@ -184,7 +185,7 @@ export default async function VisaCheckerPage({
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-slate-700">
-            Home
+            {tBreadcrumbs("home")}
           </Link>
           <span className="mx-2">/</span>
           <Link href="/tools" className="hover:text-slate-700">

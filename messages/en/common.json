@@ -135,6 +135,9 @@
     "explore": "Explore",
     "profile": "Profile"
   },
+  "breadcrumbs": {
+    "home": "Home"
+  },
   "language": {
     "select": "Select Language",
     "english": "English",
@@ -147,10 +150,7 @@
     "pdfItinerary": "PDF Itinerary",
     "pdfDescription": "Download as PDF file",
     "calendarFile": "Calendar File (.ics)",
-    "calendarDescription": "Works with most calendars",
-    "addToCalendar": "Add to Calendar",
-    "googleCalendar": "Google Calendar",
-    "googleCalendarDescription": "Add trip to Google Calendar"
+    "calendarDescription": "Works with most calendars"
   },
   "activity": {
     "booking": "Booking",
@@ -212,7 +212,19 @@
     "signUpToSave": "Sign Up to Save",
     "rateLimit": "Vote rate limit reached — try again in a minute.",
     "voteFailed": "Vote couldn't save — try again.",
-    "networkError": "Vote couldn't save — check your connection."
+    "networkError": "Vote couldn't save — check your connection.",
+    "vote": {
+      "yourVote": "Your vote",
+      "upvoteAria": "Upvote this activity",
+      "removeUpvoteAria": "Remove your upvote",
+      "downvoteAria": "Downvote this activity",
+      "removeDownvoteAria": "Remove your downvote",
+      "nameQuestion": "What's your name?",
+      "nameHint": "(so the trip owner knows who voted)",
+      "namePlaceholder": "Sarah",
+      "submit": "Vote",
+      "skip": "Skip"
+    }
   },
   "emailSubscribe": {
     "placeholder": "Enter your email",
@@ -427,12 +439,7 @@
     "tripConfirmed": "Trip confirmed",
     "tripCancelled": "Trip cancelled",
     "readyToConfirm": "Ready to confirm your trip?",
-    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist.",
-    "gcalSyncDone": "Synced {count} events to your Google Calendar.",
-    "gcalSyncDoneNoCount": "Synced your trip to Google Calendar.",
-    "gcalSyncPartial": "Partially synced — {count} events added. Some failed; try again later.",
-    "gcalSyncDenied": "Google Calendar sync was cancelled. You can try again any time.",
-    "gcalSyncError": "Couldn't sync to Google Calendar. Please try again."
+    "confirmTripDescription": "Once confirmed, you'll get a countdown to your departure and access to your pre-trip checklist."
   },
   "booking": {
     "bookYourTrip": "Book Your Trip",

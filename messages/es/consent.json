@@ -10,7 +10,7 @@
     "privacyPolicy": "Politica de Privacidad"
   },
   "settings": {
-    "title": "Configuracion de cookies",
+    "title": "Configuración de cookies",
     "description": "Gestiona tus preferencias de cookies. Las cookies esenciales estan siempre habilitadas ya que son necesarias para el funcionamiento del sitio.",
     "required": "Requerida",
     "moreInfo": "Para mas informacion sobre como usamos tus datos, consulta nuestra",
@@ -39,6 +39,6 @@
     }
   },
   "footer": {
-    "cookieSettings": "Configuracion de cookies"
+    "cookieSettings": "Configuración de cookies"
   }
 }

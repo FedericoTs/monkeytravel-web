@@ -90,6 +90,43 @@ const nextConfig: NextConfig = {
         rules.push({ source: `/${locale}/blog/${from}`, destination: `/${locale}/blog/${to}`, permanent: true });
       }
     }
+
+    // 2026-05-31: Natural-language destination slug aliases. Italian/Spanish
+    // users typing the local-language name (e.g. /it/destinations/roma)
+    // were hitting 404 because lib/destinations/data.ts keys every
+    // destination by its English slug ("rome"). Rather than thread an
+    // alias map through generateStaticParams + getDestinationBySlug
+    // (which would cascade into hreflang, sitemap, canonical URL logic),
+    // 301 the locale-native alias to the canonical English slug.
+    // Each tuple is [locale, alias, canonical-english-slug].
+    const destinationAliases: Array<[string, string, string]> = [
+      // Italian aliases
+      ["it", "roma",    "rome"],
+      ["it", "parigi",  "paris"],
+      ["it", "londra",  "london"],
+      ["it", "praga",   "prague"],
+      ["it", "lisbona", "lisbon"],
+      ["it", "berlino", "berlin"],
+      ["it", "seul",    "seoul"],
+      // Spanish aliases
+      ["es", "tokio",     "tokyo"],
+      ["es", "nueva-york","new-york"],
+      ["es", "londres",   "london"],
+      ["es", "viena",     "vienna"],
+      ["es", "seul",      "seoul"],
+      ["es", "singapur",  "singapore"],
+      ["es", "estambul",  "istanbul"],
+      ["es", "lisboa",    "lisbon"],
+      ["es", "praga",     "prague"],
+    ];
+    for (const [locale, alias, canonical] of destinationAliases) {
+      rules.push({
+        source: `/${locale}/destinations/${alias}`,
+        destination: `/${locale}/destinations/${canonical}`,
+        permanent: true,
+      });
+    }
+
     return rules;
   },
 
