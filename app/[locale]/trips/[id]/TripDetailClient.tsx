@@ -338,9 +338,30 @@ export default function TripDetailClient({
   // lib/trips/destination.ts. Fixes non-English / renamed trips.
   const destination = getTripDestination(trip);
 
-  // Trip phase detection for Timeline feature
-  const tripStartDate = useMemo(() => new Date(trip.startDate), [trip.startDate]);
-  const tripEndDate = useMemo(() => new Date(trip.endDate), [trip.endDate]);
+  // Trip phase detection for Timeline feature.
+  //
+  // **2026-05-31 P0 fix**: trip.startDate / trip.endDate come from the DB as
+  // YYYY-MM-DD strings. `new Date("2026-05-31")` parses that as UTC midnight
+  // — which in any negative-UTC zone (Americas) resolves to the PREVIOUS DAY
+  // local time. User reported: trip set for May 31–Jun 1 in San Antonio
+  // (CDT = UTC-5) displayed as "planning starts May 30" AND was treated as
+  // already in-progress on May 31, so OngoingTripView rendered and the
+  // share button vanished.
+  //
+  // Mirrors the parseLocal helper in components/ui/SaveTripModal.tsx
+  // (added 2026-05-24 for the same root cause on the save side).
+  const tripStartDate = useMemo(() => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(trip.startDate);
+    return m
+      ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+      : new Date(trip.startDate);
+  }, [trip.startDate]);
+  const tripEndDate = useMemo(() => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(trip.endDate);
+    return m
+      ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10), 23, 59, 59)
+      : new Date(trip.endDate);
+  }, [trip.endDate]);
   const now = new Date();
 
   // Pre-trip: Trip is confirmed and start date is in the future

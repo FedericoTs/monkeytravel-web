@@ -780,9 +780,21 @@ export default function ShareAndInviteModal({
         aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+      {/* Modal.
+          2026-05-31 P1 fix: the positioning container sits ON TOP of the
+          backdrop in DOM order — clicks in the dark area around the modal
+          panel were landing here (no handler) instead of the backdrop, so
+          the modal stayed open. Mirror the backdrop's onClick here; the
+          inner panel's stopPropagation below prevents real form clicks
+          from bubbling and accidentally closing the modal. */}
+      <div
+        className="relative min-h-screen flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div
+          className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Close button.
               Bug-bounty 2026-05-24 P2: previously icon-only with no
               accessible name. */}

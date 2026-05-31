@@ -195,8 +195,17 @@ export default function BaseModal({
         aria-hidden="true"
       />
 
-      {/* Modal positioning container */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
+      {/* Modal positioning container.
+          2026-05-31 P1 fix: this container sits ON TOP of the backdrop
+          in DOM order, so clicks in the dark area around the modal panel
+          landed here (no handler) instead of the backdrop — modals
+          stayed open. Now mirrors the backdrop's onClick. The modal
+          panel's own stopPropagation guard below prevents inner clicks
+          from bubbling, so this only fires for genuine outside-clicks. */}
+      <div
+        className="relative min-h-screen flex items-center justify-center p-4"
+        onClick={handleBackdropClick}
+      >
         {/* Modal panel */}
         <div
           ref={modalRef}
