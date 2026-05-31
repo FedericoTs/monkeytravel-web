@@ -97,24 +97,44 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
 
     // RLS handles the membership filter; this query is fine without an
     // explicit join. If the user can't see this trip, they get zero rows.
-    const { data, error } = await supabase
-      .from("trip_expenses")
-      .select(
-        "id, trip_id, created_by, amount, currency, category, description, spent_on, created_at, updated_at"
-      )
-      .eq("trip_id", tripId)
-      .order("spent_on", { ascending: false })
-      .order("created_at", { ascending: false });
+    // We also probe trips.user_id so the client knows whether the caller
+    // is the trip owner — RLS allows owner OR creator to DELETE/UPDATE,
+    // but the UI previously only knew about the creator branch (hid the
+    // trash icon on collaborator-authored rows even when the owner could
+    // legitimately delete them).
+    const [{ data, error }, { data: tripRow, error: tripErr }] =
+      await Promise.all([
+        supabase
+          .from("trip_expenses")
+          .select(
+            "id, trip_id, created_by, amount, currency, category, description, spent_on, created_at, updated_at"
+          )
+          .eq("trip_id", tripId)
+          .order("spent_on", { ascending: false })
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("trips")
+          .select("user_id")
+          .eq("id", tripId)
+          .maybeSingle(),
+      ]);
 
     if (error) {
       console.error("[expenses GET] query failed", error);
       return errors.internal("Failed to load expenses", "expenses");
     }
+    if (tripErr) {
+      // Non-fatal: ledger still works, owner just won't see extra delete
+      // affordances on collaborator rows. Log so we notice if it spikes.
+      console.warn("[expenses GET] trip owner probe failed", tripErr);
+    }
 
-    void user; // currentUserId is in the response so the UI can render edit/delete affordances
+    const isTripOwner = tripRow?.user_id === user.id;
+
     return apiSuccess({
       expenses: data ?? [],
       currentUserId: user.id,
+      isTripOwner,
     });
   } catch (err) {
     console.error("[expenses GET] unexpected", err);

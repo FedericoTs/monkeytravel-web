@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Plus, Trash2, Wallet, Loader2 } from "lucide-react";
+import { Plus, Trash2, Wallet, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 /**
@@ -61,6 +61,19 @@ const CATEGORIES: ExpenseRow["category"][] = [
   "other",
 ];
 
+/**
+ * Today's date as YYYY-MM-DD in the *user's local* timezone. Using
+ * `new Date().toISOString().slice(0, 10)` gives UTC date, which is wrong
+ * pre-fill for Tokyo at 02:00 (yesterday UTC) or PST at 23:00 (tomorrow UTC).
+ */
+function todayLocalISO(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ExpenseLedger({
   tripId,
   defaultCurrency = "EUR",
@@ -93,7 +106,9 @@ function ExpenseLedgerInner({
 
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isTripOwner, setIsTripOwner] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -103,33 +118,65 @@ function ExpenseLedgerInner({
   const [currency, setCurrency] = useState(defaultCurrency);
   const [category, setCategory] = useState<ExpenseRow["category"]>("food");
   const [description, setDescription] = useState("");
-  const [spentOn, setSpentOn] = useState(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [spentOn, setSpentOn] = useState(() => todayLocalISO());
 
   const loadExpenses = useCallback(
     async (signal?: AbortSignal) => {
+      // Reset state so a retry doesn't render the stale error briefly.
+      setLoadError(null);
+      setLoading(true);
       try {
         const res = await fetch(`/api/trips/${tripId}/expenses`, { signal });
         if (!res.ok) {
-          setLoading(false);
+          const message = `Server returned ${res.status}`;
+          setLoadError(message);
+          addToast(t("errorLoadFailed"), "error");
+          console.error("[ExpenseLedger] load failed", message);
+          // Lazy-import Sentry so a missing/failed Sentry never breaks the
+          // ledger render (mirrors lib/usage-limits/check.ts:83-95).
+          import("@sentry/nextjs")
+            .then((Sentry) => {
+              Sentry.captureException?.(new Error(message), {
+                tags: { source: "ExpenseLedger", subsystem: "load" },
+                level: "warning",
+                extra: { tripId, status: res.status },
+              });
+            })
+            .catch(() => {
+              /* Sentry not available — console.error above is the fallback */
+            });
           return;
         }
         const data = (await res.json()) as {
           expenses: ExpenseRow[];
           currentUserId: string;
+          isTripOwner?: boolean;
         };
         setExpenses(data.expenses || []);
         setCurrentUserId(data.currentUserId || null);
+        setIsTripOwner(Boolean(data.isTripOwner));
       } catch (err) {
-        if (err instanceof Error && err.name !== "AbortError") {
-          console.warn("[ExpenseLedger] load failed", err.message);
-        }
+        if (err instanceof Error && err.name === "AbortError") return;
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setLoadError(message);
+        addToast(t("errorLoadFailed"), "error");
+        console.error("[ExpenseLedger] load failed", err);
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureException?.(err, {
+              tags: { source: "ExpenseLedger", subsystem: "load" },
+              level: "warning",
+              extra: { tripId },
+            });
+          })
+          .catch(() => {
+            /* Sentry not available — console.error above is the fallback */
+          });
       } finally {
         setLoading(false);
       }
     },
-    [tripId]
+    [tripId, addToast, t]
   );
 
   useEffect(() => {
@@ -160,7 +207,7 @@ function ExpenseLedgerInner({
     setCurrency(defaultCurrency);
     setCategory("food");
     setDescription("");
-    setSpentOn(new Date().toISOString().slice(0, 10));
+    setSpentOn(todayLocalISO());
   };
 
   const handleAdd = async () => {
@@ -239,9 +286,13 @@ function ExpenseLedgerInner({
 
   const formatDate = (iso: string) => {
     try {
+      // YYYY-MM-DD parses as UTC midnight; without timeZone:"UTC" any user
+      // west of UTC sees the prior day. Mirrors the React #418 fix in
+      // lib/datetime/format.ts.
       return new Date(iso).toLocaleDateString(locale, {
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       });
     } catch {
       return iso;
@@ -397,7 +448,27 @@ function ExpenseLedgerInner({
       )}
 
       {/* Expense rows */}
-      {expenses.length === 0 ? (
+      {loadError ? (
+        <div
+          role="alert"
+          className="m-4 p-4 rounded-lg border border-red-200 bg-red-50 flex items-start gap-3"
+        >
+          <AlertCircle
+            className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-red-800">{t("errorLoadFailed")}</p>
+            <button
+              type="button"
+              onClick={() => loadExpenses()}
+              className="mt-2 text-sm font-medium text-red-700 hover:text-red-900 underline underline-offset-2"
+            >
+              {t("retry")}
+            </button>
+          </div>
+        </div>
+      ) : expenses.length === 0 ? (
         <div className="p-6 text-center text-sm text-slate-500">
           {t("empty")}
         </div>
@@ -406,8 +477,12 @@ function ExpenseLedgerInner({
           {expenses.map((e) => {
             const amt =
               typeof e.amount === "string" ? Number(e.amount) : e.amount;
+            // RLS policy `trip_expenses_delete_creator_or_owner` allows
+            // owner OR creator to delete. The UI must mirror that so trip
+            // owners aren't UI-locked out of deleting collaborator entries.
             const canDelete =
-              currentUserId !== null && e.created_by === currentUserId;
+              currentUserId !== null &&
+              (e.created_by === currentUserId || isTripOwner);
             return (
               <li
                 key={e.id}

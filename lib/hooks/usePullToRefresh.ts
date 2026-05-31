@@ -79,6 +79,12 @@ export function usePullToRefresh(
   const pullingRef = useRef(false);
   const refreshingRef = useRef(false);
   const distanceRef = useRef(0);
+  // Tracks whether the current drag has already crossed `threshold` so
+  // we fire the haptic tick exactly once per crossing — not on every
+  // touchmove past it. Reset on release AND when the user oscillates
+  // back below threshold, so a downward → upward → downward pull fires
+  // again on the second crossing. Matches the iOS Mail / Safari pattern.
+  const crossedThresholdRef = useRef(false);
 
   // Keep refs in sync with their state mirrors. Listeners read refs;
   // React renders read state. Two surfaces, one truth.
@@ -124,6 +130,25 @@ export function usePullToRefresh(
       setIsPulling(true);
       setPullDistance(clamped);
 
+      // Canonical iOS pattern: tick the haptic the moment the user
+      // crosses the release threshold during the drag, NOT after the
+      // refresh completes. Tells the user "let go now to fire" without
+      // requiring them to look at the spinner. Dynamic-imported so the
+      // @capacitor/haptics plugin stays out of the web bundle — same
+      // pattern as lib/usage-limits/check.ts's lazy Sentry import.
+      if (damped >= threshold && !crossedThresholdRef.current) {
+        crossedThresholdRef.current = true;
+        import("@/lib/native/haptics")
+          .then((h) => h.hapticLight())
+          .catch(() => {
+            /* haptics best-effort; web no-op anyway */
+          });
+      } else if (damped < threshold && crossedThresholdRef.current) {
+        // User pulled past threshold then drifted back — arm again so a
+        // second crossing also ticks. Matches Apple's Mail behavior.
+        crossedThresholdRef.current = false;
+      }
+
       // Only block default scroll if we're actually pulling down AT the
       // top. Without preventDefault iOS Safari triggers its own bounce
       // and the gesture feels fighty.
@@ -135,6 +160,11 @@ export function usePullToRefresh(
     const handleTouchEnd = async () => {
       if (!pullingRef.current || refreshingRef.current) return;
       pullingRef.current = false;
+      // Re-arm the threshold-crossing haptic for the next gesture so a
+      // second pull also gets its tick. Without this reset, a user who
+      // pulls past threshold, releases, then immediately pulls again
+      // would never feel the second confirmation tap.
+      crossedThresholdRef.current = false;
       setIsPulling(false);
 
       const distance = distanceRef.current;

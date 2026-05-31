@@ -216,7 +216,8 @@
     "dayComplete": "Giornata Completata!",
     "allActivitiesCompleted": "Hai completato tutte le attività di oggi",
     "doneBadge": "✓ Fatto",
-    "skippedBadge": "Saltata"
+    "skippedBadge": "Saltata",
+    "freePrice": "Gratis"
   },
   "detail": {
     "regeneratingDay": "Rigenerazione Giorno {number}…"

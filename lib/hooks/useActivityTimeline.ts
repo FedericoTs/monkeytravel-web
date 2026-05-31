@@ -119,72 +119,112 @@ export function useActivityTimeline(tripId: string): UseActivityTimelineReturn {
     [tripId]
   );
 
+  // Rollback helper. All optimistic methods below capture the prior
+  // timeline entry for `activityId` before mutating, then call this in
+  // their catch block to revert the optimistic state when the PATCH
+  // fails. Without this, a network/RLS error left the user looking at a
+  // "Done" badge + strikethrough that never persisted — they'd walk away
+  // believing the activity was completed (and the banana XP credited),
+  // come back next session, and see it all gone. Day-2 audit P1.
+  const revertTimeline = useCallback(
+    (activityId: string, prev: ActivityTimeline | undefined) => {
+      setTimelines((current) => {
+        const next = { ...current };
+        if (prev) {
+          next[activityId] = prev;
+        } else {
+          delete next[activityId];
+        }
+        return next;
+      });
+    },
+    []
+  );
+
   const startActivity = useCallback(
     async (activityId: string, dayNumber: number) => {
+      const prev = timelines[activityId];
       // Optimistic update
-      setTimelines((prev) => ({
-        ...prev,
+      setTimelines((p) => ({
+        ...p,
         [activityId]: {
-          ...prev[activityId],
+          ...p[activityId],
           activity_id: activityId,
           trip_id: tripId,
           user_id: "",
           status: "in_progress" as ActivityStatus,
           started_at: new Date().toISOString(),
-          created_at: prev[activityId]?.created_at || new Date().toISOString(),
+          created_at: p[activityId]?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       }));
 
-      await updateActivity(activityId, dayNumber, { status: "in_progress" });
+      try {
+        await updateActivity(activityId, dayNumber, { status: "in_progress" });
+      } catch (err) {
+        revertTimeline(activityId, prev);
+        throw err;
+      }
     },
-    [tripId, updateActivity]
+    [tripId, timelines, updateActivity, revertTimeline]
   );
 
   const completeActivity = useCallback(
     async (activityId: string, dayNumber: number) => {
+      const prev = timelines[activityId];
       // Optimistic update
-      setTimelines((prev) => ({
-        ...prev,
+      setTimelines((p) => ({
+        ...p,
         [activityId]: {
-          ...prev[activityId],
+          ...p[activityId],
           activity_id: activityId,
           trip_id: tripId,
           user_id: "",
           status: "completed" as ActivityStatus,
           completed_at: new Date().toISOString(),
-          created_at: prev[activityId]?.created_at || new Date().toISOString(),
+          created_at: p[activityId]?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       }));
 
-      await updateActivity(activityId, dayNumber, { status: "completed" });
+      try {
+        await updateActivity(activityId, dayNumber, { status: "completed" });
+      } catch (err) {
+        revertTimeline(activityId, prev);
+        throw err;
+      }
     },
-    [tripId, updateActivity]
+    [tripId, timelines, updateActivity, revertTimeline]
   );
 
   const skipActivity = useCallback(
     async (activityId: string, dayNumber: number, reason?: string) => {
+      const prev = timelines[activityId];
       // Optimistic update
-      setTimelines((prev) => ({
-        ...prev,
+      setTimelines((p) => ({
+        ...p,
         [activityId]: {
-          ...prev[activityId],
+          ...p[activityId],
           activity_id: activityId,
           trip_id: tripId,
           user_id: "",
           status: "skipped" as ActivityStatus,
-          created_at: prev[activityId]?.created_at || new Date().toISOString(),
+          created_at: p[activityId]?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       }));
 
-      await updateActivity(activityId, dayNumber, {
-        status: "skipped",
-        skipReason: reason,
-      });
+      try {
+        await updateActivity(activityId, dayNumber, {
+          status: "skipped",
+          skipReason: reason,
+        });
+      } catch (err) {
+        revertTimeline(activityId, prev);
+        throw err;
+      }
     },
-    [tripId, updateActivity]
+    [tripId, timelines, updateActivity, revertTimeline]
   );
 
   const rateActivity = useCallback(
@@ -195,29 +235,35 @@ export function useActivityTimeline(tripId: string): UseActivityTimelineReturn {
       notes?: string,
       quickTags?: QuickTag[]
     ) => {
+      const prev = timelines[activityId];
       // Optimistic update
-      setTimelines((prev) => ({
-        ...prev,
+      setTimelines((p) => ({
+        ...p,
         [activityId]: {
-          ...prev[activityId],
+          ...p[activityId],
           activity_id: activityId,
           trip_id: tripId,
           user_id: "",
           rating: rating as 1 | 2 | 3 | 4 | 5,
           experience_notes: notes,
           quick_tags: quickTags,
-          created_at: prev[activityId]?.created_at || new Date().toISOString(),
+          created_at: p[activityId]?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       }));
 
-      await updateActivity(activityId, dayNumber, {
-        rating,
-        notes,
-        quickTags,
-      });
+      try {
+        await updateActivity(activityId, dayNumber, {
+          rating,
+          notes,
+          quickTags,
+        });
+      } catch (err) {
+        revertTimeline(activityId, prev);
+        throw err;
+      }
     },
-    [tripId, updateActivity]
+    [tripId, timelines, updateActivity, revertTimeline]
   );
 
   const getActivityStatus = useCallback(

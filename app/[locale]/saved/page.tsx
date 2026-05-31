@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { PullToRefreshWrapper } from "@/components/ui/PullToRefreshWrapper";
 import { Link } from "@/lib/i18n/routing";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreTripCard } from "@/lib/explore/types";
@@ -15,11 +15,19 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 const BASE_URL = "https://monkeytravel.app";
 const COOKIE_NAME = "mt_saver_cookie";
 
-export const metadata: Metadata = {
-  title: "Saved Trips",
-  description: "Your saved trips — bookmark itineraries to plan from later.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "savedPage" });
+  return {
+    title: t("meta.title"),
+    description: t("meta.description"),
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * /saved — bookmarked trips list.
@@ -109,6 +117,7 @@ export default async function SavedPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "savedPage" });
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const flagOn = isExploreUgcEnabled();
@@ -187,32 +196,28 @@ export default async function SavedPage({
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-12 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-slate-700">
-            Home
+            {t("breadcrumb.home")}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-slate-900">Saved</span>
+          <span className="text-slate-900">{t("breadcrumb.saved")}</span>
         </nav>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 tracking-tight">
-          Saved trips
+          {t("title")}
         </h1>
         <p className="text-lg text-slate-600 mb-8">
-          {user
-            ? "Trips you bookmarked to plan from later."
-            : "Trips you bookmarked on this device. Sign in to sync across devices."}
+          {user ? t("description") : t("descriptionAnon")}
         </p>
 
         {!flagOn && (
           <div className="rounded-2xl bg-amber-50 border border-amber-200 p-8 text-center">
-            <p className="text-slate-700">
-              Saved trips are coming soon. Check back shortly!
-            </p>
+            <p className="text-slate-700">{t("comingSoon")}</p>
           </div>
         )}
 
         {flagOn && queryError && (
           <div className="rounded-2xl bg-rose-50 border border-rose-200 p-6 text-sm text-rose-700">
-            We couldn&apos;t load your saved trips — please try again.
+            {t("loadError")}
           </div>
         )}
 
@@ -220,23 +225,14 @@ export default async function SavedPage({
           <div className="text-center py-16">
             <div className="text-5xl mb-4">📌</div>
             <h2 className="text-xl font-semibold text-slate-900 mb-2">
-              Nothing saved yet
+              {t("empty.title")}
             </h2>
-            <p className="text-slate-600 mb-6">
-              Browse{" "}
-              <Link
-                href="/explore"
-                className="text-[var(--primary)] hover:underline font-medium"
-              >
-                Explore
-              </Link>{" "}
-              and tap the bookmark on any trip to save it here.
-            </p>
+            <p className="text-slate-600 mb-6">{t("empty.body")}</p>
             <Link
               href={`${localePrefix}/explore` as never}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
             >
-              Browse trips →
+              {t("browseTrips")}
             </Link>
           </div>
         )}
@@ -251,14 +247,7 @@ export default async function SavedPage({
 
         {flagOn && savedTrips.length > 0 && !user && (
           <div className="mt-10 rounded-xl bg-slate-50 border border-slate-200 p-5 text-sm text-slate-700 max-w-xl">
-            <strong>Heads up:</strong> these saves live on this device only.{" "}
-            <Link
-              href="/auth/signup"
-              className="text-[var(--primary)] hover:underline font-medium"
-            >
-              Create a free account
-            </Link>{" "}
-            to sync them across your phone and laptop.
+            <strong>{t("anonNudge.label")}</strong> {t("anonNudge.body")}
           </div>
         )}
       </main>
@@ -269,7 +258,7 @@ export default async function SavedPage({
           and the bottom tab bar matching /trips + /explore + /profile.
           Both are sm:hidden / touch-gated so desktop web is unaffected. */}
       <PullToRefreshWrapper />
-      <MobileBottomNav activePage="profile" />
+      <MobileBottomNav activePage="saved" />
     </div>
   );
 }

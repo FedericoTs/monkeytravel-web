@@ -216,7 +216,8 @@
     "dayComplete": "¡Día Completado!",
     "allActivitiesCompleted": "Has completado todas las actividades de hoy",
     "doneBadge": "✓ Hecho",
-    "skippedBadge": "Omitida"
+    "skippedBadge": "Omitida",
+    "freePrice": "Gratis"
   },
   "detail": {
     "regeneratingDay": "Regenerando Día {number}…"

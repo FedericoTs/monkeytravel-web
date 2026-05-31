@@ -201,9 +201,13 @@ export default function InviteAcceptClient({
   const translatedRestrictions = tRoles.raw(`${roleKey}.restrictions`) as string[];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white">
+      {/* Header — navbar-safe adds env(safe-area-inset-top) padding so
+          the logo doesn't tuck under the iPhone notch / Dynamic Island
+          inside the Capacitor WebView. min-h-dvh handles the dynamic
+          viewport sizing on mobile browsers (kills the bottom-gap when
+          the URL bar collapses). */}
+      <header className="navbar-safe fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

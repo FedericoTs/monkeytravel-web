@@ -59,9 +59,11 @@ export default function ReferralLandingClient({
   const firstName = referrerName.split(" ")[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white">
+      {/* Navbar — navbar-safe adds env(safe-area-inset-top) padding so
+          the logo doesn't tuck under the iPhone notch / Dynamic Island
+          inside the Capacitor WebView. Sibling fix to InviteAcceptClient. */}
+      <nav className="navbar-safe fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image

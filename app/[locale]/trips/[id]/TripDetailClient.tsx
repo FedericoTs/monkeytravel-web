@@ -60,6 +60,7 @@ import {
 } from "@/lib/utils/activity-id";
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import { hapticSelection } from "@/lib/native/haptics";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -2025,6 +2026,7 @@ export default function TripDetailClient({
                           <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
+                            onDragStart={() => hapticSelection()}
                             onDragEnd={(event) => handleDragEnd(event, dayIndex)}
                           >
                             <SortableContext

@@ -209,7 +209,10 @@
     "sharedBy": "Condiviso da {name}",
     "viewOnly": "Solo lettura",
     "saveToAccount": "Salva nei Miei Viaggi",
-    "signUpToSave": "Registrati per Salvare"
+    "signUpToSave": "Registrati per Salvare",
+    "rateLimit": "Limite di voti raggiunto — riprova fra un minuto.",
+    "voteFailed": "Impossibile salvare il voto — riprova.",
+    "networkError": "Impossibile salvare il voto — controlla la connessione."
   },
   "emailSubscribe": {
     "placeholder": "La tua email",
@@ -1959,11 +1962,13 @@
       "expired": "Invito Scaduto",
       "maxUses": "Invito Già Utilizzato",
       "tripNotFound": "Viaggio Non Trovato",
+      "recipientMismatch": "Accedi per Vedere l'Invito",
       "invalidTokenDesc": "Questo link di invito non esiste o potrebbe essere stato eliminato.",
       "revokedDesc": "Il proprietario del viaggio ha revocato questo invito.",
       "expiredDesc": "Questo link di invito è scaduto. Chiedi uno nuovo.",
       "maxUsesDesc": "Questo invito è già stato utilizzato. Chiedi uno nuovo.",
       "tripNotFoundDesc": "Il viaggio associato a questo invito non esiste più.",
+      "recipientMismatchDesc": "Questo invito è stato inviato a un indirizzo email specifico. Accedi con quell'indirizzo per visualizzare e accettare l'invito.",
       "failedToJoin": "Impossibile unirsi al viaggio",
       "somethingWentWrong": "Qualcosa è andato storto",
       "signInFailed": "Accesso non riuscito",
@@ -2024,6 +2029,8 @@
     "errorAmountRequired": "Inserisci un importo maggiore di zero.",
     "errorAddFailed": "Impossibile aggiungere la spesa — riprova.",
     "errorDeleteFailed": "Impossibile eliminare la spesa — riprova.",
+    "errorLoadFailed": "Impossibile caricare le spese. Riprova.",
+    "retry": "Riprova",
     "deleteAriaLabel": "Elimina questa spesa"
   },
   "advisory": {
@@ -2140,6 +2147,30 @@
       "allow": "Sì, avvisami",
       "allowing": "Configurazione…",
       "notNow": "Non ora"
+    }
+  },
+  "savedPage": {
+    "meta": {
+      "title": "Viaggi Salvati",
+      "description": "Viaggi che hai salvato per dopo."
+    },
+    "title": "Viaggi salvati",
+    "description": "I viaggi che hai segnato come preferiti.",
+    "descriptionAnon": "Viaggi salvati su questo dispositivo. Accedi per sincronizzarli ovunque.",
+    "comingSoon": "I viaggi salvati arrivano presto. Torna a trovarci!",
+    "loadError": "Non siamo riusciti a caricare i tuoi viaggi salvati — riprova.",
+    "empty": {
+      "title": "Nessun viaggio salvato",
+      "body": "Sfoglia Esplora e tocca il segnalibro su qualsiasi viaggio per salvarlo qui."
+    },
+    "browseTrips": "Sfoglia viaggi →",
+    "breadcrumb": {
+      "home": "Home",
+      "saved": "Salvati"
+    },
+    "anonNudge": {
+      "label": "Attenzione:",
+      "body": "questi salvataggi vivono solo su questo dispositivo. Crea un account gratuito per sincronizzarli su telefono e laptop."
     }
   }
 }

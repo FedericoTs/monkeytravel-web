@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
+import { createClient as createServerSupabase } from "@/lib/supabase/server";
+import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
 import InviteAcceptClient from "./InviteAcceptClient";
 
 interface PageProps {
@@ -32,10 +34,31 @@ async function getInviteData(token: string) {
 
   // The RPC RETURNS TABLE, so the client returns an array. The function
   // body's `LIMIT 1` guarantees at most one row.
-  const invite = Array.isArray(invites) ? invites[0] : null;
+  let invite = Array.isArray(invites) ? invites[0] : null;
 
+  // Day-2 audit Bug 1: when get_invite_by_token returns no rows we can't
+  // distinguish "token doesn't exist" from "exists but is expired /
+  // revoked / exhausted" — both collapse to INVALID_TOKEN, hiding the
+  // EXPIRED / REVOKED / MAX_USES UX entirely. Fall back to the
+  // status-only RPC (no usability filter) and re-run the shared
+  // validator so we can surface the precise error_code.
   if (inviteError || !invite) {
-    return { error: "INVALID_TOKEN" as const };
+    const { data: statusRows } = await supabase
+      .rpc("get_invite_status_by_token", { p_token: token });
+    const statusInvite = Array.isArray(statusRows) ? statusRows[0] : null;
+    if (!statusInvite) {
+      return { error: "INVALID_TOKEN" as const };
+    }
+    const validation = validateInvite(statusInvite as InviteData);
+    if (!validation.valid && validation.errorCode && validation.errorCode !== "NOT_FOUND") {
+      // Stripped tripTitle so the error screen can stay generic but
+      // we expose just enough for "Trip name was X" in future copy.
+      return { error: validation.errorCode };
+    }
+    // Edge case: status RPC returned a row but it actually IS still
+    // usable (race condition / clock skew between RPCs). Fall through
+    // using the status row as the invite source.
+    invite = statusInvite;
   }
 
   // Fetch trip
@@ -47,6 +70,33 @@ async function getInviteData(token: string) {
 
   if (tripError || !trip) {
     return { error: "TRIP_NOT_FOUND" as const };
+  }
+
+  // Day-2 audit Bug 3 (P3, info-leak): when the invite was sent to a
+  // specific recipient_email, don't render the full trip preview to
+  // anyone holding the token. Anonymous viewers and signed-in users
+  // whose email doesn't match the recipient see a stripped screen with
+  // just the trip title. The accept POST (route.ts) already enforces
+  // this gate — without mirroring it here, an attacker with the token
+  // can still see title, destination, dates, cover image, owner +
+  // inviter names + avatars, and the personal message.
+  if (invite.recipient_email) {
+    let viewerEmail: string | null = null;
+    try {
+      const serverClient = await createServerSupabase();
+      const { data: { user } } = await serverClient.auth.getUser();
+      viewerEmail = (user?.email ?? "").toLowerCase().trim() || null;
+    } catch {
+      // Treat any auth-resolution failure as anonymous — fail closed.
+      viewerEmail = null;
+    }
+    const expected = String(invite.recipient_email).toLowerCase().trim();
+    if (!viewerEmail || viewerEmail !== expected) {
+      return {
+        error: "RECIPIENT_MISMATCH" as const,
+        tripTitle: trip.title as string,
+      };
+    }
   }
 
   // Fetch owner profile from users table
@@ -157,11 +207,12 @@ export default async function JoinPage({ params }: PageProps) {
       EXPIRED: "expired",
       MAX_USES: "maxUses",
       TRIP_NOT_FOUND: "tripNotFound",
+      RECIPIENT_MISMATCH: "recipientMismatch",
     };
     const errorKey = errorMap[data.error as string] ?? "invalidToken";
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
+      <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
             <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from "framer-motion";
 import {
   Check,
@@ -62,6 +63,14 @@ export default function SwipeableActivityCard({
   isExpanded = false,
   currency = "USD",
 }: SwipeableActivityCardProps) {
+  // i18n — matches the sibling OngoingTripView namespace convention
+  // (useTranslations("trips") then t("ongoing.<key>")). Locale flows
+  // into the Intl.NumberFormat call so €/£/¥ currency strings render
+  // with the user's regional grouping/decimal marks (e.g. "1.234 €"
+  // on /it vs "€1,234" on /en).
+  const t = useTranslations("trips");
+  const locale = useLocale();
+
   const constraintsRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isCollapsing, setIsCollapsing] = useState(false);
@@ -106,8 +115,8 @@ export default function SwipeableActivityCard({
 
   // Format price
   const formatPrice = (amount: number) => {
-    if (amount === 0) return "Free";
-    return new Intl.NumberFormat("en-US", {
+    if (amount === 0) return t("ongoing.freePrice");
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       minimumFractionDigits: 0,
@@ -176,11 +185,11 @@ export default function SwipeableActivityCard({
       <div className="flex-shrink-0 flex items-center gap-2">
         {isCompleted ? (
           <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-            Done
+            {t("ongoing.doneBadge")}
           </span>
         ) : isSkipped ? (
           <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
-            Skipped
+            {t("ongoing.skippedBadge")}
           </span>
         ) : (
           <>

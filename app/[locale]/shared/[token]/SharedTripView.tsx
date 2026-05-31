@@ -27,6 +27,8 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Copy, Check, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { hapticMedium, hapticError } from "@/lib/native/haptics";
+import { useToast } from "@/components/ui/Toast";
 
 interface VoteApiResponse {
   activity_id: string;
@@ -100,6 +102,7 @@ interface SharedTripViewProps {
 
 export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot }: SharedTripViewProps) {
   const t = useTranslations('common');
+  const { addToast } = useToast();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -174,7 +177,23 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           ...(displayName ? { display_name: displayName } : {}),
         }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Differentiated feedback so the user knows the vote didn't land.
+        // 429 path is the recent 20/min rate-limit — phrase it as a retry,
+        // not a failure. 5xx is a real backend miss. Anything else is
+        // bucketed into the generic save-failed message.
+        // Pair toasts with hapticError so Capacitor users feel the miss
+        // without needing to look at the screen.
+        if (res.status === 429) {
+          addToast(t("shared.rateLimit"), "warning");
+        } else if (res.status >= 500) {
+          addToast(t("shared.voteFailed"), "error");
+        } else {
+          addToast(t("shared.voteFailed"), "error");
+        }
+        hapticError();
+        return;
+      }
       const data = (await res.json()) as VoteApiResponse;
       setVoteTallies((prev) => ({
         ...prev,
@@ -192,8 +211,16 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       // Either we just collected a name, or the user skipped — either way
       // they've been through the prompt and shouldn't see it again.
       setHasDisplayName(true);
+      // Capacitor-only haptic confirmation. Closes the day-2 audit gap
+      // where /shared/[token] anon voting (this surface) was missed by
+      // the original VotingBottomSheet-only haptic landing in 8088b82.
+      hapticMedium();
     } catch {
-      // Swallow — UI keeps the previous state, user can retry.
+      // Network failure (offline, DNS, CORS) — surface it instead of
+      // silently dropping the click. Different copy from the 5xx case
+      // so the user knows to check their connection first.
+      addToast(t("shared.networkError"), "error");
+      hapticError();
     } finally {
       setPendingVoteId(null);
     }

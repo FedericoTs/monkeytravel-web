@@ -543,9 +543,6 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
     await new Promise((resolve) => setTimeout(resolve, 600));
   }, [router]);
 
-  const { isRefreshing: ptrRefreshing, pullDistance: ptrDistance } =
-    usePullToRefresh(handlePullRefresh, { threshold: 80 });
-
   // Action modal state
   const [actionModal, setActionModal] = useState<{
     isOpen: boolean;
@@ -558,6 +555,21 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
     tripTitle: "",
     action: "archive",
   });
+
+  // Pull-to-refresh is document-level, so it survives React subtree
+  // state and fires even when a modal is open. Without `enabled` the
+  // user could pull-inside an open modal — the spinner would render
+  // at z-60 over the modal AND router.refresh() would race with any
+  // in-flight modal mutation. Gate the gesture off while any of the
+  // foreground UIs (trip-action modal, referral modal) are open.
+  // Note: per-card `menuOpen` state lives inside TripCard so we can't
+  // see it from here without lifting state; the modal gating closes
+  // the worst of the bug. Day-2 audit P2.
+  const { isRefreshing: ptrRefreshing, pullDistance: ptrDistance } =
+    usePullToRefresh(handlePullRefresh, {
+      threshold: 80,
+      enabled: !actionModal.isOpen && !referralModalOpen,
+    });
 
   // Handle trip actions
   const handleArchive = async (tripId: string) => {

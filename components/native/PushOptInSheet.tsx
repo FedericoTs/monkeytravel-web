@@ -83,7 +83,10 @@ function shouldShowPrompt(): boolean {
   const dismissedAt = localStorage.getItem(DISMISSED_KEY);
   if (dismissedAt) {
     const elapsed = Date.now() - parseInt(dismissedAt, 10);
-    if (Number.isFinite(elapsed) && elapsed < DISMISS_COOLDOWN_MS) return false;
+    // Guard against future-dated dismissal timestamps (clock skew / iCloud
+    // restore). Negative elapsed would pass `< DISMISS_COOLDOWN_MS` and
+    // silence the prompt for ~30,000 years.
+    if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed < DISMISS_COOLDOWN_MS) return false;
   }
 
   return true;

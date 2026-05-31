@@ -52,6 +52,72 @@ const SOFT_PROMPT_GRANTED_KEY = "mt_push_soft_prompt_granted";
 const REGISTERED_TOKEN_KEY = "mt_push_registered_token";
 
 /**
+ * Module-scoped init guards. initPushOnce() can be called from multiple
+ * paths (NativeBoot cold launch, AuthProvider on every SIGNED_IN, and
+ * the tail of requestPushPermissionAndRegister). Without these guards
+ * each call would attach a fresh set of listeners and a single
+ * notification tap would route N times.
+ *
+ *   - `hasInit`                  — set on first successful init. Reset
+ *                                  only in unregisterPushOnSignOut()
+ *                                  so a new user can re-init on next
+ *                                  SIGNED_IN.
+ *   - `registrationListenerAttached` — registration + registrationError
+ *                                  listeners may be attached early by
+ *                                  requestPushPermissionAndRegister() to
+ *                                  avoid racing register() against
+ *                                  listener attachment. This dedupes the
+ *                                  second attach attempt from
+ *                                  initPushOnce().
+ *   - `actionListenerAttached`   — pushNotificationActionPerformed is
+ *                                  only ever attached by initPushOnce.
+ *                                  Tracked separately so the listener
+ *                                  attach itself is idempotent even if
+ *                                  the function is somehow re-entered
+ *                                  before hasInit flips.
+ */
+let hasInit = false;
+let registrationListenerAttached = false;
+let actionListenerAttached = false;
+
+/**
+ * Stable module-scoped listener callbacks. Factored out of initPushOnce
+ * so requestPushPermissionAndRegister() can attach the registration
+ * pair BEFORE calling register() without diverging from the cold-launch
+ * code path. Identical-reference doesn't matter for Capacitor's
+ * addListener (each call attaches a new handle), so the dedupe is
+ * enforced via the *_ListenerAttached flags above.
+ */
+const onRegistration = (token: { value: string }): void => {
+  // eslint-disable-next-line no-console
+  console.log("[push] registration token received");
+  void registerTokenWithServer(token.value);
+};
+
+const onRegistrationError = (error: unknown): void => {
+  // eslint-disable-next-line no-console
+  console.error("[push] registration error:", error);
+};
+
+const onActionPerformed = (action: {
+  notification: { data?: { url?: string } };
+}): void => {
+  // User tapped a notification. Pull the deep-link URL if the
+  // payload included one (data.url is conventional across APNs +
+  // FCM in our dispatcher).
+  const url = action.notification.data?.url;
+  if (typeof url === "string" && url.startsWith("/")) {
+    // eslint-disable-next-line no-console
+    console.log("[push] notification tap → routing to:", url);
+    // The deep-link handler (lib/native/deep-links.ts B2) won't fire
+    // for in-app tap routing — appUrlOpen is only for URL-scheme
+    // launches. So we directly assign to the same-origin path. Next
+    // App Router intercepts and soft-transitions.
+    window.location.assign(url);
+  }
+};
+
+/**
  * Reuse the isNativePlatform check from the existing native helpers.
  * Inline to keep this module loadable without depending on the back-
  * button / share modules.
@@ -97,53 +163,66 @@ export async function initPushOnce(): Promise<void> {
   if (!isNativePlatform()) return;
   if (!userOptedInViaSoftPrompt()) return;
 
+  // Idempotency guard. Without this, a single notification tap fires
+  // window.location.assign(url) N times — once per init call across
+  // NativeBoot cold launch, every SIGNED_IN from AuthProvider (session
+  // restore, sign-in, sometimes token refresh), and the tail of
+  // requestPushPermissionAndRegister(). The flag stays set for the
+  // lifetime of the app process — reset ONLY in unregisterPushOnSignOut
+  // so a fresh user can re-init on the next SIGNED_IN.
+  //
+  // Capture the prior value before we flip it: when the opt-in path
+  // pre-flips hasInit (so registration listeners can race-safely attach
+  // before it calls register() itself), wasFirstInit is false here and
+  // we MUST NOT call register() a second time below. On a true cold
+  // launch wasFirstInit is true and the conditional register() runs.
+  const wasFirstInit = !hasInit;
+  hasInit = true;
+
   try {
     const { PushNotifications } = await import(
       "@capacitor/push-notifications"
     );
 
-    // Set up the registration listener BEFORE calling register(). The
+    // Set up the registration listeners BEFORE calling register(). The
     // event can fire synchronously enough that listeners attached
-    // after .register() miss it on some Android builds.
-    await PushNotifications.addListener("registration", (token) => {
-      // eslint-disable-next-line no-console
-      console.log("[push] registration token received");
-      void registerTokenWithServer(token.value);
-    });
+    // after .register() miss it on some Android builds. The opt-in
+    // path attaches these directly (and flips the flag) BEFORE its own
+    // register() call to defeat the same race; this dedupe keeps that
+    // pre-attach from double-handling the event.
+    if (!registrationListenerAttached) {
+      registrationListenerAttached = true;
+      await PushNotifications.addListener("registration", onRegistration);
+      await PushNotifications.addListener(
+        "registrationError",
+        onRegistrationError
+      );
+    }
 
-    await PushNotifications.addListener("registrationError", (error) => {
-      // eslint-disable-next-line no-console
-      console.error("[push] registration error:", error);
-    });
-
-    await PushNotifications.addListener(
-      "pushNotificationActionPerformed",
-      (action) => {
-        // User tapped a notification. Pull the deep-link URL if the
-        // payload included one (data.url is conventional across
-        // APNs + FCM in our dispatcher).
-        const url = action.notification.data?.url;
-        if (typeof url === "string" && url.startsWith("/")) {
-          // eslint-disable-next-line no-console
-          console.log("[push] notification tap → routing to:", url);
-          // The deep-link handler (lib/native/deep-links.ts B2) won't
-          // fire for in-app tap routing — appUrlOpen is only for URL-
-          // scheme launches. So we directly assign to the same-origin
-          // path. Next App Router intercepts and soft-transitions.
-          window.location.assign(url);
-        }
-      }
-    );
+    if (!actionListenerAttached) {
+      actionListenerAttached = true;
+      await PushNotifications.addListener(
+        "pushNotificationActionPerformed",
+        onActionPerformed
+      );
+    }
 
     // Check current permission state without prompting.
     const perm = await PushNotifications.checkPermissions();
-    if (perm.receive === "granted") {
+    if (wasFirstInit && perm.receive === "granted") {
+      // Cold-launch path: nothing else has called register() this
+      // session, so we own the registration. The opt-in path skips
+      // this branch (wasFirstInit === false) because it already called
+      // PushNotifications.register() itself — without this gate, the
+      // sequence requestPushPermissionAndRegister →
+      // markSoftPromptGranted → register() → initPushOnce() would hit
+      // register() a second time on the same opt-in.
       await PushNotifications.register();
     } else if (perm.receive === "denied") {
       // User denied. Don't re-prompt; only Settings can grant now.
       // eslint-disable-next-line no-console
       console.log("[push] permission denied — skipping register");
-    } else {
+    } else if (wasFirstInit) {
       // "prompt" or "prompt-with-rationale" — the OS hasn't asked
       // yet. We rely on the soft-prompt component to call
       // requestPushPermissionAndRegister() at the right moment.
@@ -176,15 +255,34 @@ export async function requestPushPermissionAndRegister(): Promise<boolean> {
     }
 
     markSoftPromptGranted();
+
+    // Defeat the registration race: APNs/FCM can fire the "registration"
+    // event before listeners attached AFTER register() can catch it
+    // (some Android builds dispatch it synchronously enough during the
+    // register() call). Attach BEFORE calling register(), using the
+    // same module-scoped callbacks initPushOnce uses so we don't
+    // double-handle on the next cold launch.
+    if (!registrationListenerAttached) {
+      registrationListenerAttached = true;
+      await PushNotifications.addListener("registration", onRegistration);
+      await PushNotifications.addListener(
+        "registrationError",
+        onRegistrationError
+      );
+    }
+
+    // Pre-flip hasInit BEFORE calling initPushOnce so that initPushOnce
+    // sees wasFirstInit=false and skips its own conditional register()
+    // call below. Without this, register() would be invoked twice on
+    // every opt-in (once here, once inside initPushOnce because
+    // markSoftPromptGranted made perm.receive evaluate to "granted").
+    hasInit = true;
+
     await PushNotifications.register();
-    // The registration listener in initPushOnce() handles the POST.
-    // If initPushOnce hasn't run this session, we need to add the
-    // listener here too — but we can't guarantee it'll fire AFTER
-    // register() returns. Safest: caller mounts initPushOnce on the
-    // next cold launch and we re-register then.
-    //
-    // For first-session UX: call initPushOnce() right after to
-    // attach the listener while register() is in-flight.
+
+    // Run the rest of the init flow — primarily to attach
+    // onActionPerformed for notification taps. The hasInit + listener
+    // dedupes above make this a safe no-op for the registration side.
     void initPushOnce();
     return true;
   } catch (err) {
@@ -299,5 +397,12 @@ export async function unregisterPushOnSignOut(): Promise<void> {
       localStorage.removeItem(REGISTERED_TOKEN_KEY);
       localStorage.removeItem(SOFT_PROMPT_GRANTED_KEY);
     }
+    // Reset the in-memory init guards so a NEW user signing in on the
+    // same app process can re-init from scratch on the next SIGNED_IN.
+    // The Capacitor listeners themselves stay attached (we don't have
+    // a handle to remove them and they reference module-scoped
+    // callbacks that handle the new session correctly); the flags exist
+    // to dedupe addListener calls and gate the conditional register().
+    hasInit = false;
   }
 }

@@ -103,7 +103,7 @@ function SortableActivityCard({
           {...attributes}
           {...listeners}
           className={`
-            flex-shrink-0 w-10 sm:w-12
+            flex-shrink-0 w-11 sm:w-12
             flex flex-col items-center justify-center gap-1
             cursor-grab active:cursor-grabbing
             touch-none select-none

@@ -209,7 +209,10 @@
     "sharedBy": "Compartido por {name}",
     "viewOnly": "Solo lectura",
     "saveToAccount": "Guardar en Mis Viajes",
-    "signUpToSave": "Regístrate para Guardar"
+    "signUpToSave": "Regístrate para Guardar",
+    "rateLimit": "Límite de votos alcanzado — inténtalo de nuevo en un minuto.",
+    "voteFailed": "No se pudo guardar el voto — inténtalo de nuevo.",
+    "networkError": "No se pudo guardar el voto — comprueba la conexión."
   },
   "emailSubscribe": {
     "placeholder": "Tu correo electrónico",
@@ -1959,11 +1962,13 @@
       "expired": "Invitación Expirada",
       "maxUses": "Invitación Ya Utilizada",
       "tripNotFound": "Viaje No Encontrado",
+      "recipientMismatch": "Inicia Sesión para Ver la Invitación",
       "invalidTokenDesc": "Este enlace de invitación no existe o puede haber sido eliminado.",
       "revokedDesc": "El propietario del viaje ha revocado esta invitación.",
       "expiredDesc": "Este enlace de invitación ha expirado. Pide uno nuevo.",
       "maxUsesDesc": "Esta invitación ya ha sido utilizada. Pide una nueva.",
       "tripNotFoundDesc": "El viaje asociado con esta invitación ya no existe.",
+      "recipientMismatchDesc": "Esta invitación fue enviada a una dirección de correo específica. Inicia sesión con ese correo para ver y aceptar la invitación.",
       "failedToJoin": "Error al unirse al viaje",
       "somethingWentWrong": "Algo salió mal",
       "signInFailed": "Error al iniciar sesión",
@@ -2024,6 +2029,8 @@
     "errorAmountRequired": "Introduce un importe mayor que cero.",
     "errorAddFailed": "No se pudo añadir el gasto — inténtalo de nuevo.",
     "errorDeleteFailed": "No se pudo eliminar el gasto — inténtalo de nuevo.",
+    "errorLoadFailed": "No se pudieron cargar los gastos. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
     "deleteAriaLabel": "Eliminar este gasto"
   },
   "advisory": {
@@ -2140,6 +2147,30 @@
       "allow": "Sí, avísame",
       "allowing": "Configurando…",
       "notNow": "Ahora no"
+    }
+  },
+  "savedPage": {
+    "meta": {
+      "title": "Viajes Guardados",
+      "description": "Viajes que has marcado para más tarde."
+    },
+    "title": "Viajes guardados",
+    "description": "Los viajes que has marcado como favoritos.",
+    "descriptionAnon": "Viajes guardados en este dispositivo. Inicia sesión para sincronizar entre dispositivos.",
+    "comingSoon": "Los viajes guardados llegan pronto. ¡Vuelve a echar un vistazo!",
+    "loadError": "No pudimos cargar tus viajes guardados — inténtalo de nuevo.",
+    "empty": {
+      "title": "Nada guardado todavía",
+      "body": "Explora y toca el marcador en cualquier viaje para guardarlo aquí."
+    },
+    "browseTrips": "Explorar viajes →",
+    "breadcrumb": {
+      "home": "Inicio",
+      "saved": "Guardados"
+    },
+    "anonNudge": {
+      "label": "Atención:",
+      "body": "estos guardados viven solo en este dispositivo. Crea una cuenta gratuita para sincronizarlos en tu teléfono y portátil."
     }
   }
 }

@@ -209,7 +209,10 @@
     "sharedBy": "Shared by {name}",
     "viewOnly": "View only",
     "saveToAccount": "Save to My Trips",
-    "signUpToSave": "Sign Up to Save"
+    "signUpToSave": "Sign Up to Save",
+    "rateLimit": "Vote rate limit reached — try again in a minute.",
+    "voteFailed": "Vote couldn't save — try again.",
+    "networkError": "Vote couldn't save — check your connection."
   },
   "emailSubscribe": {
     "placeholder": "Enter your email",
@@ -1959,11 +1962,13 @@
       "expired": "Invite Expired",
       "maxUses": "Invite Already Used",
       "tripNotFound": "Trip Not Found",
+      "recipientMismatch": "Sign in to View Invite",
       "invalidTokenDesc": "This invite link doesn't exist or may have been deleted.",
       "revokedDesc": "The trip owner has revoked this invite.",
       "expiredDesc": "This invite link has expired. Please ask for a new one.",
       "maxUsesDesc": "This invite has already been used. Please ask for a new one.",
       "tripNotFoundDesc": "The trip associated with this invite no longer exists.",
+      "recipientMismatchDesc": "This invite was sent to a specific email address. Sign in with that email to view and accept the invite.",
       "failedToJoin": "Failed to join trip",
       "somethingWentWrong": "Something went wrong",
       "signInFailed": "Sign in failed",
@@ -2024,6 +2029,8 @@
     "errorAmountRequired": "Enter an amount greater than zero.",
     "errorAddFailed": "Couldn't add the expense — try again.",
     "errorDeleteFailed": "Couldn't delete the expense — try again.",
+    "errorLoadFailed": "Could not load expenses. Try again.",
+    "retry": "Try again",
     "deleteAriaLabel": "Delete this expense"
   },
   "advisory": {
@@ -2140,6 +2147,30 @@
       "allow": "Yes, notify me",
       "allowing": "Setting up…",
       "notNow": "Not now"
+    }
+  },
+  "savedPage": {
+    "meta": {
+      "title": "Saved Trips",
+      "description": "Trips you've bookmarked for later."
+    },
+    "title": "Saved trips",
+    "description": "Trips you bookmarked while signed in.",
+    "descriptionAnon": "Trips you bookmarked on this device. Sign in to sync across devices.",
+    "comingSoon": "Saved trips are coming soon. Check back shortly!",
+    "loadError": "We couldn't load your saved trips — please try again.",
+    "empty": {
+      "title": "Nothing saved yet",
+      "body": "Browse Explore and tap the bookmark on any trip to save it here."
+    },
+    "browseTrips": "Browse trips →",
+    "breadcrumb": {
+      "home": "Home",
+      "saved": "Saved"
+    },
+    "anonNudge": {
+      "label": "Heads up:",
+      "body": "these saves live on this device only. Create a free account to sync them across your phone and laptop."
     }
   }
 }

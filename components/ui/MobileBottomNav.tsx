@@ -8,13 +8,27 @@ interface MobileBottomNavProps {
   // use 5-tab bottom navs with Explore as a peer tab. Discovery loop
   // matters for retention — putting /explore in thumb-reach turns it
   // from a "marketing surface" into a real engagement surface.
-  activePage: "home" | "trips" | "new" | "explore" | "profile" | "trip-detail";
+  activePage:
+    | "home"
+    | "trips"
+    | "new"
+    | "explore"
+    | "profile"
+    | "trip-detail"
+    | "saved";
   tripId?: string; // For trip detail page context
 }
 
 export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
   const t = useTranslations("common.bottomNav");
-  const isActive = (page: string) => activePage === page;
+  // /saved is reachable from the bottom nav (via Profile) and the Navbar,
+  // but it isn't one of the 5 primary tabs. Render the nav with NO
+  // active tab so we don't mislead the user into thinking Profile is
+  // the current page (the prior bug — Profile got aria-current + primary
+  // color on /saved). When activePage='saved', isActive() returns false
+  // for every tab.
+  const isActive = (page: string) =>
+    activePage !== "saved" && activePage === page;
 
   return (
     <>

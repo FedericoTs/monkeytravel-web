@@ -43,20 +43,50 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     const { data: invites, error: inviteError } = await supabaseAdmin
       .rpc("get_invite_by_token", { p_token: token });
 
-    const invite = Array.isArray(invites) ? invites[0] : null;
+    let invite = Array.isArray(invites) ? invites[0] : null;
 
+    // Day-2 audit Bug 1: when get_invite_by_token returns no rows we
+    // can't distinguish "doesn't exist" from "expired / revoked /
+    // exhausted" — all collapse to NOT_FOUND, hiding the precise
+    // user-facing error codes (EXPIRED / REVOKED / MAX_USES). Fall
+    // back to the status-only RPC (no usability filter) so the shared
+    // validator below can surface the right code.
     if (inviteError || !invite) {
-      return errors.notFound("Invalid invite link");
+      const { data: statusRows } = await supabaseAdmin
+        .rpc("get_invite_status_by_token", { p_token: token });
+      const statusInvite = Array.isArray(statusRows) ? statusRows[0] : null;
+      if (!statusInvite) {
+        return errors.notFound("Invalid invite link");
+      }
+      invite = statusInvite;
     }
 
-    // Defense-in-depth: re-run the shared validator. The RPC already
-    // filters out non-usable invites (so any error path here should be
-    // unreachable for the GET case), but keeping the check means the
-    // app's user-facing error codes (MAX_USES / REVOKED / EXPIRED) still
-    // fire correctly if the RPC contract ever loosens.
+    // Defense-in-depth: re-run the shared validator. Post Bug-1 fix
+    // this is now the LOAD-BEARING check for EXPIRED / REVOKED /
+    // MAX_USES — those rows come from the status RPC above, not from
+    // get_invite_by_token, so we must surface the precise error_code.
     const validation = validateInvite(invite as InviteData);
     if (!validation.valid) {
       return validation.errorResponse!;
+    }
+
+    // Day-2 audit Bug 3 (P3, info-leak): when the invite was sent to a
+    // specific recipient_email, refuse to leak the full trip preview
+    // (title, destination, dates, cover image, owner+inviter profiles,
+    // personal message) to anyone holding the token. Anonymous viewers
+    // and authenticated users whose email doesn't match get a stripped
+    // RECIPIENT_MISMATCH response. The POST handler already enforces
+    // this for the accept action; this closes the GET-preview leak.
+    if (invite.recipient_email) {
+      const { user: viewer } = await getAuthenticatedUser();
+      const viewerEmail = (viewer?.email ?? "").toLowerCase().trim();
+      const expected = String(invite.recipient_email).toLowerCase().trim();
+      if (!viewerEmail || viewerEmail !== expected) {
+        return errors.forbidden(
+          "This invite was sent to a different email address. Sign in with that address to view it.",
+          "RECIPIENT_MISMATCH"
+        );
+      }
     }
 
     // Fetch trip preview (limited info for non-authenticated users)
