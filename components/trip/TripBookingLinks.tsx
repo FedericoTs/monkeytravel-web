@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { BookingLink } from "@/types";
-import { openExternal } from "@/lib/native/external-link";
+import type { PartnerKey } from "@/lib/affiliates";
+import PartnerButton from "@/components/booking/PartnerButton";
 
 interface TripBookingLinksProps {
   bookingLinks?: {
     flights: BookingLink[];
     hotels: BookingLink[];
   };
+  /** Trip id forwarded to PostHog so we can attribute clicks back to the trip. */
+  tripId?: string;
+  /** Destination forwarded to PostHog for funnel break-downs. */
+  destination?: string;
   className?: string;
 }
 
@@ -27,6 +32,24 @@ const providerConfig: Record<string, { color: string; bgColor: string }> = {
   "Hostelworld": { color: "text-orange-500", bgColor: "bg-orange-50 hover:bg-orange-100" },
 };
 
+/**
+ * Map Gemini-emitted provider display names onto registered PartnerKeys
+ * where they exist. Unknown providers fall back to partner="other" so
+ * the PartnerButton still fires booking_partner_click — these tiles
+ * were previously invisible to PostHog entirely (biggest gap in the
+ * affiliate-CTA audit).
+ */
+function mapProviderToPartner(provider: string): PartnerKey | "other" {
+  const normalized = provider.toLowerCase();
+  if (normalized.includes("booking")) return "booking";
+  if (normalized.includes("agoda")) return "agoda";
+  if (normalized.includes("airbnb") || normalized.includes("vrbo")) return "vrbo";
+  if (normalized.includes("trip.com") || normalized.includes("tripcom")) return "tripcom";
+  if (normalized.includes("expedia") || normalized.includes("hotels.com")) return "expedia";
+  if (normalized.includes("cheapoair")) return "cheapoair";
+  return "other";
+}
+
 function getProviderStyle(provider: string) {
   // Try exact match first
   if (providerConfig[provider]) {
@@ -42,7 +65,12 @@ function getProviderStyle(provider: string) {
   return { color: "text-slate-600", bgColor: "bg-slate-50 hover:bg-slate-100" };
 }
 
-export default function TripBookingLinks({ bookingLinks, className = "" }: TripBookingLinksProps) {
+export default function TripBookingLinks({
+  bookingLinks,
+  tripId,
+  destination,
+  className = "",
+}: TripBookingLinksProps) {
   const t = useTranslations("common.booking.links");
   const [activeTab, setActiveTab] = useState<"flights" | "hotels">("flights");
 
@@ -127,15 +155,25 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {activeLinks?.map((link, idx) => {
               const style = getProviderStyle(link.provider);
+              const partner = mapProviderToPartner(link.provider);
               return (
-                <button
+                <PartnerButton
                   key={idx}
-                  type="button"
-                  onClick={() => void openExternal(link.url)}
+                  partner={partner}
+                  href={link.url}
+                  tripId={tripId}
+                  destination={destination}
+                  partnerName={link.provider}
+                  category={activeTab === "flights" ? "flights" : "hotels"}
+                  surface="provider_tiles"
+                  variant="custom"
+                  showIcon={false}
+                  showExternal={false}
+                  ariaLabel={`${link.provider} (opens external site)`}
                   className={`group relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-transparent ${style.bgColor} transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-amber-200`}
                 >
                   {/* Provider Icon */}
-                  <div className={`w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center ${style.color}`}>
+                  <span className={`w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center ${style.color}`}>
                     {activeTab === "flights" ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -145,7 +183,7 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     )}
-                  </div>
+                  </span>
 
                   {/* Provider Name */}
                   <span className={`text-sm font-medium ${style.color} text-center`}>
@@ -153,12 +191,12 @@ export default function TripBookingLinks({ bookingLinks, className = "" }: TripB
                   </span>
 
                   {/* External link indicator */}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                  </div>
-                </button>
+                  </span>
+                </PartnerButton>
               );
             })}
           </div>

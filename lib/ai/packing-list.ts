@@ -42,17 +42,26 @@ export interface PackingItem {
   essential?: boolean;
 }
 
+export type PackingCategoryId =
+  | "documents"
+  | "clothing"
+  | "toiletries"
+  | "electronics"
+  | "activity_gear"
+  | "health"
+  | "misc";
+
 export interface PackingListResult {
   categories: Array<{
     /** Stable English key for the category — UI maps to localized label */
-    id:
-      | "documents"
-      | "clothing"
-      | "toiletries"
-      | "electronics"
-      | "activity_gear"
-      | "health"
-      | "misc";
+    id: PackingCategoryId;
+    /**
+     * Localized display label for the category, populated by the route
+     * handler via next-intl. The lib doesn't depend on next-intl, so
+     * categories returned directly from `generatePackingList` will have
+     * `label` undefined — the route is responsible for filling it in.
+     */
+    label?: string;
     items: PackingItem[];
   }>;
   /** One-liner sourced from the prompt: weather summary + key local notes */
@@ -65,13 +74,36 @@ const LOCALE_NAME: Record<NonNullable<PackingListInput["locale"]>, string> = {
   es: "Spanish",
 };
 
+/**
+ * Per-locale example contextNote demonstrating the expected length and
+ * richness. Pre-2026-05-31 the prompt only showed the EN example — IT/ES
+ * generations came back ~25% the length (often a single dependent clause,
+ * sometimes empty for ES) because the model anchored on the example.
+ * Now we anchor each locale on its own native-language reference so the
+ * model treats fluent length parity as the target. Keep these long
+ * enough (~30+ words) that the model doesn't truncate.
+ */
+const CONTEXT_NOTE_EXAMPLE: Record<
+  NonNullable<PackingListInput["locale"]>,
+  string
+> = {
+  en:
+    "Late May in Tokyo: warm and humid days around 22-27°C with a real chance of evening showers, so pack a packable rain shell. Outlets are Type A (100V) — bring a small adapter for any 220V appliances. Dress modestly when visiting temples (covered shoulders and knees).",
+  it:
+    "Fine maggio a Tokyo: giornate calde e umide tra i 22 e i 27°C con buone probabilità di rovesci serali, quindi metti in valigia un guscio antipioggia compatto. Le prese sono di Tipo A (100V) — porta un piccolo adattatore per qualsiasi dispositivo a 220V. Vestiti in modo sobrio quando visiti i templi (spalle e ginocchia coperte).",
+  es:
+    "Finales de mayo en Tokio: días cálidos y húmedos entre 22 y 27°C con bastantes probabilidades de chubascos por la tarde, así que lleva una chaqueta impermeable plegable. Los enchufes son de Tipo A (100V) — lleva un pequeño adaptador para cualquier aparato de 220V. Vístete con discreción al visitar los templos (hombros y rodillas cubiertos).",
+};
+
 function buildPrompt(input: PackingListInput): string {
   const days =
     Math.ceil(
       (new Date(input.endDate).getTime() - new Date(input.startDate).getTime()) /
         (1000 * 60 * 60 * 24)
     ) + 1;
-  const language = LOCALE_NAME[input.locale || "en"];
+  const locale = input.locale || "en";
+  const language = LOCALE_NAME[locale];
+  const contextExample = CONTEXT_NOTE_EXAMPLE[locale];
   const activities = (input.activities || []).join(", ") || "general sightseeing";
 
   return `You are an experienced travel writer who has packed for hundreds of trips.
@@ -83,7 +115,15 @@ Trip details:
 - Travel style: ${input.travelStyle}
 - Planned activities: ${activities}
 
-Output language: ${language}.
+Output language: ${language}. Every user-visible string (item "name", item
+"note", and the "contextNote") MUST be written in fluent, native-quality
+${language}. Do NOT mix languages. Do NOT shorten or summarize the
+${language} text — write with the same level of detail, nuance, and
+sentence count you would for an English reader. Length and richness of
+the ${language} output must match what an equivalent English version
+would have: if EN gets three sentences with weather + outlets + cultural
+notes, ${language} also gets three sentences with weather + outlets +
+cultural notes.
 
 Return this exact JSON shape:
 {
@@ -95,8 +135,14 @@ Return this exact JSON shape:
       ]
     }
   ],
-  "contextNote": "One-sentence summary of weather + key local notes (e.g., 'Late May in Tokyo: 18-25°C, plug Type A, modest dress for temples.')"
+  "contextNote": "2-4 sentence briefing covering (a) weather/climate for the dates, (b) outlet/plug type + voltage, (c) any cultural or practical note. Written in ${language}."
 }
+
+Reference contextNote in ${language} (this is the target length AND
+quality — your contextNote must be similar in length, sentence count,
+and informational density; never shorter, never empty):
+
+"${contextExample}"
 
 Rules:
 1. JSON only. No \`\`\`, no prose around it.
@@ -118,7 +164,11 @@ Rules:
 7. All user-visible text must be in ${language}. The "id" keys stay in English.
 8. NEVER include items that would be illegal or controlled substances at the destination.
    If the destination has unusual restrictions (e.g., medication imports), add a note in
-   contextNote.`;
+   contextNote.
+9. contextNote MUST be a non-empty string of at least 2 sentences in
+   ${language}. Never return an empty string. Never return a single
+   short fragment. Match the length and sentence count of the reference
+   example above.`;
 }
 
 /**
@@ -170,5 +220,23 @@ export async function generatePackingList(
     throw new Error("Gemini output missing categories array");
   }
 
-  return parsed as PackingListResult;
+  const result = parsed as PackingListResult;
+
+  // Defensive backfill: even with the explicit prompt rules above, the
+  // Lite model occasionally returns an empty contextNote — especially in
+  // ES. Rather than ship a blank amber callout in the UI, synthesize a
+  // minimal locale-appropriate fallback so the briefing card always
+  // renders something useful. This is a last-resort and should fire
+  // rarely; the prompt is the primary fix.
+  if (!result.contextNote || result.contextNote.trim().length === 0) {
+    const locale = input.locale || "en";
+    const fallback: Record<NonNullable<PackingListInput["locale"]>, string> = {
+      en: `Plan for variable weather over your ${input.destination} trip and check the local outlet type before packing chargers. Bring layers and a compact rain shell as a precaution.`,
+      it: `Preparati a un clima variabile durante il tuo viaggio a ${input.destination} e verifica il tipo di presa elettrica locale prima di mettere in valigia i caricatori. Porta abiti a strati e un guscio antipioggia compatto per sicurezza.`,
+      es: `Prepárate para un clima variable durante tu viaje a ${input.destination} y verifica el tipo de enchufe local antes de empacar los cargadores. Lleva ropa por capas y una chaqueta impermeable compacta por precaución.`,
+    };
+    result.contextNote = fallback[locale];
+  }
+
+  return result;
 }

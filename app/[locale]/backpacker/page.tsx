@@ -208,10 +208,20 @@ export default async function BackpackerLandingPage({
   ];
 
   // Social-proof stats (30-day Hostelworld clicks). Render the block
-  // only when we have meaningful numbers — see fetchHostelworldStats
-  // for the "don't show zero" rationale.
+  // whenever the API responds — including the early-traffic window where
+  // counts are small. Previously gated at clicks30d >= 10, which kept the
+  // counter invisible for weeks after launch despite Task #133 wiring it
+  // in (Day-6 audit caught the regression: no number ever reached the
+  // DOM). The "don't show zero" intent is preserved at a lower bar — we
+  // only hide if EVERY counter is genuinely zero, so we never advertise
+  // "0 backpackers". Any non-zero signal is worth showing as proof the
+  // funnel is live.
   const stats = await fetchHostelworldStats();
-  const showStatsBlock = stats !== null && stats.clicks30d >= 10;
+  const showStatsBlock =
+    stats !== null &&
+    (stats.clicks30d > 0 ||
+      stats.uniqueTrips30d > 0 ||
+      stats.uniqueVisitors30d > 0);
 
   // /explore Week 3 (2026-05-29): live backpacker trips for the
   // social-proof block below sample routes. Renders nothing when there

@@ -2,24 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Plane, Hotel, Car, Ticket, Train, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Plane, Hotel, Ticket, Train, ChevronDown, ChevronUp } from "lucide-react";
 import {
   generateAllHotelLinks,
   generateAllFlightLinks,
   generateAllActivityLinks,
   generateOmioLink,
-  getCityIATA,
   getCityRegion,
   getBestHotelPartner,
   getBestFlightPartner,
   getBestActivityPartner,
-  isOmioRelevant,
-  PARTNERS,
-  type PartnerKey,
 } from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
-import { openExternal } from "@/lib/native/external-link";
 import AffiliateDisclosure from "./AffiliateDisclosure";
+import PartnerButton from "./PartnerButton";
 
 interface EnhancedBookingPanelProps {
   tripId: string;
@@ -34,50 +30,6 @@ interface EnhancedBookingPanelProps {
   variant?: "compact" | "expanded";
   /** Callback when user wants to set their origin city for flights */
   onSetOrigin?: () => void;
-}
-
-interface PartnerLinkProps {
-  partner: PartnerKey;
-  href: string;
-  isPrimary?: boolean;
-  tripId: string;
-  destination: string;
-  category: string;
-}
-
-function PartnerLink({ partner, href, isPrimary, tripId, destination, category }: PartnerLinkProps) {
-  const config = PARTNERS[partner];
-
-  const handleClick = () => {
-    capture("booking_partner_click", {
-      partner,
-      partner_name: config.name,
-      category,
-      destination,
-      trip_id: tripId,
-      is_primary: isPrimary,
-    });
-    openExternal(href);
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      data-rel="sponsored noopener noreferrer"
-      className={`
-        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-        ${isPrimary
-          ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
-          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-        }
-      `}
-    >
-      <span>{config.icon}</span>
-      <span className="flex-1">{config.name}</span>
-      <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-    </button>
-  );
 }
 
 export default function EnhancedBookingPanel({
@@ -178,27 +130,36 @@ export default function EnhancedBookingPanel({
             <span className="text-sm font-medium text-slate-700">{t("hotelsLabel")}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <PartnerLink
+            <PartnerButton
               partner="booking"
               href={links.hotels.booking}
               isPrimary={bestHotel === "booking"}
+              variant={bestHotel === "booking" ? "primary" : "secondary"}
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="hotels"
             />
-            <PartnerLink
+            <PartnerButton
               partner="agoda"
               href={links.hotels.agoda}
               isPrimary={bestHotel === "agoda"}
+              variant={bestHotel === "agoda" ? "primary" : "secondary"}
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="hotels"
             />
-            <PartnerLink
+            <PartnerButton
               partner="vrbo"
               href={links.hotels.vrbo}
+              variant="secondary"
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="hotels"
             />
           </div>
@@ -212,28 +173,37 @@ export default function EnhancedBookingPanel({
               <span className="text-sm font-medium text-slate-700">{t("flightsLabel")}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <PartnerLink
+              <PartnerButton
                 partner="tripcom"
                 href={links.flights.tripcom}
                 isPrimary={bestFlight === "tripcom"}
+                variant={bestFlight === "tripcom" ? "primary" : "secondary"}
+                size="sm"
                 tripId={tripId}
                 destination={destination}
+                surface="trip_detail_panel"
                 category="flights"
               />
-              <PartnerLink
+              <PartnerButton
                 partner="cheapoair"
                 href={links.flights.cheapoair}
                 isPrimary={bestFlight === "cheapoair"}
+                variant={bestFlight === "cheapoair" ? "primary" : "secondary"}
+                size="sm"
                 tripId={tripId}
                 destination={destination}
+                surface="trip_detail_panel"
                 category="flights"
               />
-              <PartnerLink
+              <PartnerButton
                 partner="expedia"
                 href={links.flights.expedia}
                 isPrimary={bestFlight === "expedia"}
+                variant={bestFlight === "expedia" ? "primary" : "secondary"}
+                size="sm"
                 tripId={tripId}
                 destination={destination}
+                surface="trip_detail_panel"
                 category="flights"
               />
             </div>
@@ -266,28 +236,37 @@ export default function EnhancedBookingPanel({
             <span className="text-sm font-medium text-slate-700">{t("activitiesAttractions")}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <PartnerLink
+            <PartnerButton
               partner="getyourguide"
               href={links.activities.getyourguide}
               isPrimary={bestActivity === "getyourguide"}
+              variant={bestActivity === "getyourguide" ? "primary" : "secondary"}
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="activities"
             />
-            <PartnerLink
+            <PartnerButton
               partner="klook"
               href={links.activities.klook}
               isPrimary={bestActivity === "klook"}
+              variant={bestActivity === "klook" ? "primary" : "secondary"}
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="activities"
             />
-            <PartnerLink
+            <PartnerButton
               partner="tiqets"
               href={links.activities.tiqets}
               isPrimary={bestActivity === "tiqets"}
+              variant={bestActivity === "tiqets" ? "primary" : "secondary"}
+              size="sm"
               tripId={tripId}
               destination={destination}
+              surface="trip_detail_panel"
               category="activities"
             />
           </div>
@@ -301,12 +280,15 @@ export default function EnhancedBookingPanel({
               <span className="text-sm font-medium text-slate-700">{t("trainsBuses")}</span>
             </div>
             <div className="grid grid-cols-1 gap-2">
-              <PartnerLink
+              <PartnerButton
                 partner="omio"
                 href={links.transport.omio}
                 isPrimary
+                variant="primary"
+                size="sm"
                 tripId={tripId}
                 destination={destination}
+                surface="trip_detail_panel"
                 category="transport"
               />
             </div>

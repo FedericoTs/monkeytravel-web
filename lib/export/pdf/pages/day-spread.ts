@@ -1,10 +1,33 @@
 import type jsPDF from "jspdf";
 import type { PageContext, PremiumTripForExport } from "../types";
 import type { ItineraryDay } from "@/types";
+import type { CurrencyCode } from "@/lib/locale/types";
 import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
 import { renderActivityCard, renderCompactActivityCard } from "./activity-card";
 import { formatDateWithWeekday } from "@/lib/datetime";
+import { convertCurrency, formatCurrencyValue } from "@/lib/locale/currency";
+
+/**
+ * P1 bug fix (currency conversion) — Day-6 pattern: sum the day's budget
+ * from FX-converted per-activity costs instead of trusting
+ * `day.daily_budget.total` (which is in the activities' source currency
+ * and produced 100x+ inflated values on cross-currency trips). Rates are
+ * pre-fetched in the generator and threaded via PageContext so this sync
+ * render path can stay sync.
+ */
+function formatDayBudget(ctx: PageContext, day: ItineraryDay): string {
+  const { rates, targetCurrency } = ctx;
+  const total = day.activities.reduce((acc, activity) => {
+    const amount = activity.estimated_cost?.amount;
+    const currency = activity.estimated_cost?.currency;
+    if (!amount || !currency) return acc;
+    if (!rates) return acc + amount; // graceful degrade — no FX available
+    return acc + convertCurrency(amount, currency as CurrencyCode, targetCurrency, rates);
+  }, 0);
+  if (total === 0) return "Free";
+  return formatCurrencyValue(total, targetCurrency);
+}
 
 /**
  * Render a day page with visual timeline and activities
@@ -180,7 +203,7 @@ export function renderDayPage(
     doc.setFontSize(9);
     doc.setFont(config.fonts.body, "bold");
     doc.text(
-      `Day ${day.day_number} Total: ${trip.budget?.currency || "USD"} ${day.daily_budget.total}`,
+      `Day ${day.day_number} Total: ${formatDayBudget(ctx, day)}`,
       margin + 10,
       summaryY + 10
     );

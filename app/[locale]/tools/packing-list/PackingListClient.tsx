@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
+import DateRangePicker from "@/components/ui/DateRangePicker";
 import {
   buildAmazonSearchUrl,
   shouldShowAmazonLink,
@@ -24,6 +25,12 @@ interface PackingCategory {
     | "activity_gear"
     | "health"
     | "misc";
+  /**
+   * Localized display label, populated by the API. Falls back to a
+   * client-side translation lookup if the server didn't send one
+   * (older cached responses, error paths).
+   */
+  label?: string;
   items: PackingItem[];
 }
 
@@ -73,7 +80,16 @@ interface Props {
 export default function PackingListClient({ locale }: Props) {
   const t = useTranslations("tools.packingList");
 
-  const todayIso = new Date().toISOString().split("T")[0];
+  // Today in local timezone — DateRangePicker also formats in local TZ
+  // to avoid UTC off-by-one (matches the same fix shipped in the wizard
+  // DateRangePicker, see formatDate in DateRangePicker.tsx).
+  const todayIso = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, []);
 
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -232,32 +248,34 @@ export default function PackingListClient({ locale }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("startDateLabel")}
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                min={todayIso}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none text-base"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("endDateLabel")}
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate || todayIso}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none text-base"
-              />
-            </div>
-          </div>
+          {/*
+            Custom DateRangePicker (re-used from the wizard) replaces the
+            native <input type="date">. The native input renders its own
+            placeholder using the user's *OS/browser locale*, not the
+            page locale — so an en-US user on macOS-IT sees "gg/mm/aaaa"
+            on /en/tools/packing-list. The custom picker formats labels
+            via next-intl's active locale so the placeholder always
+            matches the page language. Bonus: matches the visual style
+            of the rest of the app, supports keyboard nav, and uses the
+            same local-TZ formatter (no UTC off-by-one).
+          */}
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            minDate={todayIso}
+            maxDays={30}
+            ariaRequired
+          />
+          {/*
+            The custom picker covers a11y labels via the wizard
+            translations (trips.wizard.datePicker.*), which are already
+            translated to it/es. Keep the packing-list-specific labels
+            available in tools.json for any future surface, but the UI
+            no longer renders them here — DateRangePicker provides its
+            own Check-in / Check-out captions on the chip.
+          */}
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -393,7 +411,14 @@ export default function PackingListClient({ locale }: Props) {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{CATEGORY_ICONS[cat.id]}</span>
                     <h3 className="font-semibold text-slate-900">
-                      {t(`categories.${cat.id}`)}
+                      {/*
+                        Prefer the server-localized label so the API is
+                        the single source of truth (PDF generator, email
+                        export, embed widgets all see the same string).
+                        Fall back to the client lookup for backward
+                        compatibility with any cached pre-fix response.
+                      */}
+                      {cat.label || t(`categories.${cat.id}`)}
                     </h3>
                     <span className="text-xs text-slate-500">
                       {cat.items.length}

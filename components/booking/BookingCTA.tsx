@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { capture } from "@/lib/posthog";
-import { openExternal } from "@/lib/native/external-link";
+import PartnerButton from "./PartnerButton";
 
 export type BookingType =
   | "flight"
@@ -85,6 +84,36 @@ const ICONS: Record<BookingType, React.ReactNode> = {
   ),
 };
 
+// Map the legacy "type" prop onto unified category / partner-name slots
+// so the legacy BookingPanel (behind FLAG_ENHANCED_BOOKING) still fires
+// the same booking_partner_click event as every other surface. Once the
+// flag is fully rolled out this whole file can be deleted.
+const TYPE_TO_CATEGORY: Record<BookingType, string> = {
+  flight: "flights",
+  hotel: "hotels",
+  car: "car_rental",
+  activity: "activities",
+  train: "transport",
+  transfer: "transport",
+};
+
+const TYPE_TO_PARTNER_NAME: Record<BookingType, string> = {
+  flight: "Flights (legacy panel)",
+  hotel: "Hotels (legacy panel)",
+  car: "Car rental (legacy panel)",
+  activity: "Activities (legacy panel)",
+  train: "Trains (legacy panel)",
+  transfer: "Transfers (legacy panel)",
+};
+
+/**
+ * Legacy BookingPanel CTA — now a thin wrapper over PartnerButton so the
+ * pre-FLAG_ENHANCED_BOOKING surface fires the same unified
+ * `booking_partner_click` event as the post-flag surface. Previously
+ * fired `affiliate_link_click` (orphan event name) and lost partner
+ * identity entirely. Delete this component when BookingPanel is retired
+ * with the flag.
+ */
 export default function BookingCTA({
   type,
   href,
@@ -105,47 +134,24 @@ export default function BookingCTA({
     transfer: "bookTransfer",
   };
 
-  const handleClick = () => {
-    capture("affiliate_link_click", {
-      type,
-      destination: destination || "unknown",
-      trip_id: tripId || "unknown",
-      url: href,
-    });
-    openExternal(href);
-  };
-
-  const variantClasses = {
-    primary:
-      "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 shadow-sm",
-    secondary:
-      "bg-slate-100 text-slate-700 hover:bg-slate-200",
-    outline:
-      "border border-slate-300 text-slate-700 hover:bg-slate-50",
-  };
-
-  const sizeClasses = {
-    sm: "px-3 py-1.5 text-sm gap-1.5",
-    md: "px-4 py-2 text-sm gap-2",
-    lg: "px-5 py-2.5 text-base gap-2",
-  };
-
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      data-rel="sponsored noopener noreferrer"
-      className={`
-        inline-flex items-center justify-center rounded-lg font-medium
-        transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
-        focus:ring-[var(--primary)]
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${className}
-      `}
+    <PartnerButton
+      partner="other"
+      href={href}
+      tripId={tripId}
+      destination={destination}
+      partnerName={TYPE_TO_PARTNER_NAME[type]}
+      category={TYPE_TO_CATEGORY[type]}
+      surface="legacy_panel"
+      variant={variant}
+      size={size}
+      showIcon={false}
+      showExternal={false}
+      className={className}
+      extraEventProps={{ legacy_type: type }}
     >
       {ICONS[type]}
-      <span>{t(labelKeys[type])}</span>
-    </button>
+      <span className="ml-2">{t(labelKeys[type])}</span>
+    </PartnerButton>
   );
 }

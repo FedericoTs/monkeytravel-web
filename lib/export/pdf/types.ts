@@ -1,5 +1,6 @@
 import type jsPDF from "jspdf";
 import type { PremiumTripForExport, RGB, ActivityTypeConfig } from "@/types";
+import type { ExchangeRates, CurrencyCode } from "@/lib/locale/types";
 
 // Re-export for backward compatibility
 export type { PremiumTripForExport, RGB, ActivityTypeConfig } from "@/types";
@@ -98,6 +99,16 @@ export interface PageContext {
   yPosition: number;
   pageNumber: number;
   imageCache: ImageCache;
+  /**
+   * FX rates + target currency for day-budget computation. Threaded
+   * through so sync render functions can sum FX-converted activity
+   * costs without re-fetching. See Day-6 currency P1 fix —
+   * day_spread.ts must NOT trust `day.daily_budget.total` (source
+   * currency) as if it were `trip.budget.currency`. Null when the
+   * upstream FX fetch failed; renderers degrade to sum-without-FX.
+   */
+  rates: ExchangeRates | null;
+  targetCurrency: CurrencyCode;
 }
 
 /**

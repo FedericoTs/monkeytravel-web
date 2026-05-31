@@ -5,7 +5,7 @@ import {
   getHostelworldSearchUrl,
   isHostelworldAffiliateActive,
 } from "@/lib/affiliates/hostelworld";
-import { openExternal } from "@/lib/native/external-link";
+import PartnerButton from "@/components/booking/PartnerButton";
 
 interface BackpackerHostelCtaProps {
   /** Trip's destination string (e.g. "Barcelona" or "Barcelona, Spain"). */
@@ -30,6 +30,9 @@ interface BackpackerHostelCtaProps {
  * keepalive=true: the click navigates the browser away (target=_blank in
  * a new tab — usually fine — but on some browsers/extensions it might
  * still cancel the in-flight fetch). keepalive lets the request survive.
+ *
+ * Now fires as a side-effect of PartnerButton's onBeforeNavigate so the
+ * server log runs in lockstep with the unified PostHog event.
  */
 function logClick(payload: {
   tripId?: string;
@@ -67,6 +70,18 @@ function logClick(payload: {
  * code change. The displayed badge below the button switches based
  * on isHostelworldAffiliateActive() to keep the affiliate disclosure
  * accurate.
+ *
+ * Consolidated 2026-05-31 (task #340 Day-8): was the 6th divergent
+ * affiliate-CTA implementation — rendered as a <button> (invisible to
+ * Google as sponsored, broken middle-click), used openExternal()
+ * unconditionally (lost modifier-click semantics in normal browsers),
+ * fired NO PostHog event (the data-analytics-event attribute on a
+ * <button> is dead weight — PostHog autocapture won't infer the click
+ * as an affiliate-funnel event without the unified payload). Now a
+ * thin wrapper over PartnerButton with the canonical
+ * `booking_partner_click` event + the existing first-party
+ * /api/affiliates/hostelworld/click log piggybacked through
+ * `onBeforeNavigate`. Visual treatment preserved via variant="custom".
  */
 export default function BackpackerHostelCta({
   destination,
@@ -83,16 +98,28 @@ export default function BackpackerHostelCta({
 
   return (
     <div className={className}>
-      <button
-        type="button"
-        onClick={() => {
-          logClick({ tripId, destination, startDate, endDate });
-          void openExternal(url);
-        }}
+      <PartnerButton
+        partner="other"
+        href={url}
+        tripId={tripId}
+        destination={destination}
+        partnerName="Hostelworld"
+        category="hostels"
+        surface="backpacker_landing"
+        variant="custom"
+        showIcon={false}
+        showExternal={false}
+        // The Hostelworld affiliate-disclosure attribute used to live on
+        // the raw <button>. PartnerButton always emits rel="sponsored
+        // noopener nofollow" (correct for affiliate outbound), so the
+        // `data-affiliate` attribute is no longer needed — Google reads
+        // the rel directly. Kept aria-label inferred from partnerName.
+        rel={isAffiliate ? "sponsored noopener nofollow" : "noopener nofollow"}
+        extraEventProps={{ is_affiliate_active: isAffiliate }}
+        onBeforeNavigate={() =>
+          logClick({ tripId, destination, startDate, endDate })
+        }
         className="group inline-flex w-full sm:w-auto items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
-        data-analytics-event="backpacker_hostel_cta_clicked"
-        data-analytics-destination={destination}
-        data-affiliate={isAffiliate ? "sponsored" : undefined}
       >
         <span className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>🎒</span>
@@ -115,7 +142,7 @@ export default function BackpackerHostelCta({
             />
           </svg>
         </span>
-      </button>
+      </PartnerButton>
       {isAffiliate && (
         <p className="text-[10px] text-slate-400 mt-1.5 px-1">
           {t("affiliateDisclosure")}

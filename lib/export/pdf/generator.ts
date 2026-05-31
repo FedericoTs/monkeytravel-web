@@ -1,7 +1,9 @@
 import jsPDF from "jspdf";
 import type { PremiumTripForExport, PageContext, ImageCache } from "./types";
+import type { CurrencyCode, ExchangeRates } from "@/lib/locale/types";
 import { PDF_CONFIG } from "./config";
 import { prefetchTripImages } from "./utils/images";
+import { getExchangeRates } from "@/lib/locale/currency";
 import { renderCoverPage } from "./pages/cover";
 import { renderOverviewPage } from "./pages/overview";
 import { renderDayPage } from "./pages/day-spread";
@@ -35,6 +37,21 @@ export async function generatePremiumTripPDF(
 
   onProgress?.("Generating cover page...", 45);
 
+  // P1 bug fix (currency conversion): pre-fetch FX rates so the day-spread
+  // renderer can sum FX-converted activity costs for "Day N Total" instead
+  // of trusting `day.daily_budget.total` (which is in the activities'
+  // source currency). Mirrors the Day-6 SharedTripView fix. Target is the
+  // trip's own budget currency (EUR fallback) since PDF has no user-
+  // preferred-currency context.
+  const targetCurrency: CurrencyCode = (trip.budget?.currency || "EUR") as CurrencyCode;
+  let rates: ExchangeRates | null = null;
+  try {
+    rates = await getExchangeRates(targetCurrency);
+  } catch {
+    // FX fetch failed — renderers will degrade to summing in source currency.
+    rates = null;
+  }
+
   // Create page context
   const ctx: PageContext = {
     doc,
@@ -42,6 +59,8 @@ export async function generatePremiumTripPDF(
     yPosition: PDF_CONFIG.margin,
     pageNumber: 1,
     imageCache,
+    rates,
+    targetCurrency,
   };
 
   // === RENDER PAGES ===

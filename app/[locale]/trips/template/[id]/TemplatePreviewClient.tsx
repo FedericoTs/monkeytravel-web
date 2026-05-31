@@ -93,13 +93,32 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   }, [template.id, template.title]);
 
   // Currency conversion hook
-  const { convert: convertCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
     if (amount === 0) return t('price.free');
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
+  };
+
+  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
+  // summing the FX-converted activity costs. Mirrors the Day-6 fix already
+  // shipped in SharedTripView.tsx — the persisted `day.daily_budget.total`
+  // is denominated in the activities' source currency (e.g. JPY) but the
+  // legacy code treated it as `template.budget?.currency || "EUR"`, producing
+  // 100x+ inflated values whenever the template was generated in a different
+  // currency. Summing the converted per-activity amounts is the single
+  // source of truth — eliminates the entire bug class.
+  const formatDayBudget = (day: ItineraryDay): string => {
+    const total = day.activities.reduce((acc, activity) => {
+      const amount = activity.estimated_cost?.amount;
+      const currency = activity.estimated_cost?.currency;
+      if (!amount || !currency) return acc;
+      return acc + convertCurrency(amount, currency).value;
+    }, 0);
+    if (total === 0) return t('price.free');
+    return formatCurrency(total, preferredCurrency);
   };
 
   // Memoize ensureActivityIds
@@ -312,7 +331,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                       <div className="ml-auto text-right">
                         <div className="text-sm text-slate-500">{t('estBudget')}</div>
                         <div className="font-semibold text-slate-900">
-                          {formatPrice(day.daily_budget.total, template.budget?.currency || "EUR")}
+                          {formatDayBudget(day)}
                         </div>
                       </div>
                     )}

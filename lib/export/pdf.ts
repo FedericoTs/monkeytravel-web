@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
-import type { TripForExport } from "@/types";
+import type { TripForExport, ItineraryDay } from "@/types";
+import type { CurrencyCode, ExchangeRates } from "@/lib/locale/types";
 import { formatDateFull } from "@/lib/datetime";
+import { convertCurrency, formatCurrencyValue, getExchangeRates } from "@/lib/locale/currency";
 
 /**
  * Activity type configuration with colors and labels
@@ -44,6 +46,37 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       return true;
     }
     return false;
+  };
+
+  // P1 bug fix (currency conversion): pre-fetch FX rates so we can sum the
+  // day's "Est. Budget" from FX-converted activity costs instead of trusting
+  // the persisted `day.daily_budget.total` (which is in the activities'
+  // source currency and produced 100x+ inflated values on cross-currency
+  // trips). Mirrors the Day-6 fix in SharedTripView.tsx — single source of
+  // truth is per-activity sum. Target currency is the trip's own
+  // budget currency (or EUR fallback), since PDF export has no user-
+  // preferred-currency context server-side.
+  const targetCurrency: CurrencyCode = (trip.budget?.currency || "EUR") as CurrencyCode;
+  let rates: ExchangeRates | null = null;
+  try {
+    rates = await getExchangeRates(targetCurrency);
+  } catch {
+    // FX fetch failed — fall back to no-conversion (sum activities in
+    // their source currency, which is correct for single-currency trips
+    // and a graceful degrade for cross-currency ones).
+    rates = null;
+  }
+
+  const formatDayBudget = (day: ItineraryDay): string => {
+    const total = day.activities.reduce((acc, activity) => {
+      const amount = activity.estimated_cost?.amount;
+      const currency = activity.estimated_cost?.currency;
+      if (!amount || !currency) return acc;
+      if (!rates) return acc + amount; // graceful degrade
+      return acc + convertCurrency(amount, currency as CurrencyCode, targetCurrency, rates);
+    }, 0);
+    if (total === 0) return "Free";
+    return formatCurrencyValue(total, targetCurrency);
   };
 
   // ==================== COVER PAGE ====================
@@ -197,7 +230,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setTextColor(...mutedColor);
       doc.setFontSize(8);
       doc.text(
-        `Day ${day.day_number} estimated: ${trip.budget?.currency || "USD"} ${day.daily_budget.total}`,
+        `Day ${day.day_number} estimated: ${formatDayBudget(day)}`,
         margin + 5,
         yPosition + 6
       );

@@ -39,6 +39,7 @@ import {
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
 import { useToast } from "@/components/ui/Toast";
+import { useCurrency } from "@/lib/locale";
 import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
@@ -200,6 +201,29 @@ export default function TripDetailClient({
   // want to re-namespace the existing tButtons / tTrips translators
   // because that would force a sweep through every existing call site.
   const tCommon = useTranslations('common');
+
+  // Currency conversion hook — converts source-currency activity costs into
+  // the user's preferred currency. Backs formatDayBudget below.
+  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
+
+  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
+  // summing the FX-converted activity costs. Mirrors the Day-6 fix already
+  // shipped in SharedTripView.tsx — the persisted `day.daily_budget.total`
+  // is denominated in the activities' source currency (e.g. JPY) but the
+  // legacy code treated it as `trip.budget?.currency || "USD"`, producing
+  // 100x+ inflated values whenever the AI generated the trip in a different
+  // currency. Summing the converted per-activity amounts is the single
+  // source of truth — eliminates the entire bug class.
+  const formatDayBudget = (day: ItineraryDay): string => {
+    const total = day.activities.reduce((acc, activity) => {
+      const amount = activity.estimated_cost?.amount;
+      const currency = activity.estimated_cost?.currency;
+      if (!amount || !currency) return acc;
+      return acc + convertCurrency(amount, currency).value;
+    }, 0);
+    if (total === 0) return tCommon('activity.free');
+    return formatCurrency(total, preferredCurrency);
+  };
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
@@ -1946,7 +1970,7 @@ export default function TripDetailClient({
                         <div className="text-right">
                           <div className="text-sm text-slate-500">{t('detail.estBudget')}</div>
                           <div className="font-semibold text-slate-900">
-                            {trip.budget?.currency || "USD"} {day.daily_budget.total}
+                            {formatDayBudget(day)}
                           </div>
                         </div>
                       )}

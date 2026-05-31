@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logApiCall } from "@/lib/api-gateway";
-import { generatePackingList } from "@/lib/ai/packing-list";
+import {
+  generatePackingList,
+  type PackingCategoryId,
+} from "@/lib/ai/packing-list";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -61,6 +65,23 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 
 const VALID_STYLES = ["city", "beach", "adventure", "business", "wellness", "mixed"];
 const VALID_LOCALES = ["en", "it", "es"];
+
+/**
+ * Wrap a next-intl translator call so an unknown category id (e.g. if
+ * the model invents a new one) doesn't throw a 500. Falls back to the
+ * id itself — the client also has a tolerant icon map keyed on id, so
+ * surfacing the raw id is preferable to crashing.
+ */
+function safeTranslate(
+  t: (key: string) => string,
+  id: PackingCategoryId
+): string {
+  try {
+    return t(id);
+  } catch {
+    return id;
+  }
+}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -139,6 +160,22 @@ export async function POST(request: NextRequest) {
       activities,
       locale: locale as "en" | "it" | "es",
     });
+
+    // Localize category display labels server-side so the client doesn't
+    // need to re-derive them from the English id. Each id maps to a
+    // string in messages/<locale>/tools.json under
+    // `tools.packingList.categories.<id>`. Pre-fix, the client computed
+    // labels from the id alone — which meant any consumer of the raw
+    // API (PDF generator, email tool, embed) had to duplicate the
+    // mapping. Now `label` is the single source of truth.
+    const tCategories = await getTranslations({
+      locale,
+      namespace: "tools.packingList.categories",
+    });
+    list.categories = list.categories.map((cat) => ({
+      ...cat,
+      label: safeTranslate(tCategories, cat.id),
+    }));
 
     await logApiCall({
       apiName: "gemini",

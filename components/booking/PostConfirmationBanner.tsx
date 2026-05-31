@@ -10,7 +10,7 @@ import {
   generateGetYourGuideLink,
 } from "@/lib/affiliates";
 import { capture } from "@/lib/posthog";
-import { openExternal } from "@/lib/native/external-link";
+import PartnerButton from "./PartnerButton";
 
 interface PostConfirmationBannerProps {
   tripId: string;
@@ -43,15 +43,11 @@ export default function PostConfirmationBanner({
     capture("post_confirmation_banner_dismissed", { trip_id: tripId });
   };
 
-  const handleServiceClick = (service: string, url: string) => {
-    capture("post_confirmation_service_click", {
-      service,
-      destination,
-      trip_id: tripId,
-      url,
-    });
-    openExternal(url);
-  };
+  // Per-partner brand colours preserved from the original design — passed
+  // through the PartnerButton `variant="custom"` escape hatch so analytics
+  // still unify under booking_partner_click while the look stays the same.
+  const ctaBase =
+    "inline-flex items-center justify-center w-full text-center px-3 py-2 text-sm font-medium rounded-lg transition-colors";
 
   return (
     <div
@@ -88,14 +84,20 @@ export default function PostConfirmationBanner({
             <span className="font-medium text-slate-900">{t("activitiesTitle")}</span>
           </div>
           <p className="text-sm text-slate-600 mb-3">{t("activitiesDescription")}</p>
-          <button
-            type="button"
-            onClick={() => handleServiceClick("getyourguide", getYourGuideLink)}
-            data-rel="sponsored noopener noreferrer"
-            className="block w-full text-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+          <PartnerButton
+            partner="getyourguide"
+            href={getYourGuideLink}
+            tripId={tripId}
+            destination={destination}
+            category="post_confirmation"
+            surface="confirmation_banner"
+            variant="custom"
+            showIcon={false}
+            showExternal={false}
+            className={`${ctaBase} bg-purple-600 text-white hover:bg-purple-700`}
           >
             GetYourGuide
-          </button>
+          </PartnerButton>
         </div>
 
         {/* eSIM Card */}
@@ -106,22 +108,34 @@ export default function PostConfirmationBanner({
           </div>
           <p className="text-sm text-slate-600 mb-3">{t("esimDescription")}</p>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleServiceClick("yesim", yesimLink)}
-              data-rel="sponsored noopener noreferrer"
-              className="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            <PartnerButton
+              partner="yesim"
+              href={yesimLink}
+              tripId={tripId}
+              destination={destination}
+              category="post_confirmation"
+              surface="confirmation_banner"
+              variant="custom"
+              showIcon={false}
+              showExternal={false}
+              className={`${ctaBase} flex-1 bg-blue-600 text-white hover:bg-blue-700`}
             >
               Yesim
-            </button>
-            <button
-              type="button"
-              onClick={() => handleServiceClick("saily", sailyLink)}
-              data-rel="sponsored noopener noreferrer"
-              className="flex-1 text-center px-3 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
+            </PartnerButton>
+            <PartnerButton
+              partner="saily"
+              href={sailyLink}
+              tripId={tripId}
+              destination={destination}
+              category="post_confirmation"
+              surface="confirmation_banner"
+              variant="custom"
+              showIcon={false}
+              showExternal={false}
+              className={`${ctaBase} flex-1 bg-slate-100 text-slate-700 hover:bg-slate-200`}
             >
               Saily
-            </button>
+            </PartnerButton>
           </div>
         </div>
 
@@ -136,14 +150,20 @@ export default function PostConfirmationBanner({
           <p className="text-sm text-slate-600 mb-3">
             {t("flightIssuesDescription")}
           </p>
-          <button
-            type="button"
-            onClick={() => handleServiceClick("airhelp", airHelpLink)}
-            data-rel="sponsored noopener noreferrer"
-            className="block w-full text-center px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors"
+          <PartnerButton
+            partner="airhelp"
+            href={airHelpLink}
+            tripId={tripId}
+            destination={destination}
+            category="post_confirmation"
+            surface="confirmation_banner"
+            variant="custom"
+            showIcon={false}
+            showExternal={false}
+            className={`${ctaBase} bg-orange-100 text-orange-700 hover:bg-orange-200`}
           >
             {t("checkAirHelp")}
-          </button>
+          </PartnerButton>
         </div>
       </div>
 
