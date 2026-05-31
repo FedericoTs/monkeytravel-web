@@ -35,32 +35,50 @@ export default function ShareButton({
   const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
   const [openTab, setOpenTab] = useState<"share" | "invite">(initialTab);
 
-  // Fetch current share status and collaborators on mount
+  // Fetch current share status and collaborators on mount.
+  //
+  // 2026-05-30 P0 bug (Alyssa): in some mobile WebView contexts these mount-time
+  // fetches were stalling (service-worker shadow, slow auth refresh, network
+  // blip) and the share button — previously `disabled={isLoading}` — stayed
+  // permanently dead. Tap did nothing, no toast, no recovery.
+  //
+  // Fix: split the two concerns. These fetches drive only the badge/avatar
+  // *decoration* state (isShared label, collaborator count) — the modal itself
+  // already manages its own loading state and refetches on open. So we DO NOT
+  // block the button on these resolving. Worst case: badge is stale for ~1s.
+  // Best case: button is always tappable, modal opens instantly.
   useEffect(() => {
-    async function fetchStatus() {
-      try {
-        // Fetch share status
-        const shareResponse = await fetch(`/api/trips/${tripId}/share`);
-        if (shareResponse.ok) {
-          const data = await shareResponse.json();
-          setIsShared(data.isShared);
-          setShareUrl(data.shareUrl);
-        }
+    let cancelled = false;
 
-        // Fetch collaborators
-        const collabResponse = await fetch(`/api/trips/${tripId}/collaborators`);
-        if (collabResponse.ok) {
-          const data = await collabResponse.json();
-          setCollaborators(data.collaborators || []);
-        }
-      } catch (error) {
-        console.error("Error fetching status:", error);
-      } finally {
-        setIsLoading(false);
+    async function fetchStatus() {
+      // Run both in parallel — no reason to wait serially.
+      const [shareRes, collabRes] = await Promise.allSettled([
+        fetch(`/api/trips/${tripId}/share`).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/trips/${tripId}/collaborators`).then((r) => (r.ok ? r.json() : null)),
+      ]);
+
+      if (cancelled) return;
+
+      if (shareRes.status === "fulfilled" && shareRes.value) {
+        setIsShared(!!shareRes.value.isShared);
+        setShareUrl(shareRes.value.shareUrl ?? null);
+      } else if (shareRes.status === "rejected") {
+        console.warn("[ShareButton] share status fetch failed (non-fatal):", shareRes.reason);
       }
+
+      if (collabRes.status === "fulfilled" && collabRes.value) {
+        setCollaborators(collabRes.value.collaborators || []);
+      } else if (collabRes.status === "rejected") {
+        console.warn("[ShareButton] collaborators fetch failed (non-fatal):", collabRes.reason);
+      }
+
+      setIsLoading(false);
     }
 
     fetchStatus();
+    return () => {
+      cancelled = true;
+    };
   }, [tripId]);
 
   const handleOpen = (tab: "share" | "invite" = "share") => {
@@ -168,9 +186,13 @@ export default function ShareButton({
         <div className="relative">
           <button
             onClick={() => handleOpen("share")}
-            disabled={isLoading}
+            // NOTE: deliberately NOT `disabled={isLoading}` — we used to gate
+            // the button on the mount-time share+collaborators fetches, and a
+            // stalled fetch left the share button permanently dead with no
+            // recovery (P0 reported by Alyssa, 2026-05-30). The modal handles
+            // its own loading state via the `isLoading` prop below.
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50",
+              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
               hasCollaborators
                 ? "bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 hover:from-purple-200 hover:to-blue-200"
                 : isShared

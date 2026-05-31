@@ -786,9 +786,16 @@ export default function ShareAndInviteModal({
           panel were landing here (no handler) instead of the backdrop, so
           the modal stayed open. Mirror the backdrop's onClick here; the
           inner panel's stopPropagation below prevents real form clicks
-          from bubbling and accidentally closing the modal. */}
+          from bubbling and accidentally closing the modal.
+
+          2026-05-30 P1 mobile fix: `min-h-screen` (100vh) over-counts on
+          iOS Safari by the URL bar + home indicator strip, so the
+          centered modal's bottom CTA could land below the visible
+          viewport. Switch to `min-h-dvh` + safe-area padding. (Mirror of
+          the same fix on BaseModal — this modal predates BaseModal
+          adoption so we patch it locally.) */}
       <div
-        className="relative min-h-screen flex items-center justify-center p-4"
+        className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
         onClick={onClose}
       >
         <div

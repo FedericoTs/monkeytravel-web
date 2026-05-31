@@ -201,9 +201,17 @@ export default function BaseModal({
           landed here (no handler) instead of the backdrop — modals
           stayed open. Now mirrors the backdrop's onClick. The modal
           panel's own stopPropagation guard below prevents inner clicks
-          from bubbling, so this only fires for genuine outside-clicks. */}
+          from bubbling, so this only fires for genuine outside-clicks.
+
+          2026-05-30 P1 mobile fix (Alyssa report): `min-h-screen` (100vh)
+          INCLUDES iOS Safari's URL bar + the home indicator strip, so on
+          a 667px iPhone SE the centered modal could push its bottom 80px
+          below the visible viewport — primary CTA was unreachable. Use
+          `min-h-dvh` (dynamic viewport, excludes browser chrome) +
+          safe-area padding-bottom for the home indicator. `min-h-screen`
+          is kept as a fallback for ancient browsers via Tailwind cascade. */}
       <div
-        className="relative min-h-screen flex items-center justify-center p-4"
+        className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
         onClick={handleBackdropClick}
       >
         {/* Modal panel */}

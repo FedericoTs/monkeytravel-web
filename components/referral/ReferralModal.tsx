@@ -102,9 +102,20 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-scale-up">
+      {/* Modal.
+          2026-05-30 P1 mobile fix: `min-h-screen` (100vh) on iOS Safari
+          over-counts by the URL bar + home indicator strip — bottom CTAs
+          could land below the visible viewport on iPhone SE-class devices.
+          `min-h-dvh` excludes browser chrome. Safe-area padding keeps
+          tall modals clear of the iOS home indicator. */}
+      <div
+        className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+        onClick={onClose}
+      >
+        <div
+          className="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-scale-up"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Close button */}
           <button
             onClick={onClose}
