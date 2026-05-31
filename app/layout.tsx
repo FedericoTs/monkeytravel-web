@@ -119,10 +119,11 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
     apple: [
-      // /apple-icon resolves to app/apple-icon.png via Next.js
-      // file-conventions — see scripts/generate-icons.mjs (we don't
-      // emit /public/apple-touch-icon.png anymore).
-      { url: "/apple-icon", sizes: "180x180", type: "image/png" },
+      // /apple-icon.png resolves to app/apple-icon.png via Next.js
+      // file-conventions (the `.png` extension is preserved in the
+      // generated route — verified on prod). We don't emit
+      // /public/apple-touch-icon.png anymore.
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
     other: [
       { rel: "icon", url: "/icon-192.png", sizes: "192x192", type: "image/png" },
