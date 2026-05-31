@@ -22,6 +22,7 @@ import type { Activity } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { generateNearbyCoordinates } from "@/lib/utils/geo";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -324,9 +325,12 @@ export async function populateActivityBank(
     return { count: 0, cost: 0 };
   }
 
-  // Generate activities using AI - ONE call for all types
-  // Use Gemini 2.5 Flash for implicit caching benefits (75% discount on cached tokens)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  // Generate activities using AI - ONE call for all types.
+  // activity-bank → gemini-2.5-flash (batch list generation, benefits
+  // from implicit caching across destinations).
+  const model = genAI.getGenerativeModel({
+    model: getModelForPurpose("activity-bank"),
+  });
 
   const prompt = `Generate a comprehensive list of activities for ${destination}.
 

@@ -12,6 +12,7 @@ import {
   parseStreamedItinerary,
   validateTripParams,
 } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -427,7 +428,7 @@ export async function POST(request: NextRequest) {
           itinerary: sanitized,
           meta: {
             generationTimeMs,
-            model: cacheHit ? "cache" : "gemini-2.5-flash-lite",
+            model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
             cached: cacheHit,
             generatedDays,
             totalDays,

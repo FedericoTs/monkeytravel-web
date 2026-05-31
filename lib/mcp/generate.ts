@@ -7,6 +7,7 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import type {
   GenerateTripInput,
   MCPTripResponse,
@@ -48,9 +49,9 @@ export async function generateMCPTrip(
   // Build prompt
   const prompt = buildMCPPrompt(input);
 
-  // Use Gemini 2.5 Flash for MCP (fast & cheap)
+  // mcp-trip → gemini-2.5-flash (external MCP/ChatGPT endpoint).
   const model = getGenAI().getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: getModelForPurpose("mcp-trip"),
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens: 4096,

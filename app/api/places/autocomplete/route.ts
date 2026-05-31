@@ -5,18 +5,20 @@
  *
  * Uses Google Places Autocomplete (New) API to provide destination suggestions.
  * Filters to cities for travel destination selection.
- * Includes in-memory caching to reduce API costs.
+ * Uses the unified lib/cache.withMemory layer (type: "autocomplete", 30-day TTL)
+ * with prefix-collapsed normalized keys so a typing stream shares one upstream
+ * fetch and hit-rate surfaces in /admin metrics.
  *
  * @see https://developers.google.com/maps/documentation/places/web-service/place-autocomplete
  */
 
 import { NextRequest } from "next/server";
-import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { cache } from "@/lib/cache";
 import type { PlacePrediction } from "@/types";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
@@ -28,47 +30,36 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // stopping a credit-card-DoS script cold. Task #200.
 const anonLimiter = createRateLimiter("places-autocomplete", 60, 60_000);
 
-// In-memory cache for autocomplete (per instance)
-// City name suggestions are very stable - cache longer to reduce API costs
-const autocompleteCache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes (increased from 5 - cities don't change)
-
 /**
- * Generate cache key for autocomplete input
+ * Normalize autocomplete input for cache key generation.
+ *
+ * - lowercase
+ * - trim leading/trailing whitespace
+ * - collapse internal whitespace runs to a single space
+ * - strip trailing punctuation (.,;:!?…)
+ *
+ * Returns the normalized string; callers derive a prefix key from it so
+ * "par", "pari", "paris" all hit the same upstream "par" response (Google's
+ * autocomplete result for the 3-char prefix is a superset; the client-side
+ * filter narrows from there).
  */
-function getCacheKey(input: string): string {
-  const normalized = input.toLowerCase().trim();
-  return crypto.createHash("md5").update(`autocomplete:${normalized}`).digest("hex");
+function normalizeInput(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[.,;:!?…]+$/g, "");
 }
 
 /**
- * Get from in-memory cache
+ * Build the prefix-collapsed cache key. We key on the first 3 normalized
+ * characters so a typing stream (p → pa → par → pari → paris) shares one
+ * upstream Google fetch instead of 5. For inputs shorter than 3 chars we
+ * fall back to the full normalized string (callers gate this path on
+ * input.length >= 2 already).
  */
-function getFromCache(key: string): unknown | null {
-  const cached = autocompleteCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data;
-  }
-  if (cached) {
-    autocompleteCache.delete(key); // Cleanup expired
-  }
-  return null;
-}
-
-/**
- * Save to in-memory cache
- */
-function saveToCache(key: string, data: unknown): void {
-  // Limit cache size to prevent memory issues
-  if (autocompleteCache.size > 500) {
-    // Remove oldest entries
-    const entries = Array.from(autocompleteCache.entries());
-    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-    for (let i = 0; i < 100; i++) {
-      autocompleteCache.delete(entries[i][0]);
-    }
-  }
-  autocompleteCache.set(key, { data, timestamp: Date.now() });
+function getPrefixCacheKey(normalized: string): string {
+  return normalized.length >= 3 ? normalized.slice(0, 3) : normalized;
 }
 
 /**
@@ -234,89 +225,126 @@ export async function POST(request: NextRequest) {
       return errors.internal("Google Places API key not configured", "Places Autocomplete");
     }
 
-    // Check cache first (for inputs >= 3 chars to allow common prefixes to cache)
-    const cacheKey = getCacheKey(input);
-    if (input.length >= 3) {
-      const cached = getFromCache(cacheKey);
-      if (cached) {
-        console.log("[Places Autocomplete] Cache HIT for:", input);
-        logAutocompleteApiRequest({ cacheHit: true });
-        return apiSuccess(cached);
+    // Normalize input + derive prefix cache key. We migrated off a per-instance
+    // Map (which Vercel cold containers couldn't share) to lib/cache.withMemory
+    // so hit-rate shows up in admin metrics and the limiter/LRU is unified.
+    // Prefix-keying means "par"/"pari"/"paris" all hit the same upstream fetch
+    // — Google's autocomplete for "par" is a superset and the client already
+    // narrows letter-by-letter via debounce.
+    const normalizedInput = normalizeInput(input);
+    const prefixKey = getPrefixCacheKey(normalizedInput);
+
+    // Use the prefix-normalized input as the upstream query so cache entries
+    // are reusable across keystrokes within the same prefix bucket.
+    const upstreamInput = normalizedInput.length >= 3 ? prefixKey : normalizedInput;
+
+    // cache.withMemory handles hit/miss + in-flight dedup. We only cache for
+    // inputs >= 3 chars (single/double-letter prefixes are too noisy and
+    // would balloon the working set).
+    let cacheHit = false;
+    let result: { predictions: PlacePrediction[] };
+
+    const fetcher = async (): Promise<{ predictions: PlacePrediction[] }> => {
+      // Call Google Places Autocomplete (New) API with field masking.
+      // Field mask reduces response size by ~20%, saving $0.57/1000 calls.
+      const response = await fetch(
+        "https://places.googleapis.com/v1/places:autocomplete",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            // Only request fields we actually use - reduces payload size
+            "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types",
+          },
+          body: JSON.stringify({
+            input: upstreamInput,
+            includedPrimaryTypes: ["(cities)"], // Filter to cities only
+            languageCode: "en",
+            ...(sessionToken && { sessionToken }),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[Places Autocomplete] API error:", errorText);
+        throw new Error("UPSTREAM_FETCH_FAILED");
       }
-    }
 
-    console.log("[Places Autocomplete] Cache MISS for:", input);
+      const data = await response.json();
 
-    // Call Google Places Autocomplete (New) API with field masking
-    // Field mask reduces response size by ~20%, saving $0.57/1000 calls
-    const response = await fetch(
-      "https://places.googleapis.com/v1/places:autocomplete",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          // Only request fields we actually use - reduces payload size
-          "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types",
-        },
-        body: JSON.stringify({
-          input,
-          includedPrimaryTypes: ["(cities)"], // Filter to cities only
-          languageCode: "en",
-          ...(sessionToken && { sessionToken }),
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[Places Autocomplete] API error:", errorText);
-      return errors.internal("Failed to fetch suggestions", "Places Autocomplete");
-    }
-
-    const data = await response.json();
-
-    // Transform predictions to our format
-    const predictions: PlacePrediction[] = (data.suggestions || [])
-      .filter((suggestion: { placePrediction?: unknown }) => suggestion.placePrediction)
-      .map((suggestion: {
-        placePrediction: {
-          placeId: string;
-          text: { text: string };
-          structuredFormat: {
-            mainText: { text: string };
-            secondaryText?: { text: string };
+      // Transform predictions to our format
+      const predictions: PlacePrediction[] = (data.suggestions || [])
+        .filter((suggestion: { placePrediction?: unknown }) => suggestion.placePrediction)
+        .map((suggestion: {
+          placePrediction: {
+            placeId: string;
+            text: { text: string };
+            structuredFormat: {
+              mainText: { text: string };
+              secondaryText?: { text: string };
+            };
+            types?: string[];
           };
-          types?: string[];
-        };
-      }) => {
-        const pred = suggestion.placePrediction;
-        const structuredFormat = pred.structuredFormat;
-        const countryCode = extractCountryCode(structuredFormat);
+        }) => {
+          const pred = suggestion.placePrediction;
+          const structuredFormat = pred.structuredFormat;
+          const countryCode = extractCountryCode(structuredFormat);
 
-        return {
-          placeId: pred.placeId,
-          mainText: structuredFormat.mainText?.text || "",
-          secondaryText: structuredFormat.secondaryText?.text || "",
-          fullText: pred.text?.text || "",
-          countryCode,
-          flag: countryCode ? getCountryFlag(countryCode) : "🌍",
-          types: pred.types || [],
-        };
-      });
+          return {
+            placeId: pred.placeId,
+            mainText: structuredFormat.mainText?.text || "",
+            secondaryText: structuredFormat.secondaryText?.text || "",
+            fullText: pred.text?.text || "",
+            countryCode,
+            flag: countryCode ? getCountryFlag(countryCode) : "🌍",
+            types: pred.types || [],
+          };
+        });
 
-    const result = { predictions };
+      return { predictions };
+    };
 
-    // Save to cache (only for inputs >= 3 chars)
-    if (input.length >= 3) {
-      saveToCache(cacheKey, result);
+    if (normalizedInput.length >= 3) {
+      try {
+        const cached = await cache.withMemory<{ predictions: PlacePrediction[] }>(
+          "autocomplete",
+          prefixKey,
+          fetcher
+        );
+        result = cached.data;
+        cacheHit = cached.cached;
+        console.log(
+          `[Places Autocomplete] Cache ${cacheHit ? "HIT" : cached.deduped ? "DEDUPED" : "MISS"} for prefix:`,
+          prefixKey
+        );
+      } catch (err) {
+        if (err instanceof Error && err.message === "UPSTREAM_FETCH_FAILED") {
+          return errors.internal("Failed to fetch suggestions", "Places Autocomplete");
+        }
+        throw err;
+      }
+    } else {
+      // Skip cache for <3-char prefixes; just call the fetcher directly.
+      try {
+        result = await fetcher();
+      } catch (err) {
+        if (err instanceof Error && err.message === "UPSTREAM_FETCH_FAILED") {
+          return errors.internal("Failed to fetch suggestions", "Places Autocomplete");
+        }
+        throw err;
+      }
     }
 
-    // Log API usage
-    logAutocompleteApiRequest({ responseTimeMs: Date.now() - startTime });
+    // Log API usage with accurate cache-hit attribution (no cost on cache hit).
+    logAutocompleteApiRequest({
+      cacheHit,
+      responseTimeMs: Date.now() - startTime,
+    });
 
-    // Increment usage counter for authenticated users (only on API calls, not cache hits)
-    if (user) {
+    // Increment usage counter for authenticated users (only on real API calls).
+    if (user && !cacheHit) {
       await incrementUsage(user.id, "placesAutocomplete", 1);
     }
 

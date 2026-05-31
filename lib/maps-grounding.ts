@@ -11,10 +11,15 @@
 import type { TripCreationParams, Activity, ItineraryDay, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import { generateActivityId } from "./utils/activity-id";
+import { getModelEndpointForPurpose } from "./ai/model-router";
 
-// Maps Grounding API endpoint
-const MAPS_GROUNDING_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+// Maps Grounding API endpoint — routed through the model-router so the
+// endpoint stays in sync with the rest of the codebase. The router maps
+// `maps-grounding` → gemini-2.5-flash. NB: if GEMINI_MODEL_OVERRIDE is
+// set to flash-lite or pro the grounding tool will fail; the override
+// is documented as an emergency switch and the operator is expected to
+// know maps-grounding requires flash.
+const MAPS_GROUNDING_ENDPOINT = getModelEndpointForPurpose("maps-grounding");
 
 // Types for Maps Grounding API response
 interface GroundingChunk {

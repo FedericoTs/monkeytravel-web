@@ -22,7 +22,7 @@
  */
 
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@google/generative-ai";
-import { MODELS } from "../gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -211,9 +211,13 @@ export async function extractBooking(emailBody: string): Promise<ParseResult> {
   }
 
   const model = genAI.getGenerativeModel({
-    // premium = gemini-2.5-flash — needed for reliable structured output
-    // on messy email bodies. flash-lite drops fields too often here.
-    model: MODELS.premium,
+    // email-parser → routed via model-router (gemini-2.5-flash-lite per
+    // the 2026-05-31 audit). Historical note: the original code used
+    // flash for "reliable structured output" — but with the responseSchema
+    // contract enforcing the shape, flash-lite is enough and ~3x cheaper.
+    // If we see a regression in extraction quality we can flip
+    // GEMINI_MODEL_OVERRIDE=gemini-2.5-flash as a hot fix.
+    model: getModelForPurpose("email-parser"),
     generationConfig: {
       temperature: 0.1, // Low — we want deterministic field extraction.
       topP: 0.8,

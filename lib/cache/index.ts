@@ -92,13 +92,13 @@ export const CACHE_TTL: Record<CacheType, number> = {
   flight_price: 3 * 60 * 1000,        // 3 minutes
   hotel_offer: 10 * 60 * 1000,        // 10 minutes
   flights: 10 * 60 * 1000,            // 10 minutes
-  autocomplete: 30 * 60 * 1000,       // 30 minutes
 
   // Moderately stable (hours)
   hotels: 2 * 60 * 60 * 1000,         // 2 hours
   weather: 24 * 60 * 60 * 1000,       // 24 hours (was 3h - historical data is stable)
 
   // Very stable (days) - these also use database caching
+  autocomplete: 30 * 24 * 60 * 60 * 1000,   // 30 days — normalized prefix keys; top city suggestions don't change minute-by-minute
   locations: 90 * 24 * 60 * 60 * 1000,      // 90 days (was 24h - IATA codes never change)
   hotel_list: 30 * 24 * 60 * 60 * 1000,     // 30 days (was 24h - hotel lists are stable)
   place_search: 30 * 24 * 60 * 60 * 1000,   // 30 days

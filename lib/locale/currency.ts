@@ -13,8 +13,56 @@ const FRANKFURTER_API = FRANKFURTER_API_BASE;
 // Cache key for localStorage
 const RATES_CACHE_KEY = "monkeytravel-exchange-rates";
 
-// Cache duration: 1 hour (rates update daily around 16:00 CET)
-const CACHE_DURATION_MS = 60 * 60 * 1000;
+// Cache duration: 24 hours. Frankfurter rates update once per day around
+// 16:00 CET, so a 24h window safely covers all derived pair lookups for
+// a full day from a single upstream call per base currency.
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
+
+// ---------------------------------------------------------------------------
+// In-memory cache (24h) keyed by base currency.
+//
+// Frankfurter `/latest?base=X` returns the WHOLE rate table for that base
+// in a single call, so we cache by base and derive every `${base}->${target}`
+// pair from it. This keeps upstream calls at most 1/day per base currency
+// regardless of how many pair lookups happen.
+//
+// We expose pair-level hit logging via `[fx-cache] hit base=X target=Y` so
+// production can observe hit-rate without instrumenting every caller.
+// ---------------------------------------------------------------------------
+type RatesByBase = Map<CurrencyCode, ExchangeRates>;
+const memoryRates: RatesByBase = new Map();
+const inflightRatesFetches = new Map<CurrencyCode, Promise<ExchangeRates>>();
+
+function isFresh(rates: ExchangeRates | undefined | null): rates is ExchangeRates {
+  return !!rates && Date.now() - rates.fetchedAt < CACHE_DURATION_MS;
+}
+
+function logPairHit(base: CurrencyCode, target: CurrencyCode): void {
+  // Single, low-cardinality log line so log aggregators can compute hit rate.
+  // Kept lowercase + bracketed so it greps cleanly alongside other [tag] logs.
+  console.log(`[fx-cache] hit base=${base} target=${target}`);
+}
+
+/**
+ * Look up a single pair `${base}->${target}` from the in-memory cache.
+ * Returns the rate (target per 1 base) or null on miss/stale.
+ * Logs a hit line so we can observe cache effectiveness in prod.
+ */
+export function getCachedPair(
+  base: CurrencyCode,
+  target: CurrencyCode
+): number | null {
+  if (base === target) {
+    logPairHit(base, target);
+    return 1;
+  }
+  const table = memoryRates.get(base);
+  if (!isFresh(table)) return null;
+  const rate = table.rates[target];
+  if (typeof rate !== "number") return null;
+  logPairHit(base, target);
+  return rate;
+}
 
 /**
  * Fetch latest exchange rates from Frankfurter API.
@@ -33,6 +81,12 @@ const FAIL_BACKOFF_MS = 5 * 60 * 1000; // 5 min before retry after a failure
 const FAIL_FLAG_KEY = "monkeytravel-exchange-rates-fail-at";
 
 export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Promise<ExchangeRates> {
+  // Dedupe concurrent fetches for the same base — prevents the worst-case
+  // burst (e.g. 8 components mounting simultaneously) from firing 8 upstream
+  // requests instead of 1.
+  const existing = inflightRatesFetches.get(baseCurrency);
+  if (existing) return existing;
+
   // Backoff guard — skip if we failed recently. This prevents every
   // page navigation from re-triggering a doomed fetch + console error.
   try {
@@ -47,7 +101,7 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Pr
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5_000);
 
-  try {
+  const promise = (async () => {
     const response = await fetch(`${FRANKFURTER_API}/latest?base=${baseCurrency}`, {
       signal: controller.signal,
     });
@@ -65,6 +119,10 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Pr
       fetchedAt: Date.now(),
     };
 
+    // Populate the in-memory 24h cache — single upstream call now
+    // serves every `${base}->${target}` pair lookup for 24 hours.
+    memoryRates.set(rates.base, rates);
+
     // Cache the rates + clear any previous failure flag (we're healthy again).
     try {
       localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(rates));
@@ -74,6 +132,12 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Pr
     }
 
     return rates;
+  })();
+
+  inflightRatesFetches.set(baseCurrency, promise);
+
+  try {
+    return await promise;
   } catch (error) {
     // Persist failure timestamp so the backoff guard above can short-
     // circuit subsequent attempts in this session.
@@ -90,6 +154,7 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode = "EUR"): Pr
     throw error;
   } finally {
     clearTimeout(timeoutId);
+    inflightRatesFetches.delete(baseCurrency);
   }
 }
 
@@ -115,13 +180,28 @@ export function getCachedRates(): ExchangeRates | null {
 }
 
 /**
- * Get exchange rates (from cache or fetch new)
+ * Get exchange rates (from in-memory cache → localStorage → upstream fetch).
+ *
+ * Cache hierarchy:
+ *   1. In-memory Map (24h) — fastest, survives within a tab session
+ *   2. localStorage (24h)  — survives across page reloads in the same browser
+ *   3. Frankfurter API     — single upstream call returns the full pair table
+ *
+ * Because Frankfurter's `/latest?base=X` returns every supported target in
+ * one response, a single fetch hydrates all `${base}->${target}` pairs for
+ * the next 24h. `getCachedPair()` can then resolve any pair from memory.
  */
 export async function getExchangeRates(baseCurrency: CurrencyCode = "EUR"): Promise<ExchangeRates> {
-  const cached = getCachedRates();
+  // Memory layer — fastest path
+  const inMemory = memoryRates.get(baseCurrency);
+  if (isFresh(inMemory)) {
+    return inMemory;
+  }
 
-  // If we have valid cached rates with the same base, use them
+  // localStorage layer — hydrates memory on first read this session
+  const cached = getCachedRates();
   if (cached && cached.base === baseCurrency) {
+    memoryRates.set(cached.base, cached);
     return cached;
   }
 
@@ -140,6 +220,15 @@ export function convertCurrency(
   if (fromCurrency === toCurrency) {
     return amount;
   }
+
+  // Opportunistically warm + observe the in-memory pair cache so
+  // `[fx-cache] hit base=X target=Y` lines fire on the real call path.
+  // The rates object we were handed is authoritative for this conversion,
+  // but mirroring into the memory map lets other callers benefit too.
+  if (!memoryRates.has(rates.base)) {
+    memoryRates.set(rates.base, rates);
+  }
+  getCachedPair(fromCurrency, toCurrency);
 
   // If the base currency matches our from currency
   if (rates.base === fromCurrency) {

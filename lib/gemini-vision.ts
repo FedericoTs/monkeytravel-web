@@ -16,7 +16,8 @@
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { MODELS } from "./gemini";
+import { logCacheMetrics } from "./gemini";
+import { getModelForPurpose } from "./ai/model-router";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -130,7 +131,10 @@ export async function extractTripContext(
   }
 
   const model = genAI.getGenerativeModel({
-    model: MODELS.premium, // Flash, not flash-lite — vision quality matters here
+    // photo-extract → gemini-2.5-flash (multimodal vision required;
+    // flash-lite doesn't ship vision support for the inline-data path
+    // we use here).
+    model: getModelForPurpose("photo-extract"),
     generationConfig: {
       temperature: 0.3, // Low for factual extraction
       topP: 0.8,
@@ -241,6 +245,13 @@ export async function extractTripContext(
   const response = await model.generateContent({
     contents: [{ role: "user", parts }],
   });
+
+  // Wire prompt-cache hit-rate monitoring. Vision calls are dominated by
+  // the (non-cacheable) image bytes, so cache-hit rate will be naturally
+  // low for image-only requests and higher for text/URL inputs that
+  // re-use the long EXTRACTION_PROMPT prefix. The rolling alert in
+  // logCacheMetrics catches a *trend* change, not the per-call rate.
+  logCacheMetrics("ai.extract-trip-context", response.response.usageMetadata);
 
   const text = response.response.text();
 

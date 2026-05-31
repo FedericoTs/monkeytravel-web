@@ -14,9 +14,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { isAdmin } from "@/lib/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getModelEndpointForPurpose } from "@/lib/ai/model-router";
 
 const GEMINI_API_KEY = process.env.GOOGLE_AI_API_KEY;
-const MAPS_GROUNDING_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+// Routed via model-router → maps-grounding maps to gemini-2.5-flash.
+const MAPS_GROUNDING_ENDPOINT = getModelEndpointForPurpose("maps-grounding");
 
 interface MapsGroundingRequest {
   destination: string;

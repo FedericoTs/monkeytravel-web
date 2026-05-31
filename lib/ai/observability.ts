@@ -60,6 +60,7 @@ export type AiModel =
   | "maps-grounding"
   | "gemini-2.5-flash-lite"
   | "gemini-2.5-flash"
+  | "gemini-2.5-pro"
   | "n/a";
 
 export interface AiOutcomeInput {

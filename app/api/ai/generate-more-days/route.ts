@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
@@ -227,7 +228,7 @@ export async function POST(request: NextRequest) {
       days: newDays,
       meta: {
         generationTimeMs: generationTime,
-        model: "gemini-2.5-flash-lite",
+        model: getModelForPurpose("generate-more-days"),
         startFromDay,
         daysGenerated: newDays.length,
         totalDays,

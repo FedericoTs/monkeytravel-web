@@ -3,6 +3,7 @@ import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, Us
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
+import { getModelForPurpose } from "./ai/model-router";
 import {
   withDeduplication,
   getItineraryDedupKey,
@@ -50,7 +51,17 @@ const CACHE_HIT_RATE_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 alert/hour max
 let cacheHitRolling: number[] = []; // % per call (0-100)
 let lastCacheAlertAt = 0;
 
-function logCacheMetrics(
+/**
+ * Exported so every API route that calls Gemini can wire the same
+ * rolling cache-hit metric, instead of each route reinventing its own
+ * (or — as was the case before 2026-05-31 — silently skipping it and
+ * letting prompt-cache regressions burn money invisibly).
+ *
+ * Call this AFTER any `model.generateContent(...)` /
+ * `model.generateContentStream(...)` and pass `response.usageMetadata`
+ * along with a stable route label (e.g. "concierge", "assistant.new_activity").
+ */
+export function logCacheMetrics(
   endpoint: string,
   usageMetadata?: {
     promptTokenCount?: number;
@@ -123,7 +134,11 @@ function logCacheMetrics(
 }
 
 // Model configurations
-// Updated to Gemini 2.5 for implicit caching (75-90% discount on cached tokens)
+// NOTE: kept for backward compat with callers that still import MODELS
+// (e.g. lib/email-parse/extract.ts, lib/gemini-vision.ts). New code should
+// route through `getModelForPurpose(...)` in `lib/ai/model-router.ts` so
+// the routing matrix + env override (GEMINI_MODEL_OVERRIDE) live in one
+// place.
 // See: https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/
 export const MODELS = {
   fast: "gemini-2.5-flash-lite",      // Cheapest with implicit caching ($0.10/1M → $0.025 with cache)
@@ -627,14 +642,25 @@ async function generateItineraryInternal(
   const MAX_RETRIES = 2;
   const startTime = performance.now();
 
-  const modelName = MODELS.fast;
+  // Route through model-router so the routing matrix lives in one place.
+  // trip-generation → gemini-2.5-pro (full itinerary, quality matters).
+  const modelName = getModelForPurpose("trip-generation");
+
+  // maxOutputTokens: lowered from 8192 → 6000 per the 2026-05-31 API
+  // audit. ~25% output cost savings on the long tail (Gemini bills for
+  // the cap, not the actual emitted tokens, on certain configurations).
+  // Median trip is 3-5 days @ ~750 tokens/day = ~3k tokens — well under
+  // the new ceiling. The 1% tail of 12-14 day trips that would exceed
+  // 6000 tokens will truncate the final day's tips/cost block; the
+  // post-process coordinate fixer + JSON.parse failure path will retry
+  // with the lower-temperature branch which produces tighter output.
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
       temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 8192, // Increased to support trips up to 14 days (~750 tokens/day)
+      maxOutputTokens: 6000,
       responseMimeType: "application/json",
     },
   });
@@ -831,7 +857,8 @@ async function regenerateSingleActivityInternal(
 ): Promise<Activity> {
   const MAX_RETRIES = 2;
   const startTime = performance.now();
-  const modelName = MODELS.fast;
+  // activity-regenerate → gemini-2.5-flash-lite (cheapest, single activity).
+  const modelName = getModelForPurpose("activity-regenerate");
 
   const model = genAI.getGenerativeModel({
     model: modelName,
@@ -1088,7 +1115,8 @@ async function regenerateSingleDayInternal(
 ): Promise<ItineraryDay> {
   const MAX_RETRIES = 2;
   const startTime = performance.now();
-  const modelName = MODELS.fast;
+  // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
+  const modelName = getModelForPurpose("day-regenerate");
 
   const model = genAI.getGenerativeModel({
     model: modelName,
@@ -1509,7 +1537,8 @@ async function generateMoreDaysInternal(
 ): Promise<ItineraryDay[]> {
   const MAX_RETRIES = 2;
   const startTime = performance.now();
-  const modelName = MODELS.fast;
+  // generate-more-days → gemini-2.5-flash (continuation; needs context coherence).
+  const modelName = getModelForPurpose("generate-more-days");
 
   const model = genAI.getGenerativeModel({
     model: modelName,
@@ -1780,14 +1809,17 @@ export async function* generateItineraryStream(
   options?: GenerationOptions & { userId?: string }
 ): AsyncGenerator<StreamYield, void, unknown> {
   const startTime = performance.now();
-  const modelName = MODELS.fast;
+  // Streaming trip generation → same purpose as the non-streaming path.
+  const modelName = getModelForPurpose("trip-generation");
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
       temperature: 1.0,
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 8192,
+      // Matches the non-streaming path (lowered 8192 → 6000 per the
+      // 2026-05-31 audit; see generateItineraryInternal for rationale).
+      maxOutputTokens: 6000,
       responseMimeType: "application/json",
     },
   });

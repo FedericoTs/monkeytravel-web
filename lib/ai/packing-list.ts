@@ -13,6 +13,8 @@
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { logCacheMetrics } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -131,7 +133,8 @@ export async function generatePackingList(
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
+    // packing-list → gemini-2.5-flash-lite (deterministic list, cheap).
+    model: getModelForPurpose("packing-list"),
     generationConfig: {
       temperature: 0.4, // Slightly creative for personality but mostly deterministic
       responseMimeType: "application/json",
@@ -142,6 +145,12 @@ export async function generatePackingList(
   const response = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
   });
+
+  // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
+  // Without this, silent regressions on the packing-list prompt prefix
+  // (e.g. a future timestamp injection) would burn input-token cost
+  // invisibly. Cheap call — just emits to console + rolling Sentry alert.
+  logCacheMetrics("tools.packing-list", response.response.usageMetadata);
 
   const raw = response.response.text();
   let parsed: unknown;

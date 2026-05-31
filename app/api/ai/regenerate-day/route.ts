@@ -21,6 +21,7 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -294,7 +295,7 @@ export async function POST(request: NextRequest) {
       dayIndex,
       meta: {
         generationTimeMs: generationTime,
-        model: "gemini-2.5-flash-lite",
+        model: getModelForPurpose("day-regenerate"),
       },
       usage: updatedUsage,
     });

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { regenerateSingleActivity } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -176,7 +177,7 @@ export async function POST(request: NextRequest) {
       activity: newActivity,
       meta: {
         generationTimeMs: generationTime,
-        model: "gemini-2.5-flash-lite",
+        model: getModelForPurpose("activity-regenerate"),
       },
       usage: updatedUsage,
     });

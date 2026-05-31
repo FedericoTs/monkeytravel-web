@@ -11,6 +11,7 @@ import {
   INITIAL_DAYS_TO_GENERATE,
   INCREMENTAL_GENERATION_THRESHOLD,
 } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import {
   generateItineraryWithMapsGrounding,
   isMapsGroundingAvailable,
@@ -338,7 +339,7 @@ export async function POST(request: NextRequest) {
         ? "cache"
         : usedMapsGrounding
           ? "maps-grounding"
-          : "gemini-2.5-flash-lite",
+          : getModelForPurpose("trip-generation"),
       cacheHit,
       durationMs: generationTime,
       userId: user?.id ?? null,
@@ -378,7 +379,7 @@ export async function POST(request: NextRequest) {
       itinerary: sanitizedItinerary,
       meta: {
         generationTimeMs: generationTime,
-        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : "gemini-2.5-flash-lite",
+        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),
         cached: cacheHit,
         // Incremental generation metadata
         isPartial: isPartialGeneration,

@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { logCacheMetrics } from "@/lib/gemini";
 import { cookies } from "next/headers";
 import {
   classifyTask,
   selectModel,
   estimateCost,
 } from "@/lib/ai/config";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -581,8 +583,11 @@ async function generateNewActivity(
   console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
   console.log(`[AI Assistant] Suggested start time: ${suggestedStartTime || "not specified"}`);
 
-  // Use Gemini 2.5 Flash for implicit caching (75% discount on repeated prompts)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  // assistant-suggest → gemini-2.5-flash (single activity suggestion with
+  // implicit caching across same-day requests).
+  const model = genAI.getGenerativeModel({
+    model: getModelForPurpose("assistant-suggest"),
+  });
 
   // Extract geographic context from other activities on the same day
   const geoContext = extractGeographicContext(sameDayActivities);
@@ -697,6 +702,12 @@ CRITICAL TIMING RULES:
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
+
+  // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). The new-
+  // activity prompt has a long stable preamble (rules + schema) so we
+  // expect a high implicit-cache-hit rate. A drop signals someone shoved
+  // a timestamp / user-id into the prefix.
+  logCacheMetrics("ai.assistant.new_activity", result.response.usageMetadata);
 
   // Parse JSON from response
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -1287,8 +1298,11 @@ export async function POST(request: NextRequest) {
             }
           } else {
             // Full day optimization - use AI to suggest optimal order
-            // Use Gemini 2.5 Flash for implicit caching (75% discount on repeated prompts)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            // assistant-optimize → gemini-2.5-flash (day-level reasoning
+            // benefits from implicit caching across repeated optimisations).
+  const model = genAI.getGenerativeModel({
+    model: getModelForPurpose("assistant-optimize"),
+  });
 
             const activitiesInfo = targetDay.activities.map((a, i) => ({
               index: i,
@@ -1314,6 +1328,13 @@ Return ONLY a JSON array with the optimal order of activity indices:
 
             const result = await model.generateContent(optimizePrompt);
             const text = result.response.text();
+
+            // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
+            // The day-optimization prompt is short and largely per-trip, so
+            // expect lower cache-hit rate here than other call sites — but
+            // we still want the metric to catch a sudden drop to ~0%.
+            logCacheMetrics("ai.assistant.optimize_day", result.response.usageMetadata);
+
             const jsonMatch = text.match(/\{[\s\S]*\}/);
 
             if (jsonMatch) {
@@ -1471,6 +1492,12 @@ Respond with valid JSON only.`;
     const model = genAI.getGenerativeModel({ model: modelConfig.id });
     const result = await model.generateContent(fullPrompt);
     const responseText = result.response.text();
+
+    // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). This is
+    // the main chat-message call — buildSystemPrompt produces a long
+    // stable preamble so this site should dominate the rolling window
+    // with healthy cache hits.
+    logCacheMetrics("ai.assistant.chat", result.response.usageMetadata);
 
     // Parse JSON response
     let parsedResponse: StructuredAssistantResponse;

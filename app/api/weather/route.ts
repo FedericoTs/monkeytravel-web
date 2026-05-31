@@ -203,18 +203,30 @@ export async function GET(request: NextRequest) {
       return errors.badRequest("Missing required parameters: latitude, longitude, startDate, endDate");
     }
 
+    // Edge CDN cache headers — only set when no Authorization header is present.
+    // Historical weather data is static and identical per (lat/lng/dates) tuple,
+    // so we can safely offload most hits to the CDN edge for a full day.
+    // Responses with user-specific auth must NOT be cached publicly.
+    const hasAuthHeader = request.headers.has("authorization");
+    const edgeCacheHeaders: Record<string, string> | undefined = hasAuthHeader
+      ? undefined
+      : { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=86400" };
+
     // Check cache first (7-day TTL for historical weather data)
     const cacheKey = getWeatherCacheKey(latitude, longitude, startDate, endDate);
     const cachedWeather = await getCachedWeather(cacheKey);
 
     if (cachedWeather) {
       console.log(`[Weather] Cache HIT for ${latitude},${longitude}`);
-      return apiSuccess({
-        weather: cachedWeather,
-        source: "open-meteo",
-        cached: true,
-        basedOn: `Cached historical data`,
-      });
+      return apiSuccess(
+        {
+          weather: cachedWeather,
+          source: "open-meteo",
+          cached: true,
+          basedOn: `Cached historical data`,
+        },
+        edgeCacheHeaders ? { headers: edgeCacheHeaders } : undefined
+      );
     }
 
     console.log(`[Weather] Cache MISS for ${latitude},${longitude}`);
@@ -338,12 +350,15 @@ export async function GET(request: NextRequest) {
       historicalDates,
     });
 
-    return apiSuccess({
-      weather: weatherData,
-      source: "open-meteo",
-      cached: false,
-      basedOn: `Historical data from ${historicalDates.start} to ${historicalDates.end}`,
-    });
+    return apiSuccess(
+      {
+        weather: weatherData,
+        source: "open-meteo",
+        cached: false,
+        basedOn: `Historical data from ${historicalDates.start} to ${historicalDates.end}`,
+      },
+      edgeCacheHeaders ? { headers: edgeCacheHeaders } : undefined
+    );
   } catch (error) {
     // Handle circuit breaker open state
     if (error instanceof CircuitOpenError) {

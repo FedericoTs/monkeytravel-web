@@ -25,6 +25,8 @@
 
 import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { logCacheMetrics } from "@/lib/gemini";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -34,6 +36,57 @@ import type { ItineraryDay } from "@/types";
 
 const MAX_QUESTION_LENGTH = 800;
 const MAX_RESPONSE_TOKENS = 500;
+
+/**
+ * Per-process trip-context cache.
+ *
+ * Concierge users typically fire 2-3 follow-up questions in a row about the
+ * same open trip. Each request previously triggered a fresh Supabase SELECT
+ * of the full itinerary JSONB — a noticeable share of DB load on heavy days
+ * and pure waste, since the trip rarely changes mid-conversation.
+ *
+ * We key by `${userId}|${tripId}` so collaborators on a shared trip don't
+ * leak each other's RLS view (RLS still ran for the cached row when we
+ * first fetched it for that user). 60s TTL is short enough that "Modifica
+ * Viaggio" edits become visible quickly, long enough to catch the realistic
+ * follow-up window.
+ *
+ * In-process Map. No cross-instance coherence — that's fine: stale reads
+ * are at worst 60s old and the next instance will warm its own cache.
+ */
+type TripRow = {
+  id: string;
+  title?: string;
+  destination?: string;
+  start_date: string;
+  end_date: string;
+  itinerary?: unknown;
+};
+
+const TRIP_CACHE_TTL_MS = 60_000;
+const tripContextCache = new Map<
+  string,
+  { row: TripRow; expiresAt: number }
+>();
+
+function getCachedTrip(userId: string, tripId: string): TripRow | null {
+  const key = `${userId}|${tripId}`;
+  const entry = tripContextCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    tripContextCache.delete(key);
+    return null;
+  }
+  return entry.row;
+}
+
+function setCachedTrip(userId: string, tripId: string, row: TripRow): void {
+  const key = `${userId}|${tripId}`;
+  tripContextCache.set(key, {
+    row,
+    expiresAt: Date.now() + TRIP_CACHE_TTL_MS,
+  });
+}
 
 const SYSTEM_PROMPT = `You are MonkeyTravel's in-trip Concierge — a real-time travel companion for a SPECIFIC saved trip the user has open right now.
 
@@ -102,19 +155,29 @@ export async function POST(request: NextRequest) {
 
     // Load the trip — owner OR collaborator (RLS handles that filter).
     // We pull only the fields the prompt needs to keep tokens down.
-    const { data: trip, error: tripErr } = await supabase
-      .from("trips")
-      .select("id, title, destination, start_date, end_date, itinerary")
-      .eq("id", tripId)
-      .maybeSingle();
-    if (tripErr) {
-      console.error("[concierge] trip load failed", tripErr);
-      return errors.internal("Failed to load trip context", "concierge");
-    }
+    //
+    // 60s per-process memo: same (user, trip) follow-ups (the common case)
+    // skip the SELECT entirely. RLS still ran for this user on the first
+    // fetch, so caching the row is safe — we only serve it back to the
+    // same userId. See `getCachedTrip` / `setCachedTrip` above.
+    let trip = getCachedTrip(user.id, tripId);
     if (!trip) {
-      return errors.notFound(
-        "Trip not found or you don't have access to it"
-      );
+      const { data: row, error: tripErr } = await supabase
+        .from("trips")
+        .select("id, title, destination, start_date, end_date, itinerary")
+        .eq("id", tripId)
+        .maybeSingle();
+      if (tripErr) {
+        console.error("[concierge] trip load failed", tripErr);
+        return errors.internal("Failed to load trip context", "concierge");
+      }
+      if (!row) {
+        return errors.notFound(
+          "Trip not found or you don't have access to it"
+        );
+      }
+      trip = row as TripRow;
+      setCachedTrip(user.id, tripId, trip);
     }
 
     // Resolve today's day-in-trip if we're inside the trip window.
@@ -130,15 +193,18 @@ export async function POST(request: NextRequest) {
 
     const tripContext = buildTripContext(trip, todaySlice);
 
-    // Call Gemini. flash-lite is fine — concierge questions are short
-    // and don't need standard tier. Saves ~75% on input cost.
+    // Call Gemini. Routed via model-router → concierge maps to
+    // gemini-2.5-flash per the 2026-05-31 audit (audit bumped this from
+    // the previous flash-lite to flash for better contextual answers on
+    // longer trip plans — flash-lite struggled with multi-day context).
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) {
       return errors.serviceUnavailable("AI not configured");
     }
     const genAI = new GoogleGenerativeAI(apiKey);
+    const conciergeModel = getModelForPurpose("concierge");
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-lite",
+      model: conciergeModel,
       generationConfig: {
         temperature: 0.6, // some warmth but mostly factual
         maxOutputTokens: MAX_RESPONSE_TOKENS,
@@ -199,6 +265,18 @@ export async function POST(request: NextRequest) {
               const text = chunk.text();
               if (text) emit({ type: "chunk", text });
             }
+
+            // Wire prompt-cache hit-rate monitoring. The SDK exposes the
+            // aggregated final response (with usageMetadata) on
+            // `result.response` once the stream is fully consumed —
+            // best-effort, never block the user's "done" event on it.
+            try {
+              const finalResponse = await result.response;
+              logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata);
+            } catch {
+              /* usageMetadata is best-effort — don't fail the request */
+            }
+
             emit({
               type: "done",
               isLiveTrip: todaySlice !== null,
@@ -225,7 +303,7 @@ export async function POST(request: NextRequest) {
             void recordAiOutcome({
               endpoint: "assistant",
               outcome: "success",
-              model: "gemini-2.5-flash-lite",
+              model: conciergeModel,
               durationMs: Date.now() - startTime,
               userId: user.id,
               metadata: {
@@ -244,7 +322,7 @@ export async function POST(request: NextRequest) {
             void recordAiOutcome({
               endpoint: "assistant",
               outcome: "failure",
-              model: "gemini-2.5-flash-lite",
+              model: conciergeModel,
               durationMs: Date.now() - startTime,
               error: err,
               userId: user.id,
@@ -285,6 +363,12 @@ export async function POST(request: NextRequest) {
         contents: promptContents,
       });
       responseText = result.response.text().trim();
+
+      // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
+      // The concierge SYSTEM_PROMPT is a stable prefix — should see a
+      // high implicit-cache-hit rate. If this drops, we've added a
+      // non-cacheable prefix and are silently leaking money.
+      logCacheMetrics("ai.concierge", result.response.usageMetadata);
     } catch (err) {
       console.error("[concierge] Gemini call failed", err);
 
@@ -292,7 +376,7 @@ export async function POST(request: NextRequest) {
         endpoint: "assistant", // bucket under the same tag — concierge is
         // the same conceptual surface as the planning assistant
         outcome: "failure",
-        model: "gemini-2.5-flash-lite",
+        model: conciergeModel,
         durationMs: Date.now() - startTime,
         error: err,
         userId: user.id,
@@ -342,7 +426,7 @@ export async function POST(request: NextRequest) {
     void recordAiOutcome({
       endpoint: "assistant",
       outcome: "success",
-      model: "gemini-2.5-flash-lite",
+      model: conciergeModel,
       durationMs: Date.now() - startTime,
       userId: user.id,
       metadata: {

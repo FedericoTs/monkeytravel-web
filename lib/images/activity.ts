@@ -2,70 +2,50 @@
  * Server-side activity image fetching
  * Used by AI generate API to fetch images before returning to client
  * This prevents the race condition where users save before images load
+ *
+ * 2026-05-31 dedup pass (task #339):
+ * - Migrated the ad-hoc memory + DB cache to `cache.withDatabase('place_search', ...)`.
+ *   This is the SAME pool used by other place_search consumers, so a lookup any
+ *   trip generation has ever done benefits every future trip generation.
+ * - `fetchActivityImages` now collects ALL activity names across ALL days first,
+ *   deduplicates by normalized key, then resolves each unique key exactly once
+ *   in parallel — so e.g. a trip with "Colosseum" on day 2 and day 5 makes ONE
+ *   Places call, not two. (`cache.withDatabase` also dedupes in-flight requests
+ *   across concurrent route invocations via its inflight map.)
+ * - TTL extended from 30 days to 365 days. Places metadata (photo refs, coords)
+ *   for popular tourist sites is effectively immutable.
  */
 
-import { supabase } from "@/lib/supabase";
-import crypto from "crypto";
+import { cache } from "@/lib/cache";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
-// Database cache duration: 30 days for place photos
-const DB_CACHE_DURATION_DAYS = 30;
-
-// In-memory cache (per-instance, for speed)
-const imageCache = new Map<string, { url: string; timestamp: number }>();
-const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in-memory
+// 365 days — Places metadata for popular tourist sites is effectively immutable.
+// Photo reference names from the new Places API are stable, and our /api/places/photo
+// proxy resolves them on demand, so a stale ref still works.
+const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 
 /**
- * Generate cache key hash for an activity
+ * Normalize an activity name + destination into a stable cache key.
+ * Lowercased, trimmed, punctuation stripped, internal whitespace collapsed.
+ * Two activities that differ only in casing or punctuation share the same key.
+ *
+ * Examples:
+ *   "Colosseum, Rome" + "Rome, Italy"   → "colosseum rome|rome italy"
+ *   "colosseum  rome" + "rome, italy"   → "colosseum rome|rome italy"
+ *   "The Colosseum!"  + "Rome"          → "the colosseum|rome"
  */
-function generateCacheKey(name: string, destination: string): string {
-  const normalized = `${name}|${destination}`.toLowerCase().trim();
-  return crypto.createHash("md5").update(normalized).digest("hex");
-}
+export function normalizeActivityKey(name: string, destination: string): string {
+  const clean = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")  // strip combining accents
+      .replace(/[^\p{L}\p{N}\s|]/gu, " ") // drop punctuation (keep letters/numbers/whitespace)
+      .replace(/\s+/g, " ")
+      .trim();
 
-/**
- * Check database cache for existing image
- */
-async function getFromDbCache(cacheKey: string): Promise<string | null> {
-  try {
-    const { data, error } = await supabase
-      .from("google_places_cache")
-      .select("data")
-      .eq("place_id", `activity_img_${cacheKey}`)
-      .gt("expires_at", new Date().toISOString())
-      .single();
-
-    if (error || !data) return null;
-    return (data.data as { imageUrl?: string })?.imageUrl || null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Save image URL to database cache
- */
-async function saveToDbCache(cacheKey: string, imageUrl: string): Promise<void> {
-  try {
-    const expiresAt = new Date(Date.now() + DB_CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
-
-    await supabase.from("google_places_cache").upsert(
-      {
-        place_id: `activity_img_${cacheKey}`,
-        cache_type: "activity_image",
-        data: { imageUrl },
-        request_hash: cacheKey,
-        cached_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        hit_count: 0,
-        last_accessed_at: new Date().toISOString(),
-      },
-      { onConflict: "place_id" }
-    );
-  } catch (error) {
-    console.error("[Activity Images] Cache save error:", error);
-  }
+  return `${clean(name)}|${clean(destination)}`;
 }
 
 /**
@@ -201,48 +181,58 @@ function getCuratedImage(type: string, index: number = 0): string {
 }
 
 /**
- * Fetch image for a single activity
+ * Stable curated-image picker based on activity name. Returns the same image
+ * for the same name+type combo so a fallback hit is deterministic.
  */
-async function fetchSingleActivityImage(
+function curatedFor(name: string, type: string): string {
+  const hashIndex = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return getCuratedImage(type || "attraction", hashIndex);
+}
+
+/**
+ * Cached payload shape stored under the place_search pool.
+ * We persist the resolved image URL (or `null` if Places couldn't help) so a
+ * "Places returned nothing" miss is itself cached — we don't re-burn quota
+ * looking up activities that have no Places match.
+ */
+interface CachedActivityImage {
+  imageUrl: string | null;
+}
+
+/**
+ * Resolve a single unique activity via the unified place_search cache.
+ * Uses cache.withDatabase so we get: in-memory layer + cross-trip DB cache +
+ * in-flight request dedup, all for free.
+ */
+async function resolveActivityImage(
   name: string,
-  type: string,
-  destination: string
-): Promise<string> {
-  const cacheKey = generateCacheKey(name, destination);
+  destination: string,
+  normalizedKey: string
+): Promise<string | null> {
+  // Cache namespace + identifier. `cache.generateKey` will MD5 these together,
+  // but the input is our pre-normalized key so two callers asking for
+  // "Colosseum, Rome" / "Rome, Italy" hit the same row regardless of casing
+  // or punctuation drift in the input.
+  const { data } = await cache.withDatabase<CachedActivityImage>(
+    "place_search",
+    `activity_img:${normalizedKey}`,
+    {
+      cacheDays: ACTIVITY_IMAGE_CACHE_DAYS,
+      cacheType: "activity_image",
+      fetcher: async () => {
+        let url: string | null = null;
+        if (destination) {
+          url = await fetchFromGooglePlaces(`${name} ${destination}`);
+        }
+        if (!url) {
+          url = await fetchFromGooglePlaces(name);
+        }
+        return { imageUrl: url };
+      },
+    }
+  );
 
-  // 1. Check in-memory cache
-  const memCached = imageCache.get(cacheKey);
-  if (memCached && Date.now() - memCached.timestamp < CACHE_TTL) {
-    return memCached.url;
-  }
-
-  // 2. Check database cache
-  const dbCached = await getFromDbCache(cacheKey);
-  if (dbCached) {
-    imageCache.set(cacheKey, { url: dbCached, timestamp: Date.now() });
-    return dbCached;
-  }
-
-  // 3. Try Google Places API
-  let url: string | null = null;
-  if (destination) {
-    url = await fetchFromGooglePlaces(`${name} ${destination}`);
-  }
-  if (!url) {
-    url = await fetchFromGooglePlaces(name);
-  }
-
-  // 4. Fall back to curated if Google fails
-  if (!url) {
-    const hashIndex = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    url = getCuratedImage(type, hashIndex);
-  } else {
-    // Only cache Google results to DB
-    await saveToDbCache(cacheKey, url);
-  }
-
-  imageCache.set(cacheKey, { url, timestamp: Date.now() });
-  return url;
+  return data?.imageUrl ?? null;
 }
 
 export interface ActivityWithImage {
@@ -252,8 +242,18 @@ export interface ActivityWithImage {
 }
 
 /**
- * Fetch images for all activities in an itinerary
- * Used by AI generate API to populate images before returning
+ * Fetch images for all activities in an itinerary.
+ * Used by AI generate API to populate images before returning.
+ *
+ * Dedup strategy (2026-05-31):
+ *   1. Flatten every activity across every day.
+ *   2. Skip any that already have `image_url`.
+ *   3. Group by normalized key — same key → same Places lookup.
+ *   4. Resolve each UNIQUE key exactly once in parallel.
+ *   5. Fan the resolved URL back out to every activity that shared that key.
+ *
+ * A trip with "Colosseum" on day 2 and day 5 makes one Places call, not two.
+ * Across trips, the place_search DB cache ensures the second trip pays nothing.
  *
  * @param days - Array of itinerary days with activities
  * @param destination - Trip destination for context
@@ -264,40 +264,84 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   destination: string
 ): Promise<T[]> {
   const startTime = Date.now();
-  let fetchedCount = 0;
 
-  // Process in batches of 5 for parallel fetching (rate limit friendly)
-  const BATCH_SIZE = 5;
+  // ---------- Step 1+2: collect activities needing resolution. ----------
+  // We track each occurrence by its (day, index) so we can write the URL
+  // back to the exact reference later.
+  type Pending = {
+    activity: ActivityWithImage;
+    normalizedKey: string;
+    name: string;
+    type: string;
+  };
 
+  const pending: Pending[] = [];
   for (const day of days) {
-    for (let i = 0; i < day.activities.length; i += BATCH_SIZE) {
-      const batch = day.activities.slice(i, i + BATCH_SIZE);
-
-      await Promise.all(
-        batch.map(async (activity) => {
-          // Skip if already has an image
-          if (activity.image_url) return;
-
-          try {
-            activity.image_url = await fetchSingleActivityImage(
-              activity.name,
-              activity.type || "attraction",
-              destination
-            );
-            fetchedCount++;
-          } catch (error) {
-            console.error(`[Activity Images] Error fetching image for ${activity.name}:`, error);
-            // Use fallback on error
-            const hashIndex = activity.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            activity.image_url = getCuratedImage(activity.type || "attraction", hashIndex);
-          }
-        })
-      );
+    for (const activity of day.activities) {
+      if (activity.image_url) continue; // already has one — skip
+      const name = activity.name || "";
+      if (!name) continue;
+      pending.push({
+        activity,
+        normalizedKey: normalizeActivityKey(name, destination || ""),
+        name,
+        type: activity.type || "attraction",
+      });
     }
   }
 
+  // ---------- Step 3: dedupe by normalized key. ----------
+  // groups[key] = list of every activity reference that wants this key's URL.
+  const groups = new Map<string, Pending[]>();
+  for (const p of pending) {
+    const list = groups.get(p.normalizedKey);
+    if (list) {
+      list.push(p);
+    } else {
+      groups.set(p.normalizedKey, [p]);
+    }
+  }
+
+  const totalActivities = pending.length;
+  const uniqueLookups = groups.size;
+
+  // ---------- Step 4: resolve each unique key once, in parallel. ----------
+  let placesHits = 0;
+  let fallbackHits = 0;
+
+  await Promise.all(
+    Array.from(groups.entries()).map(async ([normalizedKey, occurrences]) => {
+      const first = occurrences[0];
+      let url: string | null = null;
+      try {
+        url = await resolveActivityImage(first.name, destination || "", normalizedKey);
+      } catch (err) {
+        console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
+      }
+
+      // ---------- Step 5: fan out the resolved URL (or fallback) ----------
+      if (url) {
+        placesHits++;
+        for (const occ of occurrences) {
+          occ.activity.image_url = url;
+        }
+      } else {
+        // Places returned nothing — fall back to curated per-activity.
+        // Each occurrence keeps the same fallback because its name+type match.
+        fallbackHits++;
+        const fallback = curatedFor(first.name, first.type);
+        for (const occ of occurrences) {
+          occ.activity.image_url = fallback;
+        }
+      }
+    })
+  );
+
   const duration = Date.now() - startTime;
-  console.log(`[Activity Images] Fetched ${fetchedCount} images in ${duration}ms`);
+  console.log(
+    `[Activity Images] Resolved ${totalActivities} activities via ${uniqueLookups} unique lookups ` +
+    `(${placesHits} places, ${fallbackHits} fallback) in ${duration}ms`
+  );
 
   return days;
 }
