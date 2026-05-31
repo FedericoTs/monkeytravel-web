@@ -95,6 +95,7 @@ playwright-report/
 .audit/gsc-manual/
 .audit/gsc/
 .audit/ga4/
+.audit/email-previews/
 
 # Marketing ad assets (large binaries; keep .md docs trackable)
 marketing/screenshots/*.png
