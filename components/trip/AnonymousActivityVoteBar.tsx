@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export interface VoteTally {
   up: number;
@@ -48,6 +49,7 @@ export function AnonymousActivityVoteBar({
   pending = false,
   onVote,
 }: AnonymousActivityVoteBarProps) {
+  const t = useTranslations("shared.vote");
   // Local state for the name prompt — only opens after a click, never on its own.
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [pendingVoteType, setPendingVoteType] = useState<"up" | "down" | null>(null);
@@ -98,7 +100,7 @@ export function AnonymousActivityVoteBar({
           onClick={() => handleClick("up")}
           disabled={pending}
           aria-pressed={upActive}
-          aria-label={upActive ? "Remove your upvote" : "Upvote this activity"}
+          aria-label={upActive ? t("removeUpvoteAria") : t("upvoteAria")}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] disabled:opacity-50 disabled:cursor-not-allowed ${
             upActive
               ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
@@ -114,7 +116,7 @@ export function AnonymousActivityVoteBar({
           onClick={() => handleClick("down")}
           disabled={pending}
           aria-pressed={downActive}
-          aria-label={downActive ? "Remove your downvote" : "Downvote this activity"}
+          aria-label={downActive ? t("removeDownvoteAria") : t("downvoteAria")}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] disabled:opacity-50 disabled:cursor-not-allowed ${
             downActive
               ? "bg-rose-100 text-rose-700 border border-rose-300"
@@ -126,21 +128,21 @@ export function AnonymousActivityVoteBar({
         </button>
 
         {myVote !== null && !showNamePrompt && (
-          <span className="text-[11px] text-slate-400 ml-1">Your vote</span>
+          <span className="text-[11px] text-slate-400 ml-1">{t("yourVote")}</span>
         )}
       </div>
 
       {showNamePrompt && (
         <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
           <label htmlFor={`anon-name-${activityId}`} className="text-xs text-slate-600">
-            What&apos;s your name? <span className="text-slate-400">(so the trip owner knows who voted)</span>
+            {t("nameQuestion")} <span className="text-slate-400">{t("nameHint")}</span>
           </label>
           <input
             id={`anon-name-${activityId}`}
             type="text"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
-            placeholder="Sarah"
+            placeholder={t("namePlaceholder")}
             maxLength={60}
             autoFocus
             className="flex-1 min-w-[120px] px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
@@ -154,14 +156,14 @@ export function AnonymousActivityVoteBar({
             onClick={handleConfirmWithName}
             className="px-2.5 py-1 text-xs font-medium rounded bg-[var(--primary)] text-white hover:opacity-90"
           >
-            Vote
+            {t("submit")}
           </button>
           <button
             type="button"
             onClick={handleSkipName}
             className="px-2.5 py-1 text-xs font-medium rounded text-slate-500 hover:text-slate-700"
           >
-            Skip
+            {t("skip")}
           </button>
         </div>
       )}

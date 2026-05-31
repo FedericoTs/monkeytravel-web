@@ -106,3 +106,14 @@ export {
   type ActivitySearchParams,
   type TransferParams,
 } from "./travelpayouts";
+
+// ============================================================================
+// Amazon Associates (Day-6 P3 — packing-list monetization)
+// ============================================================================
+
+export {
+  AMAZON_ALLOWLIST_CATEGORIES,
+  buildAmazonSearchUrl,
+  getAmazonTag,
+  shouldShowAmazonLink,
+} from "./amazon";

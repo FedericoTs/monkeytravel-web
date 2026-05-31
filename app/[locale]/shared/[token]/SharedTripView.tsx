@@ -227,13 +227,33 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   };
 
   // Currency conversion hook - converts to user's preferred currency
-  const { convert: convertCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
     if (amount === 0) return t('activity.free');
     const converted = convertCurrency(amount, fromCurrency);
     return converted.formatted;
+  };
+
+  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
+  // summing the FX-converted activity costs. The persisted
+  // `day.daily_budget.total` is denominated in the activities' source
+  // currency (e.g. JPY) but the legacy code treated it as
+  // `trip.budget?.currency || "USD"`, which is wrong whenever the AI
+  // generated the trip in a different currency (and `trips.budget` is
+  // usually NULL for older trips). Summing the converted per-activity
+  // amounts guarantees the day card matches the rows below it (single
+  // source of truth — eliminates the entire bug class).
+  const formatDayBudget = (day: ItineraryDay): string => {
+    const total = day.activities.reduce((acc, activity) => {
+      const amount = activity.estimated_cost?.amount;
+      const currency = activity.estimated_cost?.currency;
+      if (!amount || !currency) return acc;
+      return acc + convertCurrency(amount, currency).value;
+    }, 0);
+    if (total === 0) return t('activity.free');
+    return formatCurrency(total, preferredCurrency);
   };
 
   // Prefer trip_meta.destination (canonical) over title-strip — see
@@ -460,7 +480,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                       <div className="ml-auto text-right">
                         <div className="text-sm text-slate-500">Est. Budget</div>
                         <div className="font-semibold text-slate-900">
-                          {formatPrice(day.daily_budget.total, trip.budget?.currency || "USD")}
+                          {formatDayBudget(day)}
                         </div>
                       </div>
                     )}

@@ -63,7 +63,9 @@
       "misc": "Altro"
     },
     "shareCta": "Condividi questa lista",
-    "shareCopied": "Link copiato!"
+    "shareCopied": "Link copiato!",
+    "buyOnAmazon": "Compra su Amazon",
+    "buyOnAmazonAria": "Cerca {item} su Amazon (link affiliato)"
   },
   "visaChecker": {
     "breadcrumb": "Verifica Visto",

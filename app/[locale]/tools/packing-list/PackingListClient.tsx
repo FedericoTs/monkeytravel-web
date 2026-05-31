@@ -3,6 +3,11 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
+import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
+import {
+  buildAmazonSearchUrl,
+  shouldShowAmazonLink,
+} from "@/lib/affiliates/amazon";
 
 interface PackingItem {
   name: string;
@@ -399,6 +404,16 @@ export default function PackingListClient({ locale }: Props) {
                   {cat.items.map((item, idx) => {
                     const key = itemKey(cat.id, idx);
                     const isChecked = checked.has(key);
+                    // Day-6 P3: Amazon affiliate link gating. The
+                    // allowlist filters out non-Amazon categories
+                    // (documents, activity_gear) and the name-level
+                    // denylist catches passport/visa/boarding pass
+                    // items that the AI may have miscategorised.
+                    const showAmazon =
+                      !isChecked && shouldShowAmazonLink(cat.id, item.name);
+                    const amazonUrl = showAmazon
+                      ? buildAmazonSearchUrl(item.name)
+                      : null;
                     return (
                       <li
                         key={key}
@@ -434,6 +449,26 @@ export default function PackingListClient({ locale }: Props) {
                               <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
                                 {t("essentialBadge")}
                               </span>
+                            )}
+                            {amazonUrl && (
+                              <ExternalLinkButton
+                                href={amazonUrl}
+                                rel="noopener sponsored nofollow"
+                                ariaLabel={t("buyOnAmazonAria", {
+                                  item: item.name,
+                                })}
+                                className="text-[11px] font-medium text-amber-700 hover:text-amber-900 hover:underline whitespace-nowrap"
+                                captureEvent="tools_packing_list_amazon_click"
+                                captureProps={{
+                                  category: cat.id,
+                                  item: item.name,
+                                  locale,
+                                  destination,
+                                  partner: "amazon",
+                                }}
+                              >
+                                🛒 {t("buyOnAmazon")}
+                              </ExternalLinkButton>
                             )}
                           </div>
                           {item.note && (

@@ -382,61 +382,12 @@ export default function TripDetailClient({
   // Toast notifications
   const { addToast } = useToast();
 
-  // ---------------------------------------------------------------
-  // Google Calendar sync result toast
-  // ---------------------------------------------------------------
-  // The OAuth callback (app/api/calendar/google/callback/route.ts)
-  // redirects here with ?gcal_sync=<status>&gcal_count=<n>. Fire a
-  // toast on first paint, then strip the param so a refresh doesn't
-  // re-trigger it.
-  //
-  // CAUSALITY: keep this in sync with the SyncStatusQuery union in
-  // the callback route. If you add a new status (e.g. 'reauth'),
-  // add a branch here too — otherwise the param sits in the URL
-  // and produces no UX feedback.
-  useEffect(() => {
-    const status = searchParams.get("gcal_sync");
-    if (!status) return;
-    const countRaw = searchParams.get("gcal_count");
-    const count = countRaw ? Number.parseInt(countRaw, 10) : undefined;
-    const reason = searchParams.get("gcal_reason") || undefined;
-
-    if (status === "done") {
-      const msg =
-        typeof count === "number" && Number.isFinite(count) && count > 0
-          ? tTrips("gcalSyncDone", { count })
-          : tTrips("gcalSyncDoneNoCount");
-      addToast(msg, "success");
-    } else if (status === "partial") {
-      addToast(
-        tTrips("gcalSyncPartial", { count: count ?? 0 }),
-        "success"
-      );
-    } else if (status === "denied") {
-      addToast(tTrips("gcalSyncDenied"), "info");
-    } else if (status === "failed" || status === "error") {
-      addToast(tTrips("gcalSyncError"), "error");
-      if (reason && process.env.NODE_ENV !== "production") {
-        // Help in dev only — never leak operator detail to prod toasts.
-        console.warn("[gcal-sync] error reason:", reason);
-      }
-    }
-
-    // Strip gcal_* params from the URL so refresh / back-button
-    // doesn't re-fire the toast. router.replace + scroll: false to
-    // avoid a perceived nav.
-    const sp = new URLSearchParams(searchParams.toString());
-    sp.delete("gcal_sync");
-    sp.delete("gcal_count");
-    sp.delete("gcal_reason");
-    const qs = sp.toString();
-    const nextPath = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
-    router.replace(nextPath, { scroll: false });
-    // We only react to the value at mount + when status actually
-    // changes — `searchParams` reference can churn on unrelated
-    // history events, so we depend on the resolved status string.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.get("gcal_sync")]);
+  // Google Calendar OAuth sync was removed in cleanup #224 (callback
+  // route at app/api/calendar/google/callback was deleted along with
+  // the whole F1 OAuth workflow). The toast handler that read
+  // ?gcal_sync= here was orphaned and is gone too. If we ever bring
+  // back a calendar-subscription feature, restore the effect + the
+  // gcalSync* translation keys at the same time.
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled") => {
