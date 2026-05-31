@@ -32,14 +32,8 @@ no-op) until the operator-provisioned credentials are added.
 5. `vercel env add UPSTASH_REDIS_REST_TOKEN` (same scopes)
 6. Redeploy
 
-### `RESEND_AUDIENCE_ID` (impact: P3 marketing prep)
-**Why it matters**: `app/api/cron/sync-resend-audience/route.ts` runs weekly Mondays 06:00 UTC. Without this env var it soft-skips with `{skipped:true, reason:"RESEND_AUDIENCE_ID not set"}`. The bootstrap of 118 contacts was already done one-off via `scripts/export-all-users-to-resend.mts`; without the cron, new signups don't reach the audience.
-
-**Action**:
-1. Resend dashboard → Audiences → Create or pick existing audience
-2. Copy the audience ID (uuid)
-3. `vercel env add RESEND_AUDIENCE_ID` (Production)
-4. Wait for next Monday cron OR `curl -H "Authorization: Bearer $CRON_SECRET" https://monkeytravel.app/api/cron/sync-resend-audience` to trigger manually
+### ✅ ~~`RESEND_AUDIENCE_ID`~~ — RESOLVED Day-9 2026-05-31
+**Status**: Set to `bb169707-0091-4fda-a4a7-0b6803398be6` (existing "MonkeyTravel Marketing" audience). Live cron run verified: 121 DB users + 9 waitlist subscribers → 121 desired contacts, 3 new created in first run (118 already in audience from prior bootstrap), 0 failures, 1.88s duration. Weekly Mondays 06:00 UTC sync now operational.
 
 ### `NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG` (impact: revenue gap)
 **Why it matters**: `lib/affiliates/amazon.ts` falls back to `tag=TAG_TBD` in every Amazon CTA on packing-list items. Clicks open Amazon but commission goes nowhere.
