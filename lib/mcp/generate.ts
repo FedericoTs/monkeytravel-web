@@ -50,10 +50,15 @@ export async function generateMCPTrip(
   const prompt = buildMCPPrompt(input);
 
   // mcp-trip → gemini-2.5-flash (external MCP/ChatGPT endpoint).
+  // 2026-05-31: lowered temperature 0.7 → 0.5 for shape consistency on the
+  // MCP integration. Follow-up to the Day-10 utility-task determinism sweep —
+  // first-party trip generation (lib/gemini.ts) stays creative at 1.0/0.7 by
+  // design, but the external MCP path benefits more from reproducible output
+  // structure than from generative diversity.
   const model = getGenAI().getGenerativeModel({
     model: getModelForPurpose("mcp-trip"),
     generationConfig: {
-      temperature: 0.7,
+      temperature: 0.5,
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
     },
