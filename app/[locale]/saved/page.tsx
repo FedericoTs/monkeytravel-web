@@ -21,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "savedPage" });
+  const t = await getTranslations({ locale, namespace: "common.savedPage" });
   return {
     title: t("meta.title"),
     description: t("meta.description"),
@@ -117,9 +117,14 @@ export default async function SavedPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "savedPage" });
+  const t = await getTranslations({ locale, namespace: "common.savedPage" });
 
-  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  // NOTE: don't manually concat /${locale} into hrefs — `Link` is
+  // next-intl's locale-aware variant (createNavigation from
+  // @/lib/i18n/routing) and auto-prepends the current locale.
+  // Day-3 backtest caught this: a previous version computed a
+  // localePrefix and used it in the empty-state CTA, which produced
+  // /it/it/explore → 404 on Italian.
   const flagOn = isExploreUgcEnabled();
 
   const supabase = await createClient();
@@ -229,7 +234,7 @@ export default async function SavedPage({
             </h2>
             <p className="text-slate-600 mb-6">{t("empty.body")}</p>
             <Link
-              href={`${localePrefix}/explore` as never}
+              href="/explore"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
             >
               {t("browseTrips")}
