@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useTranslations } from "next-intl";
 import { useCurrency } from "@/lib/locale";
 /* eslint-disable @next/next/no-img-element */
@@ -132,7 +133,11 @@ export default function DestinationHero({
   // Build the effective src — cache-bust on retry only, to keep the first
   // attempt CDN-cacheable. `?_r=N` is harmless to our /api/places/photo
   // proxy (it ignores unknown params) and defeats the browser's image cache.
-  const baseCoverUrl = destinationData?.coverImageUrl;
+  // Route hotlinked Pexels/Unsplash through our same-origin proxy.
+  // Direct browser loads to Pexels intermittently 504 (Cloudflare
+  // anti-scraping); server-fetched bytes resolve cleanly. Live-confirmed
+  // 2026-05-31 on /it/shared/<token>.
+  const baseCoverUrl = proxyImageUrl(destinationData?.coverImageUrl);
   const effectiveCoverUrl = baseCoverUrl
     ? imageRetry === 0
       ? baseCoverUrl

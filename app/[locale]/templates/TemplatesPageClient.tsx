@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -124,7 +125,9 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
         {template.coverImageUrl && (
           <img
             ref={imgRef}
-            src={template.coverImageUrl}
+            // Proxy hotlinked Pexels through same-origin route — see
+            // lib/img/proxyUrl.ts. Pexels CDN 504s direct browser hits.
+            src={proxyImageUrl(template.coverImageUrl) || template.coverImageUrl}
             alt={template.destination}
             onLoad={() => setImageLoaded(true)}
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${
@@ -230,7 +233,8 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
           {template.coverImageUrl && !imageError && (
             <img
               ref={imgRef}
-              src={template.coverImageUrl}
+              // Same Pexels proxy as above.
+              src={proxyImageUrl(template.coverImageUrl) || template.coverImageUrl}
               alt={template.destination}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}

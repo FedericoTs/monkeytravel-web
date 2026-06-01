@@ -17,6 +17,7 @@ import type { BlogFrontmatter } from "@/lib/blog/types";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 // Client-only import — the banner's localStorage-driven `isDismissed`
 // state means the SSR + first-paint render emits a placeholder, then
@@ -315,11 +316,14 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
           </div>
         )}
 
-        {/* Actual Image with error handling */}
+        {/* Actual Image with error handling.
+            Wrap Pexels/Unsplash through same-origin proxy — they 504
+            direct browser loads behind Cloudflare. Live-confirmed
+            2026-05-31. See lib/img/proxyUrl.ts. */}
         {imageUrl && !imageError && (
           <img
             ref={imgRef}
-            src={imageUrl}
+            src={proxyImageUrl(imageUrl) || imageUrl}
             alt={trip.title}
             onError={handleImageError}
             onLoad={handleImageLoad}

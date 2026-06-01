@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface TemplateTrip {
   id: string;
@@ -109,7 +110,10 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
       >
         {template.coverImageUrl && !imageError && (
           <Image
-            src={template.coverImageUrl}
+            // Proxy Pexels/Unsplash through same-origin route — direct
+            // browser loads to Pexels CDN intermittently 504 (Cloudflare).
+            // See lib/img/proxyUrl.ts. Live-confirmed 2026-05-31.
+            src={proxyImageUrl(template.coverImageUrl) || template.coverImageUrl}
             alt={template.title}
             fill
             unoptimized
