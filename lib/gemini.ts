@@ -22,8 +22,21 @@ export const INITIAL_DAYS_TO_GENERATE = 14; // Max trip length
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
-// Timeout for AI requests (2 minutes — Vercel serverless limit is 60s for Hobby, 300s for Pro)
-const AI_REQUEST_TIMEOUT_MS = 120_000;
+// Per-attempt timeout for AI requests.
+//
+// 2026-05-31 P1 FIX: was 120_000ms (120s). With MAX_RETRIES=2 that would
+// IMPLY a worst-case of 360s — but Vercel's app/api/ai/generate route
+// caps the whole serverless invocation at maxDuration=120 (vercel.json).
+// In practice: attempt 1 burned the entire 120s budget, retries never
+// fired, users waited 120s for a 500. Observed prod (last 24h):
+// 21% failure rate, P95 latency 134s on failures, P95 25s on successes.
+//
+// New budget: 30s × (1 + MAX_RETRIES=2 attempts) + 3s inter-retry waits
+// = ~93s worst case, which fits cleanly under the 120s Vercel maxDuration
+// AND gives real retries the chance to run when the first attempt times
+// out. The 30s per-attempt covers the P95 of successful calls (25s) plus
+// 5s headroom — anything slower than that is almost certainly stuck.
+const AI_REQUEST_TIMEOUT_MS = 30_000;
 
 /**
  * Race a promise against a timeout. Throws if the timeout expires first.
