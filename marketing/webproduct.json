@@ -1,0 +1,18 @@
+{
+  "id": "f3a04109-bab8-4a1f-868c-0802a100adc5",
+  "title": "MonkeyTravel",
+  "status": "completed",
+  "url": "https://monkeytravel.app/",
+  "fail_reason": "",
+  "favicon_url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3ERuQ6T9kOnh0dSrsT6R0sHmZnh/6030979c-1f5e-4ad3-af20-b1e20ecc5a19.png",
+  "medias": [
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3ERuQ6T9kOnh0dSrsT6R0sHmZnh/bc1e643e-5920-4d53-8de8-d526064e02dd.png",
+      "type": "desktop"
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3ERuQ6T9kOnh0dSrsT6R0sHmZnh/04daec3d-97a5-44be-8f55-7cb642db2cf5.png",
+      "type": "mobile"
+    }
+  ]
+}

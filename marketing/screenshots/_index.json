@@ -1,0 +1,55 @@
+{
+  "base": "https://monkeytravel.app",
+  "captured": [
+    {
+      "name": "01-landing",
+      "route": "/",
+      "title": "Free AI Trip Planner | Day-by-Day Itineraries in Minutes | MonkeyTravel"
+    },
+    {
+      "name": "02-free-ai-planner",
+      "route": "/free-ai-trip-planner",
+      "title": "Free AI Trip Planner — No Signup, No Card, Unlimited Plans | MonkeyTravel"
+    },
+    {
+      "name": "03-ai-itinerary-generator",
+      "route": "/ai-itinerary-generator",
+      "title": "AI Itinerary Generator — Smart Day-by-Day Travel Plans | MonkeyTravel"
+    },
+    {
+      "name": "04-explore",
+      "route": "/explore",
+      "title": "Explore Trending Trips | MonkeyTravel"
+    },
+    {
+      "name": "05-destinations",
+      "route": "/destinations",
+      "title": "Top Travel Destinations & AI Itineraries | MonkeyTravel"
+    },
+    {
+      "name": "06-templates",
+      "route": "/templates",
+      "title": "Curated Escapes | MonkeyTravel"
+    },
+    {
+      "name": "07-group-trip-planner",
+      "route": "/group-trip-planner",
+      "title": "AI Group Trip Planner — Plan Together, Vote, Decide | MonkeyTravel"
+    },
+    {
+      "name": "08-budget-trip-planner",
+      "route": "/budget-trip-planner",
+      "title": "Budget Trip Planner — Travel More, Spend Less | MonkeyTravel"
+    },
+    {
+      "name": "09-weekend-trip-planner",
+      "route": "/weekend-trip-planner",
+      "title": "Weekend Trip Planner — AI-Powered 2-3 Day Getaways | MonkeyTravel"
+    },
+    {
+      "name": "10-from-chatgpt",
+      "route": "/from-chatgpt",
+      "title": "Free AI Trip Planner | Day-by-Day Itineraries in Minutes"
+    }
+  ]
+}

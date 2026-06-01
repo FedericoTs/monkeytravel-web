@@ -37,5 +37,14 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
   }
   if (parsed.protocol !== "https:") return url;
   if (!PROXIED_HOSTS.has(parsed.hostname)) return url;
-  return `/api/img/proxy?url=${encodeURIComponent(url)}`;
+  // Path-encoded, NOT query-string. Next.js 16 requires images.localPatterns
+  // to allow-list query strings on local Image src, and `search` only
+  // accepts exact-match — no wildcards — so `?url=<varies>` can't be
+  // allow-listed. Encoding the URL into a path segment sidesteps that
+  // constraint entirely. The proxy route reads it from params.token.
+  //
+  // Sentry issue 124107340 (2026-06-01 11:45 UTC, release 368a5da):
+  //   "Image with src \"/api/img/proxy?url=...\" is using a query string
+  //    which is not configured in images.localPatterns."
+  return `/api/img/proxy/${encodeURIComponent(url)}`;
 }
