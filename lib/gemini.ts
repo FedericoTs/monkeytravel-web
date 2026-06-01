@@ -53,6 +53,73 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 const AI_REQUEST_TIMEOUT_MS = 50_000;
 
 /**
+ * Attempt to repair truncated/malformed JSON from Gemini.
+ *
+ * Why this exists: Sentry JAVASCRIPT-NEXTJS-V "Failed to generate valid
+ * itinerary after retries" fires when the model's 8K-token output cap is
+ * hit mid-string or mid-array, leaving syntactically broken JSON. Retries
+ * don't help — same prompt + same cap = same truncation. Better to recover
+ * a shorter-but-valid itinerary than 500 the user.
+ *
+ * Strategy: walk char-by-char tracking string state and bracket depth.
+ * If we end inside a string or with unclosed structures, close them in
+ * reverse order. Returns null when input is already valid (no repair
+ * needed) or when structure is too broken to safely recover (mismatched
+ * brackets etc).
+ *
+ * Trade-off: a "repaired" itinerary may be missing the last day(s) or
+ * have a truncated final activity. validateAndFixCoordinates() backfills
+ * defaults gracefully. Worst case: user gets a 5-day trip when they
+ * asked for 7 (we'll log a warning to Sentry so we can monitor frequency).
+ */
+function tryRepairTruncatedJSON(raw: string): string | null {
+  // Strip markdown code fences if Gemini added them despite our instructions.
+  let s = raw.trim();
+  if (s.startsWith("```")) {
+    s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  }
+  if (!s) return null;
+
+  let inString = false;
+  let escape = false;
+  const stack: string[] = []; // tracks '{' and '['
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (escape) { escape = false; continue; }
+    if (c === "\\") { escape = true; continue; }
+    if (c === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (c === "{" || c === "[") stack.push(c);
+    else if (c === "}") {
+      if (stack[stack.length - 1] !== "{") return null; // mismatched
+      stack.pop();
+    } else if (c === "]") {
+      if (stack[stack.length - 1] !== "[") return null; // mismatched
+      stack.pop();
+    }
+  }
+  // Already balanced — nothing to repair (parse error must be something else).
+  if (stack.length === 0 && !inString) return null;
+
+  let repaired = s;
+  // Drop trailing escape backslash so we don't end with "\
+  if (repaired.endsWith("\\")) repaired = repaired.slice(0, -1);
+  // Close unterminated string.
+  if (inString) repaired += '"';
+  // Strip dangling comma / colon / partial key before adding closers.
+  repaired = repaired.replace(/[,:\s]+$/, "");
+  // If we stripped down to a dangling key like "foo" — strip the orphan key+separator.
+  // Keep stripping orphans: `, "key"` -> remove ", \"key\"" suffix patterns.
+  repaired = repaired.replace(/,\s*"[^"]*"\s*$/, "");
+  // Close all open brackets in reverse order.
+  while (stack.length > 0) {
+    const open = stack.pop();
+    repaired += open === "{" ? "}" : "]";
+  }
+  return repaired;
+}
+
+/**
  * Race a promise against a timeout. Throws if the timeout expires first.
  */
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
@@ -763,68 +830,102 @@ async function generateItineraryInternal(
     // Log cache metrics for monitoring
     logCacheMetrics("generateItinerary", response.usageMetadata);
 
-    // Try to parse JSON
-    try {
-      const itinerary = JSON.parse(text) as GeneratedItinerary;
-
-      // Validate required fields exist
+    // Try to parse JSON, with a defensive repair pass for truncated output
+    // (Sentry JAVASCRIPT-NEXTJS-V — model hits maxOutputTokens mid-string).
+    const parseAttempt = (source: string): GeneratedItinerary => {
+      const itinerary = JSON.parse(source) as GeneratedItinerary;
       if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
         throw new Error("Invalid itinerary structure");
       }
-
-      // Validate and fix coordinates for all activities
-      itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
-
-      // Capture LLM analytics (fire and forget)
-      captureLLMGeneration({
-        distinctId: options?.userId || "anonymous",
-        model: modelName,
-        endpoint: "generateItinerary",
-        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
-        latencyMs,
-        success: true,
-        properties: {
-          destination: params.destination,
-          duration_days: itinerary.days.length,
-          budget_tier: params.budgetTier,
-          pace: params.pace,
-          vibes: params.vibes,
-          retry_count: retryCount,
-        },
-      }).catch(() => {}); // Ignore analytics errors
-
       return itinerary;
-    } catch (parseError) {
-      console.error(
-        `JSON parse error (attempt ${retryCount + 1}):`,
-        parseError instanceof Error ? parseError.message : "Unknown",
-        "\nResponse preview:",
-        text.substring(0, 500)
-      );
+    };
 
-      // Capture failed attempt analytics
-      captureLLMGeneration({
-        distinctId: options?.userId || "anonymous",
-        model: modelName,
-        endpoint: "generateItinerary",
-        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
-        latencyMs,
-        success: false,
-        error: "JSON parse error",
-        properties: {
-          destination: params.destination,
-          retry_count: retryCount,
-        },
-      }).catch(() => {});
-
-      // Retry with lower temperature (bypass deduplication for retries)
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying generation (attempt ${retryCount + 2})...`);
-        return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
+    let itinerary: GeneratedItinerary | null = null;
+    let repairUsed = false;
+    try {
+      itinerary = parseAttempt(text);
+    } catch (firstParseError) {
+      const repaired = tryRepairTruncatedJSON(text);
+      if (repaired) {
+        try {
+          itinerary = parseAttempt(repaired);
+          repairUsed = true;
+        } catch {
+          /* repair didn't produce valid JSON either — fall through */
+        }
       }
+      if (!itinerary) {
+        // Original behaviour: log + retry-then-throw.
+        console.error(
+          `JSON parse error (attempt ${retryCount + 1}):`,
+          firstParseError instanceof Error ? firstParseError.message : "Unknown",
+          "\nResponse preview:",
+          text.substring(0, 500)
+        );
 
-      throw new Error("Failed to generate valid itinerary after retries");
+        captureLLMGeneration({
+          distinctId: options?.userId || "anonymous",
+          model: modelName,
+          endpoint: "generateItinerary",
+          usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+          latencyMs,
+          success: false,
+          error: "JSON parse error",
+          properties: {
+            destination: params.destination,
+            retry_count: retryCount,
+          },
+        }).catch(() => {});
+
+        // Retry with lower temperature (bypass deduplication for retries)
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying generation (attempt ${retryCount + 2})...`);
+          return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
+        }
+
+        throw new Error("Failed to generate valid itinerary after retries");
+      }
     }
+
+    // Validate and fix coordinates for all activities
+    itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
+
+    // Capture LLM analytics (fire and forget)
+    captureLLMGeneration({
+      distinctId: options?.userId || "anonymous",
+      model: modelName,
+      endpoint: "generateItinerary",
+      usageMetadata: response.usageMetadata as GeminiUsageMetadata,
+      latencyMs,
+      success: true,
+      properties: {
+        destination: params.destination,
+        duration_days: itinerary.days.length,
+        budget_tier: params.budgetTier,
+        pace: params.pace,
+        vibes: params.vibes,
+        retry_count: retryCount,
+        repair_used: repairUsed,
+      },
+    }).catch(() => {});
+
+    // If we needed to repair, surface as a Sentry warning so we can monitor
+    // how often truncation happens and decide whether to bump tokens further.
+    if (repairUsed) {
+      const days = itinerary.days.length;
+      const msg =
+        `[gemini] tryRepairTruncatedJSON recovered a ${days}-day itinerary ` +
+        `for "${params.destination}" (output ${text.length} chars). ` +
+        `Likely hit maxOutputTokens cap — consider raising if frequent.`;
+      console.warn(msg);
+      import("@sentry/nextjs")
+        .then((Sentry) => {
+          Sentry.captureMessage?.(msg, "warning");
+        })
+        .catch(() => {});
+    }
+
+    return itinerary;
   } catch (error) {
     const latencyMs = performance.now() - startTime;
 
@@ -2034,10 +2135,36 @@ export function parseStreamedItinerary(
   fullText: string,
   params: TripCreationParams
 ): GeneratedItinerary {
-  const itinerary = JSON.parse(fullText) as GeneratedItinerary;
-  if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
-    throw new Error("Invalid itinerary structure");
+  // Mirror the repair-on-truncation behaviour from generateItineraryInternal.
+  const validate = (obj: GeneratedItinerary): GeneratedItinerary => {
+    if (!obj.destination || !obj.days || obj.days.length === 0) {
+      throw new Error("Invalid itinerary structure");
+    }
+    obj.days = validateAndFixCoordinates(obj.days, params.destination);
+    return obj;
+  };
+  try {
+    return validate(JSON.parse(fullText) as GeneratedItinerary);
+  } catch (e) {
+    const repaired = tryRepairTruncatedJSON(fullText);
+    if (repaired) {
+      try {
+        const obj = validate(JSON.parse(repaired) as GeneratedItinerary);
+        const msg =
+          `[gemini.streamed] tryRepairTruncatedJSON recovered a ${obj.days.length}-day ` +
+          `itinerary for "${params.destination}" (stream ${fullText.length} chars). ` +
+          `Likely hit maxOutputTokens cap on streaming path.`;
+        console.warn(msg);
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureMessage?.(msg, "warning");
+          })
+          .catch(() => {});
+        return obj;
+      } catch {
+        /* fall through to original error */
+      }
+    }
+    throw e;
   }
-  itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
-  return itinerary;
 }
