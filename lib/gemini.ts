@@ -1878,6 +1878,35 @@ export async function* generateItineraryStream(
       // 2026-05-31 audit; see generateItineraryInternal for rationale).
       maxOutputTokens: 6000,
       responseMimeType: "application/json",
+      // 2026-06-01 P0 FIX: disable extended thinking on the streaming
+      // path, matching the non-streaming path's fix from commit 83eaf7f.
+      //
+      // Symptom: live-reproduced 2026-06-01 ~05:55 UTC — Buenos Aires
+      // 6-day Scoperta Urbana request returned "Unterminated string in
+      // JSON at position 733 (line 13 column 25)" to the wizard.
+      // Retried; failed identically with truncation at a different
+      // offset. NEVER reached the result page → fetchActivityImages
+      // never ran → the perf(places) SKU split could not be verified.
+      //
+      // Root cause: gemini-2.5-flash defaults to extended thinking ON.
+      // Thinking tokens count against `maxOutputTokens` (the 6000 cap
+      // above). For a 6-day trip with 4+ activities/day the answer
+      // alone is ~4500-5500 tokens — any thinking budget at all
+      // pushes the answer past the cap and the SSE stream emits a
+      // valid prefix of an invalid JSON. `JSON.parse(fullText)` then
+      // throws "Unterminated string at position N" downstream in
+      // parseStreamedItinerary.
+      //
+      // The non-streaming generateItineraryInternal (line 687-700)
+      // already disables thinking via this same cast. This restores
+      // parity. The legacy @google/generative-ai SDK (0.24.x) lacks
+      // thinkingConfig in its TS types; the REST API has accepted it
+      // since 2025-Q2.
+      //
+      // Why not raise maxOutputTokens instead? Output tokens are
+      // billed; the 6000 cap is what cut output cost ~25% in the
+      // 2026-05-31 audit. Killing thinking is free.
+      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
 
