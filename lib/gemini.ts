@@ -53,6 +53,34 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 const AI_REQUEST_TIMEOUT_MS = 50_000;
 
 /**
+ * Backfill a missing or partial trip_summary so downstream consumers
+ * (wizard render, persistTrip, banana cost calc) don't crash when the
+ * model truncates the response before emitting the summary block.
+ *
+ * Sentry JAVASCRIPT-NEXTJS-Z fired with "Cannot read properties of
+ * undefined (reading 'total_estimated_cost')" on /:locale after the
+ * JSON-repair landed: the repaired itinerary had valid `days` but lost
+ * the trailing trip_summary entirely. We synthesize safe defaults so
+ * the UI renders; users can edit the budget after save.
+ *
+ * Mutates the input for ergonomics (matches validateAndFixCoordinates).
+ */
+function ensureTripSummary(itinerary: GeneratedItinerary): GeneratedItinerary {
+  const existing = (itinerary as { trip_summary?: Partial<GeneratedItinerary["trip_summary"]> })
+    .trip_summary;
+  itinerary.trip_summary = {
+    total_estimated_cost:
+      typeof existing?.total_estimated_cost === "number" ? existing.total_estimated_cost : 0,
+    currency: typeof existing?.currency === "string" ? existing.currency : "USD",
+    highlights: Array.isArray(existing?.highlights) ? existing.highlights : [],
+    packing_suggestions: Array.isArray(existing?.packing_suggestions)
+      ? existing.packing_suggestions
+      : [],
+  };
+  return itinerary;
+}
+
+/**
  * Attempt to repair truncated/malformed JSON from Gemini.
  *
  * Why this exists: Sentry JAVASCRIPT-NEXTJS-V "Failed to generate valid
@@ -889,6 +917,9 @@ async function generateItineraryInternal(
 
     // Validate and fix coordinates for all activities
     itinerary.days = validateAndFixCoordinates(itinerary.days, params.destination);
+    // Backfill trip_summary when missing (truncated tail) so wizard render
+    // + persistTrip don't crash on `.trip_summary.total_estimated_cost`.
+    ensureTripSummary(itinerary);
 
     // Capture LLM analytics (fire and forget)
     captureLLMGeneration({
@@ -909,18 +940,23 @@ async function generateItineraryInternal(
       },
     }).catch(() => {});
 
-    // If we needed to repair, surface as a Sentry warning so we can monitor
-    // how often truncation happens and decide whether to bump tokens further.
+    // If we needed to repair, log a breadcrumb (NOT a Sentry issue) so we can
+    // still see repair frequency in Sentry tags/breadcrumbs without polluting
+    // the issue stream. Earlier "warning" severity surfaced these as issues.
     if (repairUsed) {
       const days = itinerary.days.length;
       const msg =
         `[gemini] tryRepairTruncatedJSON recovered a ${days}-day itinerary ` +
-        `for "${params.destination}" (output ${text.length} chars). ` +
-        `Likely hit maxOutputTokens cap — consider raising if frequent.`;
+        `for "${params.destination}" (output ${text.length} chars).`;
       console.warn(msg);
       import("@sentry/nextjs")
         .then((Sentry) => {
-          Sentry.captureMessage?.(msg, "warning");
+          Sentry.addBreadcrumb?.({
+            category: "gemini.repair",
+            message: msg,
+            level: "info",
+            data: { destination: params.destination, days, output_chars: text.length },
+          });
         })
         .catch(() => {});
     }
@@ -2141,6 +2177,7 @@ export function parseStreamedItinerary(
       throw new Error("Invalid itinerary structure");
     }
     obj.days = validateAndFixCoordinates(obj.days, params.destination);
+    ensureTripSummary(obj);
     return obj;
   };
   try {
@@ -2152,12 +2189,19 @@ export function parseStreamedItinerary(
         const obj = validate(JSON.parse(repaired) as GeneratedItinerary);
         const msg =
           `[gemini.streamed] tryRepairTruncatedJSON recovered a ${obj.days.length}-day ` +
-          `itinerary for "${params.destination}" (stream ${fullText.length} chars). ` +
-          `Likely hit maxOutputTokens cap on streaming path.`;
+          `itinerary for "${params.destination}" (stream ${fullText.length} chars).`;
         console.warn(msg);
+        // Breadcrumb only — captureMessage(warning) was creating noisy
+        // Sentry issues (JAVASCRIPT-NEXTJS-10, -Y). We still want the
+        // signal in attached events but not as standalone issues.
         import("@sentry/nextjs")
           .then((Sentry) => {
-            Sentry.captureMessage?.(msg, "warning");
+            Sentry.addBreadcrumb?.({
+              category: "gemini.streamed.repair",
+              message: msg,
+              level: "info",
+              data: { destination: params.destination, days: obj.days.length, stream_chars: fullText.length },
+            });
           })
           .catch(() => {});
         return obj;
