@@ -312,6 +312,35 @@ export async function POST(request: NextRequest) {
       return 0;
     });
 
+    // FALLBACK PATH — when the curated DB has nothing for this query,
+    // hit Photon (OSM-backed, free, no-auth, fast) so users typing
+    // less popular cities, towns, or villages still get real
+    // suggestions instead of the "no results" panel. Without this,
+    // the 190-city local table caps autocomplete coverage and the
+    // wizard's #1 input feels broken for anything off the beaten
+    // path. Photon is Komoot's public geocoder; we limit ourselves to
+    // city/town/village/island place-types and an 800ms hard timeout
+    // so a slow upstream never blocks the autocomplete render.
+    if (predictions.length === 0 && searchTerm.length >= 3) {
+      try {
+        const photon = await fetchPhotonSuggestions(searchTerm, limit, request);
+        if (photon.length > 0) {
+          return apiSuccess({
+            predictions: photon,
+            source: "photon",
+            hasMore: false,
+          });
+        }
+      } catch (err) {
+        // Non-fatal — fall through to empty result + the wizard's
+        // "Continue with <typed>" manual-prediction CTA still works.
+        console.warn(
+          "[Destinations Search] Photon fallback failed:",
+          err instanceof Error ? err.message : err
+        );
+      }
+    }
+
     return apiSuccess({
       predictions,
       source: "local",
@@ -321,4 +350,129 @@ export async function POST(request: NextRequest) {
     console.error("[Destinations Search] Local destinations search error:", error);
     return errors.internal("Internal server error", "Destinations Search");
   }
+}
+
+// ----- Photon (OSM) fallback ------------------------------------------------
+//
+// Why Photon and not Google Places Autocomplete:
+//   1. Zero cost. Google session-based autocomplete is ~$2.83/1K sessions,
+//      and we just spent the night cutting Google Places spend.
+//   2. No API key, no per-host rate limit documented. Komoot uses it
+//      themselves at scale.
+//   3. OSM coverage is excellent for cities/towns; we don't need Google's
+//      POI tail because the wizard only takes city-level destinations.
+//   4. Sub-300ms response globally from photon.komoot.io.
+//
+// Plan B (future): seed a server-side cities5000 table from GeoNames CC-BY
+// and put it BEFORE this Photon call. Removes the third-party dependency
+// and makes the long-tail lookup deterministic + sub-10ms. See task #372.
+
+interface PhotonFeature {
+  geometry?: { type?: string; coordinates?: [number, number] };
+  properties?: {
+    osm_id?: number;
+    osm_type?: string;
+    osm_key?: string;
+    osm_value?: string;
+    name?: string;
+    country?: string;
+    countrycode?: string;
+    state?: string;
+  };
+}
+interface PhotonResponse {
+  features?: PhotonFeature[];
+}
+
+const PHOTON_TIMEOUT_MS = 800;
+const PHOTON_PLACE_TYPES = new Set(["city", "town", "village", "island"]);
+
+async function fetchPhotonSuggestions(
+  query: string,
+  limit: number,
+  request: NextRequest
+): Promise<LocalDestinationPrediction[]> {
+  // Pass through the user's Accept-Language so Photon returns localized
+  // city names when available (Italian users typing "Roma" should get
+  // "Roma, Italia", not "Rome, Italy"). Photon supports en/de/fr/it.
+  const acceptLang = request.headers.get("accept-language") || "";
+  const lang = acceptLang.startsWith("it")
+    ? "it"
+    : acceptLang.startsWith("fr")
+      ? "fr"
+      : acceptLang.startsWith("de")
+        ? "de"
+        : "en";
+
+  // Photon API: https://github.com/komoot/photon
+  //   GET /api/?q=<query>&limit=<n>&lang=<en|de|fr|it>
+  //
+  // We DON'T pre-filter by osm_tag in the request because Photon's
+  // tag filter is too restrictive (drops some valid city hits). Filter
+  // client-side on the response instead.
+  const url = new URL("https://photon.komoot.io/api/");
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", String(Math.max(limit, 8)));
+  url.searchParams.set("lang", lang);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
+  let json: PhotonResponse;
+  try {
+    const res = await fetch(url.toString(), {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return [];
+    json = (await res.json()) as PhotonResponse;
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const features = json.features ?? [];
+  const predictions: LocalDestinationPrediction[] = [];
+  const seen = new Set<string>();
+
+  for (const feat of features) {
+    const p = feat.properties ?? {};
+    if (!p.name || !p.country) continue;
+    // Restrict to settlement-type results. Drops countries, mountains,
+    // POIs, and the long tail of non-destination matches.
+    if (p.osm_key !== "place" || !p.osm_value || !PHOTON_PLACE_TYPES.has(p.osm_value)) {
+      continue;
+    }
+
+    // Dedup by (name, country) — Photon can return the same city
+    // multiple times (admin region vs. populated place node).
+    const dedupKey = `${p.name.toLowerCase()}|${p.country.toLowerCase()}`;
+    if (seen.has(dedupKey)) continue;
+    seen.add(dedupKey);
+
+    const cc = (p.countrycode ?? "").toUpperCase() || null;
+    const coords = feat.geometry?.coordinates;
+    const longitude = Array.isArray(coords) ? coords[0] : undefined;
+    const latitude = Array.isArray(coords) ? coords[1] : undefined;
+
+    predictions.push({
+      placeId: `photon_${p.osm_type ?? "X"}${p.osm_id ?? Math.random().toString(36).slice(2)}`,
+      mainText: p.name,
+      secondaryText: p.country,
+      fullText: `${p.name}, ${p.country}`,
+      countryCode: cc,
+      flag: getCountryFlag(cc),
+      types: ["(cities)"],
+      coordinates:
+        typeof latitude === "number" && typeof longitude === "number"
+          ? { latitude, longitude }
+          : undefined,
+      // Keep source: 'local' so the existing client union type doesn't
+      // need to grow tonight. The server-side response field below
+      // says 'photon' for telemetry / debugging.
+      source: "local",
+    });
+
+    if (predictions.length >= limit) break;
+  }
+
+  return predictions;
 }

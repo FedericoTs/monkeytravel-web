@@ -943,9 +943,9 @@
     "popularDestinations": "Popular destinations",
     "typeToSearch": "Type 3+ chars to search",
     "fromCuratedList": "From our curated list",
-    "noResultsExciting": "You're exploring new territory!",
-    "noResultsSupported": "No worries — our AI plans trips to any destination on Earth.",
-    "continueWith": "Continue with {destination}"
+    "noResultsExciting": "Great pick — we plan trips anywhere",
+    "noResultsSupported": "Tap below to keep going. We don't limit destinations — any city, town, or village works.",
+    "continueWith": "Continue with {destination} →"
   },
   "startOver": {
     "title": "Start Over?",

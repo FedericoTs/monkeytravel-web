@@ -943,9 +943,9 @@
     "popularDestinations": "Destinos populares",
     "typeToSearch": "Escribe 3+ caracteres para buscar",
     "fromCuratedList": "De nuestra lista seleccionada",
-    "noResultsExciting": "¡Vas a explorar territorio nuevo!",
-    "noResultsSupported": "Tranquilo — nuestra AI planifica viajes a cualquier destino del mundo.",
-    "continueWith": "Continuar con {destination}"
+    "noResultsExciting": "Buena elección — planificamos viajes a cualquier lugar",
+    "noResultsSupported": "Toca abajo para continuar. Sin límites — cualquier ciudad, pueblo o aldea funciona.",
+    "continueWith": "Continuar con {destination} →"
   },
   "startOver": {
     "title": "¿Empezar de Nuevo?",

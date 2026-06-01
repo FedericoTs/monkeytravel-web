@@ -956,9 +956,9 @@
     "popularDestinations": "Destinazioni popolari",
     "typeToSearch": "Digita 3+ caratteri per cercare",
     "fromCuratedList": "Dalla nostra lista selezionata",
-    "noResultsExciting": "Stai per esplorare nuovi orizzonti!",
-    "noResultsSupported": "Nessun problema — la nostra AI pianifica viaggi per qualsiasi destinazione al mondo.",
-    "continueWith": "Continua con {destination}"
+    "noResultsExciting": "Ottima scelta — pianifichiamo viaggi ovunque",
+    "noResultsSupported": "Tocca qui sotto per continuare. Nessun limite — qualunque città, paese o villaggio va bene.",
+    "continueWith": "Continua con {destination} →"
   },
   "stagedLoading": {
     "stages": {
