@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -361,6 +362,9 @@ function SkeletonCard() {
 }
 
 export default function TemplatesPageClient() {
+  // i18n: header H1 + chrome were hardcoded English, leaking onto
+  // /it/templates + /es/templates. 2026-05-31 launch-night fix.
+  const t = useTranslations("common.curatedEscapes");
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -500,7 +504,7 @@ export default function TemplatesPageClient() {
 
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[var(--accent)]" />
-              <h1 className="text-lg font-bold text-slate-900">Curated Escapes</h1>
+              <h1 className="text-lg font-bold text-slate-900">{t("title")}</h1>
             </div>
 
             {/* Empty placeholder for layout balance on mobile, show Create Trip on desktop */}

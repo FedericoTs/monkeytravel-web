@@ -17,8 +17,53 @@ interface GlobalErrorProps {
   reset: () => void;
 }
 
+/**
+ * Detect stale-chunk failures from a rolling Vercel deploy.
+ *
+ * Symptom: a user loaded the page on deploy A, deploy B replaces the
+ * hashed chunk filenames, and a later client-side navigation tries to
+ * fetch the now-404 chunk → "ChunkLoadError: Failed to load chunk
+ * /_next/static/chunks/0bcf7l1lc1d6v.js". Live-caught 2026-05-31 on
+ * /it/trips/new mid-deploy. Hard refresh resolves immediately.
+ *
+ * We can't call reset() — it just re-renders the same broken tree.
+ * Hard-reload instead, gated by sessionStorage so a genuinely broken
+ * page doesn't enter an infinite reload loop.
+ */
+function isChunkLoadError(error: Error): boolean {
+  const name = (error && error.name) || "";
+  const msg = (error && error.message) || "";
+  return (
+    name === "ChunkLoadError" ||
+    /Loading chunk \w+ failed/i.test(msg) ||
+    /Failed to load chunk/i.test(msg) ||
+    /ChunkLoadError/.test(msg)
+  );
+}
+
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    // Stale-chunk auto-recovery: hard-reload once per session. The
+    // RELOAD_KEY prevents infinite loops if the reload itself fails
+    // for a non-stale reason. Cleared after a successful render
+    // would be ideal, but we never get to know — global-error is
+    // unmounted on success. The 5-minute TTL is enough for one cycle.
+    if (isChunkLoadError(error) && typeof window !== "undefined") {
+      const RELOAD_KEY = "mt:chunk-reload-at";
+      const last = sessionStorage.getItem(RELOAD_KEY);
+      const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+      if (!last || parseInt(last, 10) < fiveMinAgo) {
+        sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+        Sentry.captureMessage("ChunkLoadError auto-recovered via reload", {
+          level: "warning",
+          tags: { digest: error.digest, errorType: "chunk-load-recovery" },
+        });
+        // Defer so Sentry's beacon has a tick to fire.
+        setTimeout(() => window.location.reload(), 100);
+        return;
+      }
+    }
+
     // Report the error to Sentry
     Sentry.captureException(error, {
       tags: {

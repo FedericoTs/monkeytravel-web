@@ -1910,6 +1910,10 @@
   "curatedEscapes": {
     "title": "Curated Escapes",
     "subtitle": "Hand-picked itineraries ready to explore",
+    "meta": {
+      "title": "Curated Escapes",
+      "description": "Discover hand-picked travel itineraries crafted by travel experts. Browse curated trips to Paris, Tokyo, Barcelona, and more destinations worldwide."
+    },
     "days": "{days} days",
     "used": "{count} used",
     "explore": "Explore",

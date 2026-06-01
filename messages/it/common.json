@@ -1910,6 +1910,10 @@
   "curatedEscapes": {
     "title": "Fughe Selezionate",
     "subtitle": "Itinerari selezionati pronti da esplorare",
+    "meta": {
+      "title": "Fughe Selezionate",
+      "description": "Scopri itinerari di viaggio selezionati a mano da esperti del settore. Sfoglia viaggi curati a Parigi, Tokyo, Barcellona e altre destinazioni nel mondo."
+    },
     "days": "{days} giorni",
     "used": "{count} usati",
     "explore": "Esplora",
