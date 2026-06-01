@@ -806,7 +806,19 @@ async function generateItineraryInternal(
       return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
     }
 
-    throw new Error("Failed to generate itinerary: AI service unavailable");
+    // 2026-06-01: surface the underlying error so Sentry sees WHY we
+    // failed — previously the wrapper masked the Google response (403
+    // key-banned, 429 quota, 503 outage, etc.) making prod debugging
+    // impossible. Preserve `cause` so the original stack survives.
+    const rootMsg =
+      error instanceof Error ? error.message : String(error ?? "unknown");
+    const wrapped = new Error(
+      `Failed to generate itinerary: AI service unavailable (root: ${rootMsg.slice(0, 200)})`
+    );
+    if (error instanceof Error) {
+      (wrapped as Error & { cause?: unknown }).cause = error;
+    }
+    throw wrapped;
   }
 }
 
