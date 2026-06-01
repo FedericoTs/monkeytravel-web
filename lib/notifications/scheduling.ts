@@ -83,6 +83,21 @@ export function isTripNotificationsEnabled(): boolean {
 export async function scheduleTripNotifications(
   args: EnqueueArgs
 ): Promise<EnqueueResult> {
+  // Browser-side leak guard. lib/trips/persistTrip.ts is called from the
+  // client wizard (NewTripWizard.tsx → persistTrip → scheduleTripNotifications)
+  // and reaching createAdminClient() in the browser throws "Missing Supabase
+  // admin credentials" because SUPABASE_SERVICE_ROLE_KEY is server-only
+  // (correctly never shipped to the client). This was Sentry JAVASCRIPT-NEXTJS-11.
+  //
+  // Notification scheduling is a server-side concern; a no-op in the browser
+  // is safe because (a) the existing try/catch already absorbs RPC failures,
+  // (b) authenticated saves go through API routes server-side and re-trigger
+  // this path with admin creds available, and (c) anonymous trips don't have
+  // a user_id to notify anyway.
+  if (typeof window !== "undefined") {
+    return { ok: true, scheduledCount: 0, reason: "disabled" };
+  }
+
   if (!isTripNotificationsEnabled()) {
     return { ok: true, scheduledCount: 0, reason: "disabled" };
   }
