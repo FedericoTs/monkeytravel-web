@@ -31,16 +31,26 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 // fired, users waited 120s for a 500. Observed prod (last 24h):
 // 21% failure rate, P95 latency 134s on failures, P95 25s on successes.
 //
-// 2026-06-01 launch-day bump: 30s → 35s. After commit c0388c9 raised
-// non-streaming maxOutputTokens 6000 → 8000 (5-day-trip truncation fix),
-// P95 of successful calls drifted from ~25s to ~32s. The old 30s budget
-// tripped on legitimate (not stuck) 8K-token responses. Sentry issue
-// 124184403 fired during launch-broadcast traffic.
+// 2026-06-01 launch-day rework: 30s/3-attempts → 50s/2-attempts.
 //
-// New budget: 35s × (1 + MAX_RETRIES=2 attempts) + 3s inter-retry waits
-// = 111s worst case, still safely under the 120s Vercel maxDuration.
-// 35s covers the P95 of 8K-token calls (~32s) plus 3s headroom.
-const AI_REQUEST_TIMEOUT_MS = 35_000;
+// History: commit c0388c9 raised non-streaming maxOutputTokens
+// 6000 → 8000 (to stop 5-day trips truncating). That pushed P95 latency
+// from ~25s to ~32s and P99 to ~45s. The old 30s budget tripped on
+// legitimate responses; Sentry 124184403 fired during launch-broadcast
+// traffic. A 35s interim bump (commit 1072951) bought 3s headroom but
+// left no buffer for the P99 tail.
+//
+// Permanent budget: 50s × (1 + MAX_RETRIES=1 attempts) + 3s inter-retry
+// = 103s worst case, comfortably under the 120s Vercel maxDuration.
+// 50s covers P99 of 8K-token calls (~45s) with 5s headroom.
+//
+// Why drop retries 2 → 1: when attempt 1 hits the wrapper timeout,
+// Gemini is almost certainly stuck on this prompt — re-issuing the
+// exact same prompt rarely recovers. The 2nd retry was burning 30+
+// seconds of user-perceived latency for marginal recovery rate.
+// One retry with lower temperature (existing logic) still catches
+// transient Gemini blips; a 3rd attempt was redundant.
+const AI_REQUEST_TIMEOUT_MS = 50_000;
 
 /**
  * Race a promise against a timeout. Throws if the timeout expires first.
@@ -656,7 +666,7 @@ async function generateItineraryInternal(
   options?: GenerationOptions & { userId?: string }
 ): Promise<GeneratedItinerary> {
   const retryCount = options?.retryCount ?? 0;
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 1;
   const startTime = performance.now();
 
   // Route through model-router so the routing matrix lives in one place.
@@ -919,7 +929,7 @@ async function regenerateSingleActivityInternal(
   params: RegenerateActivityParams & { userId?: string },
   retryCount = 0
 ): Promise<Activity> {
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 1;
   const startTime = performance.now();
   // activity-regenerate → gemini-2.5-flash-lite (cheapest, single activity).
   const modelName = getModelForPurpose("activity-regenerate");
@@ -1183,7 +1193,7 @@ async function regenerateSingleDayInternal(
   params: RegenerateDayParams & { userId?: string },
   retryCount = 0
 ): Promise<ItineraryDay> {
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 1;
   const startTime = performance.now();
   // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
   const modelName = getModelForPurpose("day-regenerate");
@@ -1610,7 +1620,7 @@ async function generateMoreDaysInternal(
   params: GenerateMoreDaysParams & { userId?: string },
   retryCount = 0
 ): Promise<ItineraryDay[]> {
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 1;
   const startTime = performance.now();
   // generate-more-days → gemini-2.5-flash (continuation; needs context coherence).
   const modelName = getModelForPurpose("generate-more-days");
