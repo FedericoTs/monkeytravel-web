@@ -31,12 +31,16 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 // fired, users waited 120s for a 500. Observed prod (last 24h):
 // 21% failure rate, P95 latency 134s on failures, P95 25s on successes.
 //
-// New budget: 30s × (1 + MAX_RETRIES=2 attempts) + 3s inter-retry waits
-// = ~93s worst case, which fits cleanly under the 120s Vercel maxDuration
-// AND gives real retries the chance to run when the first attempt times
-// out. The 30s per-attempt covers the P95 of successful calls (25s) plus
-// 5s headroom — anything slower than that is almost certainly stuck.
-const AI_REQUEST_TIMEOUT_MS = 30_000;
+// 2026-06-01 launch-day bump: 30s → 35s. After commit c0388c9 raised
+// non-streaming maxOutputTokens 6000 → 8000 (5-day-trip truncation fix),
+// P95 of successful calls drifted from ~25s to ~32s. The old 30s budget
+// tripped on legitimate (not stuck) 8K-token responses. Sentry issue
+// 124184403 fired during launch-broadcast traffic.
+//
+// New budget: 35s × (1 + MAX_RETRIES=2 attempts) + 3s inter-retry waits
+// = 111s worst case, still safely under the 120s Vercel maxDuration.
+// 35s covers the P95 of 8K-token calls (~32s) plus 3s headroom.
+const AI_REQUEST_TIMEOUT_MS = 35_000;
 
 /**
  * Race a promise against a timeout. Throws if the timeout expires first.
