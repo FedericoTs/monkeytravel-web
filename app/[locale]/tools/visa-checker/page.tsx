@@ -289,8 +289,18 @@ export default async function VisaCheckerPage({
                 <h2 className="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">
                   {t("advisoryTitle")}
                 </h2>
+                {/*
+                  2026-05-31 P2 i18n fix: the FCDO API returns advisory.summary
+                  in English only ("FCDO travel advice for X. Includes safety
+                  and security, insurance, entry requirements and legal
+                  differences."). Showing that raw on /it /es leaked English
+                  into the localized page. The summary is a fixed boilerplate
+                  pattern keyed on the country name, so we render the
+                  localized boilerplate ourselves and only fall back to the
+                  raw API summary if it diverges from the known pattern.
+                */}
                 <p className="text-slate-700 leading-relaxed mb-3">
-                  {advisory.summary}
+                  {t("advisorySummary", { country: toName })}
                 </p>
                 <ExternalLinkButton
                   href={advisory.url}

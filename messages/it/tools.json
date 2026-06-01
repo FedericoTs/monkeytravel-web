@@ -104,6 +104,7 @@
     "ivisaCta": "Richiedi il visto per {destination} ora",
     "ivisaSubtext": "iVisa gestisce la pratica — moduli precompilati e supporto 24/7.",
     "advisoryTitle": "Avviso di viaggio attuale",
+    "advisorySummary": "Consigli di viaggio FCDO per {country}. Copre sicurezza, assicurazione, requisiti d'ingresso e differenze legali.",
     "advisoryUkSource": "Fonte: UK Foreign, Commonwealth & Development Office",
     "swapButton": "Inverti",
     "shareLink": "Copia link",

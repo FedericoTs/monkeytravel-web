@@ -8,6 +8,12 @@
   "index": {
     "title": "Explore Destinations",
     "subtitle": "Choose a city and get a personalized AI itinerary in 30 seconds",
+    "heroLine1": "Find your next",
+    "heroLine2Accent": "favorite city",
+    "heroSubtitle": "Hand-picked cities across every continent. <b>Pick one and an AI itinerary is ready in 30 seconds</b> — free, no signup, fully editable.",
+    "trustCurated": "Hand-picked cities",
+    "trustAi": "AI itineraries in 30s",
+    "trustFree": "100% free",
     "allDestinations": "All Destinations",
     "filterByRegion": "Filter by region",
     "destinationCount": "destinations",
