@@ -8,6 +8,21 @@ import { MetadataRoute } from "next";
 // CAUSALITY: keep in sync with app/[locale]/ — if a new private route is
 // added (anything user-specific, auth-gated, or transactional), include it
 // here so it doesn't leak into Google's index via internal links.
+//
+// 2026-06-01: GSC reported "Indexed, though blocked by robots.txt" on
+// monkeytravel.app. Root cause: pages with `<meta name="robots" content=
+// "noindex">` were ALSO listed here, so Google saw the URL via inbound
+// links/sitemap but couldn't crawl to read the noindex meta — they got
+// stuck "indexed" forever. Fixed by removing the path-level disallow for
+// surfaces that already noindex at the page level:
+//   - /shared/<token>          (page.tsx: robots.index = false)
+//   - /trips/<id>              (TripDetailClient + page.tsx: noindex)
+//   - /saved                   (page-level noindex)
+//   - /profile, /profile/*     (page-level noindex)
+// Google will now crawl → see noindex → drop from index. Keep `/api/`,
+// `/auth/`, `/admin/`, `/oauth/`, `/onboarding`, `/welcome`, `/unsubscribe`,
+// `/invite/<token>`, `/join/<token>` blocked — those are write endpoints
+// or one-time tokens we don't want Google fetching even for noindex.
 const DISALLOW_PATHS = [
   "/api/",
   "/api/calendar/", // personalised .ics subscription URLs (Phase 1B) — already
@@ -19,14 +34,11 @@ const DISALLOW_PATHS = [
   "/oauth/",
   "/onboarding",
   "/welcome",
-  "/profile/",
-  "/profile",
-  "/trips/",
-  "/saved",
-  "/shared/", // private trip shares — noindexed per cycle-3 finding
   "/unsubscribe",
   "/invite/",
   "/join/",
+  "/profile/", // no page-level noindex; keep blocked
+  "/profile",
   "/auth/reset-password", // legacy path; kept for clarity
 ];
 
