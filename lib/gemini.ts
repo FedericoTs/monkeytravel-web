@@ -690,7 +690,21 @@ async function generateItineraryInternal(
       temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 6000,
+      // 2026-06-01 parity bump: streaming gen was raised 6000 → 8000
+      // (commit 368a5da) after live verification showed 5-day trips
+      // truncating at ~7K tokens. Non-streaming path uses the same
+      // model + same prompt shape — any 5-7 day trip is at the same
+      // risk here. Output is billed per emitted tokens (not the cap),
+      // so the only cost on the rare 12-14 day overlong-output tail
+      // is ~33% on those specific calls. Median trip stays cheaper
+      // because it never hits the cap.
+      //
+      // Why this matters less than the streaming path: this internal
+      // entry point is used by the mobile cache warmer + the MCP
+      // (external ChatGPT) bridge. Lower volume than the wizard, but
+      // the same truncation failure mode and the user has even less
+      // visibility into the partial result. Parity is the safer call.
+      maxOutputTokens: 8000,
       responseMimeType: "application/json",
       // Cast: legacy SDK types lack `thinkingConfig`; the REST API has
       // accepted it since 2025-Q2. If a future SDK upgrade exposes it
