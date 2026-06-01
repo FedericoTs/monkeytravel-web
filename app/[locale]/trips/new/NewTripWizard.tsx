@@ -368,6 +368,13 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   const touchedFieldsThisStepRef = useRef<Set<string>>(new Set());
   const wizardCompletedRef = useRef<boolean>(false);
   const abandonedFiredRef = useRef<boolean>(false);
+  // Synchronous re-entry guard for handleSaveTrip. setLoading(true) is async
+  // — between click and re-render, a second click can fire before the button
+  // is visibly disabled, producing duplicate trip rows. A ref check is
+  // synchronous and catches the race regardless of React render timing.
+  // (Surfaced 2026-06-01 from paul.harrington@hostelworld.com — 2 identical
+  // Warsaw trips saved 4 seconds apart on signup.)
+  const savingTripRef = useRef<boolean>(false);
 
   // Mirror state into refs so the unload handlers can read current values
   // without having to re-bind the listeners on every state change.
@@ -1206,6 +1213,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     // is set, but a child component (DestinationHero onSave at line 1200)
     // could still invoke it.
     if (autoSaveEnabled && autoSave.savedTripId) return;
+    // Synchronous re-entry guard: setLoading(true) below is async, and a
+    // user can click a second time in the gap before React re-renders the
+    // disabled button. The ref check fires before any state update lands.
+    if (savingTripRef.current) return;
+    savingTripRef.current = true;
 
     // Supabase funnel mirror — fired on the user's Save tap regardless
     // of auth state. This captures the "peak intent" event before the
@@ -1255,6 +1267,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           });
         }
         setLoading(false);
+        savingTripRef.current = false;
         setShowAuthModal(true);
         return;
       }
@@ -1296,31 +1309,58 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
       };
 
-      const { data: trip, error: tripError } = await supabase
+      // Server-side dedupe (defense in depth): before INSERT, check if the
+      // same user already saved a trip with the same title + start_date in
+      // the last 60s. If so, reuse it. RLS scopes this SELECT to the
+      // caller's own trips so no privacy leak. Catches:
+      //   - cross-tab double-save (client ref doesn't share across tabs)
+      //   - hard-refresh-then-resave (ref reset, draft still present)
+      //   - any client guard regression
+      const tripTitle = `${generatedItinerary.destination.name} Trip`;
+      const sixtySecondsAgo = new Date(Date.now() - 60_000).toISOString();
+      const { data: existingTrip } = await supabase
         .from("trips")
-        .insert({
-          user_id: user.id,
-          title: `${generatedItinerary.destination.name} Trip`,
-          description: generatedItinerary.destination.description,
-          start_date: startDate,
-          end_date: endDate,
-          status: "planning",
-          visibility: "private",
-          itinerary: generatedItinerary.days,
-          cover_image_url: coverImageUrl,
-          budget: {
-            total: generatedItinerary.trip_summary.total_estimated_cost,
-            spent: 0,
-            currency: generatedItinerary.trip_summary.currency,
-          },
-          tags: deriveInterestsFromVibes(), // Auto-derived from vibes
-          trip_meta: tripMeta, // Preserve AI-generated metadata
-          packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
-        })
-        .select()
-        .single();
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("title", tripTitle)
+        .eq("start_date", startDate)
+        .gte("created_at", sixtySecondsAgo)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (tripError) throw tripError;
+      let trip: { id: string };
+      if (existingTrip) {
+        // Reuse the row that already landed. Treat as a successful save.
+        trip = existingTrip;
+      } else {
+        const { data: inserted, error: tripError } = await supabase
+          .from("trips")
+          .insert({
+            user_id: user.id,
+            title: tripTitle,
+            description: generatedItinerary.destination.description,
+            start_date: startDate,
+            end_date: endDate,
+            status: "planning",
+            visibility: "private",
+            itinerary: generatedItinerary.days,
+            cover_image_url: coverImageUrl,
+            budget: {
+              total: generatedItinerary.trip_summary.total_estimated_cost,
+              spent: 0,
+              currency: generatedItinerary.trip_summary.currency,
+            },
+            tags: deriveInterestsFromVibes(), // Auto-derived from vibes
+            trip_meta: tripMeta, // Preserve AI-generated metadata
+            packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
+          })
+          .select()
+          .single();
+
+        if (tripError) throw tripError;
+        trip = inserted;
+      }
 
       // Calculate trip duration
       const durationDays = Math.ceil(
@@ -1406,6 +1446,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       setError(err instanceof Error ? err.message : "Failed to save trip");
     } finally {
       setLoading(false);
+      // Always clear the re-entry guard so a legitimate retry (e.g. after
+      // a transient network error) is not permanently blocked.
+      savingTripRef.current = false;
     }
   };
 
