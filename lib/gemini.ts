@@ -1874,9 +1874,19 @@ export async function* generateItineraryStream(
       temperature: 1.0,
       topP: 0.95,
       topK: 40,
-      // Matches the non-streaming path (lowered 8192 → 6000 per the
-      // 2026-05-31 audit; see generateItineraryInternal for rationale).
-      maxOutputTokens: 6000,
+      // 2026-06-01: raised 6000 → 8000 after the thinkingConfig fix
+      // below landed. Live test with that fix in place: 3-day
+      // Reykjavik completed cleanly (26s, ~5300 tokens), but 5-day
+      // Porto truncated at position 21102 (~7000 tokens). The
+      // 2026-05-31 audit assumed 6000 was the right cap because of
+      // implicit-thinking inflation; with thinking off, the cap can
+      // float back up to give 5-7 day trips room to finish without
+      // re-introducing the silent truncation. Output is billed per
+      // actual emitted tokens, not per cap, so steady-state cost is
+      // unchanged. The 8000 ceiling supports trips up to ~10 days
+      // (the 14-day max would still risk truncation; revisit only if
+      // 8-14 day trip volume becomes material).
+      maxOutputTokens: 8000,
       responseMimeType: "application/json",
       // 2026-06-01 P0 FIX: disable extended thinking on the streaming
       // path, matching the non-streaming path's fix from commit 83eaf7f.
