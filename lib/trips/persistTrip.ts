@@ -129,6 +129,37 @@ export async function insertTrip(
   const fallback = pickFallbackCoverImage(input.itinerary);
   const row = buildTripRow(input, userId, fallback);
 
+  // Server-side dedupe (defense in depth). The autosave hook serializes
+  // calls within a single mount via pendingSaveRef, but cross-tab saves,
+  // hook remounts, or any other caller of insertTrip can still hit the
+  // race. Before inserting, check if the same user already has a trip
+  // with the same title + start_date created in the last 60s. If so,
+  // reuse it — same contract as the row would have had on first save.
+  // RLS scopes the SELECT to the caller's own trips.
+  //
+  // Surfaced 2026-06-01: paul.harrington@hostelworld.com landed 2 identical
+  // Warsaw trips 4 seconds apart on signup. The NewTripWizard manual-save
+  // path got its own dedupe in commit 31e1d41; this is the autosave-path
+  // counterpart.
+  const sixtySecondsAgo = new Date(Date.now() - 60_000).toISOString();
+  const { data: existing } = await supabase
+    .from("trips")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("title", row.title)
+    .eq("start_date", row.start_date)
+    .gte("created_at", sixtySecondsAgo)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) {
+    return {
+      tripId: existing.id,
+      durationDays: computeDurationDays(input.formState),
+    };
+  }
+
   const { data, error } = await supabase
     .from("trips")
     .insert(row)
