@@ -667,6 +667,23 @@ async function generateItineraryInternal(
   // 6000 tokens will truncate the final day's tips/cost block; the
   // post-process coordinate fixer + JSON.parse failure path will retry
   // with the lower-temperature branch which produces tighter output.
+  // 2026-06-01 P0 FIX: disable thinking on gemini-2.5-pro for the
+  // trip-generation call. Pro is a thinking model and the legacy
+  // @google/generative-ai SDK (0.24.x) doesn't expose thinkingConfig
+  // in its TS types — but the underlying REST endpoint accepts it.
+  // We pass it through via type-cast.
+  //
+  // Why this matters: Sentry issue 123983732 (2026-06-01 03:35 UTC)
+  // showed 'AI service unavailable' in prod. Direct REST test against
+  // 2.5-pro showed 1433 *thoughts* tokens for a 1-CHAR prompt taking
+  // 14s. For a real itinerary prompt (1500-3000 input tokens, 6000
+  // output cap), default thinking blows past AI_REQUEST_TIMEOUT_MS
+  // (30s) — every attempt times out, retries fire, route returns 500
+  // after ~93s.
+  //
+  // thinkingBudget=0 → no extended thinking → response time matches
+  // 2.5-flash (~10-25s for a full itinerary). Same model quality for
+  // structured JSON output where deep reasoning isn't needed.
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
@@ -675,6 +692,10 @@ async function generateItineraryInternal(
       topK: 40,
       maxOutputTokens: 6000,
       responseMimeType: "application/json",
+      // Cast: legacy SDK types lack `thinkingConfig`; the REST API has
+      // accepted it since 2025-Q2. If a future SDK upgrade exposes it
+      // natively, drop the cast.
+      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
 

@@ -10,7 +10,7 @@
  *
  *   Purpose                     | Model                  | Why
  *   ----------------------------|------------------------|----------------------------
- *   trip-generation             | gemini-2.5-pro         | Full itinerary, quality matters
+ *   trip-generation             | gemini-2.5-flash       | 2.5-pro thinking blew 30s timeout; flash supports thinkingBudget=0
  *   day-regenerate              | gemini-2.5-flash       | Single-day, balanced quality/cost
  *   activity-regenerate         | gemini-2.5-flash-lite  | Single activity, cheapest works
  *   concierge                   | gemini-2.5-flash       | Conversational, needs context
@@ -53,7 +53,24 @@ export type GeminiModelId =
   | "gemini-2.5-flash-lite";
 
 const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
-  "trip-generation": "gemini-2.5-pro",
+  // 2026-06-01 P0 ROOT-CAUSE FIX: switched from gemini-2.5-pro → 2.5-flash.
+  //
+  // The fresh Google AI key worked in direct REST test against pro
+  // (returned 200 OK in 14s for a 1-char prompt → 1433 *thoughts*
+  // tokens). For a real itinerary prompt (1500+ input, 6000 output
+  // cap), default thinking consistently blew past
+  // AI_REQUEST_TIMEOUT_MS (30s) → every attempt timed out, route
+  // returned 500 after retries (Sentry 123983732).
+  //
+  // We CAN'T disable thinking on pro — direct REST test with
+  // `thinkingConfig: { thinkingBudget: 0 }` returned 400
+  // "Budget 0 is invalid. This model only works in thinking mode."
+  //
+  // Flash DOES support thinkingBudget=0 (REST test returned in
+  // 0.88s flat). Same family, comparable JSON output quality for
+  // structured itineraries, 5-10× cheaper. The `thinkingConfig`
+  // line in lib/gemini.ts now safely takes effect.
+  "trip-generation": "gemini-2.5-flash",
   "day-regenerate": "gemini-2.5-flash",
   "activity-regenerate": "gemini-2.5-flash-lite",
   concierge: "gemini-2.5-flash",
