@@ -2283,10 +2283,29 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               </svg>
               <div className="flex-1">
                 <p className="text-red-700 font-medium">
+                  {/*
+                    2026-05-31 launch-readiness UX: detect server-busy
+                    error patterns (5xx from /api/ai/generate) and show a
+                    user-friendly message instead of the raw "Failed to
+                    generate valid itinerary after retries" / "AI service
+                    unavailable" string. These error strings can leak
+                    when the upstream Gemini API is rate-limited, the key
+                    is revoked, or any other 5xx fires after the retry
+                    budget is exhausted — none of which the user can act
+                    on. The friendly message + retry button gives them a
+                    concrete next step.
+                  */}
                   {error.includes("timed out")
                     ? t("generation.errorTimeout")
                     : error.includes("fetch") || error.includes("network") || error.includes("Failed to fetch")
                     ? t("generation.errorNetwork")
+                    : error.includes("AI service") ||
+                      error.includes("after retries") ||
+                      error.includes("Internal server error") ||
+                      error.includes("Failed to generate") ||
+                      error.includes("503") ||
+                      error.includes("500")
+                    ? t("generation.errorServerBusy")
                     : error}
                 </p>
                 <button

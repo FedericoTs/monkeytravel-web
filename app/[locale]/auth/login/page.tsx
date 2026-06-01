@@ -222,7 +222,20 @@ function LoginForm() {
                 appear no less prominently than other sign-in methods —
                 placing it first satisfies that and matches the convention
                 travelers see in Booking/Airbnb iOS apps. Black variant per
-                Apple's brand guidelines for light backgrounds. */}
+                Apple's brand guidelines for light backgrounds.
+
+                2026-05-31 launch-readiness gate: button only renders when
+                NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true". Until the
+                operator configures the Apple provider in Supabase Dashboard
+                (Auth → Providers → Apple) with a valid Service ID + .p8
+                key + Team ID + Key ID and flips this env var, the button
+                is hidden so we don't surface a broken click path at launch.
+                Web users still see Google Sign In + email/password, which
+                are functional. iOS reviewers see the button on TestFlight
+                builds because the native Capacitor app uses a different
+                code path (signInWithIdToken via the apple-sign-in plugin)
+                that doesn't depend on this env var. */}
+            {process.env.NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true" && (
             <button
               type="button"
               onClick={handleAppleLogin}
@@ -258,6 +271,7 @@ function LoginForm() {
               )}
               {t("appleButton")}
             </button>
+            )}
 
             {/* Google Sign In */}
             <button

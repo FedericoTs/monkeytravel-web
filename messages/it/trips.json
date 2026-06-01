@@ -176,6 +176,7 @@
     "error": "Impossibile generare l'itinerario. Riprova.",
     "errorTimeout": "La richiesta ha impiegato troppo tempo. Può succedere con viaggi complessi — riprova.",
     "errorNetwork": "Problema di connessione. Controlla la tua connessione e riprova.",
+    "errorServerBusy": "La nostra AI sta impiegando più del solito. Riprova tra un istante — o prova un viaggio più breve.",
     "retry": "Riprova"
   },
   "result": {

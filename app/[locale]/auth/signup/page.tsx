@@ -470,7 +470,12 @@ function SignupForm() {
             {/* Sign up with Apple — App Store Rule 4.8. See login page
                 for full rationale. Black button per Apple HIG; placed
                 above Google so Apple-first iOS users see it without
-                scrolling. */}
+                scrolling.
+
+                2026-05-31 launch-readiness gate (same as login): only
+                renders when NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true".
+                Hidden until operator configures Apple in Supabase. */}
+            {process.env.NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true" && (
             <button
               type="button"
               onClick={handleAppleSignup}
@@ -506,6 +511,7 @@ function SignupForm() {
               )}
               {t("appleButton")}
             </button>
+            )}
 
             {/* Google Sign Up */}
             <button

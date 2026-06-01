@@ -176,6 +176,7 @@
     "error": "Error al generar el itinerario. Por favor, intentalo de nuevo.",
     "errorTimeout": "La solicitud tardó demasiado. Esto puede pasar con viajes complejos — inténtalo de nuevo.",
     "errorNetwork": "Problema de conexión. Verifica tu internet e inténtalo de nuevo.",
+    "errorServerBusy": "Nuestra IA está tardando más de lo habitual. Inténtalo de nuevo en un momento — o prueba con un viaje más corto.",
     "retry": "Reintentar"
   },
   "result": {
