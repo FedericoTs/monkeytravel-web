@@ -179,16 +179,98 @@ export default async function ExplorePage({
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
 
-      {/* Hero — kept short so filters + grid are immediately visible. */}
-      <section className="relative bg-gradient-to-br from-[var(--primary)] to-[#0A6B9E] text-white">
-        <div className="absolute inset-0 bg-[url('/images/pattern-dots.svg')] opacity-10" />
-        <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
-            {t("h1")}
-          </h1>
-          <p className="text-white/85 text-base sm:text-lg max-w-2xl">
-            {t("lede")}
-          </p>
+      {/*
+        Hero — 2026-05-31 redesign (task #354) to match the homepage's warm
+        visual language. Replaced the flat coral→navy slab + dot-pattern
+        with: soft cream/rose/amber gradient, two blurred decorative blobs
+        (primary + accent tints), a status pill badge with pulsing dot,
+        an accent-colored gradient headline, a subtitle with bold
+        highlights, and a trust-signal row mirroring the homepage CTAs.
+
+        Stays SSR-only (no client component needed) by leaning on plain
+        Tailwind + next-intl rich-text for the bold highlight.
+      */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50">
+        {/* Decorative blurred gradient blobs. Pointer-events-none so
+            they never intercept clicks. aria-hidden because they're
+            purely visual flourish. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-32 -left-24 w-80 h-80 rounded-full bg-[var(--primary)]/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-40 -right-16 w-[28rem] h-[28rem] rounded-full bg-[var(--accent)]/25 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-rose-200/30 blur-3xl"
+        />
+
+        <div className="relative max-w-7xl mx-auto px-4 py-14 sm:py-20 lg:py-24">
+          <div className="max-w-3xl">
+            {/* Status pill — pulse dot signals "live community feed" */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-sm border border-[var(--primary)]/20 mb-6 shadow-sm">
+              <span className="relative flex w-2 h-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-sm font-medium text-slate-700">
+                {t("heroBadge")}
+              </span>
+            </div>
+
+            {/* Headline — final line wraps in a gradient accent span to
+                echo the homepage hero's "in 30 Secondi" treatment. */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-5 leading-[1.1]">
+              {t("heroLine1")}{" "}
+              <span className="bg-gradient-to-r from-[var(--primary)] via-rose-500 to-orange-400 bg-clip-text text-transparent">
+                {t("heroLine2Accent")}
+              </span>
+            </h1>
+
+            {/* Subtitle — next-intl rich text turns <b>…</b> chunks into
+                a bolded slate-900 span so the key value-prop pops. */}
+            <p className="text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed mb-7">
+              {t.rich("heroSubtitle", {
+                b: (chunks) => (
+                  <strong className="text-slate-900 font-semibold">
+                    {chunks}
+                  </strong>
+                ),
+              })}
+            </p>
+
+            {/* Trust signals — three short pills with check icons, same
+                visual rhythm as the homepage "100% Gratis | Fino a 8
+                Amici | 30 Secondi" row. */}
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2.5 list-none">
+              {[
+                t("trustCurated"),
+                t("trustFree"),
+                t("trustSaveCustomize"),
+              ].map((label) => (
+                <li
+                  key={label}
+                  className="inline-flex items-center gap-2 text-sm text-slate-700"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-4 h-4 text-emerald-500 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="font-medium">{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
