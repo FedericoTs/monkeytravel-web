@@ -79,24 +79,71 @@ interface PlaceRecord {
 }
 
 /**
- * Call Google Places Text Search with the ENRICHED field mask.
+ * Resolve a query string into a full PlaceRecord via the cheapest
+ * possible Google Places API combination.
  *
- * Field mask: `places.id,places.displayName,places.location,
- * places.formattedAddress,places.photos`.
+ * 2026-06-01 SKU optimization (task #367 phase 2):
  *
- * Billing: still the "Text Search Pro" SKU ($32/1K) because we ask for
- * `places.photos`, but we now extract 5 useful fields per call instead of 1.
- * Combined with the place_id-keyed cache below, expected ~3× reduction in
- * paid lookups across a typical traffic mix.
+ * Previously this was ONE call to Text Search with `places.photos` in
+ * the field mask — which forces Google to bill the call as "Text Search
+ * Pro" ($32/1K). That was the simplest path but the most expensive.
  *
- * Returns `null` if the API key is missing, the call fails, or no place
- * matches the query.
+ * The new 2-call sequence is ~26% cheaper per fresh lookup:
+ *
+ *   Step 1: Text Search **Essentials** (id + displayName + location +
+ *           formattedAddress; NO photos). Billed as the Essentials SKU
+ *           at $5/1K — 6.4× cheaper than Pro for the same identity fields.
+ *
+ *   Step 2: Place **Details Pro** by place_id, asking ONLY for `photos`.
+ *           Billed at $17/1K. Required because the Photos endpoint needs
+ *           a photo_resource_name, and the only way to get one (without
+ *           paying for Pro Text Search) is via Place Details Pro.
+ *
+ *   Step 3 (out of band, on render): Place **Photos** at $7/1K — handled
+ *           by the existing `/api/places/photo` proxy. Cached by Vercel
+ *           edge for 1 year.
+ *
+ *   Total fresh lookup: $5 + $17 = $22/1K + $7/1K photo = $29/1K
+ *   vs. old single call: $32 + $7 = $39/1K
+ *   → 26% saving per fresh lookup, on top of the variant-dedup savings
+ *     from the place_id cache.
+ *
+ * Why not skip Place Details and use Text Search IDs-Only ($1/1K)?
+ *   IDs-Only returns ONLY place_id — no name, no coords. We'd still need
+ *   Place Details Essentials ($5/1K) to get name+coords, then Place
+ *   Details Pro ($17/1K) for photos. Net: $1 + $5 + $17 = $23/1K, only
+ *   $1/1K better than the current path, and adds another roundtrip. Not
+ *   worth the latency budget.
+ *
+ * Latency trade-off:
+ *   +1 roundtrip per FRESH lookup (~150-250ms server-to-server inside
+ *   GCP). CACHE-HIT lookups still pay 0 roundtrips. Per-trip impact is
+ *   bounded by `Promise.all` in `fetchActivityImages` — every unique
+ *   activity in a trip runs in parallel.
+ *
+ * Error handling:
+ *   If Step 1 fails or returns no match → return null (caller falls back
+ *   to legacy cache + curated images). If Step 1 succeeds but Step 2
+ *   fails → return the PlaceRecord with `photo_resource_name: null` and
+ *   `photo_url: null`. The place is still cached (id + name + coords);
+ *   the photo can be re-fetched on a future trip.
  */
 async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
   }
 
+  let place: {
+    id: string;
+    displayName?: { text?: string };
+    formattedAddress?: string;
+    location?: { latitude?: number; longitude?: number };
+  } | null = null;
+
+  // ---------- Step 1: Text Search Essentials ($5/1K) ----------
+  // Field mask deliberately EXCLUDES `places.photos` to stay on the
+  // Essentials SKU. Adding any Pro-tier field (photos, rating, etc.)
+  // bumps the whole call to Pro pricing.
   try {
     const searchResponse = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
@@ -106,7 +153,7 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
           "X-Goog-FieldMask":
-            "places.id,places.displayName,places.location,places.formattedAddress,places.photos",
+            "places.id,places.displayName,places.location,places.formattedAddress",
         },
         body: JSON.stringify({
           textQuery: query,
@@ -120,33 +167,68 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
     }
 
     const data = await searchResponse.json();
-    const place = data.places?.[0];
-    if (!place?.id) return null;
-
-    const photo = place.photos?.[0];
-    const photoResourceName: string | null = photo?.name ?? null;
-
-    // **2026-05-24 live-test fix (revision 2):** raw
-    // `places.googleapis.com/v1/.../media?key=...` and resolved
-    // `lh3.googleusercontent.com/place-photos/...` URLs both 504 from
-    // direct browser loads. Our `/api/places/photo` proxy fetches them
-    // server-side and streams back with CDN-friendly cache headers.
-    const photoUrl = photoResourceName
-      ? `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`
-      : null;
-
-    return {
-      place_id: place.id,
-      display_name: place.displayName?.text ?? query,
-      formatted_address: place.formattedAddress ?? null,
-      latitude: place.location?.latitude ?? null,
-      longitude: place.location?.longitude ?? null,
-      photo_resource_name: photoResourceName,
-      photo_url: photoUrl,
-    };
+    place = data.places?.[0] ?? null;
   } catch {
     return null;
   }
+
+  if (!place?.id) {
+    return null;
+  }
+
+  // Build the partial record we can return even if photo fetch fails.
+  const partial: PlaceRecord = {
+    place_id: place.id,
+    display_name: place.displayName?.text ?? query,
+    formatted_address: place.formattedAddress ?? null,
+    latitude: place.location?.latitude ?? null,
+    longitude: place.location?.longitude ?? null,
+    photo_resource_name: null,
+    photo_url: null,
+  };
+
+  // ---------- Step 2: Place Details Pro ($17/1K) for photos ----------
+  // Asking ONLY for `photos` — the minimum to get a photo_resource_name.
+  // If this call fails (network blip, quota, billing issue) we still
+  // return the partial record so the place is cached for future trips;
+  // a later request can retry the photo (logic in getOrFetchPlace below).
+  try {
+    const detailsResponse = await fetch(
+      `https://places.googleapis.com/v1/places/${encodeURIComponent(place.id)}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+          "X-Goog-FieldMask": "photos",
+        },
+      }
+    );
+
+    if (detailsResponse.ok) {
+      const detailsData = await detailsResponse.json();
+      const photoResourceName: string | null =
+        detailsData.photos?.[0]?.name ?? null;
+
+      if (photoResourceName) {
+        // **2026-05-24 live-test fix (revision 2):** raw
+        // `places.googleapis.com/v1/.../media?key=...` AND resolved
+        // `lh3.googleusercontent.com/place-photos/...` URLs both 504 from
+        // direct browser loads. Our `/api/places/photo` proxy fetches
+        // them server-side and streams back with CDN-friendly cache
+        // headers (1-year edge TTL).
+        partial.photo_resource_name = photoResourceName;
+        partial.photo_url = `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`;
+      }
+    }
+  } catch (err) {
+    // Photo fetch failed — log but don't fail the whole resolution.
+    console.warn(
+      `[places_v2] Place Details (photos) failed for ${place.id}:`,
+      err instanceof Error ? err.message : err
+    );
+  }
+
+  return partial;
 }
 
 /**
@@ -160,8 +242,10 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
  * Cache HIT path: 1 DB roundtrip via a single SELECT joining both tables,
  * then a fire-and-forget hit_count++ UPDATE. 0 Places API spend.
  *
- * Cache MISS path: 1 Places API call ($32/1K), then upsert into both tables.
- * Subsequent lookups for ANY name variant of the same place_id return cached.
+ * Cache MISS path: 2 Places API calls billed at ($5 + $17)/1K = $22/1K
+ * (Text Search Essentials + Place Details Pro, see `fetchPlaceFromGoogle`
+ * for the SKU rationale), then upsert into both tables. Subsequent
+ * lookups for ANY name variant resolving to the same place_id are free.
  *
  * In-flight dedup: handled at the `fetchActivityImages` group layer (same
  * normalizedKey resolves once per request) — we don't re-implement it here.
