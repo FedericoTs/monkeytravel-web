@@ -184,7 +184,9 @@ export default function ActivityDetailSheet({
                 <div>
                   <div className="text-sm text-slate-500">Est. Cost</div>
                   <div className="font-semibold text-slate-900">
-                    {activity.estimated_cost.amount === 0
+                    {activity.estimated_cost?.amount == null
+                      ? "—"
+                      : activity.estimated_cost.amount === 0
                       ? "Free"
                       : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
                   </div>

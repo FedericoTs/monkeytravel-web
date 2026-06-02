@@ -380,7 +380,7 @@ function ActivityCard({
                       </>
                     );
                   })()
-                ) : (
+                ) : activity.estimated_cost?.amount != null ? (
                   // Fallback to AI estimate with currency conversion
                   <>
                     <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
@@ -392,7 +392,7 @@ function ActivityCard({
                     </div>
                     <div className="text-[10px] text-slate-400 hidden sm:block">{t('activity.aiEstimate')}</div>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
 
