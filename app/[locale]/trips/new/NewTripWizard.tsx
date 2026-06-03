@@ -157,6 +157,8 @@ type WizardEventStep =
   | "generating"
   | "result"
   | "save_clicked"
+  | "save_blocked_anon"
+  | "save_failed"
   | "saved"
   | "abandoned";
 
@@ -1266,6 +1268,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             budgetTier,
           });
         }
+        // Funnel disambiguation: save_clicked > saved is the dominant
+        // "lost intent" leak. Without this event we can't tell "user
+        // bounced at auth wall" from "save genuinely errored". Surfaced
+        // 2026-06-02 — 1 save_clicked, 0 saved, 0 signups in one day made
+        // the gap invisible until manual investigation.
+        void trackWizardEvent("save_blocked_anon", {
+          destination,
+          group_size: tripIntent,
+          backpacker_mode: travelStyle === "backpacker",
+          locale,
+        });
         setLoading(false);
         savingTripRef.current = false;
         setShowAuthModal(true);
@@ -1444,6 +1457,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       setShowShareAfterSaveModal(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
+      // Funnel marker: this is the AUTHED-save genuine-failure path
+      // (INSERT errored, RLS rejected, network died, etc). Distinct from
+      // save_blocked_anon (anon user dismissed auth modal). If this fires
+      // even once in a 2h watcher window we want to wake up — it means
+      // a real user lost a real trip after a real save click.
+      void trackWizardEvent("save_failed", {
+        destination,
+        group_size: tripIntent,
+        backpacker_mode: travelStyle === "backpacker",
+        locale,
+      });
     } finally {
       setLoading(false);
       // Always clear the re-entry guard so a legitimate retry (e.g. after

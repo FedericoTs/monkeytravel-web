@@ -39,6 +39,8 @@ const STEP_VALUES = [
   "generating",
   "result",
   "save_clicked",
+  "save_blocked_anon",
+  "save_failed",
   "saved",
   "abandoned",
 ] as const;
