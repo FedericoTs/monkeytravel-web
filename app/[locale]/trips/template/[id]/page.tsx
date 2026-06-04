@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TemplatePreviewClient from "./TemplatePreviewClient";
+import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 
 interface TemplatePageProps {
   params: Promise<{ id: string }>;
@@ -67,6 +68,13 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
   // Calculate date range for display (generic, will be customized on save)
   const durationDays = template.template_duration_days || template.itinerary?.length || 7;
 
+  // Read-time refresh of activity photo URLs from places_v2 — templates
+  // are public-facing and any stale URL renders as a broken-image icon
+  // on the preview page. See lib/places/refreshItineraryPhotos.ts.
+  const refreshedItinerary = await refreshItineraryPhotos(
+    Array.isArray(template.itinerary) ? template.itinerary : []
+  );
+
   return (
     <TemplatePreviewClient
       template={{
@@ -83,7 +91,7 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
         moodTags: template.template_mood_tags || [],
         tags: template.tags || [],
         copyCount: template.template_copy_count || 0,
-        itinerary: template.itinerary || [],
+        itinerary: refreshedItinerary,
         meta: template.trip_meta,
         budget: template.budget,
         packingList: template.packing_list || [],

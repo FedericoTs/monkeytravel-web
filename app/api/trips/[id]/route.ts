@@ -5,6 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { ItineraryDay } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
+import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -23,6 +24,19 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       "*"
     );
     if (tripError) return tripError;
+
+    // Read-time refresh of activity photo URLs from places_v2. See
+    // lib/places/refreshItineraryPhotos.ts for why this exists.
+    // Falls back to the original itinerary silently on any DB error.
+    const tripWithItin = trip as unknown as { itinerary?: unknown };
+    if (tripWithItin && Array.isArray(tripWithItin.itinerary)) {
+      const refreshed = await refreshItineraryPhotos(
+        tripWithItin.itinerary as Array<{
+          activities?: Array<{ image_url?: string | null }>;
+        }>
+      );
+      tripWithItin.itinerary = refreshed;
+    }
 
     return apiSuccess({ success: true, trip });
   } catch (error) {

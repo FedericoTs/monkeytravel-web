@@ -206,8 +206,25 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
 
     if (detailsResponse.ok) {
       const detailsData = await detailsResponse.json();
+      // Walk the photos array (not just [0]) and pick the first one with
+      // a resource name long enough to be a real Google photo token.
+      // **2026-06-04 fix:** Google's Place Details Pro sometimes returns
+      // photo entries whose `name` is shorter than the typical 300+ char
+      // hash. Those names cause Google's /media endpoint to respond 400,
+      // which streams down as a broken-image icon. Skipping short entries
+      // and trying the next one (Google returns up to 10 photos) gets a
+      // usable photo for nearly every place — at zero additional Places
+      // API spend (the field mask already included all photos).
+      const photos: Array<{ name?: string }> = Array.isArray(detailsData.photos)
+        ? detailsData.photos
+        : [];
+      // Minimum hash length empirically distinguishes "this resource name
+      // works at /media" from "Google returned a token that 400s". Full
+      // hashes are typically 300-450 chars; pathological ones run ~80-120.
+      const MIN_PHOTO_TOKEN_LEN = 200;
       const photoResourceName: string | null =
-        detailsData.photos?.[0]?.name ?? null;
+        photos.find((p) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN)
+          ?.name ?? null;
 
       if (photoResourceName) {
         // **2026-05-24 live-test fix (revision 2):** raw

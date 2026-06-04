@@ -5,6 +5,7 @@ import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import type { Metadata } from "next";
 import TripDetailClient from "./TripDetailClient";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
+import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Title is intentionally generic — pulling the actual trip title here
@@ -78,7 +79,13 @@ export default async function TripDetailPage({
   const totalVoters = (collaboratorCount || 0) + 1;
   const isCollaborativeTrip = totalVoters > 1;
 
-  const itinerary = (trip.itinerary as ItineraryDay[]) || [];
+  // Read-time refresh of activity photo URLs from places_v2. Fixes drift
+  // when image_urls baked into trip.itinerary at generation time have
+  // since gone stale (truncated photo_resource_name, Google rotation,
+  // etc.) — places_v2 is the source of truth. See
+  // lib/places/refreshItineraryPhotos.ts for the why.
+  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
+  const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];

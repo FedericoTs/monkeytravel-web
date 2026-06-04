@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { getTripDestination } from "@/lib/trips/destination";
+import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import {
   generateTripSchema,
   generateBreadcrumbSchema,
@@ -83,7 +84,12 @@ export default async function SharedTripPage({ params }: PageProps) {
     notFound();
   }
 
-  const itinerary = (trip.itinerary as ItineraryDay[]) || [];
+  // Read-time refresh of activity photo URLs from places_v2. Public
+  // /shared/* surfaces had broken activity-card images when URLs baked
+  // into trip.itinerary went stale — places_v2 has the canonical URL.
+  // See lib/places/refreshItineraryPhotos.ts.
+  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
+  const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
