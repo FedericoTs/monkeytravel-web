@@ -113,7 +113,28 @@ export async function GET(request: NextRequest) {
     return new Response("Upstream fetch failed", { status: 502 });
   }
 
+  // **2026-06-04 fix:** on a 4xx from Google's /media endpoint (most
+  // often happens when the photo resource name points at a deleted /
+  // private / never-existed photo — Google's Place Details Pro returned
+  // the token but the photo itself can't be served), redirect to a
+  // curated Pexels fallback so the <img> tag still renders something.
+  // Without this, the browser shows the broken-image icon — the exact
+  // symptom this whole stack of fixes is trying to eliminate.
+  //
+  // 5xx still propagates (handled upstream by fetchWithRetry); 4xx is
+  // a deterministic "this photo doesn't work" signal, so a one-time
+  // redirect is correct and the CDN will cache it for the photo's
+  // lifetime. Status 307 (temporary redirect) preserves the request
+  // method and disables long-term caching of the redirect itself, so
+  // if we later wire in a retry / re-fetch the next request picks up
+  // the new behaviour.
   if (!res.ok || !res.body) {
+    if (res.status >= 400 && res.status < 500) {
+      // Drain the body to free the connection — we ignore the error
+      // payload (it's a JSON error from Google, useless to the browser).
+      try { await res.arrayBuffer(); } catch { /* ignore */ }
+      return Response.redirect(curatedFallbackForName(name), 307);
+    }
     return new Response(`Upstream ${res.status}`, { status: res.status });
   }
 
@@ -128,4 +149,32 @@ export async function GET(request: NextRequest) {
       "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
     },
   });
+}
+
+/**
+ * Pexels curated photos keyed by a deterministic hash of the photo
+ * resource name. Same broken URL → same fallback every time (so the
+ * CDN caches a single redirect target per upstream-broken photo).
+ *
+ * Photos hand-picked for activity-page atmospherics: open scenery,
+ * urban moments, food close-ups. The grid is deliberately broad so
+ * no single fallback dominates and pages with multiple broken URLs
+ * still get visual variety.
+ */
+const CURATED_FALLBACKS = [
+  "https://images.pexels.com/photos/2087391/pexels-photo-2087391.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  "https://images.pexels.com/photos/2034335/pexels-photo-2034335.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  "https://images.pexels.com/photos/2082103/pexels-photo-2082103.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+];
+
+function curatedFallbackForName(name: string): string {
+  // Cheap deterministic hash over the resource name — sum of char
+  // codes modulo the list length. Same name → same fallback always.
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash + name.charCodeAt(i)) | 0;
+  const idx = Math.abs(hash) % CURATED_FALLBACKS.length;
+  return CURATED_FALLBACKS[idx];
 }
