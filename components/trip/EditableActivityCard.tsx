@@ -564,7 +564,9 @@ function EditableActivityCard({
                     <>
                       <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
                         <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
-                        {activity.estimated_cost.amount === 0
+                        {activity.estimated_cost?.amount == null
+                          ? t('activity.aiEstimate')
+                          : activity.estimated_cost.amount === 0
                           ? t('activity.free')
                           : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
                       </div>

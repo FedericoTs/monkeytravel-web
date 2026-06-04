@@ -2027,7 +2027,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                                   </div>
                                 )}
                               </div>
-                              {activity.estimated_cost && (
+                              {activity.estimated_cost?.amount != null && (
                                 <div className="text-right shrink-0">
                                   <div className="font-medium text-slate-900 text-sm">
                                     {convertCurrency(

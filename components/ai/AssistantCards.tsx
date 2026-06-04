@@ -185,7 +185,7 @@ function MiniActivityCard({
               {activity.duration_minutes}min
             </span>
           )}
-          {activity.estimated_cost && (
+          {activity.estimated_cost?.amount != null && (
             <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-white/60 text-slate-600">
               {activity.estimated_cost.currency} {activity.estimated_cost.amount}
             </span>
