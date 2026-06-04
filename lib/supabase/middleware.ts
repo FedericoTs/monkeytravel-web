@@ -23,6 +23,17 @@ function trackPageView(request: NextRequest, userId?: string): string | null {
     return null;
   }
 
+  // **2026-06-04 fix**: dev environment was POSTing to the prod page_views
+  // table because middleware ran against prod Supabase from `npm run dev`.
+  // Over 30 days this leaked 2,765 spurious views from 5 localhost sessions
+  // (17% of total traffic) and one template alone took 1,726 ghost views
+  // from a single dev tab in a refresh loop. VERCEL_ENV is only set on
+  // Vercel deployments ('production' | 'preview' | 'development'), so a
+  // missing/non-production value catches both local dev and preview builds.
+  if (process.env.VERCEL_ENV !== "production") {
+    return null;
+  }
+
   // Read existing session_id or mint a fresh one for first-time visitors.
   // crypto.randomUUID() is available on the Edge runtime that powers
   // Next.js middleware — no polyfill needed.

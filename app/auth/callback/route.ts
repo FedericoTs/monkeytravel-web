@@ -9,6 +9,25 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
 
 /**
+ * Build a redirect response that explicitly tells crawlers not to index
+ * the callback URL.
+ *
+ * Why: GSC showed 45 organic landings on /auth/callback over 30 days,
+ * meaning Google had indexed magic-link URLs leaked via email or social
+ * shares. This is a privacy/UX problem (the page is a one-shot OAuth/PKCE
+ * exchanger; landing there cold gets you "Could not authenticate") AND a
+ * crawl-budget waste. /auth/callback is at app/auth/callback/route.ts,
+ * outside the [locale]/auth layout that already carries
+ * `robots: { index: false, follow: false }` — route handlers don't use
+ * Metadata, so we set the header on the response instead.
+ */
+function noIndexRedirect(url: string): NextResponse {
+  const response = NextResponse.redirect(url);
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return response;
+}
+
+/**
  * Read the first-touch UTM source captured by middleware.
  *
  * Returns null when there's no cookie OR the value looks malformed.
@@ -67,7 +86,7 @@ export async function GET(request: Request) {
       // SPECIAL CASE: Password recovery - redirect to reset password page
       // The user is now authenticated with a session, so they can set a new password
       if (type === "recovery") {
-        return NextResponse.redirect(`${origin}${getLocalePath("/auth/reset-password")}`);
+        return noIndexRedirect(`${origin}${getLocalePath("/auth/reset-password")}`);
       }
 
       // Check if user profile exists
@@ -100,7 +119,7 @@ export async function GET(request: Request) {
           .catch(() => {
             /* Sentry not available — console.error above is the fallback */
           });
-        return NextResponse.redirect(
+        return noIndexRedirect(
           `${origin}${getLocalePath("/auth/login?error=profile_lookup_failed")}`,
         );
       }
@@ -132,12 +151,12 @@ export async function GET(request: Request) {
 
         // Skip welcome and onboarding — go straight to intended destination
         const separator = finalRedirect.includes("?") ? "&" : "?";
-        return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
+        return noIndexRedirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
       }
 
       // Fallback: profile doesn't exist yet (edge case) - go straight to trips/new
       await mergeAnonymousSaves(data.user.id);
-      return NextResponse.redirect(`${origin}${getLocalePath(`${finalRedirect}?auth_event=email_confirmed`)}`);
+      return noIndexRedirect(`${origin}${getLocalePath(`${finalRedirect}?auth_event=email_confirmed`)}`);
     }
 
     // Token verification failed
@@ -152,7 +171,7 @@ export async function GET(request: Request) {
       ? `/auth/forgot-password?error=${encodeURIComponent(errorMessage)}`
       : `/auth/login?error=${encodeURIComponent(errorMessage)}`;
 
-    return NextResponse.redirect(`${origin}${getLocalePath(redirectPath)}`);
+    return noIndexRedirect(`${origin}${getLocalePath(redirectPath)}`);
   }
 
   // Handle OAuth code exchange
@@ -188,7 +207,7 @@ export async function GET(request: Request) {
           .catch(() => {
             /* Sentry not available — console.error above is the fallback */
           });
-        return NextResponse.redirect(
+        return noIndexRedirect(
           `${origin}${getLocalePath("/auth/login?error=profile_lookup_failed")}`,
         );
       }
@@ -279,7 +298,7 @@ export async function GET(request: Request) {
             .catch(() => {
               /* Sentry not available — console.error above is the fallback */
             });
-          return NextResponse.redirect(
+          return noIndexRedirect(
             `${origin}${getLocalePath("/auth/login?error=profile_creation_failed")}`,
           );
         }
@@ -295,11 +314,11 @@ export async function GET(request: Request) {
         if (fromOnboarding) {
           // User completed onboarding before signup - transfer preferences then go to trip creation
           const completeProfileUrl = `/auth/complete-profile?redirect=${encodeURIComponent(finalRedirect)}&auth_event=signup_google`;
-          return NextResponse.redirect(`${origin}${getLocalePath(completeProfileUrl)}`);
+          return noIndexRedirect(`${origin}${getLocalePath(completeProfileUrl)}`);
         } else {
           // New user — straight to trip creation, no gates
           const separator = finalRedirect.includes("?") ? "&" : "?";
-          return NextResponse.redirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=signup_google`);
+          return noIndexRedirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=signup_google`);
         }
       }
 
@@ -322,12 +341,12 @@ export async function GET(request: Request) {
 
       const separator = next.includes("?") ? "&" : "?";
       const trackingParam = "auth_event=login_google";
-      return NextResponse.redirect(`${origin}${getLocalePath(next)}${separator}${trackingParam}`);
+      return noIndexRedirect(`${origin}${getLocalePath(next)}${separator}${trackingParam}`);
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}${getLocalePath("/auth/login?error=Could not authenticate")}`);
+  return noIndexRedirect(`${origin}${getLocalePath("/auth/login?error=Could not authenticate")}`);
 }
 
 /**
