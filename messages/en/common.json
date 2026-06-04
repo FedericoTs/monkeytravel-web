@@ -1871,15 +1871,27 @@
   },
   "authPrompt": {
     "title": "Save Your Trip",
-    "subtitle": "Create a free account to save your {destination} itinerary and access it anytime",
+    "subtitle": "Drop your email and we'll send a one-tap link to save your {destination} itinerary",
     "benefits": {
       "aiPowered": "Edit and regenerate any day",
-      "saveEdit": "Save and edit your trips anytime",
+      "saveEdit": "Save and access from any device",
       "realTime": "Share and vote with friends"
     },
     "redirecting": "Redirecting...",
     "createAccount": "Create Free Account",
     "hasAccount": "Already have an account? Sign in",
+    "preferPassword": "Prefer a password? Sign up instead",
+    "magicLink": {
+      "emailLabel": "Your email",
+      "emailPlaceholder": "you@example.com",
+      "send": "Email me the link",
+      "sending": "Sending...",
+      "failed": "Couldn't send the link — please try again",
+      "sentTitle": "Check your inbox",
+      "sentSubtitle": "We sent a one-tap link to {email}",
+      "checkInbox": "Click the link in the email to save your trip. No password needed.",
+      "useDifferent": "Use a different email"
+    },
     "trust": {
       "secure": "Secure",
       "free": "Free to start",

@@ -1871,15 +1871,27 @@
   },
   "authPrompt": {
     "title": "Salva il Tuo Viaggio",
-    "subtitle": "Crea un account gratuito per salvare il tuo itinerario per {destination} e ritrovarlo quando vuoi",
+    "subtitle": "Lascia la tua email e ti inviamo un link al volo per salvare l'itinerario di {destination}",
     "benefits": {
       "aiPowered": "Modifica e rigenera qualsiasi giorno",
-      "saveEdit": "Salva e modifica i tuoi viaggi in qualsiasi momento",
+      "saveEdit": "Salva e accedi da qualsiasi dispositivo",
       "realTime": "Condividi e vota con gli amici"
     },
     "redirecting": "Reindirizzamento...",
     "createAccount": "Crea Account Gratis",
     "hasAccount": "Hai già un account? Accedi",
+    "preferPassword": "Preferisci una password? Registrati invece",
+    "magicLink": {
+      "emailLabel": "La tua email",
+      "emailPlaceholder": "tu@esempio.com",
+      "send": "Inviami il link",
+      "sending": "Invio in corso...",
+      "failed": "Non siamo riusciti a inviare il link — riprova",
+      "sentTitle": "Controlla la tua casella",
+      "sentSubtitle": "Abbiamo inviato un link a {email}",
+      "checkInbox": "Clicca il link nell'email per salvare il viaggio. Nessuna password necessaria.",
+      "useDifferent": "Usa un'altra email"
+    },
     "trust": {
       "secure": "Sicuro",
       "free": "Gratis per iniziare",

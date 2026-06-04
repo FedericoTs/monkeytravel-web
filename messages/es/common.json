@@ -1871,15 +1871,27 @@
   },
   "authPrompt": {
     "title": "Guarda tu Viaje",
-    "subtitle": "Crea una cuenta gratuita para guardar tu itinerario de {destination} y acceder a él cuando quieras",
+    "subtitle": "Deja tu correo y te enviamos un enlace de un solo clic para guardar tu itinerario de {destination}",
     "benefits": {
       "aiPowered": "Edita y regenera cualquier día",
-      "saveEdit": "Guarda y edita tus viajes en cualquier momento",
+      "saveEdit": "Guarda y accede desde cualquier dispositivo",
       "realTime": "Comparte y vota con amigos"
     },
     "redirecting": "Redirigiendo...",
     "createAccount": "Crear Cuenta Gratis",
     "hasAccount": "¿Ya tienes una cuenta? Inicia sesión",
+    "preferPassword": "¿Prefieres una contraseña? Regístrate",
+    "magicLink": {
+      "emailLabel": "Tu correo",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "send": "Enviarme el enlace",
+      "sending": "Enviando...",
+      "failed": "No pudimos enviar el enlace — inténtalo de nuevo",
+      "sentTitle": "Revisa tu bandeja",
+      "sentSubtitle": "Enviamos un enlace a {email}",
+      "checkInbox": "Haz clic en el enlace del correo para guardar tu viaje. No hace falta contraseña.",
+      "useDifferent": "Usar otro correo"
+    },
     "trust": {
       "secure": "Seguro",
       "free": "Gratis para empezar",
