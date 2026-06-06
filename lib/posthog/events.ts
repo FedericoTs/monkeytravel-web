@@ -59,13 +59,20 @@ export interface TripCreatedEvent {
 }
 
 export interface UserSignedUpEvent {
-  method: "email" | "google";
+  /**
+   * `magic-link` added 2026-06-04 alongside the AuthPromptModal redesign
+   * (commit 9350871). `apple` added 2026-06-01 for the iOS Capacitor
+   * Sign in with Apple flow (task #268). When extending here, also
+   * extend the auth_event router in app/auth/callback/route.ts so
+   * OAuth providers fire the correct PostHog event.
+   */
+  method: "email" | "google" | "apple" | "magic-link";
   referral_code?: string;
   from_onboarding?: boolean;
 }
 
 export interface UserLoggedInEvent {
-  method: "email" | "google";
+  method: "email" | "google" | "apple" | "magic-link";
 }
 
 export interface ItineraryGeneratedEvent {
@@ -644,4 +651,293 @@ export async function captureReturnVisit(event: ReturnVisitEvent) {
 export async function capture(eventName: string, properties?: Record<string, unknown>) {
   const ph = await getPosthog();
   ph.capture(eventName, properties);
+}
+
+// ============================================================================
+// AUTH-WALL FUNNEL EVENTS (added 2026-06-06 — tracking refresh)
+// ============================================================================
+
+/**
+ * Where the AuthPromptModal opened. Drives funnel segmentation: the
+ * post-result-save trigger is the highest-intent path; nav and explore
+ * triggers are lower intent. We want to see them in separate funnels.
+ */
+export type AuthPromptLocation =
+  | "wizard_save"
+  | "explore_like"
+  | "explore_fork"
+  | "shared_vote"
+  | "shared_save"
+  | "invite_accept"
+  | "publish_trip"
+  | "concierge_quota"
+  | "other";
+
+export interface AuthPromptShownEvent {
+  location: AuthPromptLocation;
+  /** Trip ID when shown over a trip surface (wizard, explore, shared). */
+  trip_id?: string;
+  /** Destination if known — for cohort analysis by destination intent. */
+  destination?: string;
+}
+
+export interface MagicLinkRequestedEvent {
+  location: AuthPromptLocation;
+  /** Hash of the email domain (e.g. "gmail.com"). Never the address itself. */
+  email_domain?: string;
+}
+
+export interface MagicLinkRequestFailedEvent {
+  location: AuthPromptLocation;
+  /** Supabase error code if available, else "unknown". */
+  reason: string;
+}
+
+export interface AuthMethodSwitchedEvent {
+  location: AuthPromptLocation;
+  /** From the magic-link entry, which escape hatch did they take? */
+  to: "password_signup" | "password_login";
+}
+
+export interface AuthPromptDismissedEvent {
+  location: AuthPromptLocation;
+  /** Did the user type any email before bailing? */
+  had_email_entered: boolean;
+}
+
+export async function captureAuthPromptShown(event: AuthPromptShownEvent) {
+  const ph = await getPosthog();
+  ph.capture("auth_prompt_shown", event);
+}
+
+export async function captureMagicLinkRequested(event: MagicLinkRequestedEvent) {
+  const ph = await getPosthog();
+  ph.capture("magic_link_requested", event);
+}
+
+export async function captureMagicLinkRequestFailed(event: MagicLinkRequestFailedEvent) {
+  const ph = await getPosthog();
+  ph.capture("magic_link_request_failed", event);
+}
+
+export async function captureAuthMethodSwitched(event: AuthMethodSwitchedEvent) {
+  const ph = await getPosthog();
+  ph.capture("auth_method_switched", event);
+}
+
+export async function captureAuthPromptDismissed(event: AuthPromptDismissedEvent) {
+  const ph = await getPosthog();
+  ph.capture("auth_prompt_dismissed", event);
+}
+
+// ============================================================================
+// WIZARD-SAVE GAP EVENTS (added 2026-06-06)
+//
+// The save_blocked_anon + save_failed events are also written to the
+// Supabase `wizard_step_events` table for the database funnel, but
+// PostHog needs them too so they appear in funnel charts there.
+// ============================================================================
+
+export interface SaveBlockedAnonEvent {
+  destination?: string;
+  group_size?: string;
+  backpacker_mode?: boolean;
+  /** Was the AuthPromptModal then shown? (false = silent block somehow) */
+  modal_shown: boolean;
+}
+
+export interface SaveFailedEvent {
+  destination?: string;
+  group_size?: string;
+  backpacker_mode?: boolean;
+  /** Top-line error class so we can group failures. */
+  error_class: "network" | "rls" | "validation" | "rate_limit" | "unknown";
+  /** Truncated error message — never raw PII. */
+  error_message?: string;
+}
+
+export async function captureSaveBlockedAnon(event: SaveBlockedAnonEvent) {
+  const ph = await getPosthog();
+  ph.capture("save_blocked_anon", event);
+}
+
+export async function captureSaveFailed(event: SaveFailedEvent) {
+  const ph = await getPosthog();
+  ph.capture("save_failed", event);
+}
+
+// ============================================================================
+// CONCIERGE EVENTS (F4, task #242) — added 2026-06-06
+// ============================================================================
+
+export interface ConciergeOpenedEvent {
+  trip_id: string;
+  /** Is the trip's date window active right now? Drives "today" mode. */
+  is_live_trip?: boolean;
+}
+
+export interface ConciergeQuestionSentEvent {
+  trip_id: string;
+  question_length: number;
+  /** Was the trip in live-trip "today" mode when the question fired? */
+  is_live_trip?: boolean;
+}
+
+export interface ConciergeResponseReceivedEvent {
+  trip_id: string;
+  response_time_ms: number;
+  is_live_trip: boolean;
+  /** Length of the streamed answer (chars). 0 if empty or errored. */
+  answer_length: number;
+}
+
+export interface ConciergeQuotaBlockedEvent {
+  trip_id: string;
+}
+
+export interface ConciergeErrorEvent {
+  trip_id: string;
+  error_type: "network" | "stream_parse" | "quota" | "unknown";
+}
+
+export async function captureConciergeOpened(event: ConciergeOpenedEvent) {
+  const ph = await getPosthog();
+  ph.capture("concierge_opened", event);
+}
+
+export async function captureConciergeQuestionSent(event: ConciergeQuestionSentEvent) {
+  const ph = await getPosthog();
+  ph.capture("concierge_question_sent", event);
+}
+
+export async function captureConciergeResponseReceived(event: ConciergeResponseReceivedEvent) {
+  const ph = await getPosthog();
+  ph.capture("concierge_response_received", event);
+}
+
+export async function captureConciergeQuotaBlocked(event: ConciergeQuotaBlockedEvent) {
+  const ph = await getPosthog();
+  ph.capture("concierge_quota_blocked", event);
+}
+
+export async function captureConciergeError(event: ConciergeErrorEvent) {
+  const ph = await getPosthog();
+  ph.capture("concierge_error", event);
+}
+
+// ============================================================================
+// EXPENSE LEDGER EVENTS (task #220) — added 2026-06-06
+// ============================================================================
+
+export interface ExpenseAddedEvent {
+  trip_id: string;
+  currency: string;
+  category: "transport" | "accommodation" | "food" | "activity" | "shopping" | "other";
+  /**
+   * Amount in the entry's native currency. We do NOT FX-convert here —
+   * the dashboard side does that with a snapshot rate. Keeps the event
+   * faithful to what the user actually typed.
+   */
+  amount: number;
+}
+
+export interface ExpenseDeletedEvent {
+  trip_id: string;
+  was_self: boolean;
+}
+
+export interface SettleUpViewedEvent {
+  trip_id: string;
+  /** How many settlement edges came back. 0 = "nothing to settle". */
+  settlement_count: number;
+}
+
+export async function captureExpenseAdded(event: ExpenseAddedEvent) {
+  const ph = await getPosthog();
+  ph.capture("expense_added", event);
+}
+
+export async function captureExpenseDeleted(event: ExpenseDeletedEvent) {
+  const ph = await getPosthog();
+  ph.capture("expense_deleted", event);
+}
+
+export async function captureSettleUpViewed(event: SettleUpViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("settle_up_viewed", event);
+}
+
+// ============================================================================
+// /EXPLORE ENGAGEMENT EVENTS (tasks #118/#119) — added 2026-06-06
+// ============================================================================
+
+export type ExploreSurface = "explore_feed" | "trip_detail" | "shared" | "saved";
+
+export interface ExploreTripLikedEvent {
+  trip_id: string;
+  surface: ExploreSurface;
+  /** Did the click bounce to auth? (anon user) */
+  required_auth: boolean;
+}
+
+export interface ExploreTripSavedEvent {
+  trip_id: string;
+  surface: ExploreSurface;
+  /** Anon saves go to a cookie-keyed list; auth saves to DB. */
+  was_anon: boolean;
+}
+
+export interface ExploreTripForkedEvent {
+  trip_id: string;
+  surface: ExploreSurface;
+  required_auth: boolean;
+}
+
+export interface ExploreFilterAppliedEvent {
+  /** Which dropdown / chip the user adjusted. */
+  filter_type: "destination" | "duration" | "vibe" | "budget" | "sort";
+  /** The value they picked, stringified. */
+  value: string;
+}
+
+export interface ExploreTripPublishedEvent {
+  trip_id: string;
+  has_author_name: boolean;
+  has_author_note: boolean;
+}
+
+export interface ExploreTripPublishFailedEvent {
+  trip_id: string;
+  /** Server's anti-spam guard that rejected (or "network"/"unknown"). */
+  reason: string;
+}
+
+export async function captureExploreTripLiked(event: ExploreTripLikedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_trip_liked", event);
+}
+
+export async function captureExploreTripSaved(event: ExploreTripSavedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_trip_saved", event);
+}
+
+export async function captureExploreTripForked(event: ExploreTripForkedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_trip_forked", event);
+}
+
+export async function captureExploreFilterApplied(event: ExploreFilterAppliedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_filter_applied", event);
+}
+
+export async function captureExploreTripPublished(event: ExploreTripPublishedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_trip_published", event);
+}
+
+export async function captureExploreTripPublishFailed(event: ExploreTripPublishFailedEvent) {
+  const ph = await getPosthog();
+  ph.capture("explore_trip_publish_failed", event);
 }

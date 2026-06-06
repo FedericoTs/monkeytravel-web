@@ -4,6 +4,12 @@ import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { hapticLight, hapticMedium, hapticError } from "@/lib/native/haptics";
+import {
+  captureExploreTripLiked,
+  captureExploreTripSaved,
+  captureExploreTripForked,
+  type ExploreSurface,
+} from "@/lib/posthog/events";
 
 interface EngagementBarProps {
   tripId: string;
@@ -20,6 +26,12 @@ interface EngagementBarProps {
   isOwner?: boolean;
   /** Whether to show the Fork button (hidden on /trips/[id] owner views). */
   showFork?: boolean;
+  /**
+   * Where this bar is mounted. Drives funnel attribution in PostHog —
+   * /explore feed-card vs /trips/[id] vs /shared/[token] have different
+   * intent profiles. Defaults to `explore_feed` for backward compat.
+   */
+  surface?: ExploreSurface;
 }
 
 /**
@@ -44,6 +56,7 @@ export default function EngagementBar({
   isAuthenticated,
   isOwner = false,
   showFork = true,
+  surface = "explore_feed",
 }: EngagementBarProps) {
   const router = useRouter();
   // i18n: every visible string (aria-labels + Fork button + owner hint)
@@ -61,6 +74,11 @@ export default function EngagementBar({
 
   const toggleLike = useCallback(async () => {
     if (!isAuthenticated) {
+      void captureExploreTripLiked({
+        trip_id: tripId,
+        surface,
+        required_auth: true,
+      }).catch(() => {});
       // Send to signup with intent to return to this trip.
       const back = typeof window !== "undefined" ? window.location.pathname : "/";
       router.push(`/auth/signup?redirect=${encodeURIComponent(back)}`);
@@ -78,6 +96,16 @@ export default function EngagementBar({
       });
       if (!res.ok) throw new Error(`like failed: ${res.status}`);
       const data = await res.json();
+      // Only fire the conversion event on the LIKE direction (not unlike).
+      // Unlikes are a small fraction of clicks and would dirty the funnel
+      // numerator if mixed in.
+      if (!wasLiked) {
+        void captureExploreTripLiked({
+          trip_id: tripId,
+          surface,
+          required_auth: false,
+        }).catch(() => {});
+      }
       // Reconcile to server-of-truth.
       setLiked(!!data.liked);
       setLikes(typeof data.count === "number" ? data.count : likes);
@@ -93,7 +121,7 @@ export default function EngagementBar({
     } finally {
       setBusy(null);
     }
-  }, [isAuthenticated, busy, liked, likes, tripId, router]);
+  }, [isAuthenticated, busy, liked, likes, tripId, router, surface]);
 
   const toggleSave = useCallback(async () => {
     if (busy) return;
@@ -107,6 +135,13 @@ export default function EngagementBar({
       });
       if (!res.ok) throw new Error(`save failed: ${res.status}`);
       const data = await res.json();
+      if (!wasSaved) {
+        void captureExploreTripSaved({
+          trip_id: tripId,
+          surface,
+          was_anon: !isAuthenticated,
+        }).catch(() => {});
+      }
       setSaved(!!data.saved);
       setSaves(typeof data.count === "number" ? data.count : saves);
       // Light impact — save is a low-stakes confirmation per the
@@ -122,10 +157,15 @@ export default function EngagementBar({
     } finally {
       setBusy(null);
     }
-  }, [busy, saved, saves, tripId]);
+  }, [busy, saved, saves, tripId, surface, isAuthenticated]);
 
   const doFork = useCallback(async () => {
     if (!isAuthenticated) {
+      void captureExploreTripForked({
+        trip_id: tripId,
+        surface,
+        required_auth: true,
+      }).catch(() => {});
       const back = typeof window !== "undefined" ? window.location.pathname : "/";
       router.push(`/auth/signup?redirect=${encodeURIComponent(back)}`);
       return;
@@ -137,6 +177,11 @@ export default function EngagementBar({
       const res = await fetch(`/api/trips/${tripId}/fork`, { method: "POST" });
       if (!res.ok) throw new Error(`fork failed: ${res.status}`);
       const data = await res.json();
+      void captureExploreTripForked({
+        trip_id: tripId,
+        surface,
+        required_auth: false,
+      }).catch(() => {});
       // Medium impact — fork creates a new trip row owned by the user
       // and we're about to navigate away. The haptic fires before the
       // route transition so the user feels the commit before the
@@ -152,7 +197,7 @@ export default function EngagementBar({
     } finally {
       setBusy(null);
     }
-  }, [isAuthenticated, busy, tripId, router]);
+  }, [isAuthenticated, busy, tripId, router, surface]);
 
   return (
     <div

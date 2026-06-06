@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import {
+  captureExploreTripPublished,
+  captureExploreTripPublishFailed,
+} from "@/lib/posthog/events";
 
 interface PublishTripModalProps {
   tripId: string;
@@ -73,6 +77,11 @@ export default function PublishTripModal({
       if (!res.ok) {
         throw new Error(data?.error || `Publish failed (${res.status})`);
       }
+      void captureExploreTripPublished({
+        trip_id: tripId,
+        has_author_name: authorName.trim().length > 0,
+        has_author_note: authorNote.trim().length > 0,
+      }).catch(() => {});
       onPublished?.({ tripId: data.tripId, shareToken: data.shareToken });
       // Refresh server state so the /trips/[id] page re-renders with
       // visibility=public + new toggle state.
@@ -80,6 +89,13 @@ export default function PublishTripModal({
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errorFallback"));
+      void captureExploreTripPublishFailed({
+        trip_id: tripId,
+        reason:
+          err instanceof Error
+            ? err.message.slice(0, 80)
+            : "unknown",
+      }).catch(() => {});
     } finally {
       setBusy(false);
     }

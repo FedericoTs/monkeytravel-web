@@ -72,6 +72,10 @@ import {
   captureFirstTripSaved,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
+import {
+  captureSaveBlockedAnon,
+  captureSaveFailed,
+} from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { useFlag } from "@/lib/posthog";
 import { FLAG_AUTO_SAVE_V1, FLAG_EXPLORE_UGC } from "@/lib/posthog/flags";
@@ -1279,6 +1283,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           backpacker_mode: travelStyle === "backpacker",
           locale,
         });
+        // PostHog mirror so the same funnel renders in the product
+        // analytics dashboard alongside save_clicked → saved. Without
+        // this, the gap shows in Supabase queries but is invisible in
+        // PostHog funnel charts the team actually watches.
+        void captureSaveBlockedAnon({
+          destination,
+          group_size: tripIntent,
+          backpacker_mode: travelStyle === "backpacker",
+          modal_shown: true,
+        }).catch(() => {});
         setLoading(false);
         savingTripRef.current = false;
         setShowAuthModal(true);
@@ -1468,6 +1482,27 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         backpacker_mode: travelStyle === "backpacker",
         locale,
       });
+      // PostHog mirror — bucketed error_class so dashboards can chart
+      // network vs RLS vs validation drops separately. Raw message is
+      // truncated; PostHog gets a short string only.
+      const errMsg = err instanceof Error ? err.message : "";
+      const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
+        /network|fetch|ECONN|timeout/i.test(errMsg)
+          ? "network"
+          : /rls|row-level|policy|permission/i.test(errMsg)
+          ? "rls"
+          : /rate.?limit|429/i.test(errMsg)
+          ? "rate_limit"
+          : /invalid|required|missing|validation/i.test(errMsg)
+          ? "validation"
+          : "unknown";
+      void captureSaveFailed({
+        destination,
+        group_size: tripIntent,
+        backpacker_mode: travelStyle === "backpacker",
+        error_class: errorClass,
+        error_message: errMsg.slice(0, 80) || undefined,
+      }).catch(() => {});
     } finally {
       setLoading(false);
       // Always clear the re-entry guard so a legitimate retry (e.g. after

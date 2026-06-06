@@ -133,6 +133,80 @@ export const FLAG_LISTICLE_CTA_V1 = "listicle-cta-v1";
 export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
 
 /**
+ * Magic-link vs password CTA prominence (2026-06-06)
+ *
+ * Tests whether keeping the magic-link as the primary action (current)
+ * or surfacing the password option side-by-side performs better at
+ * post-result trip save. Hypothesis: magic-link primary wins, but the
+ * old auth wall design had 0 saves so this is the first time we'll
+ * have signal either way.
+ *
+ * Variants:
+ *  - magic-link-primary: current design (email field + "Email me the link")
+ *  - dual-prominent:     two equal-weight buttons (Email link OR Sign up with password)
+ *  - magic-link-only:    no password escape hatches at all
+ *
+ * Wired in: components/ui/AuthPromptModal.tsx
+ */
+export const FLAG_AUTH_WALL_VARIANT = "auth-wall-variant";
+export type AuthWallVariant = "magic-link-primary" | "dual-prominent" | "magic-link-only";
+
+/**
+ * Concierge surface gate (2026-06-06)
+ *
+ * Whether to show the F4 TripConciergeChat button on all trips or only
+ * during the live-trip window (today inside the trip dates). Hypothesis:
+ * live-only positioning concentrates use around the highest-utility
+ * moment (asking "what's near me after lunch") and lifts engagement.
+ *
+ * Variants:
+ *  - always: show on every trip page (current)
+ *  - live-only: only render when today is inside the trip window
+ *  - off: hide entirely (used to A/B against no-Concierge baseline)
+ *
+ * Wired in: components/trip/TripConciergeChat.tsx (env flag remains
+ * the kill switch — this flag toggles within the enabled cohort).
+ */
+export const FLAG_CONCIERGE_SURFACE = "concierge-surface";
+export type ConciergeSurfaceVariant = "always" | "live-only" | "off";
+
+/**
+ * Anonymous engagement on /explore (2026-06-06)
+ *
+ * Whether anonymous viewers can like/save trips with cookie-keyed
+ * state, or must auth before any engagement action. Hypothesis:
+ * cookie-keyed anon engagement increases activation by letting users
+ * commit to trips they like before being asked to sign up — they
+ * then sign up to keep their saves.
+ *
+ * Variants:
+ *  - cookie-keyed: anon can like + save; auth required only for fork/publish
+ *  - auth-gated:   any engagement bounces to /auth/signup (current behavior)
+ *
+ * Wired in: components/explore/EngagementBar.tsx
+ */
+export const FLAG_EXPLORE_ANON_ENGAGEMENT = "explore-anon-engagement";
+export type ExploreAnonEngagementVariant = "cookie-keyed" | "auth-gated";
+
+/**
+ * Wizard step layout (2026-06-06)
+ *
+ * Tests whether collapsing the 2-step wizard into one screen lifts
+ * step1 → result conversion. Current design splits destination/dates
+ * (step 1) from vibes/budget (step 2); collapse would put it all on
+ * one scroll. Risk: longer page = more visual friction. Reward: kills
+ * the step1 → step2 drop-off entirely.
+ *
+ * Variants:
+ *  - two-step:   current (destination+dates → vibes+budget)
+ *  - one-screen: everything on one scroll, single Generate CTA
+ *
+ * Wired in: app/[locale]/trips/new/NewTripWizard.tsx
+ */
+export const FLAG_WIZARD_LAYOUT = "wizard-layout";
+export type WizardLayoutVariant = "two-step" | "one-screen";
+
+/**
  * /explore UGC trip feed (2026-05-25)
  * Gates the public-trip-catalog launch — /explore page, publish toggle,
  * like / save / fork / report API routes, trending block on homepage.
@@ -173,6 +247,10 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_WIZARD_PERF_V2]: false,
   [FLAG_LISTICLE_CTA_V1]: false,
   [FLAG_AUTO_SAVE_V1]: false,
+  [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
+  [FLAG_CONCIERGE_SURFACE]: "always",
+  [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
+  [FLAG_WIZARD_LAYOUT]: "two-step",
 };
 
 /**

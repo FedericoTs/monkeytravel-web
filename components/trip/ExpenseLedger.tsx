@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import SettleUpView from "@/components/trip/SettleUpView";
+import {
+  captureExpenseAdded,
+  captureExpenseDeleted,
+} from "@/lib/posthog/events";
 
 /**
  * Per-trip expense ledger (task #220).
@@ -251,6 +255,12 @@ function ExpenseLedgerInner({
       const data = (await res.json()) as { expense: ExpenseRow };
       setExpenses((prev) => sortByDateDesc([data.expense, ...prev]));
       addToast(t("toastAdded"), "success");
+      void captureExpenseAdded({
+        trip_id: tripId,
+        currency: currency.toUpperCase(),
+        category,
+        amount: n,
+      }).catch(() => {});
       resetForm();
       setShowAdd(false);
     } catch (err) {
@@ -275,8 +285,13 @@ function ExpenseLedgerInner({
         addToast(err.error || t("errorDeleteFailed"), "error");
         return;
       }
+      const removed = expenses.find((e) => e.id === id);
       setExpenses((prev) => prev.filter((e) => e.id !== id));
       addToast(t("toastDeleted"), "success");
+      void captureExpenseDeleted({
+        trip_id: tripId,
+        was_self: removed?.created_by === currentUserId,
+      }).catch(() => {});
     } catch (err) {
       console.error("[ExpenseLedger] delete failed", err);
       addToast(t("errorDeleteFailed"), "error");

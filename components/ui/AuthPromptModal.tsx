@@ -21,18 +21,32 @@
  * no password to invent, works on mobile keyboards.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
 import BaseModal from "@/components/ui/BaseModal";
+import {
+  captureAuthPromptShown,
+  captureMagicLinkRequested,
+  captureMagicLinkRequestFailed,
+  captureAuthMethodSwitched,
+  captureAuthPromptDismissed,
+  type AuthPromptLocation,
+} from "@/lib/posthog/events";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: string;
   redirectPath?: string;
+  /**
+   * Where the modal was triggered from. Drives funnel segmentation —
+   * post-result-save is the highest-intent path. Defaults to
+   * `wizard_save` since that's the original / current caller.
+   */
+  location?: AuthPromptLocation;
 }
 
 const BENEFITS = [
@@ -46,6 +60,7 @@ export default function AuthPromptModal({
   onClose,
   destination,
   redirectPath = "/trips/new",
+  location = "wizard_save",
 }: AuthPromptModalProps) {
   const router = useRouter();
   const locale = useLocale();
@@ -57,6 +72,44 @@ export default function AuthPromptModal({
   const [linkSent, setLinkSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  // Funnel tracking — task 2026-06-06 PostHog refresh.
+  // Refs make the captures fire-and-forget without re-rendering on every
+  // PostHog Promise resolution. They also let us read the latest email
+  // state from the dismiss handler without subscribing to changes.
+  const shownTrackedRef = useRef(false);
+  const emailRef = useRef("");
+  useEffect(() => {
+    emailRef.current = email;
+  }, [email]);
+
+  // Fire auth_prompt_shown exactly once per open.
+  useEffect(() => {
+    if (!isOpen) {
+      shownTrackedRef.current = false;
+      return;
+    }
+    if (shownTrackedRef.current) return;
+    shownTrackedRef.current = true;
+    void captureAuthPromptShown({
+      location,
+      destination: destination || undefined,
+    }).catch(() => {
+      /* posthog not loaded — event dropped, GA4 still captured upstream */
+    });
+  }, [isOpen, location, destination]);
+
+  // Fire auth_prompt_dismissed when the user closes WITHOUT having
+  // either submitted the magic-link or navigated to a legacy path.
+  const handleDismiss = () => {
+    if (!linkSent && !isNavigating) {
+      void captureAuthPromptDismissed({
+        location,
+        had_email_entered: emailRef.current.trim().length > 0,
+      }).catch(() => {});
+    }
+    onClose();
+  };
 
   // signInWithOtp lands the user back at /auth/callback?next=<redirectPath>.
   // The callback's PKCE branch (app/auth/callback/route.ts:60) handles both
@@ -96,8 +149,28 @@ export default function AuthPromptModal({
 
       if (otpError) throw otpError;
       setLinkSent(true);
+      // Hash the domain only — never the address. PostHog dashboards
+      // segment magic-link conversion by gmail/icloud/work-domains
+      // without exposing user identities in the event stream.
+      const domain = trimmed.split("@")[1]?.toLowerCase() || undefined;
+      void captureMagicLinkRequested({
+        location,
+        email_domain: domain,
+      }).catch(() => {});
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("magicLink.failed"));
+      const message = err instanceof Error ? err.message : t("magicLink.failed");
+      setError(message);
+      // Best-effort classification of the Supabase error so the
+      // dashboard can distinguish rate-limit vs invalid-email vs
+      // network errors. The full message is captured client-side only;
+      // PostHog gets the bucket label.
+      void captureMagicLinkRequestFailed({
+        location,
+        reason:
+          err instanceof Error
+            ? err.message.slice(0, 80)
+            : "unknown",
+      }).catch(() => {});
     } finally {
       setIsSending(false);
     }
@@ -108,12 +181,20 @@ export default function AuthPromptModal({
   // without waiting for an email.
   const handlePasswordSignup = async () => {
     setIsNavigating(true);
+    void captureAuthMethodSwitched({
+      location,
+      to: "password_signup",
+    }).catch(() => {});
     await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`);
   };
 
   const handleLogin = async () => {
     setIsNavigating(true);
+    void captureAuthMethodSwitched({
+      location,
+      to: "password_login",
+    }).catch(() => {});
     await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
   };
@@ -121,7 +202,7 @@ export default function AuthPromptModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleDismiss}
       usePortal
       maxWidth="max-w-md"
       showCloseButton={false}

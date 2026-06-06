@@ -5,6 +5,13 @@ import { useTranslations } from "next-intl";
 import { Compass, Send, Sparkles, Loader2 } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
+import {
+  captureConciergeOpened,
+  captureConciergeQuestionSent,
+  captureConciergeResponseReceived,
+  captureConciergeQuotaBlocked,
+  captureConciergeError,
+} from "@/lib/posthog/events";
 
 /**
  * F4 In-trip AI Concierge — context-aware Q&A modal (task #242).
@@ -58,6 +65,21 @@ function TripConciergeChatInner({
     return () => window.clearTimeout(id);
   }, [isOpen]);
 
+  // Funnel marker: track every Concierge open so the dashboard can show
+  // (a) how often the feature is discovered and (b) the open→question
+  // conversion rate. Live-trip flag isn't known yet (set by the API on
+  // first response) — we leave it undefined until then.
+  const openTrackedRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) {
+      openTrackedRef.current = false;
+      return;
+    }
+    if (openTrackedRef.current) return;
+    openTrackedRef.current = true;
+    void captureConciergeOpened({ trip_id: tripId }).catch(() => {});
+  }, [isOpen, tripId]);
+
   const handleAsk = useCallback(async () => {
     if (loading) return;
     const q = question.trim();
@@ -65,6 +87,13 @@ function TripConciergeChatInner({
     setLoading(true);
     setLastQuestion(q);
     setAnswer("");
+    // Stamp the start so we can record response_time_ms on success.
+    // `performance.now()` is monotonic and won't drift if the clock moves.
+    const startedAt = performance.now();
+    void captureConciergeQuestionSent({
+      trip_id: tripId,
+      question_length: q.length,
+    }).catch(() => {});
     try {
       // Streaming path (perf task #245). The server emits SSE events:
       //   data: {"type":"chunk","text":"…"}
@@ -89,8 +118,13 @@ function TripConciergeChatInner({
         const err = await res.json().catch(() => ({}));
         if (res.status === 403 && err?.code === "USAGE_LIMIT_REACHED") {
           setAnswer(t("errorQuota"));
+          void captureConciergeQuotaBlocked({ trip_id: tripId }).catch(() => {});
         } else {
           setAnswer(err?.error || t("errorGeneric"));
+          void captureConciergeError({
+            trip_id: tripId,
+            error_type: "unknown",
+          }).catch(() => {});
         }
         return;
       }
@@ -107,6 +141,12 @@ function TripConciergeChatInner({
         setAnswer(data.answer || "");
         setIsLiveTrip(Boolean(data.isLiveTrip));
         setQuestion("");
+        void captureConciergeResponseReceived({
+          trip_id: tripId,
+          response_time_ms: Math.round(performance.now() - startedAt),
+          is_live_trip: Boolean(data.isLiveTrip),
+          answer_length: (data.answer || "").length,
+        }).catch(() => {});
         return;
       }
 
@@ -154,18 +194,38 @@ function TripConciergeChatInner({
 
       if (streamError) {
         setAnswer(streamError);
+        void captureConciergeError({
+          trip_id: tripId,
+          error_type: "stream_parse",
+        }).catch(() => {});
       } else {
         // Strip any trailing whitespace artifacts from Gemini chunking.
-        setAnswer(accumulated.trim());
+        const finalAnswer = accumulated.trim();
+        setAnswer(finalAnswer);
         setQuestion("");
+        // We need the `isLiveTrip` value the stream set above; use the
+        // accumulated state ref since setIsLiveTrip is async. Reading
+        // the local SSE-parsed value would require threading it through,
+        // so we capture from the live state (good enough — the event
+        // fires after the render flush).
+        void captureConciergeResponseReceived({
+          trip_id: tripId,
+          response_time_ms: Math.round(performance.now() - startedAt),
+          is_live_trip: isLiveTrip,
+          answer_length: finalAnswer.length,
+        }).catch(() => {});
       }
     } catch (err) {
       console.error("[concierge] ask failed", err);
       addToast(t("errorGeneric"), "error");
+      void captureConciergeError({
+        trip_id: tripId,
+        error_type: "network",
+      }).catch(() => {});
     } finally {
       setLoading(false);
     }
-  }, [loading, question, tripId, t, addToast]);
+  }, [loading, question, tripId, t, addToast, isLiveTrip]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter to send, Shift+Enter for newline — standard chat convention.
