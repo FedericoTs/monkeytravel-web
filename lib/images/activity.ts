@@ -541,10 +541,21 @@ export interface ActivityWithImage {
  *
  * Dedup strategy (2026-05-31):
  *   1. Flatten every activity across every day.
- *   2. Skip any that already have `image_url`.
+ *   2. Skip any that already have a KNOWN-GOOD `image_url`.
  *   3. Group by normalized key — same key → same Places lookup.
  *   4. Resolve each UNIQUE key exactly once in parallel.
  *   5. Fan the resolved URL back out to every activity that shared that key.
+ *
+ * "Known-good" guard (2026-06-06): Gemini sometimes hallucinates raw Google
+ * URLs (`places.googleapis.com/v1/...`, `maps.googleapis.com/maps/api/place/photo`)
+ * into its structured output. Those URLs lack auth headers and 404/403 from
+ * the browser, leaking through to broken-image icons. Production audit found
+ * 249 broken activity image URLs across 23 trips — half the corpus.
+ *
+ * Fix: only trust `image_url` if it's our `/api/places/photo` proxy URL or a
+ * curated Pexels/Unsplash URL. Anything else (raw Google, expired, foreign)
+ * is treated as missing — we strip it and re-resolve through the resolver
+ * pipeline, which produces a guaranteed-good proxy URL or a curated fallback.
  *
  * A trip with "Colosseum" on day 2 and day 5 makes one Places call, not two.
  * Across trips, the place_search DB cache ensures the second trip pays nothing.
@@ -569,10 +580,22 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
     type: string;
   };
 
+  // Only the proxy URL pattern and our curated CDN fallbacks survive without
+  // re-resolution. Everything else (raw Google URLs, stale, hallucinated)
+  // gets cleared and forced through the pipeline below.
+  const KNOWN_GOOD_URL_RE =
+    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|https:\/\/images\.pexels\.com\/|https:\/\/images\.unsplash\.com\/)/;
+
   const pending: Pending[] = [];
   for (const day of days) {
     for (const activity of day.activities) {
-      if (activity.image_url) continue; // already has one — skip
+      const existing = activity.image_url;
+      if (existing && KNOWN_GOOD_URL_RE.test(existing)) {
+        continue; // already a usable URL — skip re-enrichment
+      }
+      // Strip any non-canonical URL (raw Google, etc.) so the resolver below
+      // overwrites it cleanly even if Gemini gave us garbage.
+      if (existing) activity.image_url = undefined;
       const name = activity.name || "";
       if (!name) continue;
       pending.push({

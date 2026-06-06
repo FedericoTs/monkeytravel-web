@@ -43,25 +43,55 @@ import type { ItineraryDay } from "@/types";
  */
 
 /**
- * Parse `places/<place_id>/photos/<hash>` out of an /api/places/photo URL.
- * Returns null if the URL is not our proxy or doesn't match the expected
- * shape. URL-decoded because the proxy URL stores the resource name as
- * a query param with `%2F` etc.
+ * Parse the Google place_id out of any image URL shape we've ever produced
+ * or seen Gemini hallucinate. Returns null if no place_id can be extracted.
+ *
+ * Three URL shapes handled:
+ *   1. Our canonical proxy URL — `/api/places/photo?name=places/<id>/photos/<hash>`
+ *   2. RAW Places v1 URL Gemini hallucinates —
+ *      `https://places.googleapis.com/v1/places/<id>/photos/<hash>` (404s from
+ *      the browser because the auth header is missing)
+ *   3. NEW Places photo URL — `https://places.googleapis.com/.../media` (rare)
+ *
+ * The 4th shape we see in DB — `https://maps.googleapis.com/maps/api/place/photo`
+ * (the deprecated Maps Photo API with `photo_reference=` query param) — does
+ * NOT carry a place_id, so this returns null and the caller's URL stays as-is.
+ * Those rows must be NULLed by the backfill instead.
  */
-function extractPlaceIdFromProxyUrl(url: string | undefined | null): string | null {
+function extractPlaceIdFromAnyUrl(url: string | undefined | null): string | null {
   if (!url || typeof url !== "string") return null;
-  if (!url.startsWith("/api/places/photo")) return null;
-  try {
-    // The proxy URL is relative; URL() needs a base.
-    const parsed = new URL(url, "https://monkeytravel.app");
-    const name = parsed.searchParams.get("name");
-    if (!name) return null;
-    // name looks like `places/<place_id>/photos/<hash>`
-    const match = name.match(/^places\/([^/]+)\/photos\//);
-    return match?.[1] ?? null;
-  } catch {
-    return null;
+
+  // Shape 1: our proxy URL
+  if (url.startsWith("/api/places/photo")) {
+    try {
+      const parsed = new URL(url, "https://monkeytravel.app");
+      const name = parsed.searchParams.get("name");
+      if (!name) return null;
+      const match = name.match(/^places\/([^/]+)\/photos\//);
+      return match?.[1] ?? null;
+    } catch {
+      return null;
+    }
   }
+
+  // Shape 2 / 3: raw Places v1 URL (with or without `/media` suffix)
+  const v1Match = url.match(/^https:\/\/places\.googleapis\.com\/v1\/places\/([^/]+)\/photos\//);
+  if (v1Match) return v1Match[1];
+
+  return null;
+}
+
+/**
+ * Some URL shapes are structurally broken and unrecoverable — they carry a
+ * `photo_reference` instead of a place_id, so we can't look them up in
+ * places_v2. Best UX is to NULL them so the frontend renders a gradient
+ * placeholder instead of Google's "permission denied" error PNG.
+ */
+function isUnrecoverableUrl(url: string | undefined | null): boolean {
+  if (!url || typeof url !== "string") return false;
+  // Deprecated Maps Photo API — 403s from the browser.
+  if (url.startsWith("https://maps.googleapis.com/maps/api/place/photo")) return true;
+  return false;
 }
 
 // Intentionally loose — we touch only `image_url` on activities and
@@ -92,51 +122,63 @@ export async function refreshItineraryPhotos<T extends DayLike>(
 ): Promise<T[]> {
   if (!Array.isArray(days) || days.length === 0) return days ?? [];
 
-  // 1. Extract every distinct place_id referenced by an activity image_url.
+  // 1. Extract every distinct place_id referenced by an activity image_url —
+  // whether it's our proxy URL or a raw Google URL that snuck through.
   const placeIds = new Set<string>();
+  let hasUnrecoverable = false;
   for (const day of days) {
     if (!Array.isArray(day.activities)) continue;
     for (const activity of day.activities) {
-      const id = extractPlaceIdFromProxyUrl(activity.image_url);
+      const id = extractPlaceIdFromAnyUrl(activity.image_url);
       if (id) placeIds.add(id);
+      else if (isUnrecoverableUrl(activity.image_url)) hasUnrecoverable = true;
     }
   }
-  if (placeIds.size === 0) return days;
+  // Nothing to do if every URL is already canonical and none are broken.
+  if (placeIds.size === 0 && !hasUnrecoverable) return days;
 
   // 2. Batch-lookup canonical photo_urls. Single SELECT; places_v2 is
   // indexed on place_id (PK). Service-role client because places_v2 is
   // RLS-locked to service_role (cache infra, no user data).
-  let canonical: Map<string, string>;
-  try {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("places_v2")
-      .select("place_id, photo_url")
-      .in("place_id", Array.from(placeIds));
-    if (error || !data) {
-      // DB failure must not break the trip render — return as-is.
-      return days;
+  let canonical = new Map<string, string>();
+  if (placeIds.size > 0) {
+    try {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("places_v2")
+        .select("place_id, photo_url")
+        .in("place_id", Array.from(placeIds));
+      if (!error && data) {
+        canonical = new Map(
+          data
+            .filter((row): row is { place_id: string; photo_url: string } =>
+              Boolean(row.place_id) && typeof row.photo_url === "string"
+            )
+            .map((row) => [row.place_id, row.photo_url])
+        );
+      }
+    } catch {
+      // DB failure must not break the trip render — fall through and apply
+      // only the null-out path below (handles unrecoverable URLs even without
+      // cache access).
     }
-    canonical = new Map(
-      data
-        .filter((row): row is { place_id: string; photo_url: string } =>
-          Boolean(row.place_id) && typeof row.photo_url === "string"
-        )
-        .map((row) => [row.place_id, row.photo_url])
-    );
-  } catch {
-    return days;
   }
-  if (canonical.size === 0) return days;
+  if (canonical.size === 0 && !hasUnrecoverable) return days;
 
   // 3. Rebuild the array with refreshed URLs.
   return days.map((day) => {
     if (!Array.isArray(day.activities)) return day;
     const activities = day.activities.map((activity) => {
-      const placeId = extractPlaceIdFromProxyUrl(activity.image_url);
+      const url = activity.image_url;
+      // Unrecoverable URL (deprecated Maps Photo API) → null it so the frontend
+      // renders a gradient instead of Google's error PNG.
+      if (isUnrecoverableUrl(url)) {
+        return { ...activity, image_url: null };
+      }
+      const placeId = extractPlaceIdFromAnyUrl(url);
       if (!placeId) return activity;
       const fresh = canonical.get(placeId);
-      if (!fresh || fresh === activity.image_url) return activity;
+      if (!fresh || fresh === url) return activity;
       return { ...activity, image_url: fresh };
     });
     return { ...day, activities };
