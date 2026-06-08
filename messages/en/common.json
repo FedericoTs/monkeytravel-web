@@ -954,11 +954,24 @@
     "youllLose": "You'll lose:",
     "daysPlanned": "{count} days planned",
     "activities": "{count} activities",
-    "tip": "Tip: You can always come back to this trip from your trip history.",
+    "tip": "Tip: discarded trips are archived for 7 days — reach out if you change your mind.",
     "cancel": "Keep Current Trip",
     "confirm": "Start Fresh",
-    "discardMessageSaved": "You're about to discard your itinerary for {destination} and DELETE the saved trip from your dashboard.",
-    "confirmDeleteSaved": "Discard saved trip"
+    "discardMessageSaved": "You're about to discard your itinerary for {destination}. Don't worry — it stays archived for 7 days, so we can restore it if you change your mind.",
+    "confirmDeleteSaved": "Discard saved trip",
+    "reasonLabel": "What didn't work?",
+    "reasonPlaceholder": "Pick a reason",
+    "reasons": {
+      "wrong_destination": "Wrong destination",
+      "wrong_dates": "Wrong dates",
+      "didnt_like_suggestions": "Didn't like the suggestions",
+      "too_expensive": "Too expensive",
+      "made_by_mistake": "Made by mistake",
+      "other": "Something else"
+    },
+    "customReasonLabel": "Tell us more",
+    "customReasonOptional": "optional",
+    "customReasonPlaceholder": "Helps us improve — what would have made this trip right?"
   },
   "stagedLoading": {
     "stages": {

@@ -898,11 +898,50 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     setIsRegenerating(false);
   };
 
-  // Handle start over - confirmed discard
-  const handleStartOver = async () => {
-    // If auto-save persisted a row, delete it before resetting state so
-    // the user doesn't end up with an orphaned trip in their dashboard.
-    if (autoSaveEnabled && autoSave.savedTripId) {
+  // Handle start over - confirmed discard.
+  //
+  // 2026-06-07: signature changed to accept the reason + optional custom
+  // text from the StartOverModal (the david-cassoni postmortem). We POST
+  // the feedback to /api/trips/[id]/deletion-feedback BEFORE the
+  // soft-delete so we still capture the WHY even if the discard itself
+  // hiccups. The feedback row is independently useful — even without a
+  // matching tombstone we learn what drove regret.
+  const handleStartOver = async (
+    reason: string,
+    customReason: string | null,
+  ) => {
+    const savedTripId = autoSave.savedTripId;
+    const wasAutoSaved = autoSaveEnabled && Boolean(savedTripId);
+
+    // Capture analytics BEFORE the discard runs. Fire-and-forget so a
+    // network blip on the feedback endpoint never traps the user in the
+    // modal. The route itself fails-open.
+    void (async () => {
+      try {
+        // Use the real trip id when we have one (auto-saved trip), else
+        // a sentinel so the row still lands and we can identify pre-save
+        // discards. The column is TEXT, not a FK.
+        const feedbackTripId = savedTripId || "pre-save-draft";
+        await fetch(`/api/trips/${feedbackTripId}/deletion-feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reason,
+            custom_reason: customReason,
+            destination,
+            was_auto_saved: wasAutoSaved,
+          }),
+        });
+      } catch (err) {
+        console.warn("[startover] feedback log failed", err);
+      }
+    })();
+
+    // If auto-save persisted a row, soft-delete it (post commit 8d8f591:
+    // UPDATE deleted_at) before resetting state so the user doesn't end
+    // up with an orphaned trip in their dashboard. The row stays in the
+    // DB tombstoned — recoverable for 7 days via SQL.
+    if (wasAutoSaved) {
       await autoSave.discard();
     }
     clearDraft();

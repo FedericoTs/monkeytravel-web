@@ -877,11 +877,24 @@
     "youllLose": "Perderai:",
     "daysPlanned": "{count} giorni pianificati",
     "activities": "{count} attività",
-    "tip": "Suggerimento: Puoi sempre tornare a questo viaggio dalla cronologia dei viaggi.",
+    "tip": "Suggerimento: i viaggi eliminati restano archiviati per 7 giorni — scrivici se cambi idea.",
     "cancel": "Mantieni Viaggio Attuale",
     "confirm": "Ricomincia",
-    "discardMessageSaved": "Stai per eliminare il tuo itinerario per {destination} e CANCELLARE il viaggio salvato dalla tua dashboard.",
-    "confirmDeleteSaved": "Elimina viaggio salvato"
+    "discardMessageSaved": "Stai per eliminare il tuo itinerario per {destination}. Tranquillo — resta archiviato per 7 giorni, possiamo recuperarlo se cambi idea.",
+    "confirmDeleteSaved": "Elimina viaggio salvato",
+    "reasonLabel": "Cosa non ha funzionato?",
+    "reasonPlaceholder": "Scegli un motivo",
+    "reasons": {
+      "wrong_destination": "Destinazione sbagliata",
+      "wrong_dates": "Date sbagliate",
+      "didnt_like_suggestions": "Non mi sono piaciuti i suggerimenti",
+      "too_expensive": "Troppo caro",
+      "made_by_mistake": "Fatto per sbaglio",
+      "other": "Altro"
+    },
+    "customReasonLabel": "Raccontaci di più",
+    "customReasonOptional": "facoltativo",
+    "customReasonPlaceholder": "Ci aiuti a migliorare — cosa avrebbe reso giusto questo viaggio?"
   },
   "personalization": {
     "title": "Personalizza il tuo viaggio",

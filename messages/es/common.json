@@ -954,11 +954,24 @@
     "youllLose": "Perderás:",
     "daysPlanned": "{count} días planificados",
     "activities": "{count} actividades",
-    "tip": "Consejo: Siempre puedes volver a este viaje desde tu historial de viajes.",
+    "tip": "Consejo: los viajes descartados se archivan durante 7 días — escríbenos si cambias de opinión.",
     "cancel": "Mantener Viaje Actual",
     "confirm": "Empezar de Nuevo",
-    "discardMessageSaved": "Estás a punto de descartar tu itinerario para {destination} y ELIMINAR el viaje guardado de tu panel.",
-    "confirmDeleteSaved": "Descartar viaje guardado"
+    "discardMessageSaved": "Estás a punto de descartar tu itinerario para {destination}. Tranquilo — queda archivado 7 días, podemos restaurarlo si cambias de opinión.",
+    "confirmDeleteSaved": "Descartar viaje guardado",
+    "reasonLabel": "¿Qué no funcionó?",
+    "reasonPlaceholder": "Elige un motivo",
+    "reasons": {
+      "wrong_destination": "Destino incorrecto",
+      "wrong_dates": "Fechas incorrectas",
+      "didnt_like_suggestions": "No me gustaron las sugerencias",
+      "too_expensive": "Demasiado caro",
+      "made_by_mistake": "Hecho por error",
+      "other": "Otro"
+    },
+    "customReasonLabel": "Cuéntanos más",
+    "customReasonOptional": "opcional",
+    "customReasonPlaceholder": "Nos ayuda a mejorar — ¿qué habría hecho que este viaje fuera el adecuado?"
   },
   "stagedLoading": {
     "stages": {
