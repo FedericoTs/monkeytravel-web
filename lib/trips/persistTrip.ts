@@ -205,13 +205,27 @@ export async function updateTrip(
 }
 
 /**
- * DELETE a trip row — used by Start Over / Discard after auto-save.
+ * Soft-delete a trip row — used by Start Over / Discard after auto-save.
+ *
+ * Switched from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07
+ * alongside the trips_soft_delete migration. See
+ * `app/api/trips/[id]/route.ts` for the full rationale (david-cassoni
+ * incident: trip + 7 Concierge questions lost when the row vanished).
+ *
+ * RLS hides tombstoned rows from every read path, so even if the user
+ * immediately starts a new wizard run the discarded autosave doesn't
+ * surface anywhere. Recovery is a manual UPDATE deleted_at = NULL from
+ * the Supabase SQL editor.
  */
 export async function deleteTrip(
   supabase: SupabaseClient,
   tripId: string,
 ): Promise<void> {
-  const { error } = await supabase.from("trips").delete().eq("id", tripId);
+  const { error } = await supabase
+    .from("trips")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", tripId)
+    .is("deleted_at", null);
   if (error) throw error;
 }
 

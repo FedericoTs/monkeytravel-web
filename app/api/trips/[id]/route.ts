@@ -142,7 +142,34 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
 }
 
 /**
- * DELETE /api/trips/[id] - Delete a trip
+ * DELETE /api/trips/[id] - Soft-delete a trip
+ *
+ * Changed from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07.
+ *
+ * Why: the david-cassoni incident showed how lossy hard-delete is. He
+ * signed up, generated a trip, chatted with the Concierge 7 times over
+ * 17 minutes, then the trip disappeared (likely a misclick or UI
+ * confusion). With hard-delete we lost the row, the conversation
+ * context, the cover image work — everything. With soft-delete the
+ * row stays put: RLS hides it from every read path, but we can
+ * recover it on demand and we keep ai_conversations + activity
+ * timeline foreign-keys valid.
+ *
+ * The DB-side change is in `supabase/migrations/...trips_soft_delete.sql`:
+ *   - Column `deleted_at TIMESTAMPTZ`
+ *   - Partial index on live rows
+ *   - SELECT policy adds `deleted_at IS NULL AND (...)` so deleted trips
+ *     vanish from /trips, /shared/[token], /explore, /it/explore, the
+ *     trending feed, search results, and embedded queries.
+ *   - UPDATE policy USING also checks `deleted_at IS NULL` so once a
+ *     trip is tombstoned no further mutations land (collaborators
+ *     can't edit a ghost).
+ *
+ * Hard delete remains *possible* (trips_delete_own RLS is intact) for
+ * admin/cron cleanup, but it's no longer the user-facing default.
+ *
+ * Recovery: `UPDATE trips SET deleted_at = NULL WHERE id = '...'` from
+ * the Supabase SQL editor. Self-serve restore UI is a follow-up.
  */
 export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
@@ -150,21 +177,27 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Delete trip (only if owned by user)
+    // Soft-delete: stamp deleted_at instead of removing the row. The
+    // updated UPDATE-policy USING clause requires deleted_at IS NULL on
+    // the OLD row, so a double-delete from a stale UI hits the WHERE
+    // filter (0 rows match) and returns success — idempotent. The
+    // explicit `.is("deleted_at", null)` guard makes that behavior
+    // legible regardless of any future RLS reshuffle.
     const { error } = await supabase
       .from("trips")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("deleted_at", null);
 
     if (error) {
-      console.error("[Trips] Error deleting trip:", error);
+      console.error("[Trips] Error soft-deleting trip:", error);
       return errors.internal("Failed to delete trip", "Trips");
     }
 
     return apiSuccess({ success: true });
   } catch (error) {
-    console.error("[Trips] Error deleting trip:", error);
+    console.error("[Trips] Error soft-deleting trip:", error);
     return errors.internal("Failed to delete trip", "Trips");
   }
 }

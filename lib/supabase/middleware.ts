@@ -23,6 +23,26 @@ function trackPageView(request: NextRequest, userId?: string): string | null {
     return null;
   }
 
+  // **2026-06-07 fix**: skip Next.js Link prefetch requests. The
+  // BottomNav (task #270) holds 4 always-visible Links; Next prefetches
+  // every visible Link on mount and again on hover. Each prefetch
+  // hits middleware, which was firing a page_views POST — david
+  // cassoni's session showed 15 page-view rows in 30s across 4 paths
+  // with sub-100ms gaps and the SAME referrer (impossible for human
+  // taps). Funnels and "top landings" charts went wildly off.
+  //
+  // Next sets `next-router-prefetch: 1` for App-Router prefetches and
+  // `purpose: prefetch` for older Pages-Router-style; we check both
+  // so future-Next changes and any partner crawler that copies the
+  // standard purpose header both get filtered.
+  if (
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch" ||
+    request.headers.get("sec-purpose")?.includes("prefetch")
+  ) {
+    return null;
+  }
+
   // **2026-06-04 fix**: dev environment was POSTing to the prod page_views
   // table because middleware ran against prod Supabase from `npm run dev`.
   // Over 30 days this leaked 2,765 spurious views from 5 localhost sessions

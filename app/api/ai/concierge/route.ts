@@ -32,7 +32,76 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ItineraryDay } from "@/types";
+
+/**
+ * Persist a Concierge Q&A turn to `ai_conversations`.
+ *
+ * The F4 v1 spec called for "no persistence" (the chat UI is single-turn,
+ * not threaded). But that left us paying Gemini for answers we couldn't
+ * see — the david-cassoni incident (7 questions over 17 min, all lost
+ * when the trip got deleted) made the cost concrete. We now log every
+ * turn so we can:
+ *   - audit which questions drive the most quota usage
+ *   - mine common asks for FAQ / canned-answer surfaces
+ *   - reconstruct user sessions when a trip later disappears
+ *
+ * One row per turn (Q + A pair) — simpler than maintaining a thread.
+ * Group by (user_id, trip_id, day_bucket) at query time if we ever want
+ * conversation threading.
+ *
+ * Service-role client — `ai_conversations` has RLS enabled with zero
+ * policies (service-role-only), which is correct: there's no UI yet
+ * that reads these rows, and an accidental anon-readable policy would
+ * leak prompt content.
+ *
+ * Fire-and-forget. Never blocks the user's answer.
+ */
+async function persistConciergeTurn(input: {
+  userId: string;
+  tripId: string;
+  question: string;
+  answer: string;
+  model: string;
+  isLiveTrip: boolean;
+  dayNumber: number | null;
+  streamed: boolean;
+}): Promise<void> {
+  try {
+    const supabase = createAdminClient();
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("ai_conversations").insert({
+      user_id: input.userId,
+      trip_id: input.tripId,
+      messages: [
+        {
+          role: "user",
+          content: input.question,
+          timestamp: now,
+        },
+        {
+          role: "assistant",
+          content: input.answer,
+          model: input.model,
+          timestamp: now,
+        },
+      ],
+      context: {
+        surface: "concierge_f4",
+        is_live_trip: input.isLiveTrip,
+        day_number: input.dayNumber,
+        streamed: input.streamed,
+      },
+    });
+    if (error) {
+      console.error("[concierge] persist turn failed", error);
+    }
+  } catch (err) {
+    // Never let a logging path break the user-facing answer.
+    console.error("[concierge] persist turn threw", err);
+  }
+}
 
 const MAX_QUESTION_LENGTH = 800;
 const MAX_RESPONSE_TOKENS = 500;
@@ -257,13 +326,20 @@ export async function POST(request: NextRequest) {
             );
           };
 
+          // Server-side accumulation so we can persist the full answer
+          // alongside the question after the stream completes. The client
+          // also accumulates for display — this is the audit copy.
+          let accumulated = "";
           try {
             const result = await model.generateContentStream({
               contents: promptContents,
             });
             for await (const chunk of result.stream) {
               const text = chunk.text();
-              if (text) emit({ type: "chunk", text });
+              if (text) {
+                accumulated += text;
+                emit({ type: "chunk", text });
+              }
             }
 
             // Wire prompt-cache hit-rate monitoring. The SDK exposes the
@@ -311,6 +387,20 @@ export async function POST(request: NextRequest) {
                 streamed: true,
                 is_live_trip: todaySlice !== null,
               },
+            });
+
+            // Persist the Q&A pair. Fire-and-forget. Trim before writing
+            // so we don't store the streaming-artifact trailing whitespace
+            // that the client also strips.
+            void persistConciergeTurn({
+              userId: user.id,
+              tripId,
+              question,
+              answer: accumulated.trim(),
+              model: conciergeModel,
+              isLiveTrip: todaySlice !== null,
+              dayNumber: todaySlice?.dayNumber ?? null,
+              streamed: true,
             });
           } catch (err) {
             console.error("[concierge] streaming Gemini call failed", err);
@@ -433,6 +523,18 @@ export async function POST(request: NextRequest) {
         subroute: "concierge",
         is_live_trip: todaySlice !== null,
       },
+    });
+
+    // Persist the Q&A pair (non-streaming path).
+    void persistConciergeTurn({
+      userId: user.id,
+      tripId,
+      question,
+      answer: responseText,
+      model: conciergeModel,
+      isLiveTrip: todaySlice !== null,
+      dayNumber: todaySlice?.dayNumber ?? null,
+      streamed: false,
     });
 
     return apiSuccess({
