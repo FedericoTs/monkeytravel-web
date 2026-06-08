@@ -2042,7 +2042,14 @@
     "answer": "Il concierge dice",
     "liveTripHint": "Oggi rientra nelle date del tuo viaggio — le risposte si basano sulle attività di oggi.",
     "errorQuota": "Limite giornaliero AI raggiunto. Riprova domani.",
-    "errorGeneric": "Non sono riuscito a rispondere. Riprova tra poco."
+    "errorGeneric": "Non sono riuscito a rispondere. Riprova tra poco.",
+    "historyToggle": "Domande precedenti al concierge",
+    "historyCount": "({count})",
+    "historyLoading": "Caricamento…",
+    "historyEmpty": "Ancora nessuna domanda — le tue chat precedenti col concierge appariranno qui.",
+    "historyError": "Non sono riuscito a caricare la cronologia. Riprova tra poco.",
+    "historyLiveTrip": "Viaggio in corso",
+    "historyLiveTripDay": "Giorno {day}"
   },
   "expenses": {
     "title": "Spese del viaggio",

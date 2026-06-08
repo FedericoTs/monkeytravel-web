@@ -2042,7 +2042,14 @@
     "answer": "Concierge says",
     "liveTripHint": "Today is in your trip window — answers ground in today's activities.",
     "errorQuota": "Daily AI limit reached. Try again tomorrow.",
-    "errorGeneric": "Couldn't answer right now. Try again in a moment."
+    "errorGeneric": "Couldn't answer right now. Try again in a moment.",
+    "historyToggle": "Past concierge questions",
+    "historyCount": "({count})",
+    "historyLoading": "Loading…",
+    "historyEmpty": "No questions yet — your past chats with the concierge will show up here.",
+    "historyError": "Couldn't load history. Try again in a moment.",
+    "historyLiveTrip": "Live trip",
+    "historyLiveTripDay": "Day {day}"
   },
   "expenses": {
     "title": "Trip expenses",

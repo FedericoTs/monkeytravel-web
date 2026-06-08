@@ -151,6 +151,16 @@ const TripConciergeChat = dynamic(
   { ssr: false }
 );
 
+// Concierge conversation history (post-david-cassoni). Renders a
+// collapsible list of past Q+A pairs for this trip. Same lazy / no-SSR
+// pattern as the launcher — the history fetch is gated on the expand
+// click so this dynamic-import is a near-free add to the trip-detail
+// bundle for users who never expand it.
+const ConciergeHistory = dynamic(
+  () => import("@/components/trip/ConciergeHistory"),
+  { ssr: false }
+);
+
 interface TripDetailClientProps {
   trip: {
     id: string;
@@ -1611,8 +1621,12 @@ export default function TripDetailClient({
         {/* In-trip Concierge (F4 / task #242). Flag-gated; renders null
             when the env flag is off so we can ship the wiring now and
             flip it on per-environment. */}
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           <TripConciergeChat tripId={trip.id} />
+          {/* Past Q+A pairs for THIS trip (david-cassoni follow-up).
+              Lazy expand-to-fetch; renders nothing when the Concierge
+              env-flag is off. */}
+          <ConciergeHistory tripId={trip.id} />
         </div>
 
         {/* Controls Bar */}
