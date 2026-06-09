@@ -153,8 +153,20 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Protected routes - redirect to login if not authenticated
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   // Note: /trips/template/* is public so curated escapes can drive traffic & conversions
+  // Note (2026-06-09): /trips/[uuid] is excluded so the page itself can run its
+  //   share_token check first. Google has been indexing /trips/[uuid] URLs (see
+  //   today's daily routine — 22 organic clicks/14d landing on these), and the
+  //   page-level logic redirects anon visitors to /shared/[token] when the trip
+  //   is published. If we redirect them to /auth/login here, those Google
+  //   sessions never reach the page logic and drop straight off the site.
+  //   The page still requires auth for non-owners of UNPUBLISHED trips
+  //   (notFound() fires), so this doesn't expose private data.
   const protectedPaths = ["/trips"];
   const excludedFromProtection = ["/trips/new", "/trips/template"];
+  // UUID v4 pattern — 8-4-4-4-12 hex chars. We match this against the path
+  // segment AFTER /trips/ to identify trip-detail URLs.
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // Strip locale prefix from pathname for path matching
   const locales = ["en", "es", "it"];
@@ -175,8 +187,12 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   const isExcluded = excludedFromProtection.some((path) =>
     pathWithoutLocale.startsWith(path)
   );
+  // Check if this is /trips/[uuid] (with optional trailing segments like
+  // /trips/[uuid]/edit). Match the first segment after /trips/.
+  const tripIdMatch = pathWithoutLocale.match(/^\/trips\/([^/]+)(\/|$)/);
+  const isTripDetailUuid = tripIdMatch ? UUID_RE.test(tripIdMatch[1]) : false;
 
-  if (isProtectedPath && !isExcluded && !user) {
+  if (isProtectedPath && !isExcluded && !isTripDetailUuid && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);
