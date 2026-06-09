@@ -29,6 +29,41 @@ export default async function TripDetailPage({
   const { id, locale } = await params;
   const supabase = await createClient();
 
+  // **2026-06-09 fix — recovery for Google organic traffic on /trips/[id].**
+  // Before this change, anon visitors arriving from Google on a /trips/[id]
+  // URL hit `redirect("/auth/login")` immediately, and authenticated
+  // non-owners hit `notFound()` after both owner + collaborator checks
+  // failed — even for published trips with valid share_tokens. Today's
+  // daily analysis caught 6 rageclicks on /trips/b7049d13 (Taipei Trip,
+  // 8 organic clicks/14d) — confused visitors hitting 404 from search
+  // results.
+  //
+  // Order of operations is now:
+  //   1. If the trip has a share_token (= published), redirect to the
+  //      public /shared/[token] surface — works for anon AND authed
+  //      non-owners. Same URL we send share-prompt traffic to anyway,
+  //      so the experience is consistent + canonical.
+  //   2. Only if NO share_token, require auth and run the original
+  //      owner/collaborator check.
+  //
+  // RLS permits the share_token lookup for anon (the SELECT policy has
+  // a `share_token IS NOT NULL` branch), so this works without a
+  // service-role escape hatch. The query is one row by primary key —
+  // microseconds, no measurable cost.
+  const { data: publishedTrip } = await supabase
+    .from("trips")
+    .select("share_token, visibility, is_hidden")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (publishedTrip?.share_token && !publishedTrip.is_hidden) {
+    // Preserve the locale prefix in the redirect so /it/trips/... sends
+    // the user to /it/shared/[token], not the en root. `locale === "en"`
+    // → no prefix (next-intl convention for the default locale).
+    const localePrefix = locale === "en" ? "" : `/${locale}`;
+    redirect(`${localePrefix}/shared/${publishedTrip.share_token}`);
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

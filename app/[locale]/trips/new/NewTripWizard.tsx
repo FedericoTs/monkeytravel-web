@@ -1326,12 +1326,13 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         // analytics dashboard alongside save_clicked → saved. Without
         // this, the gap shows in Supabase queries but is invisible in
         // PostHog funnel charts the team actually watches.
-        void captureSaveBlockedAnon({
+        // Sync (nav-safe) since the auth modal opens right after.
+        captureSaveBlockedAnon({
           destination,
           group_size: tripIntent,
           backpacker_mode: travelStyle === "backpacker",
           modal_shown: true,
-        }).catch(() => {});
+        });
         setLoading(false);
         savingTripRef.current = false;
         setShowAuthModal(true);
@@ -1535,13 +1536,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           : /invalid|required|missing|validation/i.test(errMsg)
           ? "validation"
           : "unknown";
-      void captureSaveFailed({
+      // Sync (nav-safe) — save error can be followed by an immediate
+      // page transition if the user retries elsewhere.
+      captureSaveFailed({
         destination,
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
         error_class: errorClass,
         error_message: errMsg.slice(0, 80) || undefined,
-      }).catch(() => {});
+      });
     } finally {
       setLoading(false);
       // Always clear the re-entry guard so a legitimate retry (e.g. after

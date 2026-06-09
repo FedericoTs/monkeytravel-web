@@ -91,11 +91,9 @@ export default function AuthPromptModal({
     }
     if (shownTrackedRef.current) return;
     shownTrackedRef.current = true;
-    void captureAuthPromptShown({
+    captureAuthPromptShown({
       location,
       destination: destination || undefined,
-    }).catch(() => {
-      /* posthog not loaded — event dropped, GA4 still captured upstream */
     });
   }, [isOpen, location, destination]);
 
@@ -103,10 +101,10 @@ export default function AuthPromptModal({
   // either submitted the magic-link or navigated to a legacy path.
   const handleDismiss = () => {
     if (!linkSent && !isNavigating) {
-      void captureAuthPromptDismissed({
+      captureAuthPromptDismissed({
         location,
         had_email_entered: emailRef.current.trim().length > 0,
-      }).catch(() => {});
+      });
     }
     onClose();
   };
@@ -153,10 +151,10 @@ export default function AuthPromptModal({
       // segment magic-link conversion by gmail/icloud/work-domains
       // without exposing user identities in the event stream.
       const domain = trimmed.split("@")[1]?.toLowerCase() || undefined;
-      void captureMagicLinkRequested({
+      captureMagicLinkRequested({
         location,
         email_domain: domain,
-      }).catch(() => {});
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : t("magicLink.failed");
       setError(message);
@@ -164,13 +162,13 @@ export default function AuthPromptModal({
       // dashboard can distinguish rate-limit vs invalid-email vs
       // network errors. The full message is captured client-side only;
       // PostHog gets the bucket label.
-      void captureMagicLinkRequestFailed({
+      captureMagicLinkRequestFailed({
         location,
         reason:
           err instanceof Error
             ? err.message.slice(0, 80)
             : "unknown",
-      }).catch(() => {});
+      });
     } finally {
       setIsSending(false);
     }
@@ -181,20 +179,20 @@ export default function AuthPromptModal({
   // without waiting for an email.
   const handlePasswordSignup = async () => {
     setIsNavigating(true);
-    void captureAuthMethodSwitched({
+    captureAuthMethodSwitched({
       location,
       to: "password_signup",
-    }).catch(() => {});
+    });
     await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`);
   };
 
   const handleLogin = async () => {
     setIsNavigating(true);
-    void captureAuthMethodSwitched({
+    captureAuthMethodSwitched({
       location,
       to: "password_login",
-    }).catch(() => {});
+    });
     await prefs.set("pendingTripGeneration", "true");
     router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
   };

@@ -27,6 +27,75 @@
 
 const getPosthog = () => import("posthog-js").then((m) => m.default);
 
+/**
+ * Sync handle to the already-initialized PostHog client.
+ *
+ * **Why this exists (2026-06-09):** the async `getPosthog()` helper fires
+ * `import("posthog-js")` then `.capture()`. For events that race a
+ * navigation (the auth modal opens then redirects, the save flow then
+ * pushes to /trips/[id], etc.), the async resolution can lose to the
+ * navigation and the event is dropped before the SDK's batch flushes.
+ *
+ * The daily routine on 2026-06-09 showed exactly this pattern:
+ * `save_blocked_anon = 1` in Supabase but `0` in PostHog for the same
+ * user session. The Supabase write is a server-side fetch that survives
+ * navigation; PostHog's client-side capture didn't.
+ *
+ * `window.posthog` is populated by `instrumentation-client.ts` right
+ * after the consent-gated init. Once init has run (which is by the time
+ * any user-interaction handler fires), reading from `window.posthog`
+ * gives us a synchronous reference to the same SDK instance — capture
+ * fires immediately into the SDK's queue, then PostHog's own
+ * `XHR` + `sendBeacon` fallback flushes it across navigation boundaries.
+ *
+ * Returns `null` before init or on the server. Callers must handle
+ * that — the sync path is best-effort, fall through to the async path
+ * if the SDK isn't ready yet.
+ */
+// `unknown` for the props arg so we accept any typed event shape without
+// requiring every event interface to declare an index signature. PostHog's
+// own .capture() accepts any object; we cast at the boundary.
+type WindowPosthog = {
+  capture: (event: string, props?: unknown) => void;
+};
+
+function getPosthogSync(): WindowPosthog | null {
+  if (typeof window === "undefined") return null;
+  const ph = (window as typeof window & { posthog?: WindowPosthog }).posthog;
+  if (!ph || typeof ph.capture !== "function") return null;
+  return ph;
+}
+
+/**
+ * Fire-and-forget capture that prefers the sync path when the SDK is
+ * already initialized. Used by events that race navigation. Falls
+ * through to the existing async path if window.posthog isn't ready.
+ *
+ * Don't use this from server components or route handlers — it's
+ * client-only. The sync check short-circuits to the async path
+ * (which is itself a no-op on the server) if window is undefined.
+ *
+ * Generic over the event shape so callers keep their type-safe event
+ * interface; we widen to `unknown` only at the SDK boundary.
+ */
+function captureNavSafe<T>(event: string, props?: T): void {
+  const sync = getPosthogSync();
+  if (sync) {
+    try {
+      sync.capture(event, props);
+      return;
+    } catch (err) {
+      // Fall through to async path if the sync call somehow throws.
+      console.warn("[posthog] sync capture failed, falling back", err);
+    }
+  }
+  // Best-effort async path. Returns a promise we deliberately drop;
+  // the caller already chose fire-and-forget by calling this helper.
+  void getPosthog()
+    .then((ph) => ph.capture(event, props as Record<string, unknown>))
+    .catch(() => {});
+}
+
 // ============================================================================
 // CONTENT TRACKING EVENTS
 // ============================================================================
@@ -622,11 +691,16 @@ export async function captureRetentionCheckpoint(event: RetentionCheckpointEvent
 }
 
 /**
- * Capture first trip saved (critical aha moment candidate)
+ * Capture first trip saved (critical aha moment candidate).
+ *
+ * Switched to sync nav-safe path 2026-06-09 — this event fires inside
+ * the manual + auto-save handlers, immediately before a router.push
+ * to /trips/[id]. The async dynamic-import-then-capture used to lose
+ * to the navigation; this lands the event in the SDK queue before
+ * the route change.
  */
-export async function captureFirstTripSaved(event: FirstTripSavedEvent) {
-  const ph = await getPosthog();
-  ph.capture("first_trip_saved", event);
+export function captureFirstTripSaved(event: FirstTripSavedEvent) {
+  captureNavSafe("first_trip_saved", event);
 }
 
 /**
@@ -705,29 +779,28 @@ export interface AuthPromptDismissedEvent {
   had_email_entered: boolean;
 }
 
-export async function captureAuthPromptShown(event: AuthPromptShownEvent) {
-  const ph = await getPosthog();
-  ph.capture("auth_prompt_shown", event);
+// Auth-wall captures all race a router.push or window.location change.
+// Use the sync window.posthog handle so the event lands BEFORE navigation
+// has a chance to abort the in-flight async getPosthog() dynamic import.
+// See `captureNavSafe` for the rationale (2026-06-09).
+export function captureAuthPromptShown(event: AuthPromptShownEvent) {
+  captureNavSafe("auth_prompt_shown", event);
 }
 
-export async function captureMagicLinkRequested(event: MagicLinkRequestedEvent) {
-  const ph = await getPosthog();
-  ph.capture("magic_link_requested", event);
+export function captureMagicLinkRequested(event: MagicLinkRequestedEvent) {
+  captureNavSafe("magic_link_requested", event);
 }
 
-export async function captureMagicLinkRequestFailed(event: MagicLinkRequestFailedEvent) {
-  const ph = await getPosthog();
-  ph.capture("magic_link_request_failed", event);
+export function captureMagicLinkRequestFailed(event: MagicLinkRequestFailedEvent) {
+  captureNavSafe("magic_link_request_failed", event);
 }
 
-export async function captureAuthMethodSwitched(event: AuthMethodSwitchedEvent) {
-  const ph = await getPosthog();
-  ph.capture("auth_method_switched", event);
+export function captureAuthMethodSwitched(event: AuthMethodSwitchedEvent) {
+  captureNavSafe("auth_method_switched", event);
 }
 
-export async function captureAuthPromptDismissed(event: AuthPromptDismissedEvent) {
-  const ph = await getPosthog();
-  ph.capture("auth_prompt_dismissed", event);
+export function captureAuthPromptDismissed(event: AuthPromptDismissedEvent) {
+  captureNavSafe("auth_prompt_dismissed", event);
 }
 
 // ============================================================================
@@ -756,14 +829,17 @@ export interface SaveFailedEvent {
   error_message?: string;
 }
 
-export async function captureSaveBlockedAnon(event: SaveBlockedAnonEvent) {
-  const ph = await getPosthog();
-  ph.capture("save_blocked_anon", event);
+// Save-funnel captures race the modal-open + window.location.assign that
+// the save flow triggers immediately after. Sync handle keeps the event
+// from being dropped (see 2026-06-09 daily routine — save_blocked_anon
+// was hitting Supabase wizard_step_events but never landing in PostHog
+// because the async dynamic import lost to navigation).
+export function captureSaveBlockedAnon(event: SaveBlockedAnonEvent) {
+  captureNavSafe("save_blocked_anon", event);
 }
 
-export async function captureSaveFailed(event: SaveFailedEvent) {
-  const ph = await getPosthog();
-  ph.capture("save_failed", event);
+export function captureSaveFailed(event: SaveFailedEvent) {
+  captureNavSafe("save_failed", event);
 }
 
 // ============================================================================
