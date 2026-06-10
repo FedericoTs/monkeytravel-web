@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "title": "Planejador de Viagens Mochileiro — Roteiros com IA para Hostels e Viagens Econômicas",
+    "description": "Monte sua rota mochileira em 30 segundos. Hostels em vez de hotéis, free tours, comida de rua, transporte público e atividades sociais — uma IA que entende de verdade a viagem mochileira. 100% grátis, sem cadastro.",
+    "ogAlt": "MonkeyTravel — Planejador de Viagens Mochileiro"
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "backpacker": "Planejador Mochileiro"
+  },
+  "hero": {
+    "badge": "Modo Mochileiro já disponível",
+    "titleLead": "Um planejador de viagens com IA que entende de verdade",
+    "titleHighlight": "a viagem mochileira",
+    "subtitle": "Hostels antes de hotéis. Free tours a pé. Comida de rua. Transporte público. Atividades sociais onde quem viaja sozinho realmente conhece gente. Pronto em 30 segundos, grátis para sempre.",
+    "ctaPrimary": "Planejar uma viagem mochileira",
+    "ctaSecondary": "Ver rotas de exemplo",
+    "trustSignals": {
+      "free": "100% grátis",
+      "noSignup": "Sem cadastro",
+      "fast": "Pronto em 30 segundos"
+    }
+  },
+  "stats": {
+    "label": "Mochileiros usando o MonkeyTravel — últimos 30 dias",
+    "clicks": "buscas de hostels iniciadas",
+    "trips": "viagens com busca de hostel",
+    "visitors": "viajantes únicos",
+    "footnote": "Atualizado a cada hora. Dados ao vivo, não estimativas."
+  },
+  "features": {
+    "title": "Feito para como o mochileiro viaja de verdade",
+    "subtitle": "A maioria dos planejadores de viagem com IA cai no padrão de roteiros turísticos de gama média. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
+    "items": {
+      "hostels": {
+        "title": "Hostels antes de hotéis",
+        "body": "Sugere hostels e pousadas econômicas em bairros mochileiros consagrados. Nada de hotéis 4 estrelas, nada de boutiques que você não pode pagar."
+      },
+      "walking": {
+        "title": "Free tours a pé + mirantes",
+        "body": "Free tours pela cidade, mirantes, parques públicos, dias gratuitos de museus. Pula as experiências guiadas de € 60 a menos que valham mesmo a pena."
+      },
+      "food": {
+        "title": "Comida de rua + mercados",
+        "body": "Mercados locais, comida de rua, lanchonetes despojadas e opções de mercado para cozinhar na cozinha do hostel. No máximo uma refeição especial — local, nada turística."
+      },
+      "transit": {
+        "title": "Transporte público + ônibus intermunicipais",
+        "body": "A pé, metrô, ônibus entre cidades (FlixBus, BlaBlaCar). Indica os cartões de transporte que vale a pena tirar. Nada de táxis, a não ser por segurança."
+      },
+      "social": {
+        "title": "Atividades sociais incluídas",
+        "body": "Pelo menos uma atividade explicitamente social por dia — pub crawl, free tour, evento organizado pelo hostel, intercâmbio de idiomas. Quem viaja sozinho quer conhecer gente."
+      },
+      "overland": {
+        "title": "Rotas por terra entre várias cidades",
+        "body": "Para viagens de 5 dias ou mais, a IA considera dividir o trajeto entre 2 cidades com sugestões de transporte entre elas. Clássico mochileiro — uma viagem, várias paradas."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Como funciona",
+    "steps": {
+      "toggle": {
+        "title": "Ative o modo 🎒 Mochileiro",
+        "body": "Passo 1 do assistente. Ative o modo, escolha um destino, escolha as datas. É só isso."
+      },
+      "generate": {
+        "title": "Gere em 30 segundos",
+        "body": "A IA monta um plano dia a dia otimizado para a viagem mochileira — bairros, transporte, comida, pontos de encontro."
+      },
+      "book": {
+        "title": "Reserve hostels com um toque",
+        "body": "Toda viagem mochileira tem um botão \"Buscar hostels para esta viagem\" que abre o Hostelworld já filtrado pelo seu destino + datas."
+      }
+    }
+  },
+  "routes": {
+    "title": "Experimente um destes destinos mochileiros clássicos",
+    "subtitle": "Um clique já preenche o assistente. A IA cuida do resto.",
+    "daysLabel": "{days} dias",
+    "hostelZoneLabel": "Zona de hostels: {neighbourhood}",
+    "items": {
+      "lisbon": { "neighbourhood": "Bairro Alto" },
+      "barcelona": { "neighbourhood": "El Born / El Raval" },
+      "berlin": { "neighbourhood": "Friedrichshain" },
+      "prague": { "neighbourhood": "Žižkov" },
+      "budapest": { "neighbourhood": "Distrito VII" },
+      "athens": { "neighbourhood": "Plaka / Monastiraki" },
+      "bangkok": { "neighbourhood": "Khao San / Sukhumvit" },
+      "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
+    }
+  },
+  "trendingTrips": {
+    "title": "Veja viagens mochileiras de verdade",
+    "subtitle": "Roteiros que outros viajantes publicaram no modo Mochileiro. Faça um fork de qualquer um para começar a planejar o seu.",
+    "browseAll": "Ver todos no Explorar →"
+  },
+  "faq": {
+    "title": "Perguntas frequentes",
+    "items": {
+      "different": {
+        "question": "O que torna diferente um roteiro de viagem mochileira?",
+        "answer": "A viagem mochileira otimiza coisas diferentes de umas férias típicas: hostels em vez de hotéis, free tours a pé no lugar de excursões guiadas, comida de rua em vez de restaurantes caros, transporte público e ônibus intermunicipais no lugar de táxis, e atividades sociais onde quem viaja sozinho pode conhecer outras pessoas. Nossa IA leva tudo isso em conta quando o Modo Mochileiro está ativado, então o roteiro final realmente parece uma viagem mochileira — não uma versão diluída de um plano de luxo."
+      },
+      "free": {
+        "question": "É realmente grátis? Onde está a pegadinha?",
+        "answer": "Sim, totalmente grátis. Não precisa de cadastro para gerar um plano — você só cria uma conta se quiser salvar a viagem e acessá-la depois de outro dispositivo. Não cobramos pela geração com IA, nem pelas recomendações, nem por nenhuma das funcionalidades."
+      },
+      "vsHostelworld": {
+        "question": "Qual a diferença disso para o Hostelworld ou o Booking.com?",
+        "answer": "O Hostelworld e o Booking.com são incríveis para você reservar uma cama — mas não ajudam a planejar os dias intermediários. Nós fazemos o contrário: planejamos a viagem inteira (roteiro dia a dia, bairro por bairro) e depois encaminhamos você ao Hostelworld para a reserva do hostel em si. Use os dois juntos."
+      },
+      "neighbourhoods": {
+        "question": "Ele vai sugerir hostels em bons bairros?",
+        "answer": "Sim. A IA sabe quais bairros concentram hostels e são mais mochileiros em cada grande destino — Bairro Alto em Lisboa, El Born em Barcelona, Khao San em Bangkok, Friedrichshain em Berlim, e por aí vai. Ela também considera segurança, acesso ao transporte público e proximidade de pontos sociais como pub crawls e mercados noturnos."
+      },
+      "multiCity": {
+        "question": "Posso fazer uma rota por várias cidades / por terra?",
+        "answer": "Com certeza. Para viagens de 5 dias ou mais, a IA avalia se dividir o trajeto entre 2 (ou mais) cidades daria uma experiência melhor e sugere opções por terra (FlixBus, BlaBlaCar, trens intermunicipais) quando fazem sentido."
+      },
+      "comfort": {
+        "question": "E se eu quiser um plano um pouco mais confortável?",
+        "answer": "Desative o Modo Mochileiro no assistente e gere de novo. Você terá um plano de gama média com o mesmo destino + datas. Ou mantenha o Modo Mochileiro ativado, mas suba o nível de orçamento no passo 2 — o plano ainda vai privilegiar hostels e atividades sociais, só com uma extravagância de vez em quando."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Sua próxima viagem mochileira está a 30 segundos de distância.",
+    "subtitle": "Escolha um destino. Ative o modo Mochileiro. Gere. A gente cuida dos hostels e das conexões de FlixBus.",
+    "button": "Planejar minha viagem mochileira"
+  }
+}

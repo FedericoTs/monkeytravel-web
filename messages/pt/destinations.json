@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "titleIndex": "Principais Destinos de Viagem & Roteiros com IA",
+    "descriptionIndex": "Explore nossos destinos de viagem selecionados. Receba roteiros dia a dia gerados por IA para Paris, Roma, Tóquio e mais de 20 cidades pelo mundo.",
+    "titleDetail": "Guia de Viagem de {city} & Roteiro com IA",
+    "descriptionDetail": "Planeje sua viagem a {city} com IA. Receba um roteiro personalizado dia a dia com restaurantes, atrações e lugares escondidos em {city}, {country}."
+  },
+  "index": {
+    "title": "Explore Destinos",
+    "subtitle": "Escolha uma cidade e receba um roteiro personalizado com IA em 30 segundos",
+    "heroLine1": "Encontre sua próxima",
+    "heroLine2Accent": "cidade favorita",
+    "heroSubtitle": "Cidades selecionadas a dedo em todos os continentes. <b>Escolha uma e um roteiro com IA fica pronto em 30 segundos</b> — grátis, sem cadastro, totalmente editável.",
+    "trustCurated": "Cidades selecionadas a dedo",
+    "trustAi": "Roteiros com IA em 30s",
+    "trustFree": "100% grátis",
+    "allDestinations": "Todos os Destinos",
+    "filterByRegion": "Filtrar por região",
+    "destinationCount": "destinos",
+    "featured": "Em destaque",
+    "allByContinent": "Navegue por continente",
+    "allByContinentDescription": "Todos os destinos, agrupados por continente no mapa."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Cidades em alta",
+      "description": "Para onde os viajantes estão indo agora."
+    },
+    "romantic": {
+      "title": "Escapadas românticas",
+      "description": "Para casais — manhãs sem pressa, almoços demorados, pôr do sol de tirar o fôlego."
+    },
+    "beach": {
+      "title": "Escapadas para a praia",
+      "description": "Areia, mar e pouca coisa mais na agenda."
+    },
+    "viewAll": "Ver todos"
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "destinations": "Destinos"
+  },
+  "nav": {
+    "previousDestination": "Anterior",
+    "nextDestination": "Próximo",
+    "overview": "Visão geral",
+    "bestTime": "Melhor época",
+    "highlights": "Destaques",
+    "sampleDay": "Dia exemplo",
+    "faq": "Perguntas",
+    "planTrip": "Planejar viagem"
+  },
+  "style": {
+    "eyebrow": "Estilo de viagem",
+    "heading": "Destinos {tag}",
+    "subtitle": "{count, plural, =1 {1 destino} other {# destinos}} que combinam com este estilo de viagem.",
+    "allDestinations": "Todos os destinos compatíveis",
+    "metaTitle": "Destinos {tag} — roteiros planejados com IA",
+    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viagens {tag}. Receba um roteiro dia a dia criado por IA em 30 segundos — grátis."
+  },
+  "stats": {
+    "avgStay": "{days} dias de estadia média",
+    "bestMonths": "Melhores meses",
+    "budget": "Nível de orçamento"
+  },
+  "budgetLabels": {
+    "1": "Econômico",
+    "2": "Moderado",
+    "3": "Orçamento alto"
+  },
+  "months": {
+    "1": "Jan",
+    "2": "Fev",
+    "3": "Mar",
+    "4": "Abr",
+    "5": "Mai",
+    "6": "Jun",
+    "7": "Jul",
+    "8": "Ago",
+    "9": "Set",
+    "10": "Out",
+    "11": "Nov",
+    "12": "Dez"
+  },
+  "sections": {
+    "whyVisit": "Por Que Visitar {city}",
+    "sampleDay": "Um Dia de Exemplo em {city}",
+    "sampleDayNote": "Este é um dia de exemplo. A IA da MonkeyTravel cria um roteiro completo de vários dias personalizado para o seu ritmo, orçamento e interesses.",
+    "faq": "Perguntas Frequentes",
+    "moreDestinations": "Mais Destinos para Explorar",
+    "popularDestinations": "Destinos Populares",
+    "relatedArticles": "Dicas e Guias de Viagem",
+    "exploreByStyle": "Mais Destinos {tag}",
+    "trendingTripsIn": "Viagens em alta para {city}",
+    "browseAllTripsTo": "Ver todas as viagens para {city} →"
+  },
+  "cta": {
+    "generateItinerary": "Gerar Meu Roteiro de {city}",
+    "freeIn30Seconds": "Roteiro grátis com IA em 30 segundos",
+    "viewAllDestinations": "Ver Todos os Destinos",
+    "planTrip": "Planejar Viagem"
+  },
+  "card": {
+    "days": "{days} dias"
+  },
+  "tags": {
+    "romantic": "Romântico",
+    "cultural": "Cultural",
+    "foodie": "Gastronômico",
+    "urban": "Urbano",
+    "historical": "Histórico",
+    "beach": "Praia",
+    "nightlife": "Vida noturna",
+    "adventure": "Aventura",
+    "nature": "Natureza",
+    "spiritual": "Espiritual",
+    "shopping": "Compras",
+    "modern": "Moderno",
+    "traditional": "Tradicional",
+    "architectural": "Arquitetônico",
+    "artistic": "Artístico",
+    "exotic": "Exótico",
+    "luxury": "Luxo",
+    "family": "Família",
+    "wellness": "Bem-estar",
+    "photography": "Fotografia",
+    "offbeat": "Fora do Comum"
+  },
+  "bestTime": {
+    "title": "Melhor Época para Visitar {city}",
+    "subtitle": "Clima, movimento e estações mês a mês em {city}",
+    "best": "Melhor época",
+    "good": "Boa época",
+    "offSeason": "Baixa temporada",
+    "crowds": "Movimento",
+    "low": "Baixo",
+    "moderate": "Moderado",
+    "high": "Alto",
+    "spring": "Primavera",
+    "summer": "Verão",
+    "autumn": "Outono",
+    "winter": "Inverno"
+  },
+  "continents": {
+    "europe": "Europa",
+    "asia": "Ásia",
+    "americas": "Américas",
+    "middle-east": "Oriente Médio",
+    "africa": "África",
+    "oceania": "Oceania",
+    "all": "Todos"
+  }
+}

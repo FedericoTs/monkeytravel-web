@@ -1,0 +1,86 @@
+{
+  "balance": {
+    "title": "Suas Bananas",
+    "bananas": "bananas",
+    "expiring": "{count} bananas expiram em {date}"
+  },
+  "tier": {
+    "currentTier": "Nível Atual",
+    "referrals": "Total de Indicações",
+    "progressToNext": "Progresso até {tier}",
+    "remaining": "Mais {count} indicações para desbloquear o próximo nível",
+    "milestones": "Níveis",
+    "maxTierReached": "Status Champion Conquistado!",
+    "maxTierDescription": "Você alcançou o nível mais alto. Aproveite todos os benefícios!",
+    "refs": "indic."
+  },
+  "tierNames": {
+    "traveler": "Viajante",
+    "explorer": "Explorador",
+    "ambassador": "Embaixador",
+    "champion": "Campeão"
+  },
+  "errors": {
+    "loadFailed": "Falha ao carregar os dados de indicações"
+  },
+  "badges": {
+    "title": "Suas Conquistas"
+  },
+  "stats": {
+    "referrals": "Indicações",
+    "pending": "Pendentes",
+    "earned": "Ganhas"
+  },
+  "activity": {
+    "title": "Atividade Recente",
+    "types": {
+      "referral": "Recompensa por indicação",
+      "collaboration": "Bônus de colaboração",
+      "tier_bonus": "Bônus por desbloqueio de nível",
+      "spend": "Resgate",
+      "trip_complete": "Viagem concluída",
+      "signup_bonus": "Bônus de boas-vindas",
+      "review": "Recompensa por avaliação",
+      "clawback": "Ajuste",
+      "expiration": "Expirado",
+      "admin": "Ajuste administrativo"
+    }
+  },
+  "cta": {
+    "inviteFriends": "Convide Amigos e Ganhe Bananas"
+  },
+  "catalog": {
+    "title": "Resgate Suas Bananas",
+    "available": "Disponível Agora",
+    "comingSoon": "Em Breve",
+    "cost": "{cost} bananas",
+    "outOfStock": "Esgotado",
+    "limitReached": "Limite Atingido",
+    "cooldown": "Disponível novamente em {date}",
+    "redeem": "Resgatar"
+  },
+  "leaderboard": {
+    "title": "Ranking de Indicações",
+    "rank": "Posição",
+    "you": "Você",
+    "participants": "{count} participantes"
+  },
+  "benefits": {
+    "title": "Seus Limites de Geração com IA",
+    "currentLimit": "{count} gerações de viagens com IA por mês",
+    "bonusActive": "+{bonus} de bônus do nível {tier}!",
+    "inviteToUnlock": "Convide mais {count} amigos para desbloquear +{bonus} gerações extras!",
+    "tierBenefits": "Benefícios de Indicação",
+    "unlocked": "Desbloqueado",
+    "explorer": "Explorer (3 indic.): +2 gerações com IA/mês",
+    "ambassador": "Ambassador (6 indic.): +5 gerações com IA/mês, suporte prioritário",
+    "champion": "Champion (10 indic.): +12 gerações com IA/mês, regenerações ilimitadas"
+  },
+  "banner": {
+    "title": "Desbloqueie Mais Viagens com IA",
+    "progress": "{current}/{target} indicações para {tier}",
+    "benefit": "+{bonus} gerações com IA/mês",
+    "cta": "Convidar Amigos",
+    "maxTier": "Você desbloqueou todos os níveis!"
+  }
+}

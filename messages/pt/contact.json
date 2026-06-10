@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "title": "Fale Conosco",
+    "description": "Entre em contato com a equipe da MonkeyTravel. Lemos cada mensagem e respondemos em até um dia útil."
+  },
+  "hero": {
+    "eyebrow": "Fale com a gente",
+    "title": "Converse com uma pessoa de verdade",
+    "subtitle": "Imprensa, parcerias, suporte ou só um oi — mande uma mensagem e retornamos em até um dia útil."
+  },
+  "form": {
+    "name": "Seu nome",
+    "namePlaceholder": "Joana Viajante",
+    "email": "E-mail",
+    "emailPlaceholder": "joana@exemplo.com",
+    "topic": "Sobre o que é?",
+    "topicPlaceholder": "Escolha um assunto",
+    "topics": {
+      "support": "Suporte",
+      "partnership": "Parcerias",
+      "press": "Imprensa",
+      "feedback": "Feedback sobre o produto",
+      "other": "Outro assunto"
+    },
+    "message": "Mensagem",
+    "messagePlaceholder": "Conte um pouco mais — links, capturas de tela, qualquer coisa que ajude.",
+    "submit": "Enviar mensagem",
+    "submitting": "Enviando…",
+    "successTitle": "Mensagem enviada",
+    "successBody": "Obrigado — recebemos sua mensagem e responderemos em até um dia útil.",
+    "errorTitle": "Algo deu errado",
+    "errorBody": "Não conseguimos enviar sua mensagem. Tente novamente ou escreva diretamente para support@monkeytravel.app.",
+    "rateLimited": "Mensagens demais a partir desta conexão. Tente novamente em uma hora.",
+    "validationName": "Por favor, informe seu nome.",
+    "validationEmail": "Por favor, informe um e-mail válido.",
+    "validationMessage": "Por favor, escreva uma mensagem com pelo menos 10 caracteres."
+  },
+  "directEmail": {
+    "label": "Prefere e-mail?",
+    "address": "support@monkeytravel.app"
+  }
+}

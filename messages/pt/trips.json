@@ -1,0 +1,435 @@
+{
+  "wizard": {
+    "back": "Voltar",
+    "unlockAiFeatures": "Desbloqueie os recursos de IA",
+    "datePicker": {
+      "checkInLabel": "Check-in",
+      "checkOutLabel": "Check-out",
+      "selectDate": "Selecionar data",
+      "selectCheckInDate": "Selecione a data de check-in",
+      "selectCheckOutDate": "Selecione a data de check-out",
+      "maxDaysHint": "Selecione as datas da sua viagem (máx {days} dias)",
+      "dayCount": "{count, plural, one {# dia} other {# dias}}",
+      "nightCount": "{count, plural, one {# noite} other {# noites}}"
+    },
+    "step1": {
+      "title": "Para onde e quando?",
+      "subtitle": "Escolha um destino e as datas da sua viagem",
+      "placeholder": "ex.: Paris, Tóquio, Nova York...",
+      "popularDestinations": "Destinos populares",
+      "whosComing": "Quem vai?",
+      "justMe": "Só eu",
+      "withFriends": "Com amigos",
+      "startAnywhereTitle": "Comece com uma imagem ou URL",
+      "startAnywhereSubtitle": "Tem uma foto, captura de tela ou blog de viagem? Vamos descobrir o destino.",
+      "destinationLabel": "Destino",
+      "travelDatesLabel": "Datas da viagem",
+      "checkin": "CHECK-IN",
+      "checkout": "CHECK-OUT",
+      "selectDate": "Selecionar data",
+      "dateHelp": "Selecione as datas da sua viagem (máx 14 dias)",
+      "continue": "Continuar",
+      "backpackerMode": "Modo mochileiro",
+      "backpackerModeOn": "Modo mochileiro — ATIVO",
+      "backpackerModeSubtitle": "Hostels, dicas de economia, ideal para multi-cidades"
+    },
+    "returningUser": {
+      "welcomeBack": "Bem-vindo de volta!",
+      "subtitle": "Você já tem viagens salvas. Quer continuar de onde parou?",
+      "goToMyTrips": "Ir para Minhas Viagens",
+      "startNewTrip": "Começar uma Nova Viagem",
+      "dismiss": "Dispensar"
+    },
+    "step2": {
+      "title": "Defina seu estilo de viagem",
+      "subtitle": "Escolha o clima para {destination}— vamos personalizar seu roteiro",
+      "startDate": "Data de início",
+      "endDate": "Data de término",
+      "daysLabel": "{count} dias",
+      "customize": "Personalize orçamento, ritmo e preferências",
+      "generate": "Gerar Roteiro",
+      "back": "Voltar"
+    },
+    "step3": {
+      "title": "Qual é o seu clima de viagem?",
+      "subtitle": "Escolha o clima que representa sua experiência ideal em {destination}",
+      "selectUpTo": "Selecione até {count} climas"
+    },
+    "step4": {
+      "title": "Detalhes finais",
+      "subtitle": "Defina seu orçamento, ritmo e requisitos especiais"
+    },
+    "result": {
+      "tripOverview": "Resumo da Viagem",
+      "viewCards": "Cartões",
+      "viewTimeline": "Linha do Tempo",
+      "hideMap": "Ocultar Mapa",
+      "showMap": "Mostrar Mapa",
+      "startOver": "Recomeçar",
+      "regenerate": "Gerar Novamente",
+      "saveTrip": "Salvar Viagem",
+      "saving": "Salvando...",
+      "duration": "Duração",
+      "estBudget": "Orçamento Est.",
+      "activities": "Atividades",
+      "pace": "Ritmo",
+      "days": "{count, plural, one {# dia} other {# dias}}",
+      "dayLabel": "Dia {n}",
+      "packingSuggestions": "Sugestões de Bagagem",
+      "dailyBudget": "Orçamento Est."
+    }
+  },
+  "vibes": {
+    "adventure": {
+      "label": "Aventureiro",
+      "description": "Atividades ao ar livre, trilhas e experiências cheias de adrenalina"
+    },
+    "cultural": {
+      "label": "Explorador Cultural",
+      "description": "Museus, sítios históricos, tradições locais e maravilhas do passado"
+    },
+    "foodie": {
+      "label": "Gastronomia & Vinho",
+      "description": "Culinária local, tours gastronômicos, mercados e experiências culinárias"
+    },
+    "wellness": {
+      "label": "Bem-estar & Relaxamento",
+      "description": "Spas, retiros de ioga, jardins tranquilos e experiências revigorantes"
+    },
+    "romantic": {
+      "label": "Escapada Romântica",
+      "description": "Lugares pitorescos, pôr do sol, jantares íntimos e atividades a dois"
+    },
+    "urban": {
+      "label": "Explorador Urbano",
+      "description": "Vida na cidade, bairros de compras, vida noturna e atrações modernas"
+    },
+    "nature": {
+      "label": "Amante da Natureza",
+      "description": "Parques, jardins, paisagens deslumbrantes e encontros com a fauna"
+    },
+    "offbeat": {
+      "label": "Fora do Roteiro Comum",
+      "description": "Joias escondidas, segredos locais e experiências fora do convencional"
+    },
+    "time-traveler": {
+      "label": "Viajante do Tempo",
+      "description": "Ruínas antigas, castelos medievais e marcos históricos"
+    },
+    "photo-hunter": {
+      "label": "Caçador de Fotos",
+      "description": "Lugares dignos de Instagram, mirantes e cenários fotogênicos"
+    },
+    "local-life": {
+      "label": "Vida Local",
+      "description": "Bairros, cafés locais, mercados e experiências autênticas"
+    },
+    "night-owl": {
+      "label": "Coruja Noturna",
+      "description": "Entretenimento noturno, bares, baladas e comida de madrugada"
+    }
+  },
+  "budget": {
+    "title": "Orçamento",
+    "budget": {
+      "label": "Econômico",
+      "description": "Atrações gratuitas, comida de rua, transporte público",
+      "range": "< US$ 100/dia"
+    },
+    "balanced": {
+      "label": "Equilibrado",
+      "description": "Mistura de experiências, restaurantes locais, alguns tours",
+      "range": "US$ 100-250/dia"
+    },
+    "premium": {
+      "label": "Premium",
+      "description": "Sem filas, alta gastronomia, tours privados",
+      "range": "US$ 250+/dia"
+    }
+  },
+  "pace": {
+    "title": "Ritmo",
+    "relaxed": {
+      "label": "Tranquilo",
+      "description": "2-3 atividades/dia"
+    },
+    "moderate": {
+      "label": "Moderado",
+      "description": "3-4 atividades/dia"
+    },
+    "active": {
+      "label": "Ativo",
+      "description": "5+ atividades/dia"
+    }
+  },
+  "requirements": {
+    "title": "Requisitos Especiais",
+    "placeholder": "ex.: acessível para cadeira de rodas, restaurantes vegetarianos, ideal para crianças...",
+    "hint": "Opcional - conte-nos sobre qualquer necessidade específica"
+  },
+  "generation": {
+    "generating": "Criando seu roteiro perfeito...",
+    "analyzing": "Analisando {destination}...",
+    "findingActivities": "Encontrando as melhores atividades...",
+    "optimizingRoute": "Otimizando seus trajetos diários...",
+    "almostDone": "Quase lá...",
+    "error": "Não foi possível gerar o roteiro. Tente novamente.",
+    "errorTimeout": "A solicitação demorou demais. Isso pode acontecer com viagens complexas — tente novamente.",
+    "errorNetwork": "Problema de conexão. Verifique sua internet e tente novamente.",
+    "errorServerBusy": "Nossa IA está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
+    "retry": "Tentar Novamente"
+  },
+  "result": {
+    "title": "Seu Roteiro em {destination}",
+    "daysCount": "{count} Dias",
+    "saveTrip": "Salvar Viagem",
+    "startOver": "Recomeçar",
+    "regenerate": "Gerar Novamente",
+    "share": "Compartilhar",
+    "export": "Exportar",
+    "saving": "Salvando…",
+    "savedViewTrip": "Salvo ✓ — Ver viagem",
+    "autoSaveError": "Não foi possível salvar automaticamente",
+    "autoSaveErrorDetail": "Toque em Salvar para tentar de novo.",
+    "retrySave": "Tentar salvar novamente",
+    "planWithFriends": "Planejar com amigos"
+  },
+  "day": {
+    "label": "Dia {number}",
+    "todayBadge": "HOJE",
+    "morning": "Manhã",
+    "afternoon": "Tarde",
+    "evening": "Noite",
+    "travel": "Deslocamento",
+    "totalDistance": "Distância total",
+    "walkingTime": "A pé",
+    "drivingTime": "De carro",
+    "current": "(atual)"
+  },
+  "ongoing": {
+    "todayTab": "Hoje",
+    "fullPlanTab": "Plano completo",
+    "fullPlan": "Plano completo",
+    "loadingMap": "Carregando mapa...",
+    "todaysActivities": "Atividades de hoje",
+    "progressCompleted": "{completed}/{total} concluídas",
+    "noActivitiesToday": "Nenhuma atividade planejada para hoje",
+    "dayComplete": "Dia Concluído!",
+    "allActivitiesCompleted": "Você concluiu todas as atividades de hoje",
+    "doneBadge": "✓ Feito",
+    "skippedBadge": "Pulada",
+    "freePrice": "Grátis"
+  },
+  "detail": {
+    "regeneratingDay": "Gerando novamente o Dia {number}…"
+  },
+  "activity": {
+    "duration": "{duration} min",
+    "cost": "Custo",
+    "free": "Grátis",
+    "tips": "Dicas",
+    "directions": "Como chegar",
+    "moreInfo": "Mais Informações",
+    "booking": "Reservar",
+    "insiderTips": "Dicas de Quem Conhece",
+    "aiEstimate": "Estimativa da IA",
+    "googleVerified": "Verificado pelo Google",
+    "venueTierEstimate": "Estimativa por categoria"
+  },
+  "detail": {
+    "backToTrips": "Voltar para Viagens",
+    "cards": "Cartões",
+    "timeline": "Linha do Tempo",
+    "viewToggle": "Visualização do roteiro",
+    "showMap": "Mostrar Mapa",
+    "hideMap": "Ocultar Mapa",
+    "loadingMap": "Carregando mapa...",
+    "editTrip": "Editar Viagem",
+    "editing": "Editando",
+    "editingMode": "Modo de Edição",
+    "optimizeRoute": "Otimizar Rota",
+    "optimize": "Otimizar",
+    "estBudget": "Orçamento Est.",
+    "noItinerary": "Nenhum Roteiro Ainda",
+    "noItineraryMessage": "Esta viagem ainda não tem atividades planejadas.",
+    "reorderActivities": "Reordenar atividades",
+    "unsavedChanges": "Alterações não salvas",
+    "discardChanges": "Descartar Alterações",
+    "saveChanges": "Salvar Alterações",
+    "doneEditing": "Concluído",
+    "cancel": "Cancelar",
+    "saving": "Salvando...",
+    "changesSaved": "Alterações salvas!",
+    "tripUpdated": "Sua viagem foi atualizada com sucesso.",
+    "aiGenerated": "Roteiro Gerado por IA com Dados Verificados",
+    "aiGeneratedDescription": "Este roteiro foi criado por IA e enriquecido com dados em tempo real do Google Places.",
+    "clickMoreInfo": "Clique em \"Mais\" em qualquer atividade para ver detalhes e fotos verificadas.",
+    "editModeActive": "Modo de Edição Ativo",
+    "editModeInstructions": "Arraste para reordenar, toque para editar ou use o menu para excluir atividades. Clique no botão verde de confirmação acima quando terminar.",
+    "aiAssistant": "Assistente de IA",
+    "customizeTrip": "Personalize sua viagem",
+    "aiHelp": "Ajuda da IA",
+    "aiTripAssistant": "Assistente de Viagem com IA",
+    "suggestActivity": "+ Sugerir uma atividade para este dia",
+    "proposalSubmitted": "Proposta enviada! Outros viajantes vão votar nela."
+  },
+  "editActivity": {
+    "moveToDay": "Mover para o dia",
+    "editActivity": "Editar atividade",
+    "regenerateWithAI": "Gerar novamente com IA",
+    "deleteActivity": "Excluir atividade",
+    "deleteConfirmTitle": "Excluir Atividade?",
+    "deleteConfirmMessage": "\"{name}\" será removida do seu roteiro.",
+    "regenerating": "Gerando atividade novamente com IA..."
+  },
+  "addActivity": {
+    "title": "Adicionar Atividade",
+    "addToDay": "Adicionar Atividade ao Dia {day}",
+    "activityName": "Nome da Atividade",
+    "activityNamePlaceholder": "ex.: Visitar o mercado local",
+    "type": "Tipo",
+    "duration": "Duração",
+    "description": "Descrição (opcional)",
+    "descriptionPlaceholder": "Adicione notas ou detalhes...",
+    "searchPlaceholder": "Buscar atividades em {destination}...",
+    "noResults": "Nenhuma atividade encontrada para \"{query}\"",
+    "addManually": "Adicione manualmente",
+    "searchOrSelect": "Busque atividades ou selecione uma categoria",
+    "addCustom": "+ Adicionar atividade personalizada"
+  },
+  "activityTypes": {
+    "restaurant": "Restaurante",
+    "attraction": "Atração",
+    "activity": "Atividade",
+    "nature": "Natureza",
+    "shopping": "Compras",
+    "entertainment": "Entretenimento",
+    "transport": "Transporte",
+    "cultural": "Cultural",
+    "museum": "Museu",
+    "landmark": "Marco",
+    "food": "Comida",
+    "cafe": "Café",
+    "bar": "Bar",
+    "foodie": "Gastronomia",
+    "wineBar": "Wine Bar",
+    "park": "Parque",
+    "market": "Mercado",
+    "nightlife": "Vida Noturna",
+    "spa": "Spa",
+    "wellness": "Bem-estar",
+    "event": "Evento"
+  },
+  "durations": {
+    "30min": "30 min",
+    "1hour": "1 hora",
+    "2hours": "2 horas",
+    "3hours": "3 horas",
+    "4hours": "4 horas",
+    "90min": "1,5 hora"
+  },
+  "limits": {
+    "freeTripsRemaining": "Você tem {count} viagens grátis restantes",
+    "noTripsRemaining": "Você usou todas as suas viagens grátis",
+    "upgradePrompt": "Faça upgrade para planejar viagens sem limites",
+    "enterCode": "Tem um código de acesso?",
+    "joinWaitlist": "Entre na lista de espera para acesso antecipado"
+  },
+  "save": {
+    "title": "Salve Sua Viagem",
+    "subtitle": "Crie uma conta para salvar e acessar sua viagem a qualquer momento",
+    "saving": "Salvando sua viagem...",
+    "success": "Viagem salva com sucesso!",
+    "error": "Não foi possível salvar a viagem. Tente novamente."
+  },
+  "startOver": {
+    "title": "Recomeçar?",
+    "message": "Isto descartará seu roteiro atual e começará do zero.",
+    "confirm": "Sim, Recomeçar",
+    "cancel": "Manter Viagem Atual"
+  },
+  "template": {
+    "loadingMap": "Carregando mapa...",
+    "curatedEscape": "Escapada Selecionada",
+    "durationDays": "{count, plural, one {# dia} other {# dias}}",
+    "travelersUsed": "{count} viajantes já usaram este roteiro",
+    "backToTrips": "Voltar para Viagens",
+    "cards": "Cartões",
+    "timeline": "Linha do Tempo",
+    "showMap": "Mostrar Mapa",
+    "hideMap": "Ocultar Mapa",
+    "dayFallback": "Dia {number}",
+    "estBudget": "Orçamento Est.",
+    "noItineraryTitle": "Nenhum Roteiro Disponível",
+    "noItineraryMessage": "Este modelo ainda não tem atividades.",
+    "curatedTitle": "Selecionado por Especialistas em Viagens",
+    "curatedDescription": "Este roteiro foi criado com todo o cuidado, reunindo as melhores experiências, restaurantes e joias escondidas. Salve-o na sua conta para personalizar datas, trocar atividades e deixá-lo com a sua cara.",
+    "loveThisItinerary": "Curtiu este roteiro?",
+    "saveAndSetDates": "Salve-o na sua conta e defina as datas da sua viagem",
+    "saveToMyTrips": "Salvar em Minhas Viagens",
+    "trustBadges": {
+      "freeForever": "Grátis para sempre",
+      "fullyEditable": "Totalmente editável",
+      "shareWithFriends": "Compartilhe com amigos"
+    },
+    "footer": {
+      "tagline": "Planejamento de viagens com IA, simples e rápido",
+      "createOwnTrip": "Crie Sua Própria Viagem"
+    },
+    "price": {
+      "free": "Grátis"
+    },
+    "budgetTier": {
+      "budget": "Econômico",
+      "moderate": "Moderado",
+      "luxury": "Luxo"
+    },
+    "moods": {
+      "romantic": "Romântico",
+      "adventure": "Aventura",
+      "cultural": "Cultural",
+      "relaxation": "Relaxamento",
+      "foodie": "Gastronomia",
+      "family": "Família"
+    }
+  },
+  "seasonalContext": {
+    "seasonLabel": "Estação de {season}",
+    "seasons": {
+      "spring": "Primavera",
+      "summer": "Verão",
+      "autumn": "Outono",
+      "winter": "Inverno"
+    },
+    "crowd": {
+      "peak": "Alta Temporada",
+      "high": "Movimentada",
+      "moderate": "Moderada",
+      "low": "Baixa Temporada"
+    },
+    "expectedWeather": "Clima Previsto",
+    "liveData": "Dados ao Vivo",
+    "rainyDays": "~{count, plural, one {# dia de chuva previsto} other {# dias de chuva previstos}}",
+    "holidaysAndEvents": "Feriados e Eventos",
+    "suggestedVibes": "Climas sugeridos para esta estação",
+    "vibesHint": "São sugestões baseadas na estação. Você escolherá seus climas na próxima etapa.",
+    "vibeReasons": {
+      "christmas": "Perfeito para mercados de Natal e o clima mágico de inverno",
+      "festival": "Vivencie festivais e celebrações locais",
+      "valentine": "Ideal para escapadas românticas",
+      "spring": "Cerejeiras em flor e a primavera te esperam",
+      "summer": "Clima ótimo para atividades ao ar livre",
+      "autumnFoodie": "Temporada de colheita com produtos locais incríveis",
+      "autumnRetro": "Cafés vintage aconchegantes e as cores do outono",
+      "winter": "Perfeito para retiros de spa e escapadas aconchegantes"
+    },
+    "weatherFallback": {
+      "tropicalWet": "Estação chuvosa com pancadas à tarde, tempo úmido",
+      "tropicalDry": "Estação seca com temperaturas quentes",
+      "spring": "Temperaturas amenas, chuvas ocasionais, flores desabrochando",
+      "summer": "De quente a muito quente, dias longos, sol pleno",
+      "autumn": "Temperaturas frescas, ar fresco, folhagem colorida",
+      "winter": "Temperaturas frias, possível neve, dias mais curtos"
+    }
+  }
+}

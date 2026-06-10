@@ -1,0 +1,44 @@
+{
+  "banner": {
+    "title": "Valorizamos sua privacidade",
+    "description": "Usamos cookies para melhorar sua experiência de navegação, analisar o tráfego do site e personalizar o conteúdo. Você pode escolher quais cookies aceitar.",
+    "learnMore": "Saiba mais",
+    "acceptAll": "Aceitar todos",
+    "essentialOnly": "Apenas essenciais",
+    "customize": "Personalizar",
+    "privacyNote": "Para mais detalhes, consulte nossa",
+    "privacyPolicy": "Política de Privacidade"
+  },
+  "settings": {
+    "title": "Configurações de cookies",
+    "description": "Gerencie suas preferências de cookies. Os cookies essenciais estão sempre ativados, pois são necessários para o funcionamento adequado do site.",
+    "required": "Obrigatório",
+    "moreInfo": "Para mais informações sobre como usamos seus dados, consulte nossa",
+    "privacyPolicy": "Política de Privacidade",
+    "acceptAll": "Aceitar todos",
+    "rejectAll": "Apenas essenciais",
+    "saveSettings": "Salvar configurações",
+    "close": "Fechar"
+  },
+  "categories": {
+    "essential": {
+      "title": "Cookies essenciais",
+      "description": "Esses cookies são necessários para o funcionamento do site e não podem ser desativados. Geralmente são definidos em resposta a ações que você realiza, como fazer login ou configurar suas preferências de privacidade."
+    },
+    "analytics": {
+      "title": "Cookies de análise",
+      "description": "Esses cookies nos ajudam a entender como os visitantes interagem com nosso site, coletando e relatando informações de forma anônima. Isso nos ajuda a melhorar nossos serviços."
+    },
+    "sessionRecording": {
+      "title": "Gravação de sessão",
+      "description": "Esses cookies nos permitem gravar suas sessões de navegação para entender como você usa nosso site. Isso nos ajuda a identificar e corrigir problemas, melhorando sua experiência."
+    },
+    "marketing": {
+      "title": "Cookies de marketing",
+      "description": "Esses cookies são usados para rastrear visitantes em diferentes sites e exibir anúncios relevantes. Eles também nos ajudam a medir a eficácia de nossas campanhas de marketing."
+    }
+  },
+  "footer": {
+    "cookieSettings": "Configurações de cookies"
+  }
+}

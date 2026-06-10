@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Planejador de Viagens Econômicas — Viaje Mais, Gaste Menos | MonkeyTravel",
+    "description": "Planeje viagens econômicas com IA. Tenha roteiros personalizados com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens em conta e atividades gratuitas. Ferramenta 100% grátis."
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "budgetTripPlanner": "Planejador de Viagens Econômicas"
+  },
+  "hero": {
+    "badge": "Viagens Econômicas Inteligentes — Com IA",
+    "title": "O Planejador de Viagens Econômicas Que Economiza Dinheiro de Verdade",
+    "subtitle": "Defina seu orçamento diário e nossa IA encontra os melhores destinos, voos, hospedagens e atividades que cabem no bolso. Preços reais, economia real — a partir de US$ 30/dia.",
+    "cta": "Planejar Minha Viagem Econômica",
+    "secondaryCta": "Veja Como Funciona",
+    "trustSignals": {
+      "free": "Ferramenta 100% grátis",
+      "noCard": "Dados de preços reais",
+      "instant": "3 níveis de orçamento"
+    }
+  },
+  "features": {
+    "title": "Viagem Econômica, Sem Abrir Mão de Nada",
+    "subtitle": "Todo roteiro inclui os custos reais para você saber exatamente quanto vai gastar antes de viajar.",
+    "items": {
+      "priceComparison": {
+        "title": "Comparação de Preços Lado a Lado",
+        "description": "Todo roteiro vem em 3 níveis de orçamento — Econômico, Equilibrado e Premium — com a divisão real dos custos diários para você escolher o ideal."
+      },
+      "budgetTiers": {
+        "title": "3 Níveis de Orçamento Por Viagem",
+        "description": "Veja exatamente como é gastar US$ 30/dia, US$ 75/dia ou US$ 150+/dia em qualquer destino. Compare custos de hospedagem, comida e atividades entre os níveis."
+      },
+      "costBreakdown": {
+        "title": "Detalhamento Completo dos Custos",
+        "description": "Cada atividade, refeição e hotel mostra preços reais. Tenha uma estimativa total da viagem antes de reservar qualquer coisa — sem surpresas na estrada."
+      },
+      "cheapFlights": {
+        "title": "Dicas de Voos em Conta",
+        "description": "A IA sugere os melhores horários para voar e aeroportos mais baratos. Economize centenas sendo flexível com as datas da viagem."
+      },
+      "affordableStays": {
+        "title": "Hospedagens em Conta",
+        "description": "De hostels a pousadas e hotéis econômicos — cada nível mostra acomodações verificadas com diárias e avaliações reais."
+      },
+      "freeActivities": {
+        "title": "Atividades Gratuitas e Joias Escondidas",
+        "description": "Todo roteiro do nível Econômico inclui passeios a pé gratuitos, parques, mirantes e experiências locais que não custam nada, mas são inesquecíveis."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Planeje uma Viagem Econômica em 3 Passos",
+    "steps": {
+      "step1": {
+        "title": "Defina Seu Orçamento",
+        "description": "Conte para a gente seu destino, as datas da viagem e o orçamento diário. Está em dúvida? A gente mostra o que dá para fazer em cada faixa de preço."
+      },
+      "step2": {
+        "title": "A IA Encontra as Melhores Ofertas",
+        "description": "Nossa IA monta um roteiro completo otimizado para o seu orçamento — hotéis reais, restaurantes reais, preços reais. Três níveis para comparar."
+      },
+      "step3": {
+        "title": "Viaje Gastando Menos",
+        "description": "Pegue a estrada com um plano com todos os custos calculados. Saiba exatamente quanto vai gastar por dia — e guarde mais dinheiro para as lembranças."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Blogs de Viagem Econômica",
+    "subtitle": "Blogs dão dicas. A MonkeyTravel te dá um roteiro completo e com preços.",
+    "items": {
+      "pricing": {
+        "label": "Preços reais",
+        "monkey": "Custos reais de hotéis, comida e atividades",
+        "other": "Estimativas vagas como \"reserve uns US$ 50/dia\""
+      },
+      "personalized": {
+        "label": "Planos personalizados",
+        "monkey": "Roteiro feito para as suas datas e orçamento",
+        "other": "Conselhos genéricos para o viajante médio"
+      },
+      "tiers": {
+        "label": "Níveis de orçamento",
+        "monkey": "3 níveis com comparação de custos diários",
+        "other": "Geralmente só uma sugestão \"econômica\""
+      },
+      "upToDate": {
+        "label": "Preços atualizados",
+        "monkey": "Preços atuais conferidos com dados reais",
+        "other": "Os posts do blog podem ter meses ou anos"
+      },
+      "complete": {
+        "label": "Roteiro completo",
+        "monkey": "Plano dia a dia com trajetos e horários",
+        "other": "Listas de lugares sem estrutura por dia"
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes sobre Viagens Econômicas",
+    "items": {
+      "howCheap": {
+        "question": "Com quão pouco dá para viajar usando a MonkeyTravel?",
+        "answer": "Nosso nível Econômico começa em torno de US$ 30/dia em destinos econômicos como o Sudeste Asiático, o Leste Europeu e a América Central. Isso inclui hospedagem, refeições e atividades. O custo exato depende do seu destino e do seu estilo de viagem."
+      },
+      "pricesReal": {
+        "question": "Os preços do roteiro são precisos?",
+        "answer": "Sim. A MonkeyTravel usa dados reais de estabelecimentos com preços e avaliações atuais. Mostramos diárias reais de hotéis, faixas de preço de restaurantes e custos de atividades — não estimativas aproximadas. Recomendamos conferir de novo mais perto da data da viagem, já que os preços podem variar."
+      },
+      "budgetTiers": {
+        "question": "Quais são os 3 níveis de orçamento?",
+        "answer": "Todo roteiro vem em Econômico (hostels, comida de rua, atividades gratuitas), Equilibrado (hotéis intermediários, restaurantes locais, atrações pagas) e Premium (hotéis boutique, alta gastronomia, passeios privativos). Você vê os custos reais de cada nível e decide."
+      },
+      "saveMoney": {
+        "question": "Como a MonkeyTravel me ajuda a economizar?",
+        "answer": "Otimizamos seu roteiro agrupando as atividades por localização (menos custo de transporte), sugerindo alternativas gratuitas, destacando lugares para comer em conta e comparando os níveis de orçamento lado a lado para você ver exatamente para onde vai o seu dinheiro."
+      },
+      "hiddenCosts": {
+        "question": "Existem custos ocultos na própria ferramenta?",
+        "answer": "Não. A MonkeyTravel é 100% gratuita. Não há níveis premium para a ferramenta em si, não é preciso cartão de crédito e não há taxas escondidas. Os níveis de orçamento se referem ao seu orçamento de viagem, não aos nossos preços."
+      },
+      "destinations": {
+        "question": "Quais destinos são melhores para viagens econômicas?",
+        "answer": "A MonkeyTravel pode planejar viagens econômicas para mais de 180 destinos pelo mundo. Destinos econômicos populares incluem Bangkok, Lisboa, Budapeste, Cidade do México e Bali. Digite qualquer destino e a gente mostra o que dá para fazer dentro do seu orçamento."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto para Viajar Mais Gastando Menos?",
+    "subtitle": "Veja exatamente quanto custa a viagem dos seus sonhos — com preços reais em 3 níveis de orçamento. 100% grátis, sempre.",
+    "button": "Planejar Minha Viagem Econômica — Grátis",
+    "mobileNotify": "Receba um aviso quando o app móvel for lançado"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "title": "Perfil",
+  "subtitle": "Gerencie as configurações e preferências da sua conta",
+  "sections": {
+    "personalInfo": {
+      "title": "Informações Pessoais",
+      "description": "Suas informações básicas de perfil"
+    },
+    "travelPreferences": {
+      "title": "Preferências de Viagem",
+      "description": "Ajude a personalizar suas recomendações de viagem"
+    },
+    "account": {
+      "title": "Configurações da Conta",
+      "description": "Gerencie sua conta e assinatura"
+    }
+  },
+  "fields": {
+    "displayName": {
+      "label": "Nome de Exibição",
+      "placeholder": "Seu nome"
+    },
+    "email": {
+      "label": "E-mail",
+      "placeholder": "seu@email.com"
+    },
+    "bio": {
+      "label": "Biografia",
+      "placeholder": "Conte um pouco sobre você..."
+    },
+    "homeCountry": {
+      "label": "País de Origem",
+      "placeholder": "Selecione seu país"
+    },
+    "homeCity": {
+      "label": "Cidade de Origem",
+      "placeholder": "Sua cidade"
+    },
+    "dateOfBirth": {
+      "label": "Data de Nascimento",
+      "placeholder": "Selecione seu aniversário"
+    },
+    "languages": {
+      "label": "Idiomas que Você Fala",
+      "description": "Selecione os idiomas que você fala para melhores recomendações de viagem"
+    }
+  },
+  "preferences": {
+    "travelStyles": {
+      "label": "Estilos de Viagem",
+      "description": "Que tipo de viagem você curte?"
+    },
+    "dietaryPreferences": {
+      "label": "Preferências Alimentares",
+      "description": "Alguma preferência ou restrição alimentar?"
+    },
+    "accessibilityNeeds": {
+      "label": "Necessidades de Acessibilidade",
+      "description": "Ajude a recomendar opções acessíveis"
+    }
+  },
+  "subscription": {
+    "title": "Assinatura",
+    "free": {
+      "title": "Plano Grátis",
+      "description": "Recursos básicos de planejamento de viagens"
+    },
+    "premium": {
+      "title": "Premium",
+      "description": "Viagens ilimitadas e recursos avançados"
+    },
+    "upgrade": "Fazer upgrade para o Premium",
+    "manage": "Gerenciar Assinatura"
+  },
+  "actions": {
+    "signOut": "Sair",
+    "deleteAccount": "Excluir Conta",
+    "deleteConfirm": "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita."
+  },
+  "status": {
+    "saving": "Salvando...",
+    "saved": "Alterações salvas",
+    "error": "Falha ao salvar as alterações"
+  }
+}

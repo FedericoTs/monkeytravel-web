@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Planejador de Viagens Solo — Roteiros com IA para Viajantes Solo | MonkeyTravel",
+    "description": "Planeje sua aventura solo com IA em segundos. Receba roteiros personalizados com dicas de segurança, pontos sociais, restaurantes ideais para quem viaja sozinho e experiências locais. 100% grátis."
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "soloTripPlanner": "Planejador de Viagens Solo"
+  },
+  "hero": {
+    "badge": "Feito para Viajantes Solo — 100% Grátis",
+    "title": "O Planejador de Viagens Solo com IA para Exploradores Destemidos",
+    "subtitle": "Viajar sozinho não significa planejar sozinho. Receba um roteiro personalizado dia a dia com dicas de segurança, pontos sociais e lugares ideais para quem viaja sozinho — em menos de 60 segundos.",
+    "cta": "Planejar Minha Viagem Solo — Grátis",
+    "secondaryCta": "Veja Como Funciona",
+    "trustSignals": {
+      "free": "Grátis para sempre",
+      "noCard": "Sem cartão de crédito",
+      "instant": "Otimizado para viajar sozinho"
+    }
+  },
+  "features": {
+    "title": "Tudo o Que um Viajante Solo Precisa",
+    "subtitle": "Planejamento com IA criado especialmente para viajantes independentes. Segurança, espontaneidade e conexões sociais já incluídas.",
+    "items": {
+      "soloSafety": {
+        "title": "Insights de Segurança para Quem Viaja Sozinho",
+        "description": "Receba notas de segurança por bairro, rotas de caminhada bem iluminadas e dicas específicas de cada área para explorar com confiança — de dia ou de noite."
+      },
+      "flexibleSchedule": {
+        "title": "Roteiros Flexíveis e Espontâneos",
+        "description": "Sem horários rígidos de grupo. Seu roteiro com IA se adapta ao seu ritmo — durma até mais tarde, fique mais tempo num café ou mude os planos quando quiser."
+      },
+      "socialSpots": {
+        "title": "Pontos Sociais e Locais de Encontro",
+        "description": "Descubra hostels com áreas sociais, passeios em grupo, pub crawls e cafés de coworking — perfeitos para conhecer outros viajantes quando quiser companhia."
+      },
+      "soloFriendly": {
+        "title": "Restaurantes Ideais para Quem Viaja Sozinho",
+        "description": "Chega de \"mesa para um\" sem graça. Recomendamos restaurantes com lugares no balcão, mesas comunitárias e clima acolhedor para quem janta sozinho."
+      },
+      "localExperiences": {
+        "title": "Experiências Locais Longe das Armadilhas para Turistas",
+        "description": "Fuja das atrações lotadas. Receba experiências locais selecionadas — caminhadas pelos bairros, mercados escondidos e joias culturais autênticas que só os moradores conhecem."
+      },
+      "soloBudget": {
+        "title": "Orçamento Otimizado para Uma Pessoa",
+        "description": "Sem dividir custos, a conta é outra. Receba preços precisos para quem viaja sozinho em três faixas de orçamento: Econômico, Equilibrado e Premium."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Planeje Sua Aventura Solo em 3 Passos",
+    "steps": {
+      "step1": {
+        "title": "Conte para a Gente Sobre Você",
+        "description": "Informe seu destino, datas da viagem, orçamento e estilo de viagem solo — seja você um explorador introvertido ou uma pessoa supersociável."
+      },
+      "step2": {
+        "title": "A IA Cria Sua Aventura Solo",
+        "description": "Nossa IA gera um roteiro completo e otimizado para viajar sozinho em menos de 60 segundos — com dicas de segurança, lugares ideais para quem viaja solo e horários flexíveis."
+      },
+      "step3": {
+        "title": "Explore com Confiança",
+        "description": "Caia na estrada com um plano que se adapta a você. Troque atividades, descubra lugares próximos e viaje no seu ritmo — sempre grátis."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. Reddit + Fóruns de Viagem",
+    "subtitle": "Pare de rolar anos de posts desatualizados em fóruns. Receba um plano de viagem solo personalizado na hora.",
+    "items": {
+      "personalization": {
+        "label": "Personalização",
+        "monkey": "Roteiro com IA feito sob medida para suas datas, orçamento e estilo",
+        "other": "Conselhos genéricos que podem não encaixar na sua situação"
+      },
+      "safetyInfo": {
+        "label": "Informações de segurança",
+        "monkey": "Notas de segurança por bairro já incluídas",
+        "other": "Espalhadas, anedóticas e muitas vezes desatualizadas"
+      },
+      "planningTime": {
+        "label": "Tempo de planejamento",
+        "monkey": "Roteiro completo em 60 segundos",
+        "other": "Horas lendo tópicos e cruzando informações"
+      },
+      "soloVenues": {
+        "label": "Lugares ideais para viajar sozinho",
+        "monkey": "Restaurantes para jantar sozinho e hostels sociais selecionados",
+        "other": "Você pesquisa cada lugar individualmente"
+      },
+      "currentData": {
+        "label": "Informações atualizadas",
+        "monkey": "Preços reais e lugares verificados",
+        "other": "Posts de fóruns podem ter anos de idade"
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "items": {
+      "isSafe": {
+        "question": "Viajar sozinho é seguro?",
+        "answer": "Viajar sozinho é uma das formas mais gratificantes de explorar o mundo, e milhões de pessoas fazem isso com segurança todos os anos. O MonkeyTravel ajuda incluindo insights de segurança por bairro, recomendando áreas movimentadas e sugerindo lugares ideais para quem viaja sozinho em cada roteiro."
+      },
+      "soloFriendly": {
+        "question": "O que torna um roteiro \"ideal para quem viaja sozinho\"?",
+        "answer": "Nossos roteiros solo priorizam horários flexíveis (sem programações rígidas de grupo), restaurantes com lugares no balcão ou mesas comunitárias, hostels sociais e pontos de encontro, bairros que dá para explorar a pé e atividades gostosas de fazer sozinho — como tours gastronômicos, museus e mercados locais."
+      },
+      "meetPeople": {
+        "question": "Dá para conhecer outros viajantes com o MonkeyTravel?",
+        "answer": "Sim! Nossa IA inclui pontos sociais como áreas comuns de hostels, passeios em grupo, pub crawls e cafés de coworking no seu roteiro. São lugares naturais para conhecer outros viajantes sem a pressão de eventos organizados."
+      },
+      "isFree": {
+        "question": "O MonkeyTravel é realmente grátis para viajantes solo?",
+        "answer": "Com certeza. O MonkeyTravel é 100% grátis — sem cartão de crédito, sem período de teste, sem taxas escondidas. Viajantes solo recebem roteiros ilimitados com todos os recursos incluídos."
+      },
+      "changePlans": {
+        "question": "E se eu quiser mudar meus planos no meio da viagem?",
+        "answer": "Essa é a beleza de viajar sozinho! Seu roteiro do MonkeyTravel é totalmente flexível. Troque atividades, pule um dia ou gere um novo plano quando quiser. Não tem grupo para coordenar — a aventura é sua."
+      },
+      "budgetSolo": {
+        "question": "Como funciona o orçamento para viajantes solo?",
+        "answer": "O MonkeyTravel calcula preços precisos para uma pessoa em três faixas: Econômico, Equilibrado e Premium. Ao contrário dos planejadores de grupo que dividem custos, nosso modo solo mostra custos realistas por pessoa para hospedagem, comida, atividades e transporte."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto para Sua Aventura Solo?",
+    "subtitle": "Junte-se a milhares de viajantes independentes que planejam de forma mais inteligente com IA. Sua próxima viagem solo começa aqui — grátis para sempre.",
+    "button": "Planejar Minha Viagem Solo — Grátis",
+    "mobileNotify": "Receba um aviso quando o app para celular for lançado"
+  }
+}

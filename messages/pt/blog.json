@@ -1,0 +1,381 @@
+{
+  "meta": {
+    "title": "Blog de Planejamento de Viagens",
+    "description": "Dicas práticas de planejamento de viagens, ferramentas de viagem com IA e guias de destinos. Sem enrolação — só o que você precisa para planejar viagens melhores."
+  },
+  "index": {
+    "title": "Blog de Planejamento de Viagens",
+    "subtitle": "Dicas práticas, guias de destinos e opiniões sinceras sobre como a IA está mudando o planejamento de viagens.",
+    "readMore": "Ler mais",
+    "minuteRead": "{minutes} min de leitura",
+    "allPostsLabel": "Todos os artigos do blog",
+    "articleCount": "artigos",
+    "featured": "Escolha do editor",
+    "allPostsHeading": "Ver todos os artigos",
+    "allPostsDescription": "Filtre por tema e região para encontrar o que precisa."
+  },
+  "lanes": {
+    "trending": {
+      "title": "Destinos em alta",
+      "description": "Guias de cidades e roteiros aos quais nossos leitores sempre voltam."
+    },
+    "practical": {
+      "title": "Guias práticos",
+      "description": "Como planejar uma viagem — checklists, orçamentos e métodos que realmente economizam seu tempo."
+    },
+    "ai": {
+      "title": "Viagens com IA",
+      "description": "Como a IA está mudando o jeito de planejar viagens, com opiniões sinceras (sem exageros)."
+    }
+  },
+  "filter": {
+    "all": "Todos os Artigos",
+    "showing": "Mostrando {count} de {total} artigos",
+    "noResults": "Nenhum artigo encontrado com esses filtros.",
+    "clearFilter": "Limpar todos os filtros"
+  },
+  "pagination": {
+    "previous": "Página anterior",
+    "next": "Próxima página",
+    "page": "Página {page}"
+  },
+  "detail": {
+    "relatedPosts": "Você também pode gostar",
+    "publishedOn": "Publicado em {date}",
+    "updatedOn": "Atualizado em {date}",
+    "byline": "Pela Equipe MonkeyTravel",
+    "inlineAiCta": {
+      "title": "Pule o planejamento, comece a viagem",
+      "description": "Escolha um destino e receba um roteiro dia a dia em 30 segundos. Grátis, sem cartão de crédito.",
+      "button": "Planejar minha viagem"
+    },
+    "planThisCta": {
+      "title": "Pronto para planejar sua viagem a {city}?",
+      "description": "Vamos transformar este guia em um roteiro dia a dia de verdade em 30 segundos. Grátis.",
+      "button": "Planejar minha viagem a {city}"
+    },
+    "previousPost": "Anterior",
+    "nextPost": "A seguir",
+    "sidebarCta": {
+      "title": "Planeje com IA",
+      "description": "Transforme este guia em um roteiro de verdade em 30 segundos.",
+      "button": "Testar grátis"
+    },
+    "tableOfContents": "Índice",
+    "backToBlog": "Voltar ao Blog",
+    "planYourTrip": "Pronto para planejar sua viagem?",
+    "planYourTripDescription": "Deixe a IA da MonkeyTravel criar um roteiro personalizado para você — com lugares reais, preços atuais e rotas inteligentes.",
+    "planYourTripCta": "Planejar Minha Viagem — Grátis",
+    "inlineCta": "Transforme esta inspiração em um roteiro de verdade",
+    "inlineCtaDescription": "A MonkeyTravel monta um plano dia a dia com lugares reais e preços — grátis, sem precisar de cadastro para testar.",
+    "inlineCtaButton": "Gerar Meu Roteiro",
+    "stickyCtaButton": "Planejar Esta Viagem Grátis →",
+    "exploreDestinations": "Explore Estes Destinos",
+    "moreFromRegion": "Mais de {region}",
+    "relatedTools": "Planeje Sua Viagem com IA",
+    "relatedToolsLabels": {
+      "freeTripPlanner": "Planejador de Viagens com IA Grátis",
+      "budgetTripPlanner": "Planejador de Viagens Econômicas",
+      "soloTripPlanner": "Planejador de Viagens Solo",
+      "groupTripPlanner": "Planejador de Viagens em Grupo",
+      "familyTripPlanner": "Planejador de Viagens em Família",
+      "weekendTripPlanner": "Planejador de Viagens de Fim de Semana",
+      "aiItineraryGenerator": "Gerador de Roteiros com IA",
+      "packingList": "Gerador de Lista de Bagagem",
+      "visaChecker": "Verificador de Exigências de Visto"
+    }
+  },
+  "tag": {
+    "eyebrow": "Marcado com",
+    "subtitle": "{count, plural, =1 {1 artigo} other {# artigos}} sobre este tema.",
+    "metaTitle": "{tag} — Guias e dicas de viagem",
+    "metaDescription": "Leia nossos guias de viagem sobre {tag}. {count, plural, =1 {1 artigo} other {# artigos}}, todos escritos para viajantes que planejam viagens de verdade."
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "blog": "Blog"
+  },
+  "tips": {
+    "title": "Guias e Dicas de Viagem",
+    "viewAll": "Ver todos os artigos"
+  },
+  "regions": {
+    "all": "Todas as Regiões",
+    "Europe": "Europa",
+    "Asia": "Ásia",
+    "Americas": "Américas",
+    "Africa": "África",
+    "Worldwide": "Mundo Todo"
+  },
+  "categories": {
+    "AI Travel": "Viagens com IA",
+    "Destination Guides": "Guias de Destinos",
+    "Trip Planning": "Planejamento de Viagens",
+    "Budget Travel": "Viagens Econômicas",
+    "Travel Tips": "Dicas de Viagem",
+    "Group Travel": "Viagens em Grupo",
+    "Seasonal Travel": "Viagens Sazonais"
+  },
+  "posts": {
+    "how-ai-is-changing-travel-planning": {
+      "title": "Como a IA Está Mudando o Planejamento de Viagens: Dados de 2026, Limites Reais e O Que Funciona",
+      "description": "42% dos viajantes já usam IA para planejar viagens. Testamos chatbots, planejadores dedicados e a IA das plataformas de reserva. O que cada um faz bem, onde falham e o problema das alucinações que ninguém comenta."
+    },
+    "ai-trip-planner-vs-travel-agent": {
+      "title": "Planejador de Viagens com IA vs. Agente de Viagens: Uma Comparação Sincera de 2026",
+      "description": "Planejamos a mesma viagem de 7 dias a Portugal com um planejador de IA e com um agente de viagens. O que cada um acertou, o que deixaram passar e qual economizou mais."
+    },
+    "first-trip-to-japan-what-you-need-to-know": {
+      "title": "O Que Você Precisa Saber Antes da Sua Primeira Viagem ao Japão",
+      "description": "Tudo o que quem visita o Japão pela primeira vez precisa saber em 2026 — passes de trem, cultura do dinheiro em espécie e a etiqueta que importa. Sem enrolação, só o prático."
+    },
+    "how-to-plan-a-group-trip": {
+      "title": "Como Planejar uma Viagem em Grupo Sem Perder Seus Amigos",
+      "description": "O verdadeiro motivo pelo qual viagens em grupo dão errado não é o destino — é o planejamento. Um sistema passo a passo para viagens com amigos que realmente funciona."
+    },
+    "how-to-plan-trip-to-italy-on-a-budget": {
+      "title": "Itália por US$ 100/Dia em 2026: Orçamento Detalhado para Roma, Florença e a Costa",
+      "description": "Preços reais de 2026 para hospedagem, comida, transporte e passeios. Estratégia de orçamento dia a dia, truques locais que os guias pulam e a baixa temporada que economiza 40%."
+    },
+    "group-trip-budget-how-to-split-costs": {
+      "title": "Como Dividir os Custos de uma Viagem em Grupo Sem Estragar Amizades",
+      "description": "Dinheiro é o motivo nº 1 para viagens em grupo ficarem constrangedoras. 5 sistemas para dividir despesas de forma justa — além de ferramentas que tornam isso indolor."
+    },
+    "best-group-trip-destinations-2026": {
+      "title": "15 Melhores Destinos para Viagens em Grupo em 2026 (Para Todo Orçamento e Estilo)",
+      "description": "Dos Bálcãs por US$ 30/dia às vilas de luxo em Bali — 15 destinos onde viagens em grupo funcionam, com custos diários reais e dicas de planejamento."
+    },
+    "group-travel-mistakes-to-avoid": {
+      "title": "10 Erros em Viagens em Grupo Que Estragam Tudo (e Como Evitá-los)",
+      "description": "A maioria das viagens em grupo dá errado antes mesmo de começar. 10 erros que acabam com o clima — e os sistemas que os evitam, com base em dados reais."
+    },
+    "how-to-plan-a-bachelorette-trip": {
+      "title": "Como Planejar uma Despedida de Solteira Que Todo Mundo Realmente Curte",
+      "description": "Um guia passo a passo para planejar uma despedida de solteira para todo orçamento, personalidade e tamanho de turma. Sem drama, sem dívida, sem arrependimentos."
+    },
+    "group-trip-itinerary-template": {
+      "title": "O Modelo de Roteiro de Viagem em Grupo Que Deixa Todo Mundo Feliz",
+      "description": "Um modelo de roteiro dia a dia comprovado para viagens em grupo. Equilibra estrutura e flexibilidade para que ninguém se sinta preso ou perdido."
+    },
+    "solo-travel-planning-with-ai": {
+      "title": "Como Eu Planejo Toda Viagem Solo com IA (Dicas de Segurança + Roteiro Grátis)",
+      "description": "O método passo a passo para planejar viagens solo com IA — da pesquisa de bairros seguros à montagem de um roteiro diário flexível. Funciona para iniciantes e viajantes experientes."
+    },
+    "how-to-plan-a-trip-with-ai": {
+      "title": "Como Planejar uma Viagem com IA: Um Guia Passo a Passo para Iniciantes",
+      "description": "Nunca usou IA para planejar uma viagem? Este guia para iniciantes acompanha você em cada etapa — de escolher um destino a ter um roteiro completo em minutos."
+    },
+    "can-you-trust-ai-travel-itinerary": {
+      "title": "Dá para Confiar em um Roteiro de Viagem Feito por IA? O Que Verificar Antes de Ir",
+      "description": "Os planejadores de viagem com IA são impressionantes, mas não perfeitos. Veja exatamente o que conferir no seu roteiro gerado por IA — e os erros comuns para ficar de olho."
+    },
+    "travel-planning-stress-how-ai-helps": {
+      "title": "Sobrecarga ao Planejar Viagens? Como a IA Tira o Estresse do Planejamento das Férias",
+      "description": "Se planejar uma viagem parece um segundo emprego, você não está sozinho. Veja como a IA elimina a fadiga de decisões e transforma horas de pesquisa em minutos."
+    },
+    "plan-weekend-getaway-with-ai": {
+      "title": "Como Planejar uma Escapada de 3 Dias em 15 Minutos com IA",
+      "description": "Sem tempo, mas precisando de uma pausa? Aprenda como a IA pode gerar um roteiro completo de 3 dias — com restaurantes, atividades e horários — em menos de 15 minutos."
+    },
+    "3-day-paris-itinerary": {
+      "title": "O Roteiro Perfeito de 3 Dias em Paris: Um Guia Dia a Dia para 2026",
+      "description": "Um roteiro prático de Paris dia a dia com preços reais, lugares reais e rotas inteligentes. Torre Eiffel, Louvre, Montmartre e muito mais sem perder tempo."
+    },
+    "5-day-italy-itinerary": {
+      "title": "O Roteiro Perfeito de 5 Dias na Itália: Roma, Florença e Além (2026)",
+      "description": "Um roteiro prático da Itália dia a dia cobrindo Roma, Florença e um bate-volta a Veneza ou à Costa Amalfitana. Preços reais de 2026, restaurantes de verdade e rotas de trem inteligentes."
+    },
+    "bali-7-day-itinerary": {
+      "title": "Roteiro de 7 Dias em Bali: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro realista de 7 dias em Bali cobrindo Ubud, Seminyak, Uluwatu e Nusa Penida com preços reais de 2026, restaurantes de verdade e conselhos sinceros sobre transporte."
+    },
+    "tokyo-4-day-itinerary": {
+      "title": "Roteiro de 4 Dias em Tóquio: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Tóquio dia a dia cobrindo Shibuya, Shinjuku, Asakusa, Akihabara, Harajuku e um bate-volta a Kamakura. Preços reais, rotas de trem reais, restaurantes de verdade."
+    },
+    "barcelona-3-day-itinerary": {
+      "title": "O Roteiro Perfeito de 3 Dias em Barcelona: Um Guia Dia a Dia para 2026",
+      "description": "Um roteiro prático de Barcelona dia a dia com preços reais, lugares reais e rotas inteligentes. Sagrada Família, Bairro Gótico, Park Güell e muito mais sem perder tempo."
+    },
+    "great-migration-africa-when-and-where": {
+      "title": "A Grande Migração na África: Quando e Onde Vê-la em 2026",
+      "description": "Um guia completo mês a mês da Grande Migração na África Oriental. Onde estão as manadas, os melhores acampamentos para cada estação, travessias do Rio Mara, temporada de nascimentos e orçamentos reais detalhados."
+    },
+    "monsoon-season-where-to-go-and-avoid": {
+      "title": "Temporada de Monções na Ásia 2026: Guia Mês a Mês — Onde Ir e Onde Evitar",
+      "description": "Não cancele sua viagem à Ásia. Calendário completo de monções de 2026 para o Sudeste Asiático, Índia e Ásia Oriental — quais meses visitar, quais pular e para onde ir no lugar."
+    },
+    "midnight-sun-best-destinations": {
+      "title": "8 Melhores Destinos do Sol da Meia-Noite 2026: Datas, Custos e Como É de Verdade",
+      "description": "Datas exatas do sol da meia-noite na Noruega, Islândia, Suécia, Finlândia, Alasca e Svalbard. Orçamento de US$ 75 a US$ 400/noite, melhores atividades sob 24h de luz e os lugares que a maioria dos turistas não conhece."
+    },
+    "japan-cherry-blossom-season-guide": {
+      "title": "Temporada das Cerejeiras no Japão 2026: O Guia Completo do Sakura",
+      "description": "Tudo o que você precisa para planejar uma viagem às cerejeiras no Japão em 2026 — previsões de floração, melhores cidades e parques, etiqueta do hanami, dicas de orçamento e alternativas de floração tardia em Hokkaido."
+    },
+    "best-places-to-see-northern-lights": {
+      "title": "Melhores Lugares para Ver a Aurora Boreal em 2026 — Antes do Fim do Pico Solar (US$ 100/Noite)",
+      "description": "Veja a aurora boreal antes que o Ciclo Solar 25 enfraqueça. 12 destinos a partir de US$ 100/noite classificados por probabilidade de céu limpo (até 90%), com melhores meses, orçamentos detalhados e alternativas mais baratas e escondidas."
+    },
+    "best-fall-foliage-destinations": {
+      "title": "Melhores Destinos de Folhagem de Outono no Mundo: Onde Ver as Cores do Outono em 2026",
+      "description": "Os 12 melhores destinos de folhagem de outono no mundo, com datas de pico, rotas de carro, dicas de fotografia e orçamentos detalhados. Planeje sua viagem das folhas de outono para 2026."
+    },
+    "london-4-day-itinerary": {
+      "title": "Roteiro de 4 Dias em Londres: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Londres dia a dia cobrindo Westminster, South Bank, Camden, Shoreditch e bate-voltas. Preços reais de 2026, restaurantes de verdade e rotas inteligentes de metrô."
+    },
+    "new-york-5-day-itinerary": {
+      "title": "Roteiro de 5 Dias em Nova York: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Nova York dia a dia cobrindo Manhattan, Brooklyn e além. Preços reais de 2026, restaurantes de verdade e rotas inteligentes de metrô."
+    },
+    "istanbul-3-day-itinerary": {
+      "title": "Roteiro de 3 Dias em Istambul: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Istambul dia a dia cobrindo Sultanahmet, Grande Bazar, Bósforo, Kadikoy e Beyoglu. Preços reais de 2026, restaurantes de verdade e rotas inteligentes."
+    },
+    "lisbon-3-day-itinerary": {
+      "title": "Roteiro de 3 Dias em Lisboa: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Lisboa dia a dia cobrindo Alfama, Belém, Bairro Alto e um bate-volta a Sintra. Preços reais de 2026, melhores lugares de pastéis de nata e rotas de bonde."
+    },
+    "bangkok-5-day-itinerary": {
+      "title": "Roteiro de 5 Dias em Bangkok: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro de Bangkok dia a dia cobrindo templos, comida de rua, mercados flutuantes e vida noturna. Preços reais de 2026, dicas locais e rotas de BTS/MRT."
+    },
+    "bali-vs-thailand": {
+      "title": "Bali vs Tailândia: Qual Você Deve Escolher em 2026?",
+      "description": "Uma comparação sincera entre Bali e Tailândia para 2026 — custos, praias, comida, cultura, vida noturna e qual destino combina com o seu estilo de viagem."
+    },
+    "paris-vs-rome": {
+      "title": "Paris vs Roma 2026: Qual Cidade Você Deve Visitar Primeiro?",
+      "description": "Primeira vez ou viajante de volta? Comparamos Paris e Roma por custo, multidões, comida e clima — para você parar de debater e começar a reservar."
+    },
+    "cheapest-destinations-in-europe": {
+      "title": "Países Mais Baratos da Europa 2026: 15 Cidades a Partir de US$ 30/Dia (Ranking)",
+      "description": "Onde dá para comer por US$ 4, dormir por US$ 8 e beber por US$ 1,50 na Europa? Esses 15 destinos econômicos para 2026 têm custos diários verificados, preços de refeições e dicas reais para economizar."
+    },
+    "cheapest-destinations-in-asia": {
+      "title": "Países Mais Baratos da Ásia 2026: Onde US$ 12/Dia Garantem uma Viagem Completa",
+      "description": "Quanto a Ásia realmente custa em 2026? Orçamentos diários para 15 países — de US$ 12/dia na Índia a US$ 35/dia em Bali. Custos de refeições, preços de hotéis e uma tabela comparativa país por país."
+    },
+    "travel-packing-checklist": {
+      "title": "O Checklist Definitivo de Bagagem para 2026 (Imprimível e Organizado)",
+      "description": "O único checklist de bagagem que você precisa. Organizado por categoria, com listas para praia, cidade, trilha, negócios e clima frio. Copie, imprima, arrume a mala."
+    },
+    "international-travel-checklist": {
+      "title": "Checklist de Viagem Internacional 2026: Tudo o Que Você Precisa Antes da Viagem",
+      "description": "O checklist completo de viagem internacional organizado por cronograma. Cobre passaportes, vistos, vacinas, seguro, banco e preparação digital para viajar sem estresse."
+    },
+    "passport-power-index-2026": {
+      "title": "Índice de Força dos Passaportes 2026: Onde Seu País Está no Ranking? (Classificação Completa)",
+      "description": "Veja o ranking completo de passaportes de 2026 com os dados da Henley e da Arton Capital lado a lado. Os 10 mais fortes, os 10 mais fracos, contagem de países sem visto e por que os EUA caíram para o 10º lugar. Atualizado em fevereiro de 2026."
+    },
+    "visa-free-destinations-by-passport": {
+      "title": "Destinos Sem Visto por Passaporte: O Guia Completo de 2026",
+      "description": "Descubra quantos países você pode visitar sem visto com o seu passaporte. Guia completo de 2026 cobrindo os 15 principais passaportes, ETAs, visto na chegada e dicas."
+    },
+    "visa-requirements-us-citizens": {
+      "title": "Você Precisa de Visto? Exigências de Viagem dos EUA 2026 (Todos os Países, Incluindo APEC)",
+      "description": "Quais países exigem visto para portadores de passaporte dos EUA em 2026? Lista completa de mais de 20 países que exigem visto, regras de visto APEC, e-vistos, ETAs, custos e as novas mudanças do ETIAS e do ETA do Reino Unido."
+    },
+    "is-it-safe-to-travel-to-the-us-2026": {
+      "title": "É Seguro Viajar para os EUA em 2026? Guia Sincero para Visitantes Internacionais",
+      "description": "9 países emitiram alertas de viagem sobre os EUA. O ICE está nos aeroportos. O turismo caiu 10%. Veja o que os viajantes internacionais realmente precisam saber antes de visitar os EUA em 2026."
+    },
+    "best-ai-trip-planners-2026-compared": {
+      "title": "Testei 7 Planejadores de Viagem com IA em 2026 — Eis o Que Vale a Pena Usar",
+      "description": "Rodamos MonkeyTravel, Layla, Mindtrip, Wonderplan, ChatGPT, Gemini e iPlan em 4 cenários reais de viagem. Veja qual entregou os melhores roteiros — e qual desperdiçou nosso tempo."
+    },
+    "first-trip-to-vietnam-2026": {
+      "title": "Primeira Viagem ao Vietnã: O Guia Completo de 10 Dias para 2026",
+      "description": "Tudo o que você precisa para planejar sua primeira viagem ao Vietnã em 2026 — visto, custos, um roteiro dia a dia de 10 dias de Hanói ao Delta do Mekong, e o que ninguém te conta antes de ir."
+    },
+    "cheapest-flights-2026-when-and-where-to-book": {
+      "title": "Voos Mais Baratos 2026: Quando e Onde Reservar para as Melhores Ofertas",
+      "description": "Os voos domésticos e internacionais mais baratos saindo dos EUA em 2026. Preços reais por rota, melhores janelas de reserva, dias mais baratos para voar e estratégias que realmente economizam dinheiro."
+    },
+    "best-digital-nomad-destinations-2026": {
+      "title": "12 Melhores Destinos para Nômades Digitais em 2026 (Custos, Vistos e Velocidade da Internet)",
+      "description": "As 12 melhores cidades para trabalho remoto em 2026 — de Lisboa a Bali, de Tbilisi a Medellín. Custos reais, velocidade de internet, opções de visto e cenas de coworking comparadas."
+    },
+    "best-food-destinations-2026": {
+      "title": "12 Melhores Destinos Gastronômicos do Mundo para 2026",
+      "description": "Os melhores destinos gastronômicos do mundo para 2026 — de Creta (Região Europeia da Gastronomia) a Tóquio, da Cidade do México a Hanói. Pratos típicos, orçamentos diários de comida e dicas de quem é da área."
+    },
+    "best-wellness-retreats-2026": {
+      "title": "10 Melhores Retiros de Bem-Estar em 2026: Do Yoga à Recuperação do Burnout",
+      "description": "As buscas por retiros de recuperação do burnout cresceram 340%. Classificamos os 10 melhores destinos de bem-estar para 2026 — preços reais, o que está incluído e qual retiro realmente combina com a sua situação."
+    },
+    "seoul-5-day-itinerary": {
+      "title": "Roteiro de 5 Dias em Seul: O Guia Prático Dia a Dia para 2026",
+      "description": "Um roteiro prático de Seul dia a dia cobrindo palácios, K-beauty, DMZ, Gangnam e Hongdae. Preços reais de 2026, dicas de metrô e o guia de glow-cation já incluído."
+    },
+    "sustainable-travel-guide-2026": {
+      "title": "Guia de Viagem Sustentável 2026: 10 Destinos Que Lideram o Caminho",
+      "description": "Viajar de forma sustentável em 2026 significa viajar melhor, não abrir mão de nada. 10 destinos líderes em ecoturismo — da Costa Rica ao Butão, com dicas práticas e orçamentos reais."
+    },
+    "fifa-world-cup-2026-travel-guide": {
+      "title": "Guia de Viagem da Copa do Mundo FIFA 2026: Planeje Sua Viagem Multicidades com IA",
+      "description": "Guia completo para planejar sua viagem à Copa do Mundo FIFA 2026 pelas 16 cidades-sede nos EUA, Canadá e México."
+    },
+    "mete-estate-2026-mare": {
+      "title": "Melhores Destinos de Praia para o Verão 2026: 15 Escolhas com Preços Reais",
+      "description": "15 destinos de praia para o verão de 2026 com custos diários reais e roteiros criados com IA."
+    },
+    "dove-andare-agosto-2026": {
+      "title": "Onde Ir em Agosto de 2026: Guia Completo de Férias",
+      "description": "Melhores destinos para agosto de 2026 — opções econômicas, exóticas e de clima ameno."
+    },
+    "cheapest-southeast-asia-backpackers-2026": {
+      "title": "Sudeste Asiático por US$ 15/Dia: Guia de Orçamento para Mochileiros 2026",
+      "description": "Custos de mochilão país por país no Sudeste Asiático para 2026."
+    },
+    "etias-europe-travel-authorization-2026": {
+      "title": "ETIAS 2026: O Que os Viajantes Precisam Saber Antes de Viajar para a Europa",
+      "description": "O ETIAS entra em vigor no 4º trimestre de 2026. Todo viajante à Europa vai precisar desta autorização de € 7."
+    },
+    "paris-vs-barcelona": {
+      "title": "Paris vs Barcelona 2026: Qual Cidade Você Deve Visitar?",
+      "description": "Comparação sincera de Paris e Barcelona — custos, comida, cultura, vida noturna."
+    },
+    "lisbon-vs-porto": {
+      "title": "Lisboa vs Porto 2026: A Comparação Sincera de Portugal",
+      "description": "Lisboa ou Porto? Orçamentos diários, comida, vida noturna e qual combina com o seu estilo de viagem."
+    },
+    "tokyo-vs-seoul": {
+      "title": "Tóquio vs Seul 2026: Qual Cidade Asiática Vence?",
+      "description": "Tóquio ou Seul? Comparação de custos, comida, cultura, vida noturna e transporte."
+    },
+    "itinerario-sardegna-7-giorni": {
+      "title": "Roteiro de 7 Dias na Sardenha: Costa Smeralda a Cagliari com IA",
+      "description": "Roteiro de viagem de carro de 7 dias pela Sardenha com custos reais e planejamento com IA."
+    },
+    "itinerario-puglia-5-giorni": {
+      "title": "Roteiro de 5 Dias na Puglia: Bari, Salento e os Trulli com IA",
+      "description": "Roteiro de viagem de carro de 5 dias pela Puglia, de Bari a Lecce, com custos reais."
+    },
+    "cheapest-european-cities-for-food-2026": {
+      "title": "Cidades Europeias Mais Baratas para Comer e Beber 2026 [Preços Reais]",
+      "description": "15 cidades europeias classificadas por custo das refeições — de € 3 em Tirana a € 12 em Atenas."
+    },
+    "chatgpt-vs-ai-trip-planners": {
+      "title": "ChatGPT vs Planejadores de Viagem com IA: Qual Realmente Planeja Viagens Melhores?",
+      "description": "Comparação sincera entre o ChatGPT e os planejadores de viagem dedicados com IA."
+    },
+    "solo-female-travel-safety-guide-2026": {
+      "title": "Viagem Feminina Solo 2026: 15 Destinos Mais Seguros e Guia de Planejamento",
+      "description": "15 destinos mais seguros para mulheres viajando sozinhas em 2026 com dicas práticas de segurança."
+    },
+    "2026-travel-calendar": {
+      "title": "Calendário de Viagens 2026: Onde Ir a Cada Mês",
+      "description": "O guia completo de viagens mês a mês para 2026. Dados reais de clima, padrões de multidão, eventos sazonais e faixas de orçamento para os melhores destinos de cada mês — das cerejeiras de Tóquio em abril ao sol da meia-noite da Noruega em junho."
+    },
+    "spring-summer-travel-guide": {
+      "title": "Guia de Viagens de Primavera e Verão 2026: Quente, Ameno, Baixa Temporada",
+      "description": "O guia completo de viagens de primavera e verão de 2026. Destinos de pico de calor, alternativas de clima ameno ('coolcation'), escolhas para o spring break e lugares de bom custo-benefício na baixa temporada — com orçamentos reais e dados de multidão."
+    },
+    "honeymoon-planning-guide": {
+      "title": "Guia de Planejamento de Lua de Mel 2026: De US$ 2 mil a US$ 15 mil+",
+      "description": "O guia completo de lua de mel de 2026. Destinos organizados por faixa de orçamento (US$ 2 mil a US$ 15 mil+), as estações que estragam (ou fazem) cada lugar, erros de planejamento a evitar e como montar o Dia 1 para que o jet lag não acabe com a viagem."
+    }
+  }
+}

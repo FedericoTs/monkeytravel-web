@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "title": "Gerador de Roteiros com IA — Planos de Viagem Dia a Dia | MonkeyTravel",
+    "description": "Gere roteiros de viagem completos com IA em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro."
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "aiItineraryGenerator": "Gerador de Roteiros com IA"
+  },
+  "hero": {
+    "badge": "Com IA — Gera Roteiros em 30 Segundos",
+    "title": "O Gerador de Roteiros com IA Que Planeja Como um Profissional",
+    "subtitle": "Digite um destino e receba um roteiro completo dia a dia com lugares reais, preços atuais e blocos de tempo otimizados — tudo gerado por IA em menos de 30 segundos.",
+    "cta": "Gerar Meu Roteiro",
+    "secondaryCta": "Veja Como Funciona",
+    "trustSignals": {
+      "free": "Grátis para sempre",
+      "noCard": "Sem cartão de crédito",
+      "instant": "Pronto em 30 segundos"
+    }
+  },
+  "stats": {
+    "generationTime": "Tempo de Geração",
+    "destinations": "Destinos",
+    "free": "Grátis",
+    "budgetTiers": "Níveis de Orçamento"
+  },
+  "features": {
+    "title": "Geração de Roteiros com IA Poderosa",
+    "subtitle": "Nossa IA não apenas sugere lugares — ela monta roteiros completos e estruturados que você realmente consegue seguir.",
+    "items": {
+      "smartItineraries": {
+        "title": "Roteiros Inteligentes com IA",
+        "description": "Algoritmos avançados analisam milhares de dados para criar planos dia a dia perfeitamente estruturados com blocos de manhã, tarde e noite."
+      },
+      "realTimeData": {
+        "title": "Dados de Lugares em Tempo Real",
+        "description": "Cada restaurante, atração e hotel é verificado com avaliações, preços e horários de funcionamento atuais. Sem recomendações desatualizadas ou fictícias."
+      },
+      "customizable": {
+        "title": "Planos Totalmente Personalizáveis",
+        "description": "Troque atividades, ajuste horários, mude os níveis de orçamento. Seu roteiro gerado por IA é um ponto de partida que você pode tornar completamente seu."
+      },
+      "multiCity": {
+        "title": "Suporte a Viagens Multi-Cidade",
+        "description": "Está planejando uma viagem com várias paradas? Gere roteiros conectados entre várias cidades com rotas lógicas entre os destinos."
+      },
+      "offlineAccess": {
+        "title": "Acesso Offline",
+        "description": "Baixe seu roteiro gerado para o seu dispositivo. Acesse seus planos dia a dia mesmo sem conexão com a internet durante a viagem."
+      },
+      "exportShare": {
+        "title": "Exportar e Compartilhar",
+        "description": "Exporte seu roteiro em PDF, compartilhe um link com seus companheiros de viagem ou sincronize com o seu calendário. Seus planos de viagem, onde você precisar deles."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Gere um Roteiro em 3 Passos",
+    "steps": {
+      "step1": {
+        "title": "Informe os Detalhes da Sua Viagem",
+        "description": "Diga seu destino, datas de viagem, preferência de orçamento e interesses. Quanto mais detalhes, melhor será o seu roteiro."
+      },
+      "step2": {
+        "title": "A IA Gera o Seu Roteiro",
+        "description": "Nosso motor de IA monta um plano completo dia a dia em menos de 30 segundos — com lugares reais, blocos de tempo e três níveis de orçamento para comparar."
+      },
+      "step3": {
+        "title": "Personalize e Exporte",
+        "description": "Ajuste seu roteiro, exporte em PDF, compartilhe com amigos ou baixe para acesso offline. Sua viagem perfeita, pronta para começar."
+      }
+    }
+  },
+  "comparison": {
+    "title": "MonkeyTravel vs. IA Genérica",
+    "subtitle": "ChatGPT e Gemini dão listas de texto. O MonkeyTravel gera roteiros estruturados e práticos.",
+    "items": {
+      "dayByDay": {
+        "label": "Estrutura dia a dia",
+        "monkey": "Organizado por dia com blocos de manhã/tarde/noite",
+        "chatgpt": "Lista de texto sem estrutura de sugestões"
+      },
+      "realVenues": {
+        "label": "Lugares verificados",
+        "monkey": "Lugares reais com preços e avaliações atuais",
+        "chatgpt": "Muitas vezes inclui lugares fechados ou fictícios"
+      },
+      "timeBlocks": {
+        "label": "Otimização do tempo",
+        "monkey": "Rotas inteligentes minimizam o deslocamento entre atividades",
+        "chatgpt": "Sem lógica geográfica nem gestão do tempo"
+      },
+      "budgetOptions": {
+        "label": "Níveis de orçamento",
+        "monkey": "3 roteiros completos: Econômico, Equilibrado, Premium",
+        "chatgpt": "Uma sugestão genérica sem dados de preços"
+      },
+      "exportOptions": {
+        "label": "Exportar e compartilhar",
+        "monkey": "Exportação em PDF, links compartilháveis, sincronização com calendário",
+        "chatgpt": "Apenas copiar e colar texto"
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "items": {
+      "whatIsIt": {
+        "question": "O que é um gerador de roteiros com IA?",
+        "answer": "Um gerador de roteiros com IA usa inteligência artificial para criar automaticamente planos de viagem completos dia a dia com base no seu destino, datas, orçamento e preferências. O gerador do MonkeyTravel vai além ao incluir dados reais de lugares, preços atuais, rotas inteligentes e várias opções de orçamento — não apenas uma lista genérica de sugestões."
+      },
+      "howFast": {
+        "question": "Com que rapidez ele gera um roteiro?",
+        "answer": "O MonkeyTravel gera um roteiro completo dia a dia em menos de 30 segundos. Você recebe três níveis de orçamento (Econômico, Equilibrado, Premium) com lugares reais, preços e blocos de tempo otimizados — tudo pronto para personalizar ou exportar imediatamente."
+      },
+      "howAccurate": {
+        "question": "Quão precisos são os roteiros gerados?",
+        "answer": "O MonkeyTravel usa dados de lugares em tempo real, incluindo avaliações, preços e horários de funcionamento atuais de fontes confiáveis. Diferente dos chatbots genéricos de IA que podem alucinar ou sugerir lugares fechados, nossos roteiros fazem referência a lugares reais e verificados. Recomendamos confirmar os detalhes perto da data da sua viagem."
+      },
+      "multiCity": {
+        "question": "Ele pode gerar roteiros multi-cidade?",
+        "answer": "Sim. O MonkeyTravel oferece suporte ao planejamento de viagens multi-cidade. Você pode gerar roteiros conectados que cobrem vários destinos em uma única viagem, com rotas lógicas e dias de transição entre as cidades."
+      },
+      "exportFormats": {
+        "question": "Posso exportar ou compartilhar meu roteiro?",
+        "answer": "Com certeza. Você pode exportar seu roteiro gerado em PDF, compartilhá-lo por meio de um link exclusivo com companheiros de viagem ou sincronizá-lo com o seu calendário. Você também pode baixá-lo para acesso offline durante a viagem."
+      },
+      "isFree": {
+        "question": "O gerador de roteiros com IA é grátis?",
+        "answer": "Sim, o gerador de roteiros com IA do MonkeyTravel é totalmente grátis. Você pode gerar roteiros ilimitados sem cartão de crédito, sem período de teste e sem taxas ocultas. Todos os recursos — incluindo exportação, compartilhamento e suporte multi-cidade — estão incluídos sem custo."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto Para Gerar Seu Roteiro?",
+    "subtitle": "Deixe a IA montar seu plano de viagem perfeito em 30 segundos. Lugares reais, rotas inteligentes, três níveis de orçamento — totalmente grátis.",
+    "button": "Gerar Meu Roteiro — Grátis",
+    "mobileNotify": "Receba um aviso quando o app para celular for lançado"
+  }
+}

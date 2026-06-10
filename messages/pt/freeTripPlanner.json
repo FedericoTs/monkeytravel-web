@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Planejador de Viagens com IA Grátis — Sem Cartão, Sem Cadastro | MonkeyTravel",
+    "description": "Planeje sua viagem perfeita com IA em segundos. Receba roteiros personalizados dia a dia com lugares reais e preços atuais. 100% grátis, sem precisar de cartão de crédito."
+  },
+  "breadcrumbs": {
+    "home": "Início",
+    "freeTripPlanner": "Planejador de Viagens com IA Grátis"
+  },
+  "hero": {
+    "badge": "100% Grátis — Sem Cartão de Crédito",
+    "title": "O Planejador de Viagens com IA Grátis Que Realmente Funciona",
+    "subtitle": "Escolha um destino e receba um roteiro personalizado dia a dia em menos de 60 segundos. Lugares reais, preços atuais, rotas inteligentes — totalmente grátis.",
+    "cta": "Planejar Minha Viagem — Grátis",
+    "secondaryCta": "Veja Como Funciona",
+    "trustSignals": {
+      "free": "Grátis para sempre",
+      "noCard": "Sem cartão de crédito",
+      "instant": "Resultados instantâneos"
+    }
+  },
+  "features": {
+    "title": "Tudo o Que Você Precisa Para Planejar Viagens Melhores",
+    "subtitle": "Sem taxas ocultas, sem barreiras de cartão de crédito. Todos os recursos disponíveis desde o primeiro dia.",
+    "items": {
+      "aiItineraries": {
+        "title": "Roteiros Gerados por IA",
+        "description": "Receba planos personalizados dia a dia de acordo com seu destino, datas, orçamento e estilo de viagem. Três opções: Econômico, Equilibrado e Premium."
+      },
+      "realVenues": {
+        "title": "Lugares e Preços Reais",
+        "description": "Cada restaurante, hotel e atração do seu roteiro é um lugar real, com preços e avaliações atuais — não alucinações de IA."
+      },
+      "smartRouting": {
+        "title": "Rotas Inteligentes",
+        "description": "As atividades são otimizadas por localização para você não cruzar a cidade de um lado a outro. Menos tempo no transporte, mais tempo explorando."
+      },
+      "multiLanguage": {
+        "title": "Planeje no Seu Idioma",
+        "description": "O MonkeyTravel funciona em inglês, espanhol e italiano. Receba roteiros e dicas no idioma com que você se sente mais à vontade."
+      },
+      "groupPlanning": {
+        "title": "Planejamento de Viagens em Grupo",
+        "description": "Convide amigos, vote nas atividades e chegue a um consenso com nossas ferramentas de colaboração integradas. Chega de caos no chat do grupo."
+      },
+      "noSignup": {
+        "title": "Sem Cadastro Necessário",
+        "description": "Comece a planejar na hora. Sem criar conta, sem cartão de crédito, sem verificação de e-mail. Só você e sua próxima aventura."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Planeje uma Viagem em 3 Passos Simples",
+    "steps": {
+      "step1": {
+        "title": "Informe Seu Destino",
+        "description": "Diga aonde você quer ir, suas datas de viagem, a faixa de orçamento e que tipo de viajante você é."
+      },
+      "step2": {
+        "title": "Receba Seu Roteiro com IA",
+        "description": "Nossa IA gera um roteiro completo dia a dia em menos de 60 segundos. Três níveis de orçamento para você comparar opções."
+      },
+      "step3": {
+        "title": "Personalize e Vá",
+        "description": "Troque atividades, ajuste os horários, convide companheiros de viagem. Seu roteiro, do seu jeito — e sempre grátis."
+      }
+    }
+  },
+  "comparison": {
+    "title": "Por Que MonkeyTravel em Vez do ChatGPT?",
+    "subtitle": "O ChatGPT pode sugerir lugares. O MonkeyTravel cria roteiros reais e prontos para reservar.",
+    "items": {
+      "realData": {
+        "label": "Dados de lugares reais",
+        "monkey": "Lugares verificados com avaliações e preços",
+        "chatgpt": "Costuma sugerir lugares fechados ou fictícios"
+      },
+      "routing": {
+        "label": "Rotas inteligentes",
+        "monkey": "Atividades agrupadas por localização",
+        "chatgpt": "Ordem aleatória, sem lógica geográfica"
+      },
+      "budget": {
+        "label": "Níveis de orçamento",
+        "monkey": "3 opções: Econômico, Equilibrado, Premium",
+        "chatgpt": "Uma única sugestão genérica"
+      },
+      "collaboration": {
+        "label": "Planejamento em grupo",
+        "monkey": "Votação e colaboração integradas",
+        "chatgpt": "Copiar e colar no chat do grupo"
+      },
+      "updates": {
+        "label": "Atualizações em tempo real",
+        "monkey": "Preços e disponibilidade verificados",
+        "chatgpt": "Os dados de treinamento podem estar desatualizados"
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "items": {
+      "isFree": {
+        "question": "O MonkeyTravel é realmente grátis?",
+        "answer": "Sim, o MonkeyTravel é totalmente grátis. Você pode criar roteiros ilimitados, convidar amigos e planejar viagens em grupo sem pagar nada. Sem cartão de crédito, sem período de teste, sem taxas ocultas."
+      },
+      "needAccount": {
+        "question": "Preciso criar uma conta?",
+        "answer": "Você pode começar a planejar na hora, sem conta. Criar uma conta gratuita permite salvar seus roteiros, convidar colaboradores e acessar suas viagens em qualquer dispositivo — mas é opcional."
+      },
+      "howAccurate": {
+        "question": "Quão precisos são os roteiros gerados por IA?",
+        "answer": "O MonkeyTravel usa dados reais de lugares, incluindo avaliações atuais, preços e horários de funcionamento. Diferente dos chatbots de IA genéricos, nossos roteiros indicam lugares reais que você pode visitar e reservar. Recomendamos conferir os detalhes perto da data da sua viagem."
+      },
+      "languages": {
+        "question": "Quais idiomas o MonkeyTravel oferece?",
+        "answer": "O MonkeyTravel está totalmente disponível em inglês, espanhol e italiano — incluindo o conteúdo dos roteiros gerados por IA, não apenas a interface. Em breve teremos mais idiomas."
+      },
+      "groupTrips": {
+        "question": "Posso planejar uma viagem em grupo com o MonkeyTravel?",
+        "answer": "Com certeza. O MonkeyTravel inclui ferramentas de colaboração: convide amigos por link, vote nas atividades propostas e chegue a um consenso em grupo. É o único planejador de viagens com IA grátis com decisão em grupo integrada."
+      },
+      "destinations": {
+        "question": "Quais destinos o MonkeyTravel oferece?",
+        "answer": "O MonkeyTravel pode gerar roteiros para praticamente qualquer cidade do mundo. Temos dados enriquecidos para mais de 20 destinos populares, incluindo Paris, Tóquio, Roma, Barcelona e Nova York, e adicionamos novos com frequência."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto Para Planejar Sua Próxima Viagem?",
+    "subtitle": "Junte-se a milhares de viajantes que planejam de forma mais inteligente com IA. Grátis para sempre, sem compromisso.",
+    "button": "Comece a Planejar — É Grátis",
+    "mobileNotify": "Receba um aviso quando o app para celular for lançado"
+  }
+}
