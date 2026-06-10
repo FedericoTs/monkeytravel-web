@@ -10,6 +10,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   addReferralBananas,
   checkAndUnlockTier,
@@ -182,9 +183,21 @@ export async function completeReferralIfEligible(
       console.error("[Referral Complete] Error recording event:", eventError);
     }
 
+    // Privileged-write client. The reward path acts on the REFERRER's rows
+    // (a different user than the referee whose session is active here), so it
+    // legitimately needs to cross the RLS/ownership boundary. The underlying
+    // RPCs (increment_referral_conversions / add_bananas / check_and_unlock_tier)
+    // are SECURITY DEFINER and — as of the 2026-06-09 lockdown migration —
+    // refuse cross-user calls from the `authenticated` role. Routing these
+    // three writes through the service-role admin client is the correct,
+    // server-trusted path; everything else in this function stays on the
+    // user-scoped `supabase` client so RLS still applies to the referee's
+    // own rows. See the migration's guard for the matching role check.
+    const adminDb = createAdminClient();
+
     // 4. Update conversion count in referral_codes (atomic RPC — replaces
     //    racy read-modify-write closed by 2026-05-31 audit Task #318).
-    const { data: rpcCount, error: rpcErr } = await supabase
+    const { data: rpcCount, error: rpcErr } = await adminDb
       .rpc("increment_referral_conversions", { p_code_id: referralCode.id });
     if (rpcErr) {
       console.error("[Referral Complete] Error incrementing conversions:", rpcErr);
@@ -204,9 +217,9 @@ export async function completeReferralIfEligible(
       // Get referrer's current tier for bonus calculation
       const referrerTier = await getUserReferralTier(supabase, referralCode.user_id);
 
-      // Award bananas to referrer
+      // Award bananas to referrer (cross-user → admin client, see note above)
       const bananaResult = await addReferralBananas(
-        supabase,
+        adminDb,
         referralCode.user_id,
         eventData?.id,
         referrerTier
@@ -216,8 +229,8 @@ export async function completeReferralIfEligible(
         bananasAwarded = bananaResult.newBalance;
       }
 
-      // Check and unlock tier if eligible
-      const tierResult = await checkAndUnlockTier(supabase, referralCode.user_id);
+      // Check and unlock tier if eligible (cross-user → admin client)
+      const tierResult = await checkAndUnlockTier(adminDb, referralCode.user_id);
       tierUnlocked = tierResult.tierUnlocked;
       newTier = tierResult.tierInfo.currentTier;
       tierBonusBananas = tierResult.bonusBananas;

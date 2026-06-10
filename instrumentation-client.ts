@@ -140,6 +140,19 @@ function initMonitoring() {
         // ResizeObserver loop warnings — benign browser quirk, not a real bug
         "ResizeObserver loop limit exceeded",
         "ResizeObserver loop completed with undelivered notifications",
+        // Third-party browser-extension WebSocket noise (2026-06-09). A
+        // device-fingerprinting extension injects an `imtgo_device_info_WS`
+        // function that opens an insecure ws:// socket from our https://
+        // page; Safari rejects it with "SecurityError: The operation is
+        // insecure" and the extension retries on a setInterval, spamming
+        // ~85 events/user/session. It was our single highest-volume Sentry
+        // issue (JS-NEXTJS-14/15) and is NOT our code — the frame is
+        // `imtgo_device_info_WS` in an `app:///es`-attributed inline script,
+        // not any of our hashed chunks. Match by message + the injected
+        // function name so we drop it without suppressing real
+        // SecurityErrors from our own code.
+        "The operation is insecure",
+        "imtgo_device_info_WS",
       ],
 
       // Drop events originating from third-party beacons we can't control.
