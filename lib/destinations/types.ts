@@ -5,7 +5,7 @@
  * unique per-city, not reusable UI strings.
  */
 
-export type Locale = "en" | "es" | "it";
+export type Locale = "en" | "es" | "it" | "pt";
 
 export type LocalizedString = Record<Locale, string>;
 

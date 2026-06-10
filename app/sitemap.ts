@@ -4,7 +4,7 @@ import { getAllSlugs as getBlogSlugs, getPostDates, hasLocaleTranslation } from 
 import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { getAllAuthors } from "@/lib/blog/authors";
 
-const locales = ["en", "es", "it"] as const;
+const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
 
 // Hardcoded lastmod dates per content type — keeps the sitemap stable across
@@ -46,6 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/it`,
+      lastModified: LASTMOD_HOMEPAGE,
+      changeFrequency: "weekly",
+      priority: PRIORITY_LOCALE_HOMEPAGE,
+    },
+    {
+      url: `${baseUrl}/pt`,
       lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
       priority: PRIORITY_LOCALE_HOMEPAGE,

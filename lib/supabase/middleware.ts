@@ -169,7 +169,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // Strip locale prefix from pathname for path matching
-  const locales = ["en", "es", "it"];
+  const locales = ["en", "es", "it", "pt"];
   let pathWithoutLocale = request.nextUrl.pathname;
   for (const locale of locales) {
     if (pathWithoutLocale.startsWith(`/${locale}/`)) {

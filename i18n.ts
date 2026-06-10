@@ -3,7 +3,7 @@ import { getRequestConfig } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 
 // Supported locales
-export const locales = ["en", "es", "it"] as const;
+export const locales = ["en", "es", "it", "pt"] as const;
 export type Locale = (typeof locales)[number];
 
 // Default locale (no URL prefix)
@@ -14,13 +14,17 @@ export const localeNames: Record<Locale, string> = {
   en: "English",
   es: "Espanol",
   it: "Italiano",
+  pt: "Português",
 };
 
-// Locale flags for UI
+// Locale flags for UI. `pt` targets Brazil (pt-BR) — Brazil is the demand
+// driver (15k organic GSC impressions at ~0% CTR before localization), so we
+// use the Brazilian flag rather than Portugal's.
 export const localeFlags: Record<Locale, string> = {
   en: "🇺🇸",
   es: "🇪🇸",
   it: "🇮🇹",
+  pt: "🇧🇷",
 };
 
 export default getRequestConfig(async ({ requestLocale }) => {

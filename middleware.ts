@@ -63,7 +63,7 @@ const GONE_BLOG_SLUGS = new Set([
 
 function isGoneBlogPath(pathname: string): boolean {
   // Match /blog/{slug} or /{locale}/blog/{slug} (and trailing slash variants).
-  const match = pathname.match(/^(?:\/(?:en|es|it))?\/blog\/([^/?#]+)\/?$/);
+  const match = pathname.match(/^(?:\/(?:en|es|it|pt))?\/blog\/([^/?#]+)\/?$/);
   if (!match) return false;
   return GONE_BLOG_SLUGS.has(match[1]);
 }
@@ -225,7 +225,7 @@ export async function middleware(request: NextRequest) {
 
   // Skip Supabase session refresh for public-only pages (saves serverless compute)
   // These pages never need auth state — no point refreshing tokens for anonymous visitors
-  const strippedPath = pathname.replace(/^\/(en|es|it)/, '') || '/';
+  const strippedPath = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
   const isPublicOnly =
     strippedPath === '/' ||
     strippedPath.startsWith('/blog') ||
