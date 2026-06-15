@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -102,14 +102,23 @@ export default async function BlogTagPage({ params }: PageProps) {
   const { locale, tag } = await params;
   setRequestLocale(locale);
 
+  const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+
+  // A tag that no longer resolves (renamed/removed) or has lost all its posts
+  // after a blog restructure used to hard-404 here. Google had indexed ~347 of
+  // these /blog/tag/* URLs (en/es/it); the bulk 404 spiked in late April,
+  // drained crawl budget, and FAILED Search Console validation on 2026-06-12.
+  // Serve a permanent (308) redirect to the locale's blog index instead: Google
+  // drops the dead tag URLs cleanly, link equity consolidates onto /blog, and
+  // crawlers stop hammering pages that will never return. Valid tags (>=1 post)
+  // fall through and render normally below.
   const display = resolveTagDisplay(tag, locale);
-  if (!display) notFound();
+  if (!display) permanentRedirect(`${localePrefix}/blog`);
 
   const posts = getPostsByTagSlug(tag, locale);
-  if (posts.length === 0) notFound();
+  if (posts.length === 0) permanentRedirect(`${localePrefix}/blog`);
 
   const t = await getTranslations("blog");
-  const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: t("breadcrumbs.home"), url: `${SITE_URL}${localePrefix}` },
