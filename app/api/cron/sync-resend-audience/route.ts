@@ -12,10 +12,13 @@ import { Resend } from "resend";
  * marketing sends miss anyone who joined since the bootstrap.
  *
  * Strategy: list existing audience contacts → diff against
- * users + email_subscribers → POST only the missing ones. Resend's
- * contact list grows monotonically; we never delete or update existing
- * contacts here (unsubscribe is handled by the user-facing one-click
- * link, not by this cron).
+ * users + email_subscribers → POST the missing ones (with the correct
+ * `unsubscribed` flag derived from the user's marketing preference), then
+ * reconcile any EXISTING contact that has since opted out in-app but is
+ * still flagged subscribed in Resend. Reconciliation is one-directional —
+ * only subscribed → unsubscribed, never the reverse — so a native Resend
+ * one-click unsubscribe is never silently re-subscribed. We never delete
+ * contacts.
  *
  * Exclusions match scripts/export-all-users-to-resend.mts so the bootstrap
  * and the cron treat the same population identically:
@@ -37,8 +40,10 @@ import { Resend } from "resend";
  * recompute-editors-picks).
  *
  * Safety: never sends or modifies any email content. Only mutates the
- * Resend audience-contacts list. Existing contact opt-out state is
- * preserved (we skip them entirely instead of re-creating).
+ * Resend audience-contacts list, and only ever ADDS suppressions
+ * (subscribed → unsubscribed) — it can never re-subscribe an opted-out
+ * contact, so the marketing preference in users.notification_settings is
+ * the single source of truth for who may be emailed.
  *
  * Manual trigger:
  *   curl -H "Authorization: Bearer $CRON_SECRET" /api/cron/sync-resend-audience
@@ -110,7 +115,7 @@ export async function GET(request: NextRequest) {
   // Step 1: pull Supabase user list + waitlist subscribers.
   const { data: users, error: usersErr } = await svc
     .from("users")
-    .select("email, display_name, preferred_language")
+    .select("email, display_name, preferred_language, notification_settings")
     .not("email", "is", null);
   if (usersErr) {
     console.error("[sync-resend-audience] users query failed:", usersErr);
@@ -120,13 +125,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { data: subs } = await svc.from("email_subscribers").select("email");
+  const { data: subs } = await svc
+    .from("email_subscribers")
+    .select("email, unsubscribed_at");
 
   // Merge into a single deduped contact map.
   type Contact = {
     email: string;
     firstName?: string;
     locale?: string;
+    optedOut: boolean;
   };
   const byEmail = new Map<string, Contact>();
 
@@ -134,18 +142,24 @@ export async function GET(request: NextRequest) {
     if (!s.email) continue;
     const email = String(s.email).trim().toLowerCase();
     if (!email || isExcluded(email)) continue;
-    byEmail.set(email, { email });
+    // A waitlist subscriber with unsubscribed_at set has opted out.
+    byEmail.set(email, { email, optedOut: Boolean(s.unsubscribed_at) });
   }
 
   for (const u of users ?? []) {
     if (!u.email) continue;
     const email = String(u.email).trim().toLowerCase();
     if (!email || isExcluded(email)) continue;
+    // Marketing opt-out lives in users.notification_settings.marketingNotifications.
+    // Only an explicit `false` is an opt-out; a missing key defaults to opted-in.
+    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
+    const optedOut = ns.marketingNotifications === false;
     // users overrides waitlist (richer profile data).
     byEmail.set(email, {
       email,
       firstName: firstName(u.display_name),
       locale: (u.preferred_language as string | undefined) || undefined,
+      optedOut,
     });
   }
 
@@ -162,11 +176,14 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-  const existingEmails = new Set<string>(
-    (existing.data?.data ?? [])
-      .map((c) => (c.email ?? "").toLowerCase())
-      .filter(Boolean)
-  );
+  // email -> current Resend unsubscribed state, so we can both diff for
+  // creation AND reconcile opt-outs on contacts that already exist.
+  const existingState = new Map<string, boolean>();
+  for (const c of existing.data?.data ?? []) {
+    const e = (c.email ?? "").toLowerCase();
+    if (e) existingState.set(e, c.unsubscribed === true);
+  }
+  const existingEmails = new Set<string>(existingState.keys());
 
   const toCreate = desiredContacts.filter((c) => !existingEmails.has(c.email));
 
@@ -183,7 +200,9 @@ export async function GET(request: NextRequest) {
       const res = await resend.contacts.create({
         email: c.email,
         firstName: c.firstName,
-        unsubscribed: false,
+        // Respect the user's marketing opt-out at creation time so we never
+        // import an already-opted-out user as a subscribed contact.
+        unsubscribed: c.optedOut,
         audienceId,
       });
       if (res.error) {
@@ -201,6 +220,30 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Step 3b: reconcile EXISTING contacts that have opted out in-app but are
+  // still flagged subscribed in Resend (e.g. they unsubscribed after the
+  // bootstrap import). One-directional ON PURPOSE — we only ever flip
+  // subscribed -> unsubscribed, never the reverse — so a native Resend
+  // one-click unsubscribe can never be silently re-subscribed by this cron.
+  // This + the create-time `unsubscribed: c.optedOut` above make app-side
+  // marketing opt-outs propagate to Resend on every run.
+  let reconciled = 0;
+  for (const c of desiredContacts) {
+    if (!c.optedOut) continue;
+    if (!existingEmails.has(c.email)) continue; // newly created ones were already set correctly
+    if (existingState.get(c.email) === true) continue; // already unsubscribed in Resend
+    try {
+      const res = await resend.contacts.update({
+        audienceId,
+        email: c.email,
+        unsubscribed: true,
+      });
+      if (!res.error) reconciled++;
+    } catch {
+      // best-effort; surfaced via the reconciled count in the summary
+    }
+  }
+
   // Trim error log so a runaway error case doesn't blow the response
   // size limit. First 10 errors gives us enough signal to debug.
   const truncatedErrors = errors.slice(0, 10);
@@ -213,6 +256,7 @@ export async function GET(request: NextRequest) {
     toCreate: toCreate.length,
     created,
     failed,
+    reconciledOptOuts: reconciled,
     durationMs: Date.now() - startedAt,
   });
 
@@ -226,6 +270,7 @@ export async function GET(request: NextRequest) {
       toCreate: toCreate.length,
       created,
       failed,
+      reconciledOptOuts: reconciled,
     },
     errors: truncatedErrors,
     durationMs: Date.now() - startedAt,
