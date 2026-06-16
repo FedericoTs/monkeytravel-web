@@ -123,7 +123,7 @@ export function useOnboardingPreferences() {
         pushNotifications: true,
         emailNotifications: true,
         socialNotifications: true,
-        marketingNotifications: false,
+        marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
         // Store as quiet hours (inverse of active hours)
         quietHoursStart: preferences.activeHoursEnd,
         quietHoursEnd: preferences.activeHoursStart,

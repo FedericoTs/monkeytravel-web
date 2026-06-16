@@ -2,9 +2,15 @@
  * Export the marketing-eligible contact list from Supabase to
  * out/audience-contacts.json (consumed by scripts/sync-resend-audience.mts).
  *
- * Eligible = explicit opt-in only:
- *   - users where notification_settings.marketingNotifications = true
+ * Eligible (OPT-OUT model — mirrors app/api/cron/sync-resend-audience):
+ *   - all users EXCEPT those who explicitly unsubscribed
+ *     (notification_settings.marketingNotifications === false)
  *   - email_subscribers (landing-page waitlist — opted in by signing up)
+ *
+ * NOTE: marketingNotifications defaults to TRUE at signup; a `false` is
+ * written ONLY by an explicit unsubscribe (link / preference toggle / Resend
+ * complaint), so "not false" = eligible. Do NOT filter on `= true` — that
+ * misses every user who never touched their preferences (the vast majority).
  *
  * Uses the service-role key (bypasses RLS) — server-side only. Self-loads
  * .env.local so the secret never appears on the command line. Prints COUNTS
@@ -60,12 +66,20 @@ function firstName(displayName?: string | null): string | undefined {
 }
 
 async function main() {
-  // 1. Opted-in users.
-  const { data: users, error: usersErr } = await supabase
+  // 1. Marketing-eligible users (opt-out): everyone except explicit unsubscribes.
+  //    Fetch all, then drop only `marketingNotifications === false` in JS —
+  //    a JSONB "is null OR != false" filter is awkward in PostgREST and this
+  //    matches the live cron's logic exactly.
+  const { data: allUsers, error: usersErr } = await supabase
     .from("users")
     .select("email, display_name, preferred_language, notification_settings")
-    .filter("notification_settings->>marketingNotifications", "eq", "true");
+    .not("email", "is", null);
   if (usersErr) throw new Error(`users query failed: ${usersErr.message}`);
+  const users = (allUsers ?? []).filter((u) => {
+    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
+    return ns.marketingNotifications !== false; // false = explicit unsubscribe
+  });
+  const unsubscribed = (allUsers?.length ?? 0) - users.length;
 
   // 2. Waitlist subscribers.
   const { data: subs, error: subsErr } = await supabase
@@ -80,7 +94,7 @@ async function main() {
     const email = String(s.email).trim().toLowerCase();
     if (email) byEmail.set(email, { email });
   }
-  for (const u of users ?? []) {
+  for (const u of users) {
     if (!u.email) continue;
     const email = String(u.email).trim().toLowerCase();
     if (!email) continue;
@@ -98,9 +112,10 @@ async function main() {
   fs.writeFileSync(file, JSON.stringify(contacts, null, 2), "utf8");
 
   // Counts only — never print the emails.
-  console.log(`Opted-in users:        ${users?.length ?? 0}`);
-  console.log(`Waitlist subscribers:  ${subs?.length ?? 0}`);
-  console.log(`Total unique contacts: ${contacts.length}`);
+  console.log(`Eligible users (opt-out):  ${users.length}`);
+  console.log(`  excluded (unsubscribed): ${unsubscribed}`);
+  console.log(`Waitlist subscribers:      ${subs?.length ?? 0}`);
+  console.log(`Total unique contacts:     ${contacts.length}`);
   console.log(`Wrote: ${file}`);
 }
 

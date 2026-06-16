@@ -273,7 +273,7 @@ export async function GET(request: Request) {
             pushNotifications: true,
             emailNotifications: true,
             socialNotifications: true,
-            marketingNotifications: false,
+            marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
           },
           // Add referral code if present
           ...(referralCode && { referred_by_code: referralCode }),

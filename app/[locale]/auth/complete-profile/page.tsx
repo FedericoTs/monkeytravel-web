@@ -56,7 +56,7 @@ export default function CompleteProfilePage() {
           pushNotifications: true,
           emailNotifications: true,
           socialNotifications: true,
-          marketingNotifications: false,
+          marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
           // Quiet hours are inverse of active hours
           quietHoursStart: localPrefs.activeHoursEnd,
           quietHoursEnd: localPrefs.activeHoursStart,

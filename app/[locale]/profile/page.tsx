@@ -109,7 +109,7 @@ export default async function ProfilePage() {
       tripReminders: true,
       dealAlerts: true,
       socialNotifications: true,
-      marketingNotifications: false,
+      marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
       quietHoursStart: 22,
       quietHoursEnd: 8,
     },

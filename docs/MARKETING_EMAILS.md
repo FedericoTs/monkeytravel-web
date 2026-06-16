@@ -21,10 +21,10 @@ confirmations** — the emails that must land.
 
 ## Consent — who you may email
 
-- Default `users.notification_settings.marketingNotifications` is **false**
-  at signup, so you may NOT bulk-email all users.
-- Eligible audiences: users who explicitly set `marketingNotifications =
-  true`, and `email_subscribers` (the landing-page waitlist — they opted in).
+- `users.notification_settings.marketingNotifications` defaults to **true**
+  at signup; only an explicit unsubscribe writes **false**, so a `false` is a reliable opt-out signal.
+- Eligible audiences: **all users EXCEPT** those with `marketingNotifications =
+  false` (real unsubscribes), plus `email_subscribers` (landing-page waitlist). The live `app/api/cron/sync-resend-audience` keeps the Resend audience in sync and is the source of truth.
 - Honor unsubscribes: Resend Broadcasts inject a one-click unsubscribe via
   the `{{{RESEND_UNSUBSCRIBE_URL}}}` token (already used by our render
   helper) and maintain the broadcast suppression list automatically.
@@ -43,7 +43,7 @@ confirmations** — the emails that must land.
    - **Scripted (REST API):** write the recipient list to
      `out/audience-contacts.json` (JSON array of `{email, firstName?, locale?}`
      — queried from Supabase: `email_subscribers` + users with
-     `marketingNotifications = true`), then:
+     `marketingNotifications != false` — opt-out), then:
      ```bash
      RESEND_API_KEY=re_… npx tsx scripts/sync-resend-audience.mts            # dry-run
      RESEND_API_KEY=re_… npx tsx scripts/sync-resend-audience.mts --apply    # push

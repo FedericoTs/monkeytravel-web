@@ -16,8 +16,8 @@
  *   # defaults: file = out/audience-contacts.json, AUDIENCE_NAME env or
  *   #           "MonkeyTravel Marketing"
  *
- * Consent: only include contacts who opted in (users.marketingNotifications
- * = true, or the email_subscribers waitlist). Never import all users.
+ * Consent (OPT-OUT): include all users EXCEPT explicit unsubscribes
+ * (marketingNotifications === false), plus the email_subscribers waitlist.
  */
 
 import fs from "node:fs";

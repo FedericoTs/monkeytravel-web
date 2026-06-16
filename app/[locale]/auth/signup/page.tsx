@@ -219,7 +219,7 @@ function SignupForm() {
           pushNotifications: true,
           emailNotifications: true,
           socialNotifications: true,
-          marketingNotifications: false,
+          marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
           // Store as quiet hours (inverse of active hours)
           quietHoursStart: localPrefs.activeHoursEnd,
           quietHoursEnd: localPrefs.activeHoursStart,
@@ -238,7 +238,7 @@ function SignupForm() {
           pushNotifications: true,
           emailNotifications: true,
           socialNotifications: true,
-          marketingNotifications: false,
+          marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
         };
         profileData.onboarding_completed = false;
         // No free trips if onboarding not completed
