@@ -1,4 +1,8 @@
-import Link from "next/link";
+// next-intl Link (not next/link) so hrefs auto-prefix the active locale. With
+// raw next/link these cards leaked /es,/it,/pt homepage visitors + Googlebot to
+// the EN /trips/template/* and /templates pages, under-linking the localized
+// variants. The href API is identical.
+import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Sparkles, ChevronRight, Users, ArrowRight, MapPin } from "lucide-react";
 import { getTranslations } from "next-intl/server";

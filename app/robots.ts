@@ -1,8 +1,12 @@
 import { MetadataRoute } from "next";
+import { locales, defaultLocale } from "@/i18n";
 
 // Locale-aware disallow paths. Next.js's locale routing means every private
-// surface ships at the un-prefixed path AND at /es/* and /it/* — so each entry
-// here gets emitted three times. Wildcards (`/foo/*`) cover both index pages
+// surface ships at the un-prefixed (default-locale) path AND under every
+// non-default locale prefix (/es/*, /it/*, /pt/*, …) — so each entry here is
+// emitted once per locale. Derived from the canonical `locales` list (see
+// expandLocales) so adding a locale never silently leaves its private surfaces
+// crawlable. Wildcards (`/foo/*`) cover both index pages
 // and any nested child; the trailing `*` is a glob, not a regex.
 //
 // CAUSALITY: keep in sync with app/[locale]/ — if a new private route is
@@ -79,13 +83,14 @@ const BLOCKED_AI_AGENTS = [
   "AhrefsBot",
 ];
 
-// Build locale-aware disallow patterns. Default locale (en) lives at the
-// un-prefixed root, so `/trips/*` covers it. `/es/trips/*` and `/it/trips/*`
-// cover the localized variants — Next's next-intl middleware mounts every
-// route under all three locale prefixes.
+// Build locale-aware patterns. Default locale (en) lives at the un-prefixed
+// root, so `/auth/*` covers it; every non-default locale gets its own prefix
+// (`/es/auth/*`, `/it/auth/*`, `/pt/auth/*`, …). Derived from the canonical
+// `locales` array so a newly-added locale is covered automatically — the pt
+// launch (2026-06-15) shipped before this was generalised and briefly left
+// /pt/api, /pt/auth, /pt/admin crawlable.
 function expandLocales(path: string): string[] {
-  // Already-rooted paths get prefixed by /es and /it.
-  return [path, `/es${path}`, `/it${path}`];
+  return locales.map((l) => (l === defaultLocale ? path : `/${l}${path}`));
 }
 
 export default function robots(): MetadataRoute.Robots {
