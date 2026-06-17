@@ -39,11 +39,12 @@ import { Resend } from "resend";
  * cron routes (refresh-activity-index, scheduled-notifications,
  * recompute-editors-picks).
  *
- * Safety: never sends or modifies any email content. Only mutates the
- * Resend audience-contacts list, and only ever ADDS suppressions
- * (subscribed → unsubscribed) — it can never re-subscribe an opted-out
- * contact, so the marketing preference in users.notification_settings is
- * the single source of truth for who may be emailed.
+ * Safety: never sends or modifies any email content. It reconciles opt-outs
+ * in BOTH directions — app opt-outs → Resend (suppress), and Resend-native
+ * unsubscribes → users.notification_settings (back-sync). Both directions
+ * only ever ADD an opt-out, never remove one, so an unsubscribe can never be
+ * silently reversed. users.notification_settings stays the single source of
+ * truth for who may be emailed; the reverse pass keeps it from drifting.
  *
  * Manual trigger:
  *   curl -H "Authorization: Bearer $CRON_SECRET" /api/cron/sync-resend-audience
@@ -115,7 +116,7 @@ export async function GET(request: NextRequest) {
   // Step 1: pull Supabase user list + waitlist subscribers.
   const { data: users, error: usersErr } = await svc
     .from("users")
-    .select("email, display_name, preferred_language, notification_settings")
+    .select("id, email, display_name, preferred_language, notification_settings")
     .not("email", "is", null);
   if (usersErr) {
     console.error("[sync-resend-audience] users query failed:", usersErr);
@@ -244,6 +245,32 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Step 3c: REVERSE reconcile — pull Resend-native unsubscribes (one-click /
+  // List-Unsubscribe, which land in Resend, not our DB) back into
+  // users.notification_settings. Without this the DB source of truth drifts:
+  // Resend suppresses them, but a future audience rebuild (export script /
+  // re-import) or app-path send would re-contact them. Idempotent + self-
+  // healing — needs no webhook and no Resend dashboard config, so it can't
+  // silently break the way an unsubscribed-event subscription can. Reuses the
+  // already-fetched `existingState`, so it adds zero extra Resend API calls.
+  let backSynced = 0;
+  const unsubInResend = new Set(
+    [...existingState.entries()].filter(([, u]) => u === true).map(([e]) => e)
+  );
+  for (const u of users ?? []) {
+    const email = String(u.email ?? "").trim().toLowerCase();
+    if (!unsubInResend.has(email)) continue;
+    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
+    if (ns.marketingNotifications === false) continue; // already opted out in DB
+    const { error: backErr } = await svc
+      .from("users")
+      .update({
+        notification_settings: { ...ns, marketingNotifications: false },
+      })
+      .eq("id", u.id);
+    if (!backErr) backSynced++;
+  }
+
   // Trim error log so a runaway error case doesn't blow the response
   // size limit. First 10 errors gives us enough signal to debug.
   const truncatedErrors = errors.slice(0, 10);
@@ -257,6 +284,7 @@ export async function GET(request: NextRequest) {
     created,
     failed,
     reconciledOptOuts: reconciled,
+    reverseBackSynced: backSynced,
     durationMs: Date.now() - startedAt,
   });
 
@@ -271,6 +299,7 @@ export async function GET(request: NextRequest) {
       created,
       failed,
       reconciledOptOuts: reconciled,
+      reverseBackSynced: backSynced,
     },
     errors: truncatedErrors,
     durationMs: Date.now() - startedAt,
