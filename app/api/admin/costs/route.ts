@@ -126,9 +126,6 @@ export interface EnhancedCostAnalytics {
   generatedAt: string;
 }
 
-// Backward compatibility alias for old CostDashboard
-export type CostAnalytics = EnhancedCostAnalytics;
-
 // API display names and colors for the dashboard
 const API_DISPLAY_CONFIG: Record<string, { name: string; color: string }> = {
   google_places_search: { name: "Places Search", color: "#4285F4" },
@@ -172,6 +169,7 @@ export async function GET() {
     // Fetch all data in parallel
     const [
       allLogsResult,
+      allCostsResult,
       todayLogsResult,
       last7DaysLogsResult,
       last30DaysLogsResult,
@@ -182,11 +180,23 @@ export async function GET() {
       activitiesCacheResult,
       userStatsResult,
     ] = await Promise.all([
-      // All API request logs with full data
+      // Heavy multi-column logs for the in-JS breakdowns below. SCOPED to the
+      // last 30 days + a hard row cap so this never pulls the entire (growing)
+      // table into memory and OOMs the function. The derived breakdowns (byApi,
+      // byUser, trends, percentiles, recent perf) are a rolling 30-day window.
       supabase
         .from("api_request_logs")
         .select("id, api_name, endpoint, cost_usd, cache_hit, timestamp, response_status, response_time_ms, error_message, user_id")
-        .order("timestamp", { ascending: false }),
+        .gte("timestamp", day30Ago)
+        .order("timestamp", { ascending: false })
+        .limit(100000),
+
+      // Light all-time cost column only — for the all-time Total Cost / request
+      // count headline without pulling every column of every row. (A SQL sum()
+      // RPC would be lighter still; deferred to a migration.)
+      supabase
+        .from("api_request_logs")
+        .select("cost_usd"),
 
       // Today's logs
       supabase
@@ -240,6 +250,7 @@ export async function GET() {
     ]);
 
     const allLogs = allLogsResult.data || [];
+    const allCosts = allCostsResult.data || [];
     const todayLogs = todayLogsResult.data || [];
     const last7DaysLogs = last7DaysLogsResult.data || [];
     const last30DaysLogs = last30DaysLogsResult.data || [];
@@ -253,12 +264,14 @@ export async function GET() {
     // Create user lookup map
     const userMap = new Map(users.map(u => [u.id, u.email]));
 
-    // Calculate summary metrics
-    const totalCostUsd = allLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
+    // Summary metrics. Totals (cost + request count) are ALL-TIME from the
+    // light cost-only query; the breakdowns below use the 30-day allLogs.
+    const totalCostUsd = allCosts.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
+    const totalRequestsAllTime = allCosts.length;
     const todayCostUsd = todayLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
     const last7DaysCostUsd = last7DaysLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
     const last30DaysCostUsd = last30DaysLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
-    const avgCostPerRequest = allLogs.length > 0 ? totalCostUsd / allLogs.length : 0;
+    const avgCostPerRequest = totalRequestsAllTime > 0 ? totalCostUsd / totalRequestsAllTime : 0;
 
     // Project monthly cost based on last 7 days
     const projectedMonthlyCost = (last7DaysCostUsd / 7) * 30;
@@ -500,7 +513,7 @@ export async function GET() {
         todayCostUsd: Math.round(todayCostUsd * 100) / 100,
         last7DaysCostUsd: Math.round(last7DaysCostUsd * 100) / 100,
         last30DaysCostUsd: Math.round(last30DaysCostUsd * 100) / 100,
-        totalRequests: allLogs.length,
+        totalRequests: totalRequestsAllTime,
         todayRequests: todayLogs.length,
         avgCostPerRequest: Math.round(avgCostPerRequest * 10000) / 10000,
         projectedMonthlyCost: Math.round(projectedMonthlyCost * 100) / 100,
