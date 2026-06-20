@@ -37,7 +37,9 @@ export interface GrowthStats {
     shareRate: number;              // % of users who have shared
 
     // Reach & Clicks
-    totalShareViews: number;        // Views on shared trips
+    totalShareViews: number;        // Reach proxy: distinct anonymous engagers on shared trips
+    anonymousEngagers: number;      // distinct anon voters on shared trips
+    sharedTripsWithEngagement: number; // shared trips that got anonymous engagement
     totalReferralClicks: number;    // Clicks on referral links
 
     // Conversions
@@ -51,6 +53,7 @@ export interface GrowthStats {
     topReferrers: {
       name: string;
       shares: number;
+      invites: number;
       signups: number;
     }[];
   };
@@ -156,6 +159,14 @@ export interface GrowthStats {
       utilizationRate: number;
     };
   };
+  // Honesty / data-quality metadata so the UI labels metrics correctly.
+  meta: {
+    retentionMethod: "activity_proxy" | "sign_in";
+    signInTrackingAvailable: boolean;
+    referralAttributionWired: boolean;
+    dataWarnings: string[];
+    generatedAt: string;
+  };
 }
 
 export async function GET() {
@@ -196,6 +207,7 @@ export async function GET() {
       referralTiersResult,
       redemptionCatalogResult,
       bananaRedemptionsResult,
+      anonVotesResult,
     ] = await Promise.all([
       // All users with relevant dates and bananas economy fields
       supabase
@@ -213,10 +225,10 @@ export async function GET() {
       supabase
         .from("trip_views")
         .select("id, trip_id, viewer_id, viewed_at"),
-      // AI conversations (for assistant usage)
+      // AI conversations (for assistant usage + activity-proxy retention)
       supabase
         .from("ai_conversations")
-        .select("id, user_id"),
+        .select("id, user_id, created_at"),
       // Collaboration: Trip collaborators
       supabase
         .from("trip_collaborators")
@@ -249,6 +261,10 @@ export async function GET() {
       supabase
         .from("banana_redemptions")
         .select("id, user_id, catalog_item_id, bananas_spent, created_at"),
+      // Anonymous shared-trip engagement — real virality reach signal
+      supabase
+        .from("anonymous_activity_votes")
+        .select("voter_cookie_id, trip_id, created_at"),
     ]);
 
     const users = usersResult.data || [];
@@ -266,6 +282,58 @@ export async function GET() {
     const referralTiersData = referralTiersResult.data || [];
     const redemptionCatalog = redemptionCatalogResult.data || [];
     const bananaRedemptions = bananaRedemptionsResult.data || [];
+    const anonVotes = anonVotesResult.data || [];
+
+    // Surface (instead of swallow) any query that errored, so future schema
+    // drift shows up as a banner rather than a silent wall of zeros.
+    const dataWarnings: string[] = [];
+    const namedResults: Record<string, { error: { message: string } | null }> = {
+      users: usersResult, trips: tripsResult, referral_codes: referralCodesResult,
+      trip_views: tripViewsResult, ai_conversations: aiConversationsResult,
+      trip_collaborators: collaboratorsResult, trip_invites: invitesResult,
+      activity_proposals: proposalsResult, proposal_votes: proposalVotesResult,
+      banana_transactions: bananaTransactionsResult, referral_tiers: referralTiersResult,
+      banana_redemption_catalog: redemptionCatalogResult,
+      banana_redemptions: bananaRedemptionsResult, anonymous_activity_votes: anonVotesResult,
+    };
+    for (const [name, r] of Object.entries(namedResults)) {
+      if (r.error) dataWarnings.push(`${name}: ${r.error.message}`);
+    }
+    if (dataWarnings.length) console.warn("[Admin Growth] query warnings:", dataWarnings);
+
+    // ---- Activity-proxy retention signals -----------------------------------
+    // public.users.last_sign_in_at is a denormalized mirror of auth.users that
+    // is currently never synced (NULL for ~100% of users), which silently
+    // zeroed every retention / aha-moment metric. Derive two signals from data
+    // we DO record (trips, AI conversations, banana transactions; plus
+    // last_sign_in_at when present, so this auto-upgrades once sign-in tracking
+    // lands):
+    //   - lastActivityByUser:   most-recent activity (for "still active" checks)
+    //   - earliestReturnByUser: earliest activity AFTER signup (for "came back
+    //                           within N days" windowed retention)
+    const createdByUser = new Map<string, number>();
+    users.forEach((u) => {
+      const c = new Date(u.created_at).getTime();
+      if (!Number.isNaN(c)) createdByUser.set(u.id, c);
+    });
+    const lastActivityByUser = new Map<string, number>();
+    const earliestReturnByUser = new Map<string, number>();
+    const considerActivity = (uid?: string | null, iso?: string | null) => {
+      if (!uid || !iso) return;
+      const t = new Date(iso).getTime();
+      if (Number.isNaN(t)) return;
+      if (t > (lastActivityByUser.get(uid) || 0)) lastActivityByUser.set(uid, t);
+      const created = createdByUser.get(uid);
+      if (created != null && t > created) {
+        const cur = earliestReturnByUser.get(uid);
+        if (cur == null || t < cur) earliestReturnByUser.set(uid, t);
+      }
+    };
+    users.forEach((u) => considerActivity(u.id, u.last_sign_in_at));
+    trips.forEach((t) => considerActivity(t.user_id, t.created_at));
+    aiConversations.forEach((c) => considerActivity(c.user_id, c.created_at));
+    bananaTransactions.forEach((b) => considerActivity(b.user_id, b.created_at));
+    const signInTrackingAvailable = users.some((u) => u.last_sign_in_at != null);
 
     // Helper: calculate retention for users signed up before a threshold
     // FIXED: Changed from >= to > 0 AND <= to properly measure "returned WITHIN N days"
@@ -279,11 +347,11 @@ export async function GET() {
       if (eligibleUsers.length === 0) return { rate: 0, eligible: 0 };
 
       const returnedUsers = eligibleUsers.filter(u => {
-        if (!u.last_sign_in_at) return false;
-        const createdAt = new Date(u.created_at);
-        const lastSignIn = new Date(u.last_sign_in_at);
-        const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
-        // User must have returned (daysSinceCreation > 0) within the retention window
+        const ret = earliestReturnByUser.get(u.id);
+        if (!ret) return false;
+        const createdAt = new Date(u.created_at).getTime();
+        const daysSinceCreation = (ret - createdAt) / (24 * 60 * 60 * 1000);
+        // Came back (first activity after signup) within the window
         return daysSinceCreation > 0 && daysSinceCreation <= returnWithinDays;
       });
 
@@ -310,11 +378,11 @@ export async function GET() {
       if (eligibleUsers.length === 0) return 0;
 
       const returnedUsers = eligibleUsers.filter(u => {
-        if (!u.last_sign_in_at) return false;
-        const createdAt = new Date(u.created_at);
-        const lastSignIn = new Date(u.last_sign_in_at);
-        const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
-        // FIXED: User must have returned (daysSinceCreation > 0) within the retention window
+        const ret = earliestReturnByUser.get(u.id);
+        if (!ret) return false;
+        const createdAt = new Date(u.created_at).getTime();
+        const daysSinceCreation = (ret - createdAt) / (24 * 60 * 60 * 1000);
+        // Previous-period: came back (first activity after signup) within window
         return daysSinceCreation > 0 && daysSinceCreation <= returnWithinDays;
       });
 
@@ -330,10 +398,10 @@ export async function GET() {
     const activatedUsers = users.filter(u => u.onboarding_completed).length;
     const usersWithTrips = new Set(trips.map(t => t.user_id)).size;
     const returnedUsers = users.filter(u => {
-      if (!u.last_sign_in_at) return false;
-      const createdAt = new Date(u.created_at);
-      const lastSignIn = new Date(u.last_sign_in_at);
-      return (lastSignIn.getTime() - createdAt.getTime()) > 24 * 60 * 60 * 1000; // returned after 1+ day
+      const act = lastActivityByUser.get(u.id);
+      if (!act) return false;
+      const createdAt = new Date(u.created_at).getTime();
+      return (act - createdAt) > 24 * 60 * 60 * 1000; // active 1+ day after signup
     }).length;
     // Referral in funnel = users who shared at least one trip (the ACTION, not result)
     const sharedTripsForFunnel = trips.filter(t => t.share_token != null);
@@ -378,8 +446,12 @@ export async function GET() {
     // FIX: Use usersWithTrips (defined above) as denominator (users without trips CAN'T share)
     const shareRate = usersWithTrips > 0 ? Math.round((usersWhoShared / usersWithTrips) * 100) : 0;
 
-    // 2. REACH - How far shares travel
-    const totalShareViews = tripViews.length;
+    // 2. REACH - How far shares travel.
+    // trip_views is never written (0 rows); the real reach signal is anonymous
+    // engagement on shared trips, so use distinct anonymous voters as "reach".
+    const anonymousEngagers = new Set(anonVotes.map(v => v.voter_cookie_id).filter(Boolean)).size;
+    const sharedTripsWithEngagement = new Set(anonVotes.map(v => v.trip_id).filter(Boolean)).size;
+    const totalShareViews = anonymousEngagers || tripViews.length;
     const totalReferralClicks = referralCodes.reduce((sum, c) => sum + (c.total_clicks || 0), 0);
 
     // 3. CONVERSIONS - Users who signed up via referral
@@ -412,19 +484,32 @@ export async function GET() {
       }
     });
 
-    // Combine and rank top referrers
-    const allSharerIds = new Set([...userShareCounts.keys(), ...userSignupCounts.keys()]);
+    // Invites created per user (the collaboration channel of virality)
+    const userInviteCounts = new Map<string, number>();
+    invites.forEach(i => {
+      if (i.created_by) {
+        userInviteCounts.set(i.created_by, (userInviteCounts.get(i.created_by) || 0) + 1);
+      }
+    });
+
+    // Combine and rank "champions": shares + invites + referred signups
+    const allSharerIds = new Set([
+      ...userShareCounts.keys(),
+      ...userSignupCounts.keys(),
+      ...userInviteCounts.keys(),
+    ]);
     const topReferrers = Array.from(allSharerIds)
       .map(userId => {
         const user = users.find(u => u.id === userId);
         return {
           name: user?.display_name || user?.id?.slice(0, 8) || "Unknown",
           shares: userShareCounts.get(userId) || 0,
+          invites: userInviteCounts.get(userId) || 0,
           signups: userSignupCounts.get(userId) || 0,
         };
       })
-      .filter(r => r.shares > 0 || r.signups > 0)
-      .sort((a, b) => (b.shares + b.signups * 10) - (a.shares + a.signups * 10)) // Weight signups more
+      .filter(r => r.shares > 0 || r.signups > 0 || r.invites > 0)
+      .sort((a, b) => (b.shares + b.invites * 2 + b.signups * 10) - (a.shares + a.invites * 2 + a.signups * 10))
       .slice(0, 5);
 
     // Aha Moment correlations
@@ -456,12 +541,11 @@ export async function GET() {
       const calculateD7Retention = (userList: typeof eligibleUsers) => {
         if (userList.length === 0) return 0;
         const returned = userList.filter(u => {
-          if (!u.last_sign_in_at) return false;
-          const createdAt = new Date(u.created_at);
-          const lastSignIn = new Date(u.last_sign_in_at);
-          // FIX: Measure "returned WITHIN 7 days" not "returned AFTER 7+ days"
-          // User must have returned (diff > 0) AND within 7 days (diff <= 7 days)
-          const daysSinceCreation = (lastSignIn.getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000);
+          const ret = earliestReturnByUser.get(u.id);
+          if (!ret) return false;
+          const createdAt = new Date(u.created_at).getTime();
+          // Came back WITHIN 7 days: first activity after signup, within 7 days
+          const daysSinceCreation = (ret - createdAt) / (24 * 60 * 60 * 1000);
           return daysSinceCreation > 0 && daysSinceCreation <= 7;
         });
         return Math.round((returned.length / userList.length) * 100);
@@ -745,6 +829,8 @@ export async function GET() {
 
         // Reach
         totalShareViews,
+        anonymousEngagers,
+        sharedTripsWithEngagement,
         totalReferralClicks,
 
         // Conversions
@@ -836,6 +922,13 @@ export async function GET() {
           totalExpired: totalExpiredBananas,
           utilizationRate,
         },
+      },
+      meta: {
+        retentionMethod: signInTrackingAvailable ? "sign_in" : "activity_proxy",
+        signInTrackingAvailable,
+        referralAttributionWired: referredSignups > 0,
+        dataWarnings,
+        generatedAt: nowISO,
       },
     };
 

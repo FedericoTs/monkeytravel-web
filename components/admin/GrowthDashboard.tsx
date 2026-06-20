@@ -1,27 +1,33 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ReactNode } from "react";
 import type { GrowthStats } from "@/app/api/admin/growth/route";
 
 // ============================================
 // RETENTION METRICS COMPONENT
 // ============================================
-function RetentionMetrics({ retention }: { retention: GrowthStats["retention"] }) {
+function RetentionMetrics({
+  retention,
+  meta,
+}: {
+  retention: GrowthStats["retention"];
+  meta: GrowthStats["meta"];
+}) {
   const metrics = [
     {
       label: "D1 Retention",
       value: retention.d1,
       change: retention.d1Change,
       sample: retention.sampleSizes.d1Eligible,
-      description: "Users who returned within 1 day",
-      benchmark: 40, // Industry benchmark
+      description: "Came back within 1 day",
+      benchmark: 40,
     },
     {
       label: "D7 Retention",
       value: retention.d7,
       change: retention.d7Change,
       sample: retention.sampleSizes.d7Eligible,
-      description: "Users who returned within 7 days",
+      description: "Came back within 7 days",
       benchmark: 20,
     },
     {
@@ -29,59 +35,62 @@ function RetentionMetrics({ retention }: { retention: GrowthStats["retention"] }
       value: retention.d30,
       change: retention.d30Change,
       sample: retention.sampleSizes.d30Eligible,
-      description: "Users who returned within 30 days",
+      description: "Came back within 30 days",
       benchmark: 10,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {metrics.map((metric) => (
-        <div
-          key={metric.label}
-          className="bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden"
-        >
-          {/* Background progress indicator */}
+    <div>
+      {meta.retentionMethod === "activity_proxy" && (
+        <p className="text-xs text-amber-600 mb-2">
+          <strong>Activity-based</strong> — sign-in tracking isn&apos;t wired yet, so &quot;came back&quot;
+          counts users who created another trip, used the assistant, or earned bananas after signup.
+          Directional proxy until <code className="bg-amber-50 px-1 rounded">last_seen_at</code> lands.
+        </p>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {metrics.map((metric) => (
           <div
-            className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100"
+            key={metric.label}
+            className="bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden"
           >
-            <div
-              className={`h-full transition-all duration-500 ${
-                metric.value >= metric.benchmark ? "bg-green-500" : "bg-amber-500"
-              }`}
-              style={{ width: `${Math.min(metric.value, 100)}%` }}
-            />
-          </div>
-
-          <div className="flex items-start justify-between mb-2">
-            <span className="text-sm font-medium text-slate-500">{metric.label}</span>
-            {metric.change !== 0 && (
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  metric.change > 0
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  metric.value >= metric.benchmark ? "bg-green-500" : "bg-amber-500"
                 }`}
-              >
-                {metric.change > 0 ? "+" : ""}{metric.change}%
-              </span>
-            )}
-          </div>
+                style={{ width: `${Math.min(metric.value, 100)}%` }}
+              />
+            </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-[var(--foreground)]">
-              {metric.value}%
-            </span>
-            <span className="text-sm text-slate-400">
-              vs {metric.benchmark}% benchmark
-            </span>
-          </div>
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-medium text-slate-500">{metric.label}</span>
+              {metric.change !== 0 && (
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    metric.change > 0
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {metric.change > 0 ? "+" : ""}
+                  {metric.change}%
+                </span>
+              )}
+            </div>
 
-          <p className="text-xs text-slate-400 mt-2">
-            {metric.description} (n={metric.sample})
-          </p>
-        </div>
-      ))}
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-[var(--foreground)]">{metric.value}%</span>
+              <span className="text-sm text-slate-400">vs {metric.benchmark}% benchmark</span>
+            </div>
+
+            <p className="text-xs text-slate-400 mt-2">
+              {metric.description} (n={metric.sample})
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -93,14 +102,13 @@ function AARRRFunnel({ funnel }: { funnel: GrowthStats["funnel"] }) {
   const stages = [
     { key: "acquisition", label: "Acquisition", color: "bg-blue-500", description: "Total signups" },
     { key: "activation", label: "Activation", color: "bg-green-500", description: "Completed onboarding" },
-    { key: "retention", label: "Retention", color: "bg-purple-500", description: "Returned after D1" },
-    { key: "referral", label: "Referral", color: "bg-amber-500", description: "Referred others" },
+    { key: "retention", label: "Retention", color: "bg-purple-500", description: "Active after day 1" },
+    { key: "referral", label: "Referral", color: "bg-amber-500", description: "Shared or invited others" },
     { key: "revenue", label: "Revenue", color: "bg-red-500", description: "Paying customers" },
   ] as const;
 
   const maxCount = funnel.acquisition.count || 1;
 
-  // Calculate drop-offs for each stage
   const getDropOff = (index: number) => {
     if (index === 0) return 0;
     const prevData = funnel[stages[index - 1].key];
@@ -122,7 +130,6 @@ function AARRRFunnel({ funnel }: { funnel: GrowthStats["funnel"] }) {
 
           return (
             <div key={stage.key}>
-              {/* Drop-off indicator - shown BETWEEN rows as its own element */}
               {index > 0 && dropOff > 0 && (
                 <div className="flex items-center justify-center py-1">
                   <div className="flex items-center gap-2">
@@ -136,21 +143,17 @@ function AARRRFunnel({ funnel }: { funnel: GrowthStats["funnel"] }) {
               )}
 
               <div className="flex items-center gap-4 py-1">
-                {/* Label */}
                 <div className="w-24 flex-shrink-0">
                   <span className="text-sm font-medium text-slate-700">{stage.label}</span>
                 </div>
 
-                {/* Bar */}
                 <div className="flex-1 h-10 bg-slate-100 rounded-lg overflow-hidden relative">
                   <div
                     className={`h-full ${stage.color} transition-all duration-700 ease-out flex items-center justify-end pr-3`}
                     style={{ width: `${Math.max((data.count / maxCount) * 100, 5)}%` }}
                   >
                     {data.percentage >= 10 && (
-                      <span className="text-white text-sm font-semibold">
-                        {data.percentage}%
-                      </span>
+                      <span className="text-white text-sm font-semibold">{data.percentage}%</span>
                     )}
                   </div>
                   {data.percentage < 10 && (
@@ -160,7 +163,6 @@ function AARRRFunnel({ funnel }: { funnel: GrowthStats["funnel"] }) {
                   )}
                 </div>
 
-                {/* Count */}
                 <div className="w-20 text-right flex-shrink-0">
                   <span className="text-sm font-semibold text-slate-700">
                     {data.count.toLocaleString()}
@@ -184,39 +186,16 @@ function UserLifecycle({ lifecycle }: { lifecycle: GrowthStats["lifecycle"] }) {
   const total = lifecycle.new + lifecycle.activated + lifecycle.engaged + lifecycle.powerUser;
 
   const stages = [
-    {
-      label: "New",
-      value: lifecycle.new,
-      color: "bg-slate-400",
-      description: "0 trips",
-    },
-    {
-      label: "Activated",
-      value: lifecycle.activated,
-      color: "bg-blue-500",
-      description: "1 trip",
-    },
-    {
-      label: "Engaged",
-      value: lifecycle.engaged,
-      color: "bg-purple-500",
-      description: "2-4 trips",
-    },
-    {
-      label: "Power User",
-      value: lifecycle.powerUser,
-      color: "bg-green-500",
-      description: "5+ trips",
-    },
+    { label: "New", value: lifecycle.new, color: "bg-slate-400", description: "0 trips" },
+    { label: "Activated", value: lifecycle.activated, color: "bg-blue-500", description: "1 trip" },
+    { label: "Engaged", value: lifecycle.engaged, color: "bg-purple-500", description: "2-4 trips" },
+    { label: "Power User", value: lifecycle.powerUser, color: "bg-green-500", description: "5+ trips" },
   ];
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-        User Lifecycle Stages
-      </h3>
+      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">User Lifecycle Stages</h3>
 
-      {/* Stacked bar */}
       <div className="h-8 rounded-lg overflow-hidden flex mb-6">
         {stages.map((stage) => {
           const percentage = total > 0 ? (stage.value / total) * 100 : 0;
@@ -238,7 +217,6 @@ function UserLifecycle({ lifecycle }: { lifecycle: GrowthStats["lifecycle"] }) {
         })}
       </div>
 
-      {/* Legend */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {stages.map((stage) => {
           const percentage = total > 0 ? Math.round((stage.value / total) * 100) : 0;
@@ -260,34 +238,72 @@ function UserLifecycle({ lifecycle }: { lifecycle: GrowthStats["lifecycle"] }) {
 }
 
 // ============================================
-// REFERRAL ANALYTICS COMPONENT (Sean Ellis)
+// SHARING & VIRALITY COMPONENT
 // ============================================
-function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) {
+function ReferralAnalytics({
+  referral,
+  collaboration,
+  meta,
+}: {
+  referral: GrowthStats["referral"];
+  collaboration: GrowthStats["collaboration"];
+  meta: GrowthStats["meta"];
+}) {
+  const kWired = meta.referralAttributionWired;
+
+  // Share loop: shares -> anonymous reach -> referral clicks -> referred signups.
+  const shareLoop = [
+    { label: "Trips Shared", value: referral.totalTripShares, color: "bg-emerald-500" },
+    { label: "Anon. engagers", value: referral.anonymousEngagers, color: "bg-teal-500" },
+    { label: "Referral Clicks", value: referral.totalReferralClicks, color: "bg-blue-500" },
+    { label: "Referred Signups", value: referral.referredSignups, color: "bg-amber-500" },
+  ];
+  const shareMax = Math.max(...shareLoop.map((s) => s.value), 1);
+
+  // Invite loop
+  const invitesAccepted = collaboration.funnel.invitesAccepted;
+  const inviteLoop = [
+    { label: "Invites Sent", value: collaboration.totalInvitesCreated, color: "bg-purple-500" },
+    { label: "Accepted", value: invitesAccepted, color: "bg-indigo-500" },
+    { label: "New Collaborators", value: collaboration.totalCollaborators, color: "bg-blue-500" },
+  ];
+  const inviteMax = Math.max(...inviteLoop.map((s) => s.value), 1);
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-        Sharing & Virality
-      </h3>
+      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1">Sharing &amp; Virality</h3>
+      <p className="text-sm text-slate-500 mb-5">
+        Is the viral loop turning, and where does it leak?
+      </p>
 
-      {/* K-Factor + Shares Per User - Hero metrics */}
+      {/* Hero: K-Factor + Shares/User */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-4">
           <p className="text-sm text-amber-700 font-medium">K-Factor</p>
-          <p className="text-3xl font-bold text-amber-800">{referral.kFactor.toFixed(2)}</p>
-          <p className="text-xs text-amber-600 mt-1">
-            {referral.kFactor >= 1 ? "Viral!" : referral.kFactor >= 0.5 ? "Growing" : "Build sharing"}
-          </p>
+          {kWired ? (
+            <>
+              <p className="text-3xl font-bold text-amber-800">{referral.kFactor.toFixed(2)}</p>
+              <p className="text-xs text-amber-600 mt-1">
+                {referral.kFactor >= 1 ? "Viral! (K≥1)" : referral.kFactor >= 0.5 ? "Growing" : "Build sharing"}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-3xl font-bold text-amber-800/50">n/a</p>
+              <p className="text-xs text-amber-600 mt-1">
+                Referral attribution not wired — referred signups aren&apos;t recorded yet.
+              </p>
+            </>
+          )}
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4">
-          <p className="text-sm text-blue-700 font-medium">Shares/User</p>
+          <p className="text-sm text-blue-700 font-medium">Shares / Sharer</p>
           <p className="text-3xl font-bold text-blue-800">{referral.sharesPerUser.toFixed(2)}</p>
-          <p className="text-xs text-blue-600 mt-1">
-            Target: 2.0+ for growth
-          </p>
+          <p className="text-xs text-blue-600 mt-1">Target: 2.0+ for compounding growth</p>
         </div>
       </div>
 
-      {/* Share Actions - The user ACTION */}
+      {/* Share actions */}
       <div className="mb-6">
         <p className="text-sm font-medium text-slate-600 mb-3">Share Actions</p>
         <div className="grid grid-cols-3 gap-3">
@@ -304,59 +320,84 @@ function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) 
             <p className="text-xs text-emerald-600">Share Rate</p>
           </div>
         </div>
-      </div>
-
-      {/* Share Funnel: Shares → Views → Signups */}
-      <div className="mb-6">
-        <p className="text-sm font-medium text-slate-600 mb-3">Share Funnel</p>
-        <div className="space-y-2">
-          {[
-            { label: "Trips Shared", value: referral.totalTripShares, color: "bg-emerald-500" },
-            { label: "Share Views", value: referral.totalShareViews, color: "bg-blue-500" },
-            { label: "Referral Clicks", value: referral.totalReferralClicks, color: "bg-purple-500" },
-            { label: "Referred Signups", value: referral.referredSignups, color: "bg-amber-500" },
-          ].map((item) => {
-            const max = Math.max(referral.totalTripShares, 1);
-            const width = (item.value / max) * 100;
-            return (
-              <div key={item.label} className="flex items-center gap-3">
-                <span className="w-28 text-xs text-slate-500">{item.label}</span>
-                <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
-                  <div
-                    className={`h-full ${item.color} flex items-center justify-end pr-2 transition-all duration-500`}
-                    style={{ width: `${Math.max(width, 3)}%` }}
-                  >
-                    {width >= 20 && (
-                      <span className="text-white text-xs font-medium">{item.value}</span>
-                    )}
-                  </div>
-                </div>
-                {width < 20 && (
-                  <span className="text-xs text-slate-600 font-medium w-8">{item.value}</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {referral.conversionRate > 0 && (
-          <p className="text-xs text-slate-500 mt-2 text-right">
-            {referral.conversionRate}% click-to-signup conversion
+        {referral.anonymousEngagers > 0 && (
+          <p className="text-xs text-teal-600 mt-2">
+            <strong>{referral.anonymousEngagers}</strong> anonymous people engaged with{" "}
+            <strong>{referral.sharedTripsWithEngagement}</strong> shared trip
+            {referral.sharedTripsWithEngagement === 1 ? "" : "s"} — your real viral reach today.
           </p>
         )}
       </div>
 
-      {/* Top Sharers */}
-      {referral.topReferrers.length > 0 && (
+      {/* Two loops side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Share loop */}
+        <div>
+          <p className="text-sm font-medium text-slate-600 mb-3">Share loop</p>
+          <div className="space-y-2">
+            {shareLoop.map((item) => {
+              const width = (item.value / shareMax) * 100;
+              return (
+                <div key={item.label} className="flex items-center gap-3">
+                  <span className="w-28 text-xs text-slate-500">{item.label}</span>
+                  <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                    <div
+                      className={`h-full ${item.color} flex items-center justify-end pr-2 transition-all duration-500`}
+                      style={{ width: `${Math.max(width, 3)}%` }}
+                    >
+                      {width >= 25 && <span className="text-white text-xs font-medium">{item.value}</span>}
+                    </div>
+                  </div>
+                  {width < 25 && <span className="text-xs text-slate-600 font-medium w-8">{item.value}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Invite loop */}
+        <div>
+          <p className="text-sm font-medium text-slate-600 mb-3">Invite loop</p>
+          <div className="space-y-2">
+            {inviteLoop.map((item) => {
+              const width = (item.value / inviteMax) * 100;
+              return (
+                <div key={item.label} className="flex items-center gap-3">
+                  <span className="w-32 text-xs text-slate-500">{item.label}</span>
+                  <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                    <div
+                      className={`h-full ${item.color} flex items-center justify-end pr-2 transition-all duration-500`}
+                      style={{ width: `${Math.max(width, 3)}%` }}
+                    >
+                      {width >= 25 && <span className="text-white text-xs font-medium">{item.value}</span>}
+                    </div>
+                  </div>
+                  {width < 25 && <span className="text-xs text-slate-600 font-medium w-8">{item.value}</span>}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500 mt-2">
+            Accept rate: <strong>{collaboration.inviteAcceptRate}%</strong>
+            {collaboration.totalInvitesCreated > 0 && invitesAccepted === 0 && (
+              <span className="text-amber-600"> — verify invite accept increments use_count</span>
+            )}
+          </p>
+        </div>
+      </div>
+
+      {/* Champions leaderboard */}
+      {referral.topReferrers.length > 0 ? (
         <div className="pt-4 border-t border-slate-100">
-          <p className="text-sm font-medium text-slate-600 mb-3">Top Sharers</p>
+          <p className="text-sm font-medium text-slate-600 mb-3">🏆 Top Champions (sharers + inviters)</p>
           <div className="space-y-2">
             {referral.topReferrers.map((ref, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">
+                <span className="text-slate-700 font-medium">
                   #{i + 1} {ref.name}
                 </span>
                 <div className="flex gap-3">
-                  <span className="text-emerald-600 text-xs">{ref.shares} shares</span>
+                  {ref.shares > 0 && <span className="text-emerald-600 text-xs">{ref.shares} shares</span>}
+                  {ref.invites > 0 && <span className="text-purple-600 text-xs">{ref.invites} invites</span>}
                   {ref.signups > 0 && (
                     <span className="text-amber-600 text-xs font-medium">{ref.signups} signups</span>
                   )}
@@ -364,17 +405,149 @@ function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) 
               </div>
             ))}
           </div>
+          <p className="text-xs text-slate-400 mt-3">
+            These are your word-of-mouth engine. Reach out, reward them, ask what made them share.
+          </p>
         </div>
-      )}
-
-      {/* Empty state */}
-      {referral.totalTripShares === 0 && (
-        <div className="text-center py-6 text-slate-400">
-          <p className="text-sm">No shares yet</p>
-          <p className="text-xs mt-1">Encourage users to share their trips!</p>
+      ) : (
+        <div className="text-center py-6 text-slate-400 border-t border-slate-100">
+          <p className="text-sm">No sharing or invites yet</p>
+          <p className="text-xs mt-1">The playbook below has levers to kick-start the loop.</p>
         </div>
       )}
     </div>
+  );
+}
+
+// ============================================
+// VIRALITY PLAYBOOK COMPONENT (actionable levers)
+// ============================================
+function ViralityPlaybook({
+  referral,
+  collaboration,
+  meta,
+}: {
+  referral: GrowthStats["referral"];
+  collaboration: GrowthStats["collaboration"];
+  meta: GrowthStats["meta"];
+}) {
+  const levers = [
+    {
+      title: "Convert anonymous engagers into accounts",
+      why:
+        referral.anonymousEngagers > 0
+          ? `${referral.anonymousEngagers} people voted on ${referral.sharedTripsWithEngagement} shared trip(s) without signing up. That's warm intent leaking out.`
+          : "When people engage with a shared trip without an account, that intent leaks out.",
+      do: 'Add a "Create your own trip" / "Save your votes" CTA on the shared-trip page.',
+      impact: "High",
+      live: referral.anonymousEngagers > 0,
+    },
+    {
+      title: "Reward sharing with Bananas",
+      why: "The Bananas economy already has the rails (earn types + balances).",
+      do: 'Add a "share → earn bananas" earn type so sharing pays off in-product.',
+      impact: "High",
+      live: true,
+    },
+    {
+      title: "Fix + lower invite friction",
+      why:
+        collaboration.totalInvitesCreated > 0 && collaboration.funnel.invitesAccepted === 0
+          ? `${collaboration.totalInvitesCreated} invites sent, ~0 accepted — the accept step looks broken.`
+          : "Invite acceptance is the highest-intent path into the app.",
+      do: "Verify invite-accept increments use_count, then make joining one-click from the link.",
+      impact: "High",
+      live: collaboration.totalInvitesCreated > 0,
+    },
+    {
+      title: "Wire referral attribution",
+      why: meta.referralAttributionWired
+        ? "Attribution is wired — keep surfacing referrers' impact."
+        : "Referral clicks are tracked but signups aren't attributed, so K-Factor reads n/a.",
+      do: 'Persist ?ref through signup; set users.referred_by_code + increment referral_codes.total_signups. Then show referrers "you brought N friends".',
+      impact: "Unblocks K",
+      live: !meta.referralAttributionWired,
+    },
+    {
+      title: "Nudge a share at the aha-moment",
+      why: "The moment a trip is generated is peak excitement — the best time to ask for a share.",
+      do: "Trigger a share prompt right after trip generation, not passively later.",
+      impact: "Medium",
+      live: false,
+    },
+  ];
+
+  const impactColor = (impact: string) =>
+    impact === "High"
+      ? "bg-emerald-100 text-emerald-700"
+      : impact === "Unblocks K"
+      ? "bg-amber-100 text-amber-700"
+      : "bg-slate-100 text-slate-600";
+
+  return (
+    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-6">
+      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1">📈 Virality Playbook</h3>
+      <p className="text-sm text-slate-500 mb-5">
+        Concrete levers to lift the loop — ordered by leverage, grounded in your data.
+      </p>
+      <div className="space-y-3">
+        {levers.map((lever, i) => (
+          <div key={i} className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <p className="text-sm font-semibold text-slate-800">
+                {i + 1}. {lever.title}
+              </p>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${impactColor(lever.impact)}`}>
+                {lever.impact}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mb-1">{lever.why}</p>
+            <p className="text-sm text-slate-700">
+              <span className="text-emerald-700 font-medium">Do:</span> {lever.do}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// COLLAPSIBLE SECTION WRAPPER
+// ============================================
+function Collapsible({
+  title,
+  badge,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  badge?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details open={defaultOpen} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+      <summary className="cursor-pointer select-none px-6 py-4 flex items-center justify-between hover:bg-slate-50">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-semibold text-[var(--foreground)]">{title}</span>
+          {badge && (
+            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">
+              {badge}
+            </span>
+          )}
+        </div>
+        <svg
+          className="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </summary>
+      <div className="px-1 pb-1">{children}</div>
+    </details>
   );
 }
 
@@ -383,17 +556,7 @@ function ReferralAnalytics({ referral }: { referral: GrowthStats["referral"] }) 
 // ============================================
 function CollaborationAnalytics({ collaboration }: { collaboration: GrowthStats["collaboration"] }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">
-          Collaboration Analytics
-        </h3>
-        <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium">
-          New Feature
-        </span>
-      </div>
-
-      {/* Adoption Metrics */}
+    <div className="p-6 pt-2">
       <div className="mb-6">
         <p className="text-sm font-medium text-slate-600 mb-3">Adoption</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -416,136 +579,59 @@ function CollaborationAnalytics({ collaboration }: { collaboration: GrowthStats[
         </div>
       </div>
 
-      {/* Proposals Pipeline */}
-      <div className="mb-6">
-        <p className="text-sm font-medium text-slate-600 mb-3">Proposal Pipeline</p>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {[
-            { label: "Pending", value: collaboration.proposalsByStatus.pending, color: "bg-slate-100 text-slate-700" },
-            { label: "Voting", value: collaboration.proposalsByStatus.voting, color: "bg-blue-100 text-blue-700" },
-            { label: "Approved", value: collaboration.proposalsByStatus.approved, color: "bg-green-100 text-green-700" },
-            { label: "Rejected", value: collaboration.proposalsByStatus.rejected, color: "bg-red-100 text-red-700" },
-            { label: "Withdrawn", value: collaboration.proposalsByStatus.withdrawn, color: "bg-amber-100 text-amber-700" },
-            { label: "Expired", value: collaboration.proposalsByStatus.expired, color: "bg-gray-100 text-gray-700" },
-          ].map((status) => (
-            <div key={status.label} className={`text-center p-2 rounded-lg ${status.color}`}>
-              <p className="text-lg font-bold">{status.value}</p>
-              <p className="text-xs">{status.label}</p>
-            </div>
-          ))}
-        </div>
-        {collaboration.totalProposals > 0 && (
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-            <span>Total: {collaboration.totalProposals} proposals from {collaboration.proposersCount} users</span>
-            <span>Approval rate: {collaboration.proposalApprovalRate}%</span>
-          </div>
-        )}
-      </div>
-
-      {/* Voting Engagement */}
-      <div className="mb-6">
-        <p className="text-sm font-medium text-slate-600 mb-3">Voting Engagement</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-            <p className="text-2xl font-bold text-indigo-700">{collaboration.totalProposalVotes}</p>
-            <p className="text-xs text-indigo-600">Total Votes</p>
-          </div>
-          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-            <p className="text-2xl font-bold text-indigo-700">{collaboration.uniqueVoters}</p>
-            <p className="text-xs text-indigo-600">Unique Voters</p>
-          </div>
-          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-            <p className="text-2xl font-bold text-indigo-700">{collaboration.avgVotesPerProposal}</p>
-            <p className="text-xs text-indigo-600">Avg Votes/Proposal</p>
-          </div>
-          <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-            <p className="text-2xl font-bold text-indigo-700">{collaboration.participationRate}%</p>
-            <p className="text-xs text-indigo-600">Participation</p>
-          </div>
-        </div>
-        {/* Vote Distribution */}
-        {collaboration.totalProposalVotes > 0 && (
-          <div className="mt-3 flex items-center gap-2">
-            <span className="text-xs text-slate-500 w-16">Votes:</span>
-            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden flex">
-              <div
-                className="bg-green-500 h-full"
-                style={{ width: `${(collaboration.voteDistribution.approve / collaboration.totalProposalVotes) * 100}%` }}
-                title={`${collaboration.voteDistribution.approve} approve`}
-              />
-              <div
-                className="bg-red-500 h-full"
-                style={{ width: `${(collaboration.voteDistribution.reject / collaboration.totalProposalVotes) * 100}%` }}
-                title={`${collaboration.voteDistribution.reject} reject`}
-              />
-            </div>
-            <div className="flex gap-3 text-xs">
-              <span className="text-green-600">{collaboration.voteDistribution.approve} approve</span>
-              <span className="text-red-600">{collaboration.voteDistribution.reject} reject</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Role Distribution */}
-      <div className="mb-6">
-        <p className="text-sm font-medium text-slate-600 mb-3">Role Distribution</p>
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { label: "Owner", value: collaboration.roleDistribution.owner, color: "bg-amber-500" },
-            { label: "Editor", value: collaboration.roleDistribution.editor, color: "bg-blue-500" },
-            { label: "Voter", value: collaboration.roleDistribution.voter, color: "bg-purple-500" },
-            { label: "Viewer", value: collaboration.roleDistribution.viewer, color: "bg-slate-400" },
-          ].map((role) => (
-            <div key={role.label} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${role.color}`} />
-              <span className="text-sm text-slate-600">{role.label}: {role.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Collaboration Funnel */}
-      <div className="pt-4 border-t border-slate-100">
-        <p className="text-sm font-medium text-slate-600 mb-3">Collaboration Funnel</p>
-        <div className="space-y-2">
-          {[
-            { label: "Trips Created", value: collaboration.funnel.tripsCreated, color: "bg-slate-500" },
-            { label: "Invites Created", value: collaboration.funnel.invitesCreated, color: "bg-purple-500" },
-            { label: "Invites Accepted", value: collaboration.funnel.invitesAccepted, color: "bg-blue-500" },
-            { label: "Proposals Made", value: collaboration.funnel.proposalsCreated, color: "bg-indigo-500" },
-            { label: "Proposals Resolved", value: collaboration.funnel.proposalsResolved, color: "bg-green-500" },
-          ].map((step) => {
-            const max = Math.max(collaboration.funnel.tripsCreated, 1);
-            const width = (step.value / max) * 100;
-            return (
-              <div key={step.label} className="flex items-center gap-3">
-                <span className="w-32 text-xs text-slate-500">{step.label}</span>
-                <div className="flex-1 h-5 bg-slate-100 rounded overflow-hidden">
-                  <div
-                    className={`h-full ${step.color} flex items-center justify-end pr-2 transition-all duration-500`}
-                    style={{ width: `${Math.max(width, 3)}%` }}
-                  >
-                    {width >= 20 && (
-                      <span className="text-white text-xs font-medium">{step.value}</span>
-                    )}
-                  </div>
+      {collaboration.totalProposals > 0 ? (
+        <>
+          <div className="mb-6">
+            <p className="text-sm font-medium text-slate-600 mb-3">Proposal Pipeline</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[
+                { label: "Pending", value: collaboration.proposalsByStatus.pending, color: "bg-slate-100 text-slate-700" },
+                { label: "Voting", value: collaboration.proposalsByStatus.voting, color: "bg-blue-100 text-blue-700" },
+                { label: "Approved", value: collaboration.proposalsByStatus.approved, color: "bg-green-100 text-green-700" },
+                { label: "Rejected", value: collaboration.proposalsByStatus.rejected, color: "bg-red-100 text-red-700" },
+                { label: "Withdrawn", value: collaboration.proposalsByStatus.withdrawn, color: "bg-amber-100 text-amber-700" },
+                { label: "Expired", value: collaboration.proposalsByStatus.expired, color: "bg-gray-100 text-gray-700" },
+              ].map((status) => (
+                <div key={status.label} className={`text-center p-2 rounded-lg ${status.color}`}>
+                  <p className="text-lg font-bold">{status.value}</p>
+                  <p className="text-xs">{status.label}</p>
                 </div>
-                {width < 20 && (
-                  <span className="text-xs text-slate-600 font-medium w-8">{step.value}</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+              <span>
+                {collaboration.totalProposals} proposals from {collaboration.proposersCount} users
+              </span>
+              <span>Approval: {collaboration.proposalApprovalRate}%</span>
+            </div>
+          </div>
 
-      {/* Empty state */}
-      {collaboration.totalCollaborators === 0 && collaboration.totalProposals === 0 && (
-        <div className="text-center py-6 text-slate-400 border-t border-slate-100 mt-4">
-          <p className="text-sm">No collaboration activity yet</p>
-          <p className="text-xs mt-1">Encourage users to invite others to their trips!</p>
-        </div>
+          <div className="mb-2">
+            <p className="text-sm font-medium text-slate-600 mb-3">Voting Engagement</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                <p className="text-2xl font-bold text-indigo-700">{collaboration.totalProposalVotes}</p>
+                <p className="text-xs text-indigo-600">Total Votes</p>
+              </div>
+              <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                <p className="text-2xl font-bold text-indigo-700">{collaboration.uniqueVoters}</p>
+                <p className="text-xs text-indigo-600">Unique Voters</p>
+              </div>
+              <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                <p className="text-2xl font-bold text-indigo-700">{collaboration.avgVotesPerProposal}</p>
+                <p className="text-xs text-indigo-600">Avg Votes/Proposal</p>
+              </div>
+              <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                <p className="text-2xl font-bold text-indigo-700">{collaboration.participationRate}%</p>
+                <p className="text-xs text-indigo-600">Participation</p>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-slate-400 text-center py-4">
+          No activity proposals yet — the propose/vote feature hasn&apos;t been used.
+        </p>
       )}
     </div>
   );
@@ -559,28 +645,20 @@ function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] })
   const tierNames = ["Traveler", "Explorer", "Ambassador", "Champion"];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">Bananas Economy</h3>
-        <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-          Rewards System
-        </span>
-      </div>
-
-      {/* Overview Metrics */}
+    <div className="p-6 pt-2">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">🍌</span>
-            <span className="text-xs text-amber-600">In Circulation</span>
+          <span className="text-xs text-amber-600 block mb-1">In Circulation</span>
+          <div className="text-2xl font-bold text-amber-700">
+            {bananas.overview.totalInCirculation.toLocaleString()}
           </div>
-          <div className="text-2xl font-bold text-amber-700">{bananas.overview.totalInCirculation.toLocaleString()}</div>
         </div>
         <div className="bg-green-50 rounded-xl p-4 border border-green-100">
           <span className="text-xs text-green-600 block mb-1">Total Earned</span>
           <div className="text-2xl font-bold text-green-700">{bananas.overview.totalEarned.toLocaleString()}</div>
           <div className="text-xs text-green-500 mt-1">
-            {bananas.overview.velocity.changePercent > 0 ? "+" : ""}{bananas.overview.velocity.changePercent}% vs last week
+            {bananas.overview.velocity.changePercent > 0 ? "+" : ""}
+            {bananas.overview.velocity.changePercent}% vs last week
           </div>
         </div>
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
@@ -595,50 +673,17 @@ function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] })
         </div>
       </div>
 
-      {/* Tier Distribution Bar */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-slate-600">Tier Distribution</span>
-          <span className="text-xs text-slate-400">
-            {bananas.tierDistribution.tier0.count + bananas.tierDistribution.tier1.count + bananas.tierDistribution.tier2.count + bananas.tierDistribution.tier3.count} users
-          </span>
-        </div>
-        <div className="h-4 rounded-full overflow-hidden flex bg-slate-100">
-          {[0, 1, 2, 3].map((tier) => {
-            const tierData = bananas.tierDistribution[`tier${tier}` as keyof typeof bananas.tierDistribution] as { count: number; pct: number };
-            return (
-              <div
-                key={tier}
-                className={`${tierColors[tier]} h-full transition-all`}
-                style={{ width: `${tierData.pct || 0}%` }}
-                title={`${tierNames[tier]}: ${tierData.count}`}
-              />
-            );
-          })}
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-slate-500 flex-wrap gap-2">
-          {[0, 1, 2, 3].map((tier) => {
-            const tierData = bananas.tierDistribution[`tier${tier}` as keyof typeof bananas.tierDistribution] as { count: number; pct: number };
-            return (
-              <span key={tier} className="flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${tierColors[tier]}`} />
-                {tierNames[tier]}: {tierData.count}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Two Column: Earning Breakdown + Redemptions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Earning Breakdown */}
         <div className="bg-slate-50 rounded-xl p-4">
           <h4 className="text-sm font-medium text-slate-700 mb-3">Earning Breakdown</h4>
           {Object.keys(bananas.earningBreakdown.byType).length > 0 ? (
             Object.entries(bananas.earningBreakdown.byType)
               .sort((a, b) => b[1] - a[1])
               .map(([type, amount]) => (
-                <div key={type} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
+                <div
+                  key={type}
+                  className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0"
+                >
                   <span className="text-xs text-slate-600 capitalize">{type.replace(/_/g, " ")}</span>
                   <span className="text-xs font-medium text-amber-700">{amount.toLocaleString()} 🍌</span>
                 </div>
@@ -648,56 +693,53 @@ function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] })
           )}
         </div>
 
-        {/* Top Redeemed Items */}
         <div className="bg-slate-50 rounded-xl p-4">
-          <h4 className="text-sm font-medium text-slate-700 mb-3">Top Redeemed Items</h4>
-          {bananas.redemptions.topItems.length > 0 ? (
-            bananas.redemptions.topItems.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
-                <span className="text-xs text-slate-600">{item.name}</span>
-                <span className="text-xs font-medium text-blue-700">{item.count}x ({item.spent} 🍌)</span>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-slate-400">No redemptions yet</p>
-          )}
+          <h4 className="text-sm font-medium text-slate-700 mb-3">Tier Distribution</h4>
+          <div className="h-4 rounded-full overflow-hidden flex bg-slate-100 mb-2">
+            {[0, 1, 2, 3].map((tier) => {
+              const tierData = bananas.tierDistribution[
+                `tier${tier}` as keyof typeof bananas.tierDistribution
+              ] as { count: number; pct: number };
+              return (
+                <div
+                  key={tier}
+                  className={`${tierColors[tier]} h-full transition-all`}
+                  style={{ width: `${tierData.pct || 0}%` }}
+                  title={`${tierNames[tier]}: ${tierData.count}`}
+                />
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+            {[0, 1, 2, 3].map((tier) => {
+              const tierData = bananas.tierDistribution[
+                `tier${tier}` as keyof typeof bananas.tierDistribution
+              ] as { count: number; pct: number };
+              return (
+                <span key={tier} className="flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-full ${tierColors[tier]}`} />
+                  {tierNames[tier]}: {tierData.count}
+                </span>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Top Earners */}
       {bananas.earningBreakdown.topEarners.length > 0 && (
         <div className="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
           <h4 className="text-sm font-medium text-amber-800 mb-3">Top Earners</h4>
           <div className="flex flex-wrap gap-3">
             {bananas.earningBreakdown.topEarners.map((earner, i) => (
-              <div key={i} className="bg-white rounded-lg px-3 py-2 border border-amber-200 flex items-center gap-2">
+              <div
+                key={i}
+                className="bg-white rounded-lg px-3 py-2 border border-amber-200 flex items-center gap-2"
+              >
                 <span className="text-sm font-medium text-slate-700">{earner.displayName}</span>
                 <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{earner.total} 🍌</span>
-                <span className={`w-2 h-2 rounded-full ${tierColors[earner.tier]}`} title={tierNames[earner.tier]} />
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Expiration Warning */}
-      {bananas.expiration.atRisk30d > 0 && (
-        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-600 text-lg">⚠️</span>
-            <span className="text-sm text-amber-700">
-              <strong>{bananas.expiration.atRisk30d.toLocaleString()}</strong> bananas expiring in 30 days
-              ({bananas.expiration.atRiskUsers} users affected)
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {bananas.overview.totalEarned === 0 && (
-        <div className="text-center py-6 text-slate-400 border-t border-slate-100 mt-4">
-          <p className="text-sm">No bananas activity yet</p>
-          <p className="text-xs mt-1">Users earn bananas through referrals and engagement!</p>
         </div>
       )}
     </div>
@@ -707,96 +749,98 @@ function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] })
 // ============================================
 // AHA MOMENT TABLE COMPONENT
 // ============================================
-function AhaMomentTable({ ahaMoments }: { ahaMoments: GrowthStats["ahaMoments"] }) {
+function AhaMomentTable({
+  ahaMoments,
+  meta,
+}: {
+  ahaMoments: GrowthStats["ahaMoments"];
+  meta: GrowthStats["meta"];
+}) {
   const actions = [
-    { key: "generatedItinerary", label: "Generated a Trip", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", category: "core" },
-    { key: "sharedTrip", label: "Shared a Trip", icon: "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z", category: "core" },
-    { key: "completedOnboarding", label: "Completed Onboarding", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", category: "core" },
-    { key: "usedAssistant", label: "Used AI Assistant", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z", category: "core" },
-    // Collaboration aha moments
-    { key: "createdInvite", label: "Created Invite Link", icon: "M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1", category: "collab" },
-    { key: "joinedViaInvite", label: "Joined via Invite", icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z", category: "collab" },
-    { key: "votedOnProposal", label: "Voted on Proposal", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", category: "collab" },
-    { key: "createdProposal", label: "Created Proposal", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6", category: "collab" },
+    { key: "generatedItinerary", label: "Generated a Trip" },
+    { key: "sharedTrip", label: "Shared a Trip" },
+    { key: "completedOnboarding", label: "Completed Onboarding" },
+    { key: "usedAssistant", label: "Used AI Assistant" },
+    { key: "createdInvite", label: "Created Invite Link" },
+    { key: "joinedViaInvite", label: "Joined via Invite" },
+    { key: "votedOnProposal", label: "Voted on Proposal" },
+    { key: "createdProposal", label: "Created Proposal" },
   ] as const;
+
+  // Only show actions with at least one cohort having a measurable rate.
+  const rows = actions
+    .map((a) => ({ ...a, data: ahaMoments[a.key] }))
+    .filter((r) => r.data.didIt > 0 || r.data.didntDoIt > 0);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">
-          Aha Moment Analysis
-        </h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">Aha Moment Analysis</h3>
         <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-          D7 Retention Correlation
+          {meta.retentionMethod === "activity_proxy" ? "Activity-based D7 lift" : "D7 retention lift"}
         </span>
       </div>
 
       <p className="text-sm text-slate-500 mb-6">
-        Compare D7 retention for users who took each action vs those who did not.
-        Higher retention lift indicates a potential &quot;aha moment&quot;.
+        Which actions correlate with users coming back? Higher lift = stronger &quot;aha moment&quot; to push users toward.
       </p>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="text-left text-xs text-slate-500 border-b border-slate-100">
-              <th className="pb-3 font-medium">Action</th>
-              <th className="pb-3 font-medium text-center">Did It</th>
-              <th className="pb-3 font-medium text-center">Didn&apos;t Do It</th>
-              <th className="pb-3 font-medium text-right">Retention Lift</th>
-            </tr>
-          </thead>
-          <tbody>
-            {actions.map((action) => {
-              const data = ahaMoments[action.key];
-              const isPositive = data.retentionLift > 0;
-              const isStrong = Math.abs(data.retentionLift) >= 50;
-
-              return (
-                <tr key={action.key} className="border-b border-slate-50 last:border-0">
-                  <td className="py-4">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
-                      </svg>
-                      <span className="text-sm font-medium text-slate-700">{action.label}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-center">
-                    <span className="text-sm font-semibold text-green-600">{data.didIt}%</span>
-                  </td>
-                  <td className="py-4 text-center">
-                    <span className="text-sm font-semibold text-slate-500">{data.didntDoIt}%</span>
-                  </td>
-                  <td className="py-4 text-right">
-                    <span
-                      className={`inline-flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${
-                        isPositive
-                          ? isStrong
-                            ? "bg-green-100 text-green-700"
-                            : "bg-green-50 text-green-600"
-                          : "bg-red-50 text-red-600"
-                      }`}
-                    >
-                      {isPositive ? "+" : ""}{data.retentionLift}%
-                      {isStrong && isPositive && (
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      {rows.length === 0 ? (
+        <p className="text-sm text-slate-400 text-center py-4">
+          Not enough activity yet to measure retention lift.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-xs text-slate-500 border-b border-slate-100">
+                <th className="pb-3 font-medium">Action</th>
+                <th className="pb-3 font-medium text-center">Did It</th>
+                <th className="pb-3 font-medium text-center">Didn&apos;t</th>
+                <th className="pb-3 font-medium text-right">Retention Lift</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const data = row.data;
+                const isPositive = data.retentionLift > 0;
+                const isStrong = Math.abs(data.retentionLift) >= 50;
+                return (
+                  <tr key={row.key} className="border-b border-slate-50 last:border-0">
+                    <td className="py-4">
+                      <span className="text-sm font-medium text-slate-700">{row.label}</span>
+                    </td>
+                    <td className="py-4 text-center">
+                      <span className="text-sm font-semibold text-green-600">{data.didIt}%</span>
+                    </td>
+                    <td className="py-4 text-center">
+                      <span className="text-sm font-semibold text-slate-500">{data.didntDoIt}%</span>
+                    </td>
+                    <td className="py-4 text-right">
+                      <span
+                        className={`inline-flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${
+                          isPositive
+                            ? isStrong
+                              ? "bg-green-100 text-green-700"
+                              : "bg-green-50 text-green-600"
+                            : "bg-red-50 text-red-600"
+                        }`}
+                      >
+                        {isPositive ? "+" : ""}
+                        {data.retentionLift}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
         <p className="text-xs text-blue-700">
-          <strong>Tip:</strong> Actions with 50%+ retention lift are strong candidates for your &quot;aha moment&quot;.
-          Focus product development on getting users to complete these actions quickly.
+          <strong>Tip:</strong> actions with 50%+ lift are your aha-moment candidates — get new users to do them fast.
         </p>
       </div>
     </div>
@@ -830,45 +874,10 @@ export default function GrowthDashboard() {
     }
   }, []);
 
-  // Empty state
-  if (!stats && !loading && !error) {
-    return (
-      <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Growth Metrics</h3>
-          <p className="text-slate-500 mb-6 max-w-xs">
-            Sean Ellis framework metrics: retention, AARRR funnel, referrals, and aha moments.
-          </p>
-          <button
-            onClick={fetchStats}
-            disabled={loading}
-            className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Loading...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Load Growth Metrics
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
-  // Error state
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
@@ -883,7 +892,6 @@ export default function GrowthDashboard() {
     );
   }
 
-  // Loading state
   if (loading && !stats) {
     return (
       <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
@@ -897,17 +905,16 @@ export default function GrowthDashboard() {
 
   if (!stats) return null;
 
+  const collabHasData = stats.collaboration.totalCollaborators > 0 || stats.collaboration.totalProposals > 0;
+  const bananasHasData = stats.bananasEconomy.overview.totalEarned > 0;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {lastUpdated && (
-            <span className="text-xs text-slate-400">
-              Updated {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
-        </div>
+        <span className="text-xs text-slate-400">
+          {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : ""}
+        </span>
         <button
           onClick={fetchStats}
           disabled={loading}
@@ -930,37 +937,71 @@ export default function GrowthDashboard() {
         </button>
       </div>
 
-      {/* Retention Metrics - Hero Section */}
-      <RetentionMetrics retention={stats.retention} />
+      {/* Data warnings (only if a query actually errored) */}
+      {stats.meta.dataWarnings.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+          <p className="text-xs text-red-700">
+            <strong>Data warning:</strong> some metrics may be wrong — {stats.meta.dataWarnings.join("; ")}
+          </p>
+        </div>
+      )}
 
-      {/* Two Column Layout for Funnel and Lifecycle */}
+      {/* Retention */}
+      <RetentionMetrics retention={stats.retention} meta={stats.meta} />
+
+      {/* Funnel + Lifecycle */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AARRRFunnel funnel={stats.funnel} />
         <UserLifecycle lifecycle={stats.lifecycle} />
       </div>
 
-      {/* Referral Analytics */}
-      <ReferralAnalytics referral={stats.referral} />
+      {/* Sharing & Virality — the headline section */}
+      <ReferralAnalytics
+        referral={stats.referral}
+        collaboration={stats.collaboration}
+        meta={stats.meta}
+      />
 
-      {/* Collaboration Analytics */}
-      {stats.collaboration && (
+      {/* Virality Playbook — what to DO */}
+      <ViralityPlaybook
+        referral={stats.referral}
+        collaboration={stats.collaboration}
+        meta={stats.meta}
+      />
+
+      {/* Aha Moments */}
+      <AhaMomentTable ahaMoments={stats.ahaMoments} meta={stats.meta} />
+
+      {/* Collaboration — collapsed by default when low data */}
+      <Collapsible
+        title="Collaboration Analytics"
+        badge={collabHasData ? undefined : "Low data"}
+        defaultOpen={collabHasData}
+      >
         <CollaborationAnalytics collaboration={stats.collaboration} />
-      )}
+      </Collapsible>
 
-      {/* Bananas Economy Analytics */}
-      {stats.bananasEconomy && (
+      {/* Bananas Economy — collapsed by default when low data */}
+      <Collapsible
+        title="Bananas Economy"
+        badge={bananasHasData ? undefined : "Low data"}
+        defaultOpen={bananasHasData}
+      >
         <BananasEconomy bananas={stats.bananasEconomy} />
-      )}
+      </Collapsible>
 
-      {/* Aha Moment Analysis */}
-      <AhaMomentTable ahaMoments={stats.ahaMoments} />
-
-      {/* Data Quality Notice */}
-      <div className="bg-slate-50 rounded-xl p-4 text-center">
+      {/* Honest data-quality footnote */}
+      <div className="bg-slate-50 rounded-xl p-4">
         <p className="text-xs text-slate-500">
-          <strong>Note:</strong> Retention metrics require sufficient sample size for statistical significance.
-          D1 needs 50+ eligible users, D7 needs 100+, D30 needs 500+ for reliable insights.
-          Current samples: D1={stats.retention.sampleSizes.d1Eligible}, D7={stats.retention.sampleSizes.d7Eligible}, D30={stats.retention.sampleSizes.d30Eligible}
+          <strong>Method:</strong>{" "}
+          {stats.meta.retentionMethod === "activity_proxy"
+            ? "Retention is activity-based (sign-in tracking not wired) — directional, not exact."
+            : "Retention uses real sign-in timestamps."}{" "}
+          Reach = distinct anonymous engagers on shared trips.{" "}
+          {!stats.meta.referralAttributionWired &&
+            "K-Factor is n/a until referral attribution is wired (referred signups aren't recorded yet). "}
+          Samples: D1={stats.retention.sampleSizes.d1Eligible}, D7=
+          {stats.retention.sampleSizes.d7Eligible}, D30={stats.retention.sampleSizes.d30Eligible}.
         </p>
       </div>
     </div>
