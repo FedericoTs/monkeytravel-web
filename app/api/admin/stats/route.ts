@@ -299,7 +299,23 @@ export async function GET() {
     const usersWithTripsCount = usersWithTripsResult.count || 0;
     const totalUsers = userMetrics.total || 0;
     const neverCreatedTrip = totalUsers - usersWithTripsCount;
-    const inactiveLast30Days = totalUsers - (userMetrics.activeLast30Days || 0);
+
+    // Activity-proxy "active" signals. public.users.last_sign_in_at is never
+    // synced from auth.users (NULL for ~100% of users), which silently zeroed
+    // activeLast30Days, retention, at-risk and the cohort matrix. Derive
+    // "active" from signals we DO record: trips, AI conversations, bananas.
+    // (DAU/WAU/MAU still come from the get_engagement_metrics RPC and need a
+    // migration to re-base — tracked separately.)
+    const activityByUser = await fetchActivityByUser(supabase);
+    const t30 = Date.now() - 30 * 86_400_000;
+    const t7 = Date.now() - 7 * 86_400_000;
+    const activeUserIds7d = new Set<string>();
+    let activeLast30Days = 0;
+    for (const [uid, times] of activityByUser) {
+      if (times.some((t) => t >= t30)) activeLast30Days++;
+      if (times.some((t) => t >= t7)) activeUserIds7d.add(uid);
+    }
+    const inactiveLast30Days = Math.max(totalUsers - activeLast30Days, 0);
     const retentionRate = totalUsers > 0 ? ((totalUsers - inactiveLast30Days) / totalUsers) * 100 : 0;
 
     // Compute week-over-week deltas + activation block in parallel.
@@ -307,7 +323,7 @@ export async function GET() {
     // hit above, so no schema change required.
     const [deltas, activation] = await Promise.all([
       fetchWoWDeltas(supabase),
-      fetchActivation(supabase, totalUsers, usersWithTripsCount, tripMetrics.total || 0, tripMetrics.sharedTrips || 0),
+      fetchActivation(supabase, totalUsers, usersWithTripsCount, tripMetrics.total || 0, tripMetrics.sharedTrips || 0, activeUserIds7d),
     ]);
 
     // Build response
@@ -316,7 +332,7 @@ export async function GET() {
         total: userMetrics.total || 0,
         newLast7Days: userMetrics.newLast7Days || 0,
         newLast30Days: userMetrics.newLast30Days || 0,
-        activeLast30Days: userMetrics.activeLast30Days || 0,
+        activeLast30Days,
         withTrips: usersWithTripsCount,
         withoutTrips: neverCreatedTrip,
         deltaPctWoW: deltas.users,
@@ -326,7 +342,7 @@ export async function GET() {
         neverCreatedTrip,
         inactiveLast30Days,
         retentionRate: Math.round(retentionRate * 10) / 10,
-        cohortRetention: await fetchCohortRetention(supabase),
+        cohortRetention: await fetchCohortRetention(supabase, activityByUser),
       },
       trips: {
         total: tripMetrics.total || 0,
@@ -503,6 +519,7 @@ async function fetchActivation(
   usersWithTrips: number,
   totalTrips: number,
   sharedTrips: number,
+  activeUserIds7d: Set<string>,
 ): Promise<AdminStats["activation"]> {
   // Defensive: every read here is wrapped — if either query fails we
   // return a zero-filled block instead of 500'ing the whole /admin
@@ -535,19 +552,13 @@ async function fetchActivation(
       if (c >= 2) multiTripUsers++;
     }
 
-    // atRiskUsers: dormant (>7d since last sign-in) OR never returned
-    // (last_sign_in_at IS NULL AND signed up >7d ago), AND no trips.
-    //
-    // Bug-fix 2026-05-28: the original `.lt("last_sign_in_at", d7Ago)`
-    // dropped every row where last_sign_in_at is NULL because
-    // `NULL < X` is `unknown` in SQL — those are the MOST at-risk users.
-    // PostgREST OR syntax: comma-separated filters; `and(a,b)` nests.
+    // atRiskUsers: signed up >7d ago, never created a trip, and no tracked
+    // activity in the last 7 days. Uses the activity proxy (last_sign_in_at is
+    // never synced, so the old NULL-aware sign-in filter flagged everyone).
     const dormantRes = await supabase
       .from("users")
       .select("id")
-      .or(
-        `last_sign_in_at.lt.${d7AgoIso},and(last_sign_in_at.is.null,created_at.lt.${d7AgoIso})`,
-      );
+      .lt("created_at", d7AgoIso);
     if (dormantRes.error) throw dormantRes.error;
 
     const tripOwnerSet = new Set(
@@ -555,7 +566,7 @@ async function fetchActivation(
     );
     let atRiskUsers = 0;
     (dormantRes.data ?? []).forEach((u) => {
-      if (!tripOwnerSet.has(u.id)) atRiskUsers++;
+      if (!tripOwnerSet.has(u.id) && !activeUserIds7d.has(u.id)) atRiskUsers++;
     });
 
     const signupToFirstTripPct =
@@ -689,12 +700,39 @@ async function fetchRecentActivity(supabase: SupabaseClient) {
     .slice(0, 15);
 }
 
-// Cohort retention matrix - tracks weekly user retention
-async function fetchCohortRetention(supabase: SupabaseClient): Promise<CohortData[]> {
-  // Get all users with their signup and last activity dates
+// Activity-proxy: per-user activity timestamps from signals we actually record
+// (trips, AI conversations, banana transactions). Replaces the never-synced
+// users.last_sign_in_at for every "active" computation in this route.
+async function fetchActivityByUser(supabase: SupabaseClient): Promise<Map<string, number[]>> {
+  const m = new Map<string, number[]>();
+  const add = (uid?: string | null, iso?: string | null) => {
+    if (!uid || !iso) return;
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return;
+    const arr = m.get(uid);
+    if (arr) arr.push(t);
+    else m.set(uid, [t]);
+  };
+  const [tripsRes, aiRes, bananaRes] = await Promise.all([
+    supabase.from("trips").select("user_id, created_at"),
+    supabase.from("ai_conversations").select("user_id, created_at"),
+    supabase.from("banana_transactions").select("user_id, created_at"),
+  ]);
+  (tripsRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  (aiRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  (bananaRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  return m;
+}
+
+// Cohort retention matrix - tracks weekly user retention (activity-based)
+async function fetchCohortRetention(
+  supabase: SupabaseClient,
+  activityByUser: Map<string, number[]>,
+): Promise<CohortData[]> {
+  // Get all users with their signup dates (activity comes from activityByUser)
   const { data: users } = await supabase
     .from("users")
-    .select("id, created_at, last_sign_in_at")
+    .select("id, created_at")
     .order("created_at", { ascending: true });
 
   if (!users || users.length === 0) return [];
@@ -742,9 +780,11 @@ async function fetchCohortRetention(supabase: SupabaseClient): Promise<CohortDat
       const weekNStart = new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);
       const weekNEnd = new Date(weekNStart.getTime() + 7 * 24 * 60 * 60 * 1000);
       const activeUsers = cohortUsers.filter((user) => {
-        if (!user.last_sign_in_at) return week === 0; // Count as active only in week 0 if never signed in again
-        const lastActive = new Date(user.last_sign_in_at);
-        return lastActive >= weekNStart && lastActive < weekNEnd;
+        // Activity-proxy: active in week N = any tracked activity in the window.
+        // Week 0 is 100% by definition (the cohort signed up that week).
+        if (week === 0) return true;
+        const times = activityByUser.get(user.id) || [];
+        return times.some((t) => t >= weekNStart.getTime() && t < weekNEnd.getTime());
       }).length;
 
       const retentionPct = cohortSize > 0 ? Math.round((activeUsers / cohortSize) * 100) : 0;
