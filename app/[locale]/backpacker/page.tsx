@@ -5,6 +5,7 @@ import { Link } from "@/lib/i18n/routing";
 import {
   generateFAQSchema,
   generateBreadcrumbSchema,
+  generateSoftwareApplicationSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
@@ -116,6 +117,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         "x-default": `${BASE_URL}${PAGE_PATH}`,
       },
     },
@@ -244,6 +246,7 @@ export default async function BackpackerLandingPage({
         {...jsonLdScriptProps([
           generateFAQSchema(faqItems),
           generateBreadcrumbSchema(breadcrumbItems),
+          generateSoftwareApplicationSchema(),
         ], nonce)}
       />
 
