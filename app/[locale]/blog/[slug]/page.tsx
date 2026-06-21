@@ -14,6 +14,7 @@ import {
   generateArticleSchema,
   generateBreadcrumbSchema,
   generateFAQSchema,
+  generateItemListSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
@@ -79,7 +80,7 @@ export async function generateMetadata({
     ? languages[locale]
     : `${SITE_URL}/blog/${slug}`;
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT" };
+  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
@@ -128,7 +129,7 @@ function extractFAQs(html: string): { question: string; answer: string }[] {
   const faqs: { question: string; answer: string }[] = [];
   // Match FAQ section: everything after an <h2> containing "FAQ"
   const faqSectionMatch = html.match(
-    /<h2[^>]*>.*?FAQ.*?<\/h2>([\s\S]*?)(?=<hr|$)/i
+    /<h2[^>]*>[^<]*?(?:FAQ|Frequently Asked Questions|Common Questions)[^<]*?<\/h2>([\s\S]*?)(?=<hr|$)/i
   );
   if (!faqSectionMatch) return faqs;
 
@@ -202,7 +203,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
     { name: seoTitle, url: pageUrl },
   ]);
 
-  const faqs = extractFAQs(html);
+  // Prefer curated frontmatter FAQ (deterministic FAQPage schema) and fall back
+  // to scraping a "FAQ / Frequently Asked Questions" section out of the HTML.
+  const faqs = frontmatter.faq && frontmatter.faq.length > 0
+    ? frontmatter.faq
+    : extractFAQs(html);
   const schemas: object[] = [articleSchema, breadcrumbSchema];
   if (faqs.length > 0) {
     schemas.push(generateFAQSchema(faqs));
@@ -218,6 +223,26 @@ export default async function BlogDetailPage({ params }: PageProps) {
     : "/trips/new";
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
   const toc = extractToc(html);
+
+  // ItemList schema for ranked-list posts — the cheapest-X / where-to-go /
+  // best-of listicles whose H2/H3 sections ARE the ranking (the GSC anchors
+  // confirm it: #2-siem-reap-cambodia, #10-goa-india). Detect by counting
+  // headings that start with a number and only emit when it's unmistakably a
+  // ranked list, so prose posts aren't mislabelled. This is the structured
+  // signal AI Overviews use to identify and cite a source — the highest-leverage
+  // schema for our highest-impression pages (passport index, cheapest-asia…).
+  const numberedHeadings = toc.filter((item) => /^\s*\d/.test(item.text));
+  if (numberedHeadings.length >= 3) {
+    schemas.push(
+      generateItemListSchema(
+        numberedHeadings.map((item) => ({
+          name: item.text,
+          url: `${pageUrl}#${item.id}`,
+        })),
+        { name: seoTitle, url: pageUrl },
+      ),
+    );
+  }
 
   // "More from Region" section — posts from the same region (excluding current + related)
   const postRegion = getRegionForPost(slug);

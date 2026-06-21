@@ -174,6 +174,44 @@ export function generateFAQSchema(faqs: FAQItem[]): FAQPageSchema {
 }
 
 // ============================================================================
+// ItemList Schema (ranked-list / listicle articles)
+// ============================================================================
+
+export interface ItemListEntry {
+  name: string;
+  url: string;
+}
+
+/**
+ * Emit an `ItemList` for ranked-list articles ("17 Cheapest Countries in
+ * Asia", "Where to Go in June"). Each ranked H2/H3 section becomes a
+ * `ListItem`, giving Google a machine-readable summary of the ranking — the
+ * structured signal AI Overviews and list rich-results use to identify and
+ * cite a source. This is the single highest-leverage schema for our
+ * highest-impression pages, which are all ranked lists losing the click to
+ * the Overview.
+ */
+export function generateItemListSchema(
+  items: ItemListEntry[],
+  opts?: { name?: string; url?: string },
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    ...(opts?.name ? { name: opts.name } : {}),
+    ...(opts?.url ? { url: opts.url } : {}),
+    numberOfItems: items.length,
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+    })),
+  };
+}
+
+// ============================================================================
 // Trip/Travel Itinerary Schema
 // ============================================================================
 

@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   languages["x-default"] = `${SITE_URL}/destinations/style/${tag}`;
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT" };
+  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 

@@ -38,7 +38,7 @@ export async function generateMetadata({
   }
   languages["x-default"] = `${SITE_URL}/destinations`;
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT" };
+  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
