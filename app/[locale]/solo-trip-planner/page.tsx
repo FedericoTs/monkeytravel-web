@@ -16,6 +16,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/solo-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Viagem Solo — Rotas Seguras, Roteiros Inteligentes, 100% Grátis',
+    description:
+      'Planos de viagem solo com IA: dicas de segurança, restaurantes ideais para quem viaja sozinho e pontos de encontro. Roteiro personalizado em 30 segundos. Sem cadastro.',
+  },
   en: {
     title: 'Solo Trip Planner — Safe Routes, Smart Itineraries, 100% Free',
     description:
@@ -53,6 +58,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },

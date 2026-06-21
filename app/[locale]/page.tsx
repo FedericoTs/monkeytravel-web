@@ -20,6 +20,10 @@ import type { Metadata } from 'next';
 const BASE_URL = 'https://monkeytravel.app';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Viagens com IA Grátis | Roteiros Dia a Dia em Minutos',
+    description: 'Planeje a viagem perfeita com roteiros dia a dia gerados por IA. Receba planos de viagem personalizados em minutos — grátis, sem cartão de crédito.',
+  },
   en: {
     title: 'Free AI Trip Planner | Day-by-Day Itineraries in Minutes',
     description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
@@ -38,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const meta = META[locale] || META.en;
 
-  const ogLocaleMap: Record<string, string> = { en: 'en_US', es: 'es_ES', it: 'it_IT' };
+  const ogLocaleMap: Record<string, string> = { en: 'en_US', es: 'es_ES', it: 'it_IT', pt: 'pt_BR' };
   const ogLocale = ogLocaleMap[locale] ?? 'en_US';
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
@@ -51,6 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         en: BASE_URL,
         es: `${BASE_URL}/es`,
         it: `${BASE_URL}/it`,
+        pt: `${BASE_URL}/pt`,
         'x-default': BASE_URL,
       },
     },

@@ -13,6 +13,12 @@ import { getNonce } from "@/lib/security/nonce";
 const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title:
+      "Gerador de Lista de Bagagem Grátis — Personalizada por IA",
+    description:
+      "Receba uma lista de bagagem personalizada em 10 segundos. Nossa IA considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
+  },
   en: {
     title:
       "Free Packing List Generator — Personalized by AI for Any Trip",
@@ -51,6 +57,7 @@ export async function generateMetadata({
         en: `${BASE_URL}/tools/packing-list`,
         it: `${BASE_URL}/it/tools/packing-list`,
         es: `${BASE_URL}/es/tools/packing-list`,
+        pt: `${BASE_URL}/pt/tools/packing-list`,
       },
     },
     openGraph: {

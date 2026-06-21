@@ -15,6 +15,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/free-ai-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Viagens com IA Grátis — Sem Cadastro, Sem Cartão, Planos Ilimitados',
+    description:
+      'Crie roteiros personalizados dia a dia com lugares reais e 3 níveis de orçamento em 30 segundos. Funciona em português, inglês, espanhol e italiano. Sem conta, nunca.',
+  },
   en: {
     title: 'Free AI Trip Planner — No Signup, No Card, Unlimited Plans',
     description:
@@ -52,6 +57,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },

@@ -16,6 +16,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/budget-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Viagens Econômicas — Viaje Mais, Gaste Menos',
+    description:
+      'Planeje viagens acessíveis com IA. Roteiros com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens econômicas e atividades gratuitas. 100% grátis.',
+  },
   en: {
     title: 'Budget Trip Planner — Travel More, Spend Less',
     description:
@@ -53,6 +58,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },

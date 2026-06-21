@@ -16,6 +16,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/weekend-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Fim de Semana — Escapadas de 2-3 Dias com IA',
+    description:
+      'Planeje a escapada de fim de semana perfeita em 15 minutos com IA. Roteiros de 2-3 dias com joias locais, preços reais e horários inteligentes. 100% grátis.',
+  },
   en: {
     title: 'Weekend Trip Planner — AI-Powered 2-3 Day Getaways',
     description:
@@ -53,6 +58,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },

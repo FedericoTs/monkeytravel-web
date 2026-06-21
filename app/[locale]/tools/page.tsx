@@ -7,6 +7,11 @@ import type { Metadata } from "next";
 const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: "Ferramentas de Viagem Grátis — Lista de Bagagem, Verificador de Visto e Mais",
+    description:
+      "Ferramentas de viagem gratuitas que economizam horas de planejamento. Lista de bagagem personalizada com IA, requisitos de visto e mais. Sem cadastro.",
+  },
   en: {
     title: "Free Travel Tools — Packing List, Visa Checker & More",
     description:
@@ -44,6 +49,7 @@ export async function generateMetadata({
         en: `${BASE_URL}/tools`,
         it: `${BASE_URL}/it/tools`,
         es: `${BASE_URL}/es/tools`,
+        pt: `${BASE_URL}/pt/tools`,
       },
     },
     openGraph: {

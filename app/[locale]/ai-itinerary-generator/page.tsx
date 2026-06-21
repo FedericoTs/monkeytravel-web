@@ -16,6 +16,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/ai-itinerary-generator';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Gerador de Roteiros com IA — Planos de Viagem Dia a Dia',
+    description:
+      'Gere roteiros de viagem completos com IA em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro.',
+  },
   en: {
     title: 'AI Itinerary Generator — Smart Day-by-Day Travel Plans',
     description:
@@ -53,6 +58,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },

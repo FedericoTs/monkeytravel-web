@@ -19,6 +19,11 @@ import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
 const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: "Verificador de Requisitos de Visto — Grátis, 199 Passaportes",
+    description:
+      "Descubra em segundos se você precisa de visto para a próxima viagem. Grátis, sem cadastro. 199 passaportes × 199 destinos com os dados abertos mais recentes.",
+  },
   en: {
     title: "Visa Requirements Checker — Free, Covers 199 Passports",
     description:
@@ -77,6 +82,7 @@ export async function generateMetadata({
         en: `${BASE_URL}/tools/visa-checker`,
         it: `${BASE_URL}/it/tools/visa-checker`,
         es: `${BASE_URL}/es/tools/visa-checker`,
+        pt: `${BASE_URL}/pt/tools/visa-checker`,
       },
     },
     openGraph: {

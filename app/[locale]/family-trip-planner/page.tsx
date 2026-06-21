@@ -16,6 +16,11 @@ const BASE_URL = 'https://monkeytravel.app';
 const PAGE_PATH = '/family-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
+  pt: {
+    title: 'Planejador de Viagens em Família — Roteiros com IA Para Todas as Idades',
+    description:
+      'Planeje as férias em família perfeitas com IA. Roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis.',
+  },
   en: {
     title: 'Family Trip Planner — AI-Powered Itineraries for All Ages',
     description:
@@ -53,6 +58,7 @@ export async function generateMetadata({
         en: `${BASE_URL}${PAGE_PATH}`,
         es: `${BASE_URL}/es${PAGE_PATH}`,
         it: `${BASE_URL}/it${PAGE_PATH}`,
+        pt: `${BASE_URL}/pt${PAGE_PATH}`,
         'x-default': `${BASE_URL}${PAGE_PATH}`,
       },
     },
