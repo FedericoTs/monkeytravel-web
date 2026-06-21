@@ -285,8 +285,10 @@ export async function POST(request: NextRequest) {
       openingHours: place.currentOpeningHours?.weekdayDescriptions,
     };
 
-    // Save to cache and log API usage
-    saveToCache(cacheKey, "search", result);
+    // Save to cache and log API usage. Awaited so the write completes before
+    // the serverless function freezes after sending the response (fire-and-
+    // forget writes are dropped intermittently on Vercel).
+    await saveToCache(cacheKey, "search", result);
     await logPlacesApiRequest("/places:searchText", {
       responseTimeMs: Date.now() - startTime,
       userId: user?.id,
@@ -474,8 +476,16 @@ export async function GET(request: NextRequest) {
       description: place.editorialSummary?.text,
     };
 
-    // Save to cache and log API usage
-    saveToCache(cacheKey, "destination", result);
+    // Save to cache and log API usage.
+    // This destination-cover cache never populated for months: cache_type
+    // "destination" violated the google_places_cache cache_type CHECK, so the
+    // upsert threw → was caught + swallowed in saveToCache → every trip hero
+    // re-ran a paid Text Search (~88% of our Google Places spend, 0% cache
+    // hit). Fixed by migration 20260621_drop_places_cache_type_check (applied
+    // 2026-06-21), which dropped the over-restrictive CHECK. Awaited so the
+    // write isn't dropped when the serverless function freezes after sending
+    // the response.
+    await saveToCache(cacheKey, "destination", result);
     await logPlacesApiRequest("/places:searchText (destination)", {
       responseTimeMs: Date.now() - startTime,
       userId: user?.id,

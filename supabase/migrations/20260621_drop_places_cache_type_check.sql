@@ -1,0 +1,47 @@
+-- 2026-06-21 — Drop the over-restrictive cache_type CHECK on google_places_cache.
+--
+-- Applied to prod via apply_migration ("drop_places_cache_type_check") on
+-- 2026-06-21. This file is the canonical record + replay path for staging/dev.
+--
+-- WHY
+--   google_places_cache_cache_type_check restricted cache_type to
+--     ('search','details','photos','reviews','autocomplete')
+--   but the application writes FOUR additional cache_type values. Each one
+--   throws a CHECK violation on upsert, which the cache helpers catch and
+--   console.error + swallow — so the row is NEVER written and the cache NEVER
+--   populates. Every lookup then re-hits the paid Google Places API.
+--
+--   Silently-broken caches (cache_type -> writer):
+--     'destination'    app/api/places/route.ts (GET)          <- ~88% of Google API $
+--     'activity_image' app/api/images/activity/route.ts
+--     'hotels_nearby'  app/api/hotels/places/route.ts
+--     'image_base64'   app/api/images/proxy/route.ts
+--
+--   Confirmed in prod (2026-06-21): the table has only 'search' (34) and
+--   'details' (2) rows — ZERO of the four above ever persisted. Meanwhile
+--   google_places_search ran 355x in 30 days at 0% cache hit (~$11.36 — by far
+--   the single largest API line). geocode_cache (25,810 hits) and
+--   distance_cache (13,569 hits) cache fine because they are SEPARATE tables
+--   with no such CHECK.
+--
+--   cache_type is an INTERNAL label written only by our own server code; the
+--   read path (getFromCache) keys on place_id, not cache_type. Constraining it
+--   adds no real safety and is a proven silent-failure footgun. Drop it.
+--
+-- NOTE
+--   A code hotfix (shipped ahead of this migration) relabels the destination
+--   write from 'destination' -> 'search' so the #1 cost caches immediately
+--   without waiting for this migration. After this migration is applied, the
+--   destination write can be restored to the accurate 'destination' label
+--   (optional, cosmetic — affects only the cost-dashboard cache-by-type
+--   breakdown) and the other three caches (activity_image / hotels_nearby /
+--   image_base64) begin persisting with no further code change.
+
+ALTER TABLE public.google_places_cache
+  DROP CONSTRAINT IF EXISTS google_places_cache_cache_type_check;
+
+-- Optional belt-and-suspenders: also drop the redundant single-column unique
+-- on place_id IF it ever collides with the composite unique_cache_entry. Left
+-- commented — current code relies on onConflict:"place_id", so keep it.
+-- ALTER TABLE public.google_places_cache
+--   DROP CONSTRAINT IF EXISTS google_places_cache_place_id_key;
