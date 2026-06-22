@@ -1,4 +1,26 @@
 {
+  "feedbackSurvey": {
+    "title": "Aiutaci a migliorare MonkeyTravel",
+    "subtitle": "Hai pianificato viaggi veri con noi. 30 secondi di opinione sincera per noi varrebbero molto.",
+    "q1Label": "Per cosa usi davvero MonkeyTravel?",
+    "q1Placeholder": "es. itinerari giorno per giorno, trovare ristoranti, condividere i piani con gli amici...",
+    "q2Label": "Cosa ti ha quasi fatto smettere di usarlo?",
+    "q2Placeholder": "Sii sincero. La cosa fastidiosa è la più utile che puoi dirci.",
+    "q3Label": "Dove hai prenotato il tuo ultimo viaggio?",
+    "q3Placeholder": "Booking.com, Airbnb, direttamente con l'hotel, un'agenzia di viaggi...",
+    "q4Label": "Prenoteresti un viaggio tramite MonkeyTravel, se potessi?",
+    "q4_yes": "Sì",
+    "q4_maybe": "Forse",
+    "q4_no": "No",
+    "chatLabel": "Hai voglia di una chiacchierata di 5 minuti per aiutarci a migliorare il prodotto? Lascia la tua email.",
+    "emailPlaceholder": "tu@email.com",
+    "notNow": "Non ora",
+    "sending": "Invio...",
+    "send": "Invia opinione",
+    "thanksTitle": "Grazie, davvero",
+    "thanksBody": "Vale più di quanto pensi. Leggiamo ogni singola risposta.",
+    "close": "Chiudi"
+  },
   "navigation": {
     "features": "Funzionalità",
     "howItWorks": "Come Funziona",

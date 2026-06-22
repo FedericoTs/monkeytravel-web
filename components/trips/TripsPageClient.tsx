@@ -50,6 +50,13 @@ const PushOptInSheet = dynamic(
   { ssr: false, loading: () => null }
 );
 
+// Demand-discovery survey (office-hours design doc 2026-06-21). Client-only +
+// self-gating like PushOptInSheet; no SEO value rendering it server-side.
+const FeedbackSurveyModal = dynamic(
+  () => import("@/components/feedback/FeedbackSurveyModal"),
+  { ssr: false, loading: () => null }
+);
+
 type TFn = (key: string) => string;
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
@@ -829,6 +836,10 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
           recently dismissed. See PushOptInSheet.tsx for full gating
           logic. */}
       <PushOptInSheet />
+
+      {/* Demand-discovery survey — shown once to active users (>= 1 trip).
+          Self-gates on localStorage; see FeedbackSurveyModal.tsx. */}
+      <FeedbackSurveyModal eligible={trips.length > 0} />
 
       {/* OAuth event tracking (handles auth_event query param) */}
       <Suspense fallback={null}>
