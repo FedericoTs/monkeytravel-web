@@ -31,6 +31,7 @@
 
 import { cache } from "@/lib/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -128,7 +129,7 @@ interface PlaceRecord {
  *   `photo_url: null`. The place is still cached (id + name + coords);
  *   the photo can be re-fetched on a future trip.
  */
-async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> {
+async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
   }
@@ -139,8 +140,10 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
     formattedAddress?: string;
     location?: { latitude?: number; longitude?: number };
   } | null = null;
+  const startedAt = Date.now();
+  let httpStatus = 0;
 
-  // ---------- Step 1: Text Search Essentials ($5/1K) ----------
+  // ---------- Text Search Essentials ($5/1K) ----------
   // Field mask deliberately EXCLUDES `places.photos` to stay on the
   // Essentials SKU. Adding any Pro-tier field (photos, rating, etc.)
   // bumps the whole call to Pro pricing.
@@ -161,6 +164,7 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
         }),
       }
     );
+    httpStatus = searchResponse.status;
 
     if (!searchResponse.ok) {
       return null;
@@ -170,14 +174,28 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
     place = data.places?.[0] ?? null;
   } catch {
     return null;
+  } finally {
+    // Every call here is a paid Essentials miss — the cache hit short-circuits
+    // upstream in getOrFetchPlace before we ever reach this function. Fire-and-
+    // forget so logging never adds latency to the generation path (the request
+    // stays alive through Gemini, so the insert lands). Previously these calls
+    // were a raw fetch with no gateway wrapper — invisible to the cost dashboard.
+    void logApiCall({
+      apiName: "google_places_search",
+      endpoint: "places:searchText (activity)",
+      status: httpStatus || 500,
+      responseTimeMs: Date.now() - startedAt,
+      cacheHit: false,
+      costUsd: 0.005,
+    });
   }
 
   if (!place?.id) {
     return null;
   }
 
-  // Build the partial record we can return even if photo fetch fails.
-  const partial: PlaceRecord = {
+  // Partial record — place_id + metadata, no photo yet (Step 2 / cache fills it).
+  return {
     place_id: place.id,
     display_name: place.displayName?.text ?? query,
     formatted_address: place.formattedAddress ?? null,
@@ -186,15 +204,27 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
     photo_resource_name: null,
     photo_url: null,
   };
+}
 
-  // ---------- Step 2: Place Details Pro ($17/1K) for photos ----------
+/**
+ * Step 2 — Place Details Pro ($17/1K). Given a known place_id, fetch its photos
+ * and build the proxy photo URL. Split out from the search so callers that
+ * already have the place cached (by place_id, incl. trip-backfilled rows) can
+ * SKIP this paid call entirely — the core of the place_id dedup.
+ */
+async function fetchPlacePhoto(
+  placeId: string
+): Promise<{ photo_resource_name: string; photo_url: string } | null> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    return null;
+  }
+  const startedAt = Date.now();
+  let httpStatus = 0;
+
   // Asking ONLY for `photos` — the minimum to get a photo_resource_name.
-  // If this call fails (network blip, quota, billing issue) we still
-  // return the partial record so the place is cached for future trips;
-  // a later request can retry the photo (logic in getOrFetchPlace below).
   try {
     const detailsResponse = await fetch(
-      `https://places.googleapis.com/v1/places/${encodeURIComponent(place.id)}`,
+      `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`,
       {
         method: "GET",
         headers: {
@@ -203,48 +233,80 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
         },
       }
     );
+    httpStatus = detailsResponse.status;
 
-    if (detailsResponse.ok) {
-      const detailsData = await detailsResponse.json();
-      // Walk the photos array (not just [0]) and pick the first one with
-      // a resource name long enough to be a real Google photo token.
-      // **2026-06-04 fix:** Google's Place Details Pro sometimes returns
-      // photo entries whose `name` is shorter than the typical 300+ char
-      // hash. Those names cause Google's /media endpoint to respond 400,
-      // which streams down as a broken-image icon. Skipping short entries
-      // and trying the next one (Google returns up to 10 photos) gets a
-      // usable photo for nearly every place — at zero additional Places
-      // API spend (the field mask already included all photos).
-      const photos: Array<{ name?: string }> = Array.isArray(detailsData.photos)
-        ? detailsData.photos
-        : [];
-      // Minimum hash length empirically distinguishes "this resource name
-      // works at /media" from "Google returned a token that 400s". Full
-      // hashes are typically 300-450 chars; pathological ones run ~80-120.
-      const MIN_PHOTO_TOKEN_LEN = 200;
-      const photoResourceName: string | null =
-        photos.find((p) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN)
-          ?.name ?? null;
-
-      if (photoResourceName) {
-        // **2026-05-24 live-test fix (revision 2):** raw
-        // `places.googleapis.com/v1/.../media?key=...` AND resolved
-        // `lh3.googleusercontent.com/place-photos/...` URLs both 504 from
-        // direct browser loads. Our `/api/places/photo` proxy fetches
-        // them server-side and streams back with CDN-friendly cache
-        // headers (1-year edge TTL).
-        partial.photo_resource_name = photoResourceName;
-        partial.photo_url = `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`;
-      }
+    if (!detailsResponse.ok) {
+      return null;
     }
+
+    const detailsData = await detailsResponse.json();
+    // Walk the photos array (not just [0]) and pick the first one with
+    // a resource name long enough to be a real Google photo token.
+    // **2026-06-04 fix:** Google's Place Details Pro sometimes returns
+    // photo entries whose `name` is shorter than the typical 300+ char
+    // hash. Those names cause Google's /media endpoint to respond 400,
+    // which streams down as a broken-image icon. Skipping short entries
+    // and trying the next one (Google returns up to 10 photos) gets a
+    // usable photo for nearly every place — at zero additional Places
+    // API spend (the field mask already included all photos).
+    const photos: Array<{ name?: string }> = Array.isArray(detailsData.photos)
+      ? detailsData.photos
+      : [];
+    // Minimum hash length empirically distinguishes "this resource name
+    // works at /media" from "Google returned a token that 400s". Full
+    // hashes are typically 300-450 chars; pathological ones run ~80-120.
+    const MIN_PHOTO_TOKEN_LEN = 200;
+    const photoResourceName: string | null =
+      photos.find((p) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN)
+        ?.name ?? null;
+
+    if (!photoResourceName) {
+      return null;
+    }
+
+    // **2026-05-24 live-test fix (revision 2):** raw
+    // `places.googleapis.com/v1/.../media?key=...` AND resolved
+    // `lh3.googleusercontent.com/place-photos/...` URLs both 504 from
+    // direct browser loads. Our `/api/places/photo` proxy fetches them
+    // server-side and streams back with CDN-friendly cache headers.
+    return {
+      photo_resource_name: photoResourceName,
+      photo_url: `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`,
+    };
   } catch (err) {
     // Photo fetch failed — log but don't fail the whole resolution.
     console.warn(
-      `[places_v2] Place Details (photos) failed for ${place.id}:`,
+      `[places_v2] Place Details (photos) failed for ${placeId}:`,
       err instanceof Error ? err.message : err
     );
+    return null;
+  } finally {
+    void logApiCall({
+      apiName: "google_places_details",
+      endpoint: "places/{id}:photos (activity)",
+      status: httpStatus || 500,
+      responseTimeMs: Date.now() - startedAt,
+      cacheHit: false,
+      costUsd: 0.017,
+    });
   }
+}
 
+/**
+ * Full resolve (Text Search + Place Details). Preserved for the legacy
+ * `fetchFromGooglePlaces` wrapper. The primary path (getOrFetchPlace) calls
+ * the two stages separately so it can dedup by place_id between them.
+ */
+async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> {
+  const partial = await searchPlaceId(query);
+  if (!partial) {
+    return null;
+  }
+  const photo = await fetchPlacePhoto(partial.place_id);
+  if (photo) {
+    partial.photo_resource_name = photo.photo_resource_name;
+    partial.photo_url = photo.photo_url;
+  }
   return partial;
 }
 
@@ -307,47 +369,92 @@ async function getOrFetchPlace(
           last_accessed_at: new Date().toISOString(),
         })
         .eq("place_id", cached.place_id);
+      // Visibility: a free cache hit (0 Places spend). Logged so the cost
+      // dashboard can compute a real activity-image cache-hit rate.
+      void logApiCall({
+        apiName: "google_places_search",
+        endpoint: "places:searchText (activity, cache hit)",
+        status: 200,
+        responseTimeMs: 0,
+        cacheHit: true,
+        costUsd: 0,
+      });
       return cached as PlaceRecord;
     }
   }
 
-  // ---------- 2. Cache MISS path — paid lookup ----------
-  // Query order: `${name} ${destination}` first (matches local landmarks
-  // better than the name alone). Fall back to name-only if the qualified
-  // query misses.
-  let place: PlaceRecord | null = null;
+  // ---------- 2. Cache MISS path — resolve place_id cheaply first ----------
+  // Text Search Essentials ($5/1K) gives us the canonical place_id. Query
+  // order: `${name} ${destination}` first (matches local landmarks better),
+  // then name-only fallback.
+  let partial: PlaceRecord | null = null;
   if (destination) {
-    place = await fetchPlaceFromGoogle(`${name} ${destination}`);
+    partial = await searchPlaceId(`${name} ${destination}`);
   }
-  if (!place) {
-    place = await fetchPlaceFromGoogle(name);
+  if (!partial) {
+    partial = await searchPlaceId(name);
   }
-  if (!place) {
+  if (!partial) {
     return null;
   }
 
-  // ---------- 3. Persist to cache (both tables) ----------
-  // Order matters: upsert places_v2 first (PK target of the FK), then the
-  // lookup row. Both upserts are idempotent.
-  const { error: placeErr } = await supabase.from("places_v2").upsert(
-    {
-      place_id: place.place_id,
-      display_name: place.display_name,
-      formatted_address: place.formatted_address,
-      latitude: place.latitude,
-      longitude: place.longitude,
-      photo_resource_name: place.photo_resource_name,
-      photo_url: place.photo_url,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "place_id" }
-  );
-  if (placeErr) {
-    console.error("[places_v2] upsert place failed:", placeErr.message);
-    // Don't fail the user request — we got the place data, just couldn't cache it.
-    return place;
+  // ---------- 2b. place_id dedup ----------
+  // Many activity-name variants ("Colosseum" / "Il Colosseo" / "The Roman
+  // Colosseum") collapse to one Google place_id. The normalized-name lookup
+  // above only catches IDENTICAL normalized names; a fresh variant misses it
+  // even when the place is already cached. Now that Text Search has revealed
+  // the canonical place_id, check places_v2 directly: if it's already cached
+  // WITH a photo (incl. rows backfilled from historical trips), skip the
+  // $17/1K Place Details Pro call entirely and just record the new lookup.
+  const { data: existingRow } = await supabase
+    .from("places_v2")
+    .select("*")
+    .eq("place_id", partial.place_id)
+    .maybeSingle();
+
+  let place: PlaceRecord;
+  if (existingRow?.photo_url) {
+    place = existingRow as PlaceRecord;
+    // Visibility: a Place Details call we DIDN'T have to pay for.
+    void logApiCall({
+      apiName: "google_places_details",
+      endpoint: "places/{id}:photos (activity, place_id dedup)",
+      status: 200,
+      responseTimeMs: 0,
+      cacheHit: true,
+      costUsd: 0,
+    });
+  } else {
+    // Unknown place (or cached without a photo) — pay for the photo and
+    // upsert the full row.
+    const photo = await fetchPlacePhoto(partial.place_id);
+    if (photo) {
+      partial.photo_resource_name = photo.photo_resource_name;
+      partial.photo_url = photo.photo_url;
+    }
+    place = partial;
+    const { error: placeErr } = await supabase.from("places_v2").upsert(
+      {
+        place_id: place.place_id,
+        display_name: place.display_name,
+        formatted_address: place.formatted_address,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        photo_resource_name: place.photo_resource_name,
+        photo_url: place.photo_url,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "place_id" }
+    );
+    if (placeErr) {
+      console.error("[places_v2] upsert place failed:", placeErr.message);
+      // Don't fail the user request — we got the place data, just couldn't cache it.
+      return place;
+    }
   }
 
+  // ---------- 3. Record the name → place_id lookup (idempotent) ----------
+  // So the next request for THIS exact name variant is a free lookup hit.
   const { error: lookupErr } = await supabase.from("places_v2_lookup").upsert(
     {
       normalized_key: normalizedKey,
