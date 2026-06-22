@@ -199,7 +199,10 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/.well-known/") ||
-    pathname.includes(".") ||
+    // The "." catch skips static assets, but signed feedback tokens contain a
+    // "." (payload.hmac) — exempt /feedback/ so the default-locale (no-prefix)
+    // path still gets i18n routing instead of 404ing.
+    (pathname.includes(".") && !pathname.startsWith("/feedback/")) ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth/signout");
 
@@ -233,6 +236,7 @@ export async function middleware(request: NextRequest) {
     strippedPath.startsWith('/privacy') ||
     strippedPath.startsWith('/terms') ||
     strippedPath.startsWith('/templates') ||
+    strippedPath.startsWith('/feedback') ||
     strippedPath.startsWith('/free-ai-trip-planner') ||
     strippedPath.startsWith('/group-trip-planner') ||
     strippedPath.startsWith('/budget-trip-planner') ||
