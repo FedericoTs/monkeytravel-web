@@ -402,8 +402,14 @@ export async function GET(request: NextRequest) {
           headers: {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            // The field mask drives the Places SKU. `editorialSummary` is an
+            // Atmosphere-tier field that forces the priciest Text Search SKU,
+            // and its result (`description` below) is NEVER rendered — the only
+            // consumer, DestinationHero, reads only coverImageUrl + galleryPhotos.
+            // Dropped to keep this call on the cheaper Pro tier. `photos` (Pro)
+            // stays — it powers the cover + gallery.
             "X-Goog-FieldMask":
-              "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.editorialSummary",
+              "places.id,places.displayName,places.formattedAddress,places.location,places.photos",
           },
           body: JSON.stringify({
             textQuery: destination,
