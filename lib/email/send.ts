@@ -31,13 +31,19 @@ import TripReminderEmail, {
   tripReminderEmailText,
   type TripReminderEmailProps,
 } from "./templates/TripReminder";
+import FeedbackOutreachEmail, {
+  feedbackOutreachEmailText,
+  feedbackOutreachSubject,
+  type FeedbackOutreachEmailProps,
+} from "./templates/FeedbackOutreach";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
 export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
   | { id: "vote_cast"; props: VoteCastEmailProps }
-  | { id: "trip_reminder"; props: TripReminderEmailProps };
+  | { id: "trip_reminder"; props: TripReminderEmailProps }
+  | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -131,6 +137,10 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // (app/auth/callback/route.ts + app/[locale]/auth/signup/page.tsx);
   // we just honour it here. Read failure is fail-closed per cycle-7 #216.
   trip_reminder: "tripReminders",
+  // Feedback outreach is research/marketing — gated by emailNotifications +
+  // marketingNotifications so an in-app marketing opt-out always suppresses
+  // it. NOT transactional: the recipient didn't trigger this send.
+  feedback_outreach: "marketingNotifications",
 };
 
 /**
@@ -144,6 +154,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   invite: null, // transactional — recipient may not have an account yet
   vote_cast: "collabVotes",
   trip_reminder: "tripReminders",
+  feedback_outreach: "marketingNotifications",
 };
 
 /**
@@ -589,6 +600,12 @@ async function renderTemplate(
       const html = await render(TripReminderEmail(template.props));
       const text = tripReminderEmailText(template.props);
       const subject = `${template.props.heading} — ${template.props.destination}`;
+      return { html, text, subject };
+    }
+    case "feedback_outreach": {
+      const html = await render(FeedbackOutreachEmail(template.props));
+      const text = feedbackOutreachEmailText(template.props);
+      const subject = feedbackOutreachSubject(template.props.locale);
       return { html, text, subject };
     }
   }

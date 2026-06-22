@@ -357,6 +357,49 @@ export const inviteCopy: Record<EmailLocale, InviteEmailCopy> = {
   },
 };
 
+// ── Research outreach: feedback request ─────────────────────────────────
+
+interface FeedbackOutreachCopy {
+  subject: string;
+  preview: string;
+  /** Greeting — handles the no-name case gracefully. */
+  heading: (firstName?: string) => string;
+  lead: string;
+  body: string;
+  cta: string;
+  copyLink: string;
+}
+
+export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
+  en: {
+    subject: "Got 2 minutes? Help shape what we build next 🐵",
+    preview: "You've actually used MonkeyTravel — your honest take would mean a lot.",
+    heading: (n) => (n ? `Hi ${n}, can I ask a quick favor?` : "Can I ask a quick favor?"),
+    lead: "You've actually planned a trip with MonkeyTravel — which makes your opinion the one we trust most.",
+    body: "We're deciding what to build next, and we'd rather hear it from you than guess. Two minutes of honest feedback — what works, what's annoying, what you wish it did — would genuinely shape where this goes.",
+    cta: "Share your feedback",
+    copyLink: "Or copy this link into your browser:",
+  },
+  es: {
+    subject: "¿Tienes 2 minutos? Ayúdanos a decidir qué construir 🐵",
+    preview: "Ya has usado MonkeyTravel — tu opinión sincera significaría mucho.",
+    heading: (n) => (n ? `Hola ${n}, ¿te pido un favor rápido?` : "¿Te pido un favor rápido?"),
+    lead: "Has planeado un viaje con MonkeyTravel, así que tu opinión es la que más nos importa.",
+    body: "Estamos decidiendo qué construir a continuación y preferimos escucharte a ti antes que adivinar. Dos minutos de comentarios sinceros — qué funciona, qué te molesta, qué te gustaría que hiciera — marcarían de verdad el rumbo del proyecto.",
+    cta: "Compartir mi opinión",
+    copyLink: "O copia este enlace en tu navegador:",
+  },
+  it: {
+    subject: "Hai 2 minuti? Aiutaci a decidere cosa costruire 🐵",
+    preview: "Hai già usato MonkeyTravel — la tua opinione sincera conterebbe molto.",
+    heading: (n) => (n ? `Ciao ${n}, posso chiederti un favore veloce?` : "Posso chiederti un favore veloce?"),
+    lead: "Hai organizzato un viaggio con MonkeyTravel, quindi la tua opinione è quella che ci interessa di più.",
+    body: "Stiamo decidendo cosa costruire dopo e preferiamo sentirlo da te piuttosto che tirare a indovinare. Due minuti di feedback sincero — cosa funziona, cosa ti dà fastidio, cosa vorresti che facesse — farebbero davvero la differenza sulla direzione del progetto.",
+    cta: "Condividi il tuo parere",
+    copyLink: "Oppure copia questo link nel browser:",
+  },
+};
+
 // ── Collaboration notifications: vote cast ──────────────────────────────
 
 type VoteType = "love" | "flexible" | "concerns" | "no";

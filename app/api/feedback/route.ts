@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { verifyFeedbackToken } from "@/lib/feedback/token";
 
 /**
  * POST /api/feedback
@@ -32,11 +33,6 @@ function clean(v: unknown, max = 2000): string | null {
 export async function POST(request: NextRequest) {
   const { user } = await getAuthenticatedUser();
 
-  const { allowed } = await feedbackLimiter.check(request, user?.id);
-  if (!allowed) {
-    return errors.rateLimit("Too many submissions — please try again later.");
-  }
-
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -44,9 +40,34 @@ export async function POST(request: NextRequest) {
     return errors.badRequest("Invalid JSON");
   }
 
-  const source = SOURCES.includes(body.source as never)
-    ? (body.source as string)
-    : "in_app";
+  // Identity: a signed email-link token wins (the /feedback/[token] page has
+  // no session), else the logged-in user. A present-but-invalid/expired token
+  // is rejected rather than silently falling back to an anonymous row.
+  let tokenUserId: string | null = null;
+  let viaToken = false;
+  if (typeof body.token === "string" && body.token) {
+    const v = verifyFeedbackToken(body.token);
+    if (!v.ok || !v.userId) {
+      return errors.badRequest("This feedback link is invalid or has expired.");
+    }
+    tokenUserId = v.userId;
+    viaToken = true;
+  }
+  const effectiveUserId = tokenUserId ?? user?.id ?? null;
+
+  const { allowed } = await feedbackLimiter.check(
+    request,
+    effectiveUserId ?? undefined
+  );
+  if (!allowed) {
+    return errors.rateLimit("Too many submissions — please try again later.");
+  }
+
+  const source = viaToken
+    ? "email_link"
+    : SOURCES.includes(body.source as never)
+      ? (body.source as string)
+      : "in_app";
   const wouldRaw =
     typeof body.would_book_through_us === "string" ? body.would_book_through_us : "";
   const would = WOULD.includes(wouldRaw as never) ? wouldRaw : null;
@@ -80,7 +101,7 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient();
   const { error } = await admin.from("user_feedback").insert({
-    user_id: user?.id ?? null,
+    user_id: effectiveUserId,
     source,
     uses_for: usesFor,
     almost_stopped: almostStopped,

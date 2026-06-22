@@ -23,7 +23,10 @@
     "emailLabel": "Your email",
     "error": "Something went wrong — please try again.",
     "disclosurePrefix": "By sending, you agree we may use your answers to improve MonkeyTravel. If you leave your email, we'll only use it to contact you about this. See our",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "linkExpiredTitle": "This link has expired",
+    "linkExpiredBody": "No worries — open MonkeyTravel and you can still share your feedback from your trips page.",
+    "openApp": "Open MonkeyTravel"
   },
   "navigation": {
     "features": "Features",

@@ -23,7 +23,10 @@
     "emailLabel": "Seu email",
     "error": "Algo deu errado — tente novamente.",
     "disclosurePrefix": "Ao enviar, você concorda que podemos usar suas respostas para melhorar o MonkeyTravel. Se deixar seu email, vamos usá-lo apenas para entrar em contato sobre isso. Consulte nossa",
-    "privacyPolicy": "Política de Privacidade"
+    "privacyPolicy": "Política de Privacidade",
+    "linkExpiredTitle": "Este link expirou",
+    "linkExpiredBody": "Sem problemas — abra o MonkeyTravel e você ainda pode enviar sua opinião pela página das suas viagens.",
+    "openApp": "Abrir o MonkeyTravel"
   },
   "navigation": {
     "features": "Recursos",
