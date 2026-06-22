@@ -19,7 +19,11 @@
     "send": "Invia opinione",
     "thanksTitle": "Grazie, davvero",
     "thanksBody": "Vale più di quanto pensi. Leggiamo ogni singola risposta.",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "emailLabel": "La tua email",
+    "error": "Qualcosa è andato storto: riprova.",
+    "disclosurePrefix": "Inviando, accetti che possiamo usare le tue risposte per migliorare MonkeyTravel. Se lasci la tua email, la useremo solo per contattarti a riguardo. Consulta la nostra",
+    "privacyPolicy": "Informativa sulla Privacy"
   },
   "navigation": {
     "features": "Funzionalità",

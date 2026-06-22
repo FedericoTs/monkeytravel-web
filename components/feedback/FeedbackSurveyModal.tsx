@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquareHeart } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
+import { Link } from "@/lib/i18n/routing";
 
 /**
  * Power-user demand-discovery survey (office-hours design doc, 2026-06-21).
@@ -48,6 +49,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
   const [isOpen, setIsOpen] = useState(false);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
   const [usesFor, setUsesFor] = useState("");
   const [almostStopped, setAlmostStopped] = useState("");
   const [lastBookedWhere, setLastBookedWhere] = useState("");
@@ -72,8 +74,9 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setError(false);
     try {
-      await fetch("/api/feedback", {
+      const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -86,19 +89,36 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
           contact_email: openToChat ? contactEmail.trim() || null : null,
         }),
       });
-    } catch {
-      /* non-blocking: even on a network error we thank + stop nagging */
-    } finally {
-      // Mark done regardless so a tried-but-failed submit never re-nags.
-      if (typeof localStorage !== "undefined") {
-        localStorage.setItem(DONE_KEY, "true");
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.saved === true) {
+        // Only mark done when the server confirms the row was saved.
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem(DONE_KEY, "true");
+        }
+        setDone(true);
+      } else {
+        throw new Error();
       }
+    } catch {
+      // Any failure (network, !res.ok, or saved !== true): keep every answer
+      // intact, surface a retryable error, and never silence the prompt.
+      setError(true);
+    } finally {
       setSubmitting(false);
-      setDone(true);
     }
   };
 
   if (!isOpen) return null;
+
+  // Don't let the user submit a fully empty form — the server drops it anyway
+  // (returns saved:false), which would otherwise surface a misleading error.
+  const hasContent = Boolean(
+    usesFor.trim() ||
+      almostStopped.trim() ||
+      lastBookedWhere.trim() ||
+      wouldBook ||
+      (openToChat && contactEmail.trim())
+  );
 
   const inputClass =
     "mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]";
@@ -165,14 +185,15 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
           </label>
 
           <fieldset>
-            <legend className="text-sm font-medium text-slate-800">{t("q4Label")}</legend>
-            <div className="flex gap-2 mt-2">
+            <legend id="feedback-q4-label" className="text-sm font-medium text-slate-800">{t("q4Label")}</legend>
+            <div className="flex gap-2 mt-2" role="radiogroup" aria-labelledby="feedback-q4-label">
               {(["yes", "maybe", "no"] as const).map((v) => (
                 <button
                   type="button"
                   key={v}
+                  role="radio"
                   onClick={() => setWouldBook(v)}
-                  aria-pressed={wouldBook === v}
+                  aria-checked={wouldBook === v}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
                     wouldBook === v
                       ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
@@ -195,14 +216,31 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
             <span className="text-sm text-slate-700">{t("chatLabel")}</span>
           </label>
           {openToChat && (
-            <input
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              className={inputClass}
-              placeholder={t("emailPlaceholder")}
-              autoComplete="email"
-            />
+            <label className="block">
+              <span className="text-sm font-medium text-slate-800">{t("emailLabel")}</span>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className={inputClass}
+                placeholder={t("emailPlaceholder")}
+                autoComplete="email"
+              />
+            </label>
+          )}
+
+          <p className="text-xs text-slate-400 leading-relaxed">
+            {t("disclosurePrefix")}{" "}
+            <Link href="/privacy" className="underline hover:text-slate-600">
+              {t("privacyPolicy")}
+            </Link>
+            .
+          </p>
+
+          {error && (
+            <p role="alert" className="text-sm text-red-600">
+              {t("error")}
+            </p>
           )}
 
           <div className="flex gap-2 pt-1">
@@ -217,8 +255,8 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting}
-              className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+              disabled={submitting || !hasContent}
+              className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? t("sending") : t("send")}
             </button>

@@ -19,7 +19,11 @@
     "send": "Send feedback",
     "thanksTitle": "Thank you, truly",
     "thanksBody": "This is worth more than you know. We read every single one.",
-    "close": "Close"
+    "close": "Close",
+    "emailLabel": "Your email",
+    "error": "Something went wrong — please try again.",
+    "disclosurePrefix": "By sending, you agree we may use your answers to improve MonkeyTravel. If you leave your email, we'll only use it to contact you about this. See our",
+    "privacyPolicy": "Privacy Policy"
   },
   "navigation": {
     "features": "Features",

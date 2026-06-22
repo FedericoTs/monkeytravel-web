@@ -92,6 +92,8 @@ export default function BaseModal({
   const t = useTranslations("common.buttons");
   const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  // Element that had focus before the modal opened, so we can restore it on close.
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   // Client-side only mounting for portal
   useEffect(() => {
@@ -156,6 +158,41 @@ export default function BaseModal({
     return () => document.removeEventListener("keydown", handleTab);
   }, [isOpen]);
 
+  // Move focus into the dialog on open, restore it on close (WCAG 2.4.3).
+  // Without this, focus stays on the background — critical for auto-opened
+  // modals (e.g. the feedback survey) where the user never clicked a trigger,
+  // so the focus trap only engages after a manual Tab.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof document === "undefined") return; // SSR guard
+
+    // Remember what was focused before opening so we can restore it later.
+    const activeEl = document.activeElement;
+    previouslyFocusedRef.current =
+      activeEl instanceof HTMLElement ? activeEl : null;
+
+    // Focus the panel container itself (tabIndex={-1} on modalRef) rather than
+    // the first field, so screen readers announce the dialog name first.
+    // rAF ensures the panel is mounted/painted before we focus it.
+    const raf = requestAnimationFrame(() => {
+      modalRef.current?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      // Restore focus to the trigger element if it's still in the document.
+      const toRestore = previouslyFocusedRef.current;
+      previouslyFocusedRef.current = null;
+      if (
+        toRestore &&
+        typeof toRestore.focus === "function" &&
+        document.contains(toRestore)
+      ) {
+        toRestore.focus();
+      }
+    };
+  }, [isOpen]);
+
   // Handle backdrop click
   const handleBackdropClick = useCallback(() => {
     if (closeOnBackdrop && !disableBackdropClick) {
@@ -217,9 +254,10 @@ export default function BaseModal({
         {/* Modal panel */}
         <div
           ref={modalRef}
+          tabIndex={-1}
           className={`
             relative bg-white rounded-2xl shadow-xl w-full ${maxWidth}
-            overflow-hidden ${animationClasses[animation]} ${className}
+            overflow-hidden outline-none ${animationClasses[animation]} ${className}
           `}
           onClick={(e) => e.stopPropagation()}
         >
