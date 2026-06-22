@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -103,6 +104,29 @@ interface SharedTripViewProps {
 export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot }: SharedTripViewProps) {
   const t = useTranslations('common');
   const { addToast } = useToast();
+  const searchParams = useSearchParams();
+
+  // ref-on-share virality: the owner's referral code rides on the share
+  // link as ?ref=OWNERCODE (the share API now appends it). Capture it on
+  // the client so we can (a) persist it for a later nav-driven signup and
+  // (b) carry it on the "Plan your own trip" CTA below.
+  const referralCode = searchParams?.get("ref")?.trim() || null;
+
+  // Persist ?ref the same way /join/[code] does (localStorage key
+  // "referral_code") so a visitor who signs up via the normal nav — not
+  // the CTA — is still attributed to the owner. The signup page reads this
+  // exact key. Guard: never overwrite an existing stored code with empty.
+  useEffect(() => {
+    if (referralCode) {
+      try {
+        localStorage.setItem("referral_code", referralCode);
+      } catch {
+        // localStorage unavailable (private mode / SSR edge) — the CTA's
+        // ?ref query param still carries attribution, so non-fatal.
+      }
+    }
+  }, [referralCode]);
+
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -275,6 +299,20 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // Prefer trip_meta.destination (canonical) over title-strip — see
   // lib/trips/destination.ts. Matters for non-English / renamed trips.
   const destination = getTripDestination(trip);
+
+  // "Plan your own trip" CTA target. Routes to the creation wizard
+  // carrying the owner's referral code (?ref) so the new user is
+  // attributed to them at signup, and seeds the destination (?destination=)
+  // which the wizard pre-fills (NewTripWizard reads searchParams.get
+  // ("destination")). Both params are optional — when ref is absent the
+  // link still works, it just won't attribute.
+  const planOwnHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (destination) params.set("destination", destination);
+    if (referralCode) params.set("ref", referralCode);
+    const qs = params.toString();
+    return qs ? `/trips/new?${qs}` : "/trips/new";
+  }, [destination, referralCode]);
 
   // Memoize ensureActivityIds to prevent generating new UUIDs on every render
   const displayItinerary = useMemo(
@@ -713,16 +751,30 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         </div>
 
-        {/* Floating Save CTA - Sticky at bottom for easy access */}
+        {/* Floating CTA — Sticky at bottom for easy access.
+            ref-on-share: two co-equal converts. "Save this trip" duplicates
+            the owner's itinerary; "Plan your own trip" sends the visitor to
+            the wizard with the owner's ?ref so a fresh signup is attributed
+            to them (the viral loop). Stacked on mobile, side-by-side ≥sm. */}
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100">
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={() => setShowSaveModal(true)}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-            >
-              <Sparkles className="w-5 h-5" />
-              {t("share.savedHero.saveButton")}
-            </button>
+          <div className="max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowSaveModal(true)}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+              >
+                <Sparkles className="w-5 h-5" />
+                {t("share.savedHero.saveButton")}
+              </button>
+              <Link
+                href={planOwnHref}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
+              >
+                {destination
+                  ? t("share.savedHero.planOwnButton", { destination })
+                  : t("share.savedHero.planOwnButtonGeneric")}
+              </Link>
+            </div>
             <p className="text-center text-xs text-slate-500 mt-2">
               {t("share.savedHero.saveSubtitle")}
             </p>

@@ -890,7 +890,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                     const response = await fetch("/api/referral/code");
                     if (!response.ok) throw new Error("Failed to fetch referral code");
                     const data = await response.json();
-                    const shareUrl = `${window.location.origin}/ref/${data.code}`;
+                    const shareUrl = `${window.location.origin}/join/${data.code}`;
                     const shareText = `Join me on MonkeyTravel and get a FREE AI-powered trip! 🌴✈️`;
 
                     // Try native share first

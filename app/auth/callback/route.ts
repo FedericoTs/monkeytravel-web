@@ -89,6 +89,21 @@ export async function GET(request: Request) {
         return noIndexRedirect(`${origin}${getLocalePath("/auth/reset-password")}`);
       }
 
+      // Validated referral attribution for confirm-email signups: the signup
+      // page forwards ?ref via emailRedirectTo, so a code present here is a new
+      // referred signup (returning-user magic links carry no ?ref). The RPC is
+      // idempotent + self-referral-guarded; never blocks auth.
+      if (referralCode) {
+        try {
+          await createAdminClient().rpc("attach_referral_on_signup", {
+            p_user_id: data.user.id,
+            p_code: referralCode,
+          });
+        } catch (e) {
+          console.error("[Auth Callback] referral attach failed (PKCE):", e);
+        }
+      }
+
       // Check if user profile exists
       // NOTE: capture `error` here. On a transient Supabase failure we
       // previously silently treated the returning user as a brand-new
@@ -275,8 +290,8 @@ export async function GET(request: Request) {
             socialNotifications: true,
             marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
           },
-          // Add referral code if present
-          ...(referralCode && { referred_by_code: referralCode }),
+          // Referral attribution is handled below by the validated
+          // attach_referral_on_signup RPC — NOT an unvalidated raw stamp.
           // Add acquisition source if first-touch UTM cookie was set
           ...(acquisitionSource && { acquisition_source: acquisitionSource }),
         });
@@ -306,6 +321,21 @@ export async function GET(request: Request) {
         // Re-key any anonymous (cookie-saved) bookmarks to this brand-
         // new account so the user's bookmark list survives signup.
         await mergeAnonymousSaves(data.user.id);
+
+        // Validated referral attribution (replaces the old unvalidated stamp):
+        // sets referred_by_code only for a REAL code, bumps total_signups (the
+        // K-Factor numerator), logs the signup event, and grants the referee's
+        // welcome bananas — atomic + idempotent. Never blocks signup.
+        if (referralCode) {
+          try {
+            await createAdminClient().rpc("attach_referral_on_signup", {
+              p_user_id: data.user.id,
+              p_code: referralCode,
+            });
+          } catch (e) {
+            console.error("[Auth Callback] referral attach failed (OAuth):", e);
+          }
+        }
 
         // Skip welcome gate and onboarding — go straight to trip creation
         // Users can personalize their experience later in profile settings

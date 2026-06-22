@@ -996,7 +996,10 @@
       "loveTitle": "Love this itinerary?",
       "loveDescription": "Save it to your account and make it your own. Edit times, swap activities, add notes, and share with your travel companions.",
       "saveButton": "Save to My Trips",
-      "saveSubtitle": "Save this itinerary and customize it for your dates"
+      "saveSubtitle": "Save this itinerary and customize it for your dates",
+      "planOwnButton": "✨ Plan your own {destination} trip — free",
+      "planOwnButtonGeneric": "✨ Plan your own trip — free",
+      "planOwnSubtitle": "Build your own AI itinerary from scratch"
     },
     "platforms": {
       "twitter": "Twitter",

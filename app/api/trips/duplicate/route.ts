@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { v4 as uuidv4 } from "uuid";
 import type { ItineraryDay, Activity } from "@/types";
@@ -172,6 +173,43 @@ export async function POST(request: NextRequest) {
           is_duplicate: true,
           source_trip_id: sourceTrip.id,
         });
+
+        // Ref-on-share fallback: if this saver arrived from a shared link whose
+        // ?ref got stripped (common on WhatsApp/iMessage) and isn't yet
+        // attributed, credit the trip's OWNER as the referrer — but only for
+        // FRESH accounts (a likely new signup from this link), never
+        // established users. The attach RPC self-referral-guards + is idempotent.
+        try {
+          const createdAt = (user as { created_at?: string }).created_at;
+          const accountAgeMs = createdAt
+            ? Date.now() - new Date(createdAt).getTime()
+            : Infinity;
+          if (
+            accountAgeMs < 24 * 60 * 60 * 1000 &&
+            sourceTrip.user_id &&
+            sourceTrip.user_id !== user.id
+          ) {
+            const { data: refUser } = await supabase
+              .from("users")
+              .select("referred_by_code")
+              .eq("id", user.id)
+              .single();
+            if (!refUser?.referred_by_code) {
+              const admin = createAdminClient();
+              const { data: ownerCode } = await admin.rpc("get_or_create_referral_code", {
+                p_user_id: sourceTrip.user_id,
+              });
+              if (ownerCode && typeof ownerCode === "string") {
+                await admin.rpc("attach_referral_on_signup", {
+                  p_user_id: user.id,
+                  p_code: ownerCode,
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[Trip Duplicate] ref-on-share fallback failed:", e);
+        }
 
         // Complete referral if eligible
         const referralResult = await completeReferralIfEligible(

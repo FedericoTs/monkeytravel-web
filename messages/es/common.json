@@ -996,7 +996,10 @@
       "loveTitle": "¿Te gusta este itinerario?",
       "loveDescription": "Guárdalo en tu cuenta y hazlo tuyo. Edita horarios, cambia actividades, añade notas y compártelo con tus compañeros de viaje.",
       "saveButton": "Guardar en Mis Viajes",
-      "saveSubtitle": "Guarda este itinerario y personalízalo para tus fechas"
+      "saveSubtitle": "Guarda este itinerario y personalízalo para tus fechas",
+      "planOwnButton": "✨ Planifica tu propio viaje a {destination} — gratis",
+      "planOwnButtonGeneric": "✨ Planifica tu propio viaje — gratis",
+      "planOwnSubtitle": "Crea tu propio itinerario con IA desde cero"
     },
     "platforms": {
       "twitter": "Twitter",

@@ -154,6 +154,13 @@ function SignupForm() {
           // users row may not be committed yet when that hook fires.
           locale,
         },
+        // When a referral is present, forward it through the confirm-email
+        // round-trip so the PKCE callback can attribute the signup server-side
+        // (validated). Only set for referred signups so the default redirect
+        // is untouched for everyone else.
+        ...(referralCode && {
+          emailRedirectTo: `${window.location.origin}/auth/callback?ref=${encodeURIComponent(referralCode)}&locale=${locale}`,
+        }),
       },
     });
 
@@ -200,8 +207,9 @@ function SignupForm() {
           allowLocationTracking: false,
           disableFriendRequests: false,
         },
-        // Add referral code if present
-        ...(referralCode && { referred_by_code: referralCode }),
+        // Referral attribution is handled server-side after signup (the
+        // validated attach RPC — via emailRedirectTo for confirm-email, or
+        // /api/referral/attach for instant sessions), not an unvalidated stamp.
         // Add acquisition source from first-touch UTM cookie
         ...(acquisitionSource && { acquisition_source: acquisitionSource }),
       };
@@ -299,6 +307,18 @@ function SignupForm() {
     // trip wizard — mirrors the OAuth flow (app/auth/callback/route.ts)
     // which also bypasses /welcome and lands in /trips/new.
     if (data.session) {
+      // Instant session (email confirmation disabled): the user is authed now,
+      // so attach the referral server-side (validated; grants the welcome 🍌).
+      // Fire-and-forget — never park the user on the form.
+      if (referralCode) {
+        fetch("/api/referral/attach", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: referralCode }),
+        }).catch(() => {
+          /* non-blocking — the confirm-email path attaches via the callback */
+        });
+      }
       router.push("/trips/new?auth_event=signup_email");
       router.refresh();
     }

@@ -996,7 +996,10 @@
       "loveTitle": "Gostou deste roteiro?",
       "loveDescription": "Salve-o na sua conta e torne-o seu. Edite horários, troque atividades, adicione notas e compartilhe com seus companheiros de viagem.",
       "saveButton": "Salvar em Minhas Viagens",
-      "saveSubtitle": "Salve este roteiro e personalize-o para suas datas"
+      "saveSubtitle": "Salve este roteiro e personalize-o para suas datas",
+      "planOwnButton": "✨ Planeje sua própria viagem a {destination} — grátis",
+      "planOwnButtonGeneric": "✨ Planeje sua própria viagem — grátis",
+      "planOwnSubtitle": "Crie seu próprio roteiro com IA do zero"
     },
     "platforms": {
       "twitter": "Twitter",
