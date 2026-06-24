@@ -7,13 +7,24 @@ import { getAllAuthors } from "@/lib/blog/authors";
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
 
-// Hardcoded lastmod dates per content type — keeps the sitemap stable across
-// rebuilds rather than declaring "everything changed today" on every build,
-// which trains Google to ignore the lastmod signal entirely.
-// Bump these when the corresponding content actually changes.
-const LASTMOD_HOMEPAGE = "2026-04-30";
-const LASTMOD_LANDING = "2026-04-15";
-const LASTMOD_DESTINATIONS = "2026-04-15";
+// Hardcoded lastmod dates per content type — kept stable across rebuilds
+// rather than declaring "everything changed today" on every build (which
+// trains Google to ignore the signal). Bump these when the content actually
+// changes.
+//
+// 2026-06-22: bumped from the frozen 2026-04-15/04-30 values. They had gone
+// permanently stale (≈49% of the sitemap carried a single 2026-04-15 date),
+// which suppressed recrawl of the very pages struggling to index — and worse,
+// the pt locale (content shipped 2026-06-09) inherited a 2026-04-15 date that
+// PRE-DATED its own existence, a misleading signal Google discounts. This
+// one-time bump reflects the real 2026-06-22 content + delivery refresh
+// (static rendering restored) and triggers a recrawl wave.
+// TODO (proper fix): derive these from content-stored dates the way the blog
+// uses frontmatter updatedAt — fs mtime is unreliable on Vercel (git checkout
+// resets it to build time), so it needs per-item dates in the source data.
+const LASTMOD_HOMEPAGE = "2026-06-22";
+const LASTMOD_LANDING = "2026-06-22";
+const LASTMOD_DESTINATIONS = "2026-06-22";
 const LASTMOD_LEGAL = "2025-12-01";
 
 // Most-important pages get the highest priority signal so Google clusters them
