@@ -7,25 +7,30 @@ import { getAllAuthors } from "@/lib/blog/authors";
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
 
-// Hardcoded lastmod dates per content type — kept stable across rebuilds
-// rather than declaring "everything changed today" on every build (which
-// trains Google to ignore the signal). Bump these when the content actually
-// changes.
-//
-// 2026-06-22: bumped from the frozen 2026-04-15/04-30 values. They had gone
-// permanently stale (≈49% of the sitemap carried a single 2026-04-15 date),
-// which suppressed recrawl of the very pages struggling to index — and worse,
-// the pt locale (content shipped 2026-06-09) inherited a 2026-04-15 date that
-// PRE-DATED its own existence, a misleading signal Google discounts. This
-// one-time bump reflects the real 2026-06-22 content + delivery refresh
-// (static rendering restored) and triggers a recrawl wave.
-// TODO (proper fix): derive these from content-stored dates the way the blog
-// uses frontmatter updatedAt — fs mtime is unreliable on Vercel (git checkout
-// resets it to build time), so it needs per-item dates in the source data.
-const LASTMOD_HOMEPAGE = "2026-06-22";
-const LASTMOD_LANDING = "2026-06-22";
-const LASTMOD_DESTINATIONS = "2026-06-22";
+// Hardcoded lastmod dates per content type — the genuine last time each type
+// was meaningfully changed. Kept stable across rebuilds rather than declaring
+// "everything changed today" on every build. We deliberately do NOT bump these
+// to today just to provoke a recrawl: an INACCURATE lastmod is worse than a
+// stale one — Google learns to ignore the signal entirely. Bump only when the
+// content actually changes.
+const LASTMOD_HOMEPAGE = "2026-04-30";
+const LASTMOD_LANDING = "2026-04-15";
+const LASTMOD_DESTINATIONS = "2026-04-15";
 const LASTMOD_LEGAL = "2025-12-01";
+
+// The pt locale shipped 2026-06-09 (commit 988c1f6 — 29 destinations + 65 blog
+// posts). pt pages must NEVER carry an en/es/it date that PRE-DATES the pt
+// content's existence — that was a real bug (pt URLs claiming 2026-04-15, two
+// months before they existed; Google discounts pre-creation dates). `ptAware`
+// clamps any base date up to the pt ship date for pt URLs only; en/es/it keep
+// their honest dates untouched.
+// TODO (proper fix): derive ALL of these from per-item content-stored dates,
+// the way the blog already does via frontmatter `updatedAt`. fs mtime is
+// unreliable on Vercel (git checkout resets it to build time).
+const LASTMOD_PT_CONTENT = "2026-06-09";
+function ptAware(locale: string, base: string): string {
+  return locale === "pt" && base < LASTMOD_PT_CONTENT ? LASTMOD_PT_CONTENT : base;
+}
 
 // Most-important pages get the highest priority signal so Google clusters them
 // at the top of the crawl queue when budget is tight.
@@ -63,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/pt`,
-      lastModified: LASTMOD_HOMEPAGE,
+      lastModified: LASTMOD_PT_CONTENT,
       changeFrequency: "weekly",
       priority: PRIORITY_LOCALE_HOMEPAGE,
     },
@@ -90,7 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
     contactPages.push({
       url: `${baseUrl}${prefix}/contact`,
-      lastModified: LASTMOD_LANDING,
+      lastModified: ptAware(locale, LASTMOD_LANDING),
       changeFrequency: "monthly",
       priority: 0.5,
     });
@@ -122,7 +127,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of seoLandingPaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: LASTMOD_LANDING,
+        lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
       });
@@ -130,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of toolPaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: LASTMOD_LANDING,
+        lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
       });
@@ -138,7 +143,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of explorePaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: LASTMOD_HOMEPAGE,
+        lastModified: ptAware(locale, LASTMOD_HOMEPAGE),
         // Daily — explore feed re-ranks via trending_score every cron tick
         // and new UGC trips land continuously. We want Googlebot to come
         // back often, not the monthly cadence the SEO landing pages use.
@@ -157,7 +162,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Index page per locale
     destinationPages.push({
       url: `${baseUrl}${prefix}/destinations`,
-      lastModified: LASTMOD_DESTINATIONS,
+      lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
       changeFrequency: "monthly",
       priority: PRIORITY_INDEX,
     });
@@ -166,7 +171,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const dest of destinations) {
       destinationPages.push({
         url: `${baseUrl}${prefix}/destinations/${dest.slug}`,
-        lastModified: LASTMOD_DESTINATIONS,
+        lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
         changeFrequency: "monthly",
         priority: PRIORITY_DESTINATION_DETAIL,
       });
@@ -259,7 +264,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const styleTag of STYLE_TAGS) {
       stylePages.push({
         url: `${baseUrl}${prefix}/destinations/style/${styleTag}`,
-        lastModified: LASTMOD_DESTINATIONS,
+        lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
         changeFrequency: "monthly",
         priority: 0.6,
       });
