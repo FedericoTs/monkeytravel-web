@@ -133,7 +133,21 @@ export async function GET(request: NextRequest) {
       // Drain the body to free the connection — we ignore the error
       // payload (it's a JSON error from Google, useless to the browser).
       try { await res.arrayBuffer(); } catch { /* ignore */ }
-      return Response.redirect(curatedFallbackForName(name), 307);
+      // 429 (rate-limit) and 403 (quota) are TRANSIENT, not a permanently-bad
+      // photo_reference: serve the curated fallback now so the <img> isn't
+      // broken, but do NOT cache it — pinning a transient failure would replace
+      // valid photos with stale fallbacks for a full hour after the spike
+      // clears. Every OTHER 4xx (400/404/410) means the reference is
+      // permanently gone, so cache the fallback at the edge for an hour to stop
+      // re-hitting Google on every render (wasted invocation + paid API call).
+      const transient = res.status === 429 || res.status === 403;
+      return new Response(null, {
+        status: 307,
+        headers: {
+          Location: curatedFallbackForName(name),
+          "Cache-Control": transient ? "no-store" : "public, max-age=3600",
+        },
+      });
     }
     return new Response(`Upstream ${res.status}`, { status: res.status });
   }
