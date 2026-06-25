@@ -1,5 +1,3 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import PhoneMockup from '@/components/PhoneMockup';
 import EmailSubscribe from '@/components/EmailSubscribe';
@@ -95,14 +93,9 @@ const FAQ_KEYS = ['free', 'noApp', 'howAiWorks', 'editItinerary', 'destinations'
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
-  // Smart routing: Redirect authenticated users to their dashboard
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    // Returning user - skip marketing, go directly to trips dashboard
-    redirect('/trips');
-  }
+  // NOTE: the logged-in → /trips redirect moved to middleware.ts (a cookie-
+  // presence check) so this marketing homepage renders statically/ISR instead
+  // of reading auth cookies on every request. See static-rendering Phase 1b.
 
   // Get translations for landing page
   const t = await getTranslations('landing');

@@ -223,6 +223,24 @@ export async function middleware(request: NextRequest) {
     return attachSecurityHeaders(intlResponse);
   }
 
+  // Logged-in users skip the marketing homepage. PRESENCE check only — we look
+  // for the Supabase auth cookie, NOT validate it (validation = a network call
+  // we must not add to the hot path). A stale cookie sends them to /trips, where
+  // the real auth guard bounces them to /auth/login if needed. Loop-safe:
+  // /trips is never the homepage, so this only fires when the stripped path is
+  // '/'. This is what lets the homepage render statically (Phase 1b).
+  const strippedForHome = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
+  if (strippedForHome === '/') {
+    const hasSession = request.cookies
+      .getAll()
+      .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+    if (hasSession) {
+      const tripsUrl = request.nextUrl.clone();
+      tripsUrl.pathname = '/trips';
+      return attachSecurityHeaders(NextResponse.redirect(tripsUrl));
+    }
+  }
+
   // First-touch UTM cookie capture (see captureUtmCookies docstring).
   captureUtmCookies(request, intlResponse);
 
