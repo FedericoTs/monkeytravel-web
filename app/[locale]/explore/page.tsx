@@ -444,11 +444,11 @@ async function fetchExploreFeedWithStyle(
   }
   // Manual fetch with travel_style appended. Same host + 60s revalidate
   // to stay consistent with the wrapper.
-  const { headers } = await import("next/headers");
-  const h = await headers();
-  const host =
-    h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
-  const proto = h.get("x-forwarded-proto") ?? "https";
+  // Static base URL — no headers() read (matches lib/explore/fetcher.ts), so
+  // this page can render statically/ISR. Preview deploys read prod's public
+  // explore feed (read-only data — fine).
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://monkeytravel.app";
 
   const params = new URLSearchParams();
   if (filters.destination) params.set("destination", filters.destination);
@@ -461,7 +461,7 @@ async function fetchExploreFeedWithStyle(
   if (filters.page) params.set("page", String(filters.page));
   params.set("travel_style", "backpacker");
 
-  const url = `${proto}://${host}/api/explore/trips?${params.toString()}`;
+  const url = `${base}/api/explore/trips?${params.toString()}`;
   try {
     const res = await fetch(url, { next: { revalidate: 60 } });
     if (!res.ok) {

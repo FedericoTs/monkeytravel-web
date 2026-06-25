@@ -1,14 +1,13 @@
 import "server-only";
-import { headers } from "next/headers";
 import type { ExploreFeedResponse, ExploreFilters } from "./types";
 
 /**
  * Server-side fetcher for /api/explore/trips.
  *
- * Built absolute URLs so it works from both server components (where
- * relative fetches need the host) and from edge contexts. Uses the
- * forwarded host header so the call hits the same deployment that
- * served the page (preview deploys + branch deploys included).
+ * Builds an absolute URL from a CONSTANT base (NEXT_PUBLIC_APP_URL, falling
+ * back to prod) rather than reading the request host. This keeps callers
+ * statically renderable / ISR-able (no headers() read). Tradeoff: preview
+ * deploys fetch PRODUCTION's public explore feed instead of their own host.
  *
  * Caching: explicitly opts into Next's default 60-second revalidate
  * so a brief burst of /explore visits doesn't fan out to the API
@@ -19,9 +18,12 @@ export async function fetchExploreFeed(
   filters: ExploreFilters = {},
   options: { revalidate?: number } = {}
 ): Promise<ExploreFeedResponse | null> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
-  const proto = h.get("x-forwarded-proto") ?? "https";
+  // Static base URL — no headers() read, so callers can render statically/ISR.
+  // Tradeoff: Vercel preview/branch deploys point at PRODUCTION's explore feed
+  // instead of their own host (a static page can't know its own URL without a
+  // dynamic read). Acceptable: the feed is read-only public data.
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://monkeytravel.app";
 
   const params = new URLSearchParams();
   if (filters.destination) params.set("destination", filters.destination);
@@ -32,7 +34,7 @@ export async function fetchExploreFeed(
   if (filters.page) params.set("page", String(filters.page));
   // per_page stays at API default (12) — change at one place only.
 
-  const url = `${proto}://${host}/api/explore/trips?${params.toString()}`;
+  const url = `${base}/api/explore/trips?${params.toString()}`;
 
   try {
     const res = await fetch(url, {
