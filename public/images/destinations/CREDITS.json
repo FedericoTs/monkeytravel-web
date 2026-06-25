@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "benidorm",
+    "photographer": "Emilio Sánchez  Hernández",
+    "url": "https://www.pexels.com/photo/benidorm-skyline-with-intempo-building-33739349/",
+    "pexels_id": 33739349
+  },
+  {
+    "slug": "bordeaux",
+    "photographer": "TBD Traveller",
+    "url": "https://www.pexels.com/photo/bordeaux-city-square-with-reflecting-pool-in-summer-30732699/",
+    "pexels_id": 30732699
+  },
+  {
+    "slug": "budapest",
+    "photographer": "Efrem  Efre",
+    "url": "https://www.pexels.com/photo/parliament-building-in-budapest-18815996/",
+    "pexels_id": 18815996
+  },
+  {
+    "slug": "hong-kong",
+    "photographer": "John Benedict Malong",
+    "url": "https://www.pexels.com/photo/hong-kong-skyline-with-buildings-and-water-26970225/",
+    "pexels_id": 26970225
+  },
+  {
+    "slug": "houston",
+    "photographer": "Trace Hudson",
+    "url": "https://www.pexels.com/photo/an-aerial-photography-of-city-buildings-at-night-near-the-road-7142456/",
+    "pexels_id": 7142456
+  },
+  {
+    "slug": "lima",
+    "photographer": "Maria Camila Castaño",
+    "url": "https://www.pexels.com/photo/a-coastal-city-by-the-beach-7332783/",
+    "pexels_id": 7332783
+  },
+  {
+    "slug": "nairobi",
+    "photographer": "Mukula Igavinchi",
+    "url": "https://www.pexels.com/photo/clouds-over-city-15496531/",
+    "pexels_id": 15496531
+  },
+  {
+    "slug": "taipei",
+    "photographer": "Ehsan Haque",
+    "url": "https://www.pexels.com/photo/illuminated-skyline-of-taipei-taiwan-at-night-23106806/",
+    "pexels_id": 23106806
+  },
+  {
+    "slug": "xiamen",
+    "photographer": "toter yau",
+    "url": "https://www.pexels.com/photo/scenic-aerial-view-of-gulangyu-island-landscape-37714925/",
+    "pexels_id": 37714925
+  }
+]
