@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
+// next/image import removed — the author avatar renders as initials (no headshots yet).
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { routing, Link } from "@/lib/i18n/routing";
@@ -114,14 +114,18 @@ export default async function AuthorPage({ params }: PageProps) {
             <div className="flex flex-col sm:flex-row gap-8 items-start">
               {/* Photo — falls back to a placeholder gradient if no image yet */}
               <div className="shrink-0 w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/30 ring-4 ring-white shadow-lg">
-                <Image
-                  src={photoUrl}
-                  alt={author.name}
-                  width={160}
-                  height={160}
-                  className="w-full h-full object-cover"
-                  // If the file doesn't exist yet, the gradient fallback shows through
-                />
+                {/* Author headshots aren't shot yet (see .audit/CONTENT_TODO.md);
+                    render initials over the gradient circle instead of a broken
+                    <img>. Swap back to <Image src={photoUrl} .../> when a real
+                    /images/authors/{slug}.jpg exists. */}
+                <span className="flex items-center justify-center w-full h-full text-4xl font-bold text-[var(--primary)]">
+                  {author.name
+                    .split(/\s+/)
+                    .map((p) => p[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </span>
               </div>
 
               <div className="flex-1 min-w-0">

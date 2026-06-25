@@ -1,4 +1,5 @@
 import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import type { Destination, Locale } from "@/lib/destinations/types";
 
 interface DestinationPageHeroProps {
@@ -27,7 +28,7 @@ export default function DestinationPageHero({
     <section className="relative pt-20 pb-16 overflow-hidden">
       {/* Background image with overlay */}
       <div className="absolute inset-0">
-        <Image
+        <ImageWithFallback
           src={`/images/destinations/${destination.slug}.jpg`}
           alt={name[locale]}
           fill

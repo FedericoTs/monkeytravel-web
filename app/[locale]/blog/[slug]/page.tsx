@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -538,7 +539,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     className="group block rounded-2xl overflow-hidden bg-white border border-gray-100 hover:border-[var(--accent)]/30 hover:shadow-xl transition-all"
                   >
                     <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20">
-                      <Image
+                      <ImageWithFallback
                         src={`/images/destinations/${dest.slug}.jpg`}
                         alt={dest.name[loc]}
                         fill

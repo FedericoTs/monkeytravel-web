@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Link } from "@/lib/i18n/routing";
 import type { Destination, Locale } from "@/lib/destinations/types";
 
@@ -32,7 +32,7 @@ export default function BlogPlanThisCta({
       >
         <div className="grid md:grid-cols-[200px_1fr]">
           <div className="relative h-40 md:h-full bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 overflow-hidden">
-            <Image
+            <ImageWithFallback
               src={`/images/destinations/${destination.slug}.jpg`}
               alt={destination.name[locale]}
               fill

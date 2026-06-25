@@ -45,13 +45,18 @@ export default function BlogByline({
           className="shrink-0 w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/30 ring-2 ring-white"
           aria-label={`View ${author.name}'s author page`}
         >
-          <Image
-            src={author.photoUrl}
-            alt={author.name}
-            width={44}
-            height={44}
-            className="w-full h-full object-cover"
-          />
+          {/* Author headshots aren't shot yet (see .audit/CONTENT_TODO.md), so
+              render initials over the brand-gradient circle instead of a broken
+              <img>. When a real /images/authors/{slug}.jpg is added, swap this
+              back to <Image src={author.photoUrl} .../>. */}
+          <span className="flex items-center justify-center w-full h-full text-sm font-semibold text-[var(--primary)]">
+            {author.name
+              .split(/\s+/)
+              .map((p) => p[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </span>
         </Link>
         <div className="min-w-0 flex-1">
           <p className="text-sm">

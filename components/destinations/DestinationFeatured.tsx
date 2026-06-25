@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Link } from "@/lib/i18n/routing";
 import type { Destination, Locale } from "@/lib/destinations/types";
 
@@ -41,7 +41,7 @@ export default function DestinationFeatured({
             blurDataURL is a tiny warm/cream 2x1 JPEG that fades into the
             real photo via Next/Image's built-in blur transition. */}
         <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[420px] overflow-hidden bg-slate-200">
-          <Image
+          <ImageWithFallback
             src={`/images/destinations/${destination.slug}.jpg`}
             alt={cityName}
             fill

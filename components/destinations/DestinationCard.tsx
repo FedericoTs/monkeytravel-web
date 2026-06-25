@@ -1,4 +1,5 @@
 import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Link } from "@/lib/i18n/routing";
 import type { Destination, Locale } from "@/lib/destinations/types";
 
@@ -26,7 +27,7 @@ export default function DestinationCard({
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20">
-        <Image
+        <ImageWithFallback
           src={`/images/destinations/${slug}.jpg`}
           alt={name[locale]}
           fill
