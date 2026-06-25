@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -125,7 +125,16 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const destination = getDestinationBySlug(slug);
-  if (!destination) notFound();
+  if (!destination) {
+    // No destination page exists for this slug. Several blog posts link to
+    // destinations we haven't built pages for yet (e.g. /destinations/iceland,
+    // /santorini, /maldives) — rather than a 404 dead-end, send the visitor
+    // into the planner pre-filled with that place. (Garbage slugs harmlessly
+    // land on the wizard too; these URLs are not in the sitemap so crawlers
+    // rarely hit them.)
+    const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+    redirect(`${prefix}/trips/new?destination=${encodeURIComponent(slug)}`);
+  }
 
   const loc = locale as Locale;
   const t = await getTranslations("destinations");
