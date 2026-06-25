@@ -17,9 +17,19 @@
 
 import { NextRequest } from "next/server";
 import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
-import { supabase } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+
+// Lazy service-role client for the RLS-locked weather_cache table. The weather
+// route runs server-side only, so a service-role client is the correct caller
+// (anon must not write arbitrary cache rows). Memoized so we don't construct a
+// new client on every request.
+let _weatherAdmin: ReturnType<typeof createAdminClient> | null = null;
+function getWeatherAdmin() {
+  if (!_weatherAdmin) _weatherAdmin = createAdminClient();
+  return _weatherAdmin;
+}
 
 // Cache TTL: 30 days (historical weather data doesn't change)
 // Extended from 7 days - same dates from previous year are static
@@ -120,71 +130,55 @@ function isValidWeatherData(data: unknown): data is WeatherData {
 }
 
 /**
- * Get cached weather data from Supabase
- * Note: Using metadata column to store weather data (not coordinates which is for lat/lng)
+ * Get cached weather data from the dedicated weather_cache table.
  */
 async function getCachedWeather(cacheKey: string): Promise<WeatherData | null> {
   try {
-    const { data, error } = await supabase
-      .from("geocode_cache") // Reuse geocode_cache table for weather data
-      .select("id, coordinates, metadata, hit_count")
-      .eq("address", `weather:${cacheKey}`)
+    const admin = getWeatherAdmin();
+    const { data, error } = await admin
+      .from("weather_cache")
+      .select("weather, hit_count")
+      .eq("cache_key", cacheKey)
       .gt("expires_at", new Date().toISOString())
       .single();
 
-    if (error || !data) return null;
+    if (error || !data || !isValidWeatherData(data.weather)) return null;
 
     // Update hit count (fire and forget)
-    supabase
-      .from("geocode_cache")
+    admin
+      .from("weather_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
         last_accessed_at: new Date().toISOString(),
       })
-      .eq("id", data.id)
+      .eq("cache_key", cacheKey)
       .then(() => {});
 
-    // Weather data is stored in metadata.weather field
-    const cachedData = (data.metadata as Record<string, unknown>)?.weather;
-    if (isValidWeatherData(cachedData)) {
-      return cachedData;
-    }
-
-    // Legacy fallback: check coordinates field (old format)
-    if (isValidWeatherData(data.coordinates)) {
-      return data.coordinates as WeatherData;
-    }
-
-    return null;
+    return data.weather;
   } catch {
     return null;
   }
 }
 
 /**
- * Cache weather data in Supabase
- * Stores weather data in metadata.weather field (proper JSONB usage)
+ * Cache weather data in the dedicated weather_cache table.
  */
 async function cacheWeather(cacheKey: string, weatherData: WeatherData, requestMetadata: object): Promise<void> {
   try {
+    const admin = getWeatherAdmin();
     const expiresAt = new Date(Date.now() + WEATHER_CACHE_DAYS * 24 * 60 * 60 * 1000);
 
-    await supabase.from("geocode_cache").upsert(
+    await admin.from("weather_cache").upsert(
       {
-        address: `weather:${cacheKey}`,
-        // Use null for coordinates - not applicable for weather cache
-        coordinates: null,
-        // Store weather data inside metadata.weather for proper typing
-        metadata: {
-          ...requestMetadata,
-          weather: weatherData,
-        },
+        cache_key: cacheKey,
+        weather: weatherData,
+        request_metadata: requestMetadata,
         cached_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         hit_count: 0,
         last_accessed_at: new Date().toISOString(),
       },
-      { onConflict: "address" }
+      { onConflict: "cache_key" }
     );
   } catch (error) {
     console.error("[Weather Cache] Save error:", error);
