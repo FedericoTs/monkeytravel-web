@@ -1,0 +1,248 @@
+# Static-rendering migration — BASELINE
+# Captured: 2026-06-25T01:43:49Z on master @ 4bbaba3
+# Re-generate route table: bash scripts/route-table.sh
+# Re-generate cache probe:  bash scripts/cache-probe.sh [base-url]
+
+## Route table (next build) — EVERY page route is currently 'ƒ' (Dynamic)
+Route (app)
+┌ ƒ /_not-found
+├ ƒ /.well-known/oauth-authorization-server
+├ ƒ /.well-known/oauth-protected-resource
+├ ƒ /[locale]
+├ ƒ /[locale]/about/authors/[slug]
+├ ƒ /[locale]/ai-itinerary-generator
+├ ƒ /[locale]/auth/complete-profile
+├ ƒ /[locale]/auth/forgot-password
+├ ƒ /[locale]/auth/login
+├ ƒ /[locale]/auth/reset-password
+├ ƒ /[locale]/auth/signup
+├ ƒ /[locale]/backpacker
+├ ƒ /[locale]/blog
+├ ƒ /[locale]/blog/[slug]
+├ ƒ /[locale]/blog/tag/[tag]
+├ ƒ /[locale]/budget-trip-planner
+├ ƒ /[locale]/contact
+├ ƒ /[locale]/destinations
+├ ƒ /[locale]/destinations/[slug]
+├ ƒ /[locale]/destinations/style/[tag]
+├ ƒ /[locale]/explore
+├ ƒ /[locale]/family-trip-planner
+├ ƒ /[locale]/feedback/[token]
+├ ƒ /[locale]/free-ai-trip-planner
+├ ƒ /[locale]/from-chatgpt/[ref]
+├ ƒ /[locale]/group-trip-planner
+├ ƒ /[locale]/invite/[token]
+├ ƒ /[locale]/join/[code]
+├ ƒ /[locale]/oauth/authorize
+├ ƒ /[locale]/onboarding
+├ ƒ /[locale]/privacy
+├ ƒ /[locale]/profile
+├ ƒ /[locale]/profile/notifications
+├ ƒ /[locale]/saved
+├ ƒ /[locale]/settings/payment-handles
+├ ƒ /[locale]/shared/[token]
+├ ƒ /[locale]/solo-trip-planner
+├ ƒ /[locale]/templates
+├ ƒ /[locale]/terms
+├ ƒ /[locale]/tools
+├ ƒ /[locale]/tools/packing-list
+├ ƒ /[locale]/tools/visa-checker
+├ ƒ /[locale]/trips
+├ ƒ /[locale]/trips/[id]
+├ ƒ /[locale]/trips/new
+├ ƒ /[locale]/trips/template/[id]
+├ ƒ /[locale]/unsubscribe
+├ ƒ /[locale]/weekend-trip-planner
+├ ƒ /[locale]/welcome
+├ ƒ /admin
+├ ƒ /admin/feedback
+├ ƒ /admin/partners/hostelworld/dashboard
+├ ƒ /admin/translations
+├ ƒ /api/activities/search
+├ ƒ /api/admin/access-codes
+├ ƒ /api/admin/ai-prompts
+├ ƒ /api/admin/api-config
+├ ƒ /api/admin/cache-stats
+├ ƒ /api/admin/config
+├ ƒ /api/admin/costs
+├ ƒ /api/admin/feedback
+├ ƒ /api/admin/feedback/outreach
+├ ƒ /api/admin/feedback/preview
+├ ƒ /api/admin/google-billing
+├ ƒ /api/admin/google-debug
+├ ƒ /api/admin/google-metrics
+├ ƒ /api/admin/grant-access
+├ ƒ /api/admin/growth
+├ ƒ /api/admin/partners/hostelworld/stats
+├ ƒ /api/admin/stats
+├ ƒ /api/admin/translations
+├ ƒ /api/advisories/[country]
+├ ƒ /api/affiliates/hostelworld/click
+├ ƒ /api/affiliates/hostelworld/stats
+├ ƒ /api/ai/assistant
+├ ƒ /api/ai/assistant/apply
+├ ƒ /api/ai/assistant/undo
+├ ƒ /api/ai/concierge
+├ ƒ /api/ai/extract-trip-context
+├ ƒ /api/ai/generate
+├ ƒ /api/ai/generate-more-days
+├ ƒ /api/ai/generate/stream
+├ ƒ /api/ai/maps-grounding-test
+├ ƒ /api/ai/regenerate-activity
+├ ƒ /api/ai/regenerate-day
+├ ƒ /api/amadeus/flights/search
+├ ƒ /api/amadeus/hotels/search
+├ ƒ /api/amadeus/locations/search
+├ ƒ /api/auth/send-email
+├ ƒ /api/bananas
+├ ƒ /api/bananas/award
+├ ƒ /api/bananas/catalog
+├ ƒ /api/bananas/spend
+├ ƒ /api/calendar/trip/[id]
+├ ƒ /api/contact
+├ ƒ /api/cron/cleanup-expired-cache
+├ ƒ /api/cron/recompute-editors-picks
+├ ƒ /api/cron/refresh-activity-index
+├ ƒ /api/cron/scheduled-notifications
+├ ƒ /api/cron/sync-resend-audience
+├ ƒ /api/destinations/popular
+├ ƒ /api/destinations/search
+├ ƒ /api/destinations/upsert
+├ ƒ /api/devices/[token]
+├ ƒ /api/devices/register
+├ ƒ /api/early-access/redeem
+├ ƒ /api/early-access/status
+├ ƒ /api/explore/trips
+├ ƒ /api/feedback
+├ ƒ /api/health
+├ ƒ /api/hotels/places
+├ ƒ /api/images/activity
+├ ƒ /api/images/destination
+├ ƒ /api/images/proxy
+├ ƒ /api/img/proxy
+├ ƒ /api/img/proxy/[token]
+├ ƒ /api/invites/[token]
+├ ƒ /api/mcp
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]
+├ ƒ /api/notifications/email-log
+├ ƒ /api/places
+├ ƒ /api/places/autocomplete
+├ ƒ /api/places/details
+├ ƒ /api/places/photo
+├ ƒ /api/profile
+├ ƒ /api/profile/avatar
+├ ƒ /api/profile/delete
+├ ƒ /api/profile/export
+├ ƒ /api/referral/attach
+├ ƒ /api/referral/click
+├ ƒ /api/referral/code
+├ ƒ /api/referral/complete
+├ ƒ /api/referral/history
+├ ƒ /api/referral/leaderboard
+├ ƒ /api/referral/tier
+├ ƒ /api/shared/[token]/vote
+├ ƒ /api/shared/[token]/votes
+├ ƒ /api/subscribe
+├ ƒ /api/templates
+├ ƒ /api/templates/[id]/copy
+├ ƒ /api/tools/packing-list
+├ ƒ /api/travel/distance
+├ ƒ /api/travel/geocode
+├ ƒ /api/trips/[id]
+├ ƒ /api/trips/[id]/activities
+├ ƒ /api/trips/[id]/activities/[activityId]
+├ ƒ /api/trips/[id]/activities/[activityId]/vote
+├ ƒ /api/trips/[id]/activities/from-booking
+├ ƒ /api/trips/[id]/archive
+├ ƒ /api/trips/[id]/backfill-coordinates
+├ ƒ /api/trips/[id]/checklist
+├ ƒ /api/trips/[id]/checklist/[itemId]
+├ ƒ /api/trips/[id]/collaborators
+├ ƒ /api/trips/[id]/collaborators/[userId]
+├ ƒ /api/trips/[id]/concierge-history
+├ ƒ /api/trips/[id]/deletion-feedback
+├ ƒ /api/trips/[id]/expenses
+├ ƒ /api/trips/[id]/fork
+├ ƒ /api/trips/[id]/invites
+├ ƒ /api/trips/[id]/invites/[inviteId]
+├ ƒ /api/trips/[id]/like
+├ ƒ /api/trips/[id]/likers
+├ ƒ /api/trips/[id]/parse-confirmation
+├ ƒ /api/trips/[id]/proposals
+├ ƒ /api/trips/[id]/proposals/[proposalId]
+├ ƒ /api/trips/[id]/proposals/[proposalId]/vote
+├ ƒ /api/trips/[id]/publish
+├ ƒ /api/trips/[id]/report
+├ ƒ /api/trips/[id]/save
+├ ƒ /api/trips/[id]/settlements
+├ ƒ /api/trips/[id]/share
+├ ƒ /api/trips/[id]/status
+├ ƒ /api/trips/[id]/submit-trending
+├ ƒ /api/trips/[id]/travel-cache
+├ ƒ /api/trips/[id]/view
+├ ƒ /api/trips/[id]/votes
+├ ƒ /api/trips/duplicate
+├ ƒ /api/unsubscribe
+├ ƒ /api/user/usage
+├ ƒ /api/weather
+├ ƒ /api/webhooks/resend
+├ ƒ /api/wizard-event
+├ ○ /apple-icon.png
+├ ƒ /auth/callback
+├ ƒ /auth/signout
+├ ƒ /es/feed.xml
+├ ƒ /feed.xml
+├ ○ /icon.png
+├ ƒ /it/feed.xml
+├ ○ /opengraph-image
+├ ƒ /pt/feed.xml
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+└ ○ /twitter-image
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+NPM_EXIT=0
+
+## Prod cache probe (BEFORE) — expect MISS / no-store everywhere
+### https://monkeytravel.app/
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-XlTWvaf1240BGphRXfmPvA==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
+### https://monkeytravel.app/it
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-TDezdeptP9jDucEcYJAYNw==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
+### https://monkeytravel.app/blog
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-rjnfk42d7x9p0K8fBWCLGQ==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
+### https://monkeytravel.app/destinations/paris
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-w5MPWlllJ3DWdf7kNL52QQ==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
+### https://monkeytravel.app/explore
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-HaYGlIBGbbZD+SZz96dNuA==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
+### https://monkeytravel.app/free-ai-trip-planner
+Age: 0
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-8sCi99qLFLiQrtfIdLEbpQ==' 'strict-dynamic' https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sentry.io https://*.vercel-scripts.com https://*.vercel-insights.com https://www.googleadservices.com https://cdn.travelpayouts.com https://emrldco.com https://maps.googleapis.com https://maps.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.google-analytics.com https://*.vercel-insights.com https://*.googleapis.com https://*.open-meteo.com https://api.frankfurter.dev https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+X-Vercel-Cache: MISS
+
