@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/destination-covers.mjs --check",
     "build": "next build",
     "start": "next start",
+    "covers:check": "node scripts/destination-covers.mjs --check",
+    "covers:backfill": "node scripts/destination-covers.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
