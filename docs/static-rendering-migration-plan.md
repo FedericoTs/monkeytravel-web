@@ -1,3 +1,11 @@
+> ⛔ **SUPERSEDED 2026-06-25 — DO NOT EXECUTE PHASES 2–5.** (Phases 0–1 shipped; harmless.)
+> Measurement + first-principles stopped this migration. Two independent reasons:
+> 1. **Phase 2 is broken for Next App Router.** Prod pages carry the per-request nonce on **56 inline `self.__next_f` framework scripts**, not "just the 3 JSON-LD blocks" this plan assumes. A cached page cannot hold a per-request nonce (info-theoretic), and 56 dynamic inline scripts cannot be hashed → dropping the nonce breaks hydration site-wide. The `csp-hashes.ts` approach does NOT work.
+> 2. **The win is ~$0.** Vercel compute is dominated by inherently-dynamic app pages (un-cacheable); the cacheable content-page slice ≈ 6–20 GB-hrs/mo, inside Vercel Pro's included quota. SEO benefit ≈ 0 (indexation is gated by authority/content, not render mode).
+> Net EV is negative vs the CSP security regression. Full rationale: memory `project_monkeytravel_seo_2026_06`.
+
+---
+
 All facts verified against source. I have what I need to synthesize. The three reports agree on the core mechanism; the only divergence is the homepage-redirect and `<html lang>` approach, which I'll resolve explicitly. One nuance worth surfacing: middleware.ts:231 strips `/(en|es|it|pt)` but canonical `en` is unprefixed — the homepage-redirect logic must account for that. Writing the deliverable now.
 
 ---
