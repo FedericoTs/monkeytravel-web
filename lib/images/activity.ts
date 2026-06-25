@@ -40,6 +40,18 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // proxy resolves them on demand, so a stale ref still works.
 const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 
+// Per-trip cap on PAID Google Places resolutions (cost control, 2026-06-24).
+// Each "resolution" is one fresh cache-MISS activity and may issue 1-3 billed
+// Google calls (Text Search +/- a name-only retry, then Place Details Pro), so
+// this bounds — but is not exactly equal to — the billed-call count per trip.
+// Google Places was ~97% of API spend and scaled ~1:1 with trip size at
+// ~$0.10/trip — unbounded growth with signups. Cache HITS stay free +
+// unlimited (real photos); only fresh cache-MISS resolutions consume this budget.
+// Once a trip exhausts it, remaining fresh activities get a curated fallback
+// image (zero Google cost) instead of a real place photo. Tune this knob:
+// lower = cheaper but more stock photos, higher = more real photos but pricier.
+const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
+
 /**
  * Normalize an activity name + destination into a stable cache key.
  * Lowercased, trimmed, punctuation stripped, internal whitespace collapsed.
@@ -336,7 +348,8 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
 async function getOrFetchPlace(
   name: string,
   destination: string,
-  normalizedKey: string
+  normalizedKey: string,
+  paidBudget: { remaining: number }
 ): Promise<PlaceRecord | null> {
   const supabase = createAdminClient();
 
@@ -384,6 +397,17 @@ async function getOrFetchPlace(
   }
 
   // ---------- 2. Cache MISS path — resolve place_id cheaply first ----------
+  // Per-trip paid-call budget gate. Cache HITS above are free + unlimited;
+  // only fresh (cache-miss) lookups are paid, so we cap how many a single trip
+  // makes. Once exhausted, return null → the caller serves a curated fallback
+  // (zero Google cost). We check-then-decrement synchronously (no await between
+  // the two), so even under Promise.all the budget is consumed atomically and
+  // exactly N activities ever reach the paid path.
+  if (paidBudget.remaining <= 0) {
+    return null;
+  }
+  paidBudget.remaining--;
+
   // Text Search Essentials ($5/1K) gives us the canonical place_id. Query
   // order: `${name} ${destination}` first (matches local landmarks better),
   // then name-only fallback.
@@ -597,11 +621,12 @@ interface CachedActivityImage {
 async function resolveActivityImage(
   name: string,
   destination: string,
-  normalizedKey: string
+  normalizedKey: string,
+  paidBudget: { remaining: number }
 ): Promise<string | null> {
   // ---------- Primary path: place_id-keyed cache ----------
   try {
-    const place = await getOrFetchPlace(name, destination || "", normalizedKey);
+    const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget);
     if (place?.photo_url) {
       return place.photo_url;
     }
@@ -609,6 +634,12 @@ async function resolveActivityImage(
     // Network/DB errors fall through to the legacy cache — don't break the
     // user request because the new cache misbehaved.
     console.error("[Activity Images] place_id cache error, falling back:", err);
+  }
+
+  // Out of the per-trip paid budget → curated fallback. Don't fall through to
+  // the legacy path, which can ALSO make a paid Google call.
+  if (paidBudget.remaining <= 0) {
+    return null;
   }
 
   // ---------- Legacy fallback path ----------
@@ -730,6 +761,10 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   const uniqueLookups = groups.size;
 
   // ---------- Step 4: resolve each unique key once, in parallel. ----------
+  // Shared per-trip budget for PAID Google lookups (see
+  // MAX_PAID_PLACE_LOOKUPS_PER_TRIP). Cache hits don't consume it; once it's
+  // spent, the rest of this trip's fresh activities get curated fallbacks.
+  const paidBudget = { remaining: MAX_PAID_PLACE_LOOKUPS_PER_TRIP };
   let placesHits = 0;
   let fallbackHits = 0;
 
@@ -738,7 +773,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       const first = occurrences[0];
       let url: string | null = null;
       try {
-        url = await resolveActivityImage(first.name, destination || "", normalizedKey);
+        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }
