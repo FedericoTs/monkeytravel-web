@@ -23,7 +23,8 @@ import { readFileSync, existsSync, writeFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
-const DATA_TS = join(ROOT, "lib", "destinations", "data.ts");
+// COVERS_DATA_TS is a test seam (point the parser at a fixture); defaults to the real data.
+const DATA_TS = process.env.COVERS_DATA_TS || join(ROOT, "lib", "destinations", "data.ts");
 const COVER_DIR = join(ROOT, "public", "images", "destinations");
 const W = 1200;
 const H = 630;
@@ -43,20 +44,52 @@ const QUERY_OVERRIDES = {
   xiamen: "Xiamen China coast city skyline",
 };
 
-/** Parse {slug, name, country} for every destination, straight from data.ts. */
+/**
+ * Parse {slug, name, country} for every destination, straight from data.ts.
+ *
+ * The guard MUST see exactly the slugs the renderer renders (getAllSlugs() ->
+ * destinations.map(d => d.slug)), or a coverless destination could ship behind
+ * the gradient. So this is deliberately strict and fails LOUD rather than
+ * silently skipping anything it can't understand:
+ *  - it matches destination-level `slug:` properties (4-space indent), which
+ *    excludes the `slug: string` type annotations elsewhere in the file;
+ *  - it cross-checks the slug count against the `countryCode` count (every
+ *    destination has exactly one), so a mis-indented/garbled slug can't pass;
+ *  - it requires every slug to be a plain lowercase-hyphen string literal —
+ *    an uppercase, accented, underscored, computed, or interpolated slug
+ *    THROWS (the renderer would build a 404 cover URL from it).
+ */
 function parseDestinations() {
   const src = readFileSync(DATA_TS, "utf8");
-  const matches = [...src.matchAll(/\bslug:\s*"([a-z0-9-]+)"/g)];
-  if (matches.length === 0) {
+  const slugLines = [...src.matchAll(/^ {4}slug:[ \t]*(.+?),?[ \t]*$/gm)];
+  const countryCodeCount = (src.match(/^ {4}countryCode:/gm) || []).length;
+
+  if (slugLines.length < 20) {
     throw new Error(
-      `Parsed 0 destinations from ${DATA_TS} — the parser is out of date with the data format.`
+      `Parsed only ${slugLines.length} destination slugs from data.ts — the parser is out of date with the data format (expected 4-space-indented \`slug:\` properties).`
     );
   }
-  return matches.map((m, i) => {
-    const slug = m[1];
+  if (slugLines.length !== countryCodeCount) {
+    throw new Error(
+      `data.ts has ${slugLines.length} slug properties but ${countryCodeCount} countryCode properties — a destination did not parse cleanly. Check the data formatting.`
+    );
+  }
+
+  return slugLines.map((m, i) => {
+    const raw = m[1].trim();
+    const lit = raw.match(/^(['"`])([a-z0-9-]+)\1$/);
+    if (!lit) {
+      throw new Error(
+        `Destination slug ${JSON.stringify(raw)} is not a plain lowercase-hyphen string literal.\n` +
+        `  Covers are served from public/images/destinations/<slug>.jpg built from the literal slug,\n` +
+        `  so a computed, interpolated, uppercase, accented, or otherwise non-[a-z0-9-] slug cannot be\n` +
+        `  verified (and would 404 on a case-sensitive filesystem). Fix the slug in lib/destinations/data.ts.`
+      );
+    }
+    const slug = lit[2];
     const chunk = src.slice(
       m.index,
-      i + 1 < matches.length ? matches[i + 1].index : src.length
+      i + 1 < slugLines.length ? slugLines[i + 1].index : src.length
     );
     const name =
       (chunk.match(/name:\s*\{[\s\S]*?en:\s*"([^"]+)"/) || [])[1] ||

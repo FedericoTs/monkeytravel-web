@@ -1,32 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 
 /**
- * Structural guard: every destination defined in lib/destinations/data.ts MUST
- * ship a cover image at public/images/destinations/<slug>.jpg. This is the same
- * invariant the `prebuild` step enforces on Vercel — keeping it in the unit
- * suite means `npm test` catches drift locally too.
- *
- * We parse the source text rather than importing the module so we don't pull in
- * its `server-only` guard (which throws outside a server bundle).
+ * Structural guard, defense-in-depth: run the EXACT check the `prebuild` step
+ * (and every Vercel deploy) runs, so `npm test` fails for the same reasons a
+ * deploy would — a missing cover, OR a destination slug that isn't a plain
+ * lowercase-hyphen literal. Invoking the real script (rather than re-deriving
+ * slugs here) means there is one parser, with no chance of the test and the
+ * build guard drifting apart.
  */
-const ROOT = process.cwd();
-const src = readFileSync(join(ROOT, "lib", "destinations", "data.ts"), "utf8");
-const slugs = [...src.matchAll(/\bslug:\s*"([a-z0-9-]+)"/g)].map((m) => m[1]);
-
-describe("destination covers", () => {
-  it("parses a sane number of unique destinations from data.ts", () => {
-    // Guards against the parser silently breaking and reporting zero slugs.
-    expect(slugs.length).toBeGreaterThanOrEqual(20);
-    expect(new Set(slugs).size).toBe(slugs.length);
-  });
-
-  it.each(slugs)("has a cover image for '%s'", (slug) => {
-    const p = join(ROOT, "public", "images", "destinations", `${slug}.jpg`);
-    expect(
-      existsSync(p),
-      `Missing cover: public/images/destinations/${slug}.jpg — run 'npm run covers:backfill'`
-    ).toBe(true);
+describe("destination covers guard", () => {
+  it("every destination in data.ts has a cover (scripts/destination-covers.mjs --check)", () => {
+    expect(() =>
+      execFileSync("node", ["scripts/destination-covers.mjs", "--check"], {
+        stdio: "pipe",
+      })
+    ).not.toThrow();
   });
 });

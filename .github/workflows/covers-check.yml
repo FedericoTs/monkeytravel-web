@@ -1,0 +1,26 @@
+# Independent enforcement of the destination-cover invariant.
+#
+# The prebuild guard already fails the Vercel build if a destination has no
+# cover — but that relies on Vercel running `npm run build` (the npm lifecycle).
+# This job runs the same check on every push/PR, so a build that bypasses the
+# prebuild hook (e.g. `--ignore-scripts`, a custom buildCommand, or a manual
+# `vercel --prod`) is still caught here. The check is pure filesystem (no deps),
+# so it needs no `npm install`.
+name: Destination covers
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  covers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Every destination in data.ts has a cover image
+        run: node scripts/destination-covers.mjs --check

@@ -1,5 +1,6 @@
 activation-fix/
-scripts/
+scripts/*
+!scripts/destination-covers.mjs
 video/
 CLAUDE.md
 .claude/
