@@ -33,7 +33,8 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, TripMeta } from "@/types";
+import { getTripDestination } from "@/lib/trips/destination";
 
 /**
  * Persist a Concierge Q&A turn to `ai_conversations`.
@@ -126,7 +127,11 @@ const MAX_RESPONSE_TOKENS = 500;
 type TripRow = {
   id: string;
   title?: string;
-  destination?: string;
+  // The canonical destination lives in trip_meta.destination — there is NO
+  // trips.destination column (it was migrated away). getTripDestination()
+  // reads it with a title-strip fallback. Selecting a `destination` column
+  // here previously 500'd every authenticated request (42703).
+  trip_meta?: TripMeta | null;
   start_date: string;
   end_date: string;
   itinerary?: unknown;
@@ -233,7 +238,7 @@ export async function POST(request: NextRequest) {
     if (!trip) {
       const { data: row, error: tripErr } = await supabase
         .from("trips")
-        .select("id, title, destination, start_date, end_date, itinerary")
+        .select("id, title, start_date, end_date, itinerary, trip_meta")
         .eq("id", tripId)
         .maybeSingle();
       if (tripErr) {
@@ -605,7 +610,7 @@ function resolveTodaySlice(
 function buildTripContext(
   trip: {
     title?: string;
-    destination?: string;
+    trip_meta?: TripMeta | null;
     start_date?: string;
     end_date?: string;
     itinerary?: unknown;
@@ -631,7 +636,7 @@ function buildTripContext(
 
   const out: Record<string, unknown> = {
     title: trip.title,
-    destination: trip.destination,
+    destination: getTripDestination({ title: trip.title, trip_meta: trip.trip_meta }),
     start_date: trip.start_date,
     end_date: trip.end_date,
     total_days: days.length,
