@@ -2828,22 +2828,44 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {/* Dates — shown immediately below destination */}
             <div>
               <div className="text-sm font-medium text-slate-700 mb-2">{t("wizard.step1.travelDatesLabel")}</div>
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={(d) => {
-                  trackFieldInteraction("start_date");
-                  setStartDate(d);
-                }}
-                onEndDateChange={(d) => {
-                  trackFieldInteraction("end_date");
-                  setEndDate(d);
-                }}
-                maxDays={14}
-                minDate={new Date().toISOString().split("T")[0]}
-                // A11y (task #193): dates required to advance the wizard.
-                ariaRequired
-              />
+              {MULTI_CITY_ENABLED && multiCityMode ? (
+                // Multi-city: trip length = sum of per-city nights, so only the
+                // START date is a free choice; the end is derived (sync effect).
+                <div>
+                  <input
+                    type="date"
+                    value={startDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={(e) => {
+                      trackFieldInteraction("start_date");
+                      setStartDate(e.target.value);
+                    }}
+                    aria-label="Trip start date"
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    {cityRows.reduce((s, r) => s + (Number(r.nights) || 0), 0)} nights total across your cities
+                    {endDate ? ` · ends ${endDate}` : ""}
+                  </p>
+                </div>
+              ) : (
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={(d) => {
+                    trackFieldInteraction("start_date");
+                    setStartDate(d);
+                  }}
+                  onEndDateChange={(d) => {
+                    trackFieldInteraction("end_date");
+                    setEndDate(d);
+                  }}
+                  maxDays={14}
+                  minDate={new Date().toISOString().split("T")[0]}
+                  // A11y (task #193): dates required to advance the wizard.
+                  ariaRequired
+                />
+              )}
             </div>
 
             {/* Seasonal Context Card - Auto-displays when both are set */}
