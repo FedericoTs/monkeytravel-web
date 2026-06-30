@@ -33,6 +33,11 @@ import {
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import {
+  generateMultiCityItinerary,
+  validateLegs,
+  type CityLeg,
+} from "@/lib/ai/multi-city";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -121,6 +126,28 @@ export async function POST(request: NextRequest) {
       return errors.badRequest(validation.error);
     }
 
+    // Multi-city: when the client sends a `destinations` array of >1 leg, route
+    // to the per-city PARALLEL generator (lib/ai/multi-city) instead of single-
+    // city generation. Backward-compatible — requests without `destinations`
+    // (the overwhelming majority) take the untouched single-city path below.
+    // The client still sends destination/startDate/endDate (combined label +
+    // whole-trip range) so usage limits, validation, and logging are unchanged.
+    let legs: CityLeg[] | null = null;
+    if (Array.isArray(body.destinations) && body.destinations.length > 0) {
+      legs = (body.destinations as Array<{ city?: unknown; nights?: unknown }>).map((d) => ({
+        city: String(d?.city ?? "").trim(),
+        nights: Number(d?.nights),
+      }));
+    }
+    const isMultiCity = legs !== null && legs.length > 1;
+    if (isMultiCity) {
+      try {
+        validateLegs(legs!);
+      } catch (e) {
+        return errors.badRequest(e instanceof Error ? e.message : "Invalid destinations");
+      }
+    }
+
     if (!access.allowed) {
       await logApiCall({
         apiName: "gemini",
@@ -144,11 +171,14 @@ export async function POST(request: NextRequest) {
     // no state — running them sequentially was the single biggest avoidable
     // wait in the cache-hit path.
 
-    // Calculate total trip duration
-    const totalDays = Math.ceil(
-      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+    // Calculate total trip duration (multi-city: the sum of per-city nights,
+    // which is authoritative; single-city: derived from the date range).
+    const totalDays = isMultiCity
+      ? legs!.reduce((sum, l) => sum + l.nights, 0)
+      : Math.ceil(
+          (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        ) + 1;
 
     // Determine if we should use incremental generation for long trips
     const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
@@ -192,7 +222,16 @@ export async function POST(request: NextRequest) {
     let isPartialGeneration = false;
     let usedMapsGrounding = false;
 
-    if (cachedItinerary && cachedItinerary.days.length >= 1) {
+    if (isMultiCity) {
+      // Multi-city: generate each city independently and in parallel, then
+      // merge. Deliberately skips the cross-user cache, Maps Grounding, and
+      // incremental generation — those are single-destination optimizations.
+      // (Each per-city generation still hits generateItinerary's own dedup.)
+      console.log(`[AI Generate] Multi-city generation: ${legs!.length} cities, ${totalDays} days`);
+      itinerary = await generateMultiCityItinerary(params, legs!, params.startDate, {
+        language: userLanguage,
+      });
+    } else if (cachedItinerary && cachedItinerary.days.length >= 1) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
       itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
       cacheHit = true;
@@ -296,7 +335,9 @@ export async function POST(request: NextRequest) {
 
     const generationTime = Date.now() - startTime;
     const generatedDays = sanitizedItinerary.days.length;
-    const hasMoreDays = generatedDays < totalDays;
+    // Multi-city is generated whole (no incremental continuation), so never
+    // advertise "more days" to fetch — that path is single-city only.
+    const hasMoreDays = !isMultiCity && generatedDays < totalDays;
 
     // Calculate cost: Cache hit = $0, Maps Grounding = $0.025, Gemini partial = $0.002, Gemini full = $0.003
     const generationCost = cacheHit

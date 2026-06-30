@@ -20,7 +20,7 @@ import {
 } from "./multi-city-core";
 
 export type { CityLeg } from "./multi-city-core";
-export { MAX_CITIES, MultiCityError } from "./multi-city-core";
+export { MAX_CITIES, MultiCityError, validateLegs } from "./multi-city-core";
 
 /** Per-trip params shared across every city leg (no destination/date range). */
 export type MultiCityBaseParams = Omit<
