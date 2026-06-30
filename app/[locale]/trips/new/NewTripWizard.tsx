@@ -31,6 +31,13 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
+import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
+import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
+import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
+
+// Multi-city wedge (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the default
+// single-city funnel stays byte-for-byte unchanged until we flip the flag on.
+const MULTI_CITY_ENABLED = process.env.NEXT_PUBLIC_MULTI_CITY_ENABLED === "true";
 
 // Post-generation + modal UI is gated by user action / state — split it
 // out of the initial wizard chunk so the form paints faster (P10).
@@ -262,6 +269,14 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // Form state
   const [destination, setDestination] = useState("");
   const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  // Multi-city wedge: a route of city+nights rows. Only surfaced in step 1 when
+  // MULTI_CITY_ENABLED; a sync effect below keeps `destination`/`endDate`
+  // consistent so the rest of the wizard flow is untouched.
+  const [multiCityMode, setMultiCityMode] = useState(false);
+  const [cityRows, setCityRows] = useState<RouteStop[]>([
+    { city: "", nights: 3 },
+    { city: "", nights: 2 },
+  ]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
@@ -391,6 +406,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   const vibesRef = useRef(selectedVibes);
   useEffect(() => { stepRef.current = step; }, [step]);
   useEffect(() => { destinationFieldRef.current = destination; }, [destination]);
+
+  // Multi-city: mirror the route rows into `destination` (combined label) and
+  // `endDate` (start + total nights) so step-1 validation, draft autosave, and
+  // the result hero keep working through the existing single-city code paths.
+  useEffect(() => {
+    if (!MULTI_CITY_ENABLED || !multiCityMode) return;
+    const valid = cityRows.filter((r) => r.city.trim() && r.nights > 0);
+    setDestination(joinCities(valid.map((r) => r.city.trim())));
+    const total = valid.reduce((s, r) => s + r.nights, 0);
+    if (startDate && total > 0) setEndDate(addDaysISO(startDate, total - 1));
+  }, [multiCityMode, cityRows, startDate]);
   useEffect(() => { startDateRef.current = startDate; }, [startDate]);
   useEffect(() => { endDateRef.current = endDate; }, [endDate]);
   useEffect(() => { vibesRef.current = selectedVibes; }, [selectedVibes]);
@@ -1064,6 +1090,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // Derive interests from vibes for API compatibility
       const derivedInterests = deriveInterestsFromVibes();
 
+      // Multi-city: send the route legs so /api/ai/generate fans out per city.
+      // `destination` already carries the combined label (synced effect above).
+      const mcLegs =
+        MULTI_CITY_ENABLED && multiCityMode
+          ? cityRows
+              .filter((r) => r.city.trim() && r.nights > 0)
+              .map((r) => ({ city: r.city.trim(), nights: r.nights }))
+          : null;
+      const isMultiCity = !!(mcLegs && mcLegs.length > 1);
+
       const params: TripCreationParams = {
         destination,
         startDate,
@@ -1075,6 +1111,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         interests: derivedInterests, // Auto-derived from vibes
         requirements: requirements || undefined,
         travelStyle,
+        ...(isMultiCity ? { destinations: mcLegs! } : {}),
       };
 
       // Reset stream progress for this generation.
@@ -1089,7 +1126,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // the conditional checks below well-typed.
       let streamedItinerary: GeneratedItinerary | null = null as GeneratedItinerary | null;
       let streamError: { error: string; code?: string } | null = null as { error: string; code?: string } | null;
-      try {
+      // Multi-city returns one merged JSON body, not an SSE stream — skip the
+      // streaming endpoint and let the JSON fallback below carry `destinations`.
+      if (!isMultiCity) try {
         await streamGeneration(
           params,
           {
@@ -1556,6 +1595,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
+    // Multi-city: derive the route stops (city + consecutive nights) from the
+    // city-tagged days for the Journey ribbon. Empty on single-city trips.
+    const mcStops: { city: string; nights: number }[] = [];
+    for (const day of generatedItinerary.days) {
+      if (!day.city) continue;
+      const last = mcStops[mcStops.length - 1];
+      if (last && last.city === day.city) last.nights += 1;
+      else mcStops.push({ city: day.city, nights: 1 });
+    }
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
@@ -1656,6 +1704,13 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           tags={generatedItinerary.destination.best_for}
           showBackButton={false}
         />
+
+        {/* Multi-city: the Journey ribbon hero (only when the trip spans >1 city) */}
+        {mcStops.length > 1 && (
+          <div className="max-w-6xl mx-auto px-4 pt-4">
+            <JourneyRibbon stops={mcStops} />
+          </div>
+        )}
 
         {/* Enhanced Sticky Header - Desktop */}
         <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 hidden sm:block">
@@ -2662,8 +2717,44 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               }}
             />
 
-            {/* Destination */}
-            <div>
+            {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED */}
+            {MULTI_CITY_ENABLED && (
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div>
+                  <div className="text-sm font-medium text-slate-800">Plan multiple cities</div>
+                  <div className="text-xs text-slate-500">
+                    One trip across several cities, stitched into a single itinerary.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={multiCityMode}
+                  aria-label="Toggle multi-city planning"
+                  onClick={() => setMultiCityMode((m) => !m)}
+                  className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
+                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                      multiCityMode ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Multi-city route builder — replaces the single destination field */}
+            {MULTI_CITY_ENABLED && multiCityMode && (
+              <div>
+                <div className="text-sm font-medium text-slate-700 mb-2">Your route</div>
+                <MultiCityRouteBuilder rows={cityRows} onChange={setCityRows} />
+              </div>
+            )}
+
+            {/* Destination (single-city; hidden in multi-city mode) */}
+            <div className={multiCityMode ? "hidden" : undefined}>
               <div
                 id="wizard-destination-label"
                 className="text-sm font-medium text-slate-700 mb-2"

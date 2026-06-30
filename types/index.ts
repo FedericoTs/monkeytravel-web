@@ -346,6 +346,13 @@ export interface TripCreationParams {
    * omitted so existing callers don't break.
    */
   travelStyle?: "classic" | "backpacker";
+  /**
+   * Multi-city wedge (§3.1). When present with >1 leg, /api/ai/generate routes
+   * to the per-city parallel generator (lib/ai/multi-city) and merges the
+   * cities into one itinerary. Absent ⇒ existing single-`destination` path
+   * (full back-compat). `destination` still carries the combined display label.
+   */
+  destinations?: { city: string; nights: number }[];
   // Profile-based preferences (fetched automatically from user profile)
   profilePreferences?: UserProfilePreferences;
 }
