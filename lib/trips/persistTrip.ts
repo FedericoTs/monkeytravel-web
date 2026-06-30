@@ -75,6 +75,14 @@ export function computeDurationDays(formState: TripFormState): number {
 function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string | null) {
   const { itinerary, formState } = input;
   const tripMeta = {
+    // Canonical user-specified destination. getTripDestination() prefers this
+    // over title-stripping (which breaks on non-English / renamed / multi-city
+    // titles). It was previously NEVER written here — a latent bug, despite the
+    // comment in lib/trips/destination.ts claiming the wizard sets it — so the
+    // helper always fell back to the title strip. Mirrors the value already
+    // used for the cover-image lookup (attachCoverImage(formState.destination)).
+    // For multi-city this carries the user's full route string ("A & B").
+    destination: formState.destination,
     weather_note: itinerary.destination.weather_note,
     highlights: itinerary.trip_summary.highlights,
     booking_links: itinerary.booking_links,

@@ -77,6 +77,12 @@ export interface TripBudget {
 export interface ItineraryDay {
   day_number: number;
   date: string;
+  /**
+   * City this day takes place in. Set on multi-city trips so the UI can render
+   * per-city "chapters" and edit paths can regenerate against the correct city.
+   * Absent/undefined on single-city trips (backward compatible).
+   */
+  city?: string;
   title?: string;
   theme?: string;
   activities: Activity[];
