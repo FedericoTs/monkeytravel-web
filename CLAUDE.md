@@ -31,10 +31,13 @@ npm run lint     # Run ESLint
 ## Brand Colors
 
 Defined in `app/globals.css`:
-- **Primary**: `#0A4B73` (dark blue) - `var(--primary)`
-- **Accent**: `#F2C641` (golden yellow) - `var(--accent)`
-- **Navy**: `#0f172a` (dark navy for footer/CTA)
-- Use CSS variables for all colors to maintain consistency
+- **Primary**: `#FF6B6B` (coral) - `var(--primary)` — scale: `--primary-light` `#FFB4B4`, `--primary-dark` `#E85555`, `--primary-deeper` `#D94444`, `--primary-vivid` `#FF5252`
+- **Secondary**: `#00B4A6` (teal) - `var(--secondary)` — `--secondary-light` `#B2F5EA`, `--secondary-dark` `#008B80`
+- **Accent**: `#FFD93D` (warm yellow) - `var(--accent)` — `--accent-light` `#FFF3B8`, `--accent-dark` `#E5C235`
+- **Navy / ink**: `#2D3436` (charcoal — body text + footer/CTA) - `var(--navy)`
+- **Backgrounds**: warm, not white — `--background` `#FFFAF5`, `--background-warm` `#FFF5EB`, `--background-cream` `#FFF0F0`
+- Palette is **warm coral + teal + yellow on cream**. Always use CSS variables for colors.
+- ⚠️ **A11y:** white text on coral `#FF6B6B` is 2.76:1 — **fails WCAG AA**. Use charcoal (`#2D3436`) text on coral for normal-size text (4.75:1).
 
 ## Project Structure
 
