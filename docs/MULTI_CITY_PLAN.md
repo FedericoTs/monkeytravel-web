@@ -236,8 +236,9 @@ per-city coords for free. Build order is reliability-first, then the complete UI
 
 ---
 
-*Progress (2026-06-30, branch `feat/multi-city`): Phase 1 steps 1–3 done
-(commits 7ebf24e, 94dbf3f) — types, persist-fix, per-city parallel generator +
-pure merge core, 15 unit tests, tsc clean. **Next step: Phase 2 step 5** — wire
-`destinations[{city,nights}]` through `/api/ai/generate` → `generateMultiCityItinerary`
-(behind `NEXT_PUBLIC_MULTI_CITY_ENABLED`), which also unlocks the step-4 live route test.*
+*Progress (2026-06-30, branch `feat/multi-city`, all LOCAL/unpushed):*
+- *Phase 1 (steps 1–3) ✅ engine — types, persist-fix, per-city parallel generator + pure merge, 15 unit tests (7ebf24e, 94dbf3f).*
+- *Step 5 ✅ route wiring — `/api/ai/generate` branches to `generateMultiCityItinerary` on `destinations[{city,nights}]`; **live-verified end-to-end** (Rome+Paris, real Gemini, 19.5s) + a preview surface at `app/[locale]/multi-city/page.tsx` (533e29f).*
+- *Step 6 (partial) ✅ Journey ribbon — `components/trips/JourneyRibbon.tsx`, the §2.5 signature hero; **live-verified** (3-city Rome→Florence→Venice render). City chapters done. Share-card + crew avatars pending (91629dc).*
+- ***NEXT: wire into the real wizard*** — multi-city mode toggle + city/nights rows on `NewTripWizard` step 1 behind `NEXT_PUBLIC_MULTI_CITY_ENABLED`, route the multi-city request through the JSON path, reuse `JourneyRibbon` on the wizard result + trip-detail. Then per-day-city edit plumbing (finding B) + `trip_meta.destinations` save wiring (step 8).*
+- *Blocker fixed mid-session: local `.env.local` Gemini key was banned; replaced.*
