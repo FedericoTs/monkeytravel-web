@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
+import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 
 const MAX_CITIES = 3;
 
@@ -235,6 +236,11 @@ export default function MultiCityPreviewPage() {
                 : ""}
             </p>
           </div>
+
+          <JourneyRibbon
+            stops={cityGroups.map((g) => ({ city: g.city, nights: g.days.length }))}
+            className="mb-6"
+          />
 
           <div className="space-y-6">
             {cityGroups.map((group, gi) => (
