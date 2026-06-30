@@ -52,6 +52,17 @@ const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 // lower = cheaper but more stock photos, higher = more real photos but pricier.
 const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
 
+// Save-time enrichment budget (2026-06-30 cost pass). Trip GENERATION now runs
+// with ZERO paid lookups — every activity gets a free cache-hit real photo or a
+// type-relevant curated fallback at $0 Google cost (see the generate routes).
+// Real Google photos are resolved ONCE, later, when a trip is actually SAVED
+// (the small fraction of generations that convert), via the fire-and-forget
+// /api/trips/[id]/enrich-photos endpoint. Saves are rare, so we can afford a
+// more generous budget here than at generation — kept trips end up with MORE
+// real photos than the old eager path, not fewer — while bounced generations
+// (the overwhelming majority) now cost nothing.
+export const SAVE_TIME_PAID_LOOKUPS = 8;
+
 /**
  * Normalize an activity name + destination into a stable cache key.
  * Lowercased, trimmed, punctuation stripped, internal whitespace collapsed.
@@ -704,9 +715,18 @@ export interface ActivityWithImage {
  */
 export async function fetchActivityImages<T extends { activities: ActivityWithImage[] }>(
   days: T[],
-  destination: string
+  destination: string,
+  opts: { maxPaidLookups?: number; reresolveCurated?: boolean } = {}
 ): Promise<T[]> {
   const startTime = Date.now();
+  // How many PAID Google lookups this call may make. Generation passes 0
+  // (free: cache hits + curated fallbacks only); the save-time enrichment
+  // endpoint passes a generous budget so KEPT trips get real photos.
+  const maxPaidLookups = opts.maxPaidLookups ?? MAX_PAID_PLACE_LOOKUPS_PER_TRIP;
+  // When true, a curated stock fallback is treated as NOT-final and gets
+  // re-resolved into a real place photo (used at save time to upgrade the
+  // zero-cost curated images baked at generation). Real proxy URLs always stay.
+  const reresolveCurated = opts.reresolveCurated ?? false;
 
   // ---------- Step 1+2: collect activities needing resolution. ----------
   // We track each occurrence by its (day, index) so we can write the URL
@@ -723,12 +743,18 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // gets cleared and forced through the pipeline below.
   const KNOWN_GOOD_URL_RE =
     /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|https:\/\/images\.pexels\.com\/|https:\/\/images\.unsplash\.com\/)/;
+  // Save-time mode: a real /api/places/photo proxy URL is final (keep it, never
+  // re-pay), but a curated Pexels/Unsplash fallback is NOT final — re-resolve it
+  // so a kept trip upgrades from stock to a real Google place photo if one exists.
+  const PROXY_ONLY_URL_RE =
+    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/)/;
+  const knownGoodRe = reresolveCurated ? PROXY_ONLY_URL_RE : KNOWN_GOOD_URL_RE;
 
   const pending: Pending[] = [];
   for (const day of days) {
     for (const activity of day.activities) {
       const existing = activity.image_url;
-      if (existing && KNOWN_GOOD_URL_RE.test(existing)) {
+      if (existing && knownGoodRe.test(existing)) {
         continue; // already a usable URL — skip re-enrichment
       }
       // Strip any non-canonical URL (raw Google, etc.) so the resolver below
@@ -764,7 +790,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // Shared per-trip budget for PAID Google lookups (see
   // MAX_PAID_PLACE_LOOKUPS_PER_TRIP). Cache hits don't consume it; once it's
   // spent, the rest of this trip's fresh activities get curated fallbacks.
-  const paidBudget = { remaining: MAX_PAID_PLACE_LOOKUPS_PER_TRIP };
+  const paidBudget = { remaining: maxPaidLookups };
   let placesHits = 0;
   let fallbackHits = 0;
 

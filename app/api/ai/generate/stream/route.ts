@@ -350,7 +350,11 @@ export async function POST(request: NextRequest) {
       }
       if (!cacheHit) {
         try {
-          await fetchActivityImages(finalItinerary.days, params.destination);
+          // COST PASS 2026-06-30: zero paid Google calls at generation — free
+          // cache hits + type-relevant curated fallbacks only, so every activity
+          // has a good image. Real photos resolve at save time
+          // (/api/trips/[id]/enrich-photos), only for trips that are kept.
+          await fetchActivityImages(finalItinerary.days, params.destination, { maxPaidLookups: 0 });
         } catch (imgErr) {
           console.error("[AI Generate Stream] image fetch error:", imgErr);
         }
