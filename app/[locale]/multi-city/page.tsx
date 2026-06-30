@@ -14,10 +14,7 @@
 import { useState } from "react";
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
-
-const MAX_CITIES = 3;
-
-type Row = { city: string; nights: number };
+import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 
 function toISO(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -42,7 +39,7 @@ function defaultStart(): string {
 }
 
 export default function MultiCityPreviewPage() {
-  const [rows, setRows] = useState<Row[]>([
+  const [rows, setRows] = useState<RouteStop[]>([
     { city: "Rome", nights: 3 },
     { city: "Paris", nights: 2 },
   ]);
@@ -54,16 +51,6 @@ export default function MultiCityPreviewPage() {
 
   const legs = rows.filter((r) => r.city.trim() && r.nights > 0);
   const totalNights = legs.reduce((s, r) => s + r.nights, 0);
-
-  function updateRow(i: number, patch: Partial<Row>) {
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  }
-  function addRow() {
-    setRows((rs) => (rs.length >= MAX_CITIES ? rs : [...rs, { city: "", nights: 2 }]));
-  }
-  function removeRow(i: number) {
-    setRows((rs) => (rs.length <= 2 ? rs : rs.filter((_, idx) => idx !== i)));
-  }
 
   async function generate() {
     setLoading(true);
@@ -137,55 +124,7 @@ export default function MultiCityPreviewPage() {
       </header>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="space-y-3">
-          {rows.map((row, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-                {i + 1}
-              </span>
-              <input
-                type="text"
-                value={row.city}
-                onChange={(e) => updateRow(i, { city: e.target.value })}
-                placeholder={`City ${i + 1}`}
-                aria-label={`City ${i + 1}`}
-                className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
-              />
-              <div className="flex flex-none items-center gap-1.5">
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={row.nights}
-                  onChange={(e) => updateRow(i, { nights: Number(e.target.value) })}
-                  aria-label={`Nights in city ${i + 1}`}
-                  className="w-16 rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
-                />
-                <span className="text-sm text-slate-500">nights</span>
-              </div>
-              {rows.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => removeRow(i)}
-                  aria-label={`Remove city ${i + 1}`}
-                  className="flex-none rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {rows.length < MAX_CITIES && (
-          <button
-            type="button"
-            onClick={addRow}
-            className="mt-3 text-sm font-medium text-slate-700 hover:text-slate-900"
-          >
-            + Add city
-          </button>
-        )}
+        <MultiCityRouteBuilder rows={rows} onChange={setRows} />
 
         <div className="mt-5 flex flex-wrap items-end gap-4 border-t border-slate-100 pt-4">
           <label className="text-sm">
