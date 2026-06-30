@@ -205,14 +205,22 @@ per-city coords for free. Build order is reliability-first, then the complete UI
 ### Build roadmap (LOCKED: Phase 1 → Phase 2)
 
 **Phase 1 — Generation engine (no UI, fully testable):**
-1. Types + `trip_meta.destination` persist-fix (write it — currently a latent bug
-   affecting SEO/filtering TODAY) + `trip_meta.destinations[]` + `ItineraryDay.city`.
-2. Per-city **parallel** generator: given `destinations[{city,nights}]`, generate each
-   city's days concurrently (reuse the single-city generator per city), then merge →
-   one itinerary (sequential `day_number`, each day `city`-tagged, transition day between).
-3. Hardening (finding C): per-city coords; post-merge validation (every city present,
-   nights sum to duration); cache-key fix; token budget per-call (smaller now).
-4. Test the engine on real routes (2–4 cities, 6–10 days) via API/harness — no UI.
+1. ✅ **DONE (7ebf24e)** Types + `trip_meta.destination` persist-fix (was a latent bug
+   affecting SEO/filtering) + `ItineraryDay.city`. (`trip_meta.destinations[]` plumbing
+   lands with the route wiring in Phase 2.)
+2. ✅ **DONE (94dbf3f)** Per-city **parallel** generator + merge:
+   `generateMultiCityItinerary(base, legs[{city,nights}], tripStart)` in `lib/ai/multi-city.ts`
+   runs `generateItinerary` per city concurrently; the PURE merge in `lib/ai/multi-city-core.ts`
+   concatenates days, renumbers `day_number` globally, re-assigns contiguous dates from the
+   trip start, and `city`-tags each day. (No explicit transition day in v1 — legs tile the
+   trip gap-free; a travel-day insert can come later if needed.)
+3. ✅ **MOSTLY DONE (94dbf3f)** Hardening (finding C): per-city coords ✅ (each city is its own
+   single-city gen, so coords are native — no fallback); token budget ✅ (per-city prompts are
+   small); post-merge validation ✅ (`validateLegs` + day-count/city-count warnings); cache-key ✅
+   (per-city `generateItinerary` dedup). Remaining: a multi-city-level result cache if we want one.
+4. ⏳ **NEXT** Test the engine on real routes (2–4 cities, 6–10 days) — needs either a thin
+   harness/script calling `generateMultiCityItinerary`, OR the Phase-2 `/api/ai/generate`
+   wiring (step 5) to drive it. The pure merge is already covered by 15 unit tests.
 
 **Phase 2 — Complete UI + edits:**
 5. Wizard route-builder (city + nights rows, reorder, validation) behind
@@ -228,5 +236,8 @@ per-city coords for free. Build order is reliability-first, then the complete UI
 
 ---
 
-*Next step: branch `feat/multi-city`; begin Phase 1 step 1 (types + the
-`trip_meta.destination` persist-fix).*
+*Progress (2026-06-30, branch `feat/multi-city`): Phase 1 steps 1–3 done
+(commits 7ebf24e, 94dbf3f) — types, persist-fix, per-city parallel generator +
+pure merge core, 15 unit tests, tsc clean. **Next step: Phase 2 step 5** — wire
+`destinations[{city,nights}]` through `/api/ai/generate` → `generateMultiCityItinerary`
+(behind `NEXT_PUBLIC_MULTI_CITY_ENABLED`), which also unlocks the step-4 live route test.*
