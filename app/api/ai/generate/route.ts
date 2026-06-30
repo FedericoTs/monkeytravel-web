@@ -318,12 +318,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch activity images server-side (prevents race condition on client)
-    // This ensures all activities have images before the response is sent
+    // Assign activity images server-side (prevents a client race). COST PASS
+    // 2026-06-30: maxPaidLookups:0 → ZERO paid Google calls here. Every activity
+    // still gets an image — a FREE cache-hit real photo or a type-relevant
+    // curated fallback — so the pre-save result page is never broken/empty.
+    // Real Google photos are resolved later, only for trips that are actually
+    // SAVED, via /api/trips/[id]/enrich-photos (the small fraction that convert).
     if (!cacheHit) {
       try {
-        await fetchActivityImages(itinerary.days, params.destination);
-        console.log(`[AI Generate] Activity images fetched for ${itinerary.days.length} days`);
+        await fetchActivityImages(itinerary.days, params.destination, { maxPaidLookups: 0 });
+        console.log(`[AI Generate] Activity images assigned for ${itinerary.days.length} days (curated/cache, no paid lookups)`);
       } catch (imageError) {
         console.error("[AI Generate] Error fetching activity images:", imageError);
         // Continue without images - not critical

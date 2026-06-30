@@ -124,6 +124,27 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
 }
 
 /**
+ * Fire-and-forget: ask the server to upgrade a KEPT trip's curated activity
+ * photos to real Google Place photos (budget-capped, server-side, owner-only).
+ *
+ * Trip generation now runs with ZERO paid Places lookups (cost control) — only
+ * trips that are actually saved reach this enrichment, which is where the
+ * saving comes from. Never throws; a saved trip already has good type-relevant
+ * curated images if this no-ops. keepalive so the request survives the same-tab
+ * navigation to /trips/[id] right after save (mirrors `attachCoverImage`).
+ */
+function enrichTripPhotos(tripId: string): void {
+  try {
+    void fetch(`/api/trips/${tripId}/enrich-photos`, {
+      method: "POST",
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Best-effort — never block or fail the save on photo enrichment.
+  }
+}
+
+/**
  * INSERT a new trip row. Returns the new id + duration. Throws on RLS
  * failure or missing user. Cover image is set from the local fallback
  * only — the remote `/api/images/destination` lookup is deferred and
@@ -184,6 +205,11 @@ export async function insertTrip(
   // lib/notifications/scheduling.ts for the full contract.
   void scheduleTripNotifications({ tripId: data.id, userId });
 
+  // Upgrade this kept trip's curated activity photos → real Google photos
+  // (server-side, budget-capped). Generation runs with zero paid lookups now,
+  // so this is where saved trips get their real photos. Fire-and-forget.
+  enrichTripPhotos(data.id);
+
   return {
     tripId: data.id,
     durationDays: computeDurationDays(input.formState),
@@ -210,6 +236,10 @@ export async function updateTrip(
     .eq("id", tripId);
 
   if (error) throw error;
+
+  // Re-enrich photos for the updated (kept) trip — a regeneration may have
+  // introduced new curated-fallback activities to upgrade to real photos.
+  enrichTripPhotos(tripId);
 }
 
 /**
