@@ -1,8 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Server-side Supabase client for prompts
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Server-side Supabase client for prompts.
+// Fallbacks keep `next build` from throwing "supabaseUrl is required" when it
+// evaluates this module during page-data collection in an env that lacks the
+// Supabase vars (e.g. Vercel Preview builds). Real values are always present at
+// runtime; the placeholders are only ever held during the build, never queried.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "placeholder-key";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
