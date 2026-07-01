@@ -38,6 +38,10 @@ const STEP_VALUES = [
   "step_2_vibes",
   "generating",
   "result",
+  // Decision-first front-door arm (docs/DECISION_FRONT_DOOR_PLAN.md):
+  "options_requested", // decide LLM call dispatched (≈ generating)
+  "options_shown", // 2-3 proposals rendered (the decision arm's first-value)
+  "first_value", // shared cross-arm "first magical output" (wizard fires alongside result)
   "save_clicked",
   "save_blocked_anon",
   "save_failed",
@@ -52,6 +56,9 @@ const BodySchema = z.object({
   group_size: z.string().trim().min(1).max(32).optional(),
   backpacker_mode: z.boolean().optional(),
   locale: z.string().trim().min(2).max(8).optional(),
+  // Which front-door arm fired this event (front-door A/B). Nullable for the
+  // pre-experiment wizard baseline; the decision arm always sends it.
+  front_door: z.enum(["wizard", "decision"]).optional(),
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -183,6 +190,7 @@ export async function POST(request: NextRequest) {
     group_size: body.group_size ?? null,
     backpacker_mode: body.backpacker_mode ?? null,
     locale: body.locale ?? null,
+    front_door: body.front_door ?? null,
   });
 
   if (error) {
