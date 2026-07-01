@@ -42,12 +42,20 @@ import {
   feedChunk,
   finalize,
 } from "@/lib/streaming/day-parser";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
 // is a no-op there — the stream just terminates at 60s and the user
 // sees a partial result.
 export const maxDuration = 120;
+
+// Anti-abuse: cap ANONYMOUS generations per IP/day. Shared "anon-generate"
+// namespace with the non-stream route so both count against one bucket. HIGH
+// limit (40/IP/day) + fail-open so it can never throttle a real user or shared
+// NAT at current scale — only a cookie-resetting scripted attacker doing
+// hundreds/day. Authenticated users are never limited.
+const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1000);
 
 /**
  * POST /api/ai/generate/stream
@@ -106,7 +114,7 @@ export async function POST(request: NextRequest) {
   // Each member resolves to a value we inspect in the original priority
   // order so error semantics are preserved (anon limit → bad body →
   // access denied → quota).
-  const [anonLimit, parsedBody, userContext, access] = await Promise.all([
+  const [anonLimit, parsedBody, userContext, access, anonIpLimit] = await Promise.all([
     isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
     request
       .json()
@@ -114,6 +122,11 @@ export async function POST(request: NextRequest) {
       .catch(() => null as Record<string, unknown> | null),
     loadUserContext(supabase, user?.id ?? null),
     checkApiAccess("gemini"),
+    // Per-IP anon backstop. Fail-OPEN: a limiter/KV error must NEVER block a
+    // real generation, so swallow errors into an allow.
+    isAnonymous
+      ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
+      : Promise.resolve(null),
   ]);
 
   if (isAnonymous && anonLimit && !anonLimit.allowed) {
@@ -121,6 +134,15 @@ export async function POST(request: NextRequest) {
       anonLimit.message ||
         "Free trip limit reached. Sign up to keep generating.",
       { usage: anonLimit, signupUrl: "/auth/signup" }
+    );
+  }
+
+  // Per-IP backstop for cookie-resetting bots (the cookie cap above is
+  // trivially reset). Only trips under real abuse at 40/IP/day.
+  if (isAnonymous && anonIpLimit && !anonIpLimit.allowed) {
+    return errors.rateLimit(
+      "You've reached today's free-trip limit for your network. Sign up to keep generating — it's free.",
+      { signupUrl: "/auth/signup" }
     );
   }
 
