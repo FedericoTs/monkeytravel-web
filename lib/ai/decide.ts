@@ -83,7 +83,7 @@ export interface DecideResult {
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
-function buildDecidePrompt(input: DecideInput): string {
+function buildDecidePrompt(input: DecideInput, today: string): string {
   const hints: string[] = [];
   if (input.month) hints.push(`Timing hint: ${input.month}`);
   if (input.nights) hints.push(`Length hint: about ${input.nights} nights`);
@@ -95,6 +95,8 @@ function buildDecidePrompt(input: DecideInput): string {
     : "";
 
   return `You are a sharp, opinionated travel advisor. A traveller tells you, in their own words, about a trip they're dreaming of. Your job is to help them DECIDE — propose 2-3 concrete destinations (each with a trip shape) that fit what they said, with the reasoning and the honest tradeoff. This is the decision BEFORE any detailed itinerary.
+
+Today's date is ${today}. Treat that as "now" — all suggested dates MUST be in the future, using the correct upcoming year.
 
 Traveller's words: "${input.prompt}"
 ${hintBlock}
@@ -121,7 +123,7 @@ Rules:
 3. "destination" must be a REAL place written as "City, Country" (or "Region, Country"). Never invent a place.
 4. "vibes" MUST be 1-3 values chosen ONLY from this exact set: ${VALID_VIBES.join(", ")}. Never invent a vibe.
 5. "trip_shape.days": an integer 1-14 fitting the length hint (sensible default if none).
-6. "suggested_dates": concrete YYYY-MM-DD start/end that (a) honours the timing hint if given, (b) is in the near future, (c) spans trip_shape.days. These are suggestions the traveller will confirm.
+6. "suggested_dates": concrete YYYY-MM-DD start/end that (a) honours the timing hint if given, (b) is AFTER today's date (${today}) in the correct upcoming year — NEVER a past date, (c) spans trip_shape.days. These are suggestions the traveller will confirm.
 7. "budget_fit.tier" is ONLY one of: budget, balanced, premium. "rough_total_usd" is a realistic all-in per-person estimate.
 8. Keep "why" and "tradeoff" to ONE warm, concrete sentence each — no fluff.
 9. Only propose real, safe, legal travel. If the prompt isn't about travel, still return 2-3 broadly-appealing trip ideas.`;
@@ -137,6 +139,7 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
     throw new Error("GOOGLE_AI_API_KEY not configured");
   }
   const startedAt = Date.now();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, server "now"
   const modelId = getModelForPurpose("decide");
 
   const model = genAI.getGenerativeModel({
@@ -151,7 +154,7 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
   });
 
   const response = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: buildDecidePrompt(input) }] }],
+    contents: [{ role: "user", parts: [{ text: buildDecidePrompt(input, today) }] }],
   });
   logCacheMetrics("ai.decide", response.response.usageMetadata);
 
@@ -205,7 +208,11 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
           : 0,
         note: str(budget.note, ""),
       },
-      suggested_dates: { start: str(dates.start, ""), end: str(dates.end, "") },
+      // Defensive: the model still occasionally returns a stale/past year
+      // despite the prompt. Never surface a past date to the client date-picker
+      // — clamp to a sensible upcoming range so the seeded DateRangePicker is
+      // always valid (the traveller confirms it before generate anyway).
+      suggested_dates: normalizeSuggestedDates(dates.start, dates.end, days, today),
       vibes,
       interests: Array.isArray(p.interests)
         ? (p.interests as unknown[]).map(String).slice(0, 8)
@@ -229,4 +236,34 @@ function str(v: unknown, fallback: string): string {
 function clampInt(v: number, min: number, max: number, fallback: number): number {
   if (!Number.isFinite(v)) return fallback;
   return Math.max(min, Math.min(max, Math.round(v)));
+}
+
+function isValidIsoDate(v: unknown): v is string {
+  return (
+    typeof v === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(v) &&
+    !Number.isNaN(Date.parse(`${v}T00:00:00Z`))
+  );
+}
+function addDaysIso(iso: string, n: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+/**
+ * Guarantee a valid, future-dated start/end range spanning `days`. ISO
+ * YYYY-MM-DD compares lexicographically == chronologically, so string >= works.
+ * Falls back to ~a month out if the model's dates are missing or in the past.
+ */
+function normalizeSuggestedDates(
+  rawStart: unknown,
+  rawEnd: unknown,
+  days: number,
+  today: string
+): { start: string; end: string } {
+  const start =
+    isValidIsoDate(rawStart) && rawStart >= today ? rawStart : addDaysIso(today, 30);
+  const end =
+    isValidIsoDate(rawEnd) && rawEnd > start ? rawEnd : addDaysIso(start, days);
+  return { start, end };
 }
