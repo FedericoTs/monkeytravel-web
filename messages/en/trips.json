@@ -77,6 +77,8 @@
       "selectDate": "Select date",
       "dateHelp": "Select dates for your trip (max 14 days)",
       "continue": "Continue",
+      "hintNeedDestination": "Add a destination to continue",
+      "hintNeedDates": "Pick your travel dates to continue",
       "backpackerMode": "Backpacker mode",
       "backpackerModeOn": "Backpacker mode — ON",
       "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly"

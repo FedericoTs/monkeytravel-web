@@ -77,6 +77,8 @@
       "selectDate": "Selecciona fecha",
       "dateHelp": "Selecciona las fechas de tu viaje (máximo 14 días)",
       "continue": "Continuar",
+      "hintNeedDestination": "Añade un destino para continuar",
+      "hintNeedDates": "Elige tus fechas de viaje para continuar",
       "backpackerMode": "Modo Mochilero",
       "backpackerModeOn": "Modo Mochilero — ACTIVO",
       "backpackerModeSubtitle": "Albergues, consejos de presupuesto, multi-ciudad"

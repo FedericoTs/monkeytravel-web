@@ -77,6 +77,8 @@
       "selectDate": "Selecionar data",
       "dateHelp": "Selecione as datas da sua viagem (máx 14 dias)",
       "continue": "Continuar",
+      "hintNeedDestination": "Adicione um destino para continuar",
+      "hintNeedDates": "Escolha as datas da viagem para continuar",
       "backpackerMode": "Modo mochileiro",
       "backpackerModeOn": "Modo mochileiro — ATIVO",
       "backpackerModeSubtitle": "Hostels, dicas de economia, ideal para multi-cidades"

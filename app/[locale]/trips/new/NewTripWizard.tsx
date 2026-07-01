@@ -3186,7 +3186,19 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         )}
 
         {/* Navigation — sticky on mobile so users always see the CTA */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto flex items-center justify-between">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto">
+          {/* Missing-field hint — directly attacks the step-1 cliff: the
+              Continue button is disabled with no visible reason, so users
+              who don't realize what unlocks it just leave. Name the first
+              blocker so the path forward is always obvious. */}
+          {step === 1 && !canProceed() && (
+            <p className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
+              {destination.length < 2
+                ? t("wizard.step1.hintNeedDestination")
+                : t("wizard.step1.hintNeedDates")}
+            </p>
+          )}
+          <div className="flex items-center justify-between">
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
@@ -3274,6 +3286,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               {t("wizard.step2.generate")}
             </button>
           )}
+          </div>
         </div>
       </main>
 

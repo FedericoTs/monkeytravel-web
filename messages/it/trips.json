@@ -77,6 +77,8 @@
       "selectDate": "Seleziona data",
       "dateHelp": "Seleziona le date del tuo viaggio (massimo 14 giorni)",
       "continue": "Continua",
+      "hintNeedDestination": "Aggiungi una destinazione per continuare",
+      "hintNeedDates": "Scegli le date del viaggio per continuare",
       "backpackerMode": "Modalità Backpacker",
       "backpackerModeOn": "Modalità Backpacker — ATTIVA",
       "backpackerModeSubtitle": "Ostelli, consigli per il budget, multi-città"
