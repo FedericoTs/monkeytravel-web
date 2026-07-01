@@ -54,7 +54,18 @@ export interface DecideInput {
   budgetHint?: "budget" | "balanced" | "premium";
   travelStyle?: "classic" | "backpacker";
   origin?: string;
+  /** UI locale (en|it|es|pt). Drives the language of the proposal prose so
+   *  it/es/pt users don't get English proposals — keeps the A/B fair. */
+  locale?: string;
 }
+
+// Map a next-intl locale code to a language name for the model instruction.
+const LOCALE_LANGUAGE: Record<string, string> = {
+  en: "English",
+  it: "Italian",
+  es: "Spanish",
+  pt: "Portuguese",
+};
 
 export interface TripProposal {
   id: string;
@@ -94,9 +105,13 @@ function buildDecidePrompt(input: DecideInput, today: string): string {
     ? `\nKnown constraints:\n- ${hints.join("\n- ")}\n`
     : "";
 
+  const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
+
   return `You are a sharp, opinionated travel advisor. A traveller tells you, in their own words, about a trip they're dreaming of. Your job is to help them DECIDE — propose 2-3 concrete destinations (each with a trip shape) that fit what they said, with the reasoning and the honest tradeoff. This is the decision BEFORE any detailed itinerary.
 
-Today's date is ${today}. Treat that as "now" — all suggested dates MUST be in the future, using the correct upcoming year.
+Write ALL human-readable prose ("why", "tradeoff", "theme", "budget_fit.note") in ${language}. Keep "destination" as the real place name and keep all JSON keys and enum values (pace, vibes, tier) in English exactly as specified.
+
+Today's date is ${today}. Treat that as "now" — all suggested dates MUST be in the future, using the correct upcoming year. Prefer dates within the next ~12 months unless the traveller clearly asked for something further out.
 
 Traveller's words: "${input.prompt}"
 ${hintBlock}
