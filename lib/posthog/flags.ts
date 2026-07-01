@@ -207,6 +207,27 @@ export const FLAG_WIZARD_LAYOUT = "wizard-layout";
 export type WizardLayoutVariant = "two-step" | "one-screen";
 
 /**
+ * Front door: wizard vs. decision-first (2026-06-30)
+ *
+ * Tests replacing the multi-step wizard with a single open prompt that
+ * returns 2-3 destination/trip-shape PROPOSALS (a decision) before any full
+ * itinerary is generated. Hypothesis: repositioning the value moment from
+ * "here's your itinerary" to "here's the trip you should take" survives the
+ * step-1 cliff (54% of sessions bail before submitting step 1). Once an option
+ * is picked the EXISTING generator + result page run unchanged.
+ *
+ * Variants:
+ *  - wizard:   current multi-step form → itinerary (control)
+ *  - decision: open prompt → 2-3 proposals → pick → itinerary
+ *
+ * Anon-only; authenticated users are forced to `wizard`.
+ * Wired in: app/[locale]/trips/new/NewTripWizard.tsx (form-return seam ~:2372).
+ * Plan: docs/DECISION_FRONT_DOOR_PLAN.md
+ */
+export const FLAG_FRONT_DOOR = "front-door";
+export type FrontDoorVariant = "wizard" | "decision";
+
+/**
  * /explore UGC trip feed (2026-05-25)
  * Gates the public-trip-catalog launch — /explore page, publish toggle,
  * like / save / fork / report API routes, trending block on homepage.
@@ -251,6 +272,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
   [FLAG_WIZARD_LAYOUT]: "two-step",
+  [FLAG_FRONT_DOOR]: "wizard",
 };
 
 /**
