@@ -8,6 +8,8 @@
     "subtitleEnd": "everyone can vote on, edit, and make their own.",
     "cta": "Plan a Trip Together",
     "signIn": "Sign In",
+    "inputPlaceholder": "Where do you want to go?",
+    "inputCta": "Plan my trip",
     "trustSignals": {
       "free": "100% Free",
       "noCard": "Up to 8 Friends",
