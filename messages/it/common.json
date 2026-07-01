@@ -179,7 +179,8 @@
     "pdfItinerary": "Itinerario PDF",
     "pdfDescription": "Scarica come file PDF",
     "calendarFile": "File Calendario (.ics)",
-    "calendarDescription": "Compatibile con la maggior parte dei calendari"
+    "calendarDescription": "Compatibile con la maggior parte dei calendari",
+    "exportFailed": "Esportazione non riuscita. Riprova."
   },
   "activity": {
     "booking": "Prenotazione",

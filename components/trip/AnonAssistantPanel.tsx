@@ -12,8 +12,9 @@
  * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { capture } from "@/lib/posthog/events";
 import type { Activity, ItineraryDay } from "@/types";
 
 interface AnonEdit {
@@ -55,6 +56,13 @@ export default function AnonAssistantPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // The panel is conditionally rendered only on the post-generation result
+  // view, so mount === the traveller opening the assistant.
+  useEffect(() => {
+    capture("anon_assistant_opened", { destination, day_count: days.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const setEditState = (idx: number, state: "applied" | "discarded") =>
     setMessages((m) => m.map((msg, i) => (i === idx ? { ...msg, editState: state } : msg)));
 
@@ -64,6 +72,7 @@ export default function AnonAssistantPanel({
     setError(null);
     setInput("");
     setMessages((m) => [...m, { role: "user", text: q }]);
+    capture("anon_assistant_question_asked", { destination, message_length: q.length });
     setLoading(true);
     try {
       const res = await fetch("/api/ai/assistant-anon", {
@@ -95,6 +104,9 @@ export default function AnonAssistantPanel({
           ...m,
           { role: "assistant", text: reply, edit, editState: edit ? "pending" : undefined },
         ]);
+        if (edit) {
+          capture("anon_assistant_edit_proposed", { destination, day_number: edit.day_number });
+        }
       } else {
         setError(t("assistant.errorMsg"));
       }
@@ -167,6 +179,10 @@ export default function AnonAssistantPanel({
                         type="button"
                         onClick={() => {
                           onApplyDay(m.edit!.day_number, m.edit!.activities, m.edit!.theme);
+                          capture("anon_assistant_edit_applied", {
+                            destination,
+                            day_number: m.edit!.day_number,
+                          });
                           setEditState(i, "applied");
                         }}
                         className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
@@ -175,7 +191,13 @@ export default function AnonAssistantPanel({
                       </button>
                       <button
                         type="button"
-                        onClick={() => setEditState(i, "discarded")}
+                        onClick={() => {
+                          capture("anon_assistant_edit_discarded", {
+                            destination,
+                            day_number: m.edit!.day_number,
+                          });
+                          setEditState(i, "discarded");
+                        }}
                         className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100"
                       >
                         {t("assistant.discard")}

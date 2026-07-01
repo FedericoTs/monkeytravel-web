@@ -6,6 +6,7 @@ import type { ItineraryDay, TripMeta } from "@/types";
 import type { PremiumTripForExport } from "@/lib/export/pdf";
 import { downloadICS } from "@/lib/export/calendar";
 import { useTranslations } from "next-intl";
+import { capture } from "@/lib/posthog/events";
 
 // Lazy loaders for PDF export (~75KB saved from initial bundle)
 const lazyLoadPdfExport = () => import("@/lib/export/pdf");
@@ -25,14 +26,43 @@ interface ExportMenuProps {
   meta?: TripMeta;
   coverImageUrl?: string;
   galleryPhotos?: { url: string; thumbnailUrl: string }[];
+  /**
+   * Where this menu lives — feeds the trip_exported / trip_export_failed
+   * PostHog events so we can segment anon-result exports (peak-intent,
+   * pre-save) from saved trip-detail and shared-view exports.
+   */
+  surface?: string;
 }
 
-export default function ExportMenu({ trip, destination, meta, coverImageUrl, galleryPhotos }: ExportMenuProps) {
+export default function ExportMenu({ trip, destination, meta, coverImageUrl, galleryPhotos, surface = "trip_detail" }: ExportMenuProps) {
   const t = useTranslations('common.export');
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState<"pdf" | "premium-pdf" | "ics" | null>(null);
   const [exportProgress, setExportProgress] = useState<{ step: string; progress: number } | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Surface an export failure to the user + analytics + Sentry, instead of
+  // the previous swallow-with-console.error (the spinner just stopped and
+  // nothing downloaded — a silent dead end). Lazy-imports Sentry so a
+  // missing/failed Sentry never breaks the menu (mirrors ExpenseLedger).
+  const reportExportFailure = (format: "pdf" | "premium-pdf" | "ical", error: unknown) => {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[ExportMenu] ${format} export failed`, message);
+    setExportError(t("exportFailed"));
+    capture("trip_export_failed", { format, surface });
+    import("@sentry/nextjs")
+      .then((Sentry) => {
+        Sentry.captureException?.(error instanceof Error ? error : new Error(message), {
+          tags: { source: "ExportMenu", subsystem: "export" },
+          level: "warning",
+          extra: { format, surface },
+        });
+      })
+      .catch(() => {
+        /* Sentry not available — console.error above is the fallback */
+      });
+  };
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -50,12 +80,14 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
 
   const handleExportPDF = async () => {
     setIsExporting("pdf");
+    setExportError(null);
     try {
       // Dynamically load PDF export on first use (~75KB)
       const { downloadPDF } = await lazyLoadPdfExport();
       await downloadPDF(trip);
+      capture("trip_exported", { format: "pdf", surface });
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      reportExportFailure("pdf", error);
     } finally {
       setIsExporting(null);
       setIsOpen(false);
@@ -87,8 +119,9 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
       await downloadPremiumPDF(premiumTrip, (step, progress) => {
         setExportProgress({ step, progress });
       });
+      capture("trip_exported", { format: "premium-pdf", surface });
     } catch (error) {
-      console.error("Error exporting premium PDF:", error);
+      reportExportFailure("premium-pdf", error);
     } finally {
       setIsExporting(null);
       setExportProgress(null);
@@ -98,10 +131,12 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
 
   const handleExportICS = () => {
     setIsExporting("ics");
+    setExportError(null);
     try {
       downloadICS(trip);
+      capture("trip_exported", { format: "ical", surface });
     } catch (error) {
-      console.error("Error exporting ICS:", error);
+      reportExportFailure("ical", error);
     } finally {
       setIsExporting(null);
       setIsOpen(false);
@@ -111,7 +146,12 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const next = !isOpen;
+          setIsOpen(next);
+          // Reopening dismisses a stale error so the retry starts clean.
+          if (next) setExportError(null);
+        }}
         aria-label={t('title')}
         className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
       >
@@ -190,6 +230,18 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
             double-click / import the file. If we ever wire a real
             calendar-subscription feed we can restore the section.
           */}
+        </div>
+      )}
+
+      {/* Export error — rendered outside the dropdown (which closes on the
+          failing action's `finally`) so the user isn't left with a stopped
+          spinner and no explanation. */}
+      {exportError && (
+        <div
+          role="alert"
+          className="absolute right-0 mt-2 w-64 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 shadow-lg z-20"
+        >
+          {exportError}
         </div>
       )}
     </div>

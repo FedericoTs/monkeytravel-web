@@ -1845,6 +1845,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   itinerary: generatedItinerary.days,
                 }}
                 destination={fullDestination}
+                surface="anon_result"
               />
               <RegenerateButton
                 onRegenerate={handleRegenerate}
