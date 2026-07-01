@@ -81,6 +81,10 @@ const LANDING_PAGE_KEYWORDS: { path: string; labelKey: string; keywords: string[
   { path: "/family-trip-planner", labelKey: "familyTripPlanner", keywords: ["family", "kids", "children"] },
   { path: "/weekend-trip-planner", labelKey: "weekendTripPlanner", keywords: ["weekend", "short trip", "getaway", "3 day", "2 day"] },
   { path: "/ai-itinerary-generator", labelKey: "aiItineraryGenerator", keywords: ["itinerary", "day by day", "planning", "ai"] },
+  // **2026-07-01 (discoverability audit)**: /backpacker was orphaned (no
+  // in-app link). Surface it on genuinely backpacker-relevant posts so it
+  // gets a contextual internal path in addition to the new footer link.
+  { path: "/backpacker", labelKey: "backpacker", keywords: ["backpacker", "backpacking", "hostel", "hostels", "backpack"] },
   // **2026-05-25**: Surface free tools when relevant. Packing List
   // matches packing/checklist/luggage/weather posts; Visa Checker
   // matches visa/passport/entry-requirement posts.

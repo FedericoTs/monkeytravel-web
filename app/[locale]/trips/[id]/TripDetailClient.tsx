@@ -78,9 +78,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-// Amadeus booking components - kept for future use
-// import FlightSearch from "@/components/booking/FlightSearch";
-// import HotelSearch from "@/components/booking/HotelSearch";
 
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
@@ -1961,22 +1958,27 @@ export default function TripDetailClient({
                       </div>
                     </div>
                     <div className="ml-auto flex items-center gap-3">
-                      {/* Regenerate Day Button - icon-only; owner only; subtle */}
+                      {/* Regenerate Day Button — owner only. Was icon-only
+                          (no label, easy to miss); given a visible label to
+                          match the "Optimize Route" sibling. 2026-07-01
+                          discoverability audit. */}
                       {userRole === "owner" && (
                         <button
                           type="button"
                           onClick={() => handleDayRegenerate(day.day_number)}
                           disabled={regeneratingDayNumber !== null}
-                          className="flex items-center justify-center w-8 h-8 rounded-lg
-                                     text-slate-500 hover:text-[var(--primary)] hover:bg-slate-100
-                                     disabled:opacity-50 disabled:cursor-not-allowed
-                                     transition-colors"
-                          title={`Regenerate Day ${day.day_number} — replace all activities with a fresh AI suggestion`}
-                          aria-label={`Regenerate Day ${day.day_number}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+                                     text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[var(--primary)]
+                                     rounded-lg transition-colors
+                                     disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={t('detail.regenerateDayAria', { number: day.day_number })}
+                          aria-label={t('detail.regenerateDayAria', { number: day.day_number })}
                         >
                           <RefreshCw
                             className={`w-4 h-4 ${regeneratingDayNumber === day.day_number ? "animate-spin" : ""}`}
                           />
+                          <span className="hidden sm:inline">{t('detail.regenerateDay')}</span>
+                          <span className="sm:hidden">{t('detail.regenerate')}</span>
                         </button>
                       )}
                       {/* Optimize Route Button - only show in edit mode with 3+ activities */}

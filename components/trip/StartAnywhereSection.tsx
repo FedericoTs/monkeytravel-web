@@ -8,8 +8,9 @@
  * have us extract destination + vibes + suggested dates via Gemini
  * Vision, then pre-fill the wizard so they can hit Generate immediately.
  *
- * Hidden behind a flag (FLAG_START_ANYWHERE) so we can A/B-measure
- * conversion lift before making it the default entry surface.
+ * Rendered unconditionally at the top of wizard step 1 (above the
+ * destination input). Defaults to a collapsed opt-in banner that expands
+ * into the image/URL/text extractor on click. No feature flag gates it.
  */
 
 import { useState, useRef, useCallback } from "react";

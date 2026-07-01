@@ -82,7 +82,8 @@
       "weekendTripPlanner": "Planejador de Viagens de Fim de Semana",
       "aiItineraryGenerator": "Gerador de Roteiros com IA",
       "packingList": "Gerador de Lista de Bagagem",
-      "visaChecker": "Verificador de Exigências de Visto"
+      "visaChecker": "Verificador de Exigências de Visto",
+      "backpacker": "Planejador de Viagens de Mochileiro"
     }
   },
   "tag": {
