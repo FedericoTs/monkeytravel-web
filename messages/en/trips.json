@@ -9,6 +9,7 @@
     "whyThis": "Why this",
     "tradeoff": "The tradeoff",
     "budgetDatesLine": "{budget} · {dateRange}",
+    "tiers": { "budget": "Budget", "balanced": "Balanced", "premium": "Premium" },
     "chooseThis": "Choose this trip",
     "startOver": "Start over",
     "confirmDatesSubtitle": "Pick your dates and we'll build the full itinerary.",

@@ -172,7 +172,7 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
       const res = await fetch("/api/ai/decide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: clean }),
+        body: JSON.stringify({ prompt: clean, locale }),
       });
       if (!res.ok) {
         // 400 (garbage/injection), 429 (rate limit), 503 (kill switch), 500 —
@@ -321,7 +321,7 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
 
                   <p className="mt-3 text-xs text-slate-500">
                     {t("decision.budgetDatesLine", {
-                      budget: p.budget_fit.tier,
+                      budget: t(`decision.tiers.${p.budget_fit.tier}`),
                       dateRange: `${p.suggested_dates.start} → ${p.suggested_dates.end}`,
                     })}
                   </p>

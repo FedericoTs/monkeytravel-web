@@ -33,6 +33,10 @@ const BodySchema = z.object({
   budgetHint: z.enum(["budget", "balanced", "premium"]).optional(),
   travelStyle: z.enum(["classic", "backpacker"]).optional(),
   origin: z.string().trim().max(80).optional(),
+  // UI locale so proposals come back in the traveller's language (keeps the
+  // A/B fair for it/es/pt). Lenient string — decide.ts maps unknown → English,
+  // so a region variant (e.g. "en-US") never 400s the whole call.
+  locale: z.string().trim().max(10).optional(),
 });
 
 // Obvious prompt-injection markers. Defense-in-depth: the model is also
