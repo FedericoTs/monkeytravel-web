@@ -84,8 +84,10 @@ import {
   captureSaveFailed,
 } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
-import { useFlag } from "@/lib/posthog";
-import { FLAG_AUTO_SAVE_V1, FLAG_EXPLORE_UGC } from "@/lib/posthog/flags";
+import { useFlag, useExperiment, usePostHog } from "@/lib/posthog";
+import { FLAG_AUTO_SAVE_V1, FLAG_EXPLORE_UGC, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
+import DecisionIntake from "@/components/wizard/DecisionIntake";
+import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
 import {
   insertTrip as persistInsertTrip,
@@ -151,43 +153,11 @@ const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 // Caught in docs/JOURNEY_AUDIT.md after the third-round live test.
 const STEP_NAMES_CONST = ["destination_dates", "vibes_preferences"] as const;
 
-// Server-side funnel mirror — additive to the PostHog tracking already
-// in place so we can write SQL cross-cuts against Supabase (joins to
-// users / trips / referrals / acquisition_source). See
-// app/api/wizard-event/route.ts and the 20260531_wizard_step_events.sql
-// migration for the rationale. Task #293.
-//
-// Fire-and-forget by design: we never await this from a render path,
-// never surface the result to the user, and swallow any throw.
-// `keepalive: true` so the "abandoned" event survives a tab close.
-// Module-scoped (not inside the component) so the function identity is
-// stable and we don't invalidate effect deps that pass it around.
-type WizardEventStep =
-  | "step_1_destination_dates"
-  | "step_2_vibes"
-  | "generating"
-  | "result"
-  | "save_clicked"
-  | "save_blocked_anon"
-  | "save_failed"
-  | "saved"
-  | "abandoned";
-
-async function trackWizardEvent(
-  step: WizardEventStep,
-  extra: Record<string, unknown> = {}
-): Promise<void> {
-  try {
-    await fetch("/api/wizard-event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ step, ...extra }),
-      keepalive: true,
-    });
-  } catch {
-    // Swallow — telemetry must never break the wizard.
-  }
-}
+// Server-side funnel mirror (trackWizardEvent + WizardEventStep) is hoisted to
+// @/components/wizard/wizardEvents so BOTH this classic wizard and the
+// decision-first arm (DecisionIntake) fire the SAME wizard_step_events funnel
+// with a shared front_door arm tag. See app/api/wizard-event/route.ts + the
+// 20260531 / 20260630 migrations. Imported at the top of this file.
 
 interface NewTripWizardProps {
   /**
@@ -247,6 +217,41 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // true/false otherwise) so the downstream JSX gating doesn't change.
   const { user: authUser, loading: authLoading } = useAuth();
   const isAuthenticated: boolean | null = authLoading ? null : !!authUser;
+
+  // Front-door A/B (flag: "front-door"). Anon-only: authed users are forced to
+  // the classic wizard. Tri-state safe: only a DEFINITIVELY anonymous user
+  // (isAuthenticated === false) in the explicit "decision" variant gets the
+  // decision arm; loading auth (null), loading flag (undefined), authed (true),
+  // and control ("wizard") all resolve to "wizard", so the classic wizard paints
+  // first (v1 accepts this first-paint flicker — plan §"Accept first-paint
+  // flicker"). A `?front_door=wizard|decision` query param overrides the
+  // assignment (the DecisionIntake escape hatch + QA force-preview).
+  const frontDoorOverride = searchParams.get("front_door");
+  const { variant: frontDoorVariant } = useExperiment(FLAG_FRONT_DOOR);
+  const arm: FrontDoorArm =
+    frontDoorOverride === "wizard"
+      ? "wizard"
+      : frontDoorOverride === "decision"
+        ? "decision"
+        : isAuthenticated === false && frontDoorVariant === "decision"
+          ? "decision"
+          : "wizard";
+  // Stable ref so the once-attached abandonment listener reads the current arm
+  // instead of a stale mount-time closure.
+  const armRef = useRef<FrontDoorArm>(arm);
+  useEffect(() => {
+    armRef.current = arm;
+  }, [arm]);
+  // Tag every PostHog capture() + $pageview with the arm as a super-property so
+  // the whole PostHog funnel is arm-sliceable with no per-call edits. The
+  // Supabase wizard_step_events sink is tagged separately via trackWizardEvent's
+  // 3rd arg. posthog may be undefined before init (lazy-loaded) — guard + re-run
+  // when it resolves.
+  const posthog = usePostHog();
+  useEffect(() => {
+    if (!posthog) return;
+    posthog.register({ front_door: arm });
+  }, [posthog, arm]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
@@ -353,7 +358,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
     trackedStepsRef.current.add(step);
     if (step === 1) {
-      void trackWizardEvent("step_1_destination_dates", { locale });
+      void trackWizardEvent("step_1_destination_dates", { locale }, arm);
     } else if (step === 2) {
       void trackWizardEvent("step_2_vibes", {
         destination: destinationFieldRef.current || undefined,
@@ -371,7 +376,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
         locale,
-      });
+      }, arm);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -547,7 +552,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         last_step: lastStepName,
         last_touched_field: lastTouchedFieldRef.current ?? undefined,
         total_time_seconds: totalSeconds,
-      });
+      }, armRef.current);
     }
 
     function handleVisibility() {
@@ -809,7 +814,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           group_size: tripIntent,
           backpacker_mode: travelStyle === "backpacker",
           locale,
-        });
+        }, arm);
         // Fire first_trip_saved unconditionally — same rationale as the
         // manual handleSaveTrip path (Task #319, 2026-05-31). Both save
         // paths emit the event so cohort math works regardless of which
@@ -1084,7 +1089,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
-    });
+    }, arm);
 
     try {
       // Derive interests from vibes for API compatibility
@@ -1233,7 +1238,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           group_size: tripIntent,
           backpacker_mode: travelStyle === "backpacker",
           locale,
-        });
+        }, arm);
+        // Shared cross-arm first-value (itinerary-level). The decision arm fires
+        // its own earlier first_value at options_shown, so gate this to the
+        // classic wizard to keep one first_value per arm per session.
+        if (arm === "wizard") {
+          void trackWizardEvent("first_value", {
+            destination,
+            duration_days: durationDaysResult,
+            locale,
+          }, arm);
+        }
       }
 
       // Track successful itinerary generation.
@@ -1322,7 +1337,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
-    });
+    }, arm);
 
     setLoading(true);
     try {
@@ -1360,7 +1375,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           group_size: tripIntent,
           backpacker_mode: travelStyle === "backpacker",
           locale,
-        });
+        }, arm);
         // PostHog mirror so the same funnel renders in the product
         // analytics dashboard alongside save_clicked → saved. Without
         // this, the gap shows in Supabase queries but is invisible in
@@ -1491,7 +1506,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
         locale,
-      });
+      }, arm);
 
       // Fire first_trip_saved unconditionally (organic + referred). Was
       // gated inside handleTripCreatedWithReferral on wasReferred — so
@@ -1560,7 +1575,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
         locale,
-      });
+      }, arm);
       // PostHog mirror — bucketed error_class so dashboards can chart
       // network vs RLS vs validation drops separately. Raw message is
       // truncated; PostHog gets a short string only.
@@ -2364,6 +2379,42 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         isGenerating={generating}
         streamedDayCount={streamedDayCount}
         streamedTotalDays={streamedTotalDays}
+      />
+    );
+  }
+
+  // Decision-first arm — renders its own intake UI (prompt → proposals → pick →
+  // confirm dates), then maps the picked proposal onto wizard state and calls
+  // handleGenerate(). Sits AFTER the generatedItinerary (~1596) and generating
+  // (~2360) early-returns: once the arm triggers a generate, those take over and
+  // render the shared generating + result + save flow for free.
+  if (arm === "decision") {
+    return (
+      <DecisionIntake
+        locale={locale}
+        onPick={(mapped) => {
+          // Map the picked + date-confirmed proposal onto the SAME state
+          // handleGenerate re-reads, then call it. handleGenerate rebuilds
+          // TripCreationParams from this state and reuses streaming + JSON
+          // fallback + generating/result/save_* + first_value telemetry (all
+          // now arm-tagged "decision").
+          setError(null);
+          setDestination(mapped.destination);
+          if (mapped.destinationCoords) setDestinationCoords(mapped.destinationCoords);
+          setStartDate(mapped.startDate);
+          setEndDate(mapped.endDate);
+          setBudgetTier(mapped.budgetTier);
+          setPace(mapped.pace);
+          setSelectedVibes(mapped.vibes);
+          if (mapped.travelStyle) setTravelStyle(mapped.travelStyle);
+          if (mapped.requirements) setRequirements(mapped.requirements);
+          // State setters are async; defer handleGenerate to the next macrotask
+          // so it reads the just-committed state (else the destination/dates gate
+          // reads pre-update "" values and 400s at validateTripParams).
+          setTimeout(() => {
+            void handleGenerate();
+          }, 0);
+        }}
       />
     );
   }

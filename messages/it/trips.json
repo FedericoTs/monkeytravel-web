@@ -1,4 +1,22 @@
 {
+  "decision": {
+    "promptLabel": "Tell us about your trip",
+    "promptSubtitle": "Describe the trip you're dreaming of — a vibe, a budget, a season, whatever's in your head. We'll suggest a few places worth deciding between.",
+    "promptPlaceholder": "A relaxed week somewhere warm in March, mid-budget, love food and old towns…",
+    "propose": "Propose options",
+    "loading": "Thinking through your options…",
+    "optionsTitle": "A few directions worth considering",
+    "whyThis": "Why this",
+    "tradeoff": "The tradeoff",
+    "budgetDatesLine": "{budget} · {dateRange}",
+    "chooseThis": "Choose this trip",
+    "startOver": "Start over",
+    "confirmDatesSubtitle": "Pick your dates and we'll build the full itinerary.",
+    "confirmDates": "Confirm dates",
+    "backToOptions": "Back to options",
+    "error": "Something went wrong finding options. Give it another try.",
+    "useClassicPlanner": "Use the classic planner"
+  },
   "wizard": {
     "back": "Indietro",
     "unlockAiFeatures": "Sblocca le funzionalità AI",
