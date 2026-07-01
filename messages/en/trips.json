@@ -109,6 +109,12 @@
     },
     "result": {
       "tripOverview": "Trip Overview",
+      "bookYourTravel": "Book Your Travel",
+      "flights": "Flights",
+      "hotels": "Hotels",
+      "aiVerifiedTitle": "AI-Generated Itinerary with Verified Data",
+      "aiVerifiedBody": "This itinerary was created by AI and enriched with real-time data from Google Places. Click \"More\" on any activity to see verified photos, ratings, and price levels. We recommend double-checking opening hours before your trip.",
+      "notQuiteRight": "Not quite right?",
       "viewCards": "Cards",
       "viewTimeline": "Timeline",
       "hideMap": "Hide Map",

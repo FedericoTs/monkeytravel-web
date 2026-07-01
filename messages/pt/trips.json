@@ -109,6 +109,12 @@
     },
     "result": {
       "tripOverview": "Resumo da Viagem",
+      "bookYourTravel": "Reserve sua viagem",
+      "flights": "Voos",
+      "hotels": "Hotéis",
+      "aiVerifiedTitle": "Roteiro gerado por IA com dados verificados",
+      "aiVerifiedBody": "Este roteiro foi criado por IA e enriquecido com dados em tempo real do Google Places. Clique em \"Mais\" em qualquer atividade para ver fotos, avaliações e níveis de preço verificados. Recomendamos verificar os horários de funcionamento antes da sua viagem.",
+      "notQuiteRight": "Não é bem isso?",
       "viewCards": "Cartões",
       "viewTimeline": "Linha do Tempo",
       "hideMap": "Ocultar Mapa",

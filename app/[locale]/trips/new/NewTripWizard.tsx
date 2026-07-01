@@ -124,6 +124,24 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   loading: () => <MapLoadingFallback />,
 });
 
+// Localized, human date range for the result hero. Parses the ISO strings as
+// LOCAL midnight (no trailing Z) to avoid an off-by-one, and joins with an
+// en-dash so no English "to" (and no raw "2026-08-01") leaks on /it /es /pt.
+// Falls back to the raw range if either date is unparseable.
+function formatDateRangeLocalized(startISO: string, endISO: string, locale: string): string {
+  try {
+    const start = new Date(`${startISO}T00:00:00`);
+    const end = new Date(`${endISO}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return `${startISO} – ${endISO}`;
+    }
+    const fmt = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
+    return `${fmt.format(start)} – ${fmt.format(end)}`;
+  } catch {
+    return `${startISO} – ${endISO}`;
+  }
+}
+
 // Vibe to interests mapping - automatically derives interests from selected vibes
 // This ensures the AI receives relevant interest signals based on vibe selection
 // Streamlined to 6 core vibes for cleaner UX
@@ -858,6 +876,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         clearDraft();
         if (typeof window !== "undefined") {
           sessionStorage.setItem("profile_modal_shown", "true");
+        }
+        // Post-save virality prompt. The manual-save trigger
+        // (setShowShareAfterSaveModal at ~1581) lives inside the AUTHED branch
+        // of handleSaveTrip, which the anon->activated cohort never reaches:
+        // they hit the auth wall, sign up, and return to be persisted HERE by
+        // the auto-save effect — so the whole invite/publish loop was dead for
+        // exactly the cohort we want to activate. Open it on first insert. Set
+        // savedTripId directly so the modal's redirects have it immediately
+        // (the mirror effect at ~894 also sets it). Guard to once/session so a
+        // Start-Over -> new insert doesn't nag.
+        setSavedTripId(tripId);
+        if (typeof window !== "undefined" && !sessionStorage.getItem("share_after_save_shown")) {
+          sessionStorage.setItem("share_after_save_shown", "true");
+          setShowShareAfterSaveModal(true);
         }
       } else {
         // Don't re-fire referral/bananas on regen — only count the
@@ -1783,7 +1815,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           destination={fullDestination}
           title={fullDestination}
           subtitle={generatedItinerary.destination.description}
-          dateRange={`${startDate} to ${endDate}`}
+          dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
           budget={{
             total: generatedItinerary.trip_summary.total_estimated_cost,
             currency: generatedItinerary.trip_summary.currency,
@@ -1817,7 +1849,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {/* Trip Summary */}
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <span className="px-2 py-1 bg-slate-100 rounded-lg">
-                {generatedItinerary.days.length} days
+                {t("wizard.result.days", { count: generatedItinerary.days.length })}
               </span>
               <span className="px-2 py-1 bg-slate-100 rounded-lg">
                 {convertCurrency(
@@ -2131,11 +2163,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Book Your Travel
+                {t("wizard.result.bookYourTravel")}
               </h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">Flights</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.flights")}</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.flights.map((link) => (
                       <a
@@ -2151,7 +2183,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">Hotels</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.hotels")}</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.hotels.map((link) => (
                       <a
@@ -2343,12 +2375,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-amber-900 mb-1">AI-Generated Itinerary with Verified Data</h4>
-                <p className="text-sm text-amber-800">
-                  This itinerary was created by AI and enriched with real-time data from Google Places.
-                  Click "More" on any activity to see verified photos, ratings, and price levels.
-                  We recommend double-checking opening hours before your trip.
-                </p>
+                <h4 className="font-semibold text-amber-900 mb-1">{t("wizard.result.aiVerifiedTitle")}</h4>
+                <p className="text-sm text-amber-800">{t("wizard.result.aiVerifiedBody")}</p>
               </div>
             </div>
           </div>
@@ -2359,7 +2387,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Not quite right?
+              {t("wizard.result.notQuiteRight")}
             </div>
             <RegenerateButton
               onRegenerate={handleRegenerate}
