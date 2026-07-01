@@ -36,6 +36,20 @@
   "wizard": {
     "back": "Back",
     "unlockAiFeatures": "Unlock AI Features",
+    "usageLimitReached": "Usage Limit Reached",
+    "usageLimitDefault": "You've used your free AI generations.",
+    "yourTripTo": "Your trip to",
+    "multiCity": {
+      "toggleTitle": "Plan multiple cities",
+      "toggleDescription": "One trip across several cities, stitched into a single itinerary.",
+      "toggleAria": "Toggle multi-city planning",
+      "routeLabel": "Your route",
+      "cityPlaceholder": "City {number}",
+      "nightsLabel": "nights",
+      "nightsAria": "Nights in city {number}",
+      "removeCityAria": "Remove city {number}",
+      "addCity": "+ Add city"
+    },
     "datePicker": {
       "checkInLabel": "Check-in",
       "checkOutLabel": "Check-out",
@@ -254,9 +268,6 @@
     "skippedBadge": "Skipped",
     "freePrice": "Free"
   },
-  "detail": {
-    "regeneratingDay": "Regenerating Day {number}…"
-  },
   "activity": {
     "duration": "{duration} min",
     "cost": "Cost",
@@ -271,6 +282,7 @@
     "venueTierEstimate": "Venue tier estimate"
   },
   "detail": {
+    "regeneratingDay": "Regenerating Day {number}…",
     "backToTrips": "Back to Trips",
     "cards": "Cards",
     "timeline": "Timeline",

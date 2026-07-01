@@ -105,14 +105,23 @@ import {
   type PersistInput,
 } from "@/lib/trips/persistTrip";
 
+// Localized loading fallback for the lazy map. It renders inside the
+// NextIntlClientProvider tree (it replaces TripMap in place while the chunk
+// loads), so useTranslations resolves — unlike an inline literal at module
+// scope, which can't reach the translation context and shipped raw English.
+function MapLoadingFallback() {
+  const t = useTranslations("trips");
+  return (
+    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
+      <span className="text-slate-400">{t("detail.loadingMap")}</span>
+    </div>
+  );
+}
+
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
-  loading: () => (
-    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
-    </div>
-  ),
+  loading: () => <MapLoadingFallback />,
 });
 
 // Vibe to interests mapping - automatically derives interests from selected vibes
@@ -2397,9 +2406,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-amber-800">Usage Limit Reached</h3>
+                <h3 className="font-semibold text-amber-800">{t("wizard.usageLimitReached")}</h3>
                 <p className="text-sm text-amber-700 mt-1">
-                  {limitReachedMessage || "You've used your free AI generations."}
+                  {limitReachedMessage || t("wizard.usageLimitDefault")}
                 </p>
               </div>
             </div>
@@ -2416,7 +2425,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Your trip to</p>
+                  <p className="text-sm text-slate-500">{t("wizard.yourTripTo")}</p>
                   <p className="font-bold text-slate-900">{destination}</p>
                 </div>
               </div>
@@ -2876,16 +2885,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {MULTI_CITY_ENABLED && (
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <div>
-                  <div className="text-sm font-medium text-slate-800">Plan multiple cities</div>
+                  <div className="text-sm font-medium text-slate-800">
+                    {t("wizard.multiCity.toggleTitle")}
+                  </div>
                   <div className="text-xs text-slate-500">
-                    One trip across several cities, stitched into a single itinerary.
+                    {t("wizard.multiCity.toggleDescription")}
                   </div>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={multiCityMode}
-                  aria-label="Toggle multi-city planning"
+                  aria-label={t("wizard.multiCity.toggleAria")}
                   onClick={() => setMultiCityMode((m) => !m)}
                   className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
                     multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
@@ -2903,7 +2914,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {/* Multi-city route builder — replaces the single destination field */}
             {MULTI_CITY_ENABLED && multiCityMode && (
               <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">Your route</div>
+                <div className="text-sm font-medium text-slate-700 mb-2">
+                  {t("wizard.multiCity.routeLabel")}
+                </div>
                 <MultiCityRouteBuilder rows={cityRows} onChange={setCityRows} />
               </div>
             )}

@@ -36,6 +36,20 @@
   "wizard": {
     "back": "Voltar",
     "unlockAiFeatures": "Desbloqueie os recursos de IA",
+    "usageLimitReached": "Limite de uso atingido",
+    "usageLimitDefault": "Você usou suas gerações de IA gratuitas.",
+    "yourTripTo": "Sua viagem para",
+    "multiCity": {
+      "toggleTitle": "Planeje várias cidades",
+      "toggleDescription": "Uma viagem por várias cidades, unida em um único itinerário.",
+      "toggleAria": "Alternar planejamento de várias cidades",
+      "routeLabel": "Sua rota",
+      "cityPlaceholder": "Cidade {number}",
+      "nightsLabel": "noites",
+      "nightsAria": "Noites na cidade {number}",
+      "removeCityAria": "Remover cidade {number}",
+      "addCity": "+ Adicionar cidade"
+    },
     "datePicker": {
       "checkInLabel": "Check-in",
       "checkOutLabel": "Check-out",
@@ -254,9 +268,6 @@
     "skippedBadge": "Pulada",
     "freePrice": "Grátis"
   },
-  "detail": {
-    "regeneratingDay": "Gerando novamente o Dia {number}…"
-  },
   "activity": {
     "duration": "{duration} min",
     "cost": "Custo",
@@ -271,6 +282,7 @@
     "venueTierEstimate": "Estimativa por categoria"
   },
   "detail": {
+    "regeneratingDay": "Gerando novamente o Dia {number}…",
     "backToTrips": "Voltar para Viagens",
     "cards": "Cartões",
     "timeline": "Linha do Tempo",
