@@ -160,7 +160,15 @@ function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | n
   const tier = VALID_TIERS.has(String(costRaw.tier)) ? String(costRaw.tier) : "moderate";
   return {
     time_slot: slot,
-    start_time: str(a.start_time, ""),
+    // A real slot-based fallback (never "") so downstream iCal export can't
+    // produce a corrupt DTSTART when the model omits start_time.
+    start_time: /^\d{1,2}:\d{2}$/.test(String(a.start_time))
+      ? String(a.start_time)
+      : slot === "morning"
+        ? "09:00"
+        : slot === "afternoon"
+          ? "13:00"
+          : "19:00",
     duration_minutes: Math.max(15, Math.round(num(a.duration_minutes, 90))),
     name,
     type: str(a.type, "activity"),

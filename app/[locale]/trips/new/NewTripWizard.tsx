@@ -22,7 +22,7 @@ export interface PrefilledDestination {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { Activity, GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -1614,6 +1614,63 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
   };
 
+  // Apply an anonymous-assistant day edit to the in-memory itinerary. Recomputes
+  // the trip total (delta) so hero/sticky/overview/export/saved-budget stay in
+  // sync, carries map data + stable ids over by name-match, and scrolls the
+  // changed day into view. Nothing is persisted until the user saves.
+  const handleApplyDayEdit = useCallback(
+    (dayNumber: number, newActivities: Activity[], theme?: string) => {
+      setGeneratedItinerary((prev) => {
+        if (!prev) return prev;
+        const target = prev.days.find((d) => d.day_number === dayNumber);
+        const byName = new Map(
+          (target?.activities ?? []).map((a) => [a.name.trim().toLowerCase(), a])
+        );
+        const merged: Activity[] = newActivities.map((a, i) => {
+          const match = byName.get(a.name.trim().toLowerCase());
+          return {
+            ...a,
+            id:
+              match?.id ??
+              a.id ??
+              `edit-${dayNumber}-${i}-${a.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .slice(0, 40)}`,
+            coordinates: a.coordinates ?? match?.coordinates,
+            address: a.address ?? match?.address,
+            image_url: a.image_url ?? match?.image_url,
+          };
+        });
+        const sum = (acts: Activity[]) =>
+          acts.reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0);
+        const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
+        const newTotal = Math.max(
+          0,
+          Math.round(prevTotal - (target ? sum(target.activities) : 0) + sum(merged))
+        );
+        return {
+          ...prev,
+          days: prev.days.map((d) =>
+            d.day_number === dayNumber
+              ? { ...d, activities: merged, ...(theme ? { theme } : {}) }
+              : d
+          ),
+          trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
+        };
+      });
+      setTimeout(() => {
+        const el = document.getElementById(`day-${dayNumber}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          el.classList.add("ring-2", "ring-[var(--primary)]");
+          setTimeout(() => el.classList.remove("ring-2", "ring-[var(--primary)]"), 2000);
+        }
+      }, 100);
+    },
+    []
+  );
+
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
@@ -1924,7 +1981,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
-          {/* Read-only AI Q&A — anonymous concierge at peak intent (Tier 3-B1). */}
+          {/* Save/generation error — previously rendered only in the form view,
+              so an authed Save failure looked like a dead button here. Restores
+              feedback at peak intent (enhancement hunt). */}
+          {error && (
+            <div
+              role="alert"
+              className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            >
+              {error}
+            </div>
+          )}
+          {/* AI assistant — Q&A + day-scoped edits at peak intent (Tier 3-B1/B2). */}
           <div className="mb-8">
             <AnonAssistantPanel
               destination={fullDestination}
@@ -1932,20 +2000,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               days={generatedItinerary.days}
               startDate={startDate}
               endDate={endDate}
-              onApplyDay={(dayNumber, activities, theme) =>
-                setGeneratedItinerary((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        days: prev.days.map((d) =>
-                          d.day_number === dayNumber
-                            ? { ...d, activities, ...(theme ? { theme } : {}) }
-                            : d
-                        ),
-                      }
-                    : prev
-                )
-              }
+              onApplyDay={handleApplyDayEdit}
             />
           </div>
 
@@ -2117,7 +2172,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           {/* Day by Day with ActivityCards */}
           <div className="space-y-8">
             {generatedItinerary.days.map((day) => (
-              <div key={day.day_number}>
+              <div key={day.day_number} id={`day-${day.day_number}`} className="scroll-mt-24">
                 {/* Day Header */}
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-3">

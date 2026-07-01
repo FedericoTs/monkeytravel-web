@@ -4,7 +4,12 @@ import type { Activity, TripForExport } from "@/types";
  * Format date and time for ICS (YYYYMMDDTHHmmss format)
  */
 function formatICSDateTime(date: string, time: string): string {
-  const [hours, minutes] = time.split(":").map(Number);
+  // Guard against missing/blank/malformed times — AI-generated activities don't
+  // always include a start_time. Without this, a "" time yields NaN and a
+  // corrupt "NaNNaNNaNT..." DTSTART that calendar apps reject. Default to 09:00.
+  const m = /^(\d{1,2}):(\d{2})$/.exec((time || "").trim());
+  const hours = m ? Number(m[1]) : 9;
+  const minutes = m ? Number(m[2]) : 0;
   const dateObj = new Date(date);
   dateObj.setHours(hours, minutes, 0, 0);
 
@@ -21,8 +26,11 @@ function formatICSDateTime(date: string, time: string): string {
  * Calculate end time from start time and duration
  */
 function calculateEndTime(startTime: string, durationMinutes: number): string {
-  const [hours, minutes] = startTime.split(":").map(Number);
-  const totalMinutes = hours * 60 + minutes + durationMinutes;
+  const m = /^(\d{1,2}):(\d{2})$/.exec((startTime || "").trim());
+  const hours = m ? Number(m[1]) : 9;
+  const minutes = m ? Number(m[2]) : 0;
+  const dur = Number.isFinite(durationMinutes) ? durationMinutes : 60;
+  const totalMinutes = hours * 60 + minutes + dur;
   const endHours = Math.floor(totalMinutes / 60) % 24;
   const endMinutes = totalMinutes % 60;
   return `${String(endHours).padStart(2, "0")}:${String(endMinutes).padStart(2, "0")}`;
