@@ -1,4 +1,15 @@
 {
+  "assistant": {
+    "title": "Ask about your trip",
+    "readonlyNote": "Questions only — save your trip (free) to edit it.",
+    "placeholder": "e.g. Is day 2 too packed? What's the weather like?",
+    "ask": "Ask",
+    "thinking": "Thinking…",
+    "errorMsg": "Couldn't answer that — try again in a moment.",
+    "suggest1": "Is this itinerary too packed?",
+    "suggest2": "What's the weather like then?",
+    "suggest3": "Any local food I shouldn't miss?"
+  },
   "decision": {
     "promptLabel": "Tell us about your trip",
     "promptSubtitle": "Describe the trip you're dreaming of — a vibe, a budget, a season, whatever's in your head. We'll suggest a few places worth deciding between.",

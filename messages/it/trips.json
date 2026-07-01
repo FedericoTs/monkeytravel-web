@@ -1,4 +1,15 @@
 {
+  "assistant": {
+    "title": "Chiedi sul tuo viaggio",
+    "readonlyNote": "Solo domande — salva il viaggio (gratis) per modificarlo.",
+    "placeholder": "es. Il giorno 2 è troppo pieno? Che tempo farà?",
+    "ask": "Chiedi",
+    "thinking": "Sto pensando…",
+    "errorMsg": "Non sono riuscito a rispondere — riprova tra un momento.",
+    "suggest1": "Questo itinerario è troppo intenso?",
+    "suggest2": "Che tempo farà in quel periodo?",
+    "suggest3": "Qualche piatto locale da non perdere?"
+  },
   "decision": {
     "promptLabel": "Raccontaci del tuo viaggio",
     "promptSubtitle": "Descrivi il viaggio che sogni: un'atmosfera, un budget, una stagione, quello che hai in mente. Ti proporremo qualche meta tra cui scegliere.",

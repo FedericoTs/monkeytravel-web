@@ -1,4 +1,15 @@
 {
+  "assistant": {
+    "title": "Pregunta sobre tu viaje",
+    "readonlyNote": "Solo preguntas — guarda tu viaje (gratis) para editarlo.",
+    "placeholder": "p. ej. ¿El día 2 está muy cargado? ¿Qué tiempo hará?",
+    "ask": "Preguntar",
+    "thinking": "Pensando…",
+    "errorMsg": "No pude responder — inténtalo de nuevo en un momento.",
+    "suggest1": "¿Este itinerario está muy cargado?",
+    "suggest2": "¿Qué tiempo hará entonces?",
+    "suggest3": "¿Alguna comida local que no deba perderme?"
+  },
   "decision": {
     "promptLabel": "Cuéntanos sobre tu viaje",
     "promptSubtitle": "Describe el viaje que sueñas: un ambiente, un presupuesto, una temporada, lo que tengas en mente. Te sugeriremos algunos destinos entre los que elegir.",

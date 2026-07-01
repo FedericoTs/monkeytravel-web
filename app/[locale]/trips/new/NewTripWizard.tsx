@@ -50,6 +50,9 @@ const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButto
 // on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
 // pre-save result had no export at all; only the saved trip page did.
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
+// Read-only AI Q&A on the anonymous result (Tier 3-B1). Anon users at peak
+// intent previously had no assistant — that lived only on the saved trip page.
+const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistantPanel"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
@@ -1921,6 +1924,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Read-only AI Q&A — anonymous concierge at peak intent (Tier 3-B1). */}
+          <div className="mb-8">
+            <AnonAssistantPanel
+              destination={fullDestination}
+              tripTitle={`${generatedItinerary.destination.name} Trip`}
+              days={generatedItinerary.days}
+              startDate={startDate}
+              endDate={endDate}
+            />
+          </div>
+
           {/* Interactive Map + View Controls */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
