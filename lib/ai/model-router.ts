@@ -45,7 +45,8 @@ export type GeminiPurpose =
   | "maps-grounding"
   | "assistant-suggest"
   | "assistant-optimize"
-  | "generate-more-days";
+  | "generate-more-days"
+  | "decide";
 
 export type GeminiModelId =
   | "gemini-2.5-pro"
@@ -84,6 +85,10 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "assistant-suggest": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",
   "generate-more-days": "gemini-2.5-flash",
+  // Decision-first front door (docs/DECISION_FRONT_DOOR_PLAN.md): short
+  // structured reasoning over a free-text prompt → 2-3 proposals. Cheapest tier,
+  // like packing-list / trip-title. No grounding, no Places — pure model output.
+  decide: "gemini-2.5-flash-lite",
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([
