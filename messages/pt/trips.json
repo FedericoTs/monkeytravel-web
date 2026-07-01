@@ -39,6 +39,17 @@
     "usageLimitReached": "Limite de uso atingido",
     "usageLimitDefault": "Você usou suas gerações de IA gratuitas.",
     "yourTripTo": "Sua viagem para",
+    "draftRecovery": {
+      "title": "Viagem não salva encontrada",
+      "descPrefix": "Você tem uma viagem não salva para",
+      "savedPrefix": "Salvo",
+      "restore": "Restaurar viagem",
+      "startFresh": "Começar de novo",
+      "justNow": "agora mesmo",
+      "minutesAgo": "há {minutes} min",
+      "hoursAgo": "há {hours} h",
+      "yesterday": "ontem"
+    },
     "multiCity": {
       "toggleTitle": "Planeje várias cidades",
       "toggleDescription": "Uma viagem por várias cidades, unida em um único itinerário.",

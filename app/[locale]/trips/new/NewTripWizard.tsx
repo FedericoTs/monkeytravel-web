@@ -2717,6 +2717,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         {/* Step 1: Destination + Dates (combined for fewer drop-offs) */}
         {step === 1 && (
           <div className="space-y-6">
+            {/* Returning-visitor draft recovery. A valid unsaved draft exists
+                within the 24h window — mount the (previously built but never
+                rendered) banner so the user recovers straight into the Save
+                moment instead of re-running the wizard and burning another
+                scarce anon generation. Funnel audit Rank 4a. */}
+            {showDraftRecovery && draft && (
+              <DraftRecoveryBanner
+                draft={draft}
+                onRestore={handleRestoreDraft}
+                onDiscard={handleDiscardDraft}
+              />
+            )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 {t("wizard.step1.title")}

@@ -39,6 +39,17 @@
     "usageLimitReached": "Límite de uso alcanzado",
     "usageLimitDefault": "Has usado tus generaciones de IA gratuitas.",
     "yourTripTo": "Tu viaje a",
+    "draftRecovery": {
+      "title": "Viaje sin guardar encontrado",
+      "descPrefix": "Tienes un viaje sin guardar a",
+      "savedPrefix": "Guardado",
+      "restore": "Restaurar viaje",
+      "startFresh": "Empezar de nuevo",
+      "justNow": "ahora mismo",
+      "minutesAgo": "hace {minutes} min",
+      "hoursAgo": "hace {hours} h",
+      "yesterday": "ayer"
+    },
     "multiCity": {
       "toggleTitle": "Planifica varias ciudades",
       "toggleDescription": "Un solo viaje por varias ciudades, unido en un único itinerario.",

@@ -39,6 +39,17 @@
     "usageLimitReached": "Usage Limit Reached",
     "usageLimitDefault": "You've used your free AI generations.",
     "yourTripTo": "Your trip to",
+    "draftRecovery": {
+      "title": "Unsaved trip found",
+      "descPrefix": "You have an unsaved trip to",
+      "savedPrefix": "Saved",
+      "restore": "Restore Trip",
+      "startFresh": "Start Fresh",
+      "justNow": "just now",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
+      "yesterday": "yesterday"
+    },
     "multiCity": {
       "toggleTitle": "Plan multiple cities",
       "toggleDescription": "One trip across several cities, stitched into a single itinerary.",
