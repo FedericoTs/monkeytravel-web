@@ -38,10 +38,19 @@ import {
   validateLegs,
   type CityLeg,
 } from "@/lib/ai/multi-city";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
 const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
+
+// Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
+// the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
+// users are never limited. Deliberately HIGH (40/IP/day) so it can't touch real
+// users or shared/carrier NAT at current scale — only a scripted attacker doing
+// hundreds/day. Shared "anon-generate" namespace so the stream + non-stream
+// routes count against one bucket.
+const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1000);
 
 // Cache helpers extracted to lib/ai/cache.ts (2026-05-28) so the
 // streaming route can share them. See that file for the unique-key
@@ -79,17 +88,31 @@ export async function POST(request: NextRequest) {
     // inspect in the original priority order below (anon rate-limit →
     // body validity → access kill-switch → quota). A rejection from
     // request.json is caught and surfaced as a 400.
-    const [anonLimit, body, userContext, access] = await Promise.all([
+    const [anonLimit, body, userContext, access, anonIpLimit] = await Promise.all([
       isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
       request.json().catch(() => null as Record<string, unknown> | null),
       loadUserContext(supabase, user?.id ?? null),
       checkApiAccess("gemini"),
+      // Per-IP anon backstop. Fail-OPEN: a limiter/KV error must NEVER block a
+      // real generation, so swallow errors into an allow.
+      isAnonymous
+        ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
+        : Promise.resolve(null),
     ]);
 
     if (isAnonymous && anonLimit && !anonLimit.allowed) {
       return errors.rateLimit(
         anonLimit.message || "Free trip limit reached. Sign up to keep generating.",
         { usage: anonLimit, signupUrl: "/auth/signup" }
+      );
+    }
+
+    // Per-IP backstop for cookie-resetting bots (the cookie cap above is
+    // trivially reset). Only trips under real abuse at 40/IP/day.
+    if (isAnonymous && anonIpLimit && !anonIpLimit.allowed) {
+      return errors.rateLimit(
+        "You've reached today's free-trip limit for your network. Sign up to keep generating — it's free.",
+        { signupUrl: "/auth/signup" }
       );
     }
 
