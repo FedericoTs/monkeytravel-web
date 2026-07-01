@@ -226,6 +226,18 @@ export default function DateRangePicker({
 
   const isDateDisabled = (date: Date): boolean => {
     if (minDateObj && date < minDateObj) return true;
+    // While picking the END date, grey out days beyond the max-length window
+    // so the range can't SILENTLY snap back to start+maxDays — a confusing
+    // value-rewrite on the primary date interaction right before Continue.
+    // Funnel audit Rank 12 / wizard-maxdays-silent-snap.
+    if (!selectingStart) {
+      const start = parseDate(startDate);
+      if (start) {
+        const maxEnd = new Date(start);
+        maxEnd.setDate(maxEnd.getDate() + maxDays - 1);
+        if (date > maxEnd) return true;
+      }
+    }
     return false;
   };
 
