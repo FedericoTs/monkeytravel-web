@@ -1,14 +1,18 @@
 {
   "assistant": {
-    "title": "Pergunte sobre a sua viagem",
-    "readonlyNote": "Apenas perguntas — salve a viagem (grátis) para editá-la.",
-    "placeholder": "ex. O dia 2 está muito cheio? Como estará o tempo?",
-    "ask": "Perguntar",
+    "title": "Pergunte ou ajuste a viagem",
+    "note": "Faça uma pergunta ou diga o que mudar — veja a prévia e aplique alterações antes de salvar.",
+    "placeholder": "ex. Deixe o dia 2 mais barato, ou está muito cheio?",
+    "ask": "Enviar",
     "thinking": "Pensando…",
-    "errorMsg": "Não consegui responder — tente novamente em instantes.",
+    "errorMsg": "Não consegui fazer isso — tente novamente em instantes.",
     "suggest1": "Este roteiro está muito cheio?",
-    "suggest2": "Como estará o tempo nessa época?",
-    "suggest3": "Alguma comida local imperdível?"
+    "suggest2": "Deixe o dia 1 mais tranquilo",
+    "suggest3": "Adicione mais comida local",
+    "apply": "Aplicar alteração",
+    "discard": "Manter original",
+    "applied": "Aplicado",
+    "editPreview": "Atualizar o dia {number}?"
   },
   "decision": {
     "promptLabel": "Conte-nos sobre a sua viagem",

@@ -1,19 +1,27 @@
 "use client";
 
 /**
- * Read-only AI Q&A panel for the ANONYMOUS generation-result view (pre-save).
+ * AI assistant on the ANONYMOUS generation-result view (pre-save).
  *
- * Discoverability audit 2026-07-01 (Tier 3-B1): the AI Assistant / Concierge
- * only existed on the saved trip-detail page — anonymous users landing on their
- * just-generated itinerary (peak intent) had no way to ask questions about it.
- * This talks to POST /api/ai/concierge-anon (unauthenticated, rate-limited,
- * read-only), passing the in-memory itinerary as context. It cannot edit the
- * trip — that's the editing assistant (a separate, larger follow-up).
+ * Talks to POST /api/ai/assistant-anon (unauthenticated, rate-limited). It can
+ * answer questions AND propose a day-scoped edit ("make day 2 cheaper"). Edits
+ * are never auto-applied: the panel renders a preview card and, on confirm,
+ * calls `onApplyDay` so the parent swaps that day into the in-memory itinerary.
+ * Nothing is persisted until the user saves the trip.
+ *
+ * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import type { ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay } from "@/types";
+
+interface AnonEdit {
+  day_number: number;
+  summary: string;
+  activities: Activity[];
+  theme?: string;
+}
 
 interface AnonAssistantPanelProps {
   destination: string;
@@ -21,11 +29,15 @@ interface AnonAssistantPanelProps {
   days: ItineraryDay[];
   startDate?: string;
   endDate?: string;
+  /** Apply a proposed day revision to the in-memory itinerary. */
+  onApplyDay: (dayNumber: number, activities: Activity[], theme?: string) => void;
 }
 
 interface Msg {
   role: "user" | "assistant";
   text: string;
+  edit?: AnonEdit;
+  editState?: "pending" | "applied" | "discarded";
 }
 
 export default function AnonAssistantPanel({
@@ -34,6 +46,7 @@ export default function AnonAssistantPanel({
   days,
   startDate,
   endDate,
+  onApplyDay,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const locale = useLocale();
@@ -42,19 +55,22 @@ export default function AnonAssistantPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ask = async (question: string) => {
-    const q = question.trim();
+  const setEditState = (idx: number, state: "applied" | "discarded") =>
+    setMessages((m) => m.map((msg, i) => (i === idx ? { ...msg, editState: state } : msg)));
+
+  const ask = async (message: string) => {
+    const q = message.trim();
     if (!q || loading) return;
     setError(null);
     setInput("");
     setMessages((m) => [...m, { role: "user", text: q }]);
     setLoading(true);
     try {
-      const res = await fetch("/api/ai/concierge-anon", {
+      const res = await fetch("/api/ai/assistant-anon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: q,
+          message: q,
           destination,
           tripTitle,
           days,
@@ -68,9 +84,17 @@ export default function AnonAssistantPanel({
         setError(data?.error?.message || data?.message || t("assistant.errorMsg"));
         return;
       }
-      const answer: string = data?.data?.answer ?? data?.answer ?? "";
-      if (answer) {
-        setMessages((m) => [...m, { role: "assistant", text: answer }]);
+      const payload = data?.data ?? data ?? {};
+      const reply: string = payload.reply ?? "";
+      const edit: AnonEdit | undefined =
+        payload.edit && Array.isArray(payload.edit.activities) && payload.edit.activities.length
+          ? (payload.edit as AnonEdit)
+          : undefined;
+      if (reply || edit) {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", text: reply, edit, editState: edit ? "pending" : undefined },
+        ]);
       } else {
         setError(t("assistant.errorMsg"));
       }
@@ -102,26 +126,74 @@ export default function AnonAssistantPanel({
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-slate-900">{t("assistant.title")}</h3>
-          <p className="text-sm text-slate-500">{t("assistant.readonlyNote")}</p>
+          <p className="text-sm text-slate-500">{t("assistant.note")}</p>
         </div>
       </div>
 
       {messages.length > 0 && (
         <div className="mt-4 space-y-3">
           {messages.map((m, i) => (
-            <div
-              key={i}
-              className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
-            >
-              <div
-                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
-                  m.role === "user"
-                    ? "bg-[var(--primary)] text-white"
-                    : "bg-white text-slate-700 border border-slate-200"
-                }`}
-              >
-                {m.text}
+            <div key={i}>
+              <div className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                <div
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
+                    m.role === "user"
+                      ? "bg-[var(--primary)] text-white"
+                      : "border border-slate-200 bg-white text-slate-700"
+                  }`}
+                >
+                  {m.text}
+                </div>
               </div>
+
+              {/* Edit preview / confirm card */}
+              {m.edit && (
+                <div className="mt-2 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-3">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {t("assistant.editPreview", { number: m.edit.day_number })}
+                  </p>
+                  <p className="mt-0.5 text-sm text-slate-600">{m.edit.summary}</p>
+                  <ul className="mt-2 space-y-1">
+                    {m.edit.activities.map((a, j) => (
+                      <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
+                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary)]" />
+                        {a.name}
+                      </li>
+                    ))}
+                  </ul>
+                  {m.editState === "pending" ? (
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onApplyDay(m.edit!.day_number, m.edit!.activities, m.edit!.theme);
+                          setEditState(i, "applied");
+                        }}
+                        className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
+                      >
+                        {t("assistant.apply")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditState(i, "discarded")}
+                        className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                      >
+                        {t("assistant.discard")}
+                      </button>
+                    </div>
+                  ) : (
+                    <p
+                      className={`mt-2 text-sm font-medium ${
+                        m.editState === "applied" ? "text-emerald-600" : "text-slate-400"
+                      }`}
+                    >
+                      {m.editState === "applied"
+                        ? `✓ ${t("assistant.applied")}`
+                        : t("assistant.discard")}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           {loading && (

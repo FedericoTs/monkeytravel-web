@@ -1932,6 +1932,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               days={generatedItinerary.days}
               startDate={startDate}
               endDate={endDate}
+              onApplyDay={(dayNumber, activities, theme) =>
+                setGeneratedItinerary((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        days: prev.days.map((d) =>
+                          d.day_number === dayNumber
+                            ? { ...d, activities, ...(theme ? { theme } : {}) }
+                            : d
+                        ),
+                      }
+                    : prev
+                )
+              }
             />
           </div>
 

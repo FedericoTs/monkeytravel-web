@@ -1,14 +1,18 @@
 {
   "assistant": {
-    "title": "Pregunta sobre tu viaje",
-    "readonlyNote": "Solo preguntas — guarda tu viaje (gratis) para editarlo.",
-    "placeholder": "p. ej. ¿El día 2 está muy cargado? ¿Qué tiempo hará?",
-    "ask": "Preguntar",
+    "title": "Pregunta o ajusta tu viaje",
+    "note": "Haz una pregunta o dime qué cambiar — previsualiza y aplica cambios antes de guardar.",
+    "placeholder": "p. ej. Haz el día 2 más económico, ¿o está muy cargado?",
+    "ask": "Enviar",
     "thinking": "Pensando…",
-    "errorMsg": "No pude responder — inténtalo de nuevo en un momento.",
+    "errorMsg": "No pude hacerlo — inténtalo de nuevo en un momento.",
     "suggest1": "¿Este itinerario está muy cargado?",
-    "suggest2": "¿Qué tiempo hará entonces?",
-    "suggest3": "¿Alguna comida local que no deba perderme?"
+    "suggest2": "Haz el día 1 más relajado",
+    "suggest3": "Añade más comida local",
+    "apply": "Aplicar cambio",
+    "discard": "Mantener original",
+    "applied": "Aplicado",
+    "editPreview": "¿Actualizar el día {number}?"
   },
   "decision": {
     "promptLabel": "Cuéntanos sobre tu viaje",

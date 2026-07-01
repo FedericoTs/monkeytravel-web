@@ -1,14 +1,18 @@
 {
   "assistant": {
-    "title": "Ask about your trip",
-    "readonlyNote": "Questions only — save your trip (free) to edit it.",
-    "placeholder": "e.g. Is day 2 too packed? What's the weather like?",
-    "ask": "Ask",
+    "title": "Ask or tweak your trip",
+    "note": "Ask a question, or tell me what to change — preview and apply edits before you save.",
+    "placeholder": "e.g. Make day 2 cheaper, or is this too packed?",
+    "ask": "Send",
     "thinking": "Thinking…",
-    "errorMsg": "Couldn't answer that — try again in a moment.",
+    "errorMsg": "Couldn't do that — try again in a moment.",
     "suggest1": "Is this itinerary too packed?",
-    "suggest2": "What's the weather like then?",
-    "suggest3": "Any local food I shouldn't miss?"
+    "suggest2": "Make day 1 more relaxed",
+    "suggest3": "Add more local food",
+    "apply": "Apply change",
+    "discard": "Keep original",
+    "applied": "Applied",
+    "editPreview": "Update Day {number}?"
   },
   "decision": {
     "promptLabel": "Tell us about your trip",

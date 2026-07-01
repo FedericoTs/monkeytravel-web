@@ -1,44 +1,38 @@
 /**
- * POST /api/ai/concierge-anon — read-only trip Q&A for the ANONYMOUS
- * generation-result view (pre-save, no auth, no persisted trip).
+ * POST /api/ai/assistant-anon — Q&A + day-scoped EDIT assistant for the
+ * ANONYMOUS generation-result view (pre-save, no auth, no persisted trip).
  *
- * Unlike /api/ai/concierge (auth + tripId + DB load), this takes the in-memory
- * itinerary as a payload and answers questions about it. READ-ONLY: it never
- * edits the trip. Guards mirror /api/ai/decide — this is an unauthenticated AI
- * surface, so it gets its own per-IP + burst limiters (fail-open), the
- * prompt-injection scan, the shared Gemini kill-switch, and cost logging. It
- * does NOT touch any user quota.
+ * Supersedes /api/ai/concierge-anon (read-only). Same unauthenticated, no-DB
+ * model with identical abuse guards (mirrored from /api/ai/decide): per-IP +
+ * burst limiters (fail-open), prompt-injection scan, shared Gemini kill-switch,
+ * cost logging, NO user quota. The client applies any proposed edit to the
+ * in-memory itinerary on confirm — the server never mutates anything.
  */
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { answerTripQuestion } from "@/lib/ai/concierge-anon";
+import { assistTrip } from "@/lib/ai/assistant-anon";
 import type { ItineraryDay } from "@/types";
 
 export const maxDuration = 30;
 
-// Anon abuse limiters. 30/day per IP is generous for an interested browser
-// (each Q&A is ~$0.0005) but caps sustained scraping; a short burst cap stops
-// rapid-fire re-submits. Both fail-open so a limiter/KV blip never blocks a
-// real question.
-const conciergeIpLimiter = createRateLimiter("anon-concierge", 30, 24 * 60 * 60 * 1000);
-const conciergeBurstLimiter = createRateLimiter("anon-concierge-burst", 5, 60 * 1000);
+// Anon abuse limiters. Slightly tighter per-IP than the read-only concierge
+// because an edit round-trip is a bit pricier (~$0.0006) and produces content.
+const assistIpLimiter = createRateLimiter("anon-assistant", 30, 24 * 60 * 60 * 1000);
+const assistBurstLimiter = createRateLimiter("anon-assistant-burst", 5, 60 * 1000);
 
 const BodySchema = z.object({
-  question: z.string().trim().min(3).max(500),
+  message: z.string().trim().min(3).max(500),
   destination: z.string().trim().min(1).max(120),
   tripTitle: z.string().trim().min(1).max(160),
-  // The itinerary is our own generator's output, re-summarized server-side to a
-  // compact text context. Cap the array so an anon caller can't post a huge body.
   days: z.array(z.unknown()).min(1).max(20),
   startDate: z.string().trim().max(10).optional(),
   endDate: z.string().trim().max(10).optional(),
   locale: z.string().trim().max(10).optional(),
 });
 
-// Same defense-in-depth injection markers as /api/ai/decide.
 const INJECTION_RE =
   /\b(ignore (all |the )?(previous|above|prior)|disregard (the |all )?(above|previous|prior)|system prompt|you are now|forget (everything|your)|new instructions?)\b/i;
 
@@ -54,19 +48,16 @@ export async function POST(request: NextRequest) {
 
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) {
-    return errors.badRequest("Invalid concierge payload", {
-      issues: parsed.error.issues,
-    });
+    return errors.badRequest("Invalid assistant payload", { issues: parsed.error.issues });
   }
   const body = parsed.data;
 
-  if (INJECTION_RE.test(body.question)) {
+  if (INJECTION_RE.test(body.message)) {
     return errors.badRequest(
-      "Ask me anything about your trip — places, timing, budget, what to expect."
+      "Ask me anything about your trip, or tell me what you'd like to change."
     );
   }
 
-  // Gemini kill-switch (shared circuit breaker with generation).
   const access = await checkApiAccess("gemini");
   if (!access.allowed) {
     return errors.serviceUnavailable(
@@ -74,26 +65,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Abuse limits — fail-open so a limiter error never blocks a real request.
   const sessionId = request.cookies.get("mt_session_id")?.value || undefined;
-  const ipOk = await conciergeIpLimiter
+  const ipOk = await assistIpLimiter
     .check(request)
     .catch(() => ({ allowed: true, remaining: 0 }));
   if (!ipOk.allowed) {
     return errors.rateLimit(
-      "You've asked a lot today — sign up (it's free) to keep the assistant going."
+      "You've done a lot today — sign up (it's free) to keep the assistant going."
     );
   }
-  const burstOk = await conciergeBurstLimiter
+  const burstOk = await assistBurstLimiter
     .check(request, sessionId)
     .catch(() => ({ allowed: true, remaining: 0 }));
   if (!burstOk.allowed) {
-    return errors.rateLimit("One sec — ask that again in a moment.");
+    return errors.rateLimit("One sec — try that again in a moment.");
   }
 
   try {
-    const result = await answerTripQuestion({
-      question: body.question,
+    const result = await assistTrip({
+      message: body.message,
       destination: body.destination,
       tripTitle: body.tripTitle,
       days: body.days as ItineraryDay[],
@@ -103,27 +93,24 @@ export async function POST(request: NextRequest) {
     });
     void logApiCall({
       apiName: "gemini",
-      endpoint: "/api/ai/concierge-anon",
+      endpoint: "/api/ai/assistant-anon",
       status: 200,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
       costUsd: result.meta.costUsd,
     });
-    return apiSuccess({ answer: result.answer });
+    return apiSuccess({ reply: result.reply, edit: result.edit });
   } catch (err) {
-    console.error("[concierge-anon] error:", err);
+    console.error("[assistant-anon] error:", err);
     void logApiCall({
       apiName: "gemini",
-      endpoint: "/api/ai/concierge-anon",
+      endpoint: "/api/ai/assistant-anon",
       status: 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
       costUsd: 0,
       error: err instanceof Error ? err.message : "unknown",
     });
-    return errors.internal(
-      "Couldn't answer that just now — mind trying again?",
-      "concierge-anon"
-    );
+    return errors.internal("Couldn't do that just now — mind trying again?", "assistant-anon");
   }
 }

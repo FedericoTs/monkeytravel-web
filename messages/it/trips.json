@@ -1,14 +1,18 @@
 {
   "assistant": {
-    "title": "Chiedi sul tuo viaggio",
-    "readonlyNote": "Solo domande — salva il viaggio (gratis) per modificarlo.",
-    "placeholder": "es. Il giorno 2 è troppo pieno? Che tempo farà?",
-    "ask": "Chiedi",
+    "title": "Chiedi o modifica il viaggio",
+    "note": "Fai una domanda o dimmi cosa cambiare — vedi l'anteprima e applica le modifiche prima di salvare.",
+    "placeholder": "es. Rendi il giorno 2 più economico, o è troppo pieno?",
+    "ask": "Invia",
     "thinking": "Sto pensando…",
-    "errorMsg": "Non sono riuscito a rispondere — riprova tra un momento.",
+    "errorMsg": "Non ci sono riuscito — riprova tra un momento.",
     "suggest1": "Questo itinerario è troppo intenso?",
-    "suggest2": "Che tempo farà in quel periodo?",
-    "suggest3": "Qualche piatto locale da non perdere?"
+    "suggest2": "Rendi il giorno 1 più rilassato",
+    "suggest3": "Aggiungi più cibo locale",
+    "apply": "Applica modifica",
+    "discard": "Mantieni originale",
+    "applied": "Applicato",
+    "editPreview": "Aggiornare il giorno {number}?"
   },
   "decision": {
     "promptLabel": "Raccontaci del tuo viaggio",
