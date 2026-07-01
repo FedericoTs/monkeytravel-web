@@ -979,7 +979,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   />
                   <p className="text-xs text-slate-500">
                     {t("profile.betaSection.noCodeHint")}{" "}
-                    <Link href="/welcome" className="text-[var(--primary)] hover:underline">
+                    <Link href="/trips/new" className="text-[var(--primary)] hover:underline">
                       {t("profile.betaSection.waitlist")}
                     </Link>{" "}
                     {t("profile.betaSection.toGetAccess")}

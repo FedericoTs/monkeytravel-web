@@ -11,9 +11,7 @@ export const metadata: Metadata = {
 // app/auth/callback/route.ts). We keep this route as a server-side
 // redirect so any cached external links or stale push notifications
 // continue to land somewhere useful instead of 404-ing.
-//
-// WelcomeClient.tsx is intentionally left in place as dead code; the
-// folder cleanup is a separate task.
+// (The dead WelcomeClient.tsx was removed 2026-07-01; this stub stays.)
 export default function WelcomePage(): never {
   redirect("/trips/new");
 }
