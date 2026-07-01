@@ -46,6 +46,10 @@ const ActivityCard = dynamic(() => import("@/components/ActivityCard"), { ssr: f
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
+// Export (PDF / iCal) on the anonymous result view. Client-only, no auth — works
+// on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
+// pre-save result had no export at all; only the saved trip page did.
+const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
@@ -1756,6 +1760,23 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              {/* Export (PDF / iCal) — desktop sticky header only (this bar is
+                  hidden sm:block; mobile export is a follow-up since ExportMenu's
+                  dropdown opens downward and would clip in the fixed bottom bar). */}
+              <ExportMenu
+                trip={{
+                  title: `${generatedItinerary.destination.name} Trip`,
+                  description: generatedItinerary.destination.description,
+                  startDate,
+                  endDate,
+                  budget: {
+                    total: generatedItinerary.trip_summary.total_estimated_cost,
+                    currency: generatedItinerary.trip_summary.currency,
+                  },
+                  itinerary: generatedItinerary.days,
+                }}
+                destination={fullDestination}
+              />
               <RegenerateButton
                 onRegenerate={handleRegenerate}
                 isRegenerating={isRegenerating || generating}
