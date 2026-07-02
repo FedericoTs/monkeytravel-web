@@ -63,6 +63,20 @@ const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
 // (the overwhelming majority) now cost nothing.
 export const SAVE_TIME_PAID_LOOKUPS = 8;
 
+// COST KILL-SWITCH (2026-07-02). Per api_request_logs, ACTIVITY place/photo
+// resolution is the #1 Google Places line: Place Details Pro ($0.017, ~$23.5/30d)
+// + Text Search Essentials ($0.005, ~$9.3/30d) per fresh place, both at ~0% cache
+// hit. Crucially, the real Google COORDS this resolves are never applied to the
+// itinerary (activities keep the synthetic coords baked at generation) — the ONLY
+// used output is the thumbnail photo. Generated (unsaved) trips already run
+// `maxPaidLookups:0` → curated-by-type thumbnails, which users convert from just
+// fine. So default this OFF: activity thumbnails use the curated fallback and make
+// ZERO paid Places calls. The destination HERO cover (a separate cache in
+// /api/places) stays a real photo. Flip PLACES_ACTIVITY_PHOTOS_ENABLED=true in the
+// Vercel env to restore real activity photos — no redeploy needed.
+const RESOLVE_ACTIVITY_PHOTOS =
+  process.env.PLACES_ACTIVITY_PHOTOS_ENABLED === "true";
+
 /**
  * Normalize an activity name + destination into a stable cache key.
  * Lowercased, trimmed, punctuation stripped, internal whitespace collapsed.
@@ -635,6 +649,15 @@ async function resolveActivityImage(
   normalizedKey: string,
   paidBudget: { remaining: number }
 ): Promise<string | null> {
+  // Cost kill-switch (2026-07-02): when activity photos are disabled, resolve to
+  // the curated-by-type fallback (the caller applies it when this returns null)
+  // and make ZERO paid Places calls. All paid activity paths — the place_id cache
+  // MISS and the legacy fallback below — flow through here, so this single guard
+  // fully stops activity Places spend. Already-enriched trips are unaffected:
+  // their activities already carry a good image_url and never reach this resolver.
+  if (!RESOLVE_ACTIVITY_PHOTOS) {
+    return null;
+  }
   // ---------- Primary path: place_id-keyed cache ----------
   try {
     const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget);
