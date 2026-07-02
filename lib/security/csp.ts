@@ -67,6 +67,13 @@ export function buildCspHeader(nonce: string): string {
       "https://*.posthog.com",
       "https://*.sentry.io",
       "https://*.google-analytics.com",
+      // GA4 with Google Signals beacons page_view/events to these hosts
+      // too — NOT covered by *.google-analytics.com. Without them the CSP
+      // blocks the core collect call (analytics.google.com/g/collect) and
+      // we silently lose GA measurement. Verified blocked in prod 2026-07-02.
+      "https://analytics.google.com",
+      "https://stats.g.doubleclick.net",
+      "https://www.google.com",
       "https://*.vercel-insights.com",
       // Google APIs (Maps Geocoding/Places/Distance, Places New)
       "https://*.googleapis.com",
