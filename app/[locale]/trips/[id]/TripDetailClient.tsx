@@ -108,7 +108,12 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 // ExportMenu ships heavy PDF/iCal libraries and only matters once the user opens
 // its dropdown — defer.
 const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer"), { ssr: false });
-const AIAssistant = dynamic(() => import("@/components/ai/AIAssistant"), { ssr: false });
+// Confirm-first assistant (Phase 2 "living workspace"): AIAssistantEnhanced is
+// prop-compatible with the old direct-apply AIAssistant but previews each edit
+// in a PreviewChangeCard and waits for the user to Apply (+ undo), instead of
+// silently mutating the plan. Kept the `AIAssistant` local name so the render
+// site is unchanged.
+const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });

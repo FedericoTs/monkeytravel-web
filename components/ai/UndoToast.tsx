@@ -9,7 +9,10 @@ interface UndoState {
   id: string;
   previousItinerary: ItineraryDay[];
   action: {
-    type: "replace" | "add" | "remove";
+    // Display discriminator only — getActionConfig() takes a string and has a
+    // default case, so any change type (incl. adjust_duration / reorder from
+    // the confirm-first flow) renders gracefully with the fallback icon/label.
+    type: string;
     description: string;
     activityName?: string;
     dayNumber?: number;

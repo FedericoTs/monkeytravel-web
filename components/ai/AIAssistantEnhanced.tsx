@@ -5,11 +5,11 @@ import { useTranslations } from "next-intl";
 import type { ItineraryDay, AssistantCard, Activity } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
-import TypingIndicator from "./TypingIndicator";
-import PreviewChangeCard from "./PreviewChangeCard";
+import PreviewChangeCard, { type PendingChange } from "./PreviewChangeCard";
 import MatchConfirmationDialog, { type MatchOption } from "./MatchConfirmationDialog";
 import UndoToast, { useUndoState, type UndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
+import { captureAIAssistantUsed } from "@/lib/posthog/events";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,14 +24,9 @@ interface Message {
   timestamp: string;
 }
 
-// Pending change for confirm-first flow
-interface PendingChange {
-  type: "replace" | "add" | "remove";
-  oldActivity?: Activity;
-  newActivity: Activity;
-  dayNumber: number;
-  reason?: string;
-}
+// PendingChange (the confirm-first proposed-change union) is defined in and
+// imported from ./PreviewChangeCard — it mirrors the server's `pendingChange`
+// discriminated union (replace | add | adjust_duration | reorder).
 
 interface AIAssistantEnhancedProps {
   tripId: string;
@@ -166,6 +161,7 @@ export default function AIAssistantEnhanced({
       setInput("");
       setIsLoading(true);
       setLoadingStage("parsing");
+      const assistantStartedAt = Date.now();
 
       // Start loading stage simulation
       const stopStages = simulateLoadingStages();
@@ -196,11 +192,30 @@ export default function AIAssistantEnhanced({
           setConversationId(data.conversationId);
         }
 
-        // Track AI assistant usage
+        // Track AI assistant usage — GA4 (legacy) AND PostHog. The dual-write
+        // is a regression guard: the shipped AIAssistant already writes to
+        // PostHog; without this the agent goes dark in the tool we use for all
+        // funnel/activation analysis when this component is promoted.
         trackAIAssistantMessage({
           tripId,
           messageLength: content.trim().length,
         });
+        // Only emit the PostHog "used" event for COMPLETED outcomes here —
+        // a chat answer or an auto-applied edit (no pending change). When the
+        // assistant PROPOSES a change (data.pendingChange), the outcome is
+        // decided later: handleApplyChange emits the definitive applied event
+        // on confirm, and a cancel is a non-event. This keeps ai_assistant_used
+        // from double-firing (a false action_applied:false on every proposal).
+        if (!data.pendingChange) {
+          void captureAIAssistantUsed({
+            trip_id: tripId,
+            message_length: content.trim().length,
+            surface: "trip_detail",
+            action_applied: !!data.message?.action?.applied,
+            action_type: data.message?.action?.type,
+            response_time_ms: Date.now() - assistantStartedAt,
+          });
+        }
 
         // Check if there's a pending change that needs confirmation
         if (data.pendingChange && previewMode) {
@@ -241,7 +256,9 @@ export default function AIAssistantEnhanced({
         }
 
         setUsageInfo({
-          remainingRequests: data.usage?.remainingRequests || 0,
+          // The route emits `usage.remaining` (not `remainingRequests`); the
+          // old key left the header request-count pill permanently blank.
+          remainingRequests: data.usage?.remaining ?? 0,
           model: data.model || "unknown",
         });
 
@@ -272,16 +289,32 @@ export default function AIAssistantEnhanced({
       // Save current state for undo
       const previousItinerary = JSON.parse(JSON.stringify(itinerary));
 
+      // The /apply route validates DIFFERENT fields per change type. Sending
+      // {oldActivity,newActivity} for adjust_duration/reorder returns 400
+      // ("Missing activity/newDuration" / "Missing activities"). Build the
+      // exact payload the route expects for each discriminant.
+      const applyBody: Record<string, unknown> = {
+        tripId,
+        changeType: pendingChange.type,
+        dayNumber: pendingChange.dayNumber,
+      };
+      if (pendingChange.type === "replace") {
+        applyBody.oldActivity = pendingChange.oldActivity;
+        applyBody.newActivity = pendingChange.newActivity;
+      } else if (pendingChange.type === "add") {
+        applyBody.newActivity = pendingChange.newActivity;
+      } else if (pendingChange.type === "adjust_duration") {
+        applyBody.activity = pendingChange.activity;
+        applyBody.oldDuration = pendingChange.oldDuration;
+        applyBody.newDuration = pendingChange.newDuration;
+      } else if (pendingChange.type === "reorder") {
+        applyBody.activities = pendingChange.activities;
+      }
+
       const res = await fetch("/api/ai/assistant/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tripId,
-          changeType: pendingChange.type,
-          oldActivity: pendingChange.oldActivity,
-          newActivity: pendingChange.newActivity,
-          dayNumber: pendingChange.dayNumber,
-        }),
+        body: JSON.stringify(applyBody),
       });
 
       const data = await res.json();
@@ -299,15 +332,44 @@ export default function AIAssistantEnhanced({
         )
       );
 
+      // Human label for the undo toast. newActivity is undefined for
+      // adjust_duration/reorder, so derive the name/description per type
+      // instead of reading pendingChange.newActivity.name blindly (crash).
+      const changedName =
+        pendingChange.type === "replace" || pendingChange.type === "add"
+          ? pendingChange.newActivity.name
+          : pendingChange.type === "adjust_duration"
+            ? pendingChange.activity.name
+            : undefined;
+      const undoDescription =
+        pendingChange.type === "replace"
+          ? `Replaced with ${changedName}`
+          : pendingChange.type === "add"
+            ? `Added ${changedName}`
+            : pendingChange.type === "adjust_duration"
+              ? `Adjusted ${changedName}`
+              : `Reordered Day ${pendingChange.dayNumber}`;
+
       // Set up undo
       pushUndo({
         previousItinerary,
         action: {
           type: pendingChange.type,
-          description: `${pendingChange.type === "replace" ? "Replaced" : "Added"} ${pendingChange.newActivity.name}`,
-          activityName: pendingChange.newActivity.name,
+          description: undoDescription,
+          activityName: changedName,
           dayNumber: pendingChange.dayNumber,
         },
+      });
+
+      // The confirm-first "value moment": an edit was actually committed.
+      // Emit a PostHog event so applied edits are measurable distinctly from
+      // proposals (proposals carry action_applied:false on the send event).
+      void captureAIAssistantUsed({
+        trip_id: tripId,
+        message_length: 0,
+        surface: "trip_detail",
+        action_applied: true,
+        action_type: pendingChange.type,
       });
 
       // Clear pending and refetch
@@ -574,10 +636,7 @@ export default function AIAssistantEnhanced({
                 <div className="flex justify-start">
                   <div className="max-w-[88%]">
                     <PreviewChangeCard
-                      oldActivity={pendingChange.oldActivity!}
-                      newActivity={pendingChange.newActivity}
-                      dayNumber={pendingChange.dayNumber}
-                      reason={pendingChange.reason}
+                      change={pendingChange}
                       onApply={handleApplyChange}
                       onTryDifferent={handleTryDifferent}
                       onCancel={handleCancelChange}
