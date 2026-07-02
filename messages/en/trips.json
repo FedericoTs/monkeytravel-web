@@ -1,4 +1,19 @@
 {
+  "assistant": {
+    "title": "Ask or tweak your trip",
+    "note": "Ask a question, or tell me what to change — preview and apply edits before you save.",
+    "placeholder": "e.g. Make day 2 cheaper, or is this too packed?",
+    "ask": "Send",
+    "thinking": "Thinking…",
+    "errorMsg": "Couldn't do that — try again in a moment.",
+    "suggest1": "Is this itinerary too packed?",
+    "suggest2": "Make day 1 more relaxed",
+    "suggest3": "Add more local food",
+    "apply": "Apply change",
+    "discard": "Keep original",
+    "applied": "Applied",
+    "editPreview": "Update Day {number}?"
+  },
   "decision": {
     "promptLabel": "Tell us about your trip",
     "promptSubtitle": "Describe the trip you're dreaming of — a vibe, a budget, a season, whatever's in your head. We'll suggest a few places worth deciding between.",
@@ -21,6 +36,31 @@
   "wizard": {
     "back": "Back",
     "unlockAiFeatures": "Unlock AI Features",
+    "usageLimitReached": "Usage Limit Reached",
+    "usageLimitDefault": "You've used your free AI generations.",
+    "yourTripTo": "Your trip to",
+    "draftRecovery": {
+      "title": "Unsaved trip found",
+      "descPrefix": "You have an unsaved trip to",
+      "savedPrefix": "Saved",
+      "restore": "Restore Trip",
+      "startFresh": "Start Fresh",
+      "justNow": "just now",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
+      "yesterday": "yesterday"
+    },
+    "multiCity": {
+      "toggleTitle": "Plan multiple cities",
+      "toggleDescription": "One trip across several cities, stitched into a single itinerary.",
+      "toggleAria": "Toggle multi-city planning",
+      "routeLabel": "Your route",
+      "cityPlaceholder": "City {number}",
+      "nightsLabel": "nights",
+      "nightsAria": "Nights in city {number}",
+      "removeCityAria": "Remove city {number}",
+      "addCity": "+ Add city"
+    },
     "datePicker": {
       "checkInLabel": "Check-in",
       "checkOutLabel": "Check-out",
@@ -48,6 +88,8 @@
       "selectDate": "Select date",
       "dateHelp": "Select dates for your trip (max 14 days)",
       "continue": "Continue",
+      "hintNeedDestination": "Add a destination to continue",
+      "hintNeedDates": "Pick your travel dates to continue",
       "backpackerMode": "Backpacker mode",
       "backpackerModeOn": "Backpacker mode — ON",
       "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly"
@@ -80,6 +122,12 @@
     },
     "result": {
       "tripOverview": "Trip Overview",
+      "bookYourTravel": "Book Your Travel",
+      "flights": "Flights",
+      "hotels": "Hotels",
+      "aiVerifiedTitle": "AI-Generated Itinerary with Verified Data",
+      "aiVerifiedBody": "This itinerary was created by AI and enriched with real-time data from Google Places. Click \"More\" on any activity to see verified photos, ratings, and price levels. We recommend double-checking opening hours before your trip.",
+      "notQuiteRight": "Not quite right?",
       "viewCards": "Cards",
       "viewTimeline": "Timeline",
       "hideMap": "Hide Map",
@@ -239,9 +287,6 @@
     "skippedBadge": "Skipped",
     "freePrice": "Free"
   },
-  "detail": {
-    "regeneratingDay": "Regenerating Day {number}…"
-  },
   "activity": {
     "duration": "{duration} min",
     "cost": "Cost",
@@ -256,6 +301,7 @@
     "venueTierEstimate": "Venue tier estimate"
   },
   "detail": {
+    "regeneratingDay": "Regenerating Day {number}…",
     "backToTrips": "Back to Trips",
     "cards": "Cards",
     "timeline": "Timeline",

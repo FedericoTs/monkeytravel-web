@@ -1,4 +1,19 @@
 {
+  "assistant": {
+    "title": "Chiedi o modifica il viaggio",
+    "note": "Fai una domanda o dimmi cosa cambiare — vedi l'anteprima e applica le modifiche prima di salvare.",
+    "placeholder": "es. Rendi il giorno 2 più economico, o è troppo pieno?",
+    "ask": "Invia",
+    "thinking": "Sto pensando…",
+    "errorMsg": "Non ci sono riuscito — riprova tra un momento.",
+    "suggest1": "Questo itinerario è troppo intenso?",
+    "suggest2": "Rendi il giorno 1 più rilassato",
+    "suggest3": "Aggiungi più cibo locale",
+    "apply": "Applica modifica",
+    "discard": "Mantieni originale",
+    "applied": "Applicato",
+    "editPreview": "Aggiornare il giorno {number}?"
+  },
   "decision": {
     "promptLabel": "Raccontaci del tuo viaggio",
     "promptSubtitle": "Descrivi il viaggio che sogni: un'atmosfera, un budget, una stagione, quello che hai in mente. Ti proporremo qualche meta tra cui scegliere.",
@@ -21,6 +36,31 @@
   "wizard": {
     "back": "Indietro",
     "unlockAiFeatures": "Sblocca le funzionalità AI",
+    "usageLimitReached": "Limite di utilizzo raggiunto",
+    "usageLimitDefault": "Hai esaurito le tue generazioni AI gratuite.",
+    "yourTripTo": "Il tuo viaggio a",
+    "draftRecovery": {
+      "title": "Viaggio non salvato trovato",
+      "descPrefix": "Hai un viaggio non salvato per",
+      "savedPrefix": "Salvato",
+      "restore": "Ripristina viaggio",
+      "startFresh": "Ricomincia",
+      "justNow": "proprio ora",
+      "minutesAgo": "{minutes} min fa",
+      "hoursAgo": "{hours} h fa",
+      "yesterday": "ieri"
+    },
+    "multiCity": {
+      "toggleTitle": "Pianifica più città",
+      "toggleDescription": "Un solo viaggio tra più città, unito in un unico itinerario.",
+      "toggleAria": "Attiva/disattiva pianificazione multi-città",
+      "routeLabel": "Il tuo percorso",
+      "cityPlaceholder": "Città {number}",
+      "nightsLabel": "notti",
+      "nightsAria": "Notti nella città {number}",
+      "removeCityAria": "Rimuovi città {number}",
+      "addCity": "+ Aggiungi città"
+    },
     "datePicker": {
       "checkInLabel": "Check-in",
       "checkOutLabel": "Check-out",
@@ -48,6 +88,8 @@
       "selectDate": "Seleziona data",
       "dateHelp": "Seleziona le date del tuo viaggio (massimo 14 giorni)",
       "continue": "Continua",
+      "hintNeedDestination": "Aggiungi una destinazione per continuare",
+      "hintNeedDates": "Scegli le date del viaggio per continuare",
       "backpackerMode": "Modalità Backpacker",
       "backpackerModeOn": "Modalità Backpacker — ATTIVA",
       "backpackerModeSubtitle": "Ostelli, consigli per il budget, multi-città"
@@ -80,6 +122,12 @@
     },
     "result": {
       "tripOverview": "Panoramica del Viaggio",
+      "bookYourTravel": "Prenota il tuo viaggio",
+      "flights": "Voli",
+      "hotels": "Hotel",
+      "aiVerifiedTitle": "Itinerario generato dall'IA con dati verificati",
+      "aiVerifiedBody": "Questo itinerario è stato creato dall'IA e arricchito con dati in tempo reale da Google Places. Fai clic su \"Altro\" su qualsiasi attività per vedere foto, valutazioni e fasce di prezzo verificate. Ti consigliamo di ricontrollare gli orari di apertura prima del viaggio.",
+      "notQuiteRight": "Non è quello che cercavi?",
       "viewCards": "Schede",
       "viewTimeline": "Linea Temporale",
       "hideMap": "Nascondi Mappa",
@@ -239,9 +287,6 @@
     "skippedBadge": "Saltata",
     "freePrice": "Gratis"
   },
-  "detail": {
-    "regeneratingDay": "Rigenerazione Giorno {number}…"
-  },
   "activity": {
     "duration": "{duration} min",
     "cost": "Costo",
@@ -256,6 +301,7 @@
     "venueTierEstimate": "Stima categoria"
   },
   "detail": {
+    "regeneratingDay": "Rigenerazione Giorno {number}…",
     "backToTrips": "Torna ai Viaggi",
     "cards": "Schede",
     "timeline": "Cronologia",

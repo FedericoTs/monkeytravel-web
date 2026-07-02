@@ -22,7 +22,7 @@ export interface PrefilledDestination {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { Activity, GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -46,6 +46,13 @@ const ActivityCard = dynamic(() => import("@/components/ActivityCard"), { ssr: f
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
+// Export (PDF / iCal) on the anonymous result view. Client-only, no auth — works
+// on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
+// pre-save result had no export at all; only the saved trip page did.
+const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
+// Read-only AI Q&A on the anonymous result (Tier 3-B1). Anon users at peak
+// intent previously had no assistant — that lived only on the saved trip page.
+const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistantPanel"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
@@ -98,15 +105,42 @@ import {
   type PersistInput,
 } from "@/lib/trips/persistTrip";
 
+// Localized loading fallback for the lazy map. It renders inside the
+// NextIntlClientProvider tree (it replaces TripMap in place while the chunk
+// loads), so useTranslations resolves — unlike an inline literal at module
+// scope, which can't reach the translation context and shipped raw English.
+function MapLoadingFallback() {
+  const t = useTranslations("trips");
+  return (
+    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
+      <span className="text-slate-400">{t("detail.loadingMap")}</span>
+    </div>
+  );
+}
+
 // Dynamic import for TripMap to avoid SSR issues
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
-  loading: () => (
-    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
-    </div>
-  ),
+  loading: () => <MapLoadingFallback />,
 });
+
+// Localized, human date range for the result hero. Parses the ISO strings as
+// LOCAL midnight (no trailing Z) to avoid an off-by-one, and joins with an
+// en-dash so no English "to" (and no raw "2026-08-01") leaks on /it /es /pt.
+// Falls back to the raw range if either date is unparseable.
+function formatDateRangeLocalized(startISO: string, endISO: string, locale: string): string {
+  try {
+    const start = new Date(`${startISO}T00:00:00`);
+    const end = new Date(`${endISO}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return `${startISO} – ${endISO}`;
+    }
+    const fmt = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
+    return `${fmt.format(start)} – ${fmt.format(end)}`;
+  } catch {
+    return `${startISO} – ${endISO}`;
+  }
+}
 
 // Vibe to interests mapping - automatically derives interests from selected vibes
 // This ensures the AI receives relevant interest signals based on vibe selection
@@ -842,6 +876,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         clearDraft();
         if (typeof window !== "undefined") {
           sessionStorage.setItem("profile_modal_shown", "true");
+        }
+        // Post-save virality prompt. The manual-save trigger
+        // (setShowShareAfterSaveModal at ~1581) lives inside the AUTHED branch
+        // of handleSaveTrip, which the anon->activated cohort never reaches:
+        // they hit the auth wall, sign up, and return to be persisted HERE by
+        // the auto-save effect — so the whole invite/publish loop was dead for
+        // exactly the cohort we want to activate. Open it on first insert. Set
+        // savedTripId directly so the modal's redirects have it immediately
+        // (the mirror effect at ~894 also sets it). Guard to once/session so a
+        // Start-Over -> new insert doesn't nag.
+        setSavedTripId(tripId);
+        if (typeof window !== "undefined" && !sessionStorage.getItem("share_after_save_shown")) {
+          sessionStorage.setItem("share_after_save_shown", "true");
+          setShowShareAfterSaveModal(true);
         }
       } else {
         // Don't re-fire referral/bananas on regen — only count the
@@ -1607,6 +1655,63 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
   };
 
+  // Apply an anonymous-assistant day edit to the in-memory itinerary. Recomputes
+  // the trip total (delta) so hero/sticky/overview/export/saved-budget stay in
+  // sync, carries map data + stable ids over by name-match, and scrolls the
+  // changed day into view. Nothing is persisted until the user saves.
+  const handleApplyDayEdit = useCallback(
+    (dayNumber: number, newActivities: Activity[], theme?: string) => {
+      setGeneratedItinerary((prev) => {
+        if (!prev) return prev;
+        const target = prev.days.find((d) => d.day_number === dayNumber);
+        const byName = new Map(
+          (target?.activities ?? []).map((a) => [a.name.trim().toLowerCase(), a])
+        );
+        const merged: Activity[] = newActivities.map((a, i) => {
+          const match = byName.get(a.name.trim().toLowerCase());
+          return {
+            ...a,
+            id:
+              match?.id ??
+              a.id ??
+              `edit-${dayNumber}-${i}-${a.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .slice(0, 40)}`,
+            coordinates: a.coordinates ?? match?.coordinates,
+            address: a.address ?? match?.address,
+            image_url: a.image_url ?? match?.image_url,
+          };
+        });
+        const sum = (acts: Activity[]) =>
+          acts.reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0);
+        const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
+        const newTotal = Math.max(
+          0,
+          Math.round(prevTotal - (target ? sum(target.activities) : 0) + sum(merged))
+        );
+        return {
+          ...prev,
+          days: prev.days.map((d) =>
+            d.day_number === dayNumber
+              ? { ...d, activities: merged, ...(theme ? { theme } : {}) }
+              : d
+          ),
+          trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
+        };
+      });
+      setTimeout(() => {
+        const el = document.getElementById(`day-${dayNumber}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          el.classList.add("ring-2", "ring-[var(--primary)]");
+          setTimeout(() => el.classList.remove("ring-2", "ring-[var(--primary)]"), 2000);
+        }
+      }, 100);
+    },
+    []
+  );
+
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
@@ -1710,7 +1815,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           destination={fullDestination}
           title={fullDestination}
           subtitle={generatedItinerary.destination.description}
-          dateRange={`${startDate} to ${endDate}`}
+          dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
           budget={{
             total: generatedItinerary.trip_summary.total_estimated_cost,
             currency: generatedItinerary.trip_summary.currency,
@@ -1744,7 +1849,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {/* Trip Summary */}
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <span className="px-2 py-1 bg-slate-100 rounded-lg">
-                {generatedItinerary.days.length} days
+                {t("wizard.result.days", { count: generatedItinerary.days.length })}
               </span>
               <span className="px-2 py-1 bg-slate-100 rounded-lg">
                 {convertCurrency(
@@ -1756,6 +1861,24 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              {/* Export (PDF / iCal) — desktop sticky header only (this bar is
+                  hidden sm:block; mobile export is a follow-up since ExportMenu's
+                  dropdown opens downward and would clip in the fixed bottom bar). */}
+              <ExportMenu
+                trip={{
+                  title: `${generatedItinerary.destination.name} Trip`,
+                  description: generatedItinerary.destination.description,
+                  startDate,
+                  endDate,
+                  budget: {
+                    total: generatedItinerary.trip_summary.total_estimated_cost,
+                    currency: generatedItinerary.trip_summary.currency,
+                  },
+                  itinerary: generatedItinerary.days,
+                }}
+                destination={fullDestination}
+                surface="anon_result"
+              />
               <RegenerateButton
                 onRegenerate={handleRegenerate}
                 isRegenerating={isRegenerating || generating}
@@ -1900,6 +2023,29 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Save/generation error — previously rendered only in the form view,
+              so an authed Save failure looked like a dead button here. Restores
+              feedback at peak intent (enhancement hunt). */}
+          {error && (
+            <div
+              role="alert"
+              className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            >
+              {error}
+            </div>
+          )}
+          {/* AI assistant — Q&A + day-scoped edits at peak intent (Tier 3-B1/B2). */}
+          <div className="mb-8">
+            <AnonAssistantPanel
+              destination={fullDestination}
+              tripTitle={`${generatedItinerary.destination.name} Trip`}
+              days={generatedItinerary.days}
+              startDate={startDate}
+              endDate={endDate}
+              onApplyDay={handleApplyDayEdit}
+            />
+          </div>
+
           {/* Interactive Map + View Controls */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -2017,11 +2163,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Book Your Travel
+                {t("wizard.result.bookYourTravel")}
               </h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">Flights</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.flights")}</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.flights.map((link) => (
                       <a
@@ -2037,7 +2183,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">Hotels</div>
+                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.hotels")}</div>
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.hotels.map((link) => (
                       <a
@@ -2068,7 +2214,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           {/* Day by Day with ActivityCards */}
           <div className="space-y-8">
             {generatedItinerary.days.map((day) => (
-              <div key={day.day_number}>
+              <div key={day.day_number} id={`day-${day.day_number}`} className="scroll-mt-24">
                 {/* Day Header */}
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-3">
@@ -2229,12 +2375,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-amber-900 mb-1">AI-Generated Itinerary with Verified Data</h4>
-                <p className="text-sm text-amber-800">
-                  This itinerary was created by AI and enriched with real-time data from Google Places.
-                  Click "More" on any activity to see verified photos, ratings, and price levels.
-                  We recommend double-checking opening hours before your trip.
-                </p>
+                <h4 className="font-semibold text-amber-900 mb-1">{t("wizard.result.aiVerifiedTitle")}</h4>
+                <p className="text-sm text-amber-800">{t("wizard.result.aiVerifiedBody")}</p>
               </div>
             </div>
           </div>
@@ -2245,7 +2387,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Not quite right?
+              {t("wizard.result.notQuiteRight")}
             </div>
             <RegenerateButton
               onRegenerate={handleRegenerate}
@@ -2293,9 +2435,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-amber-800">Usage Limit Reached</h3>
+                <h3 className="font-semibold text-amber-800">{t("wizard.usageLimitReached")}</h3>
                 <p className="text-sm text-amber-700 mt-1">
-                  {limitReachedMessage || "You've used your free AI generations."}
+                  {limitReachedMessage || t("wizard.usageLimitDefault")}
                 </p>
               </div>
             </div>
@@ -2312,7 +2454,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Your trip to</p>
+                  <p className="text-sm text-slate-500">{t("wizard.yourTripTo")}</p>
                   <p className="font-bold text-slate-900">{destination}</p>
                 </div>
               </div>
@@ -2575,6 +2717,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         {/* Step 1: Destination + Dates (combined for fewer drop-offs) */}
         {step === 1 && (
           <div className="space-y-6">
+            {/* Returning-visitor draft recovery. A valid unsaved draft exists
+                within the 24h window — mount the (previously built but never
+                rendered) banner so the user recovers straight into the Save
+                moment instead of re-running the wizard and burning another
+                scarce anon generation. Funnel audit Rank 4a. */}
+            {showDraftRecovery && draft && (
+              <DraftRecoveryBanner
+                draft={draft}
+                onRestore={handleRestoreDraft}
+                onDiscard={handleDiscardDraft}
+              />
+            )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 {t("wizard.step1.title")}
@@ -2772,16 +2926,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {MULTI_CITY_ENABLED && (
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <div>
-                  <div className="text-sm font-medium text-slate-800">Plan multiple cities</div>
+                  <div className="text-sm font-medium text-slate-800">
+                    {t("wizard.multiCity.toggleTitle")}
+                  </div>
                   <div className="text-xs text-slate-500">
-                    One trip across several cities, stitched into a single itinerary.
+                    {t("wizard.multiCity.toggleDescription")}
                   </div>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={multiCityMode}
-                  aria-label="Toggle multi-city planning"
+                  aria-label={t("wizard.multiCity.toggleAria")}
                   onClick={() => setMultiCityMode((m) => !m)}
                   className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
                     multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
@@ -2799,7 +2955,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             {/* Multi-city route builder — replaces the single destination field */}
             {MULTI_CITY_ENABLED && multiCityMode && (
               <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">Your route</div>
+                <div className="text-sm font-medium text-slate-700 mb-2">
+                  {t("wizard.multiCity.routeLabel")}
+                </div>
                 <MultiCityRouteBuilder rows={cityRows} onChange={setCityRows} />
               </div>
             )}
@@ -3040,7 +3198,19 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         )}
 
         {/* Navigation — sticky on mobile so users always see the CTA */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto flex items-center justify-between">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto">
+          {/* Missing-field hint — directly attacks the step-1 cliff: the
+              Continue button is disabled with no visible reason, so users
+              who don't realize what unlocks it just leave. Name the first
+              blocker so the path forward is always obvious. */}
+          {step === 1 && !canProceed() && (
+            <p className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
+              {destination.length < 2
+                ? t("wizard.step1.hintNeedDestination")
+                : t("wizard.step1.hintNeedDates")}
+            </p>
+          )}
+          <div className="flex items-center justify-between">
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
@@ -3128,6 +3298,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               {t("wizard.step2.generate")}
             </button>
           )}
+          </div>
         </div>
       </main>
 

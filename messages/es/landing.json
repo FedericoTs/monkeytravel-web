@@ -8,6 +8,8 @@
     "subtitleEnd": "en el que todos pueden votar, editar y hacer suyo.",
     "cta": "Planifica un Viaje Juntos",
     "signIn": "Iniciar Sesión",
+    "inputPlaceholder": "¿A dónde quieres ir?",
+    "inputCta": "Planear mi viaje",
     "trustSignals": {
       "free": "100% Gratis",
       "noCard": "Hasta 8 Amigos",

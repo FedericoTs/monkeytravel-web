@@ -9,6 +9,7 @@ import { getNonce } from '@/lib/security/nonce';
 // Deep import (not the `@/components/tour` barrel) to keep framer-motion
 // out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
 import TourTrigger from '@/components/tour/TourTrigger';
+import HeroTripInput from '@/components/home/HeroTripInput';
 import { getTranslations } from 'next-intl/server';
 import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
@@ -157,23 +158,21 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {t('hero.subtitleStart')} <span className="text-[var(--foreground)] font-medium">{t('hero.subtitleHighlight')}</span> {t('hero.subtitleEnd')}
                 </p>
 
-                {/* Primary CTAs */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-                  <TourTrigger
-                    variant="primary-cta"
-                    skipToAuthIfCompleted={true}
-                  >
-                    <span>{t('hero.cta')}</span>
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </TourTrigger>
-                  <Link
-                    href="/auth/login"
-                    className="px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>{t('hero.signIn')}</span>
-                  </Link>
+                {/* Primary action — a real destination input that carries the
+                    first keystroke into the wizard (?destination=). Replaces the
+                    old JS-button CTA that forced a full route hop before the
+                    visitor could type anything, and demotes Sign In to a
+                    secondary text link. Funnel audit Rank 7 (fd-01/fd-02/fd-07). */}
+                <div className="mb-8 max-w-xl mx-auto lg:mx-0">
+                  <HeroTripInput
+                    placeholder={t('hero.inputPlaceholder')}
+                    cta={t('hero.inputCta')}
+                  />
+                  <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center lg:text-left">
+                    <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline">
+                      {t('hero.signIn')}
+                    </Link>
+                  </p>
                 </div>
 
                 {/* Trust Signals */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import type { GeneratedItinerary } from "@/types";
 
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
@@ -120,8 +121,13 @@ export function DraftRecoveryBanner({
   onRestore: () => void;
   onDiscard: () => void;
 }) {
+  const t = useTranslations("trips");
+  const locale = useLocale();
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    // Parse as LOCAL midnight (no trailing Z) to avoid an off-by-one, and
+    // format in the visitor's locale instead of a hardcoded en-US.
+    return new Date(`${dateString}T00:00:00`).toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
     });
@@ -133,10 +139,10 @@ export function DraftRecoveryBanner({
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
 
-    if (minutes < 1) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return "yesterday";
+    if (minutes < 1) return t("wizard.draftRecovery.justNow");
+    if (minutes < 60) return t("wizard.draftRecovery.minutesAgo", { minutes });
+    if (hours < 24) return t("wizard.draftRecovery.hoursAgo", { hours });
+    return t("wizard.draftRecovery.yesterday");
   };
 
   return (
@@ -160,20 +166,20 @@ export function DraftRecoveryBanner({
 
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-amber-900 mb-1">
-            Unsaved trip found
+            {t("wizard.draftRecovery.title")}
           </h3>
           <p className="text-sm text-amber-800 mb-3">
-            You have an unsaved trip to{" "}
+            {t("wizard.draftRecovery.descPrefix")}{" "}
             <span className="font-medium">{draft.destination}</span>
             {" · "}
-            {formatDate(draft.startDate)} - {formatDate(draft.endDate)}
+            {formatDate(draft.startDate)} – {formatDate(draft.endDate)}
           </p>
 
           <div className="flex items-center gap-2 text-xs text-amber-600 mb-4">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Saved {formatSavedTime(draft.savedAt)}
+            {t("wizard.draftRecovery.savedPrefix")} {formatSavedTime(draft.savedAt)}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -181,13 +187,13 @@ export function DraftRecoveryBanner({
               onClick={onRestore}
               className="px-4 py-2.5 bg-amber-600 text-white font-medium rounded-xl hover:bg-amber-700 transition-colors shadow-sm"
             >
-              Restore Trip
+              {t("wizard.draftRecovery.restore")}
             </button>
             <button
               onClick={onDiscard}
               className="px-4 py-2.5 bg-white text-amber-700 font-medium rounded-xl border border-amber-200 hover:bg-amber-50 transition-colors"
             >
-              Start Fresh
+              {t("wizard.draftRecovery.startFresh")}
             </button>
           </div>
         </div>
