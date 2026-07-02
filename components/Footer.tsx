@@ -38,6 +38,12 @@ export default async function Footer() {
       // column scannable and gives both surfaces a footer-wide backlink.
       { label: t('packingList'), href: '/tools/packing-list' },
       { label: t('visaChecker'), href: '/tools/visa-checker' },
+      // **2026-07-01 (discoverability audit)**: /templates was reachable only
+      // via a homepage "See All" card, and /backpacker (Hostelworld landing)
+      // had ZERO in-app entry points. Sitewide footer links de-orphan both,
+      // matching the pattern used for /explore, /saved, /tools.
+      { label: t('templates'), href: '/templates' },
+      { label: t('backpacker'), href: '/backpacker' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
       { label: t('joinWaitlist'), href: '/#hero' },

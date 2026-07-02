@@ -82,7 +82,8 @@
       "weekendTripPlanner": "Weekend Trip Planner",
       "aiItineraryGenerator": "AI Itinerary Generator",
       "packingList": "Packing List Generator",
-      "visaChecker": "Visa Requirements Checker"
+      "visaChecker": "Visa Requirements Checker",
+      "backpacker": "Backpacker Trip Planner"
     }
   },
   "tag": {

@@ -293,7 +293,7 @@ export async function completeReferralIfEligible(
       tierUnlocked,
       newTier: tierUnlocked ? newTier : undefined,
       tierBonus: tierBonusBananas,
-      message: "Bananas awarded to your account. Track progress in /bananas.",
+      message: "Bananas awarded to your account. Track progress in /profile.",
     };
   } catch (error) {
     console.error("[Referral Complete] Unexpected error:", error);

@@ -42,7 +42,8 @@
     "signIn": "Entrar",
     "signUp": "Cadastrar",
     "signOut": "Sair",
-    "toggleMenu": "Abrir menu"
+    "toggleMenu": "Abrir menu",
+    "templates": "Modelos"
   },
   "logoAlt": "Logo MonkeyTravel",
   "buttons": {
@@ -155,7 +156,9 @@
     "popularDestinations": "Destinos Populares",
     "featuredArticles": "Artigos em Destaque",
     "viewAllDestinations": "Ver todos os destinos",
-    "viewAllArticles": "Ver todos os artigos"
+    "viewAllArticles": "Ver todos os artigos",
+    "templates": "Modelos de viagem",
+    "backpacker": "Viagens de mochileiro"
   },
   "bottomNav": {
     "home": "Início",

@@ -42,7 +42,8 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",
-    "toggleMenu": "Toggle menu"
+    "toggleMenu": "Toggle menu",
+    "templates": "Templates"
   },
   "logoAlt": "MonkeyTravel Logo",
   "buttons": {
@@ -155,7 +156,9 @@
     "popularDestinations": "Popular Destinations",
     "featuredArticles": "Featured Articles",
     "viewAllDestinations": "View all destinations",
-    "viewAllArticles": "View all articles"
+    "viewAllArticles": "View all articles",
+    "templates": "Trip Templates",
+    "backpacker": "Backpacker Trips"
   },
   "bottomNav": {
     "home": "Home",
