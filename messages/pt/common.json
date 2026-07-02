@@ -825,7 +825,8 @@
       "finalizingDesc": "Dando os toques finais em"
     },
     "elapsed": "{seconds}s decorridos",
-    "estimatedTime": "Isso costuma levar de 20 a 40 segundos para um roteiro personalizado",
+    "estimatedTime": "Criando seu roteiro personalizado: isso costuma levar um ou dois minutos",
+    "takingLonger": "Quase lá: um roteiro rico e personalizado vale alguns segundos a mais. Aguarde!",
     "funFacts": {
       "analyzing": "A IA está analisando milhares de avaliações e classificações",
       "hiddenGems": "Encontrando joias escondidas que os locais adoram",

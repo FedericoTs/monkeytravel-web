@@ -825,7 +825,8 @@
       "finalizingDesc": "Dando los toques finales a"
     },
     "elapsed": "{seconds}s transcurridos",
-    "estimatedTime": "Esto suele tardar 20-40 segundos para un itinerario personalizado",
+    "estimatedTime": "Creando tu itinerario personalizado: esto suele tardar uno o dos minutos",
+    "takingLonger": "Casi listo: un itinerario detallado y personalizado merece unos segundos más. ¡Un momento!",
     "funFacts": {
       "analyzing": "La AI está analizando miles de reseñas y valoraciones",
       "hiddenGems": "Encontrando joyas ocultas que los locales adoran",
