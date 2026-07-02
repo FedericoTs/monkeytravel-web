@@ -3261,6 +3261,19 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 : t("wizard.step1.hintNeedDates")}
             </p>
           )}
+          {/* Once step 1 is complete, the hint slot frees up — reinforce the
+              free/no-signup value right at the Continue commitment point. The
+              auth wall sits at Save (not Generate), so many users don't realize
+              they'll see the whole trip for free first; saying so here lowers
+              the "is this going to make me sign up?" hesitation. */}
+          {step === 1 && canProceed() && (
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-emerald-600 sm:justify-start sm:text-left">
+              <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              {t("wizard.step1.freeReassurance")}
+            </p>
+          )}
           <div className="flex items-center justify-between">
           {step > 1 ? (
             <button
