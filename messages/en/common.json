@@ -277,6 +277,9 @@
     "requestsLeft": "requests left",
     "clearConversation": "Clear conversation",
     "changeApplied": "Change applied",
+    "appliedTitle": "This is now in your plan",
+    "appliedDay": "Day {day} updated",
+    "appliedViewPlan": "View in your plan",
     "hintText": "Try: \"Replace X with Y\" or \"Add a cafe near the museum\"",
     "quickActions": {
       "optimizeBudget": "Optimize budget",
