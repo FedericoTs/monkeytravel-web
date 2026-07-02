@@ -277,6 +277,9 @@
     "requestsLeft": "solicitações restantes",
     "clearConversation": "Limpar conversa",
     "changeApplied": "Alteração aplicada",
+    "appliedTitle": "Isto já está no seu plano",
+    "appliedDay": "Dia {day} atualizado",
+    "appliedViewPlan": "Ver no seu plano",
     "hintText": "Tente: \"Substitua X por Y\" ou \"Adicione um café perto do museu\"",
     "quickActions": {
       "optimizeBudget": "Otimizar orçamento",

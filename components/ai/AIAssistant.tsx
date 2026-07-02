@@ -362,13 +362,38 @@ export default function AIAssistant({
                       <AssistantCards cards={message.cards} />
                     )}
 
-                    {/* Action indicator */}
+                    {/* Applied-to-plan confirmation. Upgraded from a tiny
+                        "Change applied" pill (2026-07-02): a real session
+                        recording showed a user copy-pasting the agent's edits
+                        out and asking "where's my new plan?" — the silent
+                        background refetch never signalled that the change had
+                        actually LANDED in their itinerary (and on mobile the
+                        85vh sheet fully covers the plan). This makes it
+                        unmistakable and gives a one-tap way to go see it. */}
                     {message.action?.applied && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full w-fit">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        {t('changeApplied')}
+                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 w-fit max-w-full">
+                        <div className="flex items-center gap-2 text-emerald-700">
+                          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-semibold">{t('appliedTitle')}</span>
+                        </div>
+                        {typeof message.action.dayNumber === "number" && (
+                          <p className="text-xs text-emerald-600 mt-1 ml-7">
+                            {t('appliedDay', { day: message.action.dayNumber })}
+                          </p>
+                        )}
+                        <button
+                          onClick={onClose}
+                          className="mt-2 ml-7 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+                        >
+                          {t('appliedViewPlan')}
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
                       </div>
                     )}
                   </div>
