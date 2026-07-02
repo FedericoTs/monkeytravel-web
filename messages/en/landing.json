@@ -10,6 +10,8 @@
     "signIn": "Sign In",
     "inputPlaceholder": "Where do you want to go?",
     "inputCta": "Plan my trip",
+    "starterLabel": "Popular:",
+    "starters": ["Tokyo", "Paris", "Bali", "Rome", "New York"],
     "trustSignals": {
       "free": "100% Free",
       "noCard": "Up to 8 Friends",

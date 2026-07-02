@@ -167,6 +167,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <HeroTripInput
                     placeholder={t('hero.inputPlaceholder')}
                     cta={t('hero.inputCta')}
+                    startersLabel={t('hero.starterLabel')}
+                    starters={t.raw('hero.starters') as string[]}
                   />
                   <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center lg:text-left">
                     <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline">
