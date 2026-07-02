@@ -10,6 +10,8 @@
     "signIn": "Iniciar Sesión",
     "inputPlaceholder": "¿A dónde quieres ir?",
     "inputCta": "Planear mi viaje",
+    "starterLabel": "Populares:",
+    "starters": ["Tokio", "París", "Bali", "Roma", "Nueva York"],
     "trustSignals": {
       "free": "100% Gratis",
       "noCard": "Hasta 8 Amigos",
