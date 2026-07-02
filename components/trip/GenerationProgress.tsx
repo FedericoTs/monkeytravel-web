@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 
 interface GenerationProgressProps {
@@ -73,6 +73,12 @@ const FUN_FACT_KEYS = [
   "balancing",
   "matching",
 ];
+
+// Past this many ms the bottom reassurance switches from the "usually takes…"
+// estimate to an honest "taking a little longer" message. Real generations run
+// ~60-130s, so the old static "20-40 seconds" copy was a lie that made the
+// (capped-at-95%) bar feel broken. This acknowledges the wait instead.
+const ESCALATION_THRESHOLD_MS = 45000;
 
 // Animated icons for each phase
 function PhaseIcon({ phase, isActive }: { phase: string; isActive: boolean }) {
@@ -234,6 +240,17 @@ export default function GenerationProgress({
   const [factIndex, setFactIndex] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Keep the latest streaming signal readable inside the rAF loop (whose
+  // closure is set up once per generation via the [isGenerating] effect) so
+  // the bar advances as real itinerary days arrive instead of only tracking
+  // the fake time curve.
+  const streamedDayCountRef = useRef(streamedDayCount);
+  const streamedTotalDaysRef = useRef(streamedTotalDays);
+  useEffect(() => {
+    streamedDayCountRef.current = streamedDayCount;
+    streamedTotalDaysRef.current = streamedTotalDays;
+  }, [streamedDayCount, streamedTotalDays]);
+
   // Get current phase based on progress
   const currentPhase = useMemo(() => {
     let cumulative = 0;
@@ -275,12 +292,24 @@ export default function GenerationProgress({
       const timeConstant = 25000; // How quickly we approach max (higher = slower)
 
       // Exponential approach: progress = max * (1 - e^(-t/tau))
-      const calculatedProgress = maxProgress * (1 - Math.exp(-elapsed / timeConstant));
+      const timeCurve = maxProgress * (1 - Math.exp(-elapsed / timeConstant));
 
-      // Add small oscillation to prevent "stuck" feeling
+      // Real progress from the SSE stream when available: each itinerary day
+      // that arrives maps onto 0-92%, so the bar visibly ADVANCES as the model
+      // streams instead of pinning near 95% and feeling stuck. Falls back to
+      // the pure time curve for the JSON-fallback path (no per-day signal).
+      const totalDays = streamedTotalDaysRef.current;
+      const streamFloor =
+        totalDays > 0
+          ? Math.min((streamedDayCountRef.current / totalDays) * 92, 92)
+          : 0;
+
+      // Take whichever is further along (never let the bar go backwards) and
+      // keep the small oscillation so it never looks frozen between days.
+      const base = Math.max(timeCurve, streamFloor);
       const oscillation = Math.sin(elapsed / 500) * 0.3;
 
-      setProgress(Math.min(calculatedProgress + oscillation, maxProgress));
+      setProgress(Math.min(base + oscillation, maxProgress));
 
       animationFrame = requestAnimationFrame(updateProgress);
     };
@@ -411,9 +440,14 @@ export default function GenerationProgress({
           </div>
         </div>
 
-        {/* Bottom reassurance */}
+        {/* Bottom reassurance — switches to an honest "taking a little longer"
+            message once we cross the typical-generation threshold, so a
+            60-130s gen never leaves the user staring at a stale/false time
+            estimate. */}
         <p className="text-center text-xs text-slate-400 mt-6">
-          {t("estimatedTime")}
+          {elapsedTime > ESCALATION_THRESHOLD_MS
+            ? t("takingLonger")
+            : t("estimatedTime")}
         </p>
       </div>
     </div>

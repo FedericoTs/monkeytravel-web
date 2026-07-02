@@ -825,7 +825,8 @@
       "finalizingDesc": "Putting finishing touches on"
     },
     "elapsed": "{seconds}s elapsed",
-    "estimatedTime": "This usually takes 20-40 seconds for a personalized itinerary",
+    "estimatedTime": "Building your personalized itinerary — this usually takes a minute or two",
+    "takingLonger": "Almost there — a rich, personalized itinerary is worth the extra few seconds. Hang tight!",
     "funFacts": {
       "analyzing": "AI is analyzing thousands of reviews and ratings",
       "hiddenGems": "Finding hidden gems that locals love",
