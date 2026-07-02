@@ -436,6 +436,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // Warsaw trips saved 4 seconds apart on signup.)
   const savingTripRef = useRef<boolean>(false);
 
+  // One-shot guard for the Rank-2 post-auth save-intent redemption (see the
+  // effect just below handleSaveTrip). After a magic-link return we auto-
+  // complete the Save the user already clicked before signing up. At most once.
+  const saveIntentRedeemedRef = useRef<boolean>(false);
+
   // Mirror state into refs so the unload handlers can read current values
   // without having to re-bind the listeners on every state change.
   const stepRef = useRef(step);
@@ -1654,6 +1659,52 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       savingTripRef.current = false;
     }
   };
+
+  // ── Rank-2 activation fix: redeem the pre-signup Save intent ──────────────
+  // An anonymous user who clicks Save hits the auth wall, signs up via magic
+  // link, and returns to /trips/new with the itinerary silently restored
+  // (draftAutoRestored === true — set ONLY on that pending-save path, never on
+  // ordinary draft recovery). In the auto-save-v1 flag-OFF cohort nothing then
+  // persists that trip: the user must click Save a SECOND time, and many drop
+  // off there (the dominant save_clicked → saved leak). Here we honor the click
+  // they already made by auto-invoking the same tested handleSaveTrip once.
+  //
+  // Safety / no double-save:
+  //  - Gated on autoSaveEnabledRaw === false (flag RESOLVED off). The v1 auto-
+  //    save hook owns the ON cohort; while the flag is still loading (undefined)
+  //    we wait — so we never race the v1 INSERT.
+  //  - draftAutoRestored is true only on the silent post-auth restore, so this
+  //    never fires for normal draft recovery or a normal authed generation.
+  //  - Idempotent: one-shot ref + savedTripId / autoSave.savedTripId checks;
+  //    handleSaveTrip's own re-entry guard (savingTripRef) and the 60s server-
+  //    side dedupe are the backstops against a duplicate row.
+  useEffect(() => {
+    if (saveIntentRedeemedRef.current) return;
+    if (!isAuthenticated) return;
+    if (autoSaveEnabledRaw !== false) return; // ON cohort → v1; loading → wait
+    if (!draftAutoRestored || !generatedItinerary) return;
+    if (savedTripId || autoSave.savedTripId) return; // already persisted
+    if (savingTripRef.current) return; // a save is already in flight
+    saveIntentRedeemedRef.current = true;
+    // Observability: quantify how many activations this recovers. PostHog
+    // (unlike trackWizardEvent) has no event-name enum, so this needs no
+    // migration.
+    posthog.capture("save_intent_redeemed", {
+      destination,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      locale,
+    });
+    void handleSaveTrip();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isAuthenticated,
+    autoSaveEnabledRaw,
+    draftAutoRestored,
+    generatedItinerary,
+    savedTripId,
+    autoSave.savedTripId,
+  ]);
 
   // Apply an anonymous-assistant day edit to the in-memory itinerary. Recomputes
   // the trip total (delta) so hero/sticky/overview/export/saved-budget stay in
