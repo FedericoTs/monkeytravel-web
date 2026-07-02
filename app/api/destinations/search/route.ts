@@ -195,7 +195,13 @@ function expandSearchWithAliases(input: string): string[] {
   const aliases = DESTINATION_ALIASES[normalized];
 
   if (aliases) {
-    return [normalized, ...aliases.map(a => a.toLowerCase())];
+    // Return ONLY the resolved city names — NOT the raw alias term.
+    // Keeping the raw term caused false country matches: "roma" (→ Rome)
+    // also matched country.ilike.%roma% → "Romania", so Bucharest surfaced
+    // as a suggestion for Italian users typing their own capital. The curated
+    // alias IS the intent, so search the mapped cities alone. Completes the
+    // partial fix from task #360 (live-caught on a 2026-07-02 re-probe).
+    return aliases.map(a => a.toLowerCase());
   }
 
   return [normalized];
