@@ -11,7 +11,12 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
 // Cache duration: 30 days for place details (they rarely change)
-const CACHE_DURATION_DAYS = 30;
+// 2026-07-02 cost: was 30. Destination covers + place searches are effectively
+// immutable, and this cache bills a paid Text Search Pro ($0.017) on every cold
+// entry — the #2 Google Places line ($12.93/30d). A longer TTL means far fewer
+// re-fetches on views. Consistent with the 180d place_details TTL already in
+// lib/cache. Covers are re-fetchable, so a stale hero photo is harmless.
+const CACHE_DURATION_DAYS = 180;
 
 interface PlacePhoto {
   name: string;
@@ -380,7 +385,13 @@ export async function GET(request: NextRequest) {
     //            URLs ALSO 504'd. v3 entries store internal proxy URLs
     //            (`/api/places/photo?name=...`) which always render.
     // Old entries expire naturally after 30 days.
-    const cacheKey = generateCacheKey(destination, "destination_v3");
+    // Normalize the destination for the cache key (2026-07-02 cost): the raw
+    // string made "Tokyo" / "tokyo" / "  Tokyo " separate cache rows, each
+    // triggering its own paid Text Search. Collapse case + whitespace so
+    // variants share one cached cover. Deliberately NOT stripping the country
+    // suffix — that would collide same-name cities (Portland OR vs ME).
+    const normalizedDestinationKey = destination.toLowerCase().trim().replace(/\s+/g, " ");
+    const cacheKey = generateCacheKey(normalizedDestinationKey, "destination_v3");
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
