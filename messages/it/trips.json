@@ -164,7 +164,8 @@
       "days": "{count, plural, one {# giorno} other {# giorni}}",
       "dayLabel": "Giorno {n}",
       "packingSuggestions": "Cosa Mettere in Valigia",
-      "dailyBudget": "Budget Stimato"
+      "dailyBudget": "Budget Stimato",
+      "mobileSaveNudge": "Gratis — salvalo per modificarlo quando vuoi e aprirlo ovunque"
     }
   },
   "vibes": {
