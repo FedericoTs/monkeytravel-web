@@ -203,13 +203,9 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
         // desktop Chrome is the typical case). Give the user clear
         // guidance instead of a cryptic upload failure later.
         const isLikelyHeic = /\.heic$|\.heif$/i.test(file.name) || /heic|heif/i.test(file.type);
-        reject(
-          new Error(
-            isLikelyHeic
-              ? "Your browser can't read HEIC files. Open the photo in Photos / Gallery and save it as JPEG, or upload a different image."
-              : "Couldn't decode that image. Try a different file (JPEG or PNG works best)."
-          )
-        );
+        // Throw a stable code — this runs outside render, so translate at the
+        // catch/setError site where `t` is in scope. See handleExtract catch.
+        reject(new Error(isLikelyHeic ? "ERR_HEIC" : "ERR_DECODE"));
       };
 
       img.src = objectUrl;
@@ -235,13 +231,13 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
         } else if (imageUrl.startsWith("http")) {
           body = { imageUrl };
         } else {
-          setError("Pick an image file or paste an image URL.");
+          setError(t("startAnywhereErrPickImage"));
           setLoading(false);
           return;
         }
       } else {
         if (!websiteText.trim()) {
-          setError("Paste a URL or some text from a blog/article.");
+          setError(t("startAnywhereErrPasteText"));
           setLoading(false);
           return;
         }
@@ -258,14 +254,14 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Couldn't extract trip details — try a different input.");
+        setError(data.error || t("startAnywhereErrExtract"));
         setLoading(false);
         return;
       }
 
       const ctx: ExtractedContext = data.context;
       if (!ctx.destination) {
-        setError(ctx.notes || "Couldn't identify a destination from this. Try a clearer image or paste a URL with a place name.");
+        setError(ctx.notes || t("startAnywhereErrNoDestination"));
         setLoading(false);
         return;
       }
@@ -290,11 +286,21 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
       setImageUrl("");
       setWebsiteText("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error — try again.");
+      // resizeAndEncodeImage() throws stable codes (ERR_HEIC / ERR_DECODE)
+      // from outside render where `t` isn't in scope — translate them here.
+      // Any other message is unexpected → generic network error copy.
+      const code = err instanceof Error ? err.message : "";
+      if (code === "ERR_HEIC") {
+        setError(t("startAnywhereErrHeic"));
+      } else if (code === "ERR_DECODE") {
+        setError(t("startAnywhereErrDecode"));
+      } else {
+        setError(t("startAnywhereErrNetwork"));
+      }
     } finally {
       setLoading(false);
     }
-  }, [mode, imageFile, imageUrl, websiteText, onExtracted]);
+  }, [mode, imageFile, imageUrl, websiteText, onExtracted, t]);
 
   if (!expanded) {
     return (
@@ -334,17 +340,17 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-            <span className="text-xl">✨</span> Start anywhere
+            <span className="text-xl">✨</span> {t("startAnywherePanelTitle")}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Upload a photo, drop a URL, or paste text. We'll prefill the trip.
+            {t("startAnywherePanelSubtitle")}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setExpanded(false)}
           className="text-slate-400 hover:text-slate-600"
-          aria-label="Close"
+          aria-label={t("startAnywhereClose")}
         >
           ✕
         </button>
@@ -360,7 +366,7 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
-          📷 Image
+          📷 {t("startAnywhereModeImage")}
         </button>
         <button
           type="button"
@@ -371,7 +377,7 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
-          🔗 URL / Text
+          🔗 {t("startAnywhereModeUrl")}
         </button>
       </div>
 
@@ -392,7 +398,7 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
               </div>
             ) : (
               <span className="text-sm text-slate-600">
-                Tap to pick a photo from your device
+                {t("startAnywherePickPhoto")}
               </span>
             )}
           </button>
@@ -406,10 +412,10 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
               if (f) setImageFile(f);
             }}
           />
-          <div className="text-center text-xs text-slate-400">— or —</div>
+          <div className="text-center text-xs text-slate-400">— {t("startAnywhereOr")} —</div>
           <input
             type="url"
-            placeholder="Paste an image URL (https://...)"
+            placeholder={t("startAnywhereImageUrlPlaceholder")}
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-[var(--primary)]"
@@ -417,7 +423,7 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
         </div>
       ) : (
         <textarea
-          placeholder="Paste a URL, a tweet, or some text from a travel article…"
+          placeholder={t("startAnywhereTextPlaceholder")}
           value={websiteText}
           onChange={(e) => setWebsiteText(e.target.value)}
           rows={4}
@@ -455,10 +461,10 @@ export default function StartAnywhereSection({ onExtracted }: Props) {
                 className="opacity-75"
               />
             </svg>
-            Analysing…
+            {t("startAnywhereAnalysing")}
           </>
         ) : (
-          <>✨ Extract trip</>
+          <>✨ {t("startAnywhereExtract")}</>
         )}
       </button>
     </div>
