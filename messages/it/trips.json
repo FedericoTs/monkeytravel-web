@@ -165,7 +165,8 @@
       "dayLabel": "Giorno {n}",
       "packingSuggestions": "Cosa Mettere in Valigia",
       "dailyBudget": "Budget Stimato",
-      "mobileSaveNudge": "Gratis — salvalo per modificarlo quando vuoi e aprirlo ovunque"
+      "mobileSaveNudge": "Gratis — salvalo per modificarlo quando vuoi e aprirlo ovunque",
+      "saveHeaderNudge": "Gratis — salva e modifica quando vuoi"
     }
   },
   "vibes": {

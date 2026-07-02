@@ -165,7 +165,8 @@
       "dayLabel": "Day {n}",
       "packingSuggestions": "Packing Suggestions",
       "dailyBudget": "Est. Budget",
-      "mobileSaveNudge": "Free — save to edit anytime & open on any device"
+      "mobileSaveNudge": "Free — save to edit anytime & open on any device",
+      "saveHeaderNudge": "Free — keep & edit anytime"
     }
   },
   "vibes": {

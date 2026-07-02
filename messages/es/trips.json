@@ -165,7 +165,8 @@
       "dayLabel": "Día {n}",
       "packingSuggestions": "Sugerencias de Equipaje",
       "dailyBudget": "Presupuesto Estimado",
-      "mobileSaveNudge": "Gratis — guárdalo para editarlo cuando quieras y abrirlo en cualquier dispositivo"
+      "mobileSaveNudge": "Gratis — guárdalo para editarlo cuando quieras y abrirlo en cualquier dispositivo",
+      "saveHeaderNudge": "Gratis — guarda y edita cuando quieras"
     }
   },
   "vibes": {

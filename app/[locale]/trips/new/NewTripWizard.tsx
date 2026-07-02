@@ -1972,6 +1972,22 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 isRegenerating={isRegenerating || generating}
                 variant="compact"
               />
+              {/* Save motivation at the PERSISTENT save point. The desktop
+                  ValuePropositionBanner sits once above the schedule (line ~2306)
+                  and scrolls away, leaving this sticky-header Save button with no
+                  "why" as the user reads a long itinerary — the desktop twin of
+                  the mobile nudge (PR #27). 75% of result-viewers never click Save
+                  (163-session leak); a concise free/benefit line at the always-
+                  visible save moment targets that. Hidden once saved; lg+ only so
+                  it doesn't crowd the header on narrow desktops. */}
+              {!savedTripId && (
+                <span className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-emerald-600 whitespace-nowrap">
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  {t("wizard.result.saveHeaderNudge")}
+                </span>
+              )}
               {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
                 // Auto-save flow: trip already persisted. Repurpose the
                 // primary action as a navigation to the saved detail view.
