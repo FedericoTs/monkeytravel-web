@@ -26,6 +26,11 @@ import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/components/booking";
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
+import {
+  captureEditModeEntered,
+  captureEditModeSaved,
+  captureEditModeDiscarded,
+} from "@/lib/posthog/events";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
@@ -1033,6 +1038,14 @@ export default function TripDetailClient({
       setSavedItinerary(JSON.parse(JSON.stringify(editedItinerary)));
       // Exit edit mode on success
       setIsEditMode(false);
+      // Instrument a completed manual edit — the head-to-head counterpart to
+      // ai_assistant_used, so we can compare who edits via the drag-and-drop
+      // editor vs the AI agent.
+      void captureEditModeSaved({
+        trip_id: trip.id,
+        days_count: editedItinerary.length,
+        activities_count: editedItinerary.reduce((acc, day) => acc + day.activities.length, 0),
+      });
       // Show success feedback
       setSaveSuccess(true);
       // Auto-hide success message after 3 seconds
@@ -1052,14 +1065,17 @@ export default function TripDetailClient({
     setIsEditMode(false);
     setSaveError(null);
     clearHistory(); // Clear undo/redo stacks
-  }, [savedItinerary, clearHistory]);
+    void captureEditModeDiscarded({ trip_id: trip.id });
+  }, [savedItinerary, clearHistory, trip.id]);
 
   const handleEnterEditMode = useCallback(() => {
     // Start editing from the last saved state
     setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(true);
     clearHistory(); // Start fresh undo/redo stacks
-  }, [savedItinerary, clearHistory]);
+    // Instrument manual-editor adoption (was previously invisible in PostHog).
+    void captureEditModeEntered({ trip_id: trip.id, days_count: savedItinerary.length });
+  }, [savedItinerary, clearHistory, trip.id]);
 
   // Open propose activity modal
   const handleOpenProposeModal = useCallback((

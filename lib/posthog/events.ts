@@ -426,6 +426,24 @@ export interface ActivityCompletedEvent {
 export interface AIAssistantUsedEvent {
   trip_id?: string;
   message_length: number;
+  /**
+   * Where the editing assistant is mounted. `trip_detail` = the saved-trip
+   * page agent (the one users lean on to rearrange/add/remove — see the
+   * 2026-07-02 session-recording finding). Lets us split agent usage from
+   * the anon pre-save panel in the same event.
+   */
+  surface?: "trip_detail" | "wizard_anon";
+  /**
+   * Did the assistant autonomously apply a change to the itinerary this
+   * turn? This is the value moment — a message that actually edited the
+   * plan, not just chatted. Was previously invisible: `ai_assistant_used`
+   * only went to GA4 via trackAIAssistantMessage(), never to PostHog.
+   */
+  action_applied?: boolean;
+  /** The kind of action the assistant returned (add/remove/replace/reorder/...), if any. */
+  action_type?: string;
+  /** Assistant round-trip latency in ms — lets us measure p50/p95 turn time. */
+  response_time_ms?: number;
 }
 
 export interface FeatureFlagExposedEvent {
@@ -1016,4 +1034,48 @@ export async function captureExploreTripPublished(event: ExploreTripPublishedEve
 export async function captureExploreTripPublishFailed(event: ExploreTripPublishFailedEvent) {
   const ph = await getPosthog();
   ph.capture("explore_trip_publish_failed", event);
+}
+
+// ============================================================================
+// MANUAL EDITOR EVENTS — added 2026-07-02
+// ============================================================================
+//
+// WHY: the 2026-07-02 shared session recording (Taipei trip) showed a user
+// making ~all itinerary changes through the AI assistant and touching the
+// manual drag-and-drop editor exactly once. But the manual editor emitted NO
+// analytics at all — so "is anyone using the editor?" was unanswerable from
+// data. These three lifecycle events (enter / save / discard) let us measure
+// manual-editor adoption and compare it head-to-head against `ai_assistant_used`
+// (now also dual-written to PostHog) in the same funnel.
+
+export interface EditModeEnteredEvent {
+  trip_id: string;
+  /** Number of days in the itinerary when the user opened the editor. */
+  days_count?: number;
+}
+
+export interface EditModeSavedEvent {
+  trip_id: string;
+  days_count?: number;
+  /** Total activities across all days at save time. */
+  activities_count?: number;
+}
+
+export interface EditModeDiscardedEvent {
+  trip_id: string;
+}
+
+export async function captureEditModeEntered(event: EditModeEnteredEvent) {
+  const ph = await getPosthog();
+  ph.capture("edit_mode_entered", event);
+}
+
+export async function captureEditModeSaved(event: EditModeSavedEvent) {
+  const ph = await getPosthog();
+  ph.capture("edit_mode_saved", event);
+}
+
+export async function captureEditModeDiscarded(event: EditModeDiscardedEvent) {
+  const ph = await getPosthog();
+  ph.capture("edit_mode_discarded", event);
 }

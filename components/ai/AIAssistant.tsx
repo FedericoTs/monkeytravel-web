@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import { trackAIAssistantMessage } from "@/lib/analytics";
+import { captureAIAssistantUsed } from "@/lib/posthog/events";
 
 interface Message {
   role: "user" | "assistant";
@@ -112,6 +113,7 @@ export default function AIAssistant({
       setInput("");
       setIsLoading(true);
 
+      const assistantStartedAt = Date.now();
       try {
         const res = await fetch("/api/ai/assistant", {
           method: "POST",
@@ -145,6 +147,21 @@ export default function AIAssistant({
         trackAIAssistantMessage({
           tripId,
           messageLength: content.trim().length,
+        });
+
+        // Dual-write to PostHog. trackAIAssistantMessage() above only reaches
+        // GA4 (+ a Sentry breadcrumb) — so the editing agent was invisible in
+        // PostHog, the tool we use for funnel/activation analysis. This makes
+        // agent usage (and the value moment, action_applied) queryable next to
+        // the manual editor's new edit_mode_* events. (2026-07-02 session-
+        // recording finding: users lean on the agent, barely touch the editor.)
+        void captureAIAssistantUsed({
+          trip_id: tripId,
+          message_length: content.trim().length,
+          surface: "trip_detail",
+          action_applied: !!data.message?.action?.applied,
+          action_type: data.message?.action?.type,
+          response_time_ms: Date.now() - assistantStartedAt,
         });
 
         // Debug logging
