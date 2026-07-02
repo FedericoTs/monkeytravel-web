@@ -810,10 +810,10 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
               AI-powered travel planning made simple
             </p>
             <Link
-              href="/"
+              href={planOwnHref}
               className="text-sm text-[var(--primary)] hover:underline font-medium"
             >
-              Create Your Trip
+              {t("share.savedHero.planOwnButtonGeneric")}
             </Link>
           </div>
         </div>
