@@ -164,7 +164,8 @@
       "days": "{count, plural, one {# día} other {# días}}",
       "dayLabel": "Día {n}",
       "packingSuggestions": "Sugerencias de Equipaje",
-      "dailyBudget": "Presupuesto Estimado"
+      "dailyBudget": "Presupuesto Estimado",
+      "mobileSaveNudge": "Gratis — guárdalo para editarlo cuando quieras y abrirlo en cualquier dispositivo"
     }
   },
   "vibes": {
