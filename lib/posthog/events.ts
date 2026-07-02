@@ -292,6 +292,7 @@ export interface TripWizardAbandonedEvent {
     | "budget"
     | "pace"
     | "requirements"
+    | "flexible_dates"
     | null;
   /** Did they put something in the destination field by the time they left? */
   had_destination?: boolean;
@@ -312,7 +313,8 @@ export interface TripWizardFieldInteractedEvent {
     | "vibe"
     | "budget"
     | "pace"
-    | "requirements";
+    | "requirements"
+    | "flexible_dates";
   /** First time this field was touched in this step session, or a follow-up? */
   first_touch: boolean;
 }

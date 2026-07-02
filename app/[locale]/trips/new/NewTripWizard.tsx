@@ -319,6 +319,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   ]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  // "I'm flexible" escape hatch for the required-dates gate (step 1). Tracks
+  // whether the current dates were auto-filled as a flexible default so we can
+  // surface an editable "flexible dates" note.
+  const [flexibleDates, setFlexibleDates] = useState(false);
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
   // Backpacker Mode — shipped 2026-05-28. Default "classic" matches all
   // existing flows; when toggled to "backpacker" we (a) auto-set budget
@@ -1079,6 +1083,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       default:
         return false;
     }
+  };
+
+  // Many step-1 visitors know WHERE but not exactly WHEN — dates being a hard
+  // gate to advance is a prime suspect for the step-1 drop-off (the biggest
+  // funnel leak). One tap fills a sensible default (start ~3 weeks out, 5-day
+  // trip) so they can reach a generated trip and fine-tune dates anytime.
+  const handleFlexibleDates = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const start = addDaysISO(today, 21);
+    const end = addDaysISO(start, 4);
+    setStartDate(start);
+    setEndDate(end);
+    setFlexibleDates(true);
+    trackFieldInteraction("flexible_dates");
   };
 
   // Handle destination selection from autocomplete
@@ -3133,10 +3151,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   endDate={endDate}
                   onStartDateChange={(d) => {
                     trackFieldInteraction("start_date");
+                    setFlexibleDates(false);
                     setStartDate(d);
                   }}
                   onEndDateChange={(d) => {
                     trackFieldInteraction("end_date");
+                    setFlexibleDates(false);
                     setEndDate(d);
                   }}
                   maxDays={14}
@@ -3144,6 +3164,35 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   // A11y (task #193): dates required to advance the wizard.
                   ariaRequired
                 />
+              )}
+
+              {/* "I'm flexible" escape hatch — dates are a hard gate to advance,
+                  but many visitors know WHERE, not WHEN. One tap fills a sensible
+                  default (~3 weeks out, 5 days) so they can reach a generated trip
+                  and fine-tune later. Directly attacks the step-1 drop-off (the
+                  biggest funnel leak). Hidden in multi-city mode (per-city nights
+                  model owns dates there). */}
+              {!(MULTI_CITY_ENABLED && multiCityMode) && (
+                <div className="mt-2">
+                  {flexibleDates ? (
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)]">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {t("wizard.step1.flexibleDatesActive")}
+                    </p>
+                  ) : (
+                    !(startDate && endDate) && (
+                      <button
+                        type="button"
+                        onClick={handleFlexibleDates}
+                        className="text-xs font-medium text-[var(--primary)] underline-offset-2 hover:underline"
+                      >
+                        {t("wizard.step1.flexibleDatesCta")}
+                      </button>
+                    )
+                  )}
+                </div>
               )}
             </div>
 
