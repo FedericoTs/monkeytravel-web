@@ -3,7 +3,7 @@ import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, Us
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
-import { getModelForPurpose } from "./ai/model-router";
+import { getModelForPurpose, getSiblingModel } from "./ai/model-router";
 import {
   withDeduplication,
   getItineraryDedupKey,
@@ -1333,7 +1333,16 @@ async function regenerateSingleDayInternal(
   const MAX_RETRIES = 1;
   const startTime = performance.now();
   // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
-  const modelName = getModelForPurpose("day-regenerate");
+  // UX10X Phase 0.1: the FINAL retry switches to the sibling model. The old
+  // behavior retried the SAME model with LOWER temperature (0.3 below),
+  // which on JSON-parse failures deterministically reproduced the same
+  // malformed output — api_request_logs showed 3/3 "Failed to regenerate
+  // day after retries". A different model breaks that repro loop and also
+  // dodges model-specific 5xx outages.
+  const modelName =
+    retryCount >= MAX_RETRIES
+      ? getSiblingModel(getModelForPurpose("day-regenerate"))
+      : getModelForPurpose("day-regenerate");
 
   const model = genAI.getGenerativeModel({
     model: modelName,
