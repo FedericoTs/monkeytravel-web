@@ -314,6 +314,29 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     return qs ? `/trips/new?${qs}` : "/trips/new";
   }, [destination, referralCode]);
 
+  // UX10X Phase 0.3: the crew loop's last measured hop — a /shared visitor
+  // converting to plan their OWN trip. Fire-and-forget with keepalive so the
+  // event survives the same-origin navigation the <Link> triggers (same
+  // pattern as trackWizardEvent). Wired to both plan-own CTAs (sticky bar +
+  // footer). Never blocks navigation.
+  const firePlanOwnClicked = () => {
+    try {
+      void fetch("/api/funnel-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: "plan_own_clicked",
+          trip_id: trip.id,
+          destination: destination || undefined,
+          referral_code: referralCode || undefined,
+        }),
+        keepalive: true,
+      });
+    } catch {
+      // telemetry must never block the visitor's navigation
+    }
+  };
+
   // Memoize ensureActivityIds to prevent generating new UUIDs on every render
   const displayItinerary = useMemo(
     () => ensureActivityIds(trip.itinerary),
@@ -768,6 +791,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
               </button>
               <Link
                 href={planOwnHref}
+                onClick={firePlanOwnClicked}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
               >
                 {destination
@@ -811,6 +835,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             </p>
             <Link
               href={planOwnHref}
+              onClick={firePlanOwnClicked}
               className="text-sm text-[var(--primary)] hover:underline font-medium"
             >
               {t("share.savedHero.planOwnButtonGeneric")}
