@@ -14,7 +14,41 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { assistTrip } from "@/lib/ai/assistant-anon";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ItineraryDay } from "@/types";
+
+// Fire-and-forget observability write (anon_assistant_logs, service-role
+// only). The anon assistant is the highest-traffic AI surface but left no
+// transcripts — refusal/friction patterns (e.g. the Legoland case in the
+// session replays, 2026-07-03 diagnosis) were invisible in our data while
+// the authed assistant persists to ai_conversations. Never blocks or fails
+// the response.
+function logAnonExchange(row: {
+  session_id?: string;
+  locale?: string;
+  destination: string;
+  user_message: string;
+  reply?: string;
+  edit?: unknown;
+  error?: string;
+}) {
+  try {
+    const admin = createAdminClient();
+    void admin
+      .from("anon_assistant_logs")
+      .insert(row)
+      .then(({ error }) => {
+        if (error) {
+          console.warn("[assistant-anon] log insert failed:", error.message);
+        }
+      });
+  } catch (e) {
+    console.warn(
+      "[assistant-anon] log skipped:",
+      e instanceof Error ? e.message : e
+    );
+  }
+}
 
 export const maxDuration = 30;
 
@@ -99,9 +133,24 @@ export async function POST(request: NextRequest) {
       cacheHit: false,
       costUsd: result.meta.costUsd,
     });
+    logAnonExchange({
+      session_id: sessionId,
+      locale: body.locale,
+      destination: body.destination,
+      user_message: body.message,
+      reply: result.reply,
+      edit: result.edit ?? undefined,
+    });
     return apiSuccess({ reply: result.reply, edit: result.edit });
   } catch (err) {
     console.error("[assistant-anon] error:", err);
+    logAnonExchange({
+      session_id: sessionId,
+      locale: body.locale,
+      destination: body.destination,
+      user_message: body.message,
+      error: err instanceof Error ? err.message : "unknown",
+    });
     void logApiCall({
       apiName: "gemini",
       endpoint: "/api/ai/assistant-anon",
