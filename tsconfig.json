@@ -30,5 +30,10 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "**/*.vitest.ts", "**/*.vitest.tsx"]
+  "exclude": [
+    "node_modules",
+    "**/*.vitest.ts",
+    "**/*.vitest.tsx",
+    "supabase/functions/**"
+  ]
 }
