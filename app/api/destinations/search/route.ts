@@ -92,14 +92,16 @@ const codeToCountryName: Record<string, string> = Object.fromEntries(
   Object.entries(countryToCode).map(([name, code]) => [code, name])
 );
 
-// Normalize a query to match the geo_cities.search_text column (built at seed
-// time as lower + NFD-diacritic-stripped). Also drop LIKE wildcards so user
-// input can't inject `%`/`_` into the RPC's LIKE pattern.
+// Lower-case the query and strip LIKE wildcards (so user input can't inject
+// `%`/`_` into the RPC's LIKE pattern). Accent-stripping is done SERVER-SIDE in
+// search_geo_cities via unaccent(normalize(q, NFC)) — deliberately NOT here:
+// the client-side `.normalize("NFD")` + `\p{Diacritic}` strip silently misbehaved
+// in the Turbopack/Vercel runtime (accented queries like "Málaga" returned 0),
+// so the robust path is to send the raw lower-cased string and let Postgres
+// handle diacritics.
 function normalizeForGeo(input: string): string {
   return input
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "") // strip combining accents (á→a) to match search_text
     .replace(/[%_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
