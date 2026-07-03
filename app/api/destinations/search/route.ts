@@ -99,7 +99,7 @@ function normalizeForGeo(input: string): string {
   return input
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{Diacritic}/gu, "") // strip combining accents (á→a) to match search_text
     .replace(/[%_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
