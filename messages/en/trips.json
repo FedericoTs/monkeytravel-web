@@ -31,6 +31,7 @@
     "confirmDates": "Confirm dates",
     "backToOptions": "Back to options",
     "error": "Something went wrong finding options. Give it another try.",
+    "generateError": "We couldn't build that itinerary. Give it another try.",
     "useClassicPlanner": "Use the classic planner"
   },
   "wizard": {
@@ -69,7 +70,12 @@
       "selectCheckOutDate": "Select check-out date",
       "maxDaysHint": "Select dates for your trip (max {days} days)",
       "dayCount": "{count, plural, one {# day} other {# days}}",
-      "nightCount": "{count, plural, one {# night} other {# nights}}"
+      "nightCount": "{count, plural, one {# night} other {# nights}}",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
+      "maxDaysLimit": "Trips can be up to {days} days"
     },
     "step1": {
       "title": "Where and when?",
@@ -108,6 +114,7 @@
       "continue": "Continue",
       "hintNeedDestination": "Add a destination to continue",
       "hintNeedDates": "Pick your travel dates to continue",
+      "destinationInvalidChars": "That destination has characters we can't accept — use letters, numbers, spaces and basic punctuation",
       "freeReassurance": "Free — see your full day-by-day trip before signing up",
       "flexibleDatesCta": "Not sure about dates yet? Use flexible dates",
       "flexibleDatesActive": "Flexible dates — you can fine-tune anytime",

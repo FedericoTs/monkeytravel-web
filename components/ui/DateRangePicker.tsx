@@ -199,8 +199,12 @@ export default function DateRangePicker({
       setSelectingStart(false);
     } else {
       // Setting end date
-      if (startDateObj && date < startDateObj) {
-        // If selected date is before start, make it the new start
+      if (startDateObj && date <= startDateObj) {
+        // If selected date is on/before start, make it the new start.
+        // Same-day is included on purpose: the server rejects end <= start
+        // ("End date must be after start date" in lib/gemini.ts), so letting
+        // the calendar produce a 0-night range only sets up a generate-time
+        // kickback (Wave-1 replay finding). Re-anchor instead of erroring.
         onStartDateChange(dateStr);
         onEndDateChange("");
       } else {
@@ -266,6 +270,17 @@ export default function DateRangePicker({
     });
   };
 
+  // Year jump — 7/7 Wave-1 session replays showed users click-click-clicking
+  // month-by-month to reach far-future dates (e.g. March 2027). One tap per
+  // year instead of twelve.
+  const navigateYear = (direction: -1 | 1) => {
+    setViewDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setFullYear(newDate.getFullYear() + direction);
+      return newDate;
+    });
+  };
+
   const renderCalendar = () => {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -285,10 +300,12 @@ export default function DateRangePicker({
 
     return (
       <div className="grid grid-cols-7 gap-1">
-        {/* Weekday headers */}
-        {WEEKDAYS.map((day) => (
+        {/* Weekday headers. Keyed by position, not label — narrow weekday
+            letters repeat (EN: S/T twice, IT: M twice), and duplicate keys
+            spammed a React error on every calendar open. */}
+        {WEEKDAYS.map((day, i) => (
           <div
-            key={day}
+            key={`wd-${i}`}
             className="h-8 flex items-center justify-center text-xs font-medium text-slate-400"
           >
             {day}
@@ -481,16 +498,28 @@ export default function DateRangePicker({
       {/* Calendar Dropdown */}
       {isOpen && (
         <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-[340px] mt-3 p-4 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 animate-fade-in-up">
-          {/* Header */}
+          {/* Header — « ‹ jump a year / a month, month+year caption, › » */}
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => navigateMonth(-1)}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => navigateYear(-1)}
+                aria-label={t("previousYear")}
+                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => navigateMonth(-1)}
+                aria-label={t("previousMonth")}
+                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            </div>
             <div className="text-center">
               <div className="font-semibold text-slate-900">
                 {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
@@ -499,18 +528,39 @@ export default function DateRangePicker({
                 {selectingStart ? t("selectCheckInDate") : t("selectCheckOutDate")}
               </div>
             </div>
-            <button
-              onClick={() => navigateMonth(1)}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => navigateMonth(1)}
+                aria-label={t("nextMonth")}
+                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => navigateYear(1)}
+                aria-label={t("nextYear")}
+                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Calendar Grid */}
           {renderCalendar()}
+
+          {/* Max-length hint while picking the end date — explains WHY days
+              beyond start+maxDays are greyed out instead of leaving users to
+              click disabled cells (Wave-1 replays: repeated dead clicks). */}
+          {!selectingStart && startDate && (
+            <p className="mt-3 text-xs text-slate-500 text-center">
+              {t("maxDaysLimit", { days: maxDays })}
+            </p>
+          )}
 
           {/* Footer */}
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">

@@ -31,6 +31,7 @@
     "confirmDates": "Conferma le date",
     "backToOptions": "Torna alle opzioni",
     "error": "Qualcosa è andato storto nel trovare le opzioni. Riprova.",
+    "generateError": "Non siamo riusciti a creare quell'itinerario. Riprova.",
     "useClassicPlanner": "Usa il pianificatore classico"
   },
   "wizard": {
@@ -69,7 +70,12 @@
       "selectCheckOutDate": "Seleziona data di check-out",
       "maxDaysHint": "Seleziona le date del viaggio (max {days} giorni)",
       "dayCount": "{count, plural, one {# giorno} other {# giorni}}",
-      "nightCount": "{count, plural, one {# notte} other {# notti}}"
+      "nightCount": "{count, plural, one {# notte} other {# notti}}",
+      "previousMonth": "Mese precedente",
+      "nextMonth": "Mese successivo",
+      "previousYear": "Anno precedente",
+      "nextYear": "Anno successivo",
+      "maxDaysLimit": "I viaggi possono durare al massimo {days} giorni"
     },
     "step1": {
       "title": "Dove e quando?",
@@ -108,6 +114,7 @@
       "continue": "Continua",
       "hintNeedDestination": "Aggiungi una destinazione per continuare",
       "hintNeedDates": "Scegli le date del viaggio per continuare",
+      "destinationInvalidChars": "La destinazione contiene caratteri non consentiti: usa lettere, numeri, spazi e punteggiatura di base",
       "freeReassurance": "Gratis: guarda il tuo viaggio giorno per giorno prima di registrarti",
       "flexibleDatesCta": "Non sai ancora le date? Usa date flessibili",
       "flexibleDatesActive": "Date flessibili — puoi modificarle quando vuoi",

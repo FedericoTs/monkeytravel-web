@@ -177,6 +177,27 @@ const BUDGET_TIER_STYLES = {
 const BUDGET_TIER_IDS = ["budget", "balanced", "premium"] as const;
 const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
+// ── Inline mirrors of lib/gemini.ts validateTripParams ──────────────────────
+// Wave-1 session-replay finding: "Maximum trip duration is 14 days" and
+// "Destination contains invalid characters" only fired server-side AT GENERATE
+// TIME, after the user had filled the whole form — a late-validation kickback.
+// The wizard now enforces the same rules inline; the lib checks stay as the
+// server backstop. Keep BOTH in lockstep with lib/gemini.ts.
+const MAX_TRIP_DAYS = 14;
+// Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
+// hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
+const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
+
+// Day-inclusive trip span, matching the server's math (ceil(diff/day) + 1).
+// Returns 0 for missing/unparseable dates.
+function tripSpanDaysInclusive(startISO: string, endISO: string): number {
+  if (!startISO || !endISO) return 0;
+  const start = new Date(startISO).getTime();
+  const end = new Date(endISO).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end)) return 0;
+  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+}
+
 // LOAD-BEARING: hoisted OUT of the component so the array identity is
 // stable across renders. Was previously declared inside the component
 // → new reference every render → trackFieldInteraction's [STEP_NAMES_CONST]
@@ -1125,9 +1146,21 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
   const canProceed = () => {
     switch (step) {
-      case 1:
-        // Step 1: Destination + Dates combined
-        return destination.length >= 2 && startDate && endDate && new Date(endDate) >= new Date(startDate);
+      case 1: {
+        // Step 1: Destination + Dates combined.
+        // Mirrors lib/gemini.ts validateTripParams so nothing that passes
+        // this gate can bounce off the server's destination/date checks at
+        // generate time (Wave-1 late-validation kickback). Rules:
+        //   - destination >= 2 chars AND only allowlisted characters
+        //   - both dates parseable ("Invalid date format" guard)
+        //   - end strictly after start (server rejects end <= start)
+        //   - span within MAX_TRIP_DAYS (day-inclusive, same math as server)
+        if (destination.length < 2 || !DESTINATION_ALLOWLIST.test(destination)) {
+          return false;
+        }
+        const span = tripSpanDaysInclusive(startDate, endDate);
+        return span >= 2 && span <= MAX_TRIP_DAYS;
+      }
       case 2:
         // Step 2: At least one vibe required, preferences have sensible defaults
         return selectedVibes.length > 0;
@@ -1437,6 +1470,26 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       setGenerating(false);
     }
   };
+
+  // ── Decide-arm generate handoff (front-door "decision") ───────────────────
+  // onPick (below, ~2790) maps the confirmed proposal onto wizard state and
+  // requests a generate. The previous setTimeout(0) handoff invoked the
+  // PRE-pick render's handleGenerate closure — destination/dates still "" —
+  // so the POST 400'd at validateTripParams and DecisionIntake silently
+  // remounted at its empty prompt phase: a Confirm click with zero visible
+  // consequence (replay 019f2901). State-driven instead: this effect runs on
+  // the commit that contains the mapped state, so handleGenerate closes over
+  // the committed values.
+  const [pendingDecideGenerate, setPendingDecideGenerate] = useState(false);
+  useEffect(() => {
+    if (!pendingDecideGenerate) return;
+    // Mapped state not committed yet (shouldn't happen — the flag is set in
+    // the same batch — but never fire a generate on empty params).
+    if (!destination || !startDate || !endDate) return;
+    setPendingDecideGenerate(false);
+    void handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingDecideGenerate, destination, startDate, endDate]);
 
   const handleSaveTrip = async () => {
     if (!generatedItinerary) return;
@@ -2742,10 +2795,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         locale={locale}
         onPick={(mapped) => {
           // Map the picked + date-confirmed proposal onto the SAME state
-          // handleGenerate re-reads, then call it. handleGenerate rebuilds
-          // TripCreationParams from this state and reuses streaming + JSON
-          // fallback + generating/result/save_* + first_value telemetry (all
-          // now arm-tagged "decision").
+          // handleGenerate re-reads, then request a generate. handleGenerate
+          // rebuilds TripCreationParams from this state and reuses streaming +
+          // JSON fallback + generating/result/save_* + first_value telemetry
+          // (all now arm-tagged "decision").
           setError(null);
           setDestination(mapped.destination);
           if (mapped.destinationCoords) setDestinationCoords(mapped.destinationCoords);
@@ -2756,13 +2809,24 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           setSelectedVibes(mapped.vibes);
           if (mapped.travelStyle) setTravelStyle(mapped.travelStyle);
           if (mapped.requirements) setRequirements(mapped.requirements);
-          // State setters are async; defer handleGenerate to the next macrotask
-          // so it reads the just-committed state (else the destination/dates gate
-          // reads pre-update "" values and 400s at validateTripParams).
-          setTimeout(() => {
-            void handleGenerate();
-          }, 0);
+          // State setters are async — the pendingDecideGenerate effect (next
+          // to handleGenerate above) fires the generate AFTER this batch
+          // commits, so it reads the mapped values. The old setTimeout(0)
+          // called the pre-pick closure and 400'd on "" destination/dates
+          // with no visible feedback (replay 019f2901).
+          setPendingDecideGenerate(true);
         }}
+        // The decision arm's early return hides the wizard's own error banner
+        // (and the inline limit prompt), so a failed generate used to land
+        // back here with ZERO feedback (replay 019f2901). Hand a localized
+        // message down; DecisionIntake renders it in the prompt shell.
+        generateError={
+          error
+            ? t("decision.generateError")
+            : showInlineLimitPrompt
+              ? t("wizard.usageLimitDefault")
+              : null
+        }
       />
     );
   }
@@ -3211,6 +3275,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 // want it.
               />
 
+              {/* Inline allowlist warning — same character set the server
+                  enforces (lib/gemini.ts DESTINATION_ALLOWLIST). Shown the
+                  moment the input goes invalid instead of letting the user
+                  fill the whole form and fail at generate (Wave-1 kickback). */}
+              {destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
+                <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+                  {t("wizard.step1.destinationInvalidChars")}
+                </p>
+              )}
+
               {/* Popular destinations - compact pills */}
               {!destination && (
                 <div className="mt-3">
@@ -3286,7 +3360,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                     setFlexibleDates(false);
                     setEndDate(d);
                   }}
-                  maxDays={14}
+                  maxDays={MAX_TRIP_DAYS}
                   minDate={new Date().toISOString().split("T")[0]}
                   // A11y (task #193): dates required to advance the wizard.
                   ariaRequired
@@ -3453,6 +3527,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             <p className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
               {destination.length < 2
                 ? t("wizard.step1.hintNeedDestination")
+                : !DESTINATION_ALLOWLIST.test(destination)
+                ? t("wizard.step1.destinationInvalidChars")
+                : tripSpanDaysInclusive(startDate, endDate) > MAX_TRIP_DAYS
+                ? t("wizard.datePicker.maxDaysLimit", { days: MAX_TRIP_DAYS })
                 : t("wizard.step1.hintNeedDates")}
             </p>
           )}

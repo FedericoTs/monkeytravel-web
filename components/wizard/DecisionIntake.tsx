@@ -52,6 +52,14 @@ export interface MappedProposal {
 interface DecisionIntakeProps {
   locale: string;
   onPick: (mapped: MappedProposal) => void;
+  /**
+   * Already-localized error handed down by NewTripWizard when the post-pick
+   * generate fails (or hits the usage limit). The decision arm's early return
+   * hides the wizard's own error banner, so without this a failed generate
+   * remounted the intake at the empty prompt phase with zero feedback
+   * (replay 019f2901).
+   */
+  generateError?: string | null;
 }
 
 const DECISION_ARM: FrontDoorArm = "decision";
@@ -96,8 +104,10 @@ function sanitizeDates(startISO: string, endISO: string): { start: string; end: 
   let start = startISO;
 
   // Preserve the proposal's length (day-inclusive), fall back to 5 days.
+  // Minimum 2 (one night): validateTripParams rejects end <= start, so a
+  // 1-day proposal must not round-trip into a generate-time kickback.
   let len = spanDaysInclusive(startISO, endISO);
-  if (!len || len < 1) len = 5;
+  if (!len || len < 2) len = 5;
   if (len > 14) len = 14;
 
   // Shift a missing/past start forward to today.
@@ -131,7 +141,7 @@ function mapProposal(p: TripProposal): MappedProposal {
 
 type Phase = "prompt" | "loading" | "options" | "confirm" | "error";
 
-export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) {
+export default function DecisionIntake({ locale, onPick, generateError }: DecisionIntakeProps) {
   const t = useTranslations("trips");
 
   const [phase, setPhase] = useState<Phase>("prompt");
@@ -139,6 +149,10 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
   const [proposals, setProposals] = useState<TripProposal[]>([]);
   const [selected, setSelected] = useState<TripProposal | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  // Synchronous re-entry guard for submitPrompt — setPhase("loading") lands a
+  // render late, so a fast double-tap on "Propose options" could fire two
+  // POSTs (and two options_requested events) before the button unmounts.
+  const inFlightRef = useRef(false);
 
   // Confirm-dates working state (seeded from the picked proposal, sanitized).
   const [startDate, setStartDate] = useState("");
@@ -163,16 +177,26 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
       setPhase("error");
       return;
     }
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setPhase("loading");
     setErrMsg(null);
     // options_requested — the decision arm's "generating"-equivalent.
     void trackWizardEvent("options_requested", { locale }, DECISION_ARM);
+
+    // Hard deadline: /api/ai/decide fronts Gemini and can stall far past
+    // patience when upstream hangs. Without it the loading phase had no exit
+    // — the "unresponsive with zero feedback" state in replay 019f2901.
+    // 20s is well past the endpoint's healthy latency; abort → retry UI.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20_000);
 
     try {
       const res = await fetch("/api/ai/decide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: clean, locale }),
+        signal: controller.signal,
       });
       if (!res.ok) {
         // 400 (garbage/injection), 429 (rate limit), 503 (kill switch), 500 —
@@ -197,8 +221,12 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
       void trackWizardEvent("options_shown", { locale }, DECISION_ARM);
       void trackWizardEvent("first_value", { locale }, DECISION_ARM);
     } catch {
+      // Network throw OR the 20s abort above — same localized retry UI.
       setErrMsg(t("decision.error"));
       setPhase("error");
+    } finally {
+      clearTimeout(timeoutId);
+      inFlightRef.current = false;
     }
   }, [prompt, locale, t]);
 
@@ -212,8 +240,9 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
 
   const confirmAndGenerate = useCallback(() => {
     if (!selected) return;
-    // Guard the mandatory confirm-dates step: valid, ordered.
-    if (!startDate || !endDate || new Date(endDate) < new Date(startDate)) return;
+    // Guard the mandatory confirm-dates step: valid, STRICTLY ordered
+    // (server rejects end <= start — mirror it so the pick can't kick back).
+    if (!startDate || !endDate || new Date(endDate) <= new Date(startDate)) return;
     const mapped = mapProposal({
       ...selected,
       suggested_dates: { start: startDate, end: endDate },
@@ -249,9 +278,19 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none text-sm"
             />
 
-            {phase === "error" && errMsg && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-slate-700">
-                {errMsg}
+            {/* Fallback to the generic copy so the error phase can never
+                render as a silent no-op if errMsg is somehow unset. */}
+            {phase === "error" && (
+              <div role="alert" className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-slate-700">
+                {errMsg || t("decision.error")}
+              </div>
+            )}
+
+            {/* Generate-handoff failure surfaced from the wizard (its own
+                error banner is hidden by the decision arm's early return). */}
+            {phase === "prompt" && generateError && (
+              <div role="alert" className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-slate-700">
+                {generateError}
               </div>
             )}
 
@@ -372,9 +411,11 @@ export default function DecisionIntake({ locale, onPick }: DecisionIntakeProps) 
                 type="button"
                 onClick={confirmAndGenerate}
                 disabled={
+                  // <= (not <): validateTripParams rejects end === start, so a
+                  // same-day range must not reach the generate handoff.
                   !startDate ||
                   !endDate ||
-                  new Date(endDate) < new Date(startDate)
+                  new Date(endDate) <= new Date(startDate)
                 }
                 className="w-full sm:w-auto bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
               >
