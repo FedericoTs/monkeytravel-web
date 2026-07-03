@@ -92,29 +92,37 @@ const codeToCountryName: Record<string, string> = Object.fromEntries(
   Object.entries(countryToCode).map(([name, code]) => [code, name])
 );
 
-// Lower-case the query and strip LIKE wildcards (so user input can't inject
-// `%`/`_` into the RPC's LIKE pattern). Accent-stripping is done SERVER-SIDE in
-// search_geo_cities via unaccent(normalize(q, NFC)) — deliberately NOT here:
-// the client-side `.normalize("NFD")` + `\p{Diacritic}` strip silently misbehaved
-// in the Turbopack/Vercel runtime (accented queries like "Málaga" returned 0),
-// so the robust path is to send the raw lower-cased string and let Postgres
-// handle diacritics.
+// Accent fold built from char CODEPOINTS (String.fromCharCode) at module load,
+// NOT from literal accented source chars or `.normalize()`/`\p{Diacritic}`.
+// Every one of those non-ASCII / Unicode-property forms silently failed to match
+// at runtime in this route's Turbopack/Vercel build (accented queries like
+// "Málaga" returned 0 → fell through to Photon). Pure-ASCII hex source can't be
+// mangled by the bundler. The RPC also unaccents server-side as a backstop.
+const ACCENT_FOLD: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  const groups: Array<[number[], string]> = [
+    [[0xe1, 0xe0, 0xe2, 0xe3, 0xe4, 0xe5, 0x101], "a"],
+    [[0xe9, 0xe8, 0xea, 0xeb, 0x113], "e"],
+    [[0xed, 0xec, 0xee, 0xef, 0x12b], "i"],
+    [[0xf3, 0xf2, 0xf4, 0xf5, 0xf6, 0xf8], "o"],
+    [[0xfa, 0xf9, 0xfb, 0xfc, 0x16b], "u"],
+    [[0xf1], "n"],
+    [[0xe7], "c"],
+    [[0xfd, 0xff], "y"],
+  ];
+  for (const [codes, r] of groups) {
+    for (const c of codes) m[String.fromCharCode(c)] = r;
+  }
+  return m;
+})();
+
+// Lower-case, fold accents (á→a) so the query matches the accent-stripped
+// geo_cities.search_text, and strip LIKE wildcards so user input can't inject
+// `%`/`_` into the RPC's LIKE pattern.
 function normalizeForGeo(input: string): string {
-  return input
-    .toLowerCase()
-    // Explicit precomposed accent fold — NOT `.normalize()`/`\p{Diacritic}`,
-    // which silently misbehaved in the Turbopack/Vercel runtime and left
-    // accented queries ("málaga") unmatched. This makes them identical to the
-    // proven-working un-accented path ("malaga"). The RPC also unaccents
-    // server-side as a backstop for any decomposed input.
-    .replace(/[áàâãäåā]/g, "a")
-    .replace(/[éèêëē]/g, "e")
-    .replace(/[íìîïī]/g, "i")
-    .replace(/[óòôõöø]/g, "o")
-    .replace(/[úùûüū]/g, "u")
-    .replace(/ñ/g, "n")
-    .replace(/ç/g, "c")
-    .replace(/[ýÿ]/g, "y")
+  let out = "";
+  for (const ch of input.toLowerCase()) out += ACCENT_FOLD[ch] ?? ch;
+  return out
     .replace(/[%_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
