@@ -789,8 +789,8 @@ export interface MagicLinkRequestFailedEvent {
 
 export interface AuthMethodSwitchedEvent {
   location: AuthPromptLocation;
-  /** From the magic-link entry, which escape hatch did they take? */
-  to: "password_signup" | "password_login";
+  /** From the magic-link entry, which alternate method did they take? */
+  to: "password_signup" | "password_login" | "google";
 }
 
 export interface AuthPromptDismissedEvent {
