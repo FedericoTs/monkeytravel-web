@@ -35,6 +35,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 // trackWizardEvent() call sites).
 const STEP_VALUES = [
   "step_1_destination_dates",
+  "step1_heartbeat", // UX10X Phase 0.3: 10s dwell heartbeat on step 1
   "step_2_vibes",
   "generating",
   "result",
