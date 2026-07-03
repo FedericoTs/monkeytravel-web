@@ -26,6 +26,14 @@ import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/components/booking";
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
+
+// Bookings/flights monetization surfaces are HIDDEN for now (2026-07-03,
+// founder decision): the Amadeus flight search hangs to a 300s Vercel
+// FUNCTION_INVOCATION_TIMEOUT in prod (sandbox env / no app timeout), and
+// affiliate bookings are the future monetization — not the current focus.
+// Default-off env gate: flip NEXT_PUBLIC_BOOKINGS_ENABLED=true to bring the
+// whole surface back once flights work and monetization is on.
+const BOOKINGS_ENABLED = process.env.NEXT_PUBLIC_BOOKINGS_ENABLED === "true";
 import {
   captureEditModeEntered,
   captureEditModeSaved,
@@ -1841,12 +1849,14 @@ export default function TripDetailClient({
         </div>
 
         {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
-        <PostConfirmationBanner
-          destination={destination}
-          tripId={trip.id}
-          tripStatus={currentStatus as "planning" | "confirmed" | "active" | "completed"}
-          className="mb-8"
-        />
+        {BOOKINGS_ENABLED && (
+          <PostConfirmationBanner
+            destination={destination}
+            tripId={trip.id}
+            tripStatus={currentStatus as "planning" | "confirmed" | "active" | "completed"}
+            className="mb-8"
+          />
+        )}
 
         {/* Booking Drawer - Flight origin collection */}
         <BookingDrawer
@@ -1892,27 +1902,28 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* Affiliate Booking Panel - After Map */}
-        {useEnhancedBooking ? (
-          <EnhancedBookingPanel
-            tripId={trip.id}
-            destination={destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-            travelers={collaboratorCount || 2}
-            onSetOrigin={() => setIsBookingDrawerOpen(true)}
-            className="mb-8"
-          />
-        ) : (
-          <BookingPanel
-            tripId={trip.id}
-            destination={destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-            travelers={collaboratorCount || 2}
-            className="mb-8"
-          />
-        )}
+        {/* Affiliate Booking Panel - After Map (hidden behind BOOKINGS_ENABLED) */}
+        {BOOKINGS_ENABLED &&
+          (useEnhancedBooking ? (
+            <EnhancedBookingPanel
+              tripId={trip.id}
+              destination={destination}
+              startDate={trip.startDate}
+              endDate={trip.endDate}
+              travelers={collaboratorCount || 2}
+              onSetOrigin={() => setIsBookingDrawerOpen(true)}
+              className="mb-8"
+            />
+          ) : (
+            <BookingPanel
+              tripId={trip.id}
+              destination={destination}
+              startDate={trip.startDate}
+              endDate={trip.endDate}
+              travelers={collaboratorCount || 2}
+              className="mb-8"
+            />
+          ))}
 
         {/* Post-booking expense tracking (task #220). Behind
             NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED flag — renders null when off,
