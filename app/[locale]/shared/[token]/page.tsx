@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
@@ -83,6 +84,13 @@ export default async function SharedTripPage({ params }: PageProps) {
   if (!trip) {
     notFound();
   }
+
+  // UX10X Phase 0.3: record a real human visit to the shared link (once per
+  // server render, crawler-filtered inside the helper). This is the viral
+  // loop's first measured hop — funnel_events.share_link_visited. NOT fired in
+  // generateMetadata (which shares the same React.cache'd getSharedTrip and
+  // would double-count). Fire-and-forget; never blocks the render.
+  void logSharedTripVisit(trip.id as string);
 
   // Read-time refresh of activity photo URLs from places_v2. Public
   // /shared/* surfaces had broken activity-card images when URLs baked
