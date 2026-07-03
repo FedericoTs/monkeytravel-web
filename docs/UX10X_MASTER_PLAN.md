@@ -115,6 +115,8 @@ The plan's hard dependencies. Skipping this makes Phase 1 ship a broken front do
 | 0.5 | **Baseline dashboard** | One SQL view + admin card: daily step-1, abandon %, shares created, share visits, votes, crews, saves. Freeze 06-01→07-02 as the pre-plan baseline | Dashboard live; baselines written into this doc's appendix |
 | 0.6 | **Founder replay hour** | Watch 20 replays: filter A (`save_blocked_anon` AND NOT `saved`), filter B (`result` AND NOT `save_clicked`), prioritizing it/es sessions | Notes appended to this doc |
 
+**Shipped 2026-07-03:** 0.1/0.2 (PR #32), 0.4 affiliate gate (PR #34), 0.3a step-1 heartbeat (PR #35), 0.3c server events `share_link_created`/`share_link_visited`/`vote_cast` (PR #36) + `plan_own_clicked` (PR #37), **0.5 baseline dashboard (PR #38)** — `vw_ux10x_daily_baseline` view + `get_ux10x_rates(lo,hi)` RPC + `/api/admin/ux10x-baseline` + `Ux10xBaselineCard` on /admin (load-on-click, top of Analytics tab). **Crews caveat:** the RPC's `weekly_active_crews` currently counts a 2nd human *voting or joining as collaborator* — it does NOT yet count the ">30s view" engagement in the North-Star definition because `trip_views` is still unwired (0.3b, deferred). Same answer today (0); widen once `trip_views` lands. Still open in Phase 0: 0.3b `trip_views`, 0.4 local Gemini key + bounce (founder), 0.6 replay hour (founder), 48h decide probe cron.
+
 **Tests:** synthetic endpoint probes wired into CI/cron · Playwright @prod smoke stays green · event-landing assertions.
 **Exit gate:** 0.1 probe gate passed (hard blocker for Phase 1) + dashboard live.
 
