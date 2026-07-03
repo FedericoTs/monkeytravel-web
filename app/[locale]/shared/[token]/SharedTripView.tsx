@@ -391,7 +391,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             sample trip URLs. */}
         <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
-            Shared Trip
+            {t('shared.sharedTrip')}
           </span>
           {trip.meta?.travel_style === "backpacker" && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
@@ -403,6 +403,18 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Collaborative framing — recipients previously saw an unlabeled
+            thumbs/count bar that reads as a passive like-counter. Make the
+            vote invitation explicit at the top of the shared itinerary so
+            the crew loop is discoverable (share+vote audit, 2026-07-03). */}
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 px-4 py-3">
+          <span className="text-2xl leading-none" aria-hidden>🗳️</span>
+          <div>
+            <p className="font-semibold text-slate-800">{t('shared.voteInviteTitle')}</p>
+            <p className="text-sm text-slate-600">{t('shared.voteInviteBody')}</p>
+          </div>
+        </div>
+
         {/* Backpacker Mode — Hostelworld CTA. Only renders when the
             trip was generated in Backpacker Mode (trip_meta.travel_style).
             This is the revenue-signal piece of the Hostelworld

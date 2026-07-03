@@ -2023,6 +2023,29 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 isRegenerating={isRegenerating || generating}
                 variant="compact"
               />
+              {/* Ask your crew to vote — surfaces the crew-input intent at the
+                  peak moment. The anonymous result page previously had NO share
+                  affordance at all (crew-loop hop-one gap, share+vote audit
+                  2026-07-03). Saved trip → deep-link to the vote/invite tab;
+                  unsaved → the normal save/auth path, which lands on the
+                  ShareAfterSave collaboration prompt. */}
+              <button
+                type="button"
+                onClick={() => {
+                  const existingId = savedTripId || (autoSaveEnabled ? autoSave.savedTripId : null);
+                  if (existingId) {
+                    router.push(`/trips/${existingId}?share=invite`);
+                  } else {
+                    handleSaveTrip();
+                  }
+                }}
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border border-[var(--secondary)] text-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+                {t("wizard.result.shareForVotes")}
+              </button>
               {/* Save motivation at the PERSISTENT save point. The desktop
                   ValuePropositionBanner sits once above the schedule (line ~2306)
                   and scrolls away, leaving this sticky-header Save button with no
@@ -2113,6 +2136,21 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               </svg>
               {t("wizard.result.mobileSaveNudge")}
             </p>
+          )}
+          {/* Ask your crew to vote — mobile, full-width above the save row.
+              Shown pre-save (the peak share-intent moment); routes through the
+              normal save/auth flow to the collaboration prompt. */}
+          {!savedTripId && (
+            <button
+              type="button"
+              onClick={() => handleSaveTrip()}
+              className="mb-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+              {t("wizard.result.shareForVotes")}
+            </button>
           )}
           <div className="flex items-center gap-2">
             {/* Start Over - Mobile */}

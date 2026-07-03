@@ -237,6 +237,8 @@
   "shared": {
     "sharedTrip": "Shared Trip",
     "sharedBy": "Shared by {name}",
+    "voteInviteTitle": "You've been invited to vote",
+    "voteInviteBody": "Tap 👍 or 👎 on any activity below to help shape this trip.",
     "viewOnly": "View only",
     "saveToAccount": "Save to My Trips",
     "signUpToSave": "Sign Up to Save",

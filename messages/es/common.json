@@ -237,6 +237,8 @@
   "shared": {
     "sharedTrip": "Viaje Compartido",
     "sharedBy": "Compartido por {name}",
+    "voteInviteTitle": "Te han invitado a votar",
+    "voteInviteBody": "Toca 👍 o 👎 en cualquier actividad para ayudar a definir este viaje.",
     "viewOnly": "Solo lectura",
     "saveToAccount": "Guardar en Mis Viajes",
     "signUpToSave": "Regístrate para Guardar",
