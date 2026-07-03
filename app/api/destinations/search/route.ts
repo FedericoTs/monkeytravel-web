@@ -236,7 +236,7 @@ export interface LocalDestinationPrediction {
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, limit = 8 } = await request.json();
+    const { input, limit = 8, locale } = await request.json();
 
     if (!input || input.length < 2) {
       return apiSuccess({ predictions: [], source: "local" });
@@ -329,7 +329,11 @@ export async function POST(request: NextRequest) {
     // so a slow upstream never blocks the autocomplete render.
     if (predictions.length === 0 && searchTerm.length >= 3) {
       try {
-        const photon = await fetchPhotonSuggestions(searchTerm, limit, request);
+        const photonLang = resolvePhotonLang(
+          locale,
+          request.headers.get("accept-language")
+        );
+        const photon = await fetchPhotonSuggestions(searchTerm, limit, photonLang);
         if (photon.length > 0) {
           return apiSuccess({
             predictions: photon,
@@ -393,25 +397,36 @@ interface PhotonResponse {
 const PHOTON_TIMEOUT_MS = 800;
 const PHOTON_PLACE_TYPES = new Set(["city", "town", "village", "island"]);
 
+// Photon ONLY supports these display languages. It hard-400s on anything
+// else — and it silently DROPPED "it" support, which meant every Italian
+// user (Accept-Language: it-*) got HTTP 400 → empty fallback → "no results"
+// on the wizard's #1 input. That killed long-tail/native-name search for the
+// worst-converting locale (it: step1→2 25.6% vs en 47.7%). For unsupported
+// locales (it/es/pt/…) we use "default", which returns endonyms
+// ("Firenze, Italia", "Sevilla, España") that match what native-language
+// users actually type. Live-confirmed 2026-07-03: `lang=it` → 400
+// {"message":"Language is not supported. Supported are: default, de, en, fr"}.
+const PHOTON_SUPPORTED_LANGS = new Set(["de", "en", "fr"]);
+
+function resolvePhotonLang(
+  locale?: string,
+  acceptLanguage?: string | null
+): string {
+  // Prefer the explicit app locale (authoritative — the client forwards it)
+  // over the browser's Accept-Language, which often disagrees with the site
+  // locale (an Italian user browsing /it on an English-configured browser).
+  const raw = (locale || acceptLanguage || "").toLowerCase();
+  const two = raw.slice(0, 2);
+  return PHOTON_SUPPORTED_LANGS.has(two) ? two : "default";
+}
+
 async function fetchPhotonSuggestions(
   query: string,
   limit: number,
-  request: NextRequest
+  lang: string
 ): Promise<LocalDestinationPrediction[]> {
-  // Pass through the user's Accept-Language so Photon returns localized
-  // city names when available (Italian users typing "Roma" should get
-  // "Roma, Italia", not "Rome, Italy"). Photon supports en/de/fr/it.
-  const acceptLang = request.headers.get("accept-language") || "";
-  const lang = acceptLang.startsWith("it")
-    ? "it"
-    : acceptLang.startsWith("fr")
-      ? "fr"
-      : acceptLang.startsWith("de")
-        ? "de"
-        : "en";
-
   // Photon API: https://github.com/komoot/photon
-  //   GET /api/?q=<query>&limit=<n>&lang=<en|de|fr|it>
+  //   GET /api/?q=<query>&limit=<n>&lang=<default|de|en|fr>
   //
   // We DON'T pre-filter by osm_tag in the request because Photon's
   // tag filter is too restrictive (drops some valid city hits). Filter

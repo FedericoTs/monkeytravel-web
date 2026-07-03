@@ -21,7 +21,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PlacePrediction } from "@/types";
@@ -167,6 +167,10 @@ export default function DestinationAutocomplete({
   ariaRequired,
 }: DestinationAutocompleteProps) {
   const t = useTranslations("common.destinationSearch");
+  // App locale (it/es/en/pt). Forwarded to the search API so the Photon
+  // fallback localizes to the SITE locale, not the browser's Accept-Language
+  // (which frequently disagrees). Authoritative for endonym display names.
+  const locale = useLocale();
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [popularDestinations, setPopularDestinations] = useState<PlacePrediction[]>(FALLBACK_POPULAR);
   const [isOpen, setIsOpen] = useState(false);
@@ -200,7 +204,7 @@ export default function DestinationAutocomplete({
         const response = await fetch("/api/destinations/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ input, limit: 8 }),
+          body: JSON.stringify({ input, limit: 8, locale }),
           signal,
         });
         const data = await response.json();
@@ -218,7 +222,7 @@ export default function DestinationAutocomplete({
         return [];
       }
     },
-    []
+    [locale]
   );
 
   // Google Places API removed - we now use local-only search to minimize costs
