@@ -15,6 +15,7 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
@@ -159,6 +160,15 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         console.error("[Shared Vote] Upsert failed:", upsertError);
         return errors.internal("Failed to save vote", "SharedVote");
       }
+
+      // UX10X Phase 0.3: count an actual cast (this branch is vote_type !==
+      // null; the delete/un-vote branch does NOT reach here). Fire-and-forget.
+      void logFunnelEventServer({
+        event_type: "vote_cast",
+        trip_id: trip.id,
+        anon_id: voterCookieId,
+        metadata: { activity_id, vote_type },
+      });
     }
 
     // Recompute tallies for this activity. Two-query approach: one to count
