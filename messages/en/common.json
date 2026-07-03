@@ -589,7 +589,7 @@
     "travelersCount": "{count, plural, =1 {1 traveler} other {# travelers}}",
     "activitiesAttractions": "Activities & Attractions",
     "trainsBuses": "Trains & Buses",
-    "flightsNeedOrigin": "Set your departure city to search flights",
+    "flightsNeedOrigin": "Where are you flying from? Tell us your departure city and we'll find flights for these dates",
     "setOriginCity": "Set Departure City",
     "whereFlying": "Where are you flying from?",
     "enterCityOrAirport": "Enter city or airport",

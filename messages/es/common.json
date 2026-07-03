@@ -589,7 +589,7 @@
     "travelersCount": "{count, plural, =1 {1 viajero} other {# viajeros}}",
     "activitiesAttractions": "Actividades y Atracciones",
     "trainsBuses": "Trenes y Autobuses",
-    "flightsNeedOrigin": "Configura tu ciudad de salida para buscar vuelos",
+    "flightsNeedOrigin": "¿Desde dónde vuelas? Dinos tu ciudad de salida y buscaremos vuelos para estas fechas",
     "setOriginCity": "Configurar Ciudad de Salida",
     "whereFlying": "¿Desde dónde vuelas?",
     "enterCityOrAirport": "Introduce ciudad o aeropuerto",

@@ -12,7 +12,7 @@
  * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { capture } from "@/lib/posthog/events";
 import type { Activity, ItineraryDay } from "@/types";
@@ -52,6 +52,14 @@ export default function AnonAssistantPanel({
   const t = useTranslations("trips");
   const locale = useLocale();
   const [messages, setMessages] = useState<Msg[]>([]);
+  // Height-capped chat: the panel used to grow unbounded with every message,
+  // pushing the itinerary further off-screen each turn (replay 019f285d).
+  // Cap it and keep the newest message scrolled into view.
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages.length]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -143,7 +151,10 @@ export default function AnonAssistantPanel({
       </div>
 
       {messages.length > 0 && (
-        <div className="mt-4 space-y-3">
+        <div
+          ref={chatScrollRef}
+          className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1"
+        >
           {messages.map((m, i) => (
             <div key={i}>
               <div className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>

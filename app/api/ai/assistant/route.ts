@@ -651,6 +651,11 @@ You MUST suggest an activity that is:
 
 DO NOT suggest activities in other parts of the city that would require long transit.
 The goal is to keep Day ${dayNumber} activities clustered together for efficient travel.
+
+USER OVERRIDE EXCEPTION: if the user has already been told about the distance or
+logistics and still explicitly insists on a specific place (even far away or across
+a border), comply — add exactly what they asked for, mention the travel-time
+tradeoff in ONE short sentence, and do not push back again. The user decides.
 `;
   }
 

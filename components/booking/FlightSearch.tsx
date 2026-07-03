@@ -106,8 +106,13 @@ export default function FlightSearch({
   }, [debouncedOrigin, selectedOrigin?.name]);
 
   // Search flights
-  const searchFlights = async () => {
-    if (!selectedOrigin) {
+  const searchFlights = async (originOverride?: NonNullable<typeof selectedOrigin>) => {
+    // Accept the just-clicked suggestion directly — React state hasn't flushed
+    // yet when the dropdown auto-triggers the search (replay 019f2865 showed
+    // "repetitive clicking": select origin → nothing happens → hunt for the
+    // Search button).
+    const origin = originOverride ?? selectedOrigin;
+    if (!origin) {
       setError(t('pleaseSelectDeparture'));
       return;
     }
@@ -121,7 +126,7 @@ export default function FlightSearch({
 
     try {
       const params = new URLSearchParams({
-        origin: selectedOrigin.iataCode,
+        origin: origin.iataCode,
         destination: destinationCode,
         departureDate: tripStartDate,
         returnDate: tripEndDate,
@@ -237,6 +242,9 @@ export default function FlightSearch({
                     setOriginInput(`${loc.name} (${loc.iataCode})`);
                     setShowOriginDropdown(false);
                     setOriginSuggestions([]);
+                    // Picking a departure city IS the search intent — run it
+                    // immediately instead of making the user find the button.
+                    searchFlights(loc);
                   }}
                   className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
                 >
@@ -288,7 +296,7 @@ export default function FlightSearch({
 
         {/* Search Button */}
         <button
-          onClick={searchFlights}
+          onClick={() => searchFlights()}
           disabled={loading || !selectedOrigin}
           className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >

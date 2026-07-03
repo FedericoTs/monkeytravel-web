@@ -134,7 +134,8 @@ Rules:
 1. JSON only. "edit" is null for questions.
 2. For an edit: 3-5 activities for the day, real places in ${input.destination}, costs realistic in ${cur}. Keep "description" to a few words.
 3. "reply" is warm and concise (1-2 sentences). Never mention JSON.
-4. Only real, safe, legal travel. If the request is impossible or off-topic, set edit=null and explain kindly in "reply".`;
+4. Only real, safe, legal travel. If the request is impossible or off-topic, set edit=null and explain kindly in "reply".
+5. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.`;
 }
 
 function str(v: unknown, fallback: string): string {
@@ -207,16 +208,24 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     },
   });
 
-  const response = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
-  });
-  logCacheMetrics("ai.assistant-anon", response.response.usageMetadata);
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(response.response.text());
-  } catch {
-    throw new Error("assistant-anon: model returned non-JSON output");
+  // One retry on non-JSON output: flash-tier models occasionally emit prose or
+  // truncated JSON despite responseMimeType. Re-asking breaks the repro loop
+  // cheaply and keeps the anon assistant (the highest-traffic AI surface) from
+  // 500ing into the generic "Couldn't do that" toast that session replays show
+  // users hammering (replay 019f24bf).
+  let parsed: unknown | undefined;
+  for (let attempt = 0; attempt < 2 && parsed === undefined; attempt++) {
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
+    });
+    logCacheMetrics("ai.assistant-anon", response.response.usageMetadata);
+    try {
+      parsed = JSON.parse(response.response.text());
+    } catch {
+      if (attempt === 1) {
+        throw new Error("assistant-anon: model returned non-JSON output");
+      }
+    }
   }
   const obj = (parsed ?? {}) as Record<string, unknown>;
   const reply = str(obj.reply, "").trim();

@@ -601,11 +601,18 @@ const FALLBACK_IMAGES = [
  * Get curated image for activity type
  */
 function getCuratedImage(type: string, index: number = 0): string {
-  const images = CURATED_BY_TYPE[type.toLowerCase()];
-  if (images && images.length > 0) {
-    return images[index % images.length];
-  }
-  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+  // Widen every per-type pool with the generic scenic sets. With photo
+  // resolution OFF (cost kill-switch) the 1-2 images per type made curated
+  // fallbacks blatantly repetitive within a single trip (replay 019f24bf:
+  // "images are stock and very repetitive"). Union with the attraction +
+  // fallback pools → ~4-6 already-vetted URLs per type, zero new assets.
+  const own = CURATED_BY_TYPE[type.toLowerCase()] ?? [];
+  const widened = [
+    ...own,
+    ...(CURATED_BY_TYPE["attraction"] ?? []),
+    ...FALLBACK_IMAGES,
+  ].filter((url, i, arr) => arr.indexOf(url) === i);
+  return widened[index % widened.length] ?? FALLBACK_IMAGES[0];
 }
 
 /**
