@@ -454,6 +454,23 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // ── Step-1 dwell heartbeat (UX10X Phase 0.3) ─────────────────────────────
+  // 56% of anon step-1 abandoner sessions log exactly ONE event, so their
+  // dwell (bounce in <2s vs deliberate struggle) is unmeasurable. A 10s
+  // heartbeat while the session sits on step 1 turns single-event sessions
+  // into a measurable time series. Fire-and-forget via the existing
+  // wizard-event sink; 6/min is well under the 60/min session cap and the
+  // 10s spacing never collides with the 1s dedupe bucket (distinct rows =
+  // the dwell signal we want). Cleared on step change / unmount.
+  useEffect(() => {
+    if (step !== 1) return;
+    const id = setInterval(() => {
+      void trackWizardEvent("step1_heartbeat", { locale }, arm);
+    }, 10000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, arm]);
+
   // ── Wizard funnel diagnostics ────────────────────────────────────────────
   // Goal: pinpoint which field on /trips/new is killing the funnel. Today
   // we know 96% of sessions that view step 1 never complete it. We don't

@@ -29,6 +29,11 @@ export type FrontDoorArm = "wizard" | "decision";
 
 export type WizardEventStep =
   | "step_1_destination_dates"
+  // UX10X Phase 0.3: 10s dwell heartbeat while a session sits on step 1.
+  // 56% of step-1 abandoner sessions log exactly ONE event, making dwell
+  // (bounce vs struggle) unmeasurable — this makes it measurable. Persists as
+  // distinct rows (10s spacing never hits the 1s dedupe bucket).
+  | "step1_heartbeat"
   | "step_2_vibes"
   | "generating"
   | "result"
