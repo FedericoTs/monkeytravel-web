@@ -86,6 +86,25 @@ function getCountryFlag(countryCode: string | null): string {
   return countryFlags[countryCode.toUpperCase()] || "🌍";
 }
 
+// Inverse of countryToCode: ISO-2 code -> English country name. Used to render
+// the secondaryText for geo_cities rows (which store only the country code).
+const codeToCountryName: Record<string, string> = Object.fromEntries(
+  Object.entries(countryToCode).map(([name, code]) => [code, name])
+);
+
+// Normalize a query to match the geo_cities.search_text column (built at seed
+// time as lower + NFD-diacritic-stripped). Also drop LIKE wildcards so user
+// input can't inject `%`/`_` into the RPC's LIKE pattern.
+function normalizeForGeo(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[%_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Common destination aliases and abbreviations
  * These help users find destinations using common shorthand
@@ -318,7 +337,67 @@ export async function POST(request: NextRequest) {
       return 0;
     });
 
-    // FALLBACK PATH — when the curated DB has nothing for this query,
+    // GEO_CITIES LAYER — broaden with the population-ranked GeoNames table
+    // (~69k cities, task #372). This supersedes Photon as the primary long-tail
+    // + native-name + accented-name source: deterministic, population-ranked
+    // (Málaga ES 592k outranks Málaga CO), sub-10ms, no third-party dependency.
+    // Additive + deduped against the curated `destinations` hits above, so if it
+    // returns nothing the flow still falls through to Photon — zero regression.
+    if (predictions.length < limit) {
+      const nq = normalizeForGeo(searchTerm);
+      if (nq.length >= 2) {
+        try {
+          const { data: geo, error: geoErr } = await supabase.rpc(
+            "search_geo_cities",
+            { q: nq, lim: limit }
+          );
+          if (geoErr) {
+            console.warn("[Destinations Search] geo_cities RPC error:", geoErr.message);
+          } else if (Array.isArray(geo)) {
+            const seen = new Set(
+              predictions.map(
+                (p) =>
+                  `${p.mainText.toLowerCase()}|${(p.secondaryText || "").toLowerCase()}`
+              )
+            );
+            for (const g of geo as Array<{
+              id: number;
+              name: string;
+              country_code: string;
+              latitude: number | null;
+              longitude: number | null;
+            }>) {
+              if (predictions.length >= limit) break;
+              const countryName = codeToCountryName[g.country_code] || g.country_code;
+              const key = `${g.name.toLowerCase()}|${countryName.toLowerCase()}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              predictions.push({
+                placeId: `geo_${g.id}`,
+                mainText: g.name,
+                secondaryText: countryName,
+                fullText: `${g.name}, ${countryName}`,
+                countryCode: g.country_code,
+                flag: getCountryFlag(g.country_code),
+                types: ["(cities)"],
+                coordinates:
+                  g.latitude != null && g.longitude != null
+                    ? { latitude: g.latitude, longitude: g.longitude }
+                    : undefined,
+                source: "local" as const,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn(
+            "[Destinations Search] geo_cities query failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
+    }
+
+    // FALLBACK PATH — when both the curated DB and geo_cities have nothing,
     // hit Photon (OSM-backed, free, no-auth, fast) so users typing
     // less popular cities, towns, or villages still get real
     // suggestions instead of the "no results" panel. Without this,
