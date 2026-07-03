@@ -473,11 +473,17 @@ export interface StructuredAssistantResponse {
   summary: string;           // Brief text summary (1-2 sentences max)
   cards?: AssistantCard[];   // Optional structured cards
   action?: {
-    type: "replace_activity" | "add_activity" | "remove_activity" | "reorder" | "adjust_duration";
+    type: "replace_activity" | "add_activity" | "remove_activity" | "reorder" | "adjust_duration" | "add_day" | "apply_draft";
     applied: boolean;        // Whether the action was auto-applied
     activityId?: string;     // For replace/remove actions
     dayNumber?: number;
     newActivity?: Activity;  // For add/replace actions
+    // Structural actions (transcript-driven: "add a day to travel to Voss",
+    // pasted multi-day drafts — see lib/ai/assistant/structural.ts):
+    newDay?: ItineraryDay;   // add_day: the generated day awaiting confirm
+    newEndDate?: string;     // add_day: trips.end_date after the append
+    revisedDays?: ItineraryDay[]; // apply_draft: replacement days
+    dayCount?: number;       // apply_draft: how many days changed (badge "{count} days updated")
   };
 }
 

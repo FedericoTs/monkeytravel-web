@@ -23,6 +23,9 @@ interface Message {
     // Set from the /apply response's action metadata so the badge can name
     // the activity without ever parsing model prose.
     activityName?: string;
+    // apply_draft: number of revised days — drives the "{count} days
+    // updated" badge (metadata-derived, like everything else here).
+    dayCount?: number;
   };
   timestamp: string;
   // Client-generated notes (cancel/undo confirmations) that never hit the
@@ -71,10 +74,12 @@ const QUICK_ACTION_IDS = [
 // ---------------------------------------------------------------------------
 
 /** Map action types onto badge variants. Handles BOTH server unions: the
- *  POST route's `*_activity` types and the /apply route's short types. */
+ *  POST route's `*_activity` types and the /apply route's short types.
+ *  add_day / apply_draft are the structural actions (same type string on
+ *  both routes). */
 function actionBadgeVariant(
   type: string | undefined
-): "replaced" | "added" | "removed" | "rescheduled" | "durationAdjusted" | null {
+): "replaced" | "added" | "removed" | "rescheduled" | "durationAdjusted" | "dayAdded" | "daysUpdated" | null {
   switch (type) {
     case "replace":
     case "replace_activity":
@@ -89,6 +94,10 @@ function actionBadgeVariant(
       return "rescheduled";
     case "adjust_duration":
       return "durationAdjusted";
+    case "add_day":
+      return "dayAdded";
+    case "apply_draft":
+      return "daysUpdated";
     default:
       return null;
   }
@@ -380,10 +389,17 @@ export default function AIAssistantEnhanced({
       // {oldActivity,newActivity} for adjust_duration/reorder returns 400
       // ("Missing activity/newDuration" / "Missing activities"). Build the
       // exact payload the route expects for each discriminant.
+      //
+      // apply_draft spans several days and has no single dayNumber — the
+      // route (and the focus/badge below) key on the FIRST changed day.
+      const appliedDayNumber =
+        pendingChange.type === "apply_draft"
+          ? pendingChange.changedDayNumbers[0] ?? 1
+          : pendingChange.dayNumber;
       const applyBody: Record<string, unknown> = {
         tripId,
         changeType: pendingChange.type,
-        dayNumber: pendingChange.dayNumber,
+        dayNumber: appliedDayNumber,
       };
       if (pendingChange.type === "replace") {
         applyBody.oldActivity = pendingChange.oldActivity;
@@ -396,6 +412,10 @@ export default function AIAssistantEnhanced({
         applyBody.newDuration = pendingChange.newDuration;
       } else if (pendingChange.type === "reorder") {
         applyBody.activities = pendingChange.activities;
+      } else if (pendingChange.type === "add_day") {
+        applyBody.day = pendingChange.day;
+      } else if (pendingChange.type === "apply_draft") {
+        applyBody.days = pendingChange.days;
       }
 
       const res = await fetch("/api/ai/assistant/apply", {
@@ -415,7 +435,14 @@ export default function AIAssistantEnhanced({
       // message so the deterministic badge is rendered from the logged
       // action, never from the model's narration (one transcript narrated
       // "a new Day 12" while the logged action was Day 1).
-      const appliedDayNumber = pendingChange.dayNumber;
+      //
+      // add_day recomputes its day number server-side against the STORED
+      // trip (a stale preview must not append a duplicate day_number), so
+      // prefer the /apply response's dayNumber when present.
+      const confirmedDayNumber =
+        typeof data.action?.dayNumber === "number"
+          ? data.action.dayNumber
+          : appliedDayNumber;
       setMessages((prev) =>
         prev.map((msg, idx) =>
           idx === prev.length - 1 && msg.role === "assistant"
@@ -425,9 +452,14 @@ export default function AIAssistantEnhanced({
                   type: msg.action?.type ?? pendingChange.type,
                   activityId: msg.action?.activityId,
                   applied: true,
-                  dayNumber: appliedDayNumber,
+                  dayNumber: confirmedDayNumber,
                   activityName:
                     msg.action?.activityName ?? data.action?.activityName,
+                  // "{count} days updated" badge for the bulk draft action
+                  dayCount:
+                    pendingChange.type === "apply_draft"
+                      ? pendingChange.days.length
+                      : msg.action?.dayCount,
                 },
               }
             : msg
@@ -442,7 +474,9 @@ export default function AIAssistantEnhanced({
           ? pendingChange.newActivity.name
           : pendingChange.type === "adjust_duration"
             ? pendingChange.activity.name
-            : undefined;
+            : pendingChange.type === "add_day"
+              ? pendingChange.day.theme
+              : undefined;
       const undoDescription =
         pendingChange.type === "replace"
           ? `Replaced with ${changedName}`
@@ -450,16 +484,26 @@ export default function AIAssistantEnhanced({
             ? `Added ${changedName}`
             : pendingChange.type === "adjust_duration"
               ? `Adjusted ${changedName}`
-              : `Reordered Day ${pendingChange.dayNumber}`;
+              : pendingChange.type === "add_day"
+                ? `Added Day ${confirmedDayNumber}`
+                : pendingChange.type === "apply_draft"
+                  ? `Updated ${pendingChange.days.length} days`
+                  : `Reordered Day ${pendingChange.dayNumber}`;
 
       // Set up undo
       pushUndo({
         previousItinerary,
+        // add_day also extended trips.end_date — the undo must restore it
+        // together with the itinerary (see /api/ai/assistant/undo).
+        previousEndDate:
+          pendingChange.type === "add_day"
+            ? pendingChange.previousEndDate
+            : undefined,
         action: {
           type: pendingChange.type,
           description: undoDescription,
           activityName: changedName,
-          dayNumber: pendingChange.dayNumber,
+          dayNumber: confirmedDayNumber,
         },
       });
 
@@ -480,8 +524,9 @@ export default function AIAssistantEnhanced({
         await onRefetchTrip();
       }
       // APPLY → SEE loop: scroll + flash the day card that just changed
-      // (transcripts: "I don't see it on the right").
-      onFocusDay?.(appliedDayNumber);
+      // (transcripts: "I don't see it on the right"). For apply_draft this
+      // is the FIRST changed day; for add_day the freshly appended one.
+      onFocusDay?.(confirmedDayNumber);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to apply change");
     } finally {
@@ -539,6 +584,8 @@ export default function AIAssistantEnhanced({
         body: JSON.stringify({
           tripId,
           previousItinerary: currentUndo.previousItinerary,
+          // add_day undos also roll trips.end_date back (see /undo route)
+          previousEndDate: currentUndo.previousEndDate,
         }),
       });
 
@@ -740,14 +787,25 @@ export default function AIAssistantEnhanced({
                           typeof message.action.dayNumber === "number"
                             ? message.action.dayNumber
                             : undefined;
-                        // No single activity name for a reorder — the /apply
-                        // route fills a "Schedule" placeholder there; skip it.
+                        // No single activity name for a reorder or a bulk
+                        // draft revision — the /apply route fills placeholder
+                        // names there ("Schedule"); skip them. dayAdded keeps
+                        // the name (the /apply action carries the day theme).
                         const name =
-                          variant === "rescheduled" ? undefined : actionActivityName(message);
+                          variant === "rescheduled" || variant === "daysUpdated"
+                            ? undefined
+                            : actionActivityName(message);
+                        // daysUpdated is count-based ("{count} days updated");
+                        // its dayNumber (first affected day) still powers the
+                        // click-to-focus below.
                         const label =
-                          day !== undefined && variant
-                            ? t(`actionBadge.${variant}`, { day })
-                            : t("actionBadge.updatedGeneric");
+                          variant === "daysUpdated"
+                            ? typeof message.action.dayCount === "number"
+                              ? t("actionBadge.daysUpdated", { count: message.action.dayCount })
+                              : t("actionBadge.updatedGeneric")
+                            : day !== undefined && variant
+                              ? t(`actionBadge.${variant}`, { day })
+                              : t("actionBadge.updatedGeneric");
                         return (
                           <button
                             type="button"

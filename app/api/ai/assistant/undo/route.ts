@@ -7,6 +7,10 @@ import { recordAiOutcome } from "@/lib/ai/observability";
 interface UndoRequest {
   tripId: string;
   previousItinerary: ItineraryDay[];
+  // Set when undoing an add_day: the append also extended trips.end_date,
+  // so the undo must restore BOTH in the same write or the trip ends a day
+  // after its own itinerary.
+  previousEndDate?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -17,11 +21,17 @@ export async function POST(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     const body: UndoRequest = await request.json();
-    const { tripId, previousItinerary } = body;
+    const { tripId, previousItinerary, previousEndDate } = body;
 
     if (!tripId || !previousItinerary) {
       return errors.badRequest("Missing tripId or previousItinerary");
     }
+
+    // Light shape check — only a YYYY-MM-DD-ish string may touch end_date.
+    const restoreEndDate =
+      typeof previousEndDate === "string" && /^\d{4}-\d{2}-\d{2}/.test(previousEndDate)
+        ? previousEndDate.slice(0, 10)
+        : null;
 
     // Verify the trip belongs to the user
     const { data: trip, error: tripError } = await supabase
@@ -35,11 +45,12 @@ export async function POST(request: NextRequest) {
       return errors.notFound("Trip not found");
     }
 
-    // Restore the previous itinerary
+    // Restore the previous itinerary (and, for add_day undos, the end date)
     const { error: updateError } = await supabase
       .from("trips")
       .update({
         itinerary: previousItinerary,
+        ...(restoreEndDate ? { end_date: restoreEndDate } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);

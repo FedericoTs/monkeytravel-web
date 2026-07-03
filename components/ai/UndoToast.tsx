@@ -8,6 +8,9 @@ import type { ItineraryDay } from "@/types";
 interface UndoState {
   id: string;
   previousItinerary: ItineraryDay[];
+  // Set for add_day undos: the append also extended trips.end_date, so the
+  // undo request must carry the pre-append value to restore both at once.
+  previousEndDate?: string;
   action: {
     // Display discriminator only — getActionConfig() takes a string and has a
     // default case, so any change type (incl. adjust_duration / reorder from

@@ -2,7 +2,18 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { logCacheMetrics } from "@/lib/gemini";
+import {
+  logCacheMetrics,
+  regenerateSingleDay,
+  validateAndFixCoordinates,
+} from "@/lib/gemini";
+import {
+  detectStructuralIntent,
+  normalizeDraftDays,
+  nextDateISO,
+  computeExtendedEndDate,
+  MAX_TRIP_DAYS,
+} from "@/lib/ai/assistant/structural";
 import { cookies } from "next/headers";
 import {
   classifyTask,
@@ -22,6 +33,7 @@ import type {
   Activity,
   AssistantCard,
   StructuredAssistantResponse,
+  TripVibe,
 } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import {
@@ -90,6 +102,9 @@ interface AssistantMessage {
     applied: boolean;
     activityId?: string;
     dayNumber?: number;
+    // apply_draft: number of days revised — the client badge renders
+    // "{count} days updated" from this (metadata, never model prose).
+    dayCount?: number;
   };
   timestamp: string;
 }
@@ -894,9 +909,19 @@ export async function POST(request: NextRequest) {
       activityCount: itinerary.reduce((sum, day) => sum + day.activities.length, 0),
     };
 
-    // Detect if user wants to modify activities
-    const actionIntent = detectActionIntent(message);
-    console.log(`[AI Assistant] Action intent: ${JSON.stringify(actionIntent)}`);
+    // STRUCTURAL intents first (add_day / apply_draft) — they must outrank
+    // the single-activity patterns: the legacy `lowerMsg.includes("add ")`
+    // fallback is what turned "can you add a day to travel to Voss" into an
+    // add-activity landing on Day 1 (transcript, 2026-07). See
+    // lib/ai/assistant/structural.ts for the heuristics + evidence.
+    const structuralIntent = detectStructuralIntent(message);
+    const actionIntent =
+      structuralIntent.type === "none"
+        ? detectActionIntent(message)
+        : ({ type: "none" } as ReturnType<typeof detectActionIntent>);
+    console.log(
+      `[AI Assistant] Structural intent: ${structuralIntent.type}; action intent: ${JSON.stringify(actionIntent)}`
+    );
 
     // Deep clone the itinerary to avoid reference issues
     let modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
@@ -1427,6 +1452,279 @@ Return ONLY a JSON array with the optimal order of activity indices:
       }
     }
 
+    // Structural no-op note (cap reached, nothing mappable, …) — injected
+    // into the model prompt so the reply explains kindly instead of the
+    // generic "it failed" framing replacementError produces.
+    let structuralNote: string | undefined;
+    // apply_draft: current day numbers the draft did not cover (they stay
+    // untouched and the reply must say so).
+    let draftUnmappedDayNumbers: number[] = [];
+
+    // Handle ADD_DAY (structural): append ONE new day after the last one.
+    // Transcript evidence (2026-07): "can you add a day to travel to Voss" —
+    // the old pipeline narrated "extended with a new Day 12" while the
+    // logged action was {type: add_activity, dayNumber: 1}. This path
+    // proposes a real Day N+1 (confirm-first) and moves the trip's end date
+    // together with the itinerary on apply.
+    if (structuralIntent.type === "add_day") {
+      const currentDayCount = modifiedItinerary.length;
+      const requestedTotal = structuralIntent.requestedTotalDays;
+
+      if (currentDayCount === 0) {
+        replacementError = "This trip has no itinerary days yet, so there is nothing to extend";
+      } else if (
+        currentDayCount >= MAX_TRIP_DAYS ||
+        (requestedTotal !== undefined && requestedTotal > MAX_TRIP_DAYS)
+      ) {
+        // HARD CAP — mirrors the generation-side 14-day limit
+        // (lib/gemini.ts validateTripDuration). No action taken.
+        structuralNote = `The user asked to extend the trip${requestedTotal ? ` to ${requestedTotal} days` : ""}, but trips are capped at ${MAX_TRIP_DAYS} days${currentDayCount >= MAX_TRIP_DAYS ? ` and this trip already has ${currentDayCount}` : ""}. NO change was made. Kindly explain the ${MAX_TRIP_DAYS}-day maximum and suggest alternatives (freeing up a lighter day, or planning the extra days as a second trip).`;
+      } else if (requestedTotal !== undefined && requestedTotal <= currentDayCount) {
+        structuralNote = `The user asked for a ${requestedTotal}-day trip but this trip already has ${currentDayCount} days. NO change was made. Explain that, and that removing days isn't supported from chat yet.`;
+      } else {
+        console.log(`[AI Assistant] Attempting to add Day ${currentDayCount + 1}`);
+        try {
+          const lastDay = modifiedItinerary[currentDayCount - 1];
+          const newDayNumber = (lastDay.day_number || currentDayCount) + 1;
+          const newDate = nextDateISO([lastDay.date, trip.end_date]);
+          if (!newDate) {
+            throw new Error("Could not derive a date for the new day");
+          }
+
+          // Trip context mirrors /api/ai/regenerate-day: budget tier from
+          // the budget column, vibes inferred from tags, travel style from
+          // trip_meta (a backpacker trip must not grow a classic day).
+          const budgetTier = (((trip.budget as { tier?: string } | null)?.tier ??
+            "balanced") as "budget" | "balanced" | "premium");
+          const tags = (trip.tags as string[] | null) ?? [];
+          const vibes = tags.filter((t): t is TripVibe =>
+            ["adventure", "cultural", "foodie", "wellness", "romantic", "urban", "nature", "offbeat", "wonderland", "movie-magic", "fairytale", "retro"].includes(t)
+          );
+          const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+
+          // Reuses the single-day generation contract — day shape, activity
+          // IDs via generateActivityId, coordinate backfill via
+          // validateAndFixCoordinates all happen inside regenerateSingleDay
+          // (lib/gemini.ts). The user's message steers the day's content
+          // ("… a day to travel to Voss" → that's the theme).
+          const newDay = await regenerateSingleDay({
+            destination: lastDay.city || tripContext.destination, // multi-city: stay in the last day's city
+            dayNumber: newDayNumber,
+            date: newDate,
+            budgetTier,
+            pace: "moderate",
+            vibes,
+            surroundingDays: modifiedItinerary,
+            instructions: message.slice(0, 500),
+            travelStyle: tripMeta.travel_style === "backpacker" ? "backpacker" : "classic",
+            language: userLanguage,
+            userId: user.id,
+          });
+          if (lastDay.city && !newDay.city) newDay.city = lastDay.city;
+
+          const newEndDate = computeExtendedEndDate(trip.end_date, newDate) ?? undefined;
+
+          modifiedItinerary.push(newDay);
+          itineraryWasModified = true;
+
+          actionTaken = {
+            type: "add_day",
+            applied: true,
+            dayNumber: newDayNumber,
+            newDay,
+            newEndDate,
+          };
+
+          if (previewMode) {
+            console.log(`[AI Assistant] Preview mode: Prepared new Day ${newDayNumber} for confirmation`);
+            itineraryWasModified = false;
+          } else {
+            // Auto-apply mode: end_date moves in the SAME write as the
+            // itinerary — a +1-day itinerary with a stale end date is
+            // exactly the inconsistency the trust loop exists to prevent.
+            const { error: updateError } = await supabase
+              .from("trips")
+              .update({
+                itinerary: modifiedItinerary,
+                ...(newEndDate ? { end_date: newEndDate } : {}),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", tripId);
+
+            if (updateError) {
+              console.error("[AI Assistant] Database update failed:", updateError);
+              replacementError = "Failed to save the new day to database";
+              itineraryWasModified = false;
+              actionTaken = undefined;
+            } else {
+              console.log(`[AI Assistant] Added Day ${newDayNumber}, end date → ${newEndDate ?? trip.end_date}`);
+            }
+          }
+        } catch (err) {
+          console.error("[AI Assistant] Failed to generate new day:", err);
+          replacementError = `Failed to generate the new day: ${err instanceof Error ? err.message : "Unknown error"}`;
+          actionTaken = undefined;
+        }
+      }
+    }
+
+    // Handle APPLY_DRAFT (structural): the user pasted a multi-day plan.
+    // Transcript evidence (2026-07): three different users pasted full
+    // drafts — "rearrange as per my own draft", "update all days according
+    // to my input" — and the single-activity tools could only mangle them.
+    // Maps the draft onto the CURRENT trip length and proposes ONE bulk
+    // multi-day edit. Never changes trip length (that's add_day's job).
+    if (structuralIntent.type === "apply_draft") {
+      if (modifiedItinerary.length === 0) {
+        replacementError = "This trip has no itinerary days yet, so there is nothing to revise";
+      } else {
+        console.log(`[AI Assistant] Attempting to map pasted draft onto ${modifiedItinerary.length} days`);
+        try {
+          // assistant-optimize → gemini-2.5-flash (same purpose class as
+          // day optimization: reasoning over the whole trip structure).
+          const draftModel = genAI.getGenerativeModel({
+            model: getModelForPurpose("assistant-optimize"),
+            generationConfig: {
+              temperature: 0.4,
+              // Up to 14 revised days — far beyond the optimize call's needs.
+              maxOutputTokens: 16384,
+              responseMimeType: "application/json",
+            },
+          });
+
+          const currentDaysCompact = modifiedItinerary.map((d) => ({
+            day_number: d.day_number,
+            date: d.date,
+            ...(d.city ? { city: d.city } : {}),
+            theme: d.theme || "",
+            activities: d.activities.map((a) => ({
+              name: a.name,
+              start_time: a.start_time,
+              duration_minutes: a.duration_minutes,
+              type: a.type,
+              location: a.location,
+            })),
+          }));
+
+          const draftPrompt = `You are revising a ${modifiedItinerary.length}-day trip itinerary for ${tripContext.destination} according to a draft plan the user pasted.${getLanguageInstruction(userLanguage)}
+
+CURRENT ITINERARY (day_number and date are FIXED):
+${JSON.stringify(currentDaysCompact, null, 1)}
+
+USER'S MESSAGE (their draft/instructions):
+${message}
+
+Map the user's draft onto the CURRENT days. Rules:
+1. Only use existing day_numbers (1-${modifiedItinerary.length}). NEVER invent new days or change dates.
+2. Return ONLY the days the draft actually covers — days you cannot confidently map stay untouched (list them in unmappedDayNumbers).
+3. When the draft references an activity that already exists in the itinerary, reuse its EXACT current name so it can be re-linked.
+4. Each revised day needs 2-6 activities with realistic times, in the user's requested order.
+5. If the message is NOT actually a revised plan (e.g. just a question that mentions several days), return {"revisedDays": [], "unmappedDayNumbers": [], "note": "not a draft"}.
+
+Return ONLY valid JSON:
+{
+  "revisedDays": [
+    {
+      "day_number": 1,
+      "theme": "Short theme for the day",
+      "activities": [
+        {
+          "name": "Real Place Name",
+          "type": "attraction",
+          "description": "2-3 sentence description",
+          "location": "Neighborhood",
+          "address": "Street address if known",
+          "start_time": "09:00",
+          "duration_minutes": 120,
+          "estimated_cost": { "amount": 20, "currency": "EUR", "tier": "moderate" },
+          "tips": ["One tip"],
+          "booking_required": false
+        }
+      ]
+    }
+  ],
+  "unmappedDayNumbers": [4, 5],
+  "note": "One short sentence on anything you could not map"
+}`;
+
+          const draftResult = await draftModel.generateContent(draftPrompt);
+          const draftText = draftResult.response.text();
+
+          // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). The
+          // draft prompt is per-user content-heavy, so expect ~0% hits —
+          // logged anyway so the call site shows up in cost dashboards.
+          logCacheMetrics("ai.assistant.apply_draft", draftResult.response.usageMetadata);
+
+          const draftJson = draftText.match(/\{[\s\S]*\}/);
+          if (!draftJson) {
+            throw new Error("Draft mapping returned no JSON");
+          }
+          const parsedDraft = JSON.parse(draftJson[0]) as {
+            revisedDays?: unknown;
+            note?: string;
+          };
+
+          // Pure validation/normalization (day_number whitelist, pinned
+          // date/city, id carryover by name, generateActivityId for new
+          // ones) — see lib/ai/assistant/structural.ts.
+          const normalized = normalizeDraftDays(parsedDraft.revisedDays, itinerary);
+
+          if (normalized.days.length === 0) {
+            structuralNote = "The user's message looked like a pasted multi-day draft, but none of its days could be mapped onto the current trip. NO change was made. Ask them to label days as 'Day 1', 'Day 2', … matching the trip's current days.";
+          } else {
+            // Same coordinate backfill the generators use (lib/gemini.ts).
+            const fixedDays = validateAndFixCoordinates(
+              normalized.days,
+              tripContext.destination
+            );
+            for (const day of fixedDays) {
+              const idx = modifiedItinerary.findIndex(
+                (d) => d.day_number === day.day_number
+              );
+              if (idx !== -1) modifiedItinerary[idx] = day;
+            }
+            itineraryWasModified = true;
+            draftUnmappedDayNumbers = normalized.unmappedDayNumbers;
+
+            actionTaken = {
+              type: "apply_draft",
+              applied: true,
+              dayNumber: normalized.changedDayNumbers[0],
+              dayCount: normalized.changedDayNumbers.length,
+              revisedDays: fixedDays,
+            };
+
+            if (previewMode) {
+              console.log(`[AI Assistant] Preview mode: Prepared draft revision of days ${normalized.changedDayNumbers.join(", ")}`);
+              itineraryWasModified = false;
+            } else {
+              // Auto-apply mode: all revised days persist in ONE write.
+              const { error: updateError } = await supabase
+                .from("trips")
+                .update({
+                  itinerary: modifiedItinerary,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", tripId);
+
+              if (updateError) {
+                console.error("[AI Assistant] Database update failed:", updateError);
+                replacementError = "Failed to save the revised days to database";
+                itineraryWasModified = false;
+                actionTaken = undefined;
+              } else {
+                console.log(`[AI Assistant] Applied draft to days ${normalized.changedDayNumbers.join(", ")}`);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("[AI Assistant] Failed to map draft:", err);
+          replacementError = `Failed to map your draft onto the trip: ${err instanceof Error ? err.message : "Unknown error"}`;
+          actionTaken = undefined;
+        }
+      }
+    }
+
     // Load conversation
     let conversation: { id: string; messages: AssistantMessage[] };
 
@@ -1478,6 +1776,28 @@ IMPORTANT: I have already added "${ac.activity.name}" to Day ${ac.dayNumber} of 
 Include the activity_suggestion card in your response and confirm the activity was added.
 The change has been saved to the database and will appear in the itinerary.`;
       }
+    } else if (actionTaken?.type === "add_day" && actionTaken.newDay) {
+      // Structural: the summary must match the metadata — one transcript
+      // reply narrated "a new Day 12" while the logged action was Day 1.
+      const nd = actionTaken.newDay;
+      actionContext = previewMode
+        ? `
+IMPORTANT: I have PREPARED a new Day ${actionTaken.dayNumber} (${nd.date}${nd.theme ? `, theme: "${nd.theme}"` : ""}) with: ${nd.activities.map((a) => a.name).join(", ")}. It extends the trip by one day and is awaiting the user's confirmation below. Briefly describe the proposed day and tell them to review and confirm it — do NOT claim it was already added.`
+        : `
+IMPORTANT: I have already added Day ${actionTaken.dayNumber} (${nd.date}) to the itinerary and extended the trip's end date. Confirm the change was made.`;
+    } else if (actionTaken?.type === "apply_draft") {
+      const changed = (actionTaken.revisedDays ?? []).map((d) => d.day_number).join(", ");
+      const untouched = draftUnmappedDayNumbers.length > 0
+        ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be mapped from the draft and stay UNCHANGED — say so explicitly.`
+        : "";
+      actionContext = previewMode
+        ? `
+IMPORTANT: I have PREPARED revised plans for Day(s) ${changed} based on the user's pasted draft. They are awaiting the user's confirmation below — summarize what changes and tell them to review and confirm. Do NOT claim the days were already updated.${untouched}`
+        : `
+IMPORTANT: I have already updated Day(s) ${changed} from the user's pasted draft and saved them.${untouched}`;
+    } else if (structuralNote) {
+      actionContext = `
+NOTE: ${structuralNote}`;
     } else if (replacementError) {
       actionContext = `
 NOTE: The user tried to modify the itinerary, but it failed: ${replacementError}
@@ -1528,6 +1848,12 @@ Respond with valid JSON only.`;
     if (replacementCard) {
       parsedResponse.cards = [replacementCard, ...(parsedResponse.cards || [])];
       parsedResponse.action = actionTaken;
+    } else if (actionTaken) {
+      // Structural actions (add_day / apply_draft) carry no chat card —
+      // their confirm-first UI is the client's PendingChange card — but the
+      // action metadata must still ride the message: it drives the
+      // deterministic badge and the persisted history.
+      parsedResponse.action = actionTaken;
     }
 
     // Estimate tokens and cost
@@ -1567,6 +1893,7 @@ Respond with valid JSON only.`;
         applied: parsedResponse.action.applied,
         activityId: parsedResponse.action.activityId,
         dayNumber: parsedResponse.action.dayNumber,
+        dayCount: parsedResponse.action.dayCount,
       } : undefined,
       timestamp: new Date().toISOString(),
     };
@@ -1631,6 +1958,25 @@ Respond with valid JSON only.`;
           dayNumber: rc.dayNumber,
           activities: rc.activities,
           reason: rc.reason || "Optimized schedule for better flow",
+        };
+      } else if (actionTaken.type === "add_day" && actionTaken.newDay) {
+        pendingChange = {
+          type: "add_day" as const,
+          day: actionTaken.newDay,
+          dayNumber: actionTaken.dayNumber,
+          newEndDate: actionTaken.newEndDate,
+          // Threaded through the client's undo state so undoing the append
+          // restores end_date together with the itinerary (see /undo).
+          previousEndDate: trip.end_date as string | undefined,
+          reason: "New day appended from your request",
+        };
+      } else if (actionTaken.type === "apply_draft" && actionTaken.revisedDays) {
+        pendingChange = {
+          type: "apply_draft" as const,
+          days: actionTaken.revisedDays,
+          changedDayNumbers: actionTaken.revisedDays.map((d) => d.day_number),
+          unmappedDayNumbers: draftUnmappedDayNumbers,
+          reason: "Mapped from your pasted draft",
         };
       }
     }

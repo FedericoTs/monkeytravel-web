@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import type { Activity } from "@/types";
+import type { Activity, ItineraryDay } from "@/types";
 import { MiniActivityCard } from "./AssistantCards";
 
 /**
@@ -10,10 +10,14 @@ import { MiniActivityCard } from "./AssistantCards";
  *
  * Mirrors EXACTLY what `POST /api/ai/assistant` returns in `pendingChange`
  * when `previewMode: true` (see app/api/ai/assistant/route.ts ~1585-1631).
- * Discriminated union on `type` — only these four are ever produced in
+ * Discriminated union on `type` — only these six are ever produced in
  * preview mode (there is no `remove` preview path server-side). Keeping the
  * type here (the card is the primary consumer) avoids a circular import with
  * AIAssistantEnhanced, which imports it from this file.
+ *
+ * add_day / apply_draft are the STRUCTURAL actions (transcripts 2026-07:
+ * "can you add a day to travel to Voss"; users pasting whole multi-day
+ * drafts — "rearrange as per my own draft").
  */
 export type PendingChange =
   | {
@@ -41,6 +45,26 @@ export type PendingChange =
       type: "reorder";
       dayNumber: number;
       activities: { id: string; name: string; time: string; timeSlot: string }[];
+      reason?: string;
+    }
+  | {
+      type: "add_day";
+      /** The fully generated new day (IDs + coordinates already stamped). */
+      day: ItineraryDay;
+      dayNumber: number;
+      /** trips.end_date after the append (moves in the same /apply write). */
+      newEndDate?: string;
+      /** end_date before the append — powers a consistent undo. */
+      previousEndDate?: string;
+      reason?: string;
+    }
+  | {
+      type: "apply_draft";
+      /** Revised replacement days, persisted in ONE /apply write. */
+      days: ItineraryDay[];
+      changedDayNumbers: number[];
+      /** Current days the draft didn't cover — they stay untouched. */
+      unmappedDayNumbers?: number[];
       reason?: string;
     };
 
@@ -88,7 +112,12 @@ export default function PreviewChangeCard({
           </div>
           <div className="flex-1">
             <span className="text-sm font-semibold text-slate-800">{t("suggestedChange")}</span>
-            <span className="text-xs text-slate-500 ml-2">{t("day", { number: change.dayNumber })}</span>
+            <span className="text-xs text-slate-500 ml-2">
+              {/* apply_draft spans several days — no single day chip */}
+              {change.type === "apply_draft"
+                ? t("daysCount", { count: change.days.length })
+                : t("day", { number: change.dayNumber })}
+            </span>
           </div>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
             {t("previewBadge")}
@@ -178,6 +207,61 @@ export default function PreviewChangeCard({
               </li>
             ))}
           </ol>
+        )}
+
+        {/* ADD_DAY: the proposed new day — theme, its activities, and the
+            new trip end date (the append moves trips.end_date on apply) */}
+        {change.type === "add_day" && (
+          <div className="space-y-2">
+            {change.day.theme && (
+              <div className="text-sm font-medium text-slate-800">{change.day.theme}</div>
+            )}
+            <ol className="space-y-1.5 ring-2 ring-emerald-400/30 rounded-xl p-1.5">
+              {change.day.activities.map((a, i) => (
+                <li
+                  key={a.id || `${a.name}-${i}`}
+                  className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                >
+                  {a.start_time && (
+                    <span className="text-xs font-mono text-slate-400 flex-shrink-0">{a.start_time}</span>
+                  )}
+                  <span className="text-sm text-slate-700 truncate">{a.name}</span>
+                </li>
+              ))}
+            </ol>
+            {change.newEndDate && (
+              <p className="text-[11px] text-slate-500">
+                {t("tripExtendedTo", { date: change.newEndDate })}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* APPLY_DRAFT: compact per-day summary — one confirm for the set */}
+        {change.type === "apply_draft" && (
+          <div className="space-y-1.5">
+            {change.days.map((d) => (
+              <div
+                key={d.day_number}
+                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
+              >
+                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[11px] font-semibold flex-shrink-0">
+                  {t("day", { number: d.day_number })}
+                </span>
+                <span className="text-sm text-slate-700 truncate flex-1">
+                  {d.theme || t("modifying")}
+                </span>
+                <span className="text-xs text-slate-400 flex-shrink-0">
+                  {t("activitiesCount", { count: d.activities.length })}
+                </span>
+              </div>
+            ))}
+            {(change.unmappedDayNumbers?.length ?? 0) > 0 && (
+              <p className="text-[11px] text-slate-500">
+                {t("unmappedDays", { days: change.unmappedDayNumbers!.join(", ") })}
+              </p>
+            )}
+          </div>
         )}
 
         {/* Reason — common to all types */}

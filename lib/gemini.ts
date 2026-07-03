@@ -464,8 +464,11 @@ const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number }> = {
 /**
  * Validate and fix coordinates for all activities in the itinerary
  * If coordinates are missing, uses destination-based fallback with small random offset
+ *
+ * Exported for the assistant's apply_draft path (app/api/ai/assistant) so
+ * bulk-revised days get the same coordinate backfill as generated ones.
  */
-function validateAndFixCoordinates(days: ItineraryDay[], destination: string): ItineraryDay[] {
+export function validateAndFixCoordinates(days: ItineraryDay[], destination: string): ItineraryDay[] {
   // Try to find destination coordinates
   const destLower = destination.toLowerCase();
   let destCoords = DESTINATION_COORDINATES[destLower];

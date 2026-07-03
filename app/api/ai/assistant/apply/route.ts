@@ -3,10 +3,16 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import { ensureActivityIds } from "@/lib/utils/activity-id";
+import {
+  MAX_TRIP_DAYS,
+  nextDateISO,
+  computeExtendedEndDate,
+} from "@/lib/ai/assistant/structural";
 
 interface ApplyChangeRequest {
   tripId: string;
-  changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder";
+  changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "add_day" | "apply_draft";
   oldActivity?: Activity;
   newActivity?: Activity;
   dayNumber: number;
@@ -16,6 +22,12 @@ interface ApplyChangeRequest {
   newDuration?: number;
   // For reorder
   activities?: { id: string; name: string; time: string; timeSlot: string }[];
+  // For add_day (structural — transcript: "can you add a day to travel to
+  // Voss"): the fully generated day proposed in preview.
+  day?: ItineraryDay;
+  // For apply_draft (structural — users pasting whole multi-day drafts):
+  // the revised replacement days, persisted in ONE write.
+  days?: ItineraryDay[];
 }
 
 export async function POST(request: NextRequest) {
@@ -31,7 +43,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return errors.badRequest("Body must be valid JSON");
     }
-    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities } = body;
+    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days } = body;
 
     // Validate based on change type.
     // Bug-bounty 2026-05-24 P1: `!dayNumber` rejected `dayNumber === 0`
@@ -54,6 +66,14 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("Missing activities for reorder operation");
     }
 
+    if (changeType === "add_day" && (!day || !Array.isArray(day.activities) || day.activities.length === 0)) {
+      return errors.badRequest("Missing day (with activities) for add_day operation");
+    }
+
+    if (changeType === "apply_draft" && (!Array.isArray(days) || days.length === 0)) {
+      return errors.badRequest("Missing days for apply_draft operation");
+    }
+
     // Fetch current trip
     const { data: trip, error: tripError } = await supabase
       .from("trips")
@@ -69,7 +89,9 @@ export async function POST(request: NextRequest) {
     const itinerary = (trip.itinerary || []) as ItineraryDay[];
     const dayIndex = dayNumber - 1;
 
-    if (dayIndex < 0 || dayIndex >= itinerary.length) {
+    // add_day APPENDS: its dayNumber sits one past the current end by
+    // design, so the in-range check below would always reject it.
+    if (changeType !== "add_day" && (dayIndex < 0 || dayIndex >= itinerary.length)) {
       return errors.badRequest("Invalid day number");
     }
 
@@ -170,11 +192,82 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Assistant Apply] Reordered Day ${dayNumber} with ${reorderedActivities.length} activities`);
     }
 
+    // Structural results threaded into the update + response below.
+    let newEndDate: string | null = null;
+    let appliedDayNumber = dayNumber;
+    let daysUpdatedCount: number | undefined;
+    let structuralName: string | undefined;
+
+    if (changeType === "add_day" && day) {
+      // Re-validate against the STORED trip (not the preview snapshot):
+      // cap first — the 14-day platform maximum must hold even if the
+      // itinerary grew between preview and confirm.
+      if (modifiedItinerary.length >= MAX_TRIP_DAYS) {
+        return errors.badRequest(`Trip is already at the ${MAX_TRIP_DAYS}-day maximum`);
+      }
+
+      const lastDay = modifiedItinerary[modifiedItinerary.length - 1];
+      const lastNumber = lastDay?.day_number ?? modifiedItinerary.length;
+      // Recompute number/date server-side so a stale preview can't append
+      // a duplicate day_number or a gap in the date sequence.
+      const appended: ItineraryDay = {
+        ...day,
+        day_number: lastNumber + 1,
+      };
+      const recomputedDate = nextDateISO([lastDay?.date, trip.end_date as string | undefined]);
+      if (recomputedDate) appended.date = recomputedDate;
+      if (lastDay?.city && !appended.city) appended.city = lastDay.city;
+
+      modifiedItinerary.push(appended);
+      appliedDayNumber = appended.day_number;
+      // Badge name: the day's theme reads best ("Day 12 added · Fjord day");
+      // fall back to the first activity so it never says "Schedule".
+      structuralName = appended.theme || appended.activities[0]?.name;
+      // The trips row's end date extends together with the itinerary — in
+      // the SAME write (below), never as a second call that can half-fail.
+      newEndDate = computeExtendedEndDate(trip.end_date as string | undefined, appended.date);
+      console.log(`[AI Assistant Apply] Appending Day ${appended.day_number} (${appended.date}), end_date → ${newEndDate ?? "unchanged"}`);
+    } else if (changeType === "apply_draft" && days) {
+      // Replace matching days in place; days the draft didn't cover stay
+      // untouched. No length change here by contract (that's add_day).
+      const indexByNumber = new Map(modifiedItinerary.map((d, i) => [d.day_number, i] as const));
+      let updated = 0;
+      for (const revised of days) {
+        const idx = indexByNumber.get(revised?.day_number);
+        if (idx === undefined) continue; // unknown day — skip, never grow
+        // Identity fields stay pinned to the stored day (defense in depth —
+        // the assistant route already pins them, see structural.ts).
+        modifiedItinerary[idx] = {
+          ...revised,
+          day_number: modifiedItinerary[idx].day_number,
+          date: modifiedItinerary[idx].date,
+          city: modifiedItinerary[idx].city,
+        };
+        if (updated === 0) appliedDayNumber = modifiedItinerary[idx].day_number;
+        updated++;
+      }
+      if (updated === 0) {
+        return errors.badRequest("None of the revised days matched the trip");
+      }
+      daysUpdatedCount = updated;
+      console.log(`[AI Assistant Apply] Applied draft revision to ${updated} day(s)`);
+    }
+
+    if (changeType === "add_day" || changeType === "apply_draft") {
+      // Belt-and-braces: every activity needs an id for drag/edit paths.
+      // (The assistant route stamps them, but /apply is also callable
+      // directly.)
+      const withIds = ensureActivityIds(modifiedItinerary);
+      modifiedItinerary.splice(0, modifiedItinerary.length, ...withIds);
+    }
+
     // Save to database
     const { error: updateError } = await supabase
       .from("trips")
       .update({
         itinerary: modifiedItinerary,
+        // add_day: end date moves in the same write as the itinerary.
+        ...(newEndDate ? { end_date: newEndDate } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);
@@ -187,11 +280,15 @@ export async function POST(request: NextRequest) {
     return apiSuccess({
       success: true,
       modifiedItinerary,
+      // add_day: the persisted end date, so the client can report it.
+      ...(newEndDate ? { newEndDate } : {}),
       action: {
         type: changeType,
         applied: true,
-        dayNumber,
-        activityName: newActivity?.name || activity?.name || "Schedule",
+        dayNumber: appliedDayNumber,
+        // apply_draft: drives the "{count} days updated" badge.
+        ...(daysUpdatedCount !== undefined ? { dayCount: daysUpdatedCount } : {}),
+        activityName: structuralName || newActivity?.name || activity?.name || "Schedule",
       },
     });
   } catch (error) {
