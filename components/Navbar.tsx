@@ -29,6 +29,11 @@ export default async function Navbar() {
     // **2026-05-25**: Tools were live but orphaned — no link from any
     // nav surface. Adding here so the funnel works.
     { href: '/tools', label: t('navigation.tools') },
+    // **2026-07-01 (discoverability audit)**: /templates (Curated Escapes)
+    // was fully built but had NO nav/footer link — only reachable via a
+    // "See All" card on the homepage/dashboard carousels. Surfacing it as a
+    // primary entry point (inspiration → generation). Mobile menu inherits it.
+    { href: '/templates', label: t('navigation.templates') },
     { href: '/blog', label: t('navigation.blog') },
   ];
 

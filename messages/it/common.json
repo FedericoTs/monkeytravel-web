@@ -42,7 +42,8 @@
     "signIn": "Accedi",
     "signUp": "Registrati",
     "signOut": "Esci",
-    "toggleMenu": "Apri menu"
+    "toggleMenu": "Apri menu",
+    "templates": "Modelli"
   },
   "logoAlt": "Logo MonkeyTravel",
   "buttons": {
@@ -155,7 +156,9 @@
     "popularDestinations": "Destinazioni Popolari",
     "featuredArticles": "Articoli in Evidenza",
     "viewAllDestinations": "Vedi tutte le destinazioni",
-    "viewAllArticles": "Vedi tutti gli articoli"
+    "viewAllArticles": "Vedi tutti gli articoli",
+    "templates": "Modelli di viaggio",
+    "backpacker": "Viaggi zaino in spalla"
   },
   "bottomNav": {
     "home": "Home",

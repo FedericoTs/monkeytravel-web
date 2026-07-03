@@ -104,9 +104,10 @@ function LoginForm() {
             .eq("id", user.id);
         }
 
-        // New users need to see welcome page first (to enter beta code / join waitlist)
+        // /welcome was retired (beta gate removed) — new users go straight to
+        // the trip wizard. Kept as a guard for any legacy welcome_completed=false rows.
         if (profile && !profile.welcome_completed) {
-          router.push("/welcome");
+          router.push("/trips/new");
           router.refresh();
           return;
         }
