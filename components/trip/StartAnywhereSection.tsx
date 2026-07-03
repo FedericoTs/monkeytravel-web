@@ -16,6 +16,14 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import type { TripVibe } from "@/types";
 
+// Kill-list 2026-07-03: OFF by default. 11 uses in 14 days didn't earn a
+// second input paradigm on the wizard's most fragile screen (83% of step-1
+// abandons die there), and the text-first decision front-door (live A/B) is
+// the cleaner answer to the same need. Flip NEXT_PUBLIC_START_ANYWHERE_ENABLED
+// =true to bring it back.
+const START_ANYWHERE_ENABLED =
+  process.env.NEXT_PUBLIC_START_ANYWHERE_ENABLED === "true";
+
 interface ExtractedContext {
   destination: string | null;
   destinationConfidence: number;
@@ -93,7 +101,14 @@ function monthHintToDateRange(
   return { start: fmt(start), end: fmt(end) };
 }
 
-export default function StartAnywhereSection({ onExtracted }: Props) {
+export default function StartAnywhereSection(props: Props) {
+  // Kill-list 2026-07-03: render nothing unless explicitly re-enabled.
+  // Wrapper keeps the hook-heavy inner component lint-clean (no conditional hooks).
+  if (!START_ANYWHERE_ENABLED) return null;
+  return <StartAnywhereSectionInner {...props} />;
+}
+
+function StartAnywhereSectionInner({ onExtracted }: Props) {
   // i18n — was hardcoded English; caught in 2026-05-29 audit on /it/.
   const t = useTranslations("trips.wizard.step1");
   const [expanded, setExpanded] = useState(false);

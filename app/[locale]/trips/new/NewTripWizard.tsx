@@ -2053,24 +2053,27 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              {/* Export (PDF / iCal) — desktop sticky header only (this bar is
-                  hidden sm:block; mobile export is a follow-up since ExportMenu's
-                  dropdown opens downward and would clip in the fixed bottom bar). */}
-              <ExportMenu
-                trip={{
-                  title: `${generatedItinerary.destination.name} Trip`,
-                  description: generatedItinerary.destination.description,
-                  startDate,
-                  endDate,
-                  budget: {
-                    total: generatedItinerary.trip_summary.total_estimated_cost,
-                    currency: generatedItinerary.trip_summary.currency,
-                  },
-                  itinerary: generatedItinerary.days,
-                }}
-                destination={fullDestination}
-                surface="anon_result"
-              />
+              {/* Export (PDF / iCal) — desktop sticky header only.
+                  Kill-list 2026-07-03: only AFTER save. Pre-save export was a
+                  "take the plan and leave" escape hatch at the exact moment
+                  75% of result-viewers never click Save. */}
+              {savedTripId && (
+                <ExportMenu
+                  trip={{
+                    title: `${generatedItinerary.destination.name} Trip`,
+                    description: generatedItinerary.destination.description,
+                    startDate,
+                    endDate,
+                    budget: {
+                      total: generatedItinerary.trip_summary.total_estimated_cost,
+                      currency: generatedItinerary.trip_summary.currency,
+                    },
+                    itinerary: generatedItinerary.days,
+                  }}
+                  destination={fullDestination}
+                  surface="anon_result"
+                />
+              )}
               <RegenerateButton
                 onRegenerate={handleRegenerate}
                 isRegenerating={isRegenerating || generating}
@@ -3021,6 +3024,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 extra line, backpackers light up the whole AI plan.
                 Auto-bumps budget to "budget" when activated; user can
                 still override the budget tier in step 2. */}
+            {/* Kill-list 2026-07-03: toggle hidden unless already active —
+                7.1% of sessions used it while it was the biggest block on the
+                highest-abandon screen. /backpacker deep-links still activate
+                the mode (and can switch it off here). */}
+            {travelStyle === "backpacker" && (
             <div className="order-last">
               <button
                 type="button"
@@ -3064,6 +3072,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </p>
               )}
             </div>
+            )}
 
             {/* Who's coming? — Phase-1 measurement toggle.
                 See docs/COLLAB_AUDIT.md "Phase 1: validate the bet".
