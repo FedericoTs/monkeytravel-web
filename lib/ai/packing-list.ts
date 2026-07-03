@@ -12,11 +12,8 @@
  *     need the smarter model
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logCacheMetrics } from "@/lib/gemini";
-import { getModelForPurpose } from "@/lib/ai/model-router";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
+import { generateContentResilient } from "@/lib/ai/resilient";
 
 export interface PackingListInput {
   destination: string;
@@ -182,9 +179,12 @@ export async function generatePackingList(
     throw new Error("GOOGLE_AI_API_KEY not configured");
   }
 
-  const model = genAI.getGenerativeModel({
-    // packing-list → gemini-2.5-flash-lite (deterministic list, cheap).
-    model: getModelForPurpose("packing-list"),
+  // UX10X Phase 0.1: was a single unprotected flash-lite call failing 58%
+  // of requests in api_request_logs (GoogleGenerativeAI 500/503). Same
+  // retry + sibling-model fallback treatment as ai.decide.
+  // packing-list → gemini-2.5-flash-lite (deterministic list, cheap).
+  const { result: response } = await generateContentResilient({
+    purpose: "packing-list",
     generationConfig: {
       // 2026-05-31: lowered from 0.4 → 0.2 (deterministic utility task).
       // Packing lists for the same destination/dates/preferences should be
@@ -196,10 +196,8 @@ export async function generatePackingList(
       responseMimeType: "application/json",
       maxOutputTokens: 2048,
     },
-  });
-
-  const response = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
+    label: "tools.packing-list",
   });
 
   // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).

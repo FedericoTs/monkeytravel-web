@@ -113,6 +113,29 @@ export function getModelForPurpose(purpose: GeminiPurpose): GeminiModelId {
 }
 
 /**
+ * Sibling model for last-resort fallback (UX10X Phase 0.1).
+ *
+ * api_request_logs (2026-06-19→07-03) showed the flash-lite endpoints
+ * failing hard (decide 25%, packing-list 58% — GoogleGenerativeAI 500/503)
+ * while flash held 0.46%. Retrying the SAME model rides out blips but not
+ * model-specific serving outages; the sibling runs on a different pool.
+ * Also used by regenerateSingleDay's final attempt: its parse-failure
+ * retry lowers temperature, which deterministically reproduces the same
+ * malformed output on the same model — a different model breaks the loop.
+ */
+const SIBLING_MODEL: Record<GeminiModelId, GeminiModelId> = {
+  "gemini-2.5-flash-lite": "gemini-2.5-flash",
+  "gemini-2.5-flash": "gemini-2.5-flash-lite",
+  // pro's sibling is flash (never flash-lite): pro callers chose it for
+  // quality, so degrade one step, not two.
+  "gemini-2.5-pro": "gemini-2.5-flash",
+};
+
+export function getSiblingModel(model: GeminiModelId): GeminiModelId {
+  return SIBLING_MODEL[model];
+}
+
+/**
  * Build a URL-safe Gemini REST endpoint for a given purpose.
  * Used by the maps-grounding path which still calls the REST API
  * directly (the SDK doesn't expose grounding tools at the time of

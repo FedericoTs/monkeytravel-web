@@ -16,12 +16,9 @@
  * defensive parse), which is proven in prod.
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logCacheMetrics } from "@/lib/gemini";
-import { getModelForPurpose } from "@/lib/ai/model-router";
+import { generateContentResilient } from "@/lib/ai/resilient";
 import type { TripVibe } from "@/types";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
 // The valid vibe set the itinerary generator + validateTripParams accept
 // (keep in lockstep with TripVibe, types/index.ts). Proposals whose vibes fall
@@ -155,10 +152,14 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
   }
   const startedAt = Date.now();
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, server "now"
-  const modelId = getModelForPurpose("decide");
 
-  const model = genAI.getGenerativeModel({
-    model: modelId,
+  // UX10X Phase 0.1: this endpoint was failing 25% of calls (flash-lite
+  // 500/503s, single unprotected generateContent) — and it gates the
+  // decision front door. Route through the shared retry+sibling-fallback
+  // wrapper. 12s per attempt: decide p50 is 3.6s / p95 5.4s, and 3 attempts
+  // + backoff stays well under the route's overall budget.
+  const { result: response, modelUsed } = await generateContentResilient({
+    purpose: "decide",
     generationConfig: {
       // Some variety across the 2-3 options (unlike the deterministic
       // packing-list). Still bounded output — can't blow the token budget.
@@ -166,10 +167,9 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
       responseMimeType: "application/json",
       maxOutputTokens: 1024,
     },
-  });
-
-  const response = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: buildDecidePrompt(input, today) }] }],
+    label: "ai.decide",
+    attemptTimeoutMs: 12_000,
   });
   logCacheMetrics("ai.decide", response.response.usageMetadata);
 
@@ -241,7 +241,7 @@ export async function generateProposals(input: DecideInput): Promise<DecideResul
 
   return {
     proposals,
-    meta: { model: modelId, costUsd: 0.0005, generationTimeMs: Date.now() - startedAt },
+    meta: { model: modelUsed, costUsd: 0.0005, generationTimeMs: Date.now() - startedAt },
   };
 }
 
