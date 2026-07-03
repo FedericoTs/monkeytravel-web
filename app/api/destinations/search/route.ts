@@ -374,19 +374,6 @@ export async function POST(request: NextRequest) {
             "search_geo_cities",
             { q: nq, lim: limit }
           );
-          // TEMP DEBUG (remove after diagnosing accented-query miss): logs the
-          // exact query sent to the RPC + its result count.
-          console.log(
-            "[geo-debug]",
-            JSON.stringify({
-              st: searchTerm,
-              nq,
-              len: nq.length,
-              codes: Array.from(nq).slice(0, 14).map((c) => c.codePointAt(0)),
-              err: geoErr?.message ?? null,
-              n: Array.isArray(geo) ? geo.length : -1,
-            })
-          );
           if (geoErr) {
             console.warn("[Destinations Search] geo_cities RPC error:", geoErr.message);
           } else if (Array.isArray(geo)) {
