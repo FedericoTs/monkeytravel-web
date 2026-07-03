@@ -1457,6 +1457,16 @@
       "undoSuccess": "Modifica annullata con successo!",
       "undoTitle": "Modifica Annullata",
       "undoDescription": "Ripristinato: {action}",
+      "actionBadge": {
+        "replaced": "Giorno {day} aggiornato: attività sostituita",
+        "added": "Giorno {day} aggiornato: attività aggiunta",
+        "removed": "Giorno {day} aggiornato: attività rimossa",
+        "rescheduled": "Giorno {day} aggiornato: programma riorganizzato",
+        "durationAdjusted": "Giorno {day} aggiornato: durata modificata",
+        "updatedGeneric": "Itinerario aggiornato",
+        "viewDay": "Vai al giorno {day}",
+        "noChanges": "Nessuna modifica apportata al tuo itinerario"
+      },
       "quickActions": {
         "optimizeBudget": {
           "label": "Ottimizza budget",

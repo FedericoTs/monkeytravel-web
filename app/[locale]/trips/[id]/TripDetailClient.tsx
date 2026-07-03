@@ -1400,17 +1400,50 @@ export default function TripDetailClient({
     }
   }, [trip.id, editedItinerary]);
 
+  // APPLY → SEE loop (transcripts: "I don't see the updates on the webpage" /
+  // "where to see the updated version?"): after the AI assistant applies a
+  // change — or when the user taps the action badge in the chat — scroll the
+  // affected day card into view and flash-highlight it for ~2s so the change
+  // has a visible anchor in the plan.
+  const [aiFocusDay, setAiFocusDay] = useState<{ day: number; pulse: boolean } | null>(null);
+  const aiFocusTimerRef = useRef<number | null>(null);
+  const handleFocusDayCard = useCallback((dayNumber: number) => {
+    if (typeof window === "undefined") return;
+    // A day filter would hide the target card entirely — clear it first.
+    setSelectedDay((prev) => (prev !== null && prev !== dayNumber ? null : prev));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Below lg the assistant is an 85vh bottom sheet that fully covers the
+    // plan — close it, otherwise "scroll into view" is invisible (the exact
+    // mobile complaint in the transcripts). On lg+ it's a 420px side panel,
+    // so the plan stays visible and the chat stays open.
+    if (window.innerWidth < 1024) {
+      setIsAIAssistantOpen(false);
+    }
+    setAiFocusDay({ day: dayNumber, pulse: !reduceMotion });
+    window.setTimeout(() => {
+      document.getElementById(`trip-day-${dayNumber}`)?.scrollIntoView({
+        // prefers-reduced-motion: jump without animation, keep the highlight.
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }, 100); // let a just-refetched itinerary (version-keyed remount) commit first
+    if (aiFocusTimerRef.current !== null) window.clearTimeout(aiFocusTimerRef.current);
+    aiFocusTimerRef.current = window.setTimeout(() => setAiFocusDay(null), 2200);
+  }, []);
+
   // Memoize ensureActivityIds to prevent generating new UUIDs on every render
   // This is CRITICAL - without memoization, new IDs are generated each render,
   // causing itineraryHash to change, triggering useTravelDistances to refetch,
   // which causes state updates and re-renders = infinite loop
-  const memoizedBaseItinerary = useMemo(
-    () => ensureActivityIds(trip.itinerary),
-    [trip.itinerary]
-  );
-
-  // Use edited itinerary in edit mode, memoized base otherwise
-  const displayItinerary = isEditMode ? editedItinerary : memoizedBaseItinerary;
+  //
+  // Trust-loop fix (transcripts: "I don't see the updates on the webpage"):
+  // outside edit mode this previously rendered ensureActivityIds(trip.itinerary)
+  // — the SSR-time prop — so an AI-applied edit VANISHED from the page the
+  // moment the user hit Save/Done (edit mode exits but the server prop never
+  // updates client-side). savedItinerary is seeded from that same prop, is a
+  // stable state reference (so the memo concern above still holds), and is
+  // updated on every successful save — render that instead.
+  const displayItinerary = isEditMode ? editedItinerary : savedItinerary;
 
   // Fetch travel distances between activities
   // Uses local Haversine calculation - NO external API calls!
@@ -1959,7 +1992,19 @@ export default function TripDetailClient({
             {displayItinerary
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day, dayIndex) => (
-                <div key={`day-${day.day_number}-v${itineraryVersion}`} className="relative">
+                <div
+                  key={`day-${day.day_number}-v${itineraryVersion}`}
+                  // Stable per-day anchor for the assistant's APPLY → SEE loop
+                  // (scroll target + flash highlight, see handleFocusDayCard).
+                  id={`trip-day-${day.day_number}`}
+                  className={`relative scroll-mt-6 ${
+                    aiFocusDay?.day === day.day_number
+                      ? `rounded-2xl ring-2 ring-[var(--primary)] ring-offset-4 transition-all duration-500 ${
+                          aiFocusDay.pulse ? "animate-pulse-once" : ""
+                        }`
+                      : ""
+                  }`}
+                >
                   {/* Loading overlay during per-day regeneration */}
                   {regeneratingDayNumber === day.day_number && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center
@@ -2504,6 +2549,7 @@ export default function TripDetailClient({
         onAction={handleAIAction}
         onItineraryUpdate={handleItineraryUpdate}
         onRefetchTrip={handleRefetchTrip}
+        onFocusDay={handleFocusDayCard}
       />
 
       {/* Success Toast Notification */}

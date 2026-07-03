@@ -1457,6 +1457,16 @@
       "undoSuccess": "¡Cambio deshecho con éxito!",
       "undoTitle": "Cambio Deshecho",
       "undoDescription": "Revertido: {action}",
+      "actionBadge": {
+        "replaced": "Día {day} actualizado: actividad reemplazada",
+        "added": "Día {day} actualizado: actividad añadida",
+        "removed": "Día {day} actualizado: actividad eliminada",
+        "rescheduled": "Día {day} actualizado: horario reorganizado",
+        "durationAdjusted": "Día {day} actualizado: duración ajustada",
+        "updatedGeneric": "Itinerario actualizado",
+        "viewDay": "Ver día {day}",
+        "noChanges": "No se han realizado cambios en tu itinerario"
+      },
       "quickActions": {
         "optimizeBudget": {
           "label": "Optimizar presupuesto",

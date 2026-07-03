@@ -20,8 +20,15 @@ interface Message {
     applied: boolean;
     activityId?: string;
     dayNumber?: number;
+    // Set from the /apply response's action metadata so the badge can name
+    // the activity without ever parsing model prose.
+    activityName?: string;
   };
   timestamp: string;
+  // Client-generated notes (cancel/undo confirmations) that never hit the
+  // assistant API — they carry no action metadata, so the deterministic
+  // action badge must not render a "no changes" line under them.
+  local?: boolean;
 }
 
 // PendingChange (the confirm-first proposed-change union) is defined in and
@@ -37,6 +44,10 @@ interface AIAssistantEnhancedProps {
   onAction?: (action: string, data?: Record<string, unknown>) => void;
   onItineraryUpdate?: (newItinerary: ItineraryDay[]) => void;
   onRefetchTrip?: () => Promise<void>;
+  // APPLY → SEE loop: scroll + flash the affected day card in the itinerary
+  // (transcripts: "I don't see the updates on the webpage"). Called after an
+  // applied action refetches, and when the user taps the action badge.
+  onFocusDay?: (dayNumber: number) => void;
 }
 
 // Quick action IDs - labels come from translations
@@ -47,6 +58,62 @@ const QUICK_ACTION_IDS = [
   { id: "alternatives", icon: "🔄" },
 ];
 
+// ---------------------------------------------------------------------------
+// Deterministic action badge (trust loop).
+//
+// Transcript evidence (persisted ai_conversations, 2026-07): 3 of 17 recent
+// conversations contain "I don't see the updates on the webpage" / "I don't
+// see it on the right" / "where to see the updated version?" — and one reply
+// narrated "extended with a new Day 12" while its logged action was
+// {type: add_activity, dayNumber: 1}. The badge is therefore generated ONLY
+// from the action metadata, never from model prose: when narration and
+// metadata disagree, the badge sides with the metadata.
+// ---------------------------------------------------------------------------
+
+/** Map action types onto badge variants. Handles BOTH server unions: the
+ *  POST route's `*_activity` types and the /apply route's short types. */
+function actionBadgeVariant(
+  type: string | undefined
+): "replaced" | "added" | "removed" | "rescheduled" | "durationAdjusted" | null {
+  switch (type) {
+    case "replace":
+    case "replace_activity":
+      return "replaced";
+    case "add":
+    case "add_activity":
+      return "added";
+    case "remove":
+    case "remove_activity":
+      return "removed";
+    case "reorder":
+      return "rescheduled";
+    case "adjust_duration":
+      return "durationAdjusted";
+    default:
+      return null;
+  }
+}
+
+/** Activity name for the badge — metadata only: the action itself (threaded
+ *  from the /apply response) or the server-built card whose type matches the
+ *  action (cards are persisted with the message, so history gets names too). */
+function actionActivityName(message: Message): string | undefined {
+  if (message.action?.activityName) return message.action.activityName;
+  const variant = actionBadgeVariant(message.action?.type);
+  for (const card of message.cards || []) {
+    if (variant === "replaced" && card.type === "activity_replacement") {
+      return card.newActivity.name;
+    }
+    if (variant === "added" && card.type === "activity_added") {
+      return card.activity.name;
+    }
+    if (variant === "durationAdjusted" && card.type === "duration_adjusted") {
+      return card.activity.name;
+    }
+  }
+  return undefined;
+}
+
 export default function AIAssistantEnhanced({
   tripId,
   tripTitle,
@@ -56,6 +123,7 @@ export default function AIAssistantEnhanced({
   onAction,
   onItineraryUpdate,
   onRefetchTrip,
+  onFocusDay,
 }: AIAssistantEnhancedProps) {
   const t = useTranslations("common.ai.assistant");
 
@@ -234,10 +302,23 @@ export default function AIAssistantEnhanced({
         }
         // Normal flow - action was applied or no action needed
         else {
-          setMessages((prev) => [...prev, data.message]);
+          // TRUST GUARD: only believe `action.applied` when the server proves
+          // it — `modifiedItinerary` is present iff the trips row was actually
+          // written (the route drops it on DB failure, and a model-fabricated
+          // `action` in the JSON reply never has it). Otherwise downgrade to
+          // not-applied so the honest "no changes" badge renders instead of a
+          // green confirmation for an edit that never landed. (transcripts:
+          // "I don't see the updates on the webpage")
+          const verifiedApplied =
+            !!data.message?.action?.applied && !!data.modifiedItinerary;
+          const assistantMsg: Message =
+            data.message?.action?.applied && !verifiedApplied
+              ? { ...data.message, action: { ...data.message.action, applied: false } }
+              : data.message;
+          setMessages((prev) => [...prev, assistantMsg]);
 
           // If action was applied, set up undo state
-          if (data.message?.action?.applied && data.previousItinerary) {
+          if (verifiedApplied && data.previousItinerary) {
             pushUndo({
               previousItinerary: data.previousItinerary,
               action: {
@@ -247,10 +328,16 @@ export default function AIAssistantEnhanced({
                 dayNumber: data.message.action.dayNumber,
               },
             });
+          }
 
-            // Refetch trip data
+          if (verifiedApplied) {
+            // Refetch trip data so the itinerary UI re-renders the change
             if (onRefetchTrip) {
               await onRefetchTrip();
+            }
+            // APPLY → SEE: anchor the user on the day that changed.
+            if (typeof data.message.action?.dayNumber === "number") {
+              onFocusDay?.(data.message.action.dayNumber);
             }
           }
         }
@@ -276,7 +363,7 @@ export default function AIAssistantEnhanced({
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onRefetchTrip, itinerary, simulateLoadingStages, clearUndo, pushUndo]
+    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo]
   );
 
   // Apply pending change
@@ -323,11 +410,26 @@ export default function AIAssistantEnhanced({
         throw new Error(data.error || "Failed to apply change");
       }
 
-      // Update the last message to show "applied"
+      // Update the last message to show "applied". Thread the /apply
+      // response's action metadata (type, dayNumber, activityName) into the
+      // message so the deterministic badge is rendered from the logged
+      // action, never from the model's narration (one transcript narrated
+      // "a new Day 12" while the logged action was Day 1).
+      const appliedDayNumber = pendingChange.dayNumber;
       setMessages((prev) =>
         prev.map((msg, idx) =>
           idx === prev.length - 1 && msg.role === "assistant"
-            ? { ...msg, action: { ...msg.action, applied: true } as Message["action"] }
+            ? {
+                ...msg,
+                action: {
+                  type: msg.action?.type ?? pendingChange.type,
+                  activityId: msg.action?.activityId,
+                  applied: true,
+                  dayNumber: appliedDayNumber,
+                  activityName:
+                    msg.action?.activityName ?? data.action?.activityName,
+                },
+              }
             : msg
         )
       );
@@ -377,12 +479,15 @@ export default function AIAssistantEnhanced({
       if (onRefetchTrip) {
         await onRefetchTrip();
       }
+      // APPLY → SEE loop: scroll + flash the day card that just changed
+      // (transcripts: "I don't see it on the right").
+      onFocusDay?.(appliedDayNumber);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to apply change");
     } finally {
       setIsApplyingChange(false);
     }
-  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip]);
+  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay]);
 
   // Try different suggestion
   const handleTryDifferent = useCallback(() => {
@@ -402,6 +507,7 @@ export default function AIAssistantEnhanced({
       role: "assistant",
       content: t("cancelledMessage"),
       timestamp: new Date().toISOString(),
+      local: true, // client note — no action metadata, skip the badge
     };
     setMessages((prev) => [...prev, cancelMessage]);
   }, [t]);
@@ -459,6 +565,7 @@ export default function AIAssistantEnhanced({
           },
         ],
         timestamp: new Date().toISOString(),
+        local: true, // client note — no action metadata, skip the badge
       };
       setMessages((prev) => [...prev, undoMessage]);
     } catch (err) {
@@ -618,15 +725,68 @@ export default function AIAssistantEnhanced({
                       <AssistantCards cards={message.cards} />
                     )}
 
-                    {/* Action indicator */}
-                    {message.action?.applied && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full w-fit">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        {t("changeApplied")}
-                      </div>
-                    )}
+                    {/* Deterministic action badge — generated from the LOGGED
+                        action metadata, never from model prose (transcripts:
+                        one reply narrated "extended with a new Day 12" while
+                        the logged action was {type: add_activity, dayNumber:
+                        1} — the badge sides with the metadata). Applied →
+                        clickable "Day N updated" chip that re-anchors the day
+                        card; no applied action → quiet "no changes" line so
+                        silent no-ops become visible (the honesty signal). */}
+                    {message.role === "assistant" && !message.local && (() => {
+                      if (message.action?.applied) {
+                        const variant = actionBadgeVariant(message.action.type);
+                        const day =
+                          typeof message.action.dayNumber === "number"
+                            ? message.action.dayNumber
+                            : undefined;
+                        // No single activity name for a reorder — the /apply
+                        // route fills a "Schedule" placeholder there; skip it.
+                        const name =
+                          variant === "rescheduled" ? undefined : actionActivityName(message);
+                        const label =
+                          day !== undefined && variant
+                            ? t(`actionBadge.${variant}`, { day })
+                            : t("actionBadge.updatedGeneric");
+                        return (
+                          <button
+                            type="button"
+                            onClick={
+                              day !== undefined ? () => onFocusDay?.(day) : undefined
+                            }
+                            disabled={day === undefined}
+                            title={
+                              day !== undefined
+                                ? t("actionBadge.viewDay", { day })
+                                : undefined
+                            }
+                            className={`flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full w-fit max-w-full text-left ${
+                              day !== undefined
+                                ? "hover:bg-emerald-100 transition-colors cursor-pointer"
+                                : ""
+                            }`}
+                          >
+                            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="truncate">
+                              {label}
+                              {name ? ` · ${name}` : ""}
+                            </span>
+                            {day !== undefined && (
+                              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      }
+                      return (
+                        <div className="text-[11px] text-slate-400 px-2.5 w-fit">
+                          {t("actionBadge.noChanges")}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}

@@ -1457,6 +1457,16 @@
       "undoSuccess": "Alteração desfeita com sucesso!",
       "undoTitle": "Alteração Desfeita",
       "undoDescription": "Revertido: {action}",
+      "actionBadge": {
+        "replaced": "Dia {day} atualizado: atividade substituída",
+        "added": "Dia {day} atualizado: atividade adicionada",
+        "removed": "Dia {day} atualizado: atividade removida",
+        "rescheduled": "Dia {day} atualizado: programação reorganizada",
+        "durationAdjusted": "Dia {day} atualizado: duração ajustada",
+        "updatedGeneric": "Roteiro atualizado",
+        "viewDay": "Ver dia {day}",
+        "noChanges": "Nenhuma alteração foi feita no seu roteiro"
+      },
       "quickActions": {
         "optimizeBudget": {
           "label": "Otimizar orçamento",

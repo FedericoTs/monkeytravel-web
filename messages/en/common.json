@@ -1457,6 +1457,16 @@
       "undoSuccess": "Change undone successfully!",
       "undoTitle": "Change Undone",
       "undoDescription": "Reverted: {action}",
+      "actionBadge": {
+        "replaced": "Day {day} updated — activity replaced",
+        "added": "Day {day} updated — activity added",
+        "removed": "Day {day} updated — activity removed",
+        "rescheduled": "Day {day} updated — schedule reorganized",
+        "durationAdjusted": "Day {day} updated — duration adjusted",
+        "updatedGeneric": "Itinerary updated",
+        "viewDay": "View Day {day}",
+        "noChanges": "No changes made to your itinerary"
+      },
       "quickActions": {
         "optimizeBudget": {
           "label": "Optimize budget",
