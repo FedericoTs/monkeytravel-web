@@ -2831,9 +2831,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           </div>
         )}
 
-        {/* Step 1: Destination + Dates (combined for fewer drop-offs) */}
+        {/* Step 1: Destination + Dates (combined for fewer drop-offs).
+            Layout uses flex+order so the PRIMARY inputs (Destination + Dates)
+            lead, and the optional sections (Backpacker / Who's-coming /
+            Start-Anywhere, each marked order-last) fall below them. Attacks the
+            biggest funnel leak: 53% of anon entrants abandon on this screen, and
+            the required inputs were previously buried under 4 optional cards
+            (and, being lowest, sat under the first-visit cookie banner). */}
         {step === 1 && (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             {/* Returning-visitor draft recovery. A valid unsaved draft exists
                 within the 24h window — mount the (previously built but never
                 rendered) banner so the user recovers straight into the Save
@@ -2862,7 +2868,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 extra line, backpackers light up the whole AI plan.
                 Auto-bumps budget to "budget" when activated; user can
                 still override the budget tier in step 2. */}
-            <div>
+            <div className="order-last">
               <button
                 type="button"
                 onClick={() => {
@@ -2914,7 +2920,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 **2026-05-24 i18n fix:** labels now read from messages
                 so /it and /es see localized copy. Previously all
                 hardcoded English on every locale. */}
-            <div>
+            <div className="order-last">
               <div className="text-sm font-medium text-slate-700 mb-2">
                 {t("wizard.step1.whosComing")}
               </div>
@@ -2977,8 +2983,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             </div>
 
             {/* "Start Anywhere" — Gemini-Vision-powered prefill from image/URL.
-                Sits above the destination input so users see the shortcut
-                before typing. Opt-in (collapsed by default). */}
+                Moved below the primary inputs (order-last) in the step-1
+                reprioritization — it's an opt-in power shortcut, so Destination
+                + Dates lead. Opt-in (collapsed by default). */}
+            <div className="order-last">
             <StartAnywhereSection
               onExtracted={(fields, ctx) => {
                 if (fields.destination) {
@@ -3038,6 +3046,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 console.log("[StartAnywhere] extracted:", ctx);
               }}
             />
+            </div>
 
             {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED */}
             {MULTI_CITY_ENABLED && (
