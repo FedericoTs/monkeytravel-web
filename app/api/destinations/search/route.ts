@@ -102,6 +102,19 @@ const codeToCountryName: Record<string, string> = Object.fromEntries(
 function normalizeForGeo(input: string): string {
   return input
     .toLowerCase()
+    // Explicit precomposed accent fold — NOT `.normalize()`/`\p{Diacritic}`,
+    // which silently misbehaved in the Turbopack/Vercel runtime and left
+    // accented queries ("málaga") unmatched. This makes them identical to the
+    // proven-working un-accented path ("malaga"). The RPC also unaccents
+    // server-side as a backstop for any decomposed input.
+    .replace(/[áàâãäåā]/g, "a")
+    .replace(/[éèêëē]/g, "e")
+    .replace(/[íìîïī]/g, "i")
+    .replace(/[óòôõöø]/g, "o")
+    .replace(/[úùûüū]/g, "u")
+    .replace(/ñ/g, "n")
+    .replace(/ç/g, "c")
+    .replace(/[ýÿ]/g, "y")
     .replace(/[%_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
