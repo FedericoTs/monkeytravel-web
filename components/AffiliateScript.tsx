@@ -32,10 +32,18 @@ interface AffiliateScriptProps {
   nonce?: string;
 }
 
+// The Travelpayouts loader only whitelists production hosts (marker 483997 =
+// monkeytravel.app). On localhost / preview it 403s its entrypoint_config fetch
+// and logs "config is not valid" ×4 on every page load — harmless but it
+// pollutes local console/network traces during dev (UX10X Phase 0.4). Gate the
+// whole component to production; prod is unaffected (already whitelisted → 200).
+const AFFILIATE_ENABLED = process.env.NODE_ENV === "production";
+
 export default function AffiliateScript({ nonce }: AffiliateScriptProps) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
+    if (!AFFILIATE_ENABLED) return;
     let didLoad = false;
     const load = () => {
       if (didLoad) return;
