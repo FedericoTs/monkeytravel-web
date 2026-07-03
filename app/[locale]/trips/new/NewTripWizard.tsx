@@ -254,23 +254,57 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   const isAuthenticated: boolean | null = authLoading ? null : !!authUser;
 
   // Front-door A/B (flag: "front-door"). Anon-only: authed users are forced to
-  // the classic wizard. Tri-state safe: only a DEFINITIVELY anonymous user
-  // (isAuthenticated === false) in the explicit "decision" variant gets the
-  // decision arm; loading auth (null), loading flag (undefined), authed (true),
-  // and control ("wizard") all resolve to "wizard", so the classic wizard paints
-  // first (v1 accepts this first-paint flicker — plan §"Accept first-paint
-  // flicker"). A `?front_door=wizard|decision` query param overrides the
-  // assignment (the DecisionIntake escape hatch + QA force-preview).
+  // the classic wizard. Tri-state safe: loading auth (null) and authed (true)
+  // always resolve to "wizard", so the classic wizard paints first (v1 accepts
+  // this first-paint flicker — plan §"Accept first-paint flicker").
+  //
+  // UX10X Phase 1.1 — THE FLIP (2026-07-03, after the Phase 0.1 reliability
+  // gate on /api/ai/decide passed: 14/14 live probes OK post-#32). We have no
+  // PostHog personal-key access from the dev environment, so the 50% sanity
+  // rollout ships as a LOCAL deterministic coin. Precedence, highest first:
+  //   1. `?front_door=wizard|decision` URL override (QA force-preview).
+  //   2. NEXT_PUBLIC_FRONT_DOOR_FORCE env — emergency lever (Vercel env +
+  //      redeploy) that wins even over PostHog.
+  //   3. PostHog flag "front-door" when it returns an explicit variant —
+  //      creating the flag in the PostHog dashboard (e.g. wizard=100%) is the
+  //      founder's no-deploy rollback/ramp control.
+  //   4. Local 50/50 coin, sticky per browser via localStorage so a visitor
+  //      never flip-flops arms between visits. This is the default state =
+  //      the plan's 7-day sanity window at 50%.
   const frontDoorOverride = searchParams.get("front_door");
   const { variant: frontDoorVariant } = useExperiment(FLAG_FRONT_DOOR);
+  // Coin resolves post-hydration (useEffect) to avoid SSR/client hydration
+  // mismatch — the wizard paints first, then a decision-arm visitor switches.
+  // Same accepted flicker as the PostHog late-resolution path above.
+  const [localCoinArm, setLocalCoinArm] = useState<FrontDoorArm | null>(null);
+  useEffect(() => {
+    try {
+      const KEY = "mt_front_door_arm";
+      let v = window.localStorage.getItem(KEY);
+      if (v !== "wizard" && v !== "decision") {
+        v = Math.random() < 0.5 ? "decision" : "wizard";
+        window.localStorage.setItem(KEY, v);
+      }
+      setLocalCoinArm(v as FrontDoorArm);
+    } catch {
+      setLocalCoinArm("wizard"); // storage blocked (private mode) → safe default
+    }
+  }, []);
+  const frontDoorEnvForce = process.env.NEXT_PUBLIC_FRONT_DOOR_FORCE;
   const arm: FrontDoorArm =
     frontDoorOverride === "wizard"
       ? "wizard"
       : frontDoorOverride === "decision"
         ? "decision"
-        : isAuthenticated === false && frontDoorVariant === "decision"
-          ? "decision"
-          : "wizard";
+        : isAuthenticated !== false
+          ? "wizard" // authed or auth-loading → always classic
+          : frontDoorEnvForce === "wizard" || frontDoorEnvForce === "decision"
+            ? (frontDoorEnvForce as FrontDoorArm)
+            : frontDoorVariant === "decision" || frontDoorVariant === "wizard"
+              ? (frontDoorVariant as FrontDoorArm)
+              : localCoinArm === "decision"
+                ? "decision"
+                : "wizard";
   // Stable ref so the once-attached abandonment listener reads the current arm
   // instead of a stale mount-time closure.
   const armRef = useRef<FrontDoorArm>(arm);
