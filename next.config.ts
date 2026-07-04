@@ -204,6 +204,14 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31536000, // 1 year
     deviceSizes: [640, 828, 1200],  // 3 sizes instead of default 6
     imageSizes: [128, 256, 384],    // 3 sizes instead of default 4
+    // Same-origin (local) image srcs with query strings. Next 15 blocks these
+    // by default (SSRF hardening) — a missing allowlist here 500s ANY page that
+    // renders a trip cover / activity photo whose URL is our Places-photo proxy
+    // (/api/places/photo?name=…). That regressed /explore + would break the new
+    // /trip/[slug] pages. `search` omitted → any query string allowed.
+    localPatterns: [
+      { pathname: '/api/places/**' },
+    ],
     remotePatterns: [
       {
         protocol: 'https',
