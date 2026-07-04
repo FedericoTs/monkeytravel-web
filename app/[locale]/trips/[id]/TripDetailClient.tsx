@@ -350,6 +350,15 @@ export default function TripDetailClient({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Ambient-edit auto-save status ('idle' | 'saving' | 'saved' | 'error').
+  // Drives the small status pill that replaces the Modifica/Save/Discard
+  // cluster for solo owners (see ambientEdit below).
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  // Guard against auto-save retry storms: when a PATCH fails we record the
+  // exact payload that failed so the debounced effect doesn't hammer the
+  // server with the identical body. A NEW edit changes the payload and clears
+  // the guard, so a real change always re-attempts.
+  const lastFailedSaveRef = useRef<string | null>(null);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
   // Per-day regeneration: tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
@@ -586,6 +595,21 @@ export default function TripDetailClient({
   const canVote = ROLE_PERMISSIONS[userRole]?.canVote ?? false;
   const canEdit = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   const canPropose = ROLE_PERMISSIONS[userRole]?.canSuggest ?? false; // canSuggest = canPropose
+
+  // **Ambient editing (2026-07-03 moat).** The full manual editor (drag,
+  // delete, move-to-day, add, regenerate, undo/redo) already existed but was
+  // trapped behind an `isEditMode` toggle most users never found — so people
+  // never realised they could edit the plan by hand. For a solo owner we drop
+  // the mode entirely: the editable cards are ALWAYS live and changes
+  // auto-save (see the debounced effect + saveStatus pill). We keep the exact
+  // old mode-based flow for collaborative/voting trips (proposals interleave
+  // by time and would break under a drag context) and for the active-trip
+  // phase (that renders OngoingTripView, not the itinerary). Gated on isOwner
+  // because auto-save PATCHes /api/trips/[id] which is owner-only (user_id eq).
+  const ambientEdit = isOwner && !votingEnabled && !isActiveTripPhase;
+  // Affordances/rendering are "on" whenever we're ambient OR the legacy mode
+  // is toggled (collaborative trips still use isEditMode).
+  const editingActive = ambientEdit || isEditMode;
 
   // Proposal modal state
   const [proposeModalState, setProposeModalState] = useState<{
@@ -1172,7 +1196,7 @@ export default function TripDetailClient({
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isEditMode) return;
+      if (!editingActive) return;
 
       // Don't intercept when user is typing in an input/textarea
       const target = e.target as HTMLElement;
@@ -1207,7 +1231,7 @@ export default function TripDetailClient({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEditMode, hasChanges, isSaving, undo, redo, handleSaveChanges]);
+  }, [editingActive, hasChanges, isSaving, undo, redo, handleSaveChanges]);
 
   // Warn user about unsaved changes when navigating away
   useEffect(() => {
@@ -1222,6 +1246,47 @@ export default function TripDetailClient({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
+  // Ambient auto-save (2026-07-03 moat). For solo owners there's no Save
+  // button — every drag/delete/edit/add persists in the background after a
+  // short debounce. Collaborative trips (ambientEdit=false) keep their
+  // explicit Save via handleSaveChanges and never enter this effect.
+  useEffect(() => {
+    if (!ambientEdit) return;
+    // In sync with the server: leave the status as-is (the successful save
+    // that got us here already set it to "saved"); nothing to schedule.
+    if (!hasChanges) return;
+    const payload = JSON.stringify(editedItinerary);
+    // Don't auto-retry a payload we already know fails — wait for a real
+    // new edit (which changes the payload and clears the guard).
+    if (payload === lastFailedSaveRef.current) return;
+    setSaveStatus("saving");
+    const snapshot = editedItinerary;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/trips/${trip.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itinerary: snapshot }),
+        });
+        if (!res.ok) throw new Error(`save failed: ${res.status}`);
+        // Mark exactly what we persisted as the new saved baseline.
+        setSavedItinerary(JSON.parse(payload));
+        lastFailedSaveRef.current = null;
+        setSaveStatus("saved");
+        void captureEditModeSaved({
+          trip_id: trip.id,
+          days_count: snapshot.length,
+          activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
+        });
+      } catch (err) {
+        console.warn("[trip-autosave] failed", err);
+        lastFailedSaveRef.current = payload;
+        setSaveStatus("error");
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [ambientEdit, hasChanges, editedItinerary, trip.id]);
+
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
     (action: string, data?: Record<string, unknown>) => {
@@ -1229,8 +1294,11 @@ export default function TripDetailClient({
       // the refetch has already updated the itinerary - don't overwrite it!
       const actionWasApplied = data?.applied === true;
 
-      // Only enter edit mode and reset itinerary for non-applied actions
-      if (!actionWasApplied && !isEditMode) {
+      // Only enter edit mode and reset itinerary for non-applied actions.
+      // Ambient trips are ALWAYS editing (no mode) and their editedItinerary
+      // is the live source of truth — resetting it to the SSR prop would wipe
+      // unsaved local edits, so skip this branch entirely for them.
+      if (!actionWasApplied && !isEditMode && !ambientEdit) {
         setEditedItinerary(ensureActivityIds(trip.itinerary));
         setIsEditMode(true);
       }
@@ -1272,7 +1340,7 @@ export default function TripDetailClient({
           break;
       }
     },
-    [isEditMode, trip.itinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
+    [isEditMode, ambientEdit, trip.itinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
   );
 
   // Handle itinerary updates from AI assistant (autonomous changes)
@@ -1298,16 +1366,19 @@ export default function TripDetailClient({
       }
     }
 
-    // Update state - use functional updates to avoid stale closures
+    // Update state - use functional updates to avoid stale closures.
+    // Ambient trips are always editing, so don't flip the (hidden) mode on —
+    // doing so would hide the Share/Export/nav buttons that gate on !isEditMode.
+    // The debounced auto-save picks up the new editedItinerary either way.
     setEditedItinerary(processedItinerary);
-    setIsEditMode(true);
+    if (!ambientEdit) setIsEditMode(true);
     setItineraryVersion((v) => v + 1);
 
     // Clear the AI update ref after animation time
     setTimeout(() => {
       aiUpdateRef.current = null;
     }, 2000);
-  }, [editedItinerary]);
+  }, [editedItinerary, ambientEdit]);
 
   // Refetch trip data from the database (called after AI modifications)
   const handleRefetchTrip = useCallback(async () => {
@@ -1443,7 +1514,7 @@ export default function TripDetailClient({
   // updates client-side). savedItinerary is seeded from that same prop, is a
   // stable state reference (so the memo concern above still holds), and is
   // updated on every successful save — render that instead.
-  const displayItinerary = isEditMode ? editedItinerary : savedItinerary;
+  const displayItinerary = editingActive ? editedItinerary : savedItinerary;
 
   // Fetch travel distances between activities
   // Uses local Haversine calculation - NO external API calls!
@@ -1820,8 +1891,81 @@ export default function TripDetailClient({
               </button>
             )}
 
-            {/* Edit Mode Toggle - Acts as both enter and save/exit */}
-            {!isEditMode ? (
+            {/* Editing controls. Ambient (solo) owners edit inline with
+                auto-save — no mode toggle, just undo/redo + a status pill.
+                Collaborative/active trips keep the classic Modifica flow. */}
+            {ambientEdit ? (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={undo}
+                  disabled={undoStack.length === 0}
+                  aria-label={t('detail.undo')}
+                  title={t('detail.undo')}
+                  className="p-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={redo}
+                  disabled={redoStack.length === 0}
+                  aria-label={t('detail.redo')}
+                  title={t('detail.redo')}
+                  className="p-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+                {/* Auto-save status pill. On error it becomes a retry button —
+                    clearing the failed-payload guard and nudging editedItinerary
+                    re-triggers the debounced save effect. */}
+                <button
+                  type="button"
+                  onClick={
+                    saveStatus === "error"
+                      ? () => {
+                          lastFailedSaveRef.current = null;
+                          setEditedItinerary((prev) => [...prev]);
+                        }
+                      : undefined
+                  }
+                  disabled={saveStatus !== "error"}
+                  aria-live="polite"
+                  title={saveStatus === "error" ? t('detail.saveFailed') : undefined}
+                  className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    saveStatus === "error"
+                      ? "bg-red-50 text-red-700 hover:bg-red-100 cursor-pointer"
+                      : saveStatus === "saving"
+                        ? "bg-slate-100 text-slate-500"
+                        : "bg-emerald-50 text-emerald-700"
+                  }`}
+                >
+                  {saveStatus === "saving" ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span>{t('detail.saving')}</span>
+                    </>
+                  ) : saveStatus === "error" ? (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.71-3l-6.93-12a2 2 0 00-3.42 0l-6.93 12a2 2 0 001.71 3z" />
+                      </svg>
+                      <span>{t('detail.saveFailed')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{t('detail.allChangesSaved')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : !isEditMode ? (
               <button
                 onClick={handleEnterEditMode}
                 className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
@@ -1880,6 +2024,18 @@ export default function TripDetailClient({
             )}
           </div>
         </div>
+
+        {/* Ambient-edit hint — one subtle line telling solo owners the plan
+            is directly editable and saves itself. This is the whole point of
+            the moat: making the (previously hidden) manual editor discoverable. */}
+        {ambientEdit && displayItinerary.length > 0 && (
+          <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-400">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+            {t('detail.ambientEditHint')}
+          </p>
+        )}
 
         {/* Post-Confirmation Banner - eSIM, Flight Compensation */}
         {BOOKINGS_ENABLED && (
@@ -2056,8 +2212,8 @@ export default function TripDetailClient({
                           />
                         </button>
                       )}
-                      {/* Optimize Route Button - only show in edit mode with 3+ activities */}
-                      {isEditMode && day.activities.length >= 3 && (
+                      {/* Optimize Route Button - only show while editing with 3+ activities */}
+                      {editingActive && day.activities.length >= 3 && (
                         <button
                           onClick={() => openRouteOptimization(day.day_number, day.activities)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
@@ -2087,7 +2243,7 @@ export default function TripDetailClient({
                   {/* Activities */}
                   {viewMode === "cards" ? (
                     <>
-                      {isEditMode ? (
+                      {editingActive ? (
                         /* Edit Mode with Drag-and-Drop */
                         <>
                           {/* Edit mode reorder hint - only show on first day */}
@@ -2250,8 +2406,8 @@ export default function TripDetailClient({
                           })}
                         </div>
                       )}
-                      {/* Add Activity Button - Edit Mode Only */}
-                      {isEditMode && (
+                      {/* Add Activity Button - shown whenever editing is active */}
+                      {editingActive && (
                         <AddActivityButton
                           dayIndex={dayIndex}
                           destination={destination}
