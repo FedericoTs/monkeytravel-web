@@ -210,6 +210,14 @@ const nextConfig: NextConfig = {
     // (/api/places/photo?name=…). That regressed /explore + would break the new
     // /trip/[slug] pages. `search` omitted → any query string allowed.
     localPatterns: [
+      // CRITICAL: setting localPatterns REPLACES Next 15's implicit default
+      // (all same-origin images, no query string), it does not merge with it.
+      // Without this first entry, every local static image — the logo,
+      // /images/**, favicons — 404s through the optimizer. This re-declares
+      // that default.
+      { pathname: '/**', search: '' },
+      // The Places-photo proxy is the one local route whose src carries a query
+      // string (?name=…). `search` omitted → any query string allowed.
       { pathname: '/api/places/**' },
     ],
     remotePatterns: [
