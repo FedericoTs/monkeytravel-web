@@ -359,6 +359,18 @@ export default function TripDetailClient({
   // server with the identical body. A NEW edit changes the payload and clears
   // the guard, so a real change always re-attempts.
   const lastFailedSaveRef = useRef<string | null>(null);
+  // The itinerary JSON that still needs persisting (set when a save is
+  // scheduled, cleared on success). Read by the unmount-flush effect so an
+  // edit made within the debounce window isn't lost to a client-side
+  // navigation (beforeunload doesn't fire on SPA route changes).
+  const pendingSaveRef = useRef<string | null>(null);
+  // Serializes auto-save writes: a newer save aborts the previous in-flight
+  // PATCH so two overlapping writes can't land out of order (last-write-wins).
+  const saveAbortRef = useRef<AbortController | null>(null);
+  // Fire the manual-edit adoption metric (captureEditModeSaved) at most once
+  // per page-view, not once per debounced flush — otherwise the ambient cohort
+  // inflates edit_mode_saved relative to the AI-agent comparison metric.
+  const editCapturedRef = useRef(false);
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
   // Per-day regeneration: tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
@@ -756,6 +768,10 @@ export default function TripDetailClient({
     }]);
     setEditedItinerary(last.itinerary);
     setUndoStack(prev => prev.slice(0, -1));
+    // History navigation should always re-attempt an auto-save, even back to a
+    // payload that previously failed — otherwise the failed-payload guard could
+    // strand the trip in an un-saved state after an undo/redo round-trip.
+    lastFailedSaveRef.current = null;
   }, [undoStack, editedItinerary]);
 
   const redo = useCallback(() => {
@@ -768,6 +784,7 @@ export default function TripDetailClient({
     }]);
     setEditedItinerary(last.itinerary);
     setRedoStack(prev => prev.slice(0, -1));
+    lastFailedSaveRef.current = null;
   }, [redoStack, editedItinerary]);
 
   // Clear undo/redo stacks when entering/exiting edit mode
@@ -1216,14 +1233,17 @@ export default function TripDetailClient({
         e.preventDefault();
         redo();
       }
-      // Cmd+S = Save
+      // Cmd+S = Save. Ambient trips auto-save, so just swallow the browser's
+      // Save dialog and let the debounced auto-save own persistence — running
+      // handleSaveChanges here would double-PATCH, double-count the edit metric,
+      // and pop a redundant success toast next to the status pill.
       if (cmd && e.key === 's') {
         e.preventDefault();
-        if (hasChanges && !isSaving) {
+        if (!ambientEdit && hasChanges && !isSaving) {
           handleSaveChanges();
         }
       }
-      // Escape = Exit edit mode (only if no changes)
+      // Escape = Exit edit mode (only if no changes; no-op for ambient)
       if (e.key === 'Escape' && !hasChanges) {
         setIsEditMode(false);
       }
@@ -1231,7 +1251,7 @@ export default function TripDetailClient({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editingActive, hasChanges, isSaving, undo, redo, handleSaveChanges]);
+  }, [editingActive, ambientEdit, hasChanges, isSaving, undo, redo, handleSaveChanges]);
 
   // Warn user about unsaved changes when navigating away
   useEffect(() => {
@@ -1252,33 +1272,56 @@ export default function TripDetailClient({
   // explicit Save via handleSaveChanges and never enter this effect.
   useEffect(() => {
     if (!ambientEdit) return;
-    // In sync with the server: leave the status as-is (the successful save
-    // that got us here already set it to "saved"); nothing to schedule.
-    if (!hasChanges) return;
+    // In sync with the server (a save just landed, OR the user undid back to
+    // the saved baseline). Nothing to persist: drop the pending marker, clear
+    // any stale failed-payload guard, and reconcile the pill to "saved" so it
+    // never falsely lingers on "error"/"saving" once we're back in sync.
+    if (!hasChanges) {
+      pendingSaveRef.current = null;
+      lastFailedSaveRef.current = null;
+      setSaveStatus((prev) => (prev === "saved" ? prev : "saved"));
+      return;
+    }
     const payload = JSON.stringify(editedItinerary);
-    // Don't auto-retry a payload we already know fails — wait for a real
-    // new edit (which changes the payload and clears the guard).
+    // Don't auto-retry a payload we already know fails — wait for a real new
+    // edit (undo/redo also clears the guard so history navigation retries).
     if (payload === lastFailedSaveRef.current) return;
+    pendingSaveRef.current = payload;
     setSaveStatus("saving");
     const snapshot = editedItinerary;
     const timer = setTimeout(async () => {
+      // Supersede any still-in-flight save so two overlapping writes can't land
+      // out of order (server PATCH is unconditional last-write-wins).
+      saveAbortRef.current?.abort();
+      const controller = new AbortController();
+      saveAbortRef.current = controller;
       try {
         const res = await fetch(`/api/trips/${trip.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ itinerary: snapshot }),
+          signal: controller.signal,
         });
         if (!res.ok) throw new Error(`save failed: ${res.status}`);
         // Mark exactly what we persisted as the new saved baseline.
+        if (pendingSaveRef.current === payload) pendingSaveRef.current = null;
         setSavedItinerary(JSON.parse(payload));
         lastFailedSaveRef.current = null;
         setSaveStatus("saved");
-        void captureEditModeSaved({
-          trip_id: trip.id,
-          days_count: snapshot.length,
-          activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
-        });
+        // Manual-edit adoption metric — fire ONCE per page-view, not per
+        // debounced flush, so the ambient cohort stays comparable to the
+        // AI-agent metric (ai_assistant_used).
+        if (!editCapturedRef.current) {
+          editCapturedRef.current = true;
+          void captureEditModeSaved({
+            trip_id: trip.id,
+            days_count: snapshot.length,
+            activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
+          });
+        }
       } catch (err) {
+        // A newer save aborted this one — not a real failure, don't surface it.
+        if (err && (err as { name?: string }).name === "AbortError") return;
         console.warn("[trip-autosave] failed", err);
         lastFailedSaveRef.current = payload;
         setSaveStatus("error");
@@ -1286,6 +1329,28 @@ export default function TripDetailClient({
     }, 1000);
     return () => clearTimeout(timer);
   }, [ambientEdit, hasChanges, editedItinerary, trip.id]);
+
+  // Flush a pending ambient auto-save on unmount. Client-side (SPA) navigation
+  // — the back-to-trips <Link>, the bottom-nav tabs — does NOT fire the
+  // beforeunload guard above, so an edit made inside the 1s debounce window
+  // would otherwise be silently dropped. The JS realm survives an SPA nav, so a
+  // plain fetch here completes in the background; hard document unloads are
+  // still covered by the beforeunload warning.
+  useEffect(() => {
+    return () => {
+      const pending = pendingSaveRef.current;
+      if (!pending) return;
+      try {
+        void fetch(`/api/trips/${trip.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itinerary: JSON.parse(pending) }),
+        }).catch(() => {});
+      } catch {
+        /* best-effort flush; nothing to do if it throws synchronously */
+      }
+    };
+  }, [trip.id]);
 
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
@@ -1371,7 +1436,12 @@ export default function TripDetailClient({
     // doing so would hide the Share/Export/nav buttons that gate on !isEditMode.
     // The debounced auto-save picks up the new editedItinerary either way.
     setEditedItinerary(processedItinerary);
-    if (!ambientEdit) setIsEditMode(true);
+    // Ambient: the assistant already persisted this server-side, so treat it as
+    // the saved baseline (keeps hasChanges false → no redundant auto-save
+    // PATCH). Legacy (collaborative): flip the mode on so the user can confirm
+    // the AI change via Save.
+    if (ambientEdit) setSavedItinerary(processedItinerary);
+    else setIsEditMode(true);
     setItineraryVersion((v) => v + 1);
 
     // Clear the AI update ref after animation time
@@ -1445,11 +1515,18 @@ export default function TripDetailClient({
         console.log("[TripDetailClient] Updating state with new itinerary...");
         const freshCopy = [...processedItinerary];
         setEditedItinerary(freshCopy);
-        // DO NOT update savedItinerary here - this is called after AI changes are applied
-        // We want hasChanges to be true so the user can click "Save Changes" to confirm
-        // The AI has already saved to the database, but the user expects to "save" their changes
-        // Keeping savedItinerary unchanged means hasChanges will be true and Save button enabled
-        setIsEditMode(true);
+        // Legacy (collaborative) flow: keep savedItinerary stale so hasChanges
+        // stays true and the user can click "Save Changes" to confirm the AI
+        // edit. Ambient (solo owner): there is no Save button and the AI already
+        // persisted this to the DB — mark it as the saved baseline (prevents the
+        // auto-save effect firing a redundant/racy PATCH) and DON'T flip the
+        // hidden mode on (that would hide the Share/Export/Calendar/nav buttons
+        // that gate on !isEditMode until a full page reload).
+        if (ambientEdit) {
+          setSavedItinerary(freshCopy);
+        } else {
+          setIsEditMode(true);
+        }
         setItineraryVersion((v) => {
           const newVersion = v + 1;
           console.log("[TripDetailClient] Itinerary version bumped to:", newVersion);
@@ -1469,7 +1546,7 @@ export default function TripDetailClient({
       console.error("[TripDetailClient] Failed to refetch trip:", error);
       throw error;
     }
-  }, [trip.id, editedItinerary]);
+  }, [trip.id, editedItinerary, ambientEdit]);
 
   // APPLY → SEE loop (transcripts: "I don't see the updates on the webpage" /
   // "where to see the updated version?"): after the AI assistant applies a
