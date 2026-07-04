@@ -2326,5 +2326,28 @@
       "label": "Atención:",
       "body": "estos guardados viven solo en este dispositivo. Crea una cuenta gratuita para sincronizarlos en tu teléfono y portátil."
     }
+  },
+  "publicTrip": {
+    "metaTitle": "Itinerario de {destination} — {title} | MonkeyTravel",
+    "metaDescriptionFallback": "Un itinerario de viaje detallado día a día para {destination}, planificado en MonkeyTravel.",
+    "notFoundTitle": "Viaje no encontrado",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbExplore": "Explorar",
+    "anonymousTraveler": "Un viajero de MonkeyTravel"
+  },
+  "creator": {
+    "metaTitle": "{name} — Itinerarios de viaje | MonkeyTravel",
+    "metaDescription": "Descubre {count} itinerarios de viaje creados por {name} en MonkeyTravel.",
+    "notFoundTitle": "Creador no encontrado",
+    "fallbackName": "Viajero",
+    "breadcrumbHome": "Inicio",
+    "itinerariesHeading": "Itinerarios de viaje de {name}",
+    "tripsCountSingular": "viaje público",
+    "tripsCountPlural": "viajes públicos",
+    "totalLikes": "me gusta en total",
+    "emptyState": "Este viajero aún no ha publicado ningún viaje público.",
+    "viewAction": "Ver →",
+    "likesTitle": "Me gusta",
+    "savesTitle": "Guardados"
   }
 }

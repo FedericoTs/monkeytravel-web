@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
       cover_image_url: string | null;
       share_token: string;
       shared_at: string | null;
+      public_slug: string | null;
+      user_id: string | null;
       trending_score: number | null;
       view_count: number | null;
       template_copy_count: number | null;
@@ -79,6 +81,9 @@ export async function GET(request: NextRequest) {
       author_note?: string | null;
       is_editors_pick?: boolean;
       travel_style?: "classic" | "backpacker" | null;
+      // Joined from users — the author's public handle for the /creator link.
+      // PostgREST embeds the related row under the relationship name.
+      users?: { username: string | null } | null;
     };
 
     // Build query — column set depends on the flag (see top of handler).
@@ -94,9 +99,13 @@ export async function GET(request: NextRequest) {
         // every published trip in prod already has cover_image_url
         // set — verified 7/7). `budget` had no consumer at all.
         // Wire format unchanged; payload ~10-20x lighter per row.
+        // public_slug + user_id added 2026-07-03 for the indexable UGC
+        // trip-page + creator-profile linking (card → /trip/{slug}, byline →
+        // /creator/{username}). user_id feeds a batched, privacy-safe
+        // username lookup below (never exposes email/payment handles).
         ugcOn
-          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
-          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, trending_score, view_count, template_copy_count, trip_meta",
+          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
+          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
         { count: "exact" }
       )
       .eq("visibility", "public")
@@ -166,6 +175,41 @@ export async function GET(request: NextRequest) {
       return errors.internal("Failed to fetch trips", "Explore");
     }
 
+    // Resolve author usernames in one batched, privacy-safe lookup so the
+    // TripCard byline can deep-link to /creator/{username}. Uses the admin
+    // client with an explicit column allowlist (username ONLY) — the RLS
+    // server client can't reliably read other users' rows, and we must never
+    // widen this to email / payment handles. Best-effort: on any failure the
+    // byline simply renders as plain text (username stays undefined).
+    const usernameByUserId = new Map<string, string>();
+    try {
+      const userIds = Array.from(
+        new Set(
+          ((trips ?? []) as unknown as TripRow[])
+            .map((tr) => tr.user_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
+      if (userIds.length > 0) {
+        const { createAdminClient } = await import("@/lib/supabase/admin");
+        const admin = createAdminClient();
+        const { data: userRows } = await admin
+          .from("users")
+          .select("id, username, privacy_settings")
+          .in("id", userIds);
+        for (const u of userRows ?? []) {
+          const username = u.username as string | null;
+          if (!username) continue;
+          // Don't link to a private profile (it 404s) — leave username unset.
+          const priv = (u.privacy_settings ?? {}) as Record<string, unknown>;
+          if (String(priv.privateProfile ?? "") === "true") continue;
+          usernameByUserId.set(u.id as string, username);
+        }
+      }
+    } catch {
+      // Non-fatal — byline degrades to plain text.
+    }
+
     // Post-process trips to extract relevant info. Cast to the loose
     // TripRow because the SELECT shape depends on `ugcOn` at runtime —
     // Supabase's TS plugin can't infer a union across both branches.
@@ -187,6 +231,7 @@ export async function GET(request: NextRequest) {
         title: trip.title,
         description: trip.description,
         shareToken: trip.share_token,
+        publicSlug: trip.public_slug ?? undefined,
         destination: meta.destination || trip.title,
         countryCode: meta.country_code as string || null,
         durationDays,
@@ -203,6 +248,9 @@ export async function GET(request: NextRequest) {
         forkCount: trip.fork_count || 0,
         author: {
           displayName: trip.author_display_name || "Anonymous traveler",
+          username: trip.user_id
+            ? usernameByUserId.get(trip.user_id) ?? undefined
+            : undefined,
         },
         authorNote: trip.author_note || null,
         isEditorsPick: !!trip.is_editors_pick,

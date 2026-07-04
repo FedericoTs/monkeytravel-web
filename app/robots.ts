@@ -114,7 +114,14 @@ export default function robots(): MetadataRoute.Robots {
         disallow: "/",
       })),
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    // Multiple sitemaps: the static-content sitemap plus the two DB-driven
+    // UGC sitemaps (published trips + public creator profiles). Google reads
+    // every Sitemap: line, so listing all three surfaces the UGC-SEO corpus.
+    sitemap: [
+      `${baseUrl}/sitemap.xml`,
+      `${baseUrl}/sitemap-trips.xml`,
+      `${baseUrl}/sitemap-creators.xml`,
+    ],
     host: baseUrl,
   };
 }

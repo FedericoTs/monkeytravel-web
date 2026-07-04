@@ -17,6 +17,12 @@ export interface ExploreTripCard {
   title: string;
   description: string | null;
   shareToken: string;
+  /**
+   * Stable public slug → drives the indexable `/trip/{publicSlug}` link.
+   * Optional: pre-migration rows / non-public trips may lack it, in which
+   * case TripCard falls back to the legacy `/shared/{shareToken}` link.
+   */
+  publicSlug?: string;
   destination: string;
   countryCode: string | null;
   durationDays: number;
@@ -29,7 +35,15 @@ export interface ExploreTripCard {
   likeCount: number;
   saveCount: number;
   forkCount: number;
-  author: { displayName: string };
+  author: {
+    displayName: string;
+    /**
+     * Public handle → drives the byline link to `/creator/{username}`.
+     * Optional: rows without a resolvable/public username render the byline
+     * as plain text (today's behaviour).
+     */
+    username?: string;
+  };
   authorNote: string | null;
   isEditorsPick: boolean;
   /** Travel-style preset from the wizard (classic | backpacker). */

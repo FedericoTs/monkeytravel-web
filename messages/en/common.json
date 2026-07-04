@@ -2326,5 +2326,28 @@
       "label": "Heads up:",
       "body": "these saves live on this device only. Create a free account to sync them across your phone and laptop."
     }
+  },
+  "publicTrip": {
+    "metaTitle": "{destination} Itinerary — {title} | MonkeyTravel",
+    "metaDescriptionFallback": "A detailed day-by-day travel itinerary for {destination}, planned on MonkeyTravel.",
+    "notFoundTitle": "Trip Not Found",
+    "breadcrumbHome": "Home",
+    "breadcrumbExplore": "Explore",
+    "anonymousTraveler": "A MonkeyTravel traveler"
+  },
+  "creator": {
+    "metaTitle": "{name} — Travel Itineraries | MonkeyTravel",
+    "metaDescription": "Explore {count} travel itineraries created by {name} on MonkeyTravel.",
+    "notFoundTitle": "Creator Not Found",
+    "fallbackName": "Traveler",
+    "breadcrumbHome": "Home",
+    "itinerariesHeading": "Travel itineraries by {name}",
+    "tripsCountSingular": "public trip",
+    "tripsCountPlural": "public trips",
+    "totalLikes": "total likes",
+    "emptyState": "This traveler has not published any public trips yet.",
+    "viewAction": "View →",
+    "likesTitle": "Likes",
+    "savesTitle": "Saves"
   }
 }

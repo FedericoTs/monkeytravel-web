@@ -215,6 +215,29 @@ export function generateItemListSchema(
 // Trip/Travel Itinerary Schema
 // ============================================================================
 
+/**
+ * Minimal shape of an itinerary activity the Trip schema needs. Structural
+ * subset of the app's `Activity` type (types/index.ts) — kept local so this
+ * SEO module doesn't take a dependency on the whole trip domain. Every
+ * field is optional so we tolerate partial/legacy itinerary rows.
+ */
+export interface TripSchemaActivity {
+  name?: string;
+  description?: string;
+  location?: string;
+  address?: string;
+  image_url?: string;
+  coordinates?: { lat?: number; lng?: number } | null;
+}
+
+/** Minimal shape of an itinerary day the Trip schema needs. */
+export interface TripSchemaDay {
+  day_number?: number;
+  title?: string;
+  theme?: string;
+  activities?: TripSchemaActivity[];
+}
+
 export interface TripSchemaInput {
   name: string;
   description?: string;
@@ -223,50 +246,128 @@ export interface TripSchemaInput {
   endDate?: string;
   destination?: string;
   image?: string;
+  /**
+   * When the trip was made public. Emitted as `datePublished` — a real
+   * freshness signal for the indexable UGC trip page.
+   */
+  datePublished?: string;
+  /** BCP-47 language tag (e.g. "en", "it") for `inLanguage`. */
+  inLanguage?: string;
+  /**
+   * The trip's itinerary days. When provided, the schema's `itinerary`
+   * becomes a real nested ItemList (per-day ItemList of TouristAttraction)
+   * instead of the thin day-count-only summary — a far richer signal for
+   * Google. Omit to keep the legacy lightweight shape.
+   */
+  days?: TripSchemaDay[];
 }
 
-export interface TripSchema {
-  "@context": "https://schema.org";
-  "@type": "Trip";
-  name: string;
-  description: string;
-  url: string;
-  itinerary?: {
-    "@type": "ItemList";
-    numberOfItems: number;
-    description: string;
-  };
-  provider: {
-    "@type": "Organization";
-    name: string;
-    url: string;
-  };
-}
+/**
+ * `generateTripSchema` returns a flexible record because the `itinerary`
+ * field has two shapes (thin summary vs. full nested ItemList) depending
+ * on whether `days` was supplied. Callers treat it as opaque JSON-LD.
+ */
+export type TripSchema = Record<string, unknown>;
 
 export function generateTripSchema(trip: TripSchemaInput): TripSchema {
   const dayCount = trip.startDate && trip.endDate
     ? Math.ceil((new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
     : undefined;
 
-  return {
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Trip",
     name: trip.name,
     description: trip.description || `Travel itinerary for ${trip.destination || "your destination"} created with MonkeyTravel AI`,
     url: trip.url,
-    ...(dayCount && {
-      itinerary: {
-        "@type": "ItemList",
-        numberOfItems: dayCount,
-        description: `${dayCount}-day travel itinerary`,
-      },
-    }),
     provider: {
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
     },
   };
+
+  if (trip.image) schema.image = trip.image;
+  if (trip.datePublished) schema.datePublished = trip.datePublished;
+  if (trip.inLanguage) schema.inLanguage = trip.inLanguage;
+
+  // Rich itinerary: nested ItemList of per-day ItemLists whose members are
+  // TouristAttraction nodes built from each activity. Only when `days` is
+  // supplied AND at least one day has activities — otherwise fall back to
+  // the thin day-count summary the legacy callers relied on.
+  const daysWithActivities = (trip.days ?? []).filter(
+    (d) => Array.isArray(d.activities) && d.activities.length > 0,
+  );
+
+  if (daysWithActivities.length > 0) {
+    schema.itinerary = {
+      "@type": "ItemList",
+      numberOfItems: daysWithActivities.length,
+      itemListElement: daysWithActivities.map((day, dayIndex) => {
+        const activities = day.activities ?? [];
+        return {
+          "@type": "ItemList",
+          position: dayIndex + 1,
+          name: day.title || `Day ${day.day_number ?? dayIndex + 1}`,
+          numberOfItems: activities.length,
+          itemListElement: activities.map((activity, actIndex) => ({
+            "@type": "ListItem",
+            position: actIndex + 1,
+            item: generateTouristAttractionSchema(activity),
+          })),
+        };
+      }),
+    };
+  } else if (dayCount) {
+    schema.itinerary = {
+      "@type": "ItemList",
+      numberOfItems: dayCount,
+      description: `${dayCount}-day travel itinerary`,
+    };
+  }
+
+  return schema;
+}
+
+// ============================================================================
+// Tourist Attraction Schema (individual itinerary activity)
+// ============================================================================
+
+/**
+ * Build a `TouristAttraction` node for a single itinerary activity. Used
+ * as the leaf node inside the enriched Trip itinerary ItemList, and can be
+ * emitted standalone. Every field is optional — tolerate partial rows.
+ *
+ * `@context` is intentionally omitted: these nodes are embedded inside a
+ * parent schema that already declares the context. When emitted standalone
+ * the caller can add it, but for our itinerary use they're always nested.
+ */
+export function generateTouristAttractionSchema(
+  activity: TripSchemaActivity,
+): Record<string, unknown> {
+  const node: Record<string, unknown> = {
+    "@type": "TouristAttraction",
+    name: activity.name || "Attraction",
+  };
+
+  if (activity.description) node.description = activity.description;
+  if (activity.image_url) node.image = activity.image_url;
+
+  // Prefer full street address; fall back to the location label.
+  const address = activity.address || activity.location;
+  if (address) node.address = address;
+
+  const lat = activity.coordinates?.lat;
+  const lng = activity.coordinates?.lng;
+  if (typeof lat === "number" && typeof lng === "number") {
+    node.geo = {
+      "@type": "GeoCoordinates",
+      latitude: lat,
+      longitude: lng,
+    };
+  }
+
+  return node;
 }
 
 // ============================================================================
@@ -486,27 +587,45 @@ export function generateCollectionPageSchema(input: CollectionPageInput) {
 export interface PersonSchemaInput {
   name: string;
   url: string;
-  jobTitle: string;
-  description: string;
+  /**
+   * Optional. Author bio pages pass this (e.g. "Asia & Pacific Editor").
+   * UGC creator-profile pages omit it — a community traveler has no job
+   * title. Only emitted when present so both callers stay backward-compat.
+   */
+  jobTitle?: string;
+  /** Optional short bio. Author pages set it; creator pages may omit. */
+  description?: string;
   image?: string;
   sameAs?: string[];
   knowsAbout?: string[];
 }
 
+/**
+ * Person JSON-LD node.
+ *
+ * Serves two callers:
+ *   1. Author bio pages (`/about/authors/[slug]`) — pass `jobTitle` +
+ *      `description` for a full editorial-authorship E-E-A-T signal.
+ *   2. UGC creator profiles (`/creator/[username]`) — pass just
+ *      `{ name, url, image?, description? }`. No `jobTitle`.
+ *
+ * `jobTitle` / `description` are only emitted when supplied, so dropping
+ * them for the UGC caller produces a valid, leaner Person node.
+ */
 export function generatePersonSchema(input: PersonSchemaInput) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: input.name,
     url: input.url,
-    jobTitle: input.jobTitle,
-    description: input.description,
     worksFor: {
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
     },
   };
+  if (input.jobTitle) schema.jobTitle = input.jobTitle;
+  if (input.description) schema.description = input.description;
   if (input.image) schema.image = input.image;
   if (input.sameAs?.length) schema.sameAs = input.sameAs;
   if (input.knowsAbout?.length) schema.knowsAbout = input.knowsAbout;

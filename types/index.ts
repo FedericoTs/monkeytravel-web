@@ -5,6 +5,11 @@ export * from './bananas';
 export interface User {
   id: string;
   email: string;
+  /**
+   * Unique, case-insensitive handle. Auto-minted on insert (DB trigger)
+   * and used to build the public creator-profile URL `/creator/{username}`.
+   */
+  username?: string;
   display_name: string;
   avatar_url?: string;
   preferences: UserPreferences;
@@ -60,6 +65,12 @@ export interface Trip {
   itinerary?: ItineraryDay[];
   share_token?: string;
   shared_at?: string;
+  /**
+   * Stable, human-readable public URL slug (e.g. `santorini-6c40f334`).
+   * UNIQUE. Auto-set by a BEFORE trigger whenever visibility='public'.
+   * Drives the indexable public trip page `/trip/{public_slug}`.
+   */
+  public_slug?: string | null;
   is_archived?: boolean;
   archived_at?: string;
   created_at: string;

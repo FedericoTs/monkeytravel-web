@@ -15,9 +15,10 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 interface PageProps {
-  params: Promise<{ token: string }>;
+  params: Promise<{ locale: string; token: string }>;
 }
 
 /**
@@ -43,7 +44,7 @@ const getSharedTrip = cache(async (token: string) => {
 });
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { token } = await params;
+  const { locale, token } = await params;
   const trip = await getSharedTrip(token);
 
   if (!trip) {
@@ -53,12 +54,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  // Canonical consolidation: /shared/{token} stays NOINDEX, but when the trip
+  // is public and has a public_slug, point its canonical at the INDEXABLE
+  // public page /trip/{slug} so any link equity /shared accrues (shares,
+  // inbound links) flows to the URL we actually want ranked. Non-public trips
+  // keep the self-canonical to /shared/{token}.
+  const isPublic =
+    trip.visibility === "public" &&
+    !trip.is_hidden &&
+    typeof trip.public_slug === "string" &&
+    trip.public_slug;
+
+  const canonical = isPublic
+    ? buildAlternates(`/trip/${trip.public_slug}`, { locale }).canonical
+    : `https://monkeytravel.app/shared/${token}`;
+
   return {
     title: trip.title,
     description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
     robots: { index: false, follow: false },
     alternates: {
-      canonical: `https://monkeytravel.app/shared/${token}`,
+      canonical,
     },
     openGraph: {
       title: trip.title,

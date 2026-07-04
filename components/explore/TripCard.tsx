@@ -34,12 +34,33 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
     ? "(max-width: 768px) 50vw, 25vw"
     : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw";
 
+  // Primary click target: the indexable public trip page. Fall back to the
+  // legacy /shared/{token} link when a trip has no public_slug yet (pre-
+  // migration / non-public rows).
+  const tripHref = trip.publicSlug
+    ? `/trip/${trip.publicSlug}`
+    : `/shared/${trip.shareToken}`;
+
+  // The byline links to the creator profile when a public username exists.
+  // Because the whole card is a link, we use the "stretched link" pattern:
+  // the card is a <div>, an absolutely-positioned overlay <Link> covers it
+  // for the trip target, and the byline <Link> sits above it (relative z-10)
+  // so it captures its own clicks — avoiding invalid nested <a> tags.
+  const authorUsername = trip.author.username;
+
   return (
-    <Link
-      href={`/shared/${trip.shareToken}`}
-      className="group block rounded-2xl overflow-hidden bg-white border border-slate-200 hover:border-[var(--primary)]/40 hover:shadow-xl transition-all"
+    <div
+      className="group relative rounded-2xl overflow-hidden bg-white border border-slate-200 hover:border-[var(--primary)]/40 hover:shadow-xl transition-all"
       data-testid="explore-trip-card"
     >
+      {/* Stretched primary link — covers the whole card, sits beneath the
+          interactive byline link. */}
+      <Link
+        href={tripHref}
+        className="absolute inset-0 z-[1]"
+        aria-label={trip.title}
+      />
+
       {/* Cover image */}
       <div
         className={`relative ${isCompact ? "h-36" : isCarousel ? "h-44" : "h-48"} overflow-hidden bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15`}
@@ -103,7 +124,19 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
         {/* Author + duration */}
         <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
           <span className="truncate">
-            {t("byAuthor")} <span className="font-medium text-slate-700">{trip.author.displayName}</span>
+            {t("byAuthor")}{" "}
+            {authorUsername ? (
+              <Link
+                href={`/creator/${authorUsername}`}
+                className="relative z-10 font-medium text-slate-700 hover:text-[var(--primary)] hover:underline"
+              >
+                {trip.author.displayName}
+              </Link>
+            ) : (
+              <span className="font-medium text-slate-700">
+                {trip.author.displayName}
+              </span>
+            )}
           </span>
           <span className="flex-shrink-0 ml-2">
             {t("days", { count: trip.durationDays })}
@@ -149,6 +182,6 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
