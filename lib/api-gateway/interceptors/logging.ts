@@ -5,7 +5,7 @@
  * Logs are flushed every 5 seconds or when batch reaches 50 entries.
  */
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { BATCH_LOGGER_CONFIG } from "../config";
 import type { LogEntry, Interceptor, ApiRequestConfig } from "../types";
 
@@ -49,7 +49,13 @@ class BatchLogger {
     this.batch = [];
 
     try {
-      const supabase = await createClient();
+      // System observability write on a setInterval + process.beforeExit path
+      // — OUTSIDE any request scope. The request-scoped server client's
+      // cookies() read throws "cookies was called outside a request scope"
+      // there (chronic 2127-occurrence error). The service-role admin client
+      // needs no request context and is the correct client for a background
+      // log flush; api_request_logs is a system table, so bypassing RLS is fine.
+      const supabase = createAdminClient();
       const { error } = await supabase.from("api_request_logs").insert(entries);
 
       if (error) {
