@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc, hasLocaleTranslation } from "@/lib/blog/api";
+import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc, hasLocaleTranslation, tOr } from "@/lib/blog/api";
 import { getAuthorByFrontmatterId } from "@/lib/blog/authors";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
@@ -58,8 +58,8 @@ export async function generateMetadata({
 
   const { frontmatter } = post;
   const t = await getTranslations({ locale, namespace: "blog" });
-  const title = t(`posts.${slug}.title`);
-  const description = t(`posts.${slug}.description`);
+  const title = tOr(t, `posts.${slug}.title`, frontmatter.title);
+  const description = tOr(t, `posts.${slug}.description`, frontmatter.description);
 
   // Only emit hreflang for locales that have a real translation file. Without
   // this check, an EN-only post (e.g. the consolidation pillars) declares
@@ -166,8 +166,8 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const pageUrl = `${SITE_URL}${localePrefix}/blog/${slug}`;
 
   // Structured data — use blog.json translated titles for consistency with <title> tag
-  const seoTitle = t(`posts.${slug}.title`);
-  const seoDescription = t(`posts.${slug}.description`);
+  const seoTitle = tOr(t, `posts.${slug}.title`, frontmatter.title);
+  const seoDescription = tOr(t, `posts.${slug}.description`, frontmatter.description);
   const wordCount = post.content.split(/\s+/).length;
   // Resolve named author if frontmatter `author:` matches a known persona;
   // falls back to the legacy string-author shape for unrecognized authors.
@@ -323,18 +323,18 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 </Link>
                 <span className="text-white/40">/</span>
                 <span className="text-white/80 truncate max-w-[200px] sm:max-w-none">
-                  {t(`posts.${slug}.title`)}
+                  {tOr(t, `posts.${slug}.title`, frontmatter.title)}
                 </span>
               </nav>
 
               {/* Category badge */}
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium border border-white/20 mb-3">
-                {t(`categories.${frontmatter.category}`)}
+                {tOr(t, `categories.${frontmatter.category}`, frontmatter.category)}
               </span>
 
               {/* Title */}
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight drop-shadow-lg leading-tight">
-                {t(`posts.${slug}.title`)}
+                {tOr(t, `posts.${slug}.title`, frontmatter.title)}
               </h1>
 
               {/* Meta chips */}
@@ -420,9 +420,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 )}
                 <BlogPrevNext
                   prev={prevPost}
-                  prevTitle={prevPost ? t(`posts.${prevPost.slug}.title`) : null}
+                  prevTitle={prevPost ? tOr(t, `posts.${prevPost.slug}.title`, prevPost.title) : null}
                   next={nextPost}
-                  nextTitle={nextPost ? t(`posts.${nextPost.slug}.title`) : null}
+                  nextTitle={nextPost ? tOr(t, `posts.${nextPost.slug}.title`, nextPost.title) : null}
                   prevLabel={t("detail.previousPost")}
                   nextLabel={t("detail.nextPost")}
                 />
@@ -575,9 +575,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   <BlogCard
                     key={relPost.slug}
                     post={relPost}
-                    title={t(`posts.${relPost.slug}.title`)}
-                    description={t(`posts.${relPost.slug}.description`)}
-                    category={t(`categories.${relPost.category}`)}
+                    title={tOr(t, `posts.${relPost.slug}.title`, relPost.title)}
+                    description={tOr(t, `posts.${relPost.slug}.description`, relPost.description)}
+                    category={tOr(t, `categories.${relPost.category}`, relPost.category)}
                     readMoreLabel={t("index.readMore")}
                     minuteReadLabel={t("index.minuteRead", {
                       minutes: relPost.readingTime,
@@ -601,9 +601,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   <BlogCard
                     key={regPost.slug}
                     post={regPost}
-                    title={t(`posts.${regPost.slug}.title`)}
-                    description={t(`posts.${regPost.slug}.description`)}
-                    category={t(`categories.${regPost.category}`)}
+                    title={tOr(t, `posts.${regPost.slug}.title`, regPost.title)}
+                    description={tOr(t, `posts.${regPost.slug}.description`, regPost.description)}
+                    category={tOr(t, `categories.${regPost.category}`, regPost.category)}
                     readMoreLabel={t("index.readMore")}
                     minuteReadLabel={t("index.minuteRead", {
                       minutes: regPost.readingTime,

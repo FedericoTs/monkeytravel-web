@@ -278,6 +278,30 @@ export function getPrevNextPosts(
   };
 }
 
+/**
+ * next-intl server translator shape we depend on (callable + `.has()`).
+ */
+type BlogTranslator = { (key: string): string; has: (key: string) => boolean };
+
+/**
+ * Translate `key`, falling back to `fallback` when the key is missing.
+ *
+ * EN-only blog posts — e.g. the standalone impression-recovery posts
+ * (visa-requirements-2026, where-to-go-in-april,
+ * best-honeymoon-destinations-2026) — carry no `posts.<slug>.title` /
+ * `.description` key, and some posts use a `category` label that has no
+ * `categories.<label>` key. Without this fallback next-intl returns the raw
+ * key STRING in production — leaking e.g. `blog.posts.visa-requirements-2026.title`
+ * straight into <title>, the H1, the meta description, and JSON-LD (all indexed
+ * by Google) — and logs a MISSING_MESSAGE error on every render. The
+ * frontmatter is already authored in the active locale
+ * (content/blog/{locale}/*.md), so it's the correct fallback. Mirrors the
+ * inline `t.has()` guard the /blog index already uses for its featured card.
+ */
+export function tOr(t: BlogTranslator, key: string, fallback: string): string {
+  return t.has(key) ? t(key) : fallback;
+}
+
 export function getRelatedPosts(
   slug: string,
   limit = 3,

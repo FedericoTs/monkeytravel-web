@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
-import { getAllFrontmatter } from "@/lib/blog/api";
+import { getAllFrontmatter, tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
@@ -146,7 +146,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
     url: blogUrl,
     posts: allFrontmatter.map((fm) => ({
       url: `${blogUrl}/${fm.slug}`,
-      name: t(`posts.${fm.slug}.title`),
+      name: tOr(t, `posts.${fm.slug}.title`, fm.title),
     })),
   });
 
@@ -216,9 +216,9 @@ export default async function BlogIndexPage({ params }: PageProps) {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <FeaturedHero
                   post={featured}
-                  title={t.has(titleKey) ? t(titleKey) : featured.title}
-                  description={t.has(descKey) ? t(descKey) : featured.description}
-                  category={t.has(catKey) ? t(catKey) : featured.category}
+                  title={tOr(t, titleKey, featured.title)}
+                  description={tOr(t, descKey, featured.description)}
+                  category={tOr(t, catKey, featured.category)}
                   readMoreLabel={t("index.readMore")}
                   minuteReadLabel={t("index.minuteRead", { minutes: featured.readingTime })}
                   eyebrowLabel={t("index.featured")}
@@ -269,7 +269,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
             {allFrontmatter.map((frontmatter) => (
               <li key={frontmatter.slug}>
                 <Link href={`/blog/${frontmatter.slug}`}>
-                  {t(`posts.${frontmatter.slug}.title`)}
+                  {tOr(t, `posts.${frontmatter.slug}.title`, frontmatter.title)}
                 </Link>
               </li>
             ))}

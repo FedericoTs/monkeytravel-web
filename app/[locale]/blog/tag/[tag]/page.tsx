@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
+import { tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
@@ -171,9 +172,9 @@ export default async function BlogTagPage({ params }: PageProps) {
                 <BlogCard
                   key={post.slug}
                   post={post}
-                  title={t(`posts.${post.slug}.title`)}
-                  description={t(`posts.${post.slug}.description`)}
-                  category={t(`categories.${post.category}`)}
+                  title={tOr(t, `posts.${post.slug}.title`, post.title)}
+                  description={tOr(t, `posts.${post.slug}.description`, post.description)}
+                  category={tOr(t, `categories.${post.category}`, post.category)}
                   readMoreLabel={t("index.readMore")}
                   minuteReadLabel={t("index.minuteRead", { minutes: post.readingTime })}
                 />
@@ -188,7 +189,7 @@ export default async function BlogTagPage({ params }: PageProps) {
           <ul>
             {posts.map((post) => (
               <li key={post.slug}>
-                <Link href={`/blog/${post.slug}`}>{t(`posts.${post.slug}.title`)}</Link>
+                <Link href={`/blog/${post.slug}`}>{tOr(t, `posts.${post.slug}.title`, post.title)}</Link>
               </li>
             ))}
           </ul>
