@@ -454,7 +454,7 @@ Return ONLY a JSON array of activities, no other text.`;
       const { error } = await supabase
         .from("destination_activity_bank")
         .upsert(batch, {
-          onConflict: "unique_destination_activity",
+          onConflict: "destination_hash,activity_type,activity_name_lower",
           ignoreDuplicates: true
         });
 
@@ -579,7 +579,7 @@ export async function saveToActivityBank(
         expires_at: expiresAt.toISOString(),
         hit_count: 0,
       }, {
-        onConflict: "unique_destination_activity"
+        onConflict: "destination_hash,activity_type,activity_name_lower"
       });
 
     if (error) {

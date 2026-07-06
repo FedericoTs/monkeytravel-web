@@ -149,8 +149,14 @@ export async function GET(request: NextRequest) {
       // This requires raw SQL, so we'll filter post-fetch for simplicity
     }
 
-    if (budgetTier) {
-      query = query.eq("trip_meta->budget_tier", budgetTier);
+    // budget_tier lives inside the trip_meta JSONB. Use ->> (text) NOT ->
+    // (jsonb): the jsonb form casts the raw param to jsonb and 22P02-errors on
+    // any non-JSON token (e.g. ?budget=budget → "Token budget is invalid"),
+    // 500ing the whole feed. Whitelist the tier so junk params are ignored
+    // rather than queried.
+    const VALID_BUDGET_TIERS = ["budget", "balanced", "premium"];
+    if (budgetTier && VALID_BUDGET_TIERS.includes(budgetTier)) {
+      query = query.eq("trip_meta->>budget_tier", budgetTier);
     }
 
     if (tags && tags.length > 0) {

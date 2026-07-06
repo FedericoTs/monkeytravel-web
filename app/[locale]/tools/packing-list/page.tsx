@@ -78,7 +78,10 @@ export default async function PackingListPage({
   setRequestLocale(locale);
   const t = await getTranslations("tools.packingList");
   const tToolsLanding = await getTranslations("tools.landing");
-  const tBreadcrumbs = await getTranslations("breadcrumbs");
+  // namespace path is `common.breadcrumbs`, NOT `breadcrumbs` — same Day-7 fix
+  // already applied to the visa-checker sibling. getTranslations("breadcrumbs")
+  // finds no namespace and throws MISSING_MESSAGE on every SSR render.
+  const tBreadcrumbs = await getTranslations("common.breadcrumbs");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
