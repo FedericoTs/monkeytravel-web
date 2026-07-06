@@ -56,7 +56,95 @@
     "subtitle": "{count, plural, =1 {1 destino} other {# destinos}} que coinciden con este estilo de viaje.",
     "allDestinations": "Todos los destinos que coinciden",
     "metaTitle": "Destinos {tag} — itinerarios planificados con AI",
-    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viajes {tag}. Obtén un itinerario día a día creado por AI en 30 segundos — gratis."
+    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viajes {tag}. Obtén un itinerario día a día creado por AI en 30 segundos — gratis.",
+    "topPicks": "Por dónde empezar",
+    "faqHeading": "Conviene saber",
+    "content": {
+      "romantic": {
+        "intro": "Un viaje romántico funciona cuando el ritmo deja espacio para vosotros dos — no cuando cada hora está programada. Los destinos de abajo se han ganado su fama con la luz del atardecer, cascos antiguos para recorrer a pie y restaurantes donde la mesa para dos no es una ocurrencia tardía. Apuntad a la temporada media: mayo–junio o septiembre–octubre en Europa significan tardes doradas sin las multitudes del verano, y las tarifas de hotel bajan lo suficiente para permitiros la habitación con vistas. Reservad la cena especial o el atardecer en la azotea antes de volar, y dejad al menos una tarde deliberadamente vacía. Si es luna de miel o aniversario, decidlo al reservar: las mejoras de habitación llegan más a menudo de lo que imagináis.",
+        "faq1q": "¿Cuál es la mejor época para una escapada romántica en Europa?",
+        "faq1a": "De finales de mayo a mediados de junio y de septiembre a mediados de octubre: tardes largas y templadas y cenas al aire libre sin las multitudes ni los precios de agosto. El invierno también funciona en ciudades como Praga o Viena — el frío fuera combina bien con interiores a la luz de las velas — pero comprobad los horarios, que se acortan en temporada baja.",
+        "faq2q": "¿Se puede hacer un viaje romántico con poco presupuesto?",
+        "faq2a": "Sí — el romanticismo depende de la atmósfera, no del gasto. Elegid un solo capricho de pago, un paseo en barco o un menú degustación, y construid el resto sobre paseos al atardecer, mercados y miradores gratuitos. Viajar en temporada media suele ahorrar lo suficiente para cubrir ese capricho."
+      },
+      "cultural": {
+        "intro": "Los viajes culturales fracasan más por exceso de programa que por algo que falte. Dos visitas importantes al día — una por la mañana, otra a última hora de la tarde — ganan a seis con prisas, y dejan hueco para lo que no habíais planeado: el museo pequeño de al lado, la iglesia con el fresco inesperado. Las ciudades de abajo premian exactamente ese ritmo, con centros históricos densos donde el camino entre monumentos es la mitad de la experiencia. Antes de comprar un pase urbano comprobad que cubra lo que de verdad vais a visitar, reservad entradas con horario para los dos o tres platos fuertes, e id temprano o tarde: la diferencia entre las 9 y el mediodía en un sitio famoso es la diferencia entre asombro y cola.",
+        "faq1q": "¿Cuántos museos o monumentos conviene planear por día?",
+        "faq1a": "Dos grandes, tres como máximo. Los museos importantes llevan de dos a tres horas cada uno, y después la atención cae en picado. Anclad la mañana con el sitio más popular — llegad a la apertura — dejad la tarde más ligera y las noches sin planificar.",
+        "faq2q": "¿Merecen la pena los pases urbanos en viajes culturales?",
+        "faq2a": "Solo si hacéis la lista de lo que realmente visitaréis y las cuentas salen: muchos pases necesitan cuatro o más entradas de pago para amortizarse. Brillan en ciudades con entradas individuales caras, y algunos incluyen accesos sin cola, que pueden valer más que el propio descuento."
+      },
+      "foodie": {
+        "intro": "Comer bien en una ciudad nueva depende sobre todo de dónde come de verdad la gente local, no de los restaurantes más cercanos a los monumentos. Los destinos de abajo tienen identidades gastronómicas serias: mercados de abastos, comida callejera con colas de vecinos, barrios donde el almuerzo es el evento principal. Haced un tour gastronómico o una ruta de mercado el primer día: os mapea los sabores de la ciudad y os deja la lista para el resto del viaje. El almuerzo es el capricho inteligente — muchas grandes cocinas sirven menús de mediodía a una fracción del precio de la cena. Reservad con semanas solo el par de restaurantes que os daría pena perderos, y dejad el resto al azar.",
+        "faq1q": "¿Cómo se come bien sin un gran presupuesto?",
+        "faq1a": "Seguid los mercados y los menús del mediodía. Los mercados de abastos y la comida callejera ofrecen los mejores productos de la región por poco, y los restaurantes de alto nivel suelen tener menús degustación al mediodía a mitad del precio de la cena. Evitad los sitios con alguien en la puerta invitando a entrar.",
+        "faq2q": "¿Conviene reservar restaurantes antes del viaje?",
+        "faq2a": "Solo los que justifican el destino — los de listas de espera de semanas. Reservadlos en cuanto tengáis fechas, y después mantened la flexibilidad. Una reserva al día es suficiente: planificar de más mata el hallazgo espontáneo que suele acabar siendo la mejor comida del viaje."
+      },
+      "urban": {
+        "intro": "Una buena escapada urbana tiene ritmo: un plato fuerte al día, un barrio explorado a fondo, y cena en un sitio que no habríais encontrado desde casa. Las ciudades de abajo están hechas para eso — densas, caminables o con transporte excelente, con barrios tan distintos que parecen pequeñas ciudades aparte. Tres o cuatro días es la medida justa: suficiente para pasar de las postales a una rutina — el café al que volvéis, el atajo que ya os sabéis. Alojaos en el centro aunque cueste más; el tiempo y la energía ahorrados ganan siempre a una cama barata junto al aeropuerto.",
+        "faq1q": "¿Cuántos días necesito para una escapada urbana?",
+        "faq1a": "Tres días completos para la mayoría de ciudades; cuatro o cinco para las gigantes como Tokio, Londres o Nueva York. El primer día para los iconos, el segundo para los barrios, el tercero para lo que hayáis descubierto que os gusta. Más de cinco, y suele compensar añadir una excursión.",
+        "faq2q": "¿Mejor una sola base o cambiar de hotel?",
+        "faq2a": "Una sola base, casi siempre, en viajes de menos de una semana. Cada cambio de hotel cuesta media jornada entre maletas y traslados. Elegid un barrio céntrico y bien conectado y tratad las zonas lejanas como visitas de día."
+      },
+      "historical": {
+        "intro": "Estar donde ocurrió la historia hace algo que un libro no puede — pero los sitios antiguos premian la preparación. Los destinos de abajo abarcan milenios, de foros romanos a barrios medievales, y la diferencia entre una visita que marca y un paseo caluroso entre piedras está en el contexto y el momento. Reservad el primer turno de entrada del sitio estrella: menos gente, aire más fresco, mejor luz. Una buena guía — humana o de audio — se paga sola en las ruinas, donde el significado no se ve sin el relato. Y mezclad épocas: combinad el sitio antiguo con el barrio construido mil años después; en ese contraste es donde encaja la historia de una ciudad.",
+        "faq1q": "¿Merece la pena una visita guiada en los sitios antiguos?",
+        "faq1a": "En las ruinas, casi siempre sí: sin contexto, hasta los sitios espectaculares parecen escombros. Un guía acreditado o una buena audioguía convierte los muros en historias. En lugares íntegros como palacios y catedrales puede bastar un buen capítulo de guía de viaje.",
+        "faq2q": "¿Cómo evito las multitudes en los sitios históricos famosos?",
+        "faq2a": "Reservad el primer turno del día e id directos a la sección más famosa, a contracorriente. La última hora de la tarde — las dos horas antes del cierre — es la segunda mejor ventana. En ciudades con puerto, consultad el calendario de cruceros y evitad los días de escala."
+      },
+      "beach": {
+        "intro": "Los viajes de playa viven y mueren por la temporada: la misma costa es un paraíso en junio y puro viento en noviembre. Los destinos de abajo cubren tanto los veranos mediterráneos clásicos como los inviernos tropicales, así que hay una respuesta correcta en cualquier mes. La temporada media es el movimiento de expertos: el mar aún caliente, las hamacas a mitad de precio, los restaurantes relajados. Alternad los clubes de playa — comodidad y servicio — con los tramos públicos, donde están el espacio, los atardeceres y la gente local. Y planead un día sin playa para el casco antiguo o una salida en barco: es lo que recordaréis cuando el moreno se haya ido.",
+        "faq1q": "¿Cuándo está el mar lo bastante caliente en el Mediterráneo?",
+        "faq1a": "De mediados de junio a principios de octubre, con el pico en agosto. Septiembre es el mes de los entendidos: el agua en su punto más cálido, las multitudes fuera, los precios a la baja. Para calor garantizado el resto del año, mirad a los trópicos: el Caribe y el Sudeste Asiático rinden al máximo de diciembre a abril.",
+        "faq2q": "¿Son buenos estos destinos de playa para familias?",
+        "faq2a": "La mayoría, sí: buscad playas de arena con entrada gradual y paseos marítimos aptos para carritos. Los clubes de playa con piscina resuelven el calor del mediodía con niños pequeños. Reservad pronto las habitaciones en planta baja o junto a la piscina: en temporada familiar vuelan."
+      },
+      "nightlife": {
+        "intro": "Las verdaderas ciudades de vida nocturna no empiezan al atardecer: empiezan a medianoche, y conocer el reloj local es la mitad del viaje. Los destinos de abajo van de escenas de azoteas y cócteles a clubes que cierran después del amanecer. Id donde ocurre de verdad la semana de los residentes: en muchas ciudades el jueves es el nuevo viernes, y la calle famosa rara vez es donde baila la gente que vive allí. Meted la recuperación en el plan — una noche grande, una mañana lenta — y cubrid lo básico: una app de transporte que funcione en la zona, un punto de encuentro acordado, algo de efectivo para los sitios que a las 3 de la mañana no aceptan tarjeta.",
+        "faq1q": "¿Cómo encuentro dónde sale de verdad la gente local?",
+        "faq1a": "Saltaos la calle principal de turistas y mirad uno o dos barrios más allá — y preguntad a los bartenders a primera hora de la noche: son los mejores exploradores de cualquier ciudad. Las agendas de eventos locales ganan a los típicos artículos top-10, que os mandan donde ya están todos los demás visitantes.",
+        "faq2q": "¿Es seguro disfrutar de la vida nocturna en solitario?",
+        "faq2a": "En la mayoría de estas ciudades sí, con las reglas de siempre: llegad en taxi con licencia o app de transporte, no perdáis de vista vuestra bebida y sabed cómo volver antes de salir. Las rutas de bares de los hostels y las noches organizadas son una forma fácil de convertir el solo en grupo."
+      },
+      "adventure": {
+        "intro": "Los viajes de aventura exigen planear una cosa con más cuidado que la adrenalina: el descanso. Alternad los días grandes — el cañón, la cumbre, la inmersión — con días de recuperación de verdad, o el cuarto día será sufrimiento en lugar de momento estrella. Los destinos de abajo combinan credenciales outdoor reales con infraestructura suficiente para simplificar la logística. Reservad con antelación las actividades críticas para la seguridad, como buceo, barranquismo o trekking en altura, con operadores certificados, y dejad flexible lo que dependa del tiempo. Y comprobad que vuestro seguro de viaje cubra de verdad lo que planeáis: las pólizas estándar suelen excluir justo las actividades por las que viajáis.",
+        "faq1q": "¿Necesito un seguro especial para actividades de aventura?",
+        "faq1a": "Casi seguro que sí: las pólizas estándar suelen excluir el buceo, el trekking en altura, la escalada e incluso los quads. Leed la lista de actividades, contratad la ampliación de aventura si hace falta y llevad el justificante: en destinos regulados, los operadores lo piden a menudo.",
+        "faq2q": "¿Qué forma física necesito para un viaje de aventura?",
+        "faq2a": "La suficiente para disfrutarlo, no para competir. La mayoría de las actividades comerciales tienen niveles para principiantes: sed honestos con los operadores sobre vuestra experiencia y os colocarán en el grupo adecuado. Si el viaje gira en torno a un gran reto físico, como un trekking de varios días, entrenad un poco antes."
+      },
+      "nature": {
+        "intro": "Los viajes de naturaleza funcionan con otra logística: los mejores momentos ocurren al amanecer, a una hora del pueblo, donde el autobús no llega. Para los destinos de abajo, decidid pronto si alquilaréis coche — es la diferencia entre el sendero vacío al alba y el aparcamiento lleno a las once. La temporada cuenta doble al aire libre: el mismo parque es flores silvestres en mayo y niebla en noviembre, así que comprobad qué ofrece de verdad vuestro mes. Meted capas en la maleta pase lo que pase con la previsión. Y reservad pronto los alojamientos dentro o cerca del parque: las pocas opciones que hay se agotan con meses de antelación en temporada.",
+        "faq1q": "¿Necesito coche para un viaje centrado en la naturaleza?",
+        "faq1a": "Suele ser el factor decisivo. El transporte público llega a los miradores famosos a las horas famosas; el coche os lleva a los senderos al amanecer, cuando la luz y la fauna están en su mejor momento y la gente ausente. Si preferís no conducir, los tours en grupos pequeños ganan a encadenar autobuses.",
+        "faq2q": "¿Cuál es la mejor temporada para los destinos de naturaleza?",
+        "faq2a": "Cada uno tiene su ventana: cascadas de deshielo a finales de primavera, senderos alpinos en pleno verano, colores de otoño después. Consultad el clima mes a mes en la página del destino, y recordad la altitud: el valle puede estar en verano mientras la cresta sigue cerrada por nieve."
+      },
+      "wellness": {
+        "intro": "Un viaje de bienestar debería restar, no sumar: menos visitas, menos decisiones, más repetición de lo que sienta bien. Los destinos de abajo tienen infraestructura de verdad para eso: aguas termales, cultura de spa seria, yoga impartido por gente con credenciales y no con hashtags. La temporada baja es el secreto: el mismo pueblo termal en noviembre cuesta menos, está más tranquilo, y el frío de fuera hace mejor el agua caliente. Reservad los tratamientos al principio del viaje para poder repetir lo que funcione. Y proteged el vacío: una actividad al día es el techo, no el objetivo.",
+        "faq1q": "¿Qué destinos de bienestar funcionan con poco presupuesto?",
+        "faq1a": "Las culturas de baños termales ganan a los spas de resort en valor: los baños públicos y los pueblos termales cuestan una fracción de las tarifas de spa de hotel por las mismas aguas. La temporada baja abarata aún más, y un alojamiento con cocina hace asequible la semana entera.",
+        "faq2q": "¿Funciona un viaje de bienestar en solitario?",
+        "faq2a": "Posiblemente sea el que mejor funciona en solitario: la gracia es seguir vuestro propio ritmo sin negociar con nadie. Los baños, las clases de yoga y las mesas compartidas de los retiros dan exactamente la compañía que queráis. Elegid sitios con programa diario estructurado, para que estar solo nunca sea estar sin plan."
+      },
+      "shopping": {
+        "intro": "Los viajes de compras premian el plan: distinguir entre el distrito de las flagship (teatro de escaparates), las calles del diseño local (lo que de verdad compraréis) y los mercados y outlets (las historias que contaréis). Las ciudades de abajo tienen los tres. Consultad el calendario de rebajas antes de reservar: varios destinos tienen temporadas de rebajas fijadas por ley en enero y julio, cuando los precios se reducen de verdad a la mitad. Si venís de fuera de la región, aprended el proceso de devolución de impuestos antes de la primera compra, y dejad hueco en la maleta o contad con enviar por mensajería: el mejor hallazgo siempre abulta más de lo previsto.",
+        "faq1q": "¿Cómo funciona el tax free para turistas?",
+        "faq1a": "Los visitantes no residentes pueden recuperar el impuesto a partir de un gasto mínimo: pedid el formulario tax free en caja, guardad los tickets y validadlo todo en el aeropuerto antes de facturar. Los mostradores de devolución inmediata se quedan más comisión que los formularios validados en aduana y enviados al operador.",
+        "faq2q": "¿Cuándo son las grandes temporadas de rebajas?",
+        "faq2a": "Enero y finales de junio–julio en buena parte de Europa, donde las fechas de rebajas las fija la ley; la semana del Black Friday ya es global; y los festivales de compras de Asia se concentran en el Año Nuevo Lunar y el Singles' Day. Los outlets descuentan todo el año pero reponen a mitad de semana."
+      },
+      "offbeat": {
+        "intro": "Ir donde va menos gente cambia comodidad por autenticidad — y el cambio compensa si planeáis márgenes. En los destinos de abajo, la recompensa son calles que no actúan para los visitantes y precios que no se lo tienen creído. El coste: transporte más escaso, horarios más cortos, menos inglés. Añadid holgura a cada conexión, descargad mapas offline y una app de traducción, y aprended diez palabras del idioma local: en los lugares menos turísticos cambian visiblemente cómo os reciben. Reservad la primera noche con antelación y dejad el resto suelto: los mejores días fuera de ruta son los no planeados.",
+        "faq1q": "¿Es más difícil organizar un viaje fuera de las rutas típicas?",
+        "faq1a": "Necesita más margen, no más planificación. El transporte pasa menos a menudo y la información escasea, así que dejad atada la logística del día de llegada y mantened flexible todo lo demás. Asumid que cualquier cosa crucial — el único bus del día, el único restaurante abierto en domingo — necesita un plan B.",
+        "faq2q": "¿Son seguros los destinos menos conocidos?",
+        "faq2a": "Menos conocido suele significar menos delincuencia dirigida al turista, no más peligro — pero consultad las recomendaciones de viaje de vuestro gobierno para la región concreta y llevad mapas offline. Los riesgos prácticos son mundanos: conexiones perdidas y cocinas cerradas, no titulares."
+      }
+    }
   },
   "stats": {
     "avgStay": "{days} días de estancia media",

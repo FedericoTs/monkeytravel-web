@@ -56,7 +56,95 @@
     "subtitle": "{count, plural, =1 {1 destination} other {# destinations}} that match this travel style.",
     "allDestinations": "All matching destinations",
     "metaTitle": "{tag} destinations — AI-planned itineraries",
-    "metaDescription": "{count, plural, =1 {1 destination} other {# destinations}} for {tag} travel. Get an AI-built day-by-day itinerary in 30 seconds — free."
+    "metaDescription": "{count, plural, =1 {1 destination} other {# destinations}} for {tag} travel. Get an AI-built day-by-day itinerary in 30 seconds — free.",
+    "topPicks": "Where to start",
+    "faqHeading": "Good to know",
+    "content": {
+      "romantic": {
+        "intro": "A romantic trip works when the pace leaves room for the two of you — not when every hour is scheduled. The destinations below earn their reputation with evening light, walkable old towns, and restaurants where a table for two isn't an afterthought. Aim for shoulder season: May–June or September–October in Europe means golden evenings without summer's crowds, and hotel rates drop enough to upgrade to the room with the view. Book the one splurge meal or rooftop sunset before you fly, and leave at least one afternoon deliberately empty. If it's a honeymoon or anniversary, say so when booking — upgrades follow surprisingly often.",
+        "faq1q": "When is the best time for a romantic city break in Europe?",
+        "faq1a": "Late May to mid-June and September to mid-October. You get long, warm evenings and open-air dining without August's crowds and prices. Winter works too for cities like Prague or Vienna — cold outside pairs well with candlelit interiors — but check opening hours, which shrink off-season.",
+        "faq2q": "Can a romantic trip work on a budget?",
+        "faq2a": "Yes — romance scales with atmosphere, not spend. Pick one paid highlight, a boat ride or a tasting menu, and build the rest around free golden-hour walks, markets, and viewpoints. Traveling in shoulder season often saves enough to cover the splurge."
+      },
+      "cultural": {
+        "intro": "Cultural trips fail from overstuffing more often than from missing things. Two anchor sights a day — one in the morning, one in the late afternoon — beat six rushed ones, and leave room for what you didn't plan: the small museum next door, the church with the unexpected fresco. The cities below reward exactly that kind of pacing, with dense historic centers where the walk between sights is half the experience. Check whether a city pass actually covers what you'll visit before buying one, book timed entries for the two or three blockbusters, and go early or late — the difference between 9am and noon at a famous site is the difference between awe and queue.",
+        "faq1q": "How many museums or sights should I plan per day?",
+        "faq1a": "Two major ones, three at most. Big museums take two to three hours each, and attention fades fast after that. Anchor the morning with the most popular sight — arrive at opening — keep the afternoon lighter, and leave evenings unplanned.",
+        "faq2q": "Are city passes worth it for cultural trips?",
+        "faq2a": "Only if you list what you'll actually visit and the math works — many passes need four or more paid entries to break even. They shine in cities with expensive individual tickets, and some include skip-the-line slots, which can be worth more than the discount itself."
+      },
+      "foodie": {
+        "intro": "Eating well in a new city is mostly about where locals actually eat, not the restaurants nearest the sights. The destinations below have serious food identities — market halls, street food with lines of residents, neighborhoods where lunch is the main event. Do a food tour or market walk on day one: it maps the city's flavors and hands you a list for the rest of the trip. Lunch is the smart splurge — many top kitchens serve midday menus at a fraction of dinner prices. Book the one or two restaurants you'd be sad to miss weeks ahead, and leave the rest to wandering.",
+        "faq1q": "How do I eat well without a big budget?",
+        "faq1a": "Follow the markets and the lunch menus. Market halls and street food give you the region's best products cheaply, and high-end restaurants often run lunch tasting menus at half the dinner price. Skip anywhere with a host waving you in from the doorway.",
+        "faq2q": "Should I book restaurants before the trip?",
+        "faq2a": "Only the destination-level ones — places with weeks-long waitlists. Book those as soon as your dates are fixed, then stay flexible. One reservation per day is plenty; over-planning kills the spontaneous find that usually becomes the trip's best meal."
+      },
+      "urban": {
+        "intro": "A good city break has a rhythm: one anchor sight per day, one neighborhood explored properly, and dinner somewhere you couldn't have found from home. The cities below are built for that — dense, walkable or transit-rich, with districts distinct enough to feel like separate small towns. Three to four days is the sweet spot: enough to get past the postcard sights and into a routine — a coffee place you return to, a shortcut you've learned. Stay central even if it costs more; the time and energy saved beats a cheaper bed by the airport every time.",
+        "faq1q": "How many days do I need for a city break?",
+        "faq1a": "Three full days for most cities; four to five for the giants like Tokyo, London, or New York. Day one for the icons, day two for neighborhoods, day three for whatever you discovered you liked. Beyond five, you're usually better off adding a day trip.",
+        "faq2q": "Is it better to stay in one base or change hotels?",
+        "faq2a": "One base, almost always, for trips under a week. Every hotel change costs half a day in packing and transit. Pick a central, well-connected neighborhood and treat far-flung areas as day visits instead."
+      },
+      "historical": {
+        "intro": "Standing where history happened does something a book can't — but ancient sites reward preparation. The destinations below span millennia, from Roman forums to medieval quarters, and the difference between a transformative visit and a hot walk among stones is context and timing. Book the earliest entry slot for the headline site: fewer people, cooler air, better light. A good guide — human or audio — pays for itself at ruins, where the meaning isn't visible without the story. And mix eras: pair the ancient site with the neighborhood built a thousand years later; the contrast is where a city's story clicks.",
+        "faq1q": "Is a guided tour worth it at ancient sites?",
+        "faq1a": "At ruins, usually yes — without context, even spectacular sites read as rubble. A licensed guide or a well-reviewed audio guide turns walls into stories. For intact sites like palaces and cathedrals, a good guidebook chapter can be enough.",
+        "faq2q": "How do I avoid crowds at famous historical sites?",
+        "faq2a": "Book the first entry slot of the day and walk straight to the most famous section, against the flow. Late afternoon — the last two hours before closing — is the second-best window. In port cities, check cruise schedules and avoid ship days."
+      },
+      "beach": {
+        "intro": "Beach trips live and die by season — the same coast is paradise in June and windswept in November. The destinations below cover both classic Mediterranean summers and tropical winters, so there's a right answer in every month. Shoulder season is the insider move: the sea still warm, sunbeds half price, restaurants relaxed. Balance beach clubs — comfort and service — with public stretches, where the space, the sunsets, and the locals are. And plan one non-beach day for the old town or a boat trip; it's what you'll remember when the tan fades.",
+        "faq1q": "When is the sea warm enough in the Mediterranean?",
+        "faq1a": "Mid-June through early October, peaking in August. September is the connoisseur's month: the water at its warmest, the crowds gone, the prices down. For guaranteed warmth in other months, look to the tropics — the Caribbean and Southeast Asia peak December to April.",
+        "faq2q": "Are beach destinations good for families?",
+        "faq2a": "Most, yes — look for sandy beaches with gradual entry and promenades for strollers. Beach clubs with pools solve the midday-heat problem for small kids. Book ground-floor or pool-adjacent rooms early; they sell out first in family season."
+      },
+      "nightlife": {
+        "intro": "Real nightlife cities don't start at sunset — they start at midnight, and knowing the local clock is half the trip. The destinations below range from rooftop-and-cocktail scenes to clubs that close after sunrise. Go where the locals' week actually happens: Thursday is the new Friday in many cities, and the famous strip is rarely where residents dance. Plan recovery into the itinerary — one big night, one slow morning — and keep the basics covered: a ride app that works locally, a meeting point agreed, some cash for the places that don't take cards at 3am.",
+        "faq1q": "How do I find where locals actually go out?",
+        "faq1a": "Skip the main tourist strip and look one or two neighborhoods over — and ask bartenders early in the evening; they're the best scouts in any city. Local event listings beat generic top-10 articles, which mostly send you where every other visitor already is.",
+        "faq2q": "Is it safe to enjoy nightlife solo?",
+        "faq2a": "In most of these cities yes, with normal rules: arrive by licensed taxi or ride app, keep your drink in sight, and know your route back before you head out. Hostel bar crawls and organized club nights are an easy way to turn solo into a group."
+      },
+      "adventure": {
+        "intro": "Adventure trips need one thing planned more carefully than the adrenaline: the rest. Alternate the big days — the canyon, the summit, the dive — with genuine recovery days, or day four becomes misery instead of highlight. The destinations below pair real outdoor credentials with enough infrastructure to keep logistics simple. Book safety-critical activities like diving, canyoning, or high-altitude trekking with certified operators ahead of time, and leave the weather-dependent rest flexible. And check that your travel insurance actually covers what you're planning — standard policies often exclude exactly the activities you're going for.",
+        "faq1q": "Do I need special travel insurance for adventure activities?",
+        "faq1a": "Almost certainly — standard policies typically exclude scuba, high-altitude trekking, climbing, and even quad bikes. Read the activity list, buy the adventure add-on if needed, and carry proof. Operators in regulated destinations will often ask to see it.",
+        "faq2q": "How fit do I need to be for an adventure trip?",
+        "faq2a": "Fit enough to enjoy it, not to race it. Most commercial adventure activities have beginner tiers — be honest with operators about your experience and they'll place you right. If the trip is built around one big physical goal, like a multi-day trek, train a little beforehand."
+      },
+      "nature": {
+        "intro": "Nature trips run on different logistics: the best moments happen at sunrise, an hour from town, where the bus doesn't go. For the destinations below, decide early whether you'll rent a car — it's the difference between the empty trailhead at dawn and the full parking lot at eleven. Season matters double in the outdoors: the same park is wildflowers in May and fog in November, so check what your target month actually delivers. Pack layers regardless of forecast. And book stays inside or near the park early — the few options there sell out months ahead in season.",
+        "faq1q": "Do I need a car for a nature-focused trip?",
+        "faq1a": "It's usually the deciding factor. Public transport reaches famous viewpoints at famous hours; a car gets you to trailheads at dawn, when the light and wildlife are best and the people absent. If you'd rather not drive, small-group tours beat patching buses together.",
+        "faq2q": "What's the best season for nature destinations?",
+        "faq2a": "Each has its own window — snowmelt waterfalls in late spring, alpine trails in midsummer, foliage in autumn. Check the month-by-month climate on each destination page, and remember altitude: the valley can be summer while the ridge is still closed by snow."
+      },
+      "wellness": {
+        "intro": "A wellness trip should subtract, not add — fewer sights, fewer decisions, more repetition of what feels good. The destinations below have real infrastructure for that: thermal waters, serious spa culture, yoga taught by people with credentials rather than hashtags. Off-season is the secret: the same thermal town in November costs less, feels quieter, and the cold outside makes the warm water better. Book treatments early in the trip so you can repeat what works. And protect the emptiness — one activity a day is the ceiling, not the target.",
+        "faq1q": "Which wellness destinations work on a budget?",
+        "faq1a": "Thermal-bath cultures beat resort spas on value: public baths and hot-spring towns cost a fraction of hotel spa rates for the same waters. Off-season stays drop prices further, and simple self-catering keeps a full week affordable.",
+        "faq2q": "Is a wellness trip good to do solo?",
+        "faq2a": "It's arguably best solo — the whole point is following your own rhythm without negotiation. Baths, yoga classes, and communal tables at retreats provide exactly as much company as you want. Pick places with structured daily options so alone never means at a loose end."
+      },
+      "shopping": {
+        "intro": "Shopping trips reward a plan: know the difference between the flagship district (window theater), the local design streets (what you'll actually buy), and the markets and outlets (the stories you'll tell). The cities below each have all three. Check the sales calendar before booking — several destinations have legally fixed sale seasons in January and July, when prices genuinely halve. If you're traveling from outside the region, learn the tax-refund process before your first purchase, and leave luggage space or plan to ship — the best find is always bulkier than expected.",
+        "faq1q": "How does tax-free shopping work for tourists?",
+        "faq1a": "Non-resident visitors can often reclaim sales tax above a minimum spend: ask the store for the tax-free form at checkout, keep receipts, and validate everything at the airport before check-in. Instant-refund desks take a bigger cut than customs-validated forms mailed to the operator.",
+        "faq2q": "When are the big sale seasons?",
+        "faq2a": "January and late June–July across much of Europe, where sale dates are fixed by law; Black Friday week has gone global; and Asia's shopping festivals cluster around Lunar New Year and Singles' Day. Outlets discount year-round but restock midweek."
+      },
+      "offbeat": {
+        "intro": "Going where fewer people go trades convenience for texture — and the trade is worth it if you plan buffers. In the destinations below, the reward is streets that don't perform for visitors and prices that haven't heard of themselves. The cost is thinner transport, shorter opening hours, less English. Build slack into every connection, download offline maps and a translation app, and learn ten words of the local language — in less-touristed places they visibly change how you're received. Book the first night ahead and keep the rest loose: the best offbeat days are the unplanned ones.",
+        "faq1q": "Is offbeat travel harder to plan?",
+        "faq1a": "It needs more buffer, not more planning. Transport runs less often and information is thinner, so lock in your arrival-day logistics and keep everything else flexible. Assume anything crucial — the one daily bus, the one restaurant open on Sunday — needs a plan B.",
+        "faq2q": "Are lesser-known destinations safe?",
+        "faq2a": "Lesser-known usually means less tourist-targeted crime, not more danger — but check your government's travel advice for the specific region and carry offline maps. The practical risks are mundane: missed connections and closed kitchens, not headlines."
+      }
+    }
   },
   "stats": {
     "avgStay": "{days} days avg. stay",

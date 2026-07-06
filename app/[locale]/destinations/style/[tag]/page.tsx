@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { destinations } from "@/lib/destinations/data";
 import type { Locale } from "@/lib/destinations/types";
-import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
+import { generateBreadcrumbSchema, generateFAQSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -92,11 +92,26 @@ export default async function DestinationStylePage({ params }: PageProps) {
     { name: tagLabel, url: `${SITE_URL}${localePrefix}/destinations/style/${tag}` },
   ]);
 
+  // Editorial layer (2026-07-06): these pages sat in GSC's "Crawled -
+  // currently not indexed" bucket at ~330 words of card labels — a filtered
+  // grid with no unique text. Per-style intro + top picks + FAQs (authored
+  // per style in all 4 locales, style.content.* in destinations.json) give
+  // each of the 48 URLs real standalone content plus FAQ rich-result
+  // eligibility. Top picks reuse the destinations' existing localized
+  // taglines — a unique combination per style, zero new strings.
+  const intro = t(`style.content.${tag}.intro`);
+  const faqItems = [1, 2].map((n) => ({
+    question: t(`style.content.${tag}.faq${n}q`),
+    answer: t(`style.content.${tag}.faq${n}a`),
+  }));
+  const faqSchema = generateFAQSchema(faqItems);
+  const topPicks = matched.slice(0, 3);
+
   const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps([breadcrumbSchema, faqSchema], nonce)} />
 
       <Navbar />
 
@@ -127,6 +142,40 @@ export default async function DestinationStylePage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* Editorial intro + top picks */}
+        <section className="py-10 bg-white border-b border-slate-100">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p className="text-base sm:text-lg leading-relaxed text-[var(--foreground)]/85">
+              {intro}
+            </p>
+
+            {topPicks.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+                  {t("style.topPicks")}
+                </h2>
+                <ul className="grid gap-4 sm:grid-cols-3">
+                  {topPicks.map((d) => (
+                    <li key={d.slug}>
+                      <Link
+                        href={`/destinations/${d.slug}`}
+                        className="block h-full rounded-xl border border-slate-200 p-4 hover:border-[var(--primary)]/50 hover:shadow-sm transition-all"
+                      >
+                        <span className="block font-semibold text-[var(--foreground)]">
+                          {d.name[loc]}, {d.country[loc]}
+                        </span>
+                        <span className="mt-1 block text-sm text-[var(--foreground-muted)] leading-snug">
+                          {d.content.tagline[loc]}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <DestinationGrid
@@ -140,6 +189,27 @@ export default async function DestinationStylePage({ params }: PageProps) {
                 )
               )}
             />
+          </div>
+        </section>
+
+        {/* Per-style FAQ — matches the FAQPage JSON-LD emitted above */}
+        <section className="py-12 bg-slate-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">
+              {t("style.faqHeading")}
+            </h2>
+            <dl className="space-y-6">
+              {faqItems.map((item) => (
+                <div key={item.question}>
+                  <dt className="font-semibold text-[var(--foreground)] mb-1.5">
+                    {item.question}
+                  </dt>
+                  <dd className="text-[var(--foreground-muted)] leading-relaxed">
+                    {item.answer}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
