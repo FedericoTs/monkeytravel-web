@@ -30,16 +30,44 @@
     "pexels_id": 7142456
   },
   {
+    "slug": "kyoto",
+    "photographer": "Giuseppe Paoletti",
+    "url": "https://www.pexels.com/photo/stunning-sunset-over-kyoto-s-iconic-pagoda-37600865/",
+    "pexels_id": 37600865,
+    "query": "Kyoto Japan skyline cityscape"
+  },
+  {
     "slug": "lima",
     "photographer": "Maria Camila Castaño",
     "url": "https://www.pexels.com/photo/a-coastal-city-by-the-beach-7332783/",
     "pexels_id": 7332783
   },
   {
+    "slug": "madrid",
+    "photographer": "Emilio Garcia",
+    "url": "https://www.pexels.com/photo/cityscape-of-madrid-22922043/",
+    "pexels_id": 22922043,
+    "query": "Madrid Spain skyline cityscape"
+  },
+  {
     "slug": "nairobi",
     "photographer": "Mukula Igavinchi",
     "url": "https://www.pexels.com/photo/clouds-over-city-15496531/",
     "pexels_id": 15496531
+  },
+  {
+    "slug": "osaka",
+    "photographer": "Ehsan Haque",
+    "url": "https://www.pexels.com/photo/stunning-evening-skyline-view-of-abeno-harukas-in-osaka-30944530/",
+    "pexels_id": 30944530,
+    "query": "Osaka Japan skyline cityscape"
+  },
+  {
+    "slug": "santorini",
+    "photographer": "Evangelos Bountaniotis",
+    "url": "https://www.pexels.com/photo/cascade-buildings-on-steep-slope-of-seashore-10613271/",
+    "pexels_id": 10613271,
+    "query": "Santorini Greece skyline cityscape"
   },
   {
     "slug": "taipei",

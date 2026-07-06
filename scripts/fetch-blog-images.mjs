@@ -24,6 +24,10 @@ const MAX_PLACEHOLDER_SIZE = 60_000; // Files under 60KB are considered placehol
 
 // Map each blog slug to a descriptive Pexels search query
 const BLOG_QUERIES = {
+  // 2026-07-06 — multi-city content wave
+  "most-planned-destinations-2026": "traveler planning trip map passport notebook",
+  "japan-golden-route-itinerary": "Fushimi Inari shrine torii gates Kyoto",
+  "greek-island-hopping-itinerary": "Santorini Oia caldera white houses sunset",
   // Phase 1B - Itineraries
   "3-day-paris-itinerary": "Paris Eiffel Tower cityscape",
   "5-day-italy-itinerary": "Italy Rome Colosseum travel",
