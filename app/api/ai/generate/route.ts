@@ -143,11 +143,6 @@ export async function POST(request: NextRequest) {
       profilePreferences,
     };
 
-    // Validate input
-    const validation = validateTripParams(params);
-    if (!validation.valid) {
-      return errors.badRequest(validation.error);
-    }
 
     // Multi-city: when the client sends a `destinations` array of >1 leg, route
     // to the per-city PARALLEL generator (lib/ai/multi-city) instead of single-
@@ -169,6 +164,14 @@ export async function POST(request: NextRequest) {
       } catch (e) {
         return errors.badRequest(e instanceof Error ? e.message : "Invalid destinations");
       }
+    }
+
+    // Validate input — the whole-trip date ceiling depends on the trip shape:
+    // single-city stays at 14 days, multi-city may span up to 21 (per-city
+    // parallel generation keeps each leg small).
+    const validation = validateTripParams(params, { maxDays: isMultiCity ? 21 : 14 });
+    if (!validation.valid) {
+      return errors.badRequest(validation.error);
     }
 
     if (!access.allowed) {

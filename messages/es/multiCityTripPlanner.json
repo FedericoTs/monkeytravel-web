@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "title": "Planificador de Viajes Multidestino — Itinerarios AI | MonkeyTravel",
+    "description": "Planifica viajes de hasta 5 ciudades en un solo itinerario. Añade etapas y noches — la AI reparte los días por ciudad automáticamente. Gratis, hasta 21 días."
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "multiCityTripPlanner": "Planificador de Viajes Multidestino"
+  },
+  "hero": {
+    "badge": "Nuevo — Viajes Multidestino, 100% Gratis",
+    "title": "Planificador de Viajes Multidestino",
+    "subtitle": "Planifica Tokio → Kioto → Osaka o Atenas → Santorini → Mykonos en un solo itinerario. Añade tus etapas y noches — la AI reparte los días por ciudad automáticamente y lo une todo en un plan día a día.",
+    "cta": "Planificar Mi Viaje Multidestino — Gratis",
+    "secondaryCta": "Mira Cómo Funciona",
+    "trustSignals": {
+      "free": "Gratis para siempre",
+      "cities": "Hasta 5 ciudades",
+      "days": "Hasta 21 días"
+    }
+  },
+  "stats": {
+    "items": {
+      "cities": {
+        "value": "5",
+        "label": "Ciudades por viaje"
+      },
+      "days": {
+        "value": "21",
+        "label": "Días por viaje"
+      },
+      "free": {
+        "value": "100%",
+        "label": "Gratis"
+      },
+      "languages": {
+        "value": "4",
+        "label": "Idiomas"
+      }
+    }
+  },
+  "features": {
+    "title": "Hecho Para Viajes Que No Se Quedan en Una Ciudad",
+    "subtitle": "Todo lo que hace el planificador de una ciudad, extendido a toda tu ruta.",
+    "items": {
+      "dayAllocation": {
+        "title": "Días Repartidos por Ciudad",
+        "description": "Indica cuántas noches quieres en cada ciudad y la AI planifica exactamente esos días allí — 3 noches en Kioto son tres días completos en Kioto, no una aproximación."
+      },
+      "journeyOverview": {
+        "title": "Vista General del Recorrido",
+        "description": "Una cinta ciudad por ciudad muestra toda tu ruta de un vistazo: dónde empiezas, cuánto te quedas, adónde sigues. Sin hojas de cálculo."
+      },
+      "citiesAndDays": {
+        "title": "Hasta 5 Ciudades y 21 Días",
+        "description": "Encadena hasta cinco ciudades y tres semanas en un solo itinerario — suficiente para la Ruta Dorada de Japón, un salto entre islas griegas o un gran tour por Italia."
+      },
+      "groupVoting": {
+        "title": "Votación en Grupo",
+        "description": "Comparte el viaje con tu grupo, deja que todos voten las etapas y actividades, y cierra la ruta que el grupo realmente quiere."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "steps": {
+      "step1": {
+        "title": "Añade Etapas y Noches",
+        "description": "Lista tus ciudades en orden y asigna las noches de cada una — Roma 3, Florencia 2, Venecia 2. Listo en segundos."
+      },
+      "step2": {
+        "title": "La AI Planifica Cada Ciudad en Paralelo",
+        "description": "Cada ciudad recibe su propio plan día a día, generado en simultáneo y unido en un itinerario continuo con los días correctos en cada lugar."
+      },
+      "step3": {
+        "title": "Arrastra, Edita y Comparte",
+        "description": "Reordena actividades, cambia lugares, reequilibra los días — y comparte el viaje con tus amigos o quédatelo para ti. La ruta es tuya."
+      }
+    }
+  },
+  "routes": {
+    "title": "Rutas Multidestino Populares",
+    "subtitle": "Empieza desde un clásico y hazlo tuyo — cada ruta abre el planificador en modo multidestino.",
+    "cta": "Planificar esta ruta",
+    "items": {
+      "japan": {
+        "name": "Ruta Dorada de Japón",
+        "stops": "Tokio → Kioto → Osaka",
+        "description": "Neón, templos y comida callejera — la línea clásica para descubrir las tres grandes de Japón."
+      },
+      "greece": {
+        "name": "Islas Griegas",
+        "stops": "Atenas → Santorini → Mykonos",
+        "description": "Ruinas antiguas, atardeceres sobre la caldera y noches de isla en un solo recorrido por el Egeo."
+      },
+      "iberia": {
+        "name": "Iberia",
+        "stops": "Barcelona → Madrid",
+        "description": "Gaudí y playa, luego el Prado y las terrazas — los dos pesos pesados de España, uno tras otro."
+      },
+      "italy": {
+        "name": "Italia Clásica",
+        "stops": "Roma → Florencia → Venecia",
+        "description": "Mañanas en el Coliseo, tardes renacentistas, noches de canales — el trío esencial de Italia."
+      }
+    }
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Preguntas Frecuentes",
+    "items": {
+      "splitDays": {
+        "question": "¿Cómo reparte la AI los días entre ciudades?",
+        "answer": "Tú defines las noches por ciudad al crear tu ruta y la AI asigna días completos según ese reparto. Cada ciudad se genera como su propio mini-itinerario y luego todo se une en un plan continuo día a día. ¿Quieres otro equilibrio? Cambia las noches y regenera."
+      },
+      "cityLimit": {
+        "question": "¿Cuántas ciudades puedo añadir a un viaje?",
+        "answer": "Hasta cinco ciudades en un solo itinerario. Eso cubre la mayoría de las rutas clásicas — Tokio–Kioto–Osaka, Roma–Florencia–Venecia o un salto por tres islas griegas — dejando en cada parada tiempo suficiente para disfrutarla."
+      },
+      "longTrips": {
+        "question": "¿Puedo planificar un viaje de más de 2 semanas?",
+        "answer": "Sí — los viajes multidestino llegan hasta los 21 días, frente a los 14 de los viajes de una sola ciudad. Suficiente para una ruta completa de tres semanas sin dividir tu plan en viajes separados."
+      },
+      "isFree": {
+        "question": "¿El planificador multidestino es gratis?",
+        "answer": "Sí. La planificación multidestino es parte del planificador gratuito de MonkeyTravel: itinerarios ilimitados, sin tarjeta de crédito, sin período de prueba. Planifica todos los viajes multidestino que quieras."
+      },
+      "groupVoting": {
+        "question": "¿Puede mi grupo votar las etapas?",
+        "answer": "Por supuesto. Comparte tu viaje por enlace y todos podrán votar actividades y etapas, proponer cambios y llegar a un consenso antes de que nadie reserve nada."
+      }
+    }
+  },
+  "cta": {
+    "title": "¿Listo Para Planificar Tu Viaje Multidestino?",
+    "subtitle": "Añade tus etapas, asigna las noches y obtén un itinerario perfecto a través de todas tus ciudades — gratis.",
+    "button": "Empieza a Planificar — Es Gratis",
+    "mobileNotify": "Recibe aviso cuando lance la app móvil"
+  }
+}

@@ -1609,8 +1609,13 @@ const BLACKLIST = [
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
 
 export function validateTripParams(
-  params: TripCreationParams
+  params: TripCreationParams,
+  // maxDays: multi-city trips generate per-city in parallel, so the whole-trip
+  // ceiling can safely exceed the single-city generation limit (14). The
+  // /api/ai/generate route passes 21 when a destinations[] payload is present.
+  opts?: { maxDays?: number }
 ): { valid: boolean; error?: string } {
+  const maxDays = opts?.maxDays ?? 14;
   // Destination validation
   if (!params.destination || params.destination.length < 2) {
     return { valid: false, error: "Destination is required" };
@@ -1677,8 +1682,8 @@ export function validateTripParams(
 
   const days =
     Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  if (days > 14) {
-    return { valid: false, error: "Maximum trip duration is 14 days" };
+  if (days > maxDays) {
+    return { valid: false, error: `Maximum trip duration is ${maxDays} days` };
   }
 
   // Budget tier validation

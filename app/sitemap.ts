@@ -103,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // SEO landing pages (× 3 locales)
   const landingPages: MetadataRoute.Sitemap = [];
-  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner', '/backpacker'];
+  const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner', '/backpacker', '/multi-city-trip-planner'];
 
   // Free tools (× 3 locales). Listed alongside SEO landing pages since
   // they have similar discovery characteristics and lifetime cadence.

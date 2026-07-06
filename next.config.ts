@@ -127,6 +127,23 @@ const nextConfig: NextConfig = {
       });
     }
 
+    // 2026-07-06: /multi-city vanity path → multi-city landing page. The old
+    // /multi-city preview harness was removed when the SEO landing page at
+    // /multi-city-trip-planner shipped; 301 the short path for every locale
+    // (en is the default, no prefix).
+    rules.push({
+      source: `/multi-city`,
+      destination: `/multi-city-trip-planner`,
+      permanent: true,
+    });
+    for (const locale of ["es", "it", "pt"]) {
+      rules.push({
+        source: `/${locale}/multi-city`,
+        destination: `/${locale}/multi-city-trip-planner`,
+        permanent: true,
+      });
+    }
+
     return rules;
   },
 

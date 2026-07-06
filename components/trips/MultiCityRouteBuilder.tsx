@@ -16,7 +16,7 @@ export interface RouteStop {
   nights: number;
 }
 
-const DEFAULT_MAX = 3;
+const DEFAULT_MAX = 5;
 const DEFAULT_MIN = 2;
 
 export function MultiCityRouteBuilder({

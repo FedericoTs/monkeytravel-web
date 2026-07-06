@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "title": "Pianificatore di Viaggi Multi-Città — Itinerari AI | MonkeyTravel",
+    "description": "Pianifica viaggi fino a 5 città in un solo itinerario. Aggiungi tappe e notti — l'AI divide i giorni per città in automatico. Gratis, fino a 21 giorni."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "multiCityTripPlanner": "Pianificatore di Viaggi Multi-Città"
+  },
+  "hero": {
+    "badge": "Novità — Viaggi Multi-Città, 100% Gratis",
+    "title": "Pianificatore di Viaggi Multi-Città",
+    "subtitle": "Pianifica Tokyo → Kyoto → Osaka o Atene → Santorini → Mykonos in un unico itinerario. Aggiungi tappe e notti — l'AI divide i giorni per città automaticamente e unisce tutto in un piano giorno per giorno.",
+    "cta": "Pianifica il Mio Viaggio Multi-Città — Gratis",
+    "secondaryCta": "Scopri Come Funziona",
+    "trustSignals": {
+      "free": "Gratis per sempre",
+      "cities": "Fino a 5 città",
+      "days": "Fino a 21 giorni"
+    }
+  },
+  "stats": {
+    "items": {
+      "cities": {
+        "value": "5",
+        "label": "Città per viaggio"
+      },
+      "days": {
+        "value": "21",
+        "label": "Giorni per viaggio"
+      },
+      "free": {
+        "value": "100%",
+        "label": "Gratis"
+      },
+      "languages": {
+        "value": "4",
+        "label": "Lingue"
+      }
+    }
+  },
+  "features": {
+    "title": "Pensato Per Viaggi Che Non Si Fermano in Una Città",
+    "subtitle": "Tutto ciò che fa il pianificatore per una singola città, esteso a tutto il tuo percorso.",
+    "items": {
+      "dayAllocation": {
+        "title": "Giorni Divisi per Città",
+        "description": "Indica quante notti vuoi in ogni città e l'AI pianifica esattamente quei giorni lì — 3 notti a Kyoto significano tre giorni interi a Kyoto, non un'approssimazione."
+      },
+      "journeyOverview": {
+        "title": "Panoramica del Percorso",
+        "description": "Un nastro città per città mostra tutto il percorso a colpo d'occhio: da dove parti, quanto ti fermi, dove vai dopo. Niente fogli di calcolo."
+      },
+      "citiesAndDays": {
+        "title": "Fino a 5 Città e 21 Giorni",
+        "description": "Metti in fila fino a cinque città e tre settimane in un unico itinerario — abbastanza per la Golden Route del Giappone, un giro tra le isole greche o un gran tour d'Italia."
+      },
+      "groupVoting": {
+        "title": "Votazione di Gruppo",
+        "description": "Condividi il viaggio con i tuoi compagni, lascia che tutti votino tappe e attività e blocca il percorso che il gruppo vuole davvero."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Come Funziona",
+    "steps": {
+      "step1": {
+        "title": "Aggiungi Tappe e Notti",
+        "description": "Elenca le città in ordine e imposta le notti per ciascuna — Roma 3, Firenze 2, Venezia 2. Fatto in pochi secondi."
+      },
+      "step2": {
+        "title": "L'AI Pianifica Ogni Città in Parallelo",
+        "description": "Ogni città riceve il suo piano giorno per giorno, generato in simultanea e unito in un itinerario continuo con i giorni giusti nei posti giusti."
+      },
+      "step3": {
+        "title": "Trascina, Modifica e Condividi",
+        "description": "Riordina le attività, cambia i luoghi, ribilancia i giorni — poi condividi il viaggio con gli amici o tienilo per te. Il percorso è tuo."
+      }
+    }
+  },
+  "routes": {
+    "title": "Percorsi Multi-Città Popolari",
+    "subtitle": "Parti da un classico e rendilo tuo — ogni percorso apre il pianificatore in modalità multi-città.",
+    "cta": "Pianifica questo percorso",
+    "items": {
+      "japan": {
+        "name": "Golden Route del Giappone",
+        "stops": "Tokyo → Kyoto → Osaka",
+        "description": "Neon, templi e street food — la linea classica per scoprire le tre grandi del Giappone."
+      },
+      "greece": {
+        "name": "Isole Greche",
+        "stops": "Atene → Santorini → Mykonos",
+        "description": "Rovine antiche, tramonti sulla caldera e serate sulle isole in un solo giro dell'Egeo."
+      },
+      "iberia": {
+        "name": "Iberia",
+        "stops": "Barcellona → Madrid",
+        "description": "Gaudí e la spiaggia, poi il Prado e i rooftop — i due pesi massimi della Spagna uno dopo l'altro."
+      },
+      "italy": {
+        "name": "Italia Classica",
+        "stops": "Roma → Firenze → Venezia",
+        "description": "Mattine al Colosseo, pomeriggi rinascimentali, sere sui canali — il trio essenziale d'Italia."
+      }
+    }
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Domande Frequenti",
+    "items": {
+      "splitDays": {
+        "question": "Come divide l'AI i giorni tra le città?",
+        "answer": "Imposti le notti per città quando costruisci il percorso e l'AI assegna giorni interi di conseguenza. Ogni città viene generata come un mini-itinerario a sé, poi tutto viene unito in un piano continuo giorno per giorno. Vuoi un equilibrio diverso? Cambia le notti e rigenera."
+      },
+      "cityLimit": {
+        "question": "Quante città posso aggiungere a un viaggio?",
+        "answer": "Fino a cinque città in un unico itinerario. Copre la maggior parte dei percorsi classici — Tokyo–Kyoto–Osaka, Roma–Firenze–Venezia o tre isole greche — lasciando a ogni tappa il tempo per godertela davvero."
+      },
+      "longTrips": {
+        "question": "Posso pianificare un viaggio più lungo di 2 settimane?",
+        "answer": "Sì — i viaggi multi-città arrivano fino a 21 giorni, contro i 14 dei viaggi in una sola città. Abbastanza per un percorso completo di tre settimane senza dividere il piano in viaggi separati."
+      },
+      "isFree": {
+        "question": "Il pianificatore multi-città è gratis?",
+        "answer": "Sì. La pianificazione multi-città fa parte del pianificatore gratuito di MonkeyTravel: itinerari illimitati, nessuna carta di credito, nessun periodo di prova. Pianifica tutti i viaggi multi-città che vuoi."
+      },
+      "groupVoting": {
+        "question": "Il mio gruppo può votare le tappe?",
+        "answer": "Assolutamente. Condividi il viaggio tramite link e tutti possono votare attività e tappe, proporre modifiche e raggiungere un consenso prima che qualcuno prenoti."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto a Pianificare il Tuo Viaggio Multi-Città?",
+    "subtitle": "Aggiungi le tappe, imposta le notti e ottieni un unico itinerario continuo attraverso tutte le tue città — gratis.",
+    "button": "Inizia a Pianificare — È Gratis",
+    "mobileNotify": "Ricevi una notifica quando lanceremo l'app mobile"
+  }
+}

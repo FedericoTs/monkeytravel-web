@@ -24,7 +24,11 @@
     "whyThis": "Why this",
     "tradeoff": "The tradeoff",
     "budgetDatesLine": "{budget} · {dateRange}",
-    "tiers": { "budget": "Budget", "balanced": "Balanced", "premium": "Premium" },
+    "tiers": {
+      "budget": "Budget",
+      "balanced": "Balanced",
+      "premium": "Premium"
+    },
     "chooseThis": "Choose this trip",
     "startOver": "Start over",
     "confirmDatesSubtitle": "Pick your dates and we'll build the full itinerary.",
@@ -60,7 +64,8 @@
       "nightsLabel": "nights",
       "nightsAria": "Nights in city {number}",
       "removeCityAria": "Remove city {number}",
-      "addCity": "+ Add city"
+      "addCity": "+ Add city",
+      "longTripNudge": "Planning {days} days? Trips this long usually work better as multiple stops — tap to split your route into cities."
     },
     "datePicker": {
       "checkInLabel": "Check-in",

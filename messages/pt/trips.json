@@ -24,7 +24,11 @@
     "whyThis": "Por que este",
     "tradeoff": "A contrapartida",
     "budgetDatesLine": "{budget} · {dateRange}",
-    "tiers": { "budget": "Econômico", "balanced": "Equilibrado", "premium": "Premium" },
+    "tiers": {
+      "budget": "Econômico",
+      "balanced": "Equilibrado",
+      "premium": "Premium"
+    },
     "chooseThis": "Escolher esta viagem",
     "startOver": "Recomeçar",
     "confirmDatesSubtitle": "Escolha as suas datas e criaremos o roteiro completo.",
@@ -60,7 +64,8 @@
       "nightsLabel": "noites",
       "nightsAria": "Noites na cidade {number}",
       "removeCityAria": "Remover cidade {number}",
-      "addCity": "+ Adicionar cidade"
+      "addCity": "+ Adicionar cidade",
+      "longTripNudge": "{days} dias de viagem? Viagens tão longas funcionam melhor com várias paradas — toque para dividir o roteiro em cidades."
     },
     "datePicker": {
       "checkInLabel": "Check-in",

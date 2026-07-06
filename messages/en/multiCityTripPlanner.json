@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "title": "Multi-City Trip Planner — AI Itineraries for 2+ Cities | MonkeyTravel",
+    "description": "Plan trips across up to 5 cities in one itinerary. Add stops and nights — AI splits your days per city automatically. Free, up to 21 days."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "multiCityTripPlanner": "Multi-City Trip Planner"
+  },
+  "hero": {
+    "badge": "New — Multi-City Trips, 100% Free",
+    "title": "Multi-City Trip Planner",
+    "subtitle": "Plan Tokyo → Kyoto → Osaka or Athens → Santorini → Mykonos in one itinerary. Add your stops and nights — the AI splits your days per city automatically and stitches everything into a single day-by-day plan.",
+    "cta": "Plan My Multi-City Trip — Free",
+    "secondaryCta": "See How It Works",
+    "trustSignals": {
+      "free": "Free forever",
+      "cities": "Up to 5 cities",
+      "days": "Up to 21 days"
+    }
+  },
+  "stats": {
+    "items": {
+      "cities": {
+        "value": "5",
+        "label": "Cities per trip"
+      },
+      "days": {
+        "value": "21",
+        "label": "Days per trip"
+      },
+      "free": {
+        "value": "100%",
+        "label": "Free"
+      },
+      "languages": {
+        "value": "4",
+        "label": "Languages"
+      }
+    }
+  },
+  "features": {
+    "title": "Built for Trips That Don't Stay in One City",
+    "subtitle": "Everything the single-city planner does, extended across your whole route.",
+    "items": {
+      "dayAllocation": {
+        "title": "Per-City Day Allocation",
+        "description": "Set how many nights you want in each city and the AI plans exactly that many days there — 3 nights in Kyoto means three full Kyoto days, not a guess."
+      },
+      "journeyOverview": {
+        "title": "Journey Overview",
+        "description": "A city-by-city ribbon shows your whole route at a glance: where you start, how long you stay, where you head next. No spreadsheets required."
+      },
+      "citiesAndDays": {
+        "title": "Up to 5 Cities & 21 Days",
+        "description": "Chain up to five cities and three weeks into one itinerary — enough for Japan's Golden Route, a Greek island hop, or a full grand tour of Italy."
+      },
+      "groupVoting": {
+        "title": "Group Voting",
+        "description": "Share the trip with your travel crew, let everyone vote on stops and activities, and lock in the route the whole group actually wants."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "steps": {
+      "step1": {
+        "title": "Add Stops & Nights",
+        "description": "List your cities in order and set the nights for each — Rome for 3, Florence for 2, Venice for 2. Done in seconds."
+      },
+      "step2": {
+        "title": "AI Plans Every City in Parallel",
+        "description": "Each city gets its own day-by-day plan, generated simultaneously and stitched into one continuous itinerary with the right days in the right places."
+      },
+      "step3": {
+        "title": "Drag, Edit & Share",
+        "description": "Reorder activities, swap venues, rebalance days — then share the trip with friends or keep it to yourself. It's your route."
+      }
+    }
+  },
+  "routes": {
+    "title": "Popular Multi-City Routes",
+    "subtitle": "Start from a classic and make it yours — every route opens the planner in multi-city mode.",
+    "cta": "Plan this route",
+    "items": {
+      "japan": {
+        "name": "Japan Golden Route",
+        "stops": "Tokyo → Kyoto → Osaka",
+        "description": "Neon, temples, and street food — the classic first-timer line through Japan's big three."
+      },
+      "greece": {
+        "name": "Greek Islands",
+        "stops": "Athens → Santorini → Mykonos",
+        "description": "Ancient ruins, caldera sunsets, and island nightlife in one sweep of the Aegean."
+      },
+      "iberia": {
+        "name": "Iberia",
+        "stops": "Barcelona → Madrid",
+        "description": "Gaudí and the beach, then the Prado and rooftop bars — Spain's two heavyweights back to back."
+      },
+      "italy": {
+        "name": "Italy Classic",
+        "stops": "Rome → Florence → Venice",
+        "description": "Colosseum mornings, Renaissance afternoons, canal evenings — Italy's essential trio."
+      }
+    }
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Frequently Asked Questions",
+    "items": {
+      "splitDays": {
+        "question": "How does the AI split days between cities?",
+        "answer": "You set the nights per city when you build your route, and the AI allocates whole days to match. Each city is generated as its own mini-itinerary, then everything is stitched into one continuous day-by-day plan. Want a different balance? Change the nights and regenerate."
+      },
+      "cityLimit": {
+        "question": "How many cities can I add to one trip?",
+        "answer": "Up to five cities in a single itinerary. That covers most classic routes — Tokyo–Kyoto–Osaka, Rome–Florence–Venice, or a three-island Greek hop — while keeping each stop long enough to actually enjoy."
+      },
+      "longTrips": {
+        "question": "Can I plan a trip longer than 2 weeks?",
+        "answer": "Yes — multi-city trips go up to 21 days, versus 14 for single-city trips. That's enough for a full three-week route without splitting your plan across separate trips."
+      },
+      "isFree": {
+        "question": "Is the multi-city planner free?",
+        "answer": "Yes. Multi-city planning is part of MonkeyTravel's free planner: unlimited itineraries, no credit card, no trial period. Plan as many multi-city trips as you like."
+      },
+      "groupVoting": {
+        "question": "Can my group vote on the stops?",
+        "answer": "Absolutely. Share your trip via link and everyone can vote on activities and stops, propose changes, and reach consensus before anyone books anything."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to Plan Your Multi-City Trip?",
+    "subtitle": "Add your stops, set your nights, and get one seamless itinerary across every city — free.",
+    "button": "Start Planning — It's Free",
+    "mobileNotify": "Get notified when the mobile app launches"
+  }
+}

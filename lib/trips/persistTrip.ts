@@ -72,6 +72,16 @@ export function computeDurationDays(formState: TripFormState): number {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
+// Inverse of the wizard's joinCities ("A, B & C"). Only labels containing
+// " & " are treated as routes — plain "City, Country" freetext stays single.
+function splitCities(label: string): string[] {
+  if (!label.includes(" & ")) return [label.trim()].filter(Boolean);
+  return label
+    .split(/s*(?:,|&)s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string | null) {
   const { itinerary, formState } = input;
   const tripMeta = {
@@ -83,6 +93,12 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     // used for the cover-image lookup (attachCoverImage(formState.destination)).
     // For multi-city this carries the user's full route string ("A & B").
     destination: formState.destination,
+    // Structured route legs (2026-07-06). Titles like "Tokyo & Osaka Trip" are
+    // display strings; this is the only machine-readable record of the route —
+    // it feeds /explore filtering, route landing pages, and analytics.
+    ...(splitCities(formState.destination).length > 1
+      ? { cities: splitCities(formState.destination) }
+      : {}),
     weather_note: itinerary.destination.weather_note,
     highlights: itinerary.trip_summary.highlights,
     booking_links: itinerary.booking_links,

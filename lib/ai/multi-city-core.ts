@@ -13,7 +13,7 @@
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
-export const MAX_CITIES = 3;
+export const MAX_CITIES = 5;
 
 /** One leg of a multi-city trip: a city + how many nights/days it gets. */
 export interface CityLeg {

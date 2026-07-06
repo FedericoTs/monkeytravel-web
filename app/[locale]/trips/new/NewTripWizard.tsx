@@ -184,6 +184,10 @@ const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 // The wizard now enforces the same rules inline; the lib checks stay as the
 // server backstop. Keep BOTH in lockstep with lib/gemini.ts.
 const MAX_TRIP_DAYS = 14;
+// Multi-city ceiling: per-city parallel generation keeps each leg small, so
+// the WHOLE-TRIP span may exceed the single-city limit. Server mirror:
+// /api/ai/generate passes maxDays 21 to validateTripParams for multi-city.
+const MAX_TRIP_DAYS_MULTI = 21;
 // Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
 // hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
@@ -531,6 +535,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // Multi-city: mirror the route rows into `destination` (combined label) and
   // `endDate` (start + total nights) so step-1 validation, draft autosave, and
   // the result hero keep working through the existing single-city code paths.
+  // Deep link: /trips/new?multi=1 (route-card CTAs on /multi-city-trip-planner
+  // and the route blog posts) lands with multi-city mode pre-enabled.
+  useEffect(() => {
+    if (MULTI_CITY_ENABLED && searchParams?.get("multi") === "1") {
+      setMultiCityMode(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!MULTI_CITY_ENABLED || !multiCityMode) return;
     const valid = cityRows.filter((r) => r.city.trim() && r.nights > 0);
@@ -1159,7 +1172,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
           return false;
         }
         const span = tripSpanDaysInclusive(startDate, endDate);
-        return span >= 2 && span <= MAX_TRIP_DAYS;
+        const capDays =
+          MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+        return span >= 2 && span <= capDays;
       }
       case 2:
         // Step 2: At least one vibe required, preferences have sensible defaults
@@ -3240,6 +3255,25 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               </div>
             )}
 
+            {/* 12+-day single-city sessions are usually multi-city trips the
+                input didn't invite (326 sessions pinned the 14-day cap in 45
+                days, most with ONE city). One tap converts them. */}
+            {MULTI_CITY_ENABLED &&
+              !multiCityMode &&
+              startDate &&
+              endDate &&
+              tripSpanDaysInclusive(startDate, endDate) >= 12 && (
+                <button
+                  type="button"
+                  onClick={() => setMultiCityMode(true)}
+                  className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100"
+                >
+                  {t("wizard.multiCity.longTripNudge", {
+                    days: tripSpanDaysInclusive(startDate, endDate),
+                  })}
+                </button>
+              )}
+
             {/* Multi-city route builder — replaces the single destination field */}
             {MULTI_CITY_ENABLED && multiCityMode && (
               <div>
@@ -3369,7 +3403,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                     setFlexibleDates(false);
                     setEndDate(d);
                   }}
-                  maxDays={MAX_TRIP_DAYS}
+                  maxDays={MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS}
                   minDate={new Date().toISOString().split("T")[0]}
                   // A11y (task #193): dates required to advance the wizard.
                   ariaRequired
@@ -3538,8 +3572,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 ? t("wizard.step1.hintNeedDestination")
                 : !DESTINATION_ALLOWLIST.test(destination)
                 ? t("wizard.step1.destinationInvalidChars")
-                : tripSpanDaysInclusive(startDate, endDate) > MAX_TRIP_DAYS
-                ? t("wizard.datePicker.maxDaysLimit", { days: MAX_TRIP_DAYS })
+                : tripSpanDaysInclusive(startDate, endDate) >
+                  (MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS)
+                ? t("wizard.datePicker.maxDaysLimit", {
+                    days: MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS,
+                  })
                 : t("wizard.step1.hintNeedDates")}
             </p>
           )}

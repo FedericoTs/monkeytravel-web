@@ -87,8 +87,10 @@ describe("validateLegs", () => {
         { city: "B", nights: 1 },
         { city: "C", nights: 1 },
         { city: "D", nights: 1 },
+        { city: "E", nights: 1 },
+        { city: "F", nights: 1 },
       ])
-    ).toThrow(/at most 3/);
+    ).toThrow(/at most 5/);
   });
   it("rejects missing name / bad nights", () => {
     expect(() => validateLegs([{ city: "  ", nights: 1 }])).toThrow(/name/);
