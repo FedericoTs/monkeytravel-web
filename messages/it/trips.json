@@ -93,6 +93,8 @@
       "done": "Fatto"
     },
     "step1": {
+      "popularNow": "Popolari in questo periodo",
+      "planningStat": "{count}+ viaggi pianificati negli ultimi 30 giorni",
       "title": "Dove e quando?",
       "subtitle": "Scegli una destinazione e le date del tuo viaggio",
       "placeholder": "es., Parigi, Tokyo, New York...",

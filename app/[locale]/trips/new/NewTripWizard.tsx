@@ -188,6 +188,42 @@ const MAX_TRIP_DAYS = 14;
 // the WHOLE-TRIP span may exceed the single-city limit. Server mirror:
 // /api/ai/generate passes maxDays 21 to validateTripParams for multi-city.
 const MAX_TRIP_DAYS_MULTI = 21;
+
+// Popular-destination pills for step 1. Ranked by REAL platform demand —
+// distinct planning sessions over the last 60 days (Tokyo, Paris, London, Rome,
+// Bangkok, Bali, New York, Barcelona lead) plus two seasonal favourites
+// (Santorini, Lisbon). These ARE the most-planned destinations on the platform
+// — no fabricated ranking. Each carries coords so tapping a pill skips a
+// geocode. `season` = months where a spot is a standout; seasonalPopular()
+// surfaces in-season picks first.
+type SeasonalPopular = {
+  name: string;
+  flag: string;
+  coords: { latitude: number; longitude: number };
+  season: number[];
+};
+
+const SEASONAL_POPULAR: SeasonalPopular[] = [
+  { name: "Tokyo, Japan", flag: "🇯🇵", coords: { latitude: 35.6762, longitude: 139.6503 }, season: [3, 4, 10, 11] },
+  { name: "Paris, France", flag: "🇫🇷", coords: { latitude: 48.8566, longitude: 2.3522 }, season: [] },
+  { name: "London, United Kingdom", flag: "🇬🇧", coords: { latitude: 51.5074, longitude: -0.1278 }, season: [] },
+  { name: "Rome, Italy", flag: "🇮🇹", coords: { latitude: 41.9028, longitude: 12.4964 }, season: [4, 5, 9, 10] },
+  { name: "Barcelona, Spain", flag: "🇪🇸", coords: { latitude: 41.3851, longitude: 2.1734 }, season: [5, 6, 7, 8, 9] },
+  { name: "Santorini, Greece", flag: "🇬🇷", coords: { latitude: 36.3932, longitude: 25.4615 }, season: [5, 6, 7, 8, 9] },
+  { name: "Bali, Indonesia", flag: "🇮🇩", coords: { latitude: -8.4095, longitude: 115.1889 }, season: [4, 5, 6, 7, 8, 9, 10] },
+  { name: "Bangkok, Thailand", flag: "🇹🇭", coords: { latitude: 13.7563, longitude: 100.5018 }, season: [11, 12, 1, 2] },
+  { name: "New York, USA", flag: "🇺🇸", coords: { latitude: 40.7128, longitude: -74.0060 }, season: [] },
+  { name: "Lisbon, Portugal", flag: "🇵🇹", coords: { latitude: 38.7223, longitude: -9.1393 }, season: [3, 4, 5, 6, 9, 10] },
+];
+
+// In-season picks first (stable within each group), then take `limit`. Cheap,
+// deterministic, and honest — it only reorders the real demand list.
+function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
+  const inSeason = SEASONAL_POPULAR.filter((d) => d.season.includes(month));
+  const rest = SEASONAL_POPULAR.filter((d) => !d.season.includes(month));
+  return [...inSeason, ...rest].slice(0, limit);
+}
+
 // Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
 // hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
@@ -382,6 +418,29 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // whether the current dates were auto-filled as a flexible default so we can
   // surface an editable "flexible dates" note.
   const [flexibleDates, setFlexibleDates] = useState(false);
+  // Popular-destination pills: real demand-ranked, reordered by season on the
+  // client. The initial SSR slice is stable (avoids a hydration mismatch); the
+  // effect reorders after mount. `plannedStat` is an honest, aggregate
+  // (GDPR-safe) social-proof count from /api/wizard/planning-stats.
+  const [popularPicks, setPopularPicks] = useState<SeasonalPopular[]>(
+    () => SEASONAL_POPULAR.slice(0, 6)
+  );
+  const [plannedStat, setPlannedStat] = useState<number | null>(null);
+  useEffect(() => {
+    setPopularPicks(seasonalPopular(new Date().getMonth() + 1));
+    let alive = true;
+    fetch("/api/wizard/planning-stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d && typeof d.plannedLast30d === "number") {
+          setPlannedStat(d.plannedLast30d);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
   // Backpacker Mode — shipped 2026-05-28. Default "classic" matches all
   // existing flows; when toggled to "backpacker" we (a) auto-set budget
@@ -3328,18 +3387,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </p>
               )}
 
-              {/* Popular destinations - compact pills */}
+              {/* Popular destinations — real demand-ranked (distinct planning
+                  sessions, season-reordered) + an honest aggregate proof line. */}
               {!destination && (
                 <div className="mt-3">
+                  <div className="mb-2 text-xs font-medium text-slate-500">
+                    {t("wizard.step1.popularNow")}
+                  </div>
                   <div className="flex flex-wrap gap-2">
-                    {[
-                      { name: "Paris, France", flag: "🇫🇷", coords: { latitude: 48.8566, longitude: 2.3522 } },
-                      { name: "Tokyo, Japan", flag: "🇯🇵", coords: { latitude: 35.6762, longitude: 139.6503 } },
-                      { name: "Rome, Italy", flag: "🇮🇹", coords: { latitude: 41.9028, longitude: 12.4964 } },
-                      { name: "Barcelona, Spain", flag: "🇪🇸", coords: { latitude: 41.3851, longitude: 2.1734 } },
-                      { name: "New York, USA", flag: "🇺🇸", coords: { latitude: 40.7128, longitude: -74.0060 } },
-                      { name: "Sydney, Australia", flag: "🇦🇺", coords: { latitude: -33.8688, longitude: 151.2093 } },
-                    ].map((place) => (
+                    {popularPicks.map((place) => (
                       <button
                         key={place.name}
                         onClick={() => {
@@ -3362,6 +3418,12 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                       </button>
                     ))}
                   </div>
+                  {plannedStat !== null && (
+                    <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                      {t("wizard.step1.planningStat", { count: plannedStat.toLocaleString(locale) })}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

@@ -93,6 +93,8 @@
       "done": "Done"
     },
     "step1": {
+      "popularNow": "Popular right now",
+      "planningStat": "{count}+ trips planned in the last 30 days",
       "title": "Where and when?",
       "subtitle": "Pick a destination and your travel dates",
       "placeholder": "e.g., Paris, Tokyo, New York...",
