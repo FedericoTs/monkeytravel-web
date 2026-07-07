@@ -459,11 +459,18 @@ export async function dispatchEmail(
     }
   }
 
+  // Feedback-outreach is a founder feedback ask; it lands in Primary (not
+  // Promotions) far more often sent from a person with a real Reply-To than
+  // from the transactional noreply@ sender. Opt-in via env so it never touches
+  // transactional mail and falls back to the standard sender when unset.
+  const isFeedbackOutreach = options.template.id === "feedback_outreach";
   const result = await sendEmail({
     to: recipient,
     subject,
     html,
     text,
+    from: isFeedbackOutreach ? process.env.FEEDBACK_OUTREACH_FROM || undefined : undefined,
+    replyTo: isFeedbackOutreach ? process.env.FEEDBACK_OUTREACH_REPLY_TO || undefined : undefined,
     headers: Object.keys(headers).length > 0 ? headers : undefined,
     tags: [{ name: "template", value: options.template.id }],
   });
@@ -605,7 +612,10 @@ async function renderTemplate(
     case "feedback_outreach": {
       const html = await render(FeedbackOutreachEmail(template.props));
       const text = feedbackOutreachEmailText(template.props);
-      const subject = feedbackOutreachSubject(template.props.locale);
+      const subject = feedbackOutreachSubject(
+        template.props.locale,
+        template.props.firstName
+      );
       return { html, text, subject };
     }
   }

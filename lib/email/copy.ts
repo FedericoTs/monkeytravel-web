@@ -360,7 +360,7 @@ export const inviteCopy: Record<EmailLocale, InviteEmailCopy> = {
 // ── Research outreach: feedback request ─────────────────────────────────
 
 interface FeedbackOutreachCopy {
-  subject: string;
+  subject: (firstName?: string) => string;
   preview: string;
   /** Greeting — handles the no-name case gracefully. */
   heading: (firstName?: string) => string;
@@ -372,7 +372,7 @@ interface FeedbackOutreachCopy {
 
 export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
   en: {
-    subject: "Got 2 minutes? Help shape what we build next 🐵",
+    subject: (n) => (n ? `${n}, can I ask you something?` : "Can I ask you something?"),
     preview: "You've actually used MonkeyTravel — your honest take would mean a lot.",
     heading: (n) => (n ? `Hi ${n}, can I ask a quick favor?` : "Can I ask a quick favor?"),
     lead: "You've actually planned a trip with MonkeyTravel — which makes your opinion the one we trust most.",
@@ -381,7 +381,7 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     copyLink: "Or copy this link into your browser:",
   },
   es: {
-    subject: "¿Tienes 2 minutos? Ayúdanos a decidir qué construir 🐵",
+    subject: (n) => (n ? `${n}, ¿te puedo preguntar algo?` : "¿Te puedo preguntar algo?"),
     preview: "Ya has usado MonkeyTravel — tu opinión sincera significaría mucho.",
     heading: (n) => (n ? `Hola ${n}, ¿te pido un favor rápido?` : "¿Te pido un favor rápido?"),
     lead: "Has planeado un viaje con MonkeyTravel, así que tu opinión es la que más nos importa.",
@@ -390,7 +390,7 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     copyLink: "O copia este enlace en tu navegador:",
   },
   it: {
-    subject: "Hai 2 minuti? Aiutaci a decidere cosa costruire 🐵",
+    subject: (n) => (n ? `${n}, posso farti una domanda?` : "Posso farti una domanda?"),
     preview: "Hai già usato MonkeyTravel — la tua opinione sincera conterebbe molto.",
     heading: (n) => (n ? `Ciao ${n}, posso chiederti un favore veloce?` : "Posso chiederti un favore veloce?"),
     lead: "Hai organizzato un viaggio con MonkeyTravel, quindi la tua opinione è quella che ci interessa di più.",

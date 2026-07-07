@@ -99,9 +99,12 @@ export function feedbackOutreachEmailText(
   return lines.join("\n");
 }
 
-/** Localized subject line. */
-export function feedbackOutreachSubject(locale: EmailLocale = "en"): string {
-  return feedbackOutreachCopy[locale].subject;
+/** Localized subject line — personalized with the recipient's first name. */
+export function feedbackOutreachSubject(
+  locale: EmailLocale = "en",
+  firstName?: string
+): string {
+  return feedbackOutreachCopy[locale].subject(firstName);
 }
 
 // Inline styles

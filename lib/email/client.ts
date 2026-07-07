@@ -52,6 +52,10 @@ export interface SendInput {
   headers?: Record<string, string>;
   /** Optional tag for Resend analytics dashboard grouping. */
   tags?: Array<{ name: string; value: string }>;
+  /** Override the default sender (e.g. a founder persona for research outreach). */
+  from?: string;
+  /** Override the default Reply-To (e.g. a monitored inbox for replies). */
+  replyTo?: string;
 }
 
 export interface SendResult {
@@ -85,9 +89,9 @@ export async function sendEmail(input: SendInput): Promise<SendResult> {
 
   try {
     const result = await client.emails.send({
-      from: FROM,
+      from: input.from || FROM,
       to: input.to,
-      replyTo: REPLY_TO,
+      replyTo: input.replyTo || REPLY_TO,
       subject: input.subject,
       html: input.html,
       text: input.text,
