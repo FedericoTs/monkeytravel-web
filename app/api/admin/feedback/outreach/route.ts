@@ -43,19 +43,22 @@ interface EngagedUser {
 }
 
 export async function POST(request: Request) {
-  const { errorResponse } = await getAuthenticatedAdmin();
+  const { user: adminUser, errorResponse } = await getAuthenticatedAdmin();
   if (errorResponse) return errorResponse;
 
   // Parse body — tolerate an empty/invalid body (dry run is the safe default).
   let dryRun = true;
   let rawLimit: unknown = DEFAULT_LIMIT;
+  let testEmail = "";
   try {
     const body = (await request.json()) as {
       dryRun?: boolean;
       limit?: number;
+      testEmail?: string;
     } | null;
     if (body && typeof body.dryRun === "boolean") dryRun = body.dryRun;
     if (body && body.limit !== undefined) rawLimit = body.limit;
+    if (body && typeof body.testEmail === "string") testEmail = body.testEmail.trim();
   } catch {
     // No/invalid JSON body — keep defaults (dryRun: true, limit: 50).
   }
@@ -64,6 +67,54 @@ export async function POST(request: Request) {
     MAX_LIMIT,
     Math.max(MIN_LIMIT, Number.isFinite(Number(rawLimit)) ? Math.floor(Number(rawLimit)) : DEFAULT_LIMIT)
   );
+
+  // ── Admin single-recipient TEST mode ───────────────────────────────────
+  // `testEmail` bypasses the cohort and sends ONE real feedback-outreach email
+  // to that address, with a WORKING survey link (token minted for the
+  // authenticated admin, so /feedback/[token] resolves to a real user). Admins
+  // only (route is admin-gated); dryRun still reports without sending. Lets us
+  // verify the full production template + link before the cohort blast.
+  if (testEmail) {
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_RE.test(testEmail)) {
+      return errors.badRequest("Invalid testEmail");
+    }
+    const adminId = adminUser?.id;
+    if (!adminId) {
+      return errors.internal("No admin identity for test token", "Feedback Outreach");
+    }
+    const locale = "en";
+    const feedbackUrl = buildFeedbackUrl(adminId, locale);
+    if (dryRun) {
+      return apiSuccess({ mode: "test", dryRun: true, testEmail, feedbackUrl });
+    }
+    const meta =
+      (adminUser as { user_metadata?: Record<string, unknown> | null } | null)
+        ?.user_metadata ?? {};
+    const firstName = firstNameOf(meta.full_name ?? meta.name);
+    try {
+      const outcome: SendOutcome = await dispatchEmail({
+        recipientEmail: testEmail,
+        recipientUserId: adminId,
+        template: { id: "feedback_outreach", props: { firstName, feedbackUrl } },
+        idempotencyKey: `feedback_outreach_test:${adminId}:${Date.now()}`,
+        locale,
+      });
+      return apiSuccess({
+        mode: "test",
+        dryRun: false,
+        testEmail,
+        status: outcome.status,
+        feedbackUrl,
+      });
+    } catch (err) {
+      console.error(
+        "[Feedback Outreach] test send threw:",
+        err instanceof Error ? err.message : err
+      );
+      return errors.internal("Test send failed", "Feedback Outreach");
+    }
+  }
 
   const admin = createAdminClient();
 
