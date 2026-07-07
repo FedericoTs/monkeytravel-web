@@ -80,7 +80,17 @@
       "nextMonth": "Mes siguiente",
       "previousYear": "Año anterior",
       "nextYear": "Año siguiente",
-      "maxDaysLimit": "Los viajes pueden durar hasta {days} días"
+      "maxDaysLimit": "Los viajes pueden durar hasta {days} días",
+      "addDates": "Añade tus fechas de viaje",
+      "quickHint": "Toca una duración o abre el calendario para fechas exactas",
+      "presetWeekend": "Fin de semana",
+      "presetDaysValue": "{days} días",
+      "presetWeek": "1 semana",
+      "presetTwoWeeks": "2 semanas",
+      "startShort": "Inicio",
+      "endShort": "Fin",
+      "clearDates": "Borrar",
+      "done": "Listo"
     },
     "step1": {
       "title": "¿Adónde y cuándo?",

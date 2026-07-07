@@ -80,7 +80,17 @@
       "nextMonth": "Next month",
       "previousYear": "Previous year",
       "nextYear": "Next year",
-      "maxDaysLimit": "Trips can be up to {days} days"
+      "maxDaysLimit": "Trips can be up to {days} days",
+      "addDates": "Add your travel dates",
+      "quickHint": "Tap a length, or open the calendar for exact dates",
+      "presetWeekend": "Weekend",
+      "presetDaysValue": "{days} days",
+      "presetWeek": "1 week",
+      "presetTwoWeeks": "2 weeks",
+      "startShort": "Start",
+      "endShort": "End",
+      "clearDates": "Clear",
+      "done": "Done"
     },
     "step1": {
       "title": "Where and when?",

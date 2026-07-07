@@ -4,11 +4,14 @@
  * Premium DateRangePicker Component
  *
  * A beautiful, travel-themed date range selector with:
- * - Custom calendar UI with month navigation
- * - Visual date range selection
- * - Validation to prevent start date > end date
- * - Trip duration display
- * - Mobile-optimized touch interactions
+ * - A SINGLE combined trigger for the whole range (not separate check-in /
+ *   check-out inputs) — fewer taps, less visual weight on the highest-abandon
+ *   wizard step.
+ * - One-tap trip-length presets (Weekend / 5 days / 1 week / 10 days / 2 weeks)
+ *   that fill a full valid range in a single click.
+ * - Custom calendar UI with month + year navigation for exact dates.
+ * - Validation to prevent start date > end date and to cap at maxDays.
+ * - Mobile-optimized touch interactions.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -23,7 +26,7 @@ interface DateRangePickerProps {
   minDate?: string;
   className?: string;
   /**
-   * A11y: marks the start/end buttons as required for assistive tech.
+   * A11y: marks the range trigger as required for assistive tech.
    * Wizard step 1 sets this to true (dates are required to continue).
    */
   ariaRequired?: boolean;
@@ -54,7 +57,7 @@ const getFirstDayOfMonth = (year: number, month: number): number => {
 };
 
 /**
- * Display-formatter for the chip labels under Check-in / Check-out.
+ * Display-formatter for the range label on the trigger.
  *
  * Pre-2026-05-25 this was hardcoded to "en-US" + "Select date" fallback,
  * so the IT/ES wizards showed English dates and an English placeholder.
@@ -357,12 +360,12 @@ export default function DateRangePicker({
               {date.getDate()}
               {isStart && (
                 <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] opacity-80">
-                  Start
+                  {t("startShort")}
                 </span>
               )}
               {isEnd && !isStart && (
                 <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] opacity-80">
-                  End
+                  {t("endShort")}
                 </span>
               )}
             </button>
@@ -373,125 +376,130 @@ export default function DateRangePicker({
   };
 
   const tripDuration = calculateTripDuration(startDate, endDate);
+  const hasRange = Boolean(startDate && endDate);
+
+  // One-tap trip-length presets. A single tap sets a full valid range — the
+  // fewest-clicks path (vs open → tap start → tap end). When the user hasn't
+  // chosen a start yet we anchor ~3 weeks out, the same sensible default the
+  // wizard's "I'm flexible" hatch uses (handleFlexibleDates), so the two paths
+  // agree. Filtered to the maxDays cap.
+  const durationPresets = [
+    { days: 3, label: t("presetWeekend") },
+    { days: 5, label: t("presetDaysValue", { days: 5 }) },
+    { days: 7, label: t("presetWeek") },
+    { days: 10, label: t("presetDaysValue", { days: 10 }) },
+    { days: 14, label: t("presetTwoWeeks") },
+  ].filter((p) => p.days <= maxDays);
+
+  const applyDuration = (nDays: number) => {
+    const clamped = Math.min(nDays, maxDays);
+    // Anchor: keep the user's chosen start if any, else default to ~3 weeks out.
+    const anchor =
+      parseDate(startDate) ||
+      (() => {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 21);
+        return d;
+      })();
+    const end = new Date(anchor);
+    end.setDate(end.getDate() + clamped - 1);
+    onStartDateChange(formatDate(anchor));
+    onEndDateChange(formatDate(end));
+    setSelectingStart(true);
+    setIsOpen(false);
+  };
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      {/* Date Display Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Start Date */}
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen(true);
-            setSelectingStart(true);
-          }}
-          // A11y: SR reads "Check-in, Tue Jun 3" instead of just "edit".
-          aria-label={`${t("checkInLabel")}, ${formatDisplayDate(startDate, locale, emptyDateLabel)}`}
-          aria-haspopup="dialog"
-          aria-expanded={isOpen && selectingStart}
-          aria-required={ariaRequired || undefined}
-          className={`
-            group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
-            transition-all duration-300 bg-white
-            ${selectingStart && isOpen
-              ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
-              : "border-slate-200 hover:border-[var(--primary)]/50"
-            }
-          `}
-        >
-          <div className={`
-            w-12 h-12 rounded-xl flex items-center justify-center
-            transition-all duration-300
-            ${startDate
-              ? "bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white shadow-md"
-              : "bg-slate-100 text-slate-400"
-            }
-          `}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+      {/* Single combined date trigger — one field for the whole range instead
+          of separate Check-in / Check-out buttons. Fewer taps and less visual
+          weight on the step where most abandons happen. */}
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen((o) => !o);
+          if (!startDate) setSelectingStart(true);
+        }}
+        // A11y: SR reads the full current range (or the empty prompt).
+        aria-label={`${t("checkInLabel")} / ${t("checkOutLabel")}: ${
+          hasRange
+            ? `${formatDisplayDate(startDate, locale, emptyDateLabel)} – ${formatDisplayDate(endDate, locale, emptyDateLabel)}`
+            : t("addDates")
+        }`}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-required={ariaRequired || undefined}
+        className={`
+          w-full group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
+          transition-all duration-300 bg-white
+          ${isOpen
+            ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
+            : "border-slate-200 hover:border-[var(--primary)]/50"
+          }
+        `}
+      >
+        <div className={`
+          w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+          transition-all duration-300
+          ${hasRange
+            ? "bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white shadow-md"
+            : "bg-slate-100 text-slate-400"
+          }
+        `}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`font-semibold truncate ${hasRange ? "text-slate-900" : "text-slate-400"}`}>
+            {hasRange
+              ? `${formatDisplayDate(startDate, locale, emptyDateLabel)} – ${formatDisplayDate(endDate, locale, emptyDateLabel)}`
+              : t("addDates")}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-0.5">
-              {t("checkInLabel")}
-            </div>
-            <div className={`font-semibold truncate ${startDate ? "text-slate-900" : "text-slate-400"}`}>
-              {formatDisplayDate(startDate, locale, emptyDateLabel)}
-            </div>
-          </div>
-          <div className="absolute top-2 right-2">
-            <div className={`w-2 h-2 rounded-full ${selectingStart && isOpen ? "bg-[var(--primary)] animate-pulse" : "bg-transparent"}`} />
-          </div>
-        </button>
+        </div>
+        {hasRange ? (
+          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--accent)]/20 text-xs font-semibold text-amber-700">
+            {t("dayCount", { count: tripDuration })}
+          </span>
+        ) : (
+          <svg className="w-5 h-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
+      </button>
 
-        {/* End Date */}
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen(true);
-            setSelectingStart(false);
-          }}
-          // A11y: SR reads "Check-out, Sat Jun 7" instead of just "edit".
-          aria-label={`${t("checkOutLabel")}, ${formatDisplayDate(endDate, locale, emptyDateLabel)}`}
-          aria-haspopup="dialog"
-          aria-expanded={isOpen && !selectingStart}
-          aria-required={ariaRequired || undefined}
-          className={`
-            group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
-            transition-all duration-300 bg-white
-            ${!selectingStart && isOpen
-              ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
-              : "border-slate-200 hover:border-[var(--primary)]/50"
-            }
-          `}
-        >
-          <div className={`
-            w-12 h-12 rounded-xl flex items-center justify-center
-            transition-all duration-300
-            ${endDate
-              ? "bg-gradient-to-br from-[var(--secondary)] to-[var(--secondary)]/80 text-white shadow-md"
-              : "bg-slate-100 text-slate-400"
-            }
-          `}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-0.5">
-              {t("checkOutLabel")}
-            </div>
-            <div className={`font-semibold truncate ${endDate ? "text-slate-900" : "text-slate-400"}`}>
-              {formatDisplayDate(endDate, locale, emptyDateLabel)}
-            </div>
-          </div>
-          <div className="absolute top-2 right-2">
-            <div className={`w-2 h-2 rounded-full ${!selectingStart && isOpen ? "bg-[var(--primary)] animate-pulse" : "bg-transparent"}`} />
-          </div>
-        </button>
-      </div>
-
-      {/* Trip Duration Badge */}
-      {tripDuration > 0 && (
-        <div className="mt-3 flex items-center justify-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--accent)]/20 to-[var(--accent)]/10 rounded-full border border-[var(--accent)]/30">
-            <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm font-semibold text-amber-700">
-              {t("dayCount", { count: tripDuration })}
-            </span>
-            <span className="text-sm text-amber-600">
-              · {t("nightCount", { count: tripDuration - 1 })}
-            </span>
-          </div>
+      {/* One-tap trip-length presets — a single tap fills a full valid range. */}
+      {durationPresets.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {durationPresets.map((preset) => {
+            const active = hasRange && tripDuration === Math.min(preset.days, maxDays);
+            return (
+              <button
+                key={preset.days}
+                type="button"
+                onClick={() => applyDuration(preset.days)}
+                aria-pressed={active}
+                className={`
+                  px-3.5 py-1.5 rounded-full text-xs font-medium min-h-[36px]
+                  border transition-all duration-200
+                  ${active
+                    ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
+                    : "border-slate-200 text-slate-600 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
+                  }
+                `}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Max days hint */}
-      {tripDuration === 0 && (
-        <p className="mt-2 text-xs text-slate-400 text-center">
-          {t("maxDaysHint", { days: maxDays })}
+      {/* Nudge toward the one-tap path while keeping exact dates discoverable. */}
+      {!hasRange && (
+        <p className="mt-2 text-xs text-slate-400">
+          {t("quickHint")}
         </p>
       )}
 
@@ -572,13 +580,13 @@ export default function DateRangePicker({
               }}
               className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
             >
-              Clear dates
+              {t("clearDates")}
             </button>
             <button
               onClick={() => setIsOpen(false)}
               className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
             >
-              Done
+              {t("done")}
             </button>
           </div>
         </div>
