@@ -10,7 +10,14 @@ tags: ["august travel", "where to go in august", "august destinations", "summer 
 image: "/images/blog/where-to-go-in-august.jpg"
 imageAlt: "Turquoise alpine lake beneath jagged Dolomites peaks on a clear August morning"
 readingTime: 12
+seo:
+  title: "Where to Go in August 2026: 12 Destinations That Work"
+  description: "August travel done right. Edinburgh's Fringe, dry-season Bali, the Dolomites at 22°C, ski season in Queenstown. Twelve destinations with real August costs, weather, and crowd reality — not generic top-10 noise."
+  keywords: ["where to go in august", "august travel destinations 2026", "best places to visit in august", "august vacation ideas", "summer holiday destinations 2026", "august weather destinations"]
+schema: "Article"
 ---
+
+# Where to Go in August 2026: 12 Destinations That Actually Work in Peak Season
 
 August is the hardest month to travel well. It's the one month when most of the Northern Hemisphere goes on holiday at the same time — so the Mediterranean charges double, half of Italy hangs the *chiuso per ferie* sign after Ferragosto, and Southeast Asia's most famous beaches are getting rained on. The default August trip is expensive, crowded, and slightly disappointing.
 

@@ -10,7 +10,14 @@ tags: ["dove andare ad agosto", "viaggi ad agosto", "mete di agosto", "vacanze e
 image: "/images/blog/where-to-go-in-august.jpg"
 imageAlt: "Lago alpino turchese sotto le cime frastagliate delle Dolomiti in una limpida mattina d'agosto"
 readingTime: 12
+seo:
+  title: "Dove andare ad agosto 2026: 12 mete che funzionano"
+  description: "Agosto fatto bene. Il Fringe di Edimburgo, Bali in stagione secca, le Dolomiti a 22°C, sci a Queenstown. Dodici mete con costi, meteo e folle reali di agosto, senza liste generiche."
+  keywords: ["dove andare ad agosto", "mete agosto 2026", "posti da visitare ad agosto", "vacanze agosto idee", "mete estive 2026 mare", "dove andare in vacanza ad agosto"]
+schema: "Article"
 ---
+
+# Dove andare ad agosto 2026: 12 mete che funzionano davvero in alta stagione
 
 Agosto è il mese più difficile in cui viaggiare bene. È l'unico mese in cui quasi tutto l'emisfero nord va in vacanza nello stesso momento: il Mediterraneo raddoppia i prezzi, mezza Italia appende il cartello *chiuso per ferie* dopo Ferragosto e le spiagge più famose del Sud-est asiatico si prendono la pioggia. Il viaggio di agosto standard è caro, affollato e leggermente deludente.
 

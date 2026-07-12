@@ -88,7 +88,10 @@ export async function generateMetadata({
   return {
     title,
     description,
-    keywords: frontmatter.seo.keywords,
+    // Optional-chained: a post without an seo: frontmatter block must degrade
+    // to no keywords, not 500 the route (2026-07-12: august post shipped
+    // without the block and took down all 4 locale URLs).
+    keywords: frontmatter.seo?.keywords,
     alternates: {
       canonical: canonicalUrl,
       languages,
@@ -194,7 +197,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
       : frontmatter.author,
     wordCount,
     articleSection: frontmatter.category,
-    keywords: frontmatter.seo.keywords,
+    keywords: frontmatter.seo?.keywords,
     inLanguage: locale,
   });
 
