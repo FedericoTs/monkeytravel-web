@@ -5,7 +5,7 @@ description: "Um guia mês a mês de para onde viajar em 2026 — construído so
 author: "Emanuela P."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
-category: "Viagens Sazonais"
+category: "Seasonal Travel"
 tags: ["calendário de viagens", "quando viajar", "viagens sazonais", "viagens 2026", "guia mensal de viagens"]
 image: "/images/blog/trending-destinations-may-2026.jpg"
 imageAlt: "Calendário mostrando destinos ao longo dos 12 meses de 2026 com marcadores sazonais"

@@ -8,7 +8,7 @@ description: >-
 author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Planejamento de Viagem
+category: "Trip Planning"
 tags:
   - erros em viagens em grupo
   - dicas para viajar com amigos

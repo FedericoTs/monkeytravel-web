@@ -8,7 +8,7 @@ description: >-
 author: Enrico E.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Guias de Destino
+category: "Destination Guides"
 tags:
   - japão
   - primeira viagem

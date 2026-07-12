@@ -8,7 +8,7 @@ description: >-
 author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
-category: Guias de Destinos
+category: "Destination Guides"
 tags:
   - paris
   - barcelona

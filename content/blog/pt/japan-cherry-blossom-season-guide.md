@@ -9,7 +9,7 @@ description: >-
 author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Viagens Sazonais
+category: "Seasonal Travel"
 tags:
   - japão
   - cerejeira em flor

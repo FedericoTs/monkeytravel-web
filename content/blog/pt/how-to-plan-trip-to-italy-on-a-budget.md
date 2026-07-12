@@ -8,7 +8,7 @@ description: >-
 author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Viagem Econômica
+category: "Budget Travel"
 tags:
   - itália
   - viagem econômica

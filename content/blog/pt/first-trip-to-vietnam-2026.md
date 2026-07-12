@@ -8,7 +8,7 @@ description: >-
 author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Guias de Destino
+category: "Destination Guides"
 tags:
   - vietna
   - primeira viagem

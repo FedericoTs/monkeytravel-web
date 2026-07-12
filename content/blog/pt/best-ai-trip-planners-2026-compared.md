@@ -9,7 +9,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Viagem com IA
+category: "AI Travel"
 tags:
   - planejador de viagens com ia
   - melhores ferramentas de viagem com ia

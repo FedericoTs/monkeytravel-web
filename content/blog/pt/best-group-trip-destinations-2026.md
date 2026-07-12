@@ -8,7 +8,7 @@ description: >-
 author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Guias de Destinos
+category: "Destination Guides"
 tags:
   - destinos para viagens em grupo
   - melhores lugares para viajar com amigos

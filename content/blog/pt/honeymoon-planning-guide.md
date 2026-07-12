@@ -5,7 +5,7 @@ description: "Destinos de lua de mel e conselhos de planejamento para 2026, orga
 author: "Francesca A."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
-category: "Planejamento de Viagem"
+category: "Trip Planning"
 tags: ["lua de mel", "destinos de lua de mel 2026", "planejamento de lua de mel", "orçamento de lua de mel", "viagens românticas"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Casal observando o pôr do sol de um terraço privativo com vista para o Mar Egeu"

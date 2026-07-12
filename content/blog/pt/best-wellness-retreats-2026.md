@@ -8,7 +8,7 @@ description: >-
 author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Planejamento de Viagem
+category: "Trip Planning"
 tags:
   - turismo de bem-estar
   - retiros de yoga

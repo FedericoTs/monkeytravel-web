@@ -10,7 +10,7 @@ description: >-
 author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Viagem Sazonal
+category: "Seasonal Travel"
 tags:
   - folhagem de outono
   - outono

@@ -7,7 +7,7 @@ description: >-
 author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Dicas de Viagem
+category: "Travel Tips"
 tags:
   - requisitos de visto
   - passaporte americano

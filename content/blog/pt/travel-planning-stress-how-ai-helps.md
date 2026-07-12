@@ -10,7 +10,7 @@ description: >-
 author: Federico S.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
-category: Dicas de Viagem
+category: "Travel Tips"
 tags:
   - estresse no planejamento de viagens
   - dicas de planejamento de férias

@@ -8,7 +8,7 @@ description: >-
 author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Guias de Destino
+category: "Destination Guides"
 tags:
   - lisboa
   - roteiro

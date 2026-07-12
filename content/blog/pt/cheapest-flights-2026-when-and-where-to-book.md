@@ -9,7 +9,7 @@ description: >-
 author: Emanuela P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Viagens Econômicas
+category: "Budget Travel"
 tags:
   - voos baratos
   - ofertas de voos

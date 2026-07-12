@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
-category: Dicas de Viagem
+category: "Travel Tips"
 tags:
   - viagem solo
   - planejador de viagens com IA

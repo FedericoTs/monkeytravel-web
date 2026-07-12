@@ -8,7 +8,7 @@ description: >-
 author: Federico S.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Viagens com IA
+category: "AI Travel"
 tags:
   - planejamento de viagens com ia
   - tecnologia de viagens

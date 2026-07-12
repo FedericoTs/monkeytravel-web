@@ -5,7 +5,7 @@ description: "Analisamos 1.563 sessões reais de planejamento de viagem no Monke
 author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
-category: "Planejamento de Viagem"
+category: "Trip Planning"
 tags: ["destinos mais planejados 2026", "tendências de viagem 2026", "para onde viajar em 2026", "dados de planejamento de viagem", "viagens multicidade 2026"]
 image: "/images/blog/most-planned-destinations-2026.jpg"
 imageAlt: "Mapa-múndi com linhas de rota conectando os dez destinos mais planejados de 2026"

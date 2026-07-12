@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
-category: Dicas de Viagem
+category: "Travel Tips"
 tags:
   - planejador de viagens com IA
   - ChatGPT

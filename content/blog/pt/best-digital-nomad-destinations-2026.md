@@ -10,7 +10,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Planejamento de Viagem
+category: "Trip Planning"
 tags:
   - destinos para nômades digitais
   - melhores lugares para trabalhar remotamente 2026

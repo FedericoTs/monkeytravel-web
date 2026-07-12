@@ -5,7 +5,7 @@ description: "Abril é o mês com a maior divisão de telas no calendário de vi
 author: "Emanuela P."
 publishedAt: "2026-05-30"
 updatedAt: "2026-05-30"
-category: "Viagens por Temporada"
+category: "Seasonal Travel"
 tags: ["viagem em abril", "para onde ir em abril", "destinos de abril", "viagem na primavera 2026", "temporada intermediária"]
 image: "/images/blog/where-to-go-in-april.jpg"
 imageAlt: "Flores de cerejeira ao longo de um canal em Kyoto ao pôr do sol no início de abril"

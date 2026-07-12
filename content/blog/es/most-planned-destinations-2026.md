@@ -5,7 +5,7 @@ description: "Analizamos 1.563 sesiones reales de planificación de viajes en Mo
 author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
-category: "Planificación de Viajes"
+category: "Trip Planning"
 tags: ["destinos más planificados 2026", "tendencias de viaje 2026", "dónde viajar en 2026", "datos de planificación de viajes", "viajes multiciudad 2026"]
 image: "/images/blog/most-planned-destinations-2026.jpg"
 imageAlt: "Mapa del mundo con líneas de ruta que conectan los diez destinos más planificados de 2026"

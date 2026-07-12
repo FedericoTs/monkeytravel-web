@@ -8,7 +8,7 @@ description: >-
 author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Viagem Econômica
+category: "Budget Travel"
 tags:
   - ásia
   - viagem econômica

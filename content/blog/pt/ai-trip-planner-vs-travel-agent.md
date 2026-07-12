@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
-category: Viagens com IA
+category: "AI Travel"
 tags:
   - planejador de viagens com ia
   - agente de viagens

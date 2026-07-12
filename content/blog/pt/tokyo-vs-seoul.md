@@ -8,7 +8,7 @@ description: >-
 author: Enrico E.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
-category: Guias de Destino
+category: "Destination Guides"
 tags:
   - tóquio
   - seul

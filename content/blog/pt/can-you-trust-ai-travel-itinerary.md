@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
-category: Viagens com IA
+category: "AI Travel"
 tags:
   - precisão de viagens com IA
   - roteiro com IA

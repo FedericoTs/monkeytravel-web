@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
-category: Viagem com IA
+category: "AI Travel"
 tags:
   - planejamento de viagem com IA
   - como planejar uma viagem

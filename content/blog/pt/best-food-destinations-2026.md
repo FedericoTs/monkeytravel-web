@@ -9,7 +9,7 @@ description: >-
 author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
-category: Guias de Destinos
+category: "Destination Guides"
 tags:
   - viagem gastronômica
   - turismo culinário

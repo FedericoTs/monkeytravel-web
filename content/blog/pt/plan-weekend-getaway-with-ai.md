@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
-category: Viagens com IA
+category: "AI Travel"
 tags:
   - escapada de fim de semana
   - viagem de 3 dias

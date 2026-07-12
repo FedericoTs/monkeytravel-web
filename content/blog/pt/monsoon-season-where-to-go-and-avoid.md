@@ -8,7 +8,7 @@ description: >-
 author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
-category: Viagens Sazonais
+category: "Seasonal Travel"
 tags:
   - monção
   - asia

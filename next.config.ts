@@ -144,6 +144,24 @@ const nextConfig: NextConfig = {
       });
     }
 
+    // 2026-07-12: blog consolidation from the GSC 3-month audit. The
+    // visa-requirements-2026 post duplicated visa-requirements-us-citizens'
+    // intent and split its rankings (3 clicks/10.1k impressions vs 68/64.7k
+    // on the survivor) while carrying broken locale metadata. Content files
+    // removed; 301 preserves the equity into the stronger page.
+    rules.push({
+      source: `/blog/visa-requirements-2026`,
+      destination: `/blog/visa-requirements-us-citizens`,
+      permanent: true,
+    });
+    for (const locale of ["es", "it", "pt"]) {
+      rules.push({
+        source: `/${locale}/blog/visa-requirements-2026`,
+        destination: `/${locale}/blog/visa-requirements-us-citizens`,
+        permanent: true,
+      });
+    }
+
     return rules;
   },
 
