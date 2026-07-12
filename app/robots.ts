@@ -60,20 +60,23 @@ const ALLOW_PATHS = [
   "/contact",
 ];
 
-// AI training scrapers and content-resellers. These are *also* hard-blocked
+// AI TRAINING scrapers and content-resellers. These are *also* hard-blocked
 // at the edge in middleware.ts (BLOCKED_BOT_PATTERNS). Listing them here adds
 // a polite-protocol opt-out on top of the hard block, so crawlers that honor
 // robots.txt skip even before they hit the function.
 // Keep in sync with middleware.ts BLOCKED_BOT_PATTERNS.
+//
+// 2026-07-12 GSC-audit decision: AI *citation/search* agents are now ALLOWED
+// (removed from this list): ChatGPT-User, OAI-SearchBot, Claude-Web,
+// PerplexityBot, Perplexity-User. Our fastest-growing query cluster is
+// "which AI is best for travel planning" — asked inside ChatGPT/Perplexity —
+// and blocked assistants can't read or cite MonkeyTravel, so they recommend
+// competitors they CAN read (Mindtrip, Layla). Model-TRAINING crawlers
+// (GPTBot, ClaudeBot, CCBot, Google-Extended, …) stay blocked.
 const BLOCKED_AI_AGENTS = [
   "GPTBot",
-  "ChatGPT-User",
-  "OAI-SearchBot",
   "ClaudeBot",
-  "Claude-Web",
   "anthropic-ai",
-  "PerplexityBot",
-  "Perplexity-User",
   "CCBot",
   "Bytespider",
   "Amazonbot",

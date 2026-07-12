@@ -23,15 +23,16 @@ const intlMiddleware = createIntlMiddleware(routing);
 // and `Mozilla/5.0 (Linux; Android ...) ... MonkeyTravelApp/1.0` — a
 // regression here = the mobile app gets 403 on every request.
 // E2E coverage: tests/e2e/mobile-webview.spec.ts
+// 2026-07-12 GSC-audit decision: AI *citation/search* agents (ChatGPT-User,
+// OAI-SearchBot, Claude-Web, PerplexityBot, Perplexity-User) removed from the
+// block — they power in-answer recommendations, and our fastest-growing query
+// cluster is "which AI is best for travel planning" asked inside those
+// assistants; blocked assistants recommend competitors they CAN read.
+// Model-TRAINING crawlers stay blocked. Keep in sync with app/robots.ts.
 const BLOCKED_BOT_PATTERNS = [
   /GPTBot/i,
-  /ChatGPT-User/i,
-  /OAI-SearchBot/i,
   /ClaudeBot/i,
-  /Claude-Web/i,
   /anthropic-ai/i,
-  /PerplexityBot/i,
-  /Perplexity-User/i,
   /CCBot/i, // Common Crawl
   /Bytespider/i, // ByteDance/TikTok
   /Amazonbot/i,
