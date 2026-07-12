@@ -62,7 +62,12 @@ const nextConfig: NextConfig = {
       ["where-to-go-in-may",       "2026-travel-calendar#may"],
       ["where-to-go-in-june",      "2026-travel-calendar#june"],
       ["where-to-go-in-july",      "2026-travel-calendar#july"],
-      ["where-to-go-in-august",    "2026-travel-calendar#august"],
+      // 2026-07-12: where-to-go-in-august redirect REMOVED (April playbook).
+      // Peak search season for "where to go in august" is June–August — the
+      // anchor-redirect can't rank for the ~50 long-tail variants the April
+      // standalone captured (18.8k imp/qtr). The standalone post at
+      // content/blog/where-to-go-in-august.md (×4 locales) now serves these
+      // queries with a real 200, hero, comparison table, and 12 sections.
       ["where-to-go-in-september", "2026-travel-calendar#september"],
       ["where-to-go-in-october",   "2026-travel-calendar#october"],
       ["where-to-go-in-november",  "2026-travel-calendar#november"],
