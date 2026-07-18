@@ -12,7 +12,9 @@
  * const roadDistance = estimateRoadDistance(straightLineDistance);
  */
 
-import { type Coordinates } from "@/lib/utils/geo";
+// Statement-level `import type`: geo.ts imports our runtime functions, so this
+// back-edge must stay type-only or the two modules form a runtime cycle.
+import type { Coordinates } from "@/lib/utils/geo";
 
 // Earth's radius
 const EARTH_RADIUS_KM = 6371;

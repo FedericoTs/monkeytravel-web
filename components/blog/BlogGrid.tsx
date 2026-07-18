@@ -2,7 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { BlogCard } from "@/components/blog";
+// Direct sibling import, NOT the "@/components/blog" barrel: importing the
+// barrel from inside this directory creates a module cycle (barrel re-exports
+// this file), and cycles surface at runtime as TDZ ReferenceErrors / stack
+// overflows during chunk instantiation on slow devices.
+import BlogCard from "./BlogCard";
 import { trackContentInteraction } from "@/lib/analytics";
 import { getRegionForPost, ALL_REGIONS } from "@/lib/blog/regions";
 import type { BlogRegion } from "@/lib/blog/regions";

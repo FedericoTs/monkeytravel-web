@@ -1,6 +1,8 @@
 import { Link } from "@/lib/i18n/routing";
 import type { BlogFrontmatter } from "@/lib/blog/types";
-import { BlogCard } from "@/components/blog";
+// Direct sibling import — the "@/components/blog" barrel re-exports this file,
+// so importing it from here creates a module cycle (see BlogGrid.tsx).
+import BlogCard from "./BlogCard";
 import { useTranslations } from "next-intl";
 
 interface BlogLaneProps {
