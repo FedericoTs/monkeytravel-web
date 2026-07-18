@@ -50,7 +50,11 @@ function logAnonExchange(row: {
   }
 }
 
-export const maxDuration = 30;
+// 60s, not the 30s default: Gemini edit round-trips occasionally exceed 30s
+// and were dying as "Vercel Runtime Timeout Error" (17 hits / 14 users in the
+// 7 days to 2026-07-18). generate/stream uses 120s; assistant replies are
+// smaller, so 60s covers the tail without doubling worst-case compute cost.
+export const maxDuration = 60;
 
 // Anon abuse limiters. Slightly tighter per-IP than the read-only concierge
 // because an edit round-trip is a bit pricier (~$0.0006) and produces content.

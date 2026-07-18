@@ -422,7 +422,10 @@ Return ONLY a JSON array of activities, no other text.`;
       destination_hash: destinationHash,
       destination_name: destination,
       activity_type: activity.type || "activity",
-      activity_name_lower: activity.name?.toLowerCase()?.trim() || "", // REQUIRED for unique constraint
+      // activity_name_lower is a GENERATED column in the DB — supplying it
+      // explicitly makes Postgres reject the whole row ("cannot insert a
+      // non-DEFAULT value"). Omit it; PG computes it before the onConflict
+      // target below is evaluated.
       activity_data: {
         name: activity.name,
         type: activity.type,
@@ -559,7 +562,10 @@ export async function saveToActivityBank(
         destination_hash: destinationHash,
         destination_name: destination,
         activity_type: activity.type || "activity",
-        activity_name_lower: activity.name?.toLowerCase()?.trim() || "", // REQUIRED for unique constraint
+        // activity_name_lower is a GENERATED column in the DB — supplying it
+      // explicitly makes Postgres reject the whole row ("cannot insert a
+      // non-DEFAULT value"). Omit it; PG computes it before the onConflict
+      // target below is evaluated.
         activity_data: {
           id: activity.id || generateActivityId(),
           name: activity.name,

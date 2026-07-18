@@ -224,7 +224,7 @@ export async function logApiCall(params: LogApiCallParams): Promise<void> {
       ? params.costUsd
       : await getApiCostFromConfig(params.apiName);
 
-    const { error } = await supabase.from("api_request_logs").insert({
+    const row = {
       api_name: params.apiName,
       endpoint: params.endpoint,
       response_status: params.status,
@@ -235,14 +235,31 @@ export async function logApiCall(params: LogApiCallParams): Promise<void> {
       user_id: params.userId || null,
       request_params: params.metadata || null,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    let error;
+    try {
+      ({ error } = await supabase.from("api_request_logs").insert(row));
+    } catch {
+      // Dominant failure mode on Vercel: stale keep-alive socket reused for
+      // the first fetch after idle (UND_ERR_SOCKET / ECONNRESET). One retry
+      // on a fresh connection clears it; if not, telemetry loss is warn-level,
+      // not an app error.
+      await new Promise((r) => setTimeout(r, 300));
+      try {
+        ({ error } = await supabase.from("api_request_logs").insert(row));
+      } catch (retryErr) {
+        console.warn("[ApiControl] API-call log dropped after retry:", retryErr);
+        return;
+      }
+    }
 
     if (error) {
       console.error("[ApiControl] Failed to log API call:", error);
     }
   } catch (err) {
     // Don't throw - logging should never break the main flow
-    console.error("[ApiControl] Error logging API call:", err);
+    console.warn("[ApiControl] Error logging API call:", err);
   }
 }
 

@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isValidEmail, normalizeEmail } from "@/lib/validation";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -76,7 +77,22 @@ export async function POST(request: NextRequest) {
       "";
     const ipHash = ip ? createHash("sha256").update(ip).digest("hex").slice(0, 32) : null;
 
-    const { data, error } = await supabase
+    // Insert with the service-role client: this route is the single validated
+    // entry (rate limit + shape checks above). The anon-RLS WITH CHECK
+    // duplicated these rules with subtle drift — JS string .length counts
+    // UTF-16 units while Postgres length() counts characters, so emoji-short
+    // messages passed the route and died at RLS with 42501, silently losing
+    // real user messages (6 in the 7 days to 2026-07-18).
+    let db;
+    try {
+      db = createAdminClient();
+    } catch {
+      // Missing service credentials (e.g. preview builds) — degrade to the
+      // anon client + RLS rather than breaking the form entirely.
+      db = supabase;
+    }
+
+    const { data, error } = await db
       .from("contact_messages")
       .insert({
         name: name.trim().slice(0, 200),
