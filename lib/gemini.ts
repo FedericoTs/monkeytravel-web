@@ -535,6 +535,112 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
   return fixedDays;
 }
 
+// Static output spec, part of the SHARED CHAT PREFIX (see buildStaticChatHistory).
+//
+// Gemini implicit caching only engages when requests share an identical token
+// prefix of >=1024 tokens (2.5 Flash). The system prompt + ack alone is ~750
+// tokens, so the cache could never engage and the rolling hit rate sat at
+// 0.0% (Sentry JAVASCRIPT-NEXTJS-1P). Moving this ~600-token block out of the
+// per-request user prompt into the static history pushes the shared prefix
+// past the threshold — and because the blocking and streaming call sites both
+// use buildStaticChatHistory, they share one cache entry.
+//
+// Everything here MUST stay request-independent: the four booking-link URLs
+// use {DEST_SLUG}/{DEST_ENCODED}/{START_DATE}/{END_DATE} template tokens whose
+// concrete values arrive in the dynamic user message (## Booking Link Values).
+const TRIP_OUTPUT_SPEC = `## Required Output
+
+Generate a complete day-by-day itinerary in JSON format with this exact structure:
+
+{
+  "destination": {
+    "name": "City Name",
+    "country": "Country",
+    "description": "Brief 1-2 sentence description",
+    "best_for": ["type1", "type2"],
+    "weather_note": "Expected weather for travel dates"
+  },
+  "days": [
+    {
+      "day_number": 1,
+      "date": "YYYY-MM-DD",
+      "theme": "Day theme (e.g., Historic Center)",
+      "activities": [
+        {
+          "time_slot": "morning",
+          "start_time": "09:00",
+          "duration_minutes": 120,
+          "name": "Real Place Name",
+          "type": "attraction",
+          "description": "What to do here",
+          "location": "Neighborhood name",
+          "address": "Full street address",
+          "coordinates": {
+            "lat": 48.858370,
+            "lng": 2.294481
+          },
+          "official_website": "https://www.example-museum.com",
+          "estimated_cost": {
+            "amount": 25,
+            "currency": "USD",
+            "tier": "moderate"
+          },
+          "tips": ["One helpful tip"],
+          "booking_required": false
+        }
+      ]
+    }
+  ],
+  "trip_summary": {
+    "total_estimated_cost": 450,
+    "currency": "USD",
+    "highlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
+    "packing_suggestions": ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"]
+  },
+  "booking_links": {
+    "flights": [
+      {"provider": "Skyscanner", "url": "https://www.skyscanner.com/transport/flights/nyc/{DEST_SLUG}/{START_DATE}", "label": "Search flights on Skyscanner"},
+      {"provider": "Google Flights", "url": "https://www.google.com/travel/flights?q=flights+to+{DEST_ENCODED}", "label": "Search on Google Flights"}
+    ],
+    "hotels": [
+      {"provider": "Booking.com", "url": "https://www.booking.com/searchresults.html?ss={DEST_ENCODED}&checkin={START_DATE}&checkout={END_DATE}", "label": "Find hotels on Booking.com"},
+      {"provider": "Airbnb", "url": "https://www.airbnb.com/s/{DEST_ENCODED}/homes?checkin={START_DATE}&checkout={END_DATE}", "label": "Browse Airbnb stays"}
+    ]
+  }
+}
+
+Rules:
+1. Return ONLY valid JSON, no markdown or extra text
+2. All dates must be in YYYY-MM-DD format starting from the trip start date given in the request
+3. Include 3-5 activities per day based on the requested travel pace
+4. Use REAL place names that exist on Google Maps
+5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
+6. Activities should flow logically through each day
+7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
+8. In booking_links, replace the {DEST_SLUG}, {DEST_ENCODED}, {START_DATE}, {END_DATE} tokens with the exact values given under "## Booking Link Values" in the request — output the final URLs, never the tokens`;
+
+// Shared chat prefix for BOTH trip-generation call sites (blocking +
+// streaming). Byte-identical history across requests is what makes Gemini's
+// implicit prefix cache hit; do not interpolate anything request-specific
+// here. Dynamic content belongs in buildUserPrompt, with the most volatile
+// parts (language header) at the very end.
+export function buildStaticChatHistory(systemPrompt: string) {
+  return [
+    {
+      role: "user" as const,
+      parts: [{ text: `${systemPrompt}\n\n${TRIP_OUTPUT_SPEC}` }],
+    },
+    {
+      role: "model" as const,
+      parts: [
+        {
+          text: "Understood. I will generate travel itineraries following these rules, returning only valid JSON matching the specified schema.",
+        },
+      ],
+    },
+  ];
+}
+
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
   const totalDuration =
     Math.ceil(
@@ -623,7 +729,10 @@ Consider these seasonal factors when selecting activities and timing. Include se
   // Language instruction for non-English responses
   const languageSection = getLanguageInstruction(options?.language);
 
-  return `${languageSection}Plan a ${duration}-day trip to ${params.destination}.${partialNote}
+  // Language header intentionally at the END (see tail of this template):
+  // it is the most cache-hostile token span (varies per locale), and the
+  // shared-prefix cache only covers the identical head of the request.
+  return `Plan a ${duration}-day trip to ${params.destination}.${partialNote}
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
@@ -636,75 +745,14 @@ ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
-## Required Output
+## Booking Link Values
+Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:
+- {DEST_SLUG} = ${destSlug}
+- {DEST_ENCODED} = ${destEncoded}
+- {START_DATE} = ${params.startDate}
+- {END_DATE} = ${params.endDate}
 
-Generate a complete day-by-day itinerary in JSON format with this exact structure:
-
-{
-  "destination": {
-    "name": "City Name",
-    "country": "Country",
-    "description": "Brief 1-2 sentence description",
-    "best_for": ["type1", "type2"],
-    "weather_note": "Expected weather for travel dates"
-  },
-  "days": [
-    {
-      "day_number": 1,
-      "date": "YYYY-MM-DD",
-      "theme": "Day theme (e.g., Historic Center)",
-      "activities": [
-        {
-          "time_slot": "morning",
-          "start_time": "09:00",
-          "duration_minutes": 120,
-          "name": "Real Place Name",
-          "type": "attraction",
-          "description": "What to do here",
-          "location": "Neighborhood name",
-          "address": "Full street address",
-          "coordinates": {
-            "lat": 48.858370,
-            "lng": 2.294481
-          },
-          "official_website": "https://www.example-museum.com",
-          "estimated_cost": {
-            "amount": 25,
-            "currency": "USD",
-            "tier": "moderate"
-          },
-          "tips": ["One helpful tip"],
-          "booking_required": false
-        }
-      ]
-    }
-  ],
-  "trip_summary": {
-    "total_estimated_cost": 450,
-    "currency": "USD",
-    "highlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
-    "packing_suggestions": ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"]
-  },
-  "booking_links": {
-    "flights": [
-      {"provider": "Skyscanner", "url": "https://www.skyscanner.com/transport/flights/nyc/${destSlug}/${params.startDate}", "label": "Search flights on Skyscanner"},
-      {"provider": "Google Flights", "url": "https://www.google.com/travel/flights?q=flights+to+${destEncoded}", "label": "Search on Google Flights"}
-    ],
-    "hotels": [
-      {"provider": "Booking.com", "url": "https://www.booking.com/searchresults.html?ss=${destEncoded}&checkin=${params.startDate}&checkout=${params.endDate}", "label": "Find hotels on Booking.com"},
-      {"provider": "Airbnb", "url": "https://www.airbnb.com/s/${destEncoded}/homes?checkin=${params.startDate}&checkout=${params.endDate}", "label": "Browse Airbnb stays"}
-    ]
-  }
-}
-
-Rules:
-1. Return ONLY valid JSON, no markdown or extra text
-2. All dates must be in YYYY-MM-DD format starting from ${params.startDate}
-3. Include 3-5 activities per day based on ${params.pace} pace
-4. Use REAL place names that exist on Google Maps
-5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
-6. Activities should flow logically through each day
-7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display`;
+Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
 /**
@@ -828,21 +876,11 @@ async function generateItineraryInternal(
   // Fetch system prompt from database (with caching and fallback)
   const systemPrompt = await getPrompt("trip_generation_system");
 
+  // Shared static prefix (system prompt + output spec + ack) — identical
+  // bytes across every request and across the streaming variant, so Gemini's
+  // implicit prefix cache can engage (requires >=1024 identical tokens).
   const chat = model.startChat({
-    history: [
-      {
-        role: "user",
-        parts: [{ text: systemPrompt }],
-      },
-      {
-        role: "model",
-        parts: [
-          {
-            text: "Understood. I will generate travel itineraries following these rules, returning only valid JSON matching the specified schema.",
-          },
-        ],
-      },
-    ],
+    history: buildStaticChatHistory(systemPrompt),
   });
 
   // Pass options to buildUserPrompt for partial generation support
@@ -2103,18 +2141,10 @@ export async function* generateItineraryStream(
   });
 
   const systemPrompt = await getPrompt("trip_generation_system");
+  // Same shared static prefix as the blocking call site — one cache entry
+  // serves both paths.
   const chat = model.startChat({
-    history: [
-      { role: "user", parts: [{ text: systemPrompt }] },
-      {
-        role: "model",
-        parts: [
-          {
-            text: "Understood. I will generate travel itineraries following these rules, returning only valid JSON matching the specified schema.",
-          },
-        ],
-      },
-    ],
+    history: buildStaticChatHistory(systemPrompt),
   });
 
   const userPrompt = buildUserPrompt(params, options);
