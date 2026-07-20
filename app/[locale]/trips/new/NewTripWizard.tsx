@@ -1389,6 +1389,14 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     setSelectedVibes([]);
     setRequirements("");
     setSeasonalContext(null);
+    // Multi-city rows survived Start Over, and the sync effect would
+    // rebuild destination/endDate from the stale route on its next run.
+    // Restore the exact initial state from the useState declarations.
+    setMultiCityMode(false);
+    setCityRows([
+      { city: "", nights: 3 },
+      { city: "", nights: 2 },
+    ]);
   };
 
   // Derive interests from selected vibes for AI prompt compatibility.
@@ -1836,6 +1844,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             pace,
             vibes: selectedVibes,
             budgetTier,
+            // Backpacker mode must survive the auth round trip — the
+            // generate-time draft write includes it, but this path didn't,
+            // so the flag was silently dropped on the post-signup restore.
+            travelStyle,
           });
         }
         // Funnel disambiguation: save_clicked > saved is the dominant
