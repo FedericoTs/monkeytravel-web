@@ -1,4 +1,9 @@
 import { NextRequest } from "next/server";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// Abuse ceiling for the generic media proxy — generous for real pages,
+// hostile to scripted egress/bandwidth abuse.
+const imgProxyLimiter = createRateLimiter("img-proxy", 600, 60 * 60 * 1000);
 
 /**
  * GET /api/img/proxy?url=<allowlisted-image-url>
@@ -72,6 +77,9 @@ async function fetchWithRetry(
 }
 
 export async function GET(request: NextRequest) {
+  const { allowed } = await imgProxyLimiter.check(request);
+  if (!allowed) return new Response("Too many requests", { status: 429 });
+
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get("url");
   if (!raw) return new Response("Missing url", { status: 400 });

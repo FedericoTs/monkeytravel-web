@@ -27,8 +27,8 @@ export interface PackingListInput {
     | "wellness"
     | "mixed";
   activities?: string[]; // optional checklist like ["hiking", "swimming", "fine_dining"]
-  /** Locale for output text (en/it/es). Falls back to en. */
-  locale?: "en" | "it" | "es";
+  /** Locale for output text (en/it/es/pt). Falls back to en. */
+  locale?: "en" | "it" | "es" | "pt";
 }
 
 export interface PackingItem {
@@ -69,6 +69,7 @@ const LOCALE_NAME: Record<NonNullable<PackingListInput["locale"]>, string> = {
   en: "English",
   it: "Italian",
   es: "Spanish",
+  pt: "Portuguese (Portugal)",
 };
 
 /**
@@ -90,6 +91,8 @@ const CONTEXT_NOTE_EXAMPLE: Record<
     "Fine maggio a Tokyo: giornate calde e umide tra i 22 e i 27°C con buone probabilità di rovesci serali, quindi metti in valigia un guscio antipioggia compatto. Le prese sono di Tipo A (100V) — porta un piccolo adattatore per qualsiasi dispositivo a 220V. Vestiti in modo sobrio quando visiti i templi (spalle e ginocchia coperte).",
   es:
     "Finales de mayo en Tokio: días cálidos y húmedos entre 22 y 27°C con bastantes probabilidades de chubascos por la tarde, así que lleva una chaqueta impermeable plegable. Los enchufes son de Tipo A (100V) — lleva un pequeño adaptador para cualquier aparato de 220V. Vístete con discreción al visitar los templos (hombros y rodillas cubiertos).",
+  pt:
+    "Final de maio em Tóquio: dias quentes e húmidos entre 22 e 27°C com boa probabilidade de aguaceiros ao fim da tarde, por isso leve um casaco impermeável dobrável. As tomadas são do Tipo A (100V) — leve um pequeno adaptador para qualquer aparelho de 220V. Vista-se com discrição ao visitar os templos (ombros e joelhos cobertos).",
 };
 
 function buildPrompt(input: PackingListInput): string {
@@ -238,6 +241,7 @@ export async function generatePackingList(
       en: `Plan for variable weather over your ${input.destination} trip and check the local outlet type before packing chargers. Bring layers and a compact rain shell as a precaution.`,
       it: `Preparati a un clima variabile durante il tuo viaggio a ${input.destination} e verifica il tipo di presa elettrica locale prima di mettere in valigia i caricatori. Porta abiti a strati e un guscio antipioggia compatto per sicurezza.`,
       es: `Prepárate para un clima variable durante tu viaje a ${input.destination} y verifica el tipo de enchufe local antes de empacar los cargadores. Lleva ropa por capas y una chaqueta impermeable compacta por precaución.`,
+      pt: `Prepare-se para um clima variável durante a sua viagem a ${input.destination} e verifique o tipo de tomada local antes de levar os carregadores. Leve roupa em camadas e um casaco impermeável compacto por precaução.`,
     };
     result.contextNote = fallback[locale];
   }

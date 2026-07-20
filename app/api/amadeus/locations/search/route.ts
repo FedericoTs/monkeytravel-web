@@ -9,6 +9,11 @@
  */
 
 import { NextRequest } from 'next/server';
+import { createRateLimiter } from '@/lib/api/rate-limit';
+
+// Autocomplete-shaped endpoint: higher ceiling than flights/hotels but
+// still capped — it burns paid Amadeus quota per keystroke burst.
+const locationsLimiter = createRateLimiter('amadeus-locations', 120, 24 * 60 * 60 * 1000);
 import {
   getAmadeusClient,
   withAmadeusErrorHandling,
@@ -23,6 +28,11 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
+
+  const { allowed } = await locationsLimiter.check(request);
+  if (!allowed) {
+    return errors.rateLimit('Too many location searches. Please try again later.');
+  }
 
   try {
     // Check if Amadeus is configured

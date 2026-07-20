@@ -1,4 +1,10 @@
 import { NextRequest } from "next/server";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
+// never touches real browsing but stops scripted hammering of a route that
+// invokes a function AND bills Google media on every cache miss.
+const photoLimiter = createRateLimiter("places-photo", 600, 60 * 60 * 1000);
 
 /**
  * GET /api/places/photo?name=places/<placeId>/photos/<photoToken>&w=600&h=400
@@ -85,6 +91,9 @@ async function fetchWithRetry(
 }
 
 export async function GET(request: NextRequest) {
+  const { allowed } = await photoLimiter.check(request);
+  if (!allowed) return new Response("Too many requests", { status: 429 });
+
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
   const wRaw = parseInt(searchParams.get("w") || "600", 10);

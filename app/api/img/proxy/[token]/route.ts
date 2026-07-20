@@ -1,4 +1,12 @@
 import { NextRequest } from "next/server";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// Shares the same abuse posture as /api/img/proxy (query variant).
+const imgProxyTokenLimiter = createRateLimiter(
+  "img-proxy-token",
+  600,
+  60 * 60 * 1000,
+);
 
 /**
  * GET /api/img/proxy/<encoded-url>
@@ -82,9 +90,12 @@ async function fetchWithRetry(
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const { allowed } = await imgProxyTokenLimiter.check(request);
+  if (!allowed) return new Response("Too many requests", { status: 429 });
+
   const { token } = await params;
   if (!token) return new Response("Missing token", { status: 400 });
 

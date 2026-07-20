@@ -8,6 +8,12 @@
  */
 
 import { NextRequest } from 'next/server';
+import { createRateLimiter } from '@/lib/api/rate-limit';
+
+// Paid Amadeus quota behind an optional-auth route: cap per-IP so a
+// scraper can't drain the monthly quota. 30 searches/day is far above
+// any real planning session.
+const flightsLimiter = createRateLimiter('amadeus-flights', 30, 24 * 60 * 60 * 1000);
 import { createClient } from '@/lib/supabase/server';
 import {
   searchFlights,
@@ -23,6 +29,11 @@ import { errors, apiSuccess, apiError, getErrorStatus } from "@/lib/api/response
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
+
+  const { allowed } = await flightsLimiter.check(request);
+  if (!allowed) {
+    return errors.rateLimit('Too many flight searches. Please try again later.');
+  }
 
   try {
     // Check if Amadeus is configured

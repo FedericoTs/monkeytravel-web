@@ -64,7 +64,9 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 }
 
 const VALID_STYLES = ["city", "beach", "adventure", "business", "wellness", "mixed"];
-const VALID_LOCALES = ["en", "it", "es"];
+// pt added 2026-07-20: the pt locale shipped 2026-06-15 but this list was
+// never updated — real pt users were getting 400s (4 in the week to Jul 18).
+const VALID_LOCALES = ["en", "it", "es", "pt"];
 
 /**
  * Wrap a next-intl translator call so an unknown category id (e.g. if

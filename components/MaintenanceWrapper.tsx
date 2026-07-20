@@ -2,45 +2,17 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { isAdmin } from "@/lib/admin";
 import MaintenancePage from "./MaintenancePage";
 
 interface SiteConfig {
   maintenance_mode: boolean;
   maintenance_title: string;
   maintenance_message: string;
-  allowed_emails: string[];
 }
 
 interface MaintenanceWrapperProps {
   children: React.ReactNode;
-}
-
-/**
- * Check if a user has valid tester access (redeemed an early access code)
- */
-async function hasValidTesterAccess(
-  supabase: ReturnType<typeof createClient>,
-  userId: string
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from("user_tester_access")
-      .select("id, expires_at")
-      .eq("user_id", userId)
-      .single();
-
-    if (error || !data) return false;
-
-    // Check if access has expired
-    if (data.expires_at && new Date(data.expires_at) < new Date()) return false;
-
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
@@ -72,28 +44,20 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
         return;
       }
 
-      // Check if user is admin
-      if (isAdmin(user.email)) {
-        setIsBlocked(false);
-        return;
-      }
+      // Admin / allowed-list / tester bypass is computed SERVER-SIDE so the
+      // admin email allowlist never ships in the client bundle (this wrapper
+      // mounts in the root layout, i.e. every page). Only reached when
+      // maintenance_mode is on, so the extra request is rare.
+      const bypassResponse = await fetch("/api/auth/maintenance-bypass", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const bypassJson = await bypassResponse.json().catch(() => ({}));
+      const bypass = Boolean(
+        bypassJson?.data?.bypass ?? bypassJson?.bypass,
+      );
 
-      // Check if user email is in allowed list
-      const allowedEmails = siteConfig.allowed_emails || [];
-      if (user.email && allowedEmails.includes(user.email.toLowerCase())) {
-        setIsBlocked(false);
-        return;
-      }
-
-      // Check if user has redeemed an early access code
-      const supabase = createClient();
-      if (await hasValidTesterAccess(supabase, user.id)) {
-        setIsBlocked(false);
-        return;
-      }
-
-      // User is not admin, not in allowed list, and has no early access - block
-      setIsBlocked(true);
+      setIsBlocked(!bypass);
     } catch (error) {
       console.error("Error checking maintenance status:", error);
       // On error, allow access to prevent locking everyone out

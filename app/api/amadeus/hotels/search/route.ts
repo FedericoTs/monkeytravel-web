@@ -12,6 +12,10 @@
  */
 
 import { NextRequest } from 'next/server';
+import { createRateLimiter } from '@/lib/api/rate-limit';
+
+// Paid Amadeus quota — same abuse posture as flights/search.
+const hotelsLimiter = createRateLimiter('amadeus-hotels', 30, 24 * 60 * 60 * 1000);
 import {
   searchHotelOffers,
   transformHotelOffer,
@@ -25,6 +29,11 @@ import { errors, apiSuccess, apiError, getErrorStatus } from "@/lib/api/response
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
+
+  const { allowed } = await hotelsLimiter.check(request);
+  if (!allowed) {
+    return errors.rateLimit('Too many hotel searches. Please try again later.');
+  }
 
   try {
     // Check if Amadeus is configured
