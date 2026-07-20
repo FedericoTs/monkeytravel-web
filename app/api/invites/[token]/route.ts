@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { enqueueNotification } from "@/lib/notifications/service";
+import { captureServerEvent } from "@/lib/posthog/server";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
 import type { CollaboratorRole } from "@/types";
@@ -340,10 +342,12 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // Fresh join — fetch the trip title and the new collaborator row
     // so the response keeps the same shape callers already consume.
-    const [{ data: trip }, { data: newCollab }] = await Promise.all([
+    // user_id + the accepter's profile feed the owner's invite_accepted
+    // notification below.
+    const [{ data: trip }, { data: newCollab }, { data: accepterProfile }] = await Promise.all([
       supabaseAdmin
         .from("trips")
-        .select("id, title")
+        .select("id, title, user_id")
         .eq("id", result.trip_id)
         .single(),
       result.collaborator_id
@@ -353,7 +357,42 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
             .eq("id", result.collaborator_id)
             .single()
         : Promise.resolve({ data: null }),
+      supabaseAdmin
+        .from("users")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle(),
     ]);
+
+    // Crew Loop: tell the trip owner someone joined. Fresh joins only —
+    // the is_owner / already_member paths return earlier and never reach
+    // here, so we can't ping the owner about themselves or about re-joins.
+    // Best-effort: enqueueNotification swallows its own failures.
+    const collaboratorName =
+      accepterProfile?.display_name || user.email || "A new collaborator";
+    if (trip?.user_id && trip.user_id !== user.id) {
+      void enqueueNotification({
+        userId: trip.user_id,
+        notification: {
+          type: "invite_accepted",
+          data: {
+            message: `${collaboratorName} joined "${trip.title ?? "your trip"}"`,
+            href: `/trips/${result.trip_id}`,
+            trip_id: result.trip_id,
+            collaborator_name: collaboratorName,
+            collaborator_email: user.email ?? "",
+          },
+        },
+      });
+    }
+
+    // Crew Loop PostHog: server-side accept event. Fire-and-forget — a
+    // telemetry failure must never fail the join.
+    captureServerEvent(user.id, "invite_accepted", {
+      tripId: result.trip_id,
+      role: result.role,
+      inviteId: result.invite_id,
+    }).catch(() => {});
 
     // Award bananas to the inviter (collaborator referral reward).
     // Same logic as before — runs OUTSIDE the atomic tx because it's

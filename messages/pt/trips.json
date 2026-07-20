@@ -389,7 +389,13 @@
     "aiHelp": "Ajuda da IA",
     "aiTripAssistant": "Assistente de Viagem com IA",
     "suggestActivity": "+ Sugerir uma atividade para este dia",
-    "proposalSubmitted": "Proposta enviada! Outros viajantes vão votar nela."
+    "proposalSubmitted": "Proposta enviada! Outros viajantes vão votar nela.",
+    "crewVotesSummary": "🗳️ {count, plural, one {# voto} other {# votos}} do seu grupo",
+    "crewVotesVoters": "De {names}",
+    "crewVotesShare": "Compartilhar link de votação",
+    "crewCtaText": "Planejando com amigos? Receba votos neste roteiro — sem precisar de conta",
+    "crewCtaButton": "Receber votos do grupo",
+    "crewCtaDismiss": "Dispensar"
   },
   "editActivity": {
     "moveToDay": "Mover para o dia",

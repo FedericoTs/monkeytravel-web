@@ -12,6 +12,7 @@ export type NotificationType =
   | "collab_proposal"
   | "invite_accepted"
   | "trip_shared"
+  | "anon_vote"
   | "system";
 
 /**
@@ -59,6 +60,22 @@ export interface TripSharedPayload extends BasePayload {
   vote_count: number; // first-vote signal, e.g. "Someone voted on your shared trip!"
 }
 
+/**
+ * Crew Loop (2026-07): an anonymous visitor voted on a shared-link trip.
+ * Throttled to one notification per voter per trip (the shared vote route
+ * only enqueues on a voter's FIRST vote row for the trip), so an owner
+ * isn't buzzed 30 times while one friend votes through the itinerary.
+ */
+export interface AnonVotePayload extends BasePayload {
+  trip_id: string;
+  tripId: string;
+  tripName?: string;
+  activityId: string;
+  voteType: "up" | "down";
+  /** voter_display_name if the voter gave one, else null. */
+  voterName: string | null;
+}
+
 export interface SystemPayload extends BasePayload {
   category?: "release_note" | "billing" | "outage" | "tip";
 }
@@ -69,6 +86,7 @@ export type NotificationPayload =
   | { type: "collab_proposal"; data: CollabProposalPayload }
   | { type: "invite_accepted"; data: InviteAcceptedPayload }
   | { type: "trip_shared"; data: TripSharedPayload }
+  | { type: "anon_vote"; data: AnonVotePayload }
   | { type: "system"; data: SystemPayload };
 
 /**

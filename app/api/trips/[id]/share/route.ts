@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { v4 as uuidv4 } from "uuid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -85,6 +86,12 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       user_id: user.id,
       metadata: { share_token: shareToken },
     });
+
+    // Crew Loop PostHog: mirror of the funnel event above (new-mint branch
+    // only, so it fires at most once per trip). Fire-and-forget.
+    captureServerEvent(user.id, "crew_link_created", {
+      tripId: id,
+    }).catch(() => {});
 
     const shareUrl = await buildShareUrl(user.id, shareToken);
 

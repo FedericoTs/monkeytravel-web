@@ -229,6 +229,25 @@ async function dispatchPushForNotification(args: {
         };
         break;
       }
+      case "anon_vote": {
+        // Crew Loop: an anonymous share-link visitor cast their first vote
+        // on this trip. Same push shape as collab_vote — the owner-facing
+        // story is identical ("someone reacted to your plan").
+        const d = args.notification.data;
+        push = {
+          type: "collab_activity_added" as PushNotificationType,
+          title: d.tripName
+            ? `New crew vote on ${d.tripName}`
+            : "New crew vote on your trip",
+          body: `${d.voterName ?? "Someone"} voted ${d.voteType === "up" ? "👍" : "👎"} on your shared itinerary`,
+          sound: "default",
+          data: {
+            url: d.href ?? `/trips/${d.tripId}`,
+            tripId: d.tripId,
+          },
+        };
+        break;
+      }
       // collab_comment, trip_shared, system → bell-only for now.
       // Adding push is one switch case + a new literal in push/types.
       default:

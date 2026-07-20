@@ -1121,8 +1121,8 @@
       "emailBody": "Planejei esta viagem incrível usando o MonkeyTravel. Dá uma olhada!"
     },
     "invite": {
-      "viewOnlyLink": "Link Somente Leitura",
-      "anyoneCanView": "Qualquer pessoa pode ver",
+      "viewOnlyLink": "Link de Votação em Grupo",
+      "anyoneCanView": "Qualquer pessoa pode votar — sem conta",
       "inviteToCollaborate": "Convidar para Colaborar",
       "editVoteSuggest": "Editar, votar e sugerir",
       "viewOnlyLabel": "Somente leitura",

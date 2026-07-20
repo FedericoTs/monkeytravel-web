@@ -55,7 +55,9 @@ export async function logFunnelEventServer(
 // in-app browser with a normal Chrome/Safari UA; the "WhatsApp"/"TelegramBot"
 // UA is the preview crawler. We accept a little unfurl inflation rather than
 // risk dropping the exact humans (chat-app openers) the crew loop targets.
-const CRAWLER_UA_RE =
+// Exported so the shared page's crew_link_visited PostHog capture applies the
+// SAME filter — keeps the two visit counters comparable.
+export const CRAWLER_UA_RE =
   /(bot\b|crawl|spider|slurp|facebookexternalhit|bingpreview|headless|python-requests|curl\/|wget|lighthouse|monitoring|uptime)/i;
 
 /**

@@ -1,7 +1,9 @@
 import { cache } from "react";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
+import { logSharedTripVisit, CRAWLER_UA_RE } from "@/lib/analytics/funnel-events";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
@@ -107,6 +109,38 @@ export default async function SharedTripPage({ params }: PageProps) {
   // generateMetadata (which shares the same React.cache'd getSharedTrip and
   // would double-count). Fire-and-forget; never blocks the render.
   void logSharedTripVisit(trip.id as string);
+
+  // Crew Loop PostHog twin of the funnel event above — same crawler filter so
+  // the two counters stay comparable. Distinct id preference: authed user id
+  // (rare on this anon-first page; getUser() is a local no-op without a
+  // session cookie) → mt_anon_voter cookie (ties the visit to later
+  // crew_vote_cast events) → "anonymous". Fire-and-forget like
+  // logSharedTripVisit; never blocks or breaks the render.
+  void (async () => {
+    try {
+      const h = await headers();
+      const ua = h.get("user-agent") || "";
+      if (CRAWLER_UA_RE.test(ua)) return;
+      const cookieStore = await cookies();
+      const anonVoterId = cookieStore.get("mt_anon_voter")?.value;
+      let distinctId = anonVoterId || "anonymous";
+      try {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user?.id) distinctId = user.id;
+      } catch {
+        // stay anonymous
+      }
+      await captureServerEvent(distinctId, "crew_link_visited", {
+        tripId: trip.id,
+        shareToken: token,
+      });
+    } catch {
+      // never break the render for telemetry
+    }
+  })();
 
   // Read-time refresh of activity photo URLs from places_v2. Public
   // /shared/* surfaces had broken activity-card images when URLs baked

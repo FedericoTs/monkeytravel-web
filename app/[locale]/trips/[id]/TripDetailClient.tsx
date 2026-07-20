@@ -313,6 +313,95 @@ export default function TripDetailClient({
     },
     [isOwner, trip.id]
   );
+
+  // ---- Crew Loop (2026-07): owner-side visibility of anonymous crew votes ----
+  // The share link lets friends vote with NO account (POST
+  // /api/shared/[token]/vote → anonymous_activity_votes), but those votes were
+  // invisible on this page. For the owner we fetch share status once on mount
+  // and, when sharing is on, the aggregated crew votes.
+  const [crewVotes, setCrewVotes] = useState<{
+    total: number;
+    voters: string[];
+    byActivity: Record<string, { up: number; down: number }>;
+  } | null>(null);
+  // null = still resolving / not owner. `=== false` drives the "never shared
+  // yet" CTA so it can't flash while the share status is in flight.
+  const [crewSharingEnabled, setCrewSharingEnabled] = useState<boolean | null>(null);
+  // Assume dismissed until localStorage says otherwise — avoids a flash of
+  // the CTA for owners who already dismissed it.
+  const [crewCtaDismissed, setCrewCtaDismissed] = useState(true);
+  // Each increment remounts ShareButton (via key) with autoOpen on the SHARE
+  // tab — the same autoOpen/initialTab prop mechanism the ?share=invite deep
+  // link uses, without modifying ShareButton itself.
+  const [crewShareRequest, setCrewShareRequest] = useState(0);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const shareRes = await fetch(`/api/trips/${trip.id}/share`);
+        if (!shareRes.ok || cancelled) return;
+        const shareData = await shareRes.json();
+        if (cancelled) return;
+        setCrewSharingEnabled(!!shareData.isShared);
+        if (!shareData.isShared) return;
+        const votesRes = await fetch(`/api/trips/${trip.id}/crew-votes`);
+        if (!votesRes.ok || cancelled) return;
+        const votesData = await votesRes.json();
+        if (!cancelled) setCrewVotes(votesData);
+      } catch (err) {
+        // Non-fatal — the page works fine without the crew strip.
+        console.warn("[crew-votes] fetch failed (non-fatal):", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner, trip.id]);
+
+  // CTA dismissal persists per trip (key: crewCtaDismissed:{tripId}).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      setCrewCtaDismissed(
+        localStorage.getItem(`crewCtaDismissed:${trip.id}`) === "1"
+      );
+    } catch {
+      // storage unavailable (private mode) — leave the CTA hidden
+    }
+  }, [trip.id]);
+
+  const dismissCrewCta = useCallback(() => {
+    setCrewCtaDismissed(true);
+    try {
+      localStorage.setItem(`crewCtaDismissed:${trip.id}`, "1");
+    } catch {
+      // best-effort — session-only dismissal is fine
+    }
+  }, [trip.id]);
+
+  const openCrewShareModal = useCallback(() => {
+    setCrewShareRequest((c) => c + 1);
+  }, []);
+
+  // Per-activity crew tally pill ("👍2 👎1"). Rendered in the card wrapper —
+  // threading new props through Sortable/EditableActivityCard would touch far
+  // more surface for the same pixel result.
+  const renderCrewVotePill = (activityId: string | undefined) => {
+    if (!activityId || !crewVotes) return null;
+    const tally = crewVotes.byActivity[activityId];
+    if (!tally || (tally.up === 0 && tally.down === 0)) return null;
+    return (
+      <div className="flex justify-end mb-1">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-50 border border-violet-200 text-[11px] font-medium text-violet-700">
+          <span>👍{tally.up}</span>
+          <span>👎{tally.down}</span>
+        </span>
+      </div>
+    );
+  };
+  // ---- end Crew Loop ----
   // **2026-05-23**: Foreground the AI assistant — it's the killer feature
   // (the "make Day 2 cheaper" loop) and was previously hidden behind a small
   // floating pill that most users never noticed. We now auto-open it on
@@ -1908,13 +1997,25 @@ export default function TripDetailClient({
               <span className="hidden sm:inline">{showMap ? t('detail.hideMap') : t('detail.showMap')}</span>
             </button>
 
-            {/* Share Button */}
+            {/* Share Button.
+                Crew Loop: the key remounts ShareButton whenever a crew
+                banner button fires (crewShareRequest++), so its mount-time
+                autoOpen/initialTab props — the exact mechanism the
+                ?share=invite deep link uses — re-trigger with the SHARE tab,
+                without modifying ShareButton itself. */}
             {!isEditMode && (
               <ShareButton
+                key={`share-${crewShareRequest}`}
                 tripId={trip.id}
                 tripTitle={trip.title}
-                autoOpen={shouldAutoOpenShareModal}
-                initialTab={shouldAutoOpenShareModal ? "invite" : "share"}
+                autoOpen={shouldAutoOpenShareModal || crewShareRequest > 0}
+                initialTab={
+                  crewShareRequest > 0
+                    ? "share"
+                    : shouldAutoOpenShareModal
+                      ? "invite"
+                      : "share"
+                }
               />
             )}
 
@@ -2211,6 +2312,70 @@ export default function TripDetailClient({
           disableApiCalls={true}
         />
 
+        {/* Crew Loop: owner-side crew-votes summary strip. Appears once the
+            share link has collected anonymous votes — shows voter names when
+            they gave one, and jumps back into the share tab to rally more
+            voters. Hidden during legacy edit mode (ShareButton unmounts
+            there, so the button would have nothing to open). */}
+        {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  {t('detail.crewVotesSummary', { count: crewVotes.total })}
+                </p>
+                {crewVotes.voters.length > 0 && (
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {t('detail.crewVotesVoters', { names: crewVotes.voters.join(', ') })}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={openCrewShareModal}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+              >
+                {t('detail.crewVotesShare')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Crew Loop CTA: owner + sharing never enabled + ≥2 days — nudge
+            toward the no-account crew voting link. Dismissal persists per
+            trip in localStorage (crewCtaDismissed:{tripId}). */}
+        {!isEditMode &&
+          isOwner &&
+          crewSharingEnabled === false &&
+          !crewCtaDismissed &&
+          trip.itinerary.length >= 2 && (
+            <div className="relative mb-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
+              <button
+                type="button"
+                onClick={dismissCrewCta}
+                aria-label={t('detail.crewCtaDismiss')}
+                title={t('detail.crewCtaDismiss')}
+                className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="flex flex-wrap items-center justify-between gap-3 pr-8">
+                <p className="text-sm font-medium text-slate-900">
+                  {t('detail.crewCtaText')}
+                </p>
+                <button
+                  type="button"
+                  onClick={openCrewShareModal}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+                >
+                  {t('detail.crewCtaButton')}
+                </button>
+              </div>
+            </div>
+          )}
+
         {/* Day Filter Slider - Mobile optimized */}
         <DaySlider
           days={displayItinerary}
@@ -2359,6 +2524,8 @@ export default function TripDetailClient({
 
                                 return (
                                   <div key={`${activity.id || idx}-v${itineraryVersion}`}>
+                                    {/* Crew Loop: anon share-link tally */}
+                                    {renderCrewVotePill(activity.id)}
                                     <div
                                       className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
                                     >
@@ -2423,6 +2590,8 @@ export default function TripDetailClient({
 
                               return (
                                 <div key={`activity-${activity.id || idx}-v${itineraryVersion}`}>
+                                  {/* Crew Loop: anon share-link tally */}
+                                  {renderCrewVotePill(activity.id)}
                                   <div
                                     className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
                                   >

@@ -389,7 +389,13 @@
     "aiHelp": "AI Help",
     "aiTripAssistant": "AI Trip Assistant",
     "suggestActivity": "+ Suggest an activity for this day",
-    "proposalSubmitted": "Proposal submitted! Other travelers will vote on it."
+    "proposalSubmitted": "Proposal submitted! Other travelers will vote on it.",
+    "crewVotesSummary": "🗳️ {count, plural, one {# vote} other {# votes}} from your crew",
+    "crewVotesVoters": "From {names}",
+    "crewVotesShare": "Share voting link",
+    "crewCtaText": "Planning with friends? Get votes on this plan — no accounts needed",
+    "crewCtaButton": "Get crew votes",
+    "crewCtaDismiss": "Dismiss"
   },
   "editActivity": {
     "moveToDay": "Move to day",
