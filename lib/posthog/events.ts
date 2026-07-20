@@ -862,6 +862,27 @@ export function captureSaveFailed(event: SaveFailedEvent) {
   captureNavSafe("save_failed", event);
 }
 
+/**
+ * Save Sprint (2026-07-20): fired on pagehide when the user leaves the
+ * result view with an UNSAVED generated itinerary. Closes the telemetry
+ * blind spot where post-generation exits emitted nothing (the wizard's
+ * trip_wizard_abandoned listener is deliberately disarmed once generation
+ * starts). PostHog only — NOT mirrored into wizard_step_events.
+ */
+export interface ResultExitUnsavedEvent {
+  /** mt_gen_count — generations attempted this browser session. */
+  gen_count: number;
+  /** Did the user apply at least one anon-assistant edit this session? */
+  edits_applied: boolean;
+}
+
+// Fired from a pagehide handler — must use the sync/sendBeacon-safe path
+// (same rationale as save_blocked_anon above): the async dynamic import
+// always loses to a page teardown.
+export function captureResultExitUnsaved(event: ResultExitUnsavedEvent) {
+  captureNavSafe("result_exit_unsaved", event);
+}
+
 // ============================================================================
 // CONCIERGE EVENTS (F4, task #242) — added 2026-06-06
 // ============================================================================

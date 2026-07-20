@@ -53,6 +53,9 @@ const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: 
 // Read-only AI Q&A on the anonymous result (Tier 3-B1). Anon users at peak
 // intent previously had no assistant — that lived only on the saved trip page.
 const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistantPanel"), { ssr: false });
+// Session trips tray (Save Sprint T4) — result-view only, so it follows the
+// same code-splitting pattern as the rest of the post-generation UI.
+const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
@@ -63,6 +66,8 @@ const WaitlistSignup = dynamic(() => import("@/components/beta").then((m) => m.W
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+// Save Sprint: session generation counter + per-session trip stack (T1/T4).
+import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
 import WizardReplay from "@/components/trip/WizardReplay";
 import {
@@ -89,6 +94,8 @@ import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/e
 import {
   captureSaveBlockedAnon,
   captureSaveFailed,
+  captureResultExitUnsaved,
+  capture,
 } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
@@ -141,6 +148,34 @@ function formatDateRangeLocalized(startISO: string, endISO: string, locale: stri
   } catch {
     return `${startISO} – ${endISO}`;
   }
+}
+
+// True inside the Capacitor native shell (iOS/Android WebView). Inline check
+// mirrors lib/platform/storage.ts / PushOptInSheet.tsx — the `Capacitor`
+// global is injected by the runtime; in a plain browser it's undefined.
+// Used to skip the beforeunload leave-guard: WebViews don't render the
+// native leave dialog and some hang on preventDefault'd beforeunload.
+function isCapacitorNative(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (
+    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
+  ).Capacitor;
+  return Boolean(cap?.isNativePlatform?.());
+}
+
+// Save Sprint T2: small amber "● Not saved" pill rendered next to the Save
+// button (desktop sticky header + mobile bottom bar) while the displayed
+// itinerary is unsaved in BOTH save arms. Subtle pulse on the dot only.
+function NotSavedPill({ className = "" }: { className?: string }) {
+  const t = useTranslations("trips");
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ${className}`}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+      {t("wizard.result.notSavedPill")}
+    </span>
+  );
 }
 
 // Vibe to interests mapping - automatically derives interests from selected vibes
@@ -471,6 +506,19 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
 
+  // Save Sprint T1: session generation counter + session trip stack
+  // (sessionStorage-backed; all callbacks referentially stable).
+  const {
+    trips: sessionTrips,
+    currentId: sessionTripCurrentId,
+    bumpGenCount,
+    getGenCount,
+    recordGeneration: recordSessionGeneration,
+    registerRestore: registerSessionRestore,
+    swapTo: swapSessionTrip,
+    clearCurrent: clearSessionTripCurrent,
+  } = useSessionTripStack();
+
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
@@ -580,6 +628,14 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // effect just below handleSaveTrip). After a magic-link return we auto-
   // complete the Save the user already clicked before signing up. At most once.
   const saveIntentRedeemedRef = useRef<boolean>(false);
+
+  // Save Sprint T3: has the user applied ≥1 anon-assistant edit? Mirrored to
+  // sessionStorage ("mt_edits_applied") so the flag survives the post-auth
+  // full-page round trip; the ref is the fast path + private-mode fallback.
+  const editsAppliedRef = useRef<boolean>(false);
+  // Once-per-pagehide-sequence guard for result_exit_unsaved (reset on
+  // pageshow when the page comes back out of the bfcache).
+  const resultExitFiredRef = useRef<boolean>(false);
 
   // Mirror state into refs so the unload handlers can read current values
   // without having to re-bind the listeners on every state change.
@@ -897,6 +953,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         }
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
+          // Save Sprint T1: the restored trip becomes the session stack's
+          // current entry (adopting a pre-auth entry from this same tab when
+          // one matches, so the OAuth round trip doesn't duplicate a chip).
+          registerSessionRestore({
+            destination: draft.destination,
+            startDate: draft.startDate,
+            endDate: draft.endDate,
+            dayCount: draft.generatedItinerary.days.length,
+            itinerary: draft.generatedItinerary,
+            pace: draft.pace,
+            vibes: draft.vibes,
+            budgetTier: draft.budgetTier,
+            travelStyle: draft.travelStyle === "backpacker" ? "backpacker" : "classic",
+          });
         }
         // Don't restore coordinates - they'll be re-fetched if needed
         setDraftAutoRestored(true);
@@ -910,7 +980,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     return () => {
       cancelled = true;
     };
-  }, [hasDraft, draft, generatedItinerary, draftAutoRestored]);
+  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore]);
 
   // Auto-save draft when itinerary is generated
   useEffect(() => {
@@ -1097,6 +1167,104 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     }
   }, [autoSave.savedTripId, savedTripId, autoSaveEnabled]);
 
+  // ── Save Sprint: unsaved-state derivation + nudge/exit instrumentation ────
+  // "Unsaved" respects BOTH save arms: the legacy manual flow (savedTripId)
+  // and the auto-save-v1 flow (autoSave.savedTripId).
+  const isUnsaved = !savedTripId && !autoSave.savedTripId;
+  const hasResult = Boolean(generatedItinerary);
+  // The tray's restore-swap must never run while the auto-save arm is live:
+  // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
+  // trip's content on swap (verified in hooks/useAutoSaveTrip.ts persist()).
+  // isAuthenticated === true matters — null is still-loading, and the
+  // auto-save effect no-ops until auth resolves truthy anyway.
+  const autoSaveArmActive = autoSaveEnabled && isAuthenticated === true;
+  const sessionTrayVisible =
+    hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
+
+  // T2: save_nudge_shown for the "Not saved" pill — once per session
+  // (sessionStorage once-flag; desktop + mobile pills share this one effect).
+  useEffect(() => {
+    if (!hasResult || !isUnsaved) return;
+    try {
+      if (sessionStorage.getItem("mt_save_nudge_pill_captured") === "1") return;
+      sessionStorage.setItem("mt_save_nudge_pill_captured", "1");
+    } catch {
+      return; // storage blocked — skip rather than spam once per remount
+    }
+    void capture("save_nudge_shown", {
+      source: "unsaved_pill",
+      gen_count: getGenCount(),
+    });
+  }, [hasResult, isUnsaved, getGenCount]);
+
+  // T4: save_nudge_shown for the session tray — once per session.
+  useEffect(() => {
+    if (!sessionTrayVisible) return;
+    try {
+      if (sessionStorage.getItem("mt_save_nudge_tray_captured") === "1") return;
+      sessionStorage.setItem("mt_save_nudge_tray_captured", "1");
+    } catch {
+      return;
+    }
+    void capture("save_nudge_shown", {
+      source: "session_tray",
+      gen_count: getGenCount(),
+    });
+  }, [sessionTrayVisible, getGenCount]);
+
+  // T3a: native leave-guard. SEPARATE from the fireAbandoned analytics
+  // listener above — that handler's semantics stay untouched. While an
+  // UNSAVED result is on screen, tab-close/back/external nav triggers the
+  // browser's native "leave site?" dialog. Disarmed when saved (either arm),
+  // while the auth modal is open (the Google OAuth full-page redirect starts
+  // from inside it and must not be interrupted), and inside the Capacitor
+  // shell (beforeunload dialogs are broken in WebViews). SPA navigations
+  // never fire beforeunload, so in-app moves are unaffected.
+  useEffect(() => {
+    if (!hasResult || !isUnsaved || showAuthModal) return;
+    if (isCapacitorNative()) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasResult, isUnsaved, showAuthModal]);
+
+  // T3b: exit telemetry. pagehide with an unsaved result → nav-safe
+  // result_exit_unsaved (sync SDK queue + sendBeacon flush — the same
+  // mechanism as captureSaveBlockedAnon). At most once per pagehide sequence
+  // (ref guard, reset when the page returns from the bfcache) and never
+  // after save: the effect tears down as soon as isUnsaved flips false.
+  useEffect(() => {
+    if (!hasResult || !isUnsaved) return;
+    const onPageHide = () => {
+      if (resultExitFiredRef.current) return;
+      resultExitFiredRef.current = true;
+      let editsApplied = editsAppliedRef.current;
+      if (!editsApplied) {
+        try {
+          editsApplied = sessionStorage.getItem("mt_edits_applied") === "1";
+        } catch {
+          /* private mode — the ref value stands */
+        }
+      }
+      captureResultExitUnsaved({
+        gen_count: getGenCount(),
+        edits_applied: editsApplied,
+      });
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) resultExitFiredRef.current = false;
+    };
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [hasResult, isUnsaved, getGenCount]);
+
   // Handle draft restoration
   const handleRestoreDraft = () => {
     if (draft) {
@@ -1110,6 +1278,22 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         setTravelStyle("backpacker");
       }
       setGeneratedItinerary(draft.generatedItinerary);
+      // Save Sprint T1: mirror the restore into the session stack so the
+      // banner-restored trip is durable in the tray (and not re-pushed as a
+      // duplicate if it already came from this session).
+      if (draft.generatedItinerary) {
+        registerSessionRestore({
+          destination: draft.destination,
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+          dayCount: draft.generatedItinerary.days.length,
+          itinerary: draft.generatedItinerary,
+          pace: draft.pace,
+          vibes: draft.vibes,
+          budgetTier: draft.budgetTier,
+          travelStyle: draft.travelStyle === "backpacker" ? "backpacker" : "classic",
+        });
+      }
       setShowDraftRecovery(false);
     }
   };
@@ -1188,6 +1372,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       await autoSave.discard();
     }
     clearDraft();
+    // Save Sprint T1: nothing is displayed after Start Over — drop the
+    // session stack's current pointer. The stacked snapshots themselves
+    // survive (that's the tray's whole point across generations).
+    clearSessionTripCurrent();
     setGeneratedItinerary(null);
     setShowStartOverModal(false);
     setStep(1);
@@ -1270,6 +1458,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   };
 
   const handleGenerate = async () => {
+    // Save Sprint T1: count every generation attempt of this browser session
+    // (mt_gen_count). handleGenerate is the single choke point for ALL
+    // generations — classic wizard, decision arm, regenerate, post-auth
+    // resume — so this is the one increment site.
+    bumpGenCount();
     // **2026-05-23**: Anonymous generation enabled. Visitors generate first,
     // sign up later (at Save). The /api/ai/generate route accepts anonymous
     // requests rate-limited by cookie (2/24h). Persisting the form draft to
@@ -1457,6 +1650,26 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // Images are fetched server-side in both endpoints; the itinerary
       // already has image_url populated on each activity.
       setGeneratedItinerary(data.itinerary || null);
+
+      // Save Sprint T1: push the successful generation onto the session trip
+      // stack. This is the ONLY generation success site — the streaming path
+      // funnels into `data.itinerary` via streamedItinerary above, and the
+      // JSON fallback lands here too. Restores (draft/tray) never push from
+      // here; they go through registerRestore/swapTo, so recordGeneration's
+      // restored-entry dedupe keeps the stack duplicate-free.
+      if (data.itinerary) {
+        recordSessionGeneration({
+          destination,
+          startDate,
+          endDate,
+          dayCount: data.itinerary.days.length,
+          itinerary: data.itinerary,
+          pace,
+          vibes: selectedVibes,
+          budgetTier,
+          travelStyle,
+        });
+      }
 
       // Supabase funnel mirror — fired only when we actually have an
       // itinerary to render. Task #293.
@@ -1927,6 +2140,14 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // changed day into view. Nothing is persisted until the user saves.
   const handleApplyDayEdit = useCallback(
     (dayNumber: number, newActivities: Activity[], theme?: string) => {
+      // Save Sprint T3: remember that this session applied an assistant edit
+      // (forwarded on result_exit_unsaved as edits_applied).
+      editsAppliedRef.current = true;
+      try {
+        sessionStorage.setItem("mt_edits_applied", "1");
+      } catch {
+        /* private mode — the ref covers this page's lifetime */
+      }
       setGeneratedItinerary((prev) => {
         if (!prev) return prev;
         const target = prev.days.find((d) => d.day_number === dayNumber);
@@ -1977,6 +2198,53 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     },
     []
   );
+
+  // Save Sprint T4: flip the result view to an earlier generation from the
+  // session tray. Refreshes the currently displayed trip into the stack
+  // first (so applied assistant edits survive the swap), then restores the
+  // clicked snapshot via the SAME state operations as the post-auth
+  // draft-restore path (the effect around line ~950): destination/dates/
+  // pace/vibes/budgetTier/travelStyle + setGeneratedItinerary. Two deliberate
+  // differences, both documented for the next reader:
+  //   - travelStyle is set BOTH ways (the draft path only upgrades a fresh
+  //     form to backpacker; a swap can also go backpacker → classic).
+  //   - coords cleared (the draft path never restores them either) and
+  //     multiCityMode forced off, otherwise the multi-city sync effect
+  //     rebuilds destination/endDate from stale cityRows and clobbers the
+  //     restored values on its next run.
+  // Only reachable while sessionTrayVisible (unsaved + auto-save arm not
+  // active), so a swap can never UPDATE/INSERT a persisted trip row.
+  const handleSessionTrayRestore = (id: string) => {
+    if (!generatedItinerary || id === sessionTripCurrentId) return;
+    const snap = swapSessionTrip(id, {
+      destination,
+      startDate,
+      endDate,
+      dayCount: generatedItinerary.days.length,
+      itinerary: generatedItinerary,
+      pace,
+      vibes: selectedVibes,
+      budgetTier,
+      travelStyle,
+    });
+    if (!snap) return;
+    void capture("save_nudge_action", {
+      source: "session_tray",
+      action: "restore",
+      gen_count: getGenCount(),
+    });
+    setDestination(snap.destination);
+    setStartDate(snap.startDate);
+    setEndDate(snap.endDate);
+    setPace(snap.pace as "relaxed" | "moderate" | "active");
+    setSelectedVibes(snap.vibes as TripVibe[]);
+    setBudgetTier(snap.budgetTier as "budget" | "balanced" | "premium");
+    setTravelStyle(snap.travelStyle === "backpacker" ? "backpacker" : "classic");
+    setGeneratedItinerary(snap.itinerary);
+    setDestinationCoords(null);
+    setMultiCityMode(false);
+    setError(null);
+  };
 
   // Show generated itinerary
   if (generatedItinerary) {
@@ -2192,6 +2460,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                   {t("wizard.result.saveHeaderNudge")}
                 </span>
               )}
+              {/* Save Sprint T2: unsaved-state pill (both save arms). */}
+              {isUnsaved && <NotSavedPill />}
               {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
                 // Auto-save flow: trip already persisted. Repurpose the
                 // primary action as a navigation to the saved detail view.
@@ -2301,6 +2571,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               className="flex-shrink-0"
             />
 
+            {/* Save Sprint T2: unsaved-state pill, next to the Save button. */}
+            {isUnsaved && <NotSavedPill />}
+
             {/* Save - Mobile (Full Width) */}
             {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
               <Link
@@ -2359,6 +2632,18 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Save Sprint T4: session trips tray — the sampler fix. Sits at
+              the top of the scrollable result content (directly under the
+              sticky header) so it never disturbs the hero or sticky layers.
+              Visibility gated on sessionTrayVisible: ≥2 stacked trips,
+              current trip unsaved, auto-save arm not active. */}
+          {sessionTrayVisible && (
+            <SessionTripsTray
+              trips={sessionTrips}
+              currentId={sessionTripCurrentId}
+              onRestore={handleSessionTrayRestore}
+            />
+          )}
           {/* Save/generation error — previously rendered only in the form view,
               so an authed Save failure looked like a dead button here. Restores
               feedback at peak intent (enhancement hunt). */}
@@ -2379,6 +2664,17 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               startDate={startDate}
               endDate={endDate}
               onApplyDay={handleApplyDayEdit}
+              // Save Sprint T5: post-edit save bridge. Only offered while the
+              // trip is unsaved AND the manual save arm owns persistence —
+              // when the auto-save arm is active the edit is already being
+              // persisted, so the ask would be false.
+              onRequestSave={
+                isUnsaved && !autoSaveArmActive
+                  ? () => {
+                      void handleSaveTrip();
+                    }
+                  : undefined
+              }
             />
           </div>
 

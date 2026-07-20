@@ -12,7 +12,9 @@
     "apply": "Apply change",
     "discard": "Keep original",
     "applied": "Applied",
-    "editPreview": "Update Day {number}?"
+    "editPreview": "Update Day {number}?",
+    "keepEditsPrompt": "These edits live only in this draft",
+    "keepEditsButton": "Save trip to keep them"
   },
   "decision": {
     "promptLabel": "Tell us about your trip",
@@ -191,7 +193,9 @@
       "dailyBudget": "Est. Budget",
       "mobileSaveNudge": "Free — save to edit anytime & open on any device",
       "saveHeaderNudge": "Free — keep & edit anytime",
-      "shareForVotes": "Ask your crew to vote"
+      "shareForVotes": "Ask your crew to vote",
+      "notSavedPill": "Not saved",
+      "sessionTrayTitle": "{count} trips this session — none saved yet"
     }
   },
   "vibes": {

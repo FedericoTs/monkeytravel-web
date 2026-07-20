@@ -32,6 +32,13 @@ interface AnonAssistantPanelProps {
   endDate?: string;
   /** Apply a proposed day revision to the in-memory itinerary. */
   onApplyDay: (dayNumber: number, activities: Activity[], theme?: string) => void;
+  /**
+   * Save Sprint T5: when provided, an applied edit renders a save bridge
+   * ("these edits live only in this draft → save to keep them") that invokes
+   * the parent's save flow. The parent passes undefined once the trip is
+   * persisted (either save arm), which also hides the bridge retroactively.
+   */
+  onRequestSave?: () => void;
 }
 
 interface Msg {
@@ -48,6 +55,7 @@ export default function AnonAssistantPanel({
   startDate,
   endDate,
   onApplyDay,
+  onRequestSave,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const locale = useLocale();
@@ -65,8 +73,21 @@ export default function AnonAssistantPanel({
   const [error, setError] = useState<string | null>(null);
 
   // The panel is conditionally rendered only on the post-generation result
-  // view, so mount === the traveller opening the assistant.
+  // view, so mount === the traveller seeing the assistant.
+  //
+  // Save Sprint T6 (hygiene): the result subtree unmounts during every
+  // `generating` pass, so this used to re-fire once per generation —
+  // inflating "opened" counts for multi-generation sessions. A sessionStorage
+  // once-flag caps it at one per browser session. Event name + properties
+  // unchanged. If storage is blocked (private mode) we keep the legacy
+  // fire-per-mount behavior rather than losing the event entirely.
   useEffect(() => {
+    try {
+      if (sessionStorage.getItem("mt_assistant_opened_captured") === "1") return;
+      sessionStorage.setItem("mt_assistant_opened_captured", "1");
+    } catch {
+      // Storage unavailable — fall through to the capture below.
+    }
     capture("anon_assistant_opened", { destination, day_count: days.length });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -194,6 +215,13 @@ export default function AnonAssistantPanel({
                             destination,
                             day_number: m.edit!.day_number,
                           });
+                          // Save Sprint T5: the keep-your-edits save bridge
+                          // renders with the "applied" state below — one
+                          // shown-event per applied edit, only when the
+                          // bridge will actually render (trip still unsaved).
+                          if (onRequestSave) {
+                            capture("save_nudge_shown", { source: "post_edit" });
+                          }
                           setEditState(i, "applied");
                         }}
                         className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
@@ -215,15 +243,42 @@ export default function AnonAssistantPanel({
                       </button>
                     </div>
                   ) : (
-                    <p
-                      className={`mt-2 text-sm font-medium ${
-                        m.editState === "applied" ? "text-emerald-600" : "text-slate-400"
-                      }`}
-                    >
-                      {m.editState === "applied"
-                        ? `✓ ${t("assistant.applied")}`
-                        : t("assistant.discard")}
-                    </p>
+                    <>
+                      <p
+                        className={`mt-2 text-sm font-medium ${
+                          m.editState === "applied" ? "text-emerald-600" : "text-slate-400"
+                        }`}
+                      >
+                        {m.editState === "applied"
+                          ? `✓ ${t("assistant.applied")}`
+                          : t("assistant.discard")}
+                      </p>
+                      {/* Save Sprint T5: post-edit save bridge — peak-investment
+                          moment. The user just shaped this draft by hand; remind
+                          them it's ephemeral and offer the save in one tap.
+                          Hidden once the trip is persisted (parent passes
+                          onRequestSave: undefined). */}
+                      {m.editState === "applied" && onRequestSave && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <p className="text-xs text-slate-500">
+                            {t("assistant.keepEditsPrompt")}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              capture("save_nudge_action", {
+                                source: "post_edit",
+                                action: "save_click",
+                              });
+                              onRequestSave();
+                            }}
+                            className="rounded-lg bg-[var(--secondary)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--secondary)]/90"
+                          >
+                            {t("assistant.keepEditsButton")}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}

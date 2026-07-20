@@ -12,7 +12,9 @@
     "apply": "Aplicar alteração",
     "discard": "Manter original",
     "applied": "Aplicado",
-    "editPreview": "Atualizar o dia {number}?"
+    "editPreview": "Atualizar o dia {number}?",
+    "keepEditsPrompt": "Essas alterações existem só neste rascunho",
+    "keepEditsButton": "Salve a viagem para mantê-las"
   },
   "decision": {
     "promptLabel": "Conte-nos sobre a sua viagem",
@@ -191,7 +193,9 @@
       "dailyBudget": "Orçamento Est.",
       "mobileSaveNudge": "Grátis — salve para editar quando quiser e abrir em qualquer dispositivo",
       "saveHeaderNudge": "Grátis — salve e edite quando quiser",
-      "shareForVotes": "Peça votos ao seu grupo"
+      "shareForVotes": "Peça votos ao seu grupo",
+      "notSavedPill": "Não salvo",
+      "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda"
     }
   },
   "vibes": {
