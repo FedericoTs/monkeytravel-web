@@ -1624,6 +1624,153 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 }
 
 /* ============================================================================
+   DOODLE BRAND — EYEBROW BADGES, TAG CHIPS, ICON TILES
+   ----------------------------------------------------------------------------
+   The three families the PLATFORM CONVERSION block listed as deliberately not
+   converted. Three rules, ordered by how much each is allowed to change:
+
+     F1  adds an edge to a tinted pill that has none.
+     F2  recolours and widens an edge a pill already has.
+     F3  adds an edge to a square icon tile.
+
+   NONE of the three repaints a background. The failure that shipped twice out
+   of this file — a white ground painted under white content — is therefore not
+   reachable from here: the only property any of them writes is a border.
+
+   The failure that IS reachable is the mirror image: drawing ink on a dark
+   ground, where the new edge reads as no edge at all, or overwriting a white
+   hairline on a dark panel with a near-black one (that is the EmailSubscribe
+   regression, in border form). Every rule below rejects three things for that
+   reason — an element carrying white content (own class or descendant), an
+   element carrying a white border token, and an element carrying
+   backdrop-blur, which in this codebase is exclusively the chip-floating-on-
+   photography idiom.
+
+   Colour is kept in all three families. Green means confirmed, amber means
+   pending, the six feature tiles are colour-coded per card on purpose, and the
+   eyebrow hue rotates accent/primary/secondary down the page as section
+   rhythm. Repainting them a uniform white would spend that signal to buy
+   nothing the ink outline is not already buying. Treatment (i) throughout.
+
+   No hard offset shadow on any of them: a 24px pill wearing a control-grade
+   3px offset collides with its neighbours in a wrap row, which is the same
+   reason the shipped block excluded rounded-full from its hover-shadow rule.
+   These are labels, not controls — even the ones that happen to be buttons,
+   whose ACTIVE twin already carries the full CTA treatment.
+   ============================================================================ */
+
+/* -- F1. Tinted pills with no border of their own -------------------------- */
+
+/* Section eyebrows ("AI Travel Agent", "Built Different", "FREE TOOLS"),
+   destination tag chips (Cultural / Foodie / Urban), "Coming soon", and the
+   neutral slate chips on /templates whose selected twin is already inked.
+
+   Two gates do the discriminating that a hook would otherwise have to do:
+   `rounded-full` rejects the tinted ALERT PANELS spelled with the same fills
+   (`rounded-2xl border border-amber-200 bg-amber-50 p-5`), and a horizontal
+   padding token rejects the decorative blur orbs, which are spelled
+   `bg-[var(--accent)]/10 rounded-full blur-[100px]` with no padding at all.
+   px-1 and px-1.5 are left out: a 2px stroke around a 14px-tall chip reads as
+   a render artefact, not as a drawn box.
+
+   INVISIBILITY TEST: the rule only adds a border, so it cannot remove an edge
+   and cannot change any text/background relationship. The residual risk is an
+   ink edge on a dark ground; the fill list is exclusively 5–15% tints and
+   *-50/-100/-200 stops, i.e. near-white, and the three guards below drop the
+   photo-overlay and white-text cases. Cost: the pill grows 4px in each axis
+   and re-wraps in its row. */
+[data-brand="doodle"] [class~="rounded-full"]:is(
+  [class~="px-2"], [class~="px-2.5"], [class~="px-3"], [class~="px-4"], [class~="px-5"]
+):is(
+  [class~="bg-[var(--primary)]/5"], [class~="bg-[var(--primary)]/10"],
+  [class~="bg-[var(--secondary)]/10"],
+  [class~="bg-[var(--accent)]/10"], [class~="bg-[var(--accent)]/15"],
+  [class~="bg-slate-100"], [class~="bg-slate-200"], [class~="bg-gray-100"],
+  [class~="bg-amber-100"], [class~="bg-violet-50"], [class~="bg-emerald-50"],
+  [class~="bg-amber-50"], [class~="bg-blue-50"], [class~="bg-rose-50"],
+  [class~="bg-cyan-50"], [class~="bg-red-50"], [class~="bg-green-50"]
+):not([class*="backdrop-blur"]):not([class*="text-white"]):not(:has([class*="text-white"])):not(button):not([data-ink="off"], [data-ink="off"] *) {
+  border: 2px solid var(--foreground);
+}
+
+/* -- F2. Pills that already carry a 1px border ----------------------------- */
+
+/* components/Badge.tsx (all five variants: it always writes
+   `... px-4 py-1.5 rounded-full text-sm font-medium border` plus a variant
+   fill), the /explore engagement pills in their liked/saved states
+   (`bg-rose-50 border-rose-200`, `bg-amber-50 border-amber-200`), the
+   published pill (`bg-emerald-50 ... border-emerald-200`) and the inactive
+   /explore filter chips (`bg-white text-slate-700 border-slate-300`, which the
+   shipped pill rule already ink-COLOURED but left at 1px).
+
+   No fill enumeration is needed here, and that absence is the safety argument:
+   gating on the element already owning a border is a proof that an edge
+   exists, so recolouring it can only change an edge, never create or delete
+   one. `[class~="border"]` matches the 1px shorthand only — `border-2`,
+   `border-4`, `border-t` and `border-l` are different tokens and are not
+   touched, so no divider sprouts sides and no spinner ring is repainted.
+
+   INVISIBILITY TEST: the guards are load-bearing rather than decorative here.
+   `[class*="text-white"]` on the element or a descendant excludes the ACTIVE
+   emerald filter chip (`bg-emerald-500 text-white border-emerald-500`) and the
+   active budget chip — the two elements this file has already broken once by
+   treating a filled state as a badge. `[class*="border-white"]` excludes the
+   frosted hero meta chips, whose white hairline is the only edge they have and
+   would become near-black on a photograph. */
+[data-brand="doodle"] [class~="rounded-full"][class~="border"]:not([class*="border-white"]):not([class*="backdrop-blur"]):not([class*="text-white"]):not(:has([class*="text-white"])):not(button):not([data-ink="off"], [data-ink="off"] *) {
+  border-width: 2px;
+  border-color: var(--foreground);
+}
+
+/* -- F3. Pastel icon tiles inside cards ------------------------------------ */
+
+/* The rounded tinted square at the top of every feature card —
+   `w-14 h-14 rounded-2xl bg-violet-50 text-violet-500 flex items-center
+   justify-center mb-6 group-hover:scale-110` on the 8 landing pages (6 per
+   page, hue interpolated from FEATURE_CONFIGS[i].color), the homepage's
+   `bg-[var(--secondary)]/10` twins, and the smaller `w-8 h-8 rounded-lg
+   bg-[var(--primary)]/10` tiles in the blog sidebar, cookie banner and
+   /profile.
+
+   A matched pair of fixed w-*/h-* tokens is what separates a tile from a
+   panel: the alert blocks and info panels share the fills exactly
+   (`rounded-2xl border border-amber-200 bg-amber-50 p-5`) but are fluid-width,
+   and the wizard's selected option arm (`rounded-xl border-2
+   bg-[var(--primary)]/10 text-[var(--primary)]`) is fluid too — so neither is
+   reachable, and neither needs a hook to stay unreachable.
+
+   INVISIBILITY TEST: adds a border and nothing else, on an element whose only
+   child is an icon. Tailwind's preflight sets box-sizing: border-box, so the
+   tile's outer square is unchanged at exactly 56px and the grid does not move;
+   only the icon's clear space loses 2px per side. Same three guards, same
+   reasons — in particular the white-content one keeps the `bg-white/10
+   backdrop-blur-sm border border-white/20` tiles inside the dark blog hero and
+   the CTA panel out of range. */
+[data-brand="doodle"] :is([class~="rounded-lg"], [class~="rounded-xl"], [class~="rounded-2xl"]):is(
+  [class~="w-8"], [class~="w-9"], [class~="w-10"], [class~="w-12"], [class~="w-14"], [class~="w-16"]
+):is(
+  [class~="h-8"], [class~="h-9"], [class~="h-10"], [class~="h-12"], [class~="h-14"], [class~="h-16"]
+):is(
+  [class~="bg-[var(--primary)]/5"], [class~="bg-[var(--primary)]/10"],
+  [class~="bg-[var(--secondary)]/10"],
+  [class~="bg-[var(--accent)]/10"], [class~="bg-[var(--accent)]/15"],
+  [class~="bg-slate-100"], [class~="bg-gray-100"],
+  [class~="bg-violet-50"], [class~="bg-emerald-50"], [class~="bg-amber-50"],
+  [class~="bg-blue-50"], [class~="bg-rose-50"], [class~="bg-cyan-50"],
+  [class~="bg-red-50"], [class~="bg-green-50"]
+):not([class*="backdrop-blur"]):not([class*="text-white"]):not(:has([class*="text-white"])):not(button):not([data-ink="off"], [data-ink="off"] *) {
+  border: 2px solid var(--foreground);
+}
+
+/* NOTE added on integration: F1/F2/F3 each carry :not(button). The falsify pass
+   found three places where inking only the UNSELECTED arm of a two-state
+   control (the /templates duration+budget rows, the /explore Backpacker
+   toggle) left the SELECTED arm on a lighter 1px hairline — the picked
+   option ends up looking like the disabled one. Buttons are excluded rather
+   than special-cased: eyebrows and tag chips are spans and divs, so the
+   families this block exists for are untouched by the exclusion. */
+
+/* ============================================================================
    REDUCED MOTION
    ----------------------------------------------------------------------------
    The hero art layer already honours this, so without the rest of the page
