@@ -10,6 +10,8 @@ import { getNonce } from '@/lib/security/nonce';
 // out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
 import TourTrigger from '@/components/tour/TourTrigger';
 import HeroTripInput from '@/components/home/HeroTripInput';
+import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
+import { HERO_DOODLE_ENABLED, INK } from '@/components/marketing/doodle';
 import { getTranslations } from 'next-intl/server';
 import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
@@ -122,13 +124,20 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* ================================================================
             1. HERO SECTION - Group Planning Angle
             ================================================================ */}
-        <section className="relative min-h-screen pt-20 pb-12 overflow-hidden hero-gradient">
-          {/* Subtle grid overlay */}
-          <div className="absolute inset-0 bg-grid-pattern-light opacity-50" />
+        <section className={`relative min-h-screen pt-20 pb-12 overflow-hidden ${HERO_DOODLE_ENABLED ? 'min-h-dvh bg-[#FDF1E0]' : 'hero-gradient'}`}>
+          {HERO_DOODLE_ENABLED ? (
+            /* Doodle rebrand: layered tropical artwork (base scenery + animated sky sprites + mascot) */
+            <HeroDoodleBackground />
+          ) : (
+            <>
+              {/* Subtle grid overlay */}
+              <div className="absolute inset-0 bg-grid-pattern-light opacity-50" />
 
-          {/* Decorative orbs */}
-          <div className="absolute top-32 left-[10%] w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-[100px] animate-pulse-glow" />
-          <div className="absolute top-64 right-[5%] w-96 h-96 bg-[var(--primary)]/8 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+              {/* Decorative orbs */}
+              <div className="absolute top-32 left-[10%] w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-[100px] animate-pulse-glow" />
+              <div className="absolute top-64 right-[5%] w-96 h-96 bg-[var(--primary)]/8 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+            </>
+          )}
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center min-h-[calc(100vh-5rem)]">
@@ -136,7 +145,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {/* Left - Content */}
               <div className="pt-8 lg:pt-0 text-center lg:text-left order-2 lg:order-1">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--secondary)]/10 border border-[var(--secondary)]/25 mb-8">
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${HERO_DOODLE_ENABLED ? `bg-white ${INK.border}` : 'bg-[var(--secondary)]/10 border border-[var(--secondary)]/25'}`}>
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondary)] opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--secondary)]"></span>
@@ -169,6 +178,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     cta={t('hero.inputCta')}
                     startersLabel={t('hero.starterLabel')}
                     starters={t.raw('hero.starters') as string[]}
+                    ink={HERO_DOODLE_ENABLED}
                   />
                   <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center lg:text-left">
                     <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline">
@@ -204,15 +214,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {/* Right - Phone Mockup (hidden on mobile) */}
               <div className="relative hidden lg:flex lg:order-2 justify-center lg:justify-end">
                 <div className="relative">
-                  {/* Glow behind phone */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-[var(--accent)]/20 to-[var(--primary)]/15 rounded-full blur-[80px]" />
+                  {/* Glow behind phone (glassmorphism arm only — clashes with the flat doodle art) */}
+                  {!HERO_DOODLE_ENABLED && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-[var(--accent)]/20 to-[var(--primary)]/15 rounded-full blur-[80px]" />
+                  )}
 
                   <div className="relative animate-float-slow">
                     <PhoneMockup scale="lg" screenImage={APP_SCREENSHOTS.hero} priority />
                   </div>
 
                   {/* Floating feature cards */}
-                  <div className="absolute -left-4 top-20 glass-card rounded-2xl p-4 shadow-lg hidden lg:flex items-center gap-3 animate-float" style={{ animationDelay: '0.5s' }}>
+                  <div className={`absolute -left-4 top-20 p-4 hidden lg:flex items-center gap-3 animate-float ${HERO_DOODLE_ENABLED ? INK.card : 'glass-card rounded-2xl shadow-lg'}`} style={{ animationDelay: '0.5s' }}>
                     <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center">
                       <svg className="w-5 h-5 text-[var(--primary-dark)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -224,7 +236,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     </div>
                   </div>
 
-                  <div className="absolute -right-4 bottom-32 glass-card rounded-2xl p-4 shadow-lg hidden lg:flex items-center gap-3 animate-float" style={{ animationDelay: '1s' }}>
+                  <div className={`absolute -right-4 bottom-32 p-4 hidden lg:flex items-center gap-3 animate-float ${HERO_DOODLE_ENABLED ? INK.card : 'glass-card rounded-2xl shadow-lg'}`} style={{ animationDelay: '1s' }}>
                     <div className="w-10 h-10 rounded-xl bg-[var(--secondary)] flex items-center justify-center">
                       <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
