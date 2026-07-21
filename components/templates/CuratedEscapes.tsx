@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Sparkles, ChevronRight, Users, ArrowRight, MapPin } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface TemplateTrip {
   id: string;
@@ -128,9 +129,17 @@ function TemplateCard({ template, t }: TemplateCardProps) {
             : undefined,
         }}
       >
+        {/* Route through the same-origin proxy. Pexels' Cloudflare layer treats
+            a browser User-Agent + hot-link Referer differently from anonymous
+            Vercel egress and intermittently 504s the direct load — the same
+            JPEG that curls at 200. components/explore/TripCard.tsx and the
+            sibling CuratedEscapesClient (used on /trips) were both migrated to
+            proxyImageUrl for exactly this; THIS component, which is the one the
+            homepage renders, was missed, so the four Curated Escapes cards were
+            the last place on the site still hot-linking Pexels directly. */}
         {template.coverImageUrl && (
           <Image
-            src={template.coverImageUrl}
+            src={proxyImageUrl(template.coverImageUrl) || template.coverImageUrl}
             alt={template.title}
             fill
             unoptimized

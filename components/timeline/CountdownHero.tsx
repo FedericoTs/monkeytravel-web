@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface CountdownHeroProps {
   destination: string;
@@ -70,7 +71,7 @@ export default function CountdownHero({
       <div className="absolute inset-0">
         {coverImageUrl ? (
           <Image
-            src={coverImageUrl}
+            src={proxyImageUrl(coverImageUrl) || coverImageUrl}
             alt={destination}
             fill
             className="object-cover"

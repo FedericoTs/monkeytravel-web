@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface InviteAcceptClientProps {
   invite: {
@@ -225,7 +226,7 @@ export default function InviteAcceptClient({
           <div className="relative h-48 rounded-2xl overflow-hidden mb-6">
             {trip.coverImageUrl ? (
               <img
-                src={trip.coverImageUrl}
+                src={proxyImageUrl(trip.coverImageUrl) || trip.coverImageUrl}
                 alt={trip.title}
                 className="w-full h-full object-cover"
               />
