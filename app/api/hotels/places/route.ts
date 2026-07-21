@@ -105,10 +105,14 @@ function formatDistance(km: number): string {
   return `${km.toFixed(1)}km`;
 }
 
-// Build Google Places photo URL
+// Build a same-origin URL for a legacy Google Places photo.
+//
+// This used to interpolate GOOGLE_PLACES_API_KEY straight into a URL that
+// was returned to the browser — leaking the key, and producing a URL that
+// Google 504s on direct browser loads anyway. /api/places/photo attaches
+// the key server-side and streams the bytes back; see its docblock.
 function getPhotoUrl(photoReference: string, maxWidth: number = 400): string {
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${apiKey}`;
+  return `/api/places/photo?ref=${encodeURIComponent(photoReference)}&w=${maxWidth}`;
 }
 
 export interface HotelPlaceResult {

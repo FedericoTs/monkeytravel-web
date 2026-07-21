@@ -40,6 +40,21 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // alphanumerics + a small set of separators.
 const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
 
+// LEGACY Places API photo references. /api/activities/search and
+// /api/hotels/places still call the old `maps/api/place/photo` endpoint,
+// which is keyed by an opaque `photo_reference` rather than a New-API
+// resource name, so NAME_RE rejects them. Before 2026-07-21 those two
+// routes worked around that by embedding GOOGLE_PLACES_API_KEY directly
+// in a URL handed to the browser — leaking the key AND producing a URL
+// that 504s on direct browser loads (see the docblock above). Accepting
+// the legacy shape here lets them use this proxy like everything else.
+//
+// Google's legacy references are long, opaque, and base64url-ish; they
+// have historically also contained unpadded `=`. Kept deliberately
+// tight (no slashes, dots, or percent signs) so this can't be steered
+// at another path or host.
+const REF_RE = /^[A-Za-z0-9_=-]{20,1000}$/;
+
 /**
  * Retry transient 5xx + network errors from Google's media endpoint.
  *
@@ -96,11 +111,20 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
+  const ref = searchParams.get("ref");
   const wRaw = parseInt(searchParams.get("w") || "600", 10);
   const hRaw = parseInt(searchParams.get("h") || "400", 10);
 
-  if (!name || !NAME_RE.test(name)) {
+  // Exactly one of the two addressing modes. `name` is the New API
+  // resource name; `ref` is a legacy photo_reference.
+  if (!name === !ref) {
+    return new Response("Provide exactly one of name or ref", { status: 400 });
+  }
+  if (name && !NAME_RE.test(name)) {
     return new Response("Invalid name", { status: 400 });
+  }
+  if (ref && !REF_RE.test(ref)) {
+    return new Response("Invalid ref", { status: 400 });
   }
   if (!GOOGLE_PLACES_API_KEY) {
     return new Response("Photo service not configured", { status: 503 });
@@ -110,12 +134,22 @@ export async function GET(request: NextRequest) {
   const w = Math.min(Math.max(Number.isFinite(wRaw) ? wRaw : 600, 16), 4096);
   const h = Math.min(Math.max(Number.isFinite(hRaw) ? hRaw : 400, 16), 4096);
 
-  const upstream = `https://places.googleapis.com/v1/${name}/media?maxHeightPx=${h}&maxWidthPx=${w}`;
+  // The two Google endpoints take the key differently: the New API reads
+  // an X-Goog-Api-Key header, the legacy one only accepts a `key` query
+  // param. Either way it is attached HERE, server-side, and never travels
+  // to the browser.
+  const upstream = name
+    ? `https://places.googleapis.com/v1/${name}/media?maxHeightPx=${h}&maxWidthPx=${w}`
+    : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${w}&maxheight=${h}` +
+      `&photo_reference=${encodeURIComponent(ref!)}&key=${GOOGLE_PLACES_API_KEY}`;
+
   let res: Response;
   try {
     res = await fetchWithRetry(upstream, {
-      headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY },
+      headers: name ? { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY } : {},
       // Server-side fetches follow the 302 redirect to the actual image.
+      // The legacy endpoint ALWAYS redirects (to lh3.googleusercontent.com),
+      // which is precisely the hop that fails when a browser attempts it.
       redirect: "follow",
     });
   } catch {
@@ -153,7 +187,10 @@ export async function GET(request: NextRequest) {
       return new Response(null, {
         status: 307,
         headers: {
-          Location: curatedFallbackForName(name),
+          // Hash whichever identifier addressed this photo — either is a
+          // stable per-photo string, so the same broken photo keeps the
+          // same fallback and the CDN caches one redirect target for it.
+          Location: curatedFallbackForName(name ?? ref!),
           "Cache-Control": transient ? "no-store" : "public, max-age=3600",
         },
       });

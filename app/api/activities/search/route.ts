@@ -290,8 +290,14 @@ async function searchGooglePlaces(
         duration_minutes: 90, // Default duration
         source: "google" as const,
         googlePlaceId: place.place_id,
+        // Same-origin proxy, NOT a direct Google URL: the direct form put
+        // GOOGLE_PLACES_API_KEY in a string handed to the browser, and the
+        // legacy photo endpoint 504s on direct browser loads regardless.
+        // /api/places/photo attaches the key server-side. This value also
+        // gets PERSISTED into itinerary JSONB when an activity is added, so
+        // the direct form was writing the key into the database too.
         image_url: place.photos?.[0]
-          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${apiKey}`
+          ? `/api/places/photo?ref=${encodeURIComponent(place.photos[0].photo_reference)}&w=400`
           : undefined,
       }));
 
