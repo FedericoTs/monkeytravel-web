@@ -1230,3 +1230,91 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   backdrop-filter: blur(20px);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
+
+/* ============================================================================
+   DOODLE BRAND
+   ----------------------------------------------------------------------------
+   Activated by data-brand="doodle" on <html> (set server-side in app/layout.tsx
+   from HERO_DOODLE_ENABLED). Everything brand-specific lives here rather than in
+   component classNames, so restyling the shared primitives propagates to every
+   page automatically — there are ~390 hand-written `bg-[var(--primary)]` CTAs in
+   the codebase and none of them need editing.
+
+   Escape hatch: put data-ink="off" on any element to keep its original styling.
+   ============================================================================ */
+
+/* -- Surfaces -------------------------------------------------------------- */
+
+/* Flat cream instead of the coral/teal/gold mesh; the hero art supplies the colour. */
+[data-brand="doodle"] .hero-gradient {
+  background: linear-gradient(180deg, #FFF8EE 0%, var(--background) 55%);
+}
+
+/* Blueprint grids belong to the glassmorphism look. */
+[data-brand="doodle"] .bg-grid-pattern-light,
+[data-brand="doodle"] .bg-grid-pattern-accent,
+[data-brand="doodle"] .bg-grid-pattern {
+  display: none;
+}
+
+/* Frosted glass -> solid card with a drawn outline. */
+[data-brand="doodle"] .glass-card,
+[data-brand="doodle"] .glass {
+  background: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 2px solid var(--foreground);
+  box-shadow: 3px 3px 0 var(--foreground);
+}
+
+/* -- Controls -------------------------------------------------------------- */
+
+/* Filled brand CTAs: ink outline + hard offset shadow, with a small press shift.
+   Matched on the background utility the codebase already uses everywhere.
+   The selectors require the utility to start a class token (`^=` or a leading
+   space) so variant forms like `hover:bg-[var(--primary)]/5` — which is how the
+   nav's plain text links are written — are left alone. */
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+  [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
+  [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
+  [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
+) {
+  border: 2px solid var(--foreground);
+  box-shadow: 3px 3px 0 var(--foreground);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
+}
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+  [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
+  [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
+  [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
+):hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--foreground);
+}
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+  [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
+  [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
+  [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
+):active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--foreground);
+}
+
+/* Text fields read as drawn boxes. */
+[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"]) {
+  border-width: 2px;
+  border-color: var(--foreground);
+}
+
+/* Outline pills / chips (destination starters, filters, tags). Requires a solid
+   white fill so bare text links that merely round their hover state are skipped. */
+[data-brand="doodle"] :is(button, a)[class*="rounded-full"]:not([data-ink="off"]):is([class^="bg-white"], [class*=" bg-white"]) {
+  border-color: var(--foreground);
+}
+
+/* Status badges built as translucent tinted pills. */
+[data-brand="doodle"] [class*="rounded-full"]:is([class*="border-[var(--secondary)]"], [class*="border-emerald-500"]):not([data-ink="off"]) {
+  background: #fff;
+  border-width: 2px;
+  border-color: var(--foreground);
+}

@@ -8,6 +8,7 @@ import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { getLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import { getNonce } from "@/lib/security/nonce";
+import { HERO_DOODLE_ENABLED } from "@/components/marketing/doodle";
 
 // Dynamic import: moves SessionTracker + its dependencies (supabase, analytics, posthog/identify)
 // to a separate chunk that loads after initial paint
@@ -191,8 +192,12 @@ export default async function RootLayout({
   // them in production. Undefined in dev (where CSP is not enforced) and
   // during static generation.
   const nonce = await getNonce();
+
+  // data-brand drives the doodle theme in globals.css: one attribute restyles
+  // buttons, fields, pills and cards everywhere, so no component carries
+  // brand-specific classes.
   return (
-    <html lang={locale}>
+    <html lang={locale} data-brand={HERO_DOODLE_ENABLED ? "doodle" : undefined}>
       <head>
         {/* Global Structured Data (JSON-LD) for SEO */}
         <script {...jsonLdScriptProps(organizationSchema, nonce)} />
