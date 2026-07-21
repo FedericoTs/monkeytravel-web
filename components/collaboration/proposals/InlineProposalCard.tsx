@@ -11,6 +11,7 @@ import type {
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface InlineProposalCardProps {
   proposal: ProposalWithVotes;
@@ -214,7 +215,7 @@ function InlineProposalCardComponent({
           {activity.image_url && (
             <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
               <Image
-                src={activity.image_url}
+                src={proxyImageUrl(activity.image_url) || activity.image_url}
                 alt={activity.name}
                 width={48}
                 height={48}

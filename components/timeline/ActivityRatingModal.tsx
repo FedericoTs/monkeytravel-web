@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { QuickTag } from "@/types/timeline";
 import BottomSheet from "../ui/BottomSheet";
 import StarRating from "../ui/StarRating";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface ActivityRatingModalProps {
   isOpen: boolean;
@@ -96,7 +97,7 @@ export default function ActivityRatingModal({
       {activityImage && (
         <div className="mx-auto w-32 h-32 rounded-xl overflow-hidden shadow-md">
           <img
-            src={activityImage}
+            src={proxyImageUrl(activityImage) || activityImage}
             alt={activityName}
             className="w-full h-full object-cover"
           />

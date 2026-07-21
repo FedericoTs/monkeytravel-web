@@ -14,6 +14,7 @@ import { VOTE_INFO, PROPOSAL_TIMING } from "@/types";
 import { ProposalBadge, ProposalVoteSummary } from "./ProposalBadge";
 import { ProposalVoteButtons } from "./ProposalVoteButtons";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface ProposalCardProps {
   proposal: ProposalWithVotes;
@@ -120,7 +121,7 @@ export function ProposalCard({
           {activity.image_url && !compact && (
             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
               <Image
-                src={activity.image_url}
+                src={proxyImageUrl(activity.image_url) || activity.image_url}
                 alt={activity.name}
                 width={64}
                 height={64}

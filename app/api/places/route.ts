@@ -47,6 +47,24 @@ interface PlaceResult {
 }
 
 /**
+ * Build a same-origin URL for a Google Places photo.
+ *
+ * NEVER hand `places.googleapis.com/.../media?key=...` to a browser. Two
+ * independent reasons, either one sufficient:
+ *   1. It embeds GOOGLE_PLACES_API_KEY in a URL the client can read.
+ *   2. Google 504s those media endpoints for direct browser loads anyway
+ *      (see the long note in app/api/places/photo/route.ts), so the image
+ *      silently fails to render even when the key is fine.
+ *
+ * The GET handler was migrated to this pattern on 2026-05-25; the POST
+ * handler that PlaceGallery calls was missed and kept doing both wrong
+ * things until 2026-07-21.
+ */
+function placePhotoUrl(photoName: string, w: number, h: number): string {
+  return `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
+}
+
+/**
  * Generate cache key hash for a query
  */
 function generateCacheKey(query: string, type: string): string {
@@ -245,8 +263,8 @@ export async function POST(request: NextRequest) {
     // Construct photo URLs
     const photos =
       place.photos?.slice(0, maxPhotos).map((photo) => ({
-        url: `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=800&maxWidthPx=1200&key=${GOOGLE_PLACES_API_KEY}`,
-        thumbnailUrl: `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=200&maxWidthPx=300&key=${GOOGLE_PLACES_API_KEY}`,
+        url: placePhotoUrl(photo.name, 1200, 800),
+        thumbnailUrl: placePhotoUrl(photo.name, 300, 200),
         width: photo.widthPx,
         height: photo.heightPx,
         attribution: photo.authorAttributions?.[0]?.displayName || "Google",

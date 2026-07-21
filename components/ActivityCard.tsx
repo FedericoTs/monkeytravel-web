@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { openExternal } from "@/lib/native/external-link";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -194,7 +195,7 @@ function ActivityCard({
       {activity.image_url && (
         <div className="relative h-32 sm:h-40 w-full overflow-hidden rounded-t-xl">
           <img
-            src={activity.image_url}
+            src={proxyImageUrl(activity.image_url) || activity.image_url}
             alt={activity.name}
             className="w-full h-full object-cover"
             loading="lazy"

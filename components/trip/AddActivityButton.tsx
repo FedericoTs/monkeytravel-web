@@ -5,6 +5,7 @@ import { Plus, Search, X, MapPin, Clock, Loader2 } from "lucide-react";
 import { Activity } from "@/types";
 import { ActivitySearchResult } from "@/app/api/activities/search/route";
 import { useTranslations } from "next-intl";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -354,7 +355,7 @@ export default function AddActivityButton({
                   <div className="flex items-start gap-3">
                     {result.image_url ? (
                       <img
-                        src={result.image_url}
+                        src={proxyImageUrl(result.image_url) || result.image_url}
                         alt={result.name}
                         className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                       />

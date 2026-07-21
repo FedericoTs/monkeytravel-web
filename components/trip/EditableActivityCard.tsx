@@ -11,6 +11,7 @@ import {
   type VerifiedPriceData,
 } from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface EditableActivityCardProps {
   activity: Activity;
@@ -335,7 +336,7 @@ function EditableActivityCard({
           isEditMode ? "rounded-tr-xl" : "rounded-t-xl"
         }`}>
           <img
-            src={activity.image_url}
+            src={proxyImageUrl(activity.image_url) || activity.image_url}
             alt={activity.name}
             className="w-full h-full object-cover"
             loading="lazy"

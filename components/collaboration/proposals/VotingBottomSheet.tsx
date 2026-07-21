@@ -13,6 +13,7 @@ import type {
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 /**
  * 4-Level Voting Options for Proposals
@@ -397,7 +398,7 @@ export function VotingBottomSheet({
               {activity.image_url && (
                 <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0 shadow-sm">
                   <Image
-                    src={activity.image_url}
+                    src={proxyImageUrl(activity.image_url) || activity.image_url}
                     alt={activity.name}
                     width={80}
                     height={80}

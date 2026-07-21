@@ -6,6 +6,7 @@ import { Search, X, MapPin, Clock, Loader2, ChevronLeft, AlertCircle } from "luc
 import Image from "next/image";
 import type { Activity, ProposalType } from "@/types";
 import BaseModal from "@/components/ui/BaseModal";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 // Reuse activity search result type
 interface ActivitySearchResult {
@@ -364,7 +365,7 @@ export function ProposeActivitySheet({
                       {result.image_url ? (
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                           <Image
-                            src={result.image_url}
+                            src={proxyImageUrl(result.image_url) || result.image_url}
                             alt={result.name}
                             width={48}
                             height={48}
@@ -515,7 +516,7 @@ export function ProposeActivitySheet({
               {selectedActivity.image_url && (
                 <div className="h-32 bg-slate-100 relative">
                   <Image
-                    src={selectedActivity.image_url}
+                    src={proxyImageUrl(selectedActivity.image_url) || selectedActivity.image_url}
                     alt={selectedActivity.name || "Activity"}
                     fill
                     className="object-cover"

@@ -6,6 +6,7 @@ import type { Activity } from "@/types";
 import PlaceGallery from "@/components/PlaceGallery";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface ActivityDetailSheetProps {
   activity: Activity;
@@ -93,7 +94,7 @@ export default function ActivityDetailSheet({
         {activity.image_url && (
           <div className="relative h-40 w-full overflow-hidden flex-shrink-0">
             <img
-              src={activity.image_url}
+              src={proxyImageUrl(activity.image_url) || activity.image_url}
               alt={activity.name}
               className="w-full h-full object-cover"
             />

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import type { ActivityStatus } from "@/types/timeline";
 import StarRating from "../ui/StarRating";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface ActivityData {
   id: string;
@@ -174,7 +175,7 @@ export default function LiveActivityCard({
         {activity.image_url && (
           <div className="relative h-32 bg-slate-100">
             <img
-              src={activity.image_url}
+              src={proxyImageUrl(activity.image_url) || activity.image_url}
               alt={activity.name}
               className="w-full h-full object-cover"
             />
