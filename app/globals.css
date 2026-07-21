@@ -1353,7 +1353,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
    The selectors require the utility to start a class token (`^=` or a leading
    space) so variant forms like `hover:bg-[var(--primary)]/5` — which is how the
    nav's plain text links are written — are left alone. */
-[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"], [data-ink="off"] *):is(
   [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
   [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
   [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
@@ -1362,7 +1362,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   box-shadow: 3px 3px 0 var(--foreground);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
 }
-[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"], [data-ink="off"] *):is(
   [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
   [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
   [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
@@ -1370,7 +1370,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--foreground);
 }
-[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"]):is(
+[data-brand="doodle"] :is(button, a, input[type="submit"], [role="button"]):not([data-ink="off"], [data-ink="off"] *):is(
   [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"],
   [class^="bg-[var(--secondary)]"], [class*=" bg-[var(--secondary)]"],
   [class^="bg-[var(--accent)]"], [class*=" bg-[var(--accent)]"]
@@ -1380,7 +1380,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 }
 
 /* Text fields read as drawn boxes. */
-[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"]) {
+[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"], [data-ink="off"] *) {
   border-width: 2px;
   border-color: var(--foreground);
 }
@@ -1389,14 +1389,14 @@ nav[data-monkey-nav].monkey-nav-scrolled {
    unlayered, so it outranks the `focus:border-*` utilities the fields carry,
    and `focus:outline-none` had already dropped the browser's own ring. The
    border width does not change, so nothing reflows. */
-[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"]):is(:focus, :focus-visible) {
+[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"], [data-ink="off"] *):is(:focus, :focus-visible) {
   border-color: var(--primary-dark);
   box-shadow: 3px 3px 0 var(--foreground);
   outline: none;
 }
 
 /* Keyboard focus on the inked controls. */
-[data-brand="doodle"] :is(button, a, [role="button"]):not([data-ink="off"]):focus-visible {
+[data-brand="doodle"] :is(button, a, [role="button"]):not([data-ink="off"], [data-ink="off"] *):focus-visible {
   outline: 3px solid var(--foreground);
   outline-offset: 3px;
 }
@@ -1416,15 +1416,211 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 
 /* Outline pills / chips (destination starters, filters, tags). Requires a solid
    white fill so bare text links that merely round their hover state are skipped. */
-[data-brand="doodle"] :is(button, a)[class*="rounded-full"]:not([data-ink="off"]):is([class^="bg-white"], [class*=" bg-white"]) {
+[data-brand="doodle"] :is(button, a)[class*="rounded-full"]:not([data-ink="off"], [data-ink="off"] *):is([class^="bg-white"], [class*=" bg-white"]) {
   border-color: var(--foreground);
 }
 
-/* Status badges built as translucent tinted pills. */
-[data-brand="doodle"] [class*="rounded-full"]:is([class*="border-[var(--secondary)]"], [class*="border-emerald-500"]):not([data-ink="off"]) {
+/* Status badges built as translucent tinted pills.
+   The :has() guard is the difference between a badge and a filled state. The
+   same emerald token spells the ACTIVE explore filter chip and the checked box
+   in the packing list, and both put white content on that fill — one as its own
+   text-white, one as a child <svg>. Painting those white made white-on-white:
+   an unreadable chip, and a checklist whose checked and unchecked states became
+   pixel-identical. Anything carrying white content keeps its fill. */
+[data-brand="doodle"] [class*="rounded-full"]:is([class*="border-[var(--secondary)]"], [class*="border-emerald-500"]):not([data-ink="off"], [data-ink="off"] *):not(:has([class*="text-white"])):not([class*="text-white"]) {
   background: #fff;
   border-width: 2px;
   border-color: var(--foreground);
+}
+
+/* ============================================================================
+   DOODLE BRAND — PLATFORM CONVERSION
+   ----------------------------------------------------------------------------
+   The block above converts the hero and the shared controls. This converts the
+   rest of the platform: the card system, the closing CTA slab, the navbar and
+   bottom chrome, the sheets and the FAQ rows.
+
+   Three rules govern everything below, so the file can be checked mechanically.
+
+   1. box-shadow is removed in ONE broad-match rule, and that rule requires the
+      element to carry both a card border-colour token AND a full-box border
+      width token — so it provably has a 2px ink box by the time the shadow
+      goes. Three named objects (.glass, the navbar, FAQ rows) also drop their
+      shadow, each hand-verified. Nothing else. An element with a soft shadow
+      and no border keeps it: the generation panel, the map overlay chips and
+      the assistant button stay unconverted rather than becoming edgeless.
+
+   2. Every Tailwind token is matched with [class~="token"], which matches a
+      whole whitespace-separated class. It cannot match border-slate-200/60
+      when asked for border-slate-200, and — the trap that broke two earlier
+      drafts — it cannot match from-emerald-500 when asked for from-emerald-50.
+      Substring [class*=] appears only inside :not(), where over-matching
+      shrinks the blast radius instead of growing it.
+
+   3. Only four hand-verified objects have their background repainted. Every
+      other rule recolours or widens a border that already exists, which cannot
+      make an element edgeless and cannot make text match its background.
+
+   Deliberately NOT converted, so the long tail is a known quantity rather than
+   a surprise: pale tinted eyebrow badges and tag chips; the pastel icon tiles
+   inside cards; all bg-gradient-to-* fills; the frosted generation panel and
+   map chips; BaseModal dialogs; sticky bg-white/95 bars. Each was reachable
+   only by a rule that could delete an edge somewhere else.
+   ============================================================================ */
+
+/* -- Two regressions this brand block itself shipped ----------------------- */
+
+/* CORRECTS the `.glass-card, .glass` rule above. Every `.glass` in the codebase
+   is the same badge — `rounded-full glass text-sm font-semibold text-white/90` —
+   and all 10 of them sit inside the dark CTA panel. Painting them white put
+   white text on a white pill: an empty lozenge on the homepage and all 8
+   landing pages. `.glass-card` is a real white card on cream and is untouched. */
+[data-brand="doodle"] .glass:not(.glass-card):not([data-ink="off"], [data-ink="off"] *) {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  box-shadow: none;
+}
+
+/* -- A. Cards: ink the hairline -------------------------------------------- */
+
+/* The biggest single win and the cheapest: ~26 cards on one homepage scroll,
+   168 border-slate-200 elements on the trip surface, 398 files site-wide.
+
+   Sets border-COLOUR only, so an element with no border width is unaffected
+   (Tailwind's preflight is `border: 0 solid`) — the rule cannot create an edge,
+   remove one, or touch a background.
+
+   Buttons are excluded, and that exclusion is load-bearing rather than
+   cautious. The wizard's pickers spell their UNSELECTED arm `border-slate-200`
+   and their selected arm `border-emerald-500`; inking only the unselected one
+   would make the option you did not choose the heaviest thing on the step, on
+   the funnel's highest-traffic screen. The same exclusion keeps disabled
+   controls (`border-slate-200 cursor-not-allowed`) from out-shouting their
+   enabled siblings. Cards that happen to be buttons keep a hairline — a miss,
+   not a defect. */
+[data-brand="doodle"] :is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-slate-100"], [class~="border-slate-200"], [class~="border-slate-300"]):not(button):not([data-ink="off"], [data-ink="off"] *) {
+  border-color: var(--foreground);
+}
+
+/* Widen to 2px only when a full-box width token is present. That gate is what
+   stops the `border-t border-slate-200` family — the mobile bottom nav, the
+   stats band, table rows — from sprouting three sides it never had. */
+[data-brand="doodle"] :is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-slate-100"], [class~="border-slate-200"], [class~="border-slate-300"]):is([class~="border"], [class~="border-2"]):not(button):not([data-ink="off"], [data-ink="off"] *) {
+  border-width: 2px;
+}
+
+/* Top rules only. `border-b` is deliberately absent: in this codebase it is
+   overwhelmingly the internal-divider idiom, and widening it turns every
+   comparison-table row separator on the 8 landing pages into a black bar. */
+[data-brand="doodle"] :is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-slate-100"], [class~="border-slate-200"], [class~="border-slate-300"]):is([class~="border-t"]):not([data-ink="off"], [data-ink="off"] *) {
+  border-top-width: 2px;
+}
+
+/* -- B. Soft shadows, on those same cards only ----------------------------- */
+
+/* Read the selector as a proof: the element carries a card border colour AND a
+   full-box width token, so it has a real border, and the rules above have just
+   made that border 2px ink. Removing the drop shadow cannot leave it edgeless.
+
+   Being unlayered this also suppresses `hover:shadow-*`, so these cards are
+   flat at rest and flat on hover rather than blooming a soft shadow on one of
+   them. Rings are excluded because a Tailwind ring is a box-shadow carrying
+   state, not decoration. */
+[data-brand="doodle"] :is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-slate-100"], [class~="border-slate-200"], [class~="border-slate-300"]):is([class~="border"], [class~="border-2"]):not(button):not([class*="ring-"]):not([data-ink="off"], [data-ink="off"] *) {
+  box-shadow: none;
+}
+
+/* Hard offset on hover, links only — "hard shadows on interactive things".
+   rounded-full is excluded: a 24-32px tag pill wearing a control-grade offset
+   reads as a mis-render and collides with its neighbours in a wrap row. */
+[data-brand="doodle"] a:is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-slate-100"], [class~="border-slate-200"], [class~="border-slate-300"]):is([class~="border"], [class~="border-2"]):not([class*="rounded-full"]):not([class*="ring-"]):not([data-ink="off"], [data-ink="off"] *):hover {
+  box-shadow: 3px 3px 0 var(--foreground);
+}
+
+/* -- C. The closing CTA panel ---------------------------------------------- */
+
+/* .mesh-gradient is a named class on exactly 10 elements — the ~700px slab that
+   closes the homepage and every landing page. A four-stop radial mesh over a
+   navy-to-coral linear is the glassmorphism look in its purest form. Flattened
+   to a flat ink slab; it keeps carrying white text, so the ground staying dark
+   is what makes the invisibility test pass. */
+[data-brand="doodle"] .mesh-gradient:not([data-ink="off"], [data-ink="off"] *),
+[data-brand="doodle"] .mesh-gradient-dark:not([data-ink="off"], [data-ink="off"] *) {
+  background: var(--navy);
+}
+[data-brand="doodle"] .mesh-gradient-light:not([data-ink="off"], [data-ink="off"] *) {
+  background: var(--background-warm);
+}
+
+/* --navy and --foreground are the same colour, so every ink stroke drawn inside
+   the flattened panel would be ink-on-ink and vanish — including the newsletter
+   field's border and the gold CTA's hard offset, which is the one place the
+   brand's signature gesture is guaranteed to sit above the fold of the closing
+   section. Inside the panel the ink turns white. */
+[data-brand="doodle"] :is(.mesh-gradient, .mesh-gradient-dark) :is(input, textarea, select):not([data-ink="off"], [data-ink="off"] *) {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+[data-brand="doodle"] :is(.mesh-gradient, .mesh-gradient-dark) :is(a, button, input[type="submit"], [role="button"]):not([data-ink="off"], [data-ink="off"] *):is([class^="bg-"], [class*=" bg-"]) {
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* The two decorative blur orbs inside each panel. `:empty` is the guard that
+   separates a glow from a frosted chip that happens to carry backdrop-blur —
+   an orb has no content. Not a global blur kill. */
+[data-brand="doodle"] :is(.mesh-gradient, .mesh-gradient-dark) [class*="blur-"]:empty {
+  display: none;
+}
+
+/* -- D. Navbar and bottom chrome ------------------------------------------- */
+
+/* Frosted translucent white sitting directly on top of the inked hero is the
+   most visible glassmorphism left on the site, and it renders on every route.
+   The scrolled variant is restated so the base stylesheet cannot re-add its
+   soft shadow. */
+[data-brand="doodle"] nav[data-monkey-nav]:not([data-ink="off"], [data-ink="off"] *),
+[data-brand="doodle"] nav[data-monkey-nav].monkey-nav-scrolled:not([data-ink="off"], [data-ink="off"] *) {
+  background: var(--background);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 2px solid var(--foreground);
+  box-shadow: none;
+}
+
+/* Bottom-anchored chrome: the 5-tab mobile nav and the bottom sheets. Keyed on
+   position and anchor rather than on backdrop-blur, because the bottom nav was
+   never frosted and so was missed by every frosted-chrome rule — leaving a 2px
+   ink navbar at the top of a phone and a 1px hairline directly opposite it.
+
+   The lg: exclusions matter: the AI assistant is a bottom sheet only below lg
+   and a full-height right-docked sidebar above it, but its class string still
+   literally contains `fixed bottom-0 bg-white` at every width. */
+[data-brand="doodle"] :is([class~="fixed"], [class~="sticky"])[class~="bottom-0"][class~="bg-white"]:not([class*="lg:rounded-none"]):not([class*="lg:h-full"]):not([data-ink="off"], [data-ink="off"] *) {
+  border-top: 2px solid var(--foreground);
+}
+
+/* Sheets are matched on the rounded-t- family, so rounded-t-2xl and
+   rounded-t-3xl are both covered — enumerating radii is how the booking drawer
+   became the one undrawn sheet in an earlier draft.
+
+   Top edge only, deliberately. The booking drawer is parked at bottom-20 on
+   mobile to clear the tab bar, so its bottom edge is on screen; side borders
+   would run down and stop in mid-air with nothing closing them. */
+[data-brand="doodle"] [class*="rounded-t-"][class~="bg-white"]:not([class*="lg:rounded-none"]):not([class*="lg:h-full"]):not([data-ink="off"], [data-ink="off"] *) {
+  border-top: 2px solid var(--foreground);
+}
+
+/* -- E. FAQ rows ----------------------------------------------------------- */
+
+/* A <details> is not automatically an FAQ row — the voting sheet uses a bare
+   one as an inline text disclosure inside an already-inked card. Gating on the
+   element owning a surface of its own separates the 48 landing-page FAQ rows
+   from it. */
+[data-brand="doodle"] details:is([class~="bg-white"], [class~="bg-[var(--background-alt)]"], [class~="border"]):not([data-ink="off"], [data-ink="off"] *) {
+  border: 2px solid var(--foreground);
+  box-shadow: none;
 }
 
 /* ============================================================================
