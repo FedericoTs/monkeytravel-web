@@ -14,18 +14,13 @@
  *                                    the environment (Preview/Production) it is scoped to.
  * Prefer (1); (2) is kept so an already-configured env var keeps working.
  *
- * The ink style is the brand language approved on the hero preview: every button/pill
- * carries a 2px foreground border like the illustration outlines; primary CTAs add a
- * hard 3px offset shadow (hand-drawn sticker look).
+ * The flag drives two things and nothing else:
+ *   - which decorative layer the marketing heroes render (art vs. gradient orbs)
+ *   - the `data-brand="doodle"` attribute on <html> in app/layout.tsx
+ * All visual styling — ink outlines on buttons/fields/pills, solid cards, the flat
+ * hero surface — lives in the `[data-brand="doodle"]` block at the end of
+ * app/globals.css, so it reaches every component and page without per-component
+ * classes. Opt an element out with data-ink="off".
  */
 export const HERO_DOODLE_ENABLED =
   (process.env.HERO_DOODLE_ENABLED ?? process.env.NEXT_PUBLIC_HERO_DOODLE_ENABLED) === "true";
-
-export const INK = {
-  /** 2px charcoal outline for pills, badges, inputs, secondary buttons */
-  border: "border-2 border-[var(--foreground)]",
-  /** primary CTA: outline + hard offset shadow */
-  btnPrimary: "border-2 border-[var(--foreground)] shadow-[3px_3px_0_var(--foreground)]",
-  /** floating info cards: solid white with the ink outline (replaces glassmorphism) */
-  card: "bg-white border-2 border-[var(--foreground)] rounded-2xl",
-} as const;

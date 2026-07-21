@@ -9,6 +9,10 @@
   pointer-events: none;
 }
 
+/* The scene is pushed below its box so the foliage line sits under the copy
+   column instead of rising into it. What slides off the bottom is dense
+   ground cover; what opens at the top is the art's own cream, so the seam is
+   invisible against the section background. */
 .base {
   position: absolute;
   inset: 0;
@@ -16,6 +20,11 @@
   height: 100%;
   object-fit: cover;
   object-position: center bottom;
+  transform: translateY(20%);
+  /* Dissolve the top edge so the cream of the artwork meets the cream of the
+     section without a visible seam where the shifted image begins. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 9%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 9%);
 }
 
 .sprite {
@@ -41,12 +50,15 @@
 .trail { position: absolute; left: 34.2%; top: 10.8%; width: 65.8%; }
 
 .balloon { left: 77.5%;  top: 20%; width: 3.6%; }
-.dot     { left: 54%;    top: 36%;   width: 1.05%; }
+
+/* Dropped from the composition: the lone teal dot reads as a stray pixel, and
+   the low-left sparkle lands inside the copy column. */
+.dot { display: none; }
+.sp4 { display: none; }
 
 .sp1 { left: 48%;   top: 28%;   width: 2.5%; }
 .sp2 { left: 76.5%; top: 37.8%; width: 2.0%; }
 .sp3 { left: 85.1%; top: 49.9%; width: 1.6%; }
-.sp4 { left: 45.9%; top: 86.9%; width: 1.3%; }
 
 /* ---- mascot: desktop only, feet on the hero's bottom edge like the reference ---- */
 .mascot { position: absolute; left: 51%; bottom: 0; width: 15.5%; height: auto; }
@@ -59,17 +71,15 @@
     max-height: 100%;
     object-fit: contain;
     object-position: center bottom;
+    transform: none;
   }
-  /* everything stays in the top band (~0-8%) or the empty mid-cream so text is never covered */
-  .sunGroup { left: auto; right: 4%; top: 2%; width: 20%; }
-  .cloud1   { display: block; left: 0; top: 1.5%; width: 18%; }
-  .cloud2, .cloud3, .dot { display: none; }
-  .planeGroup { left: 30%; top: 3%; width: 24%; }
-  .balloon  { left: auto; right: 10%; top: 47%; width: 9%; }
-  .sp1 { left: 6%; top: 48%; width: 5%; }
-  .sp2 { left: 70%; top: 53%; width: 4%; }
-  .sp3, .sp4 { display: none; }
-  .mascot { display: none; }
+  /* A phone hero has no spare sky: the navbar owns the top ~10% and the copy
+     runs from the badge to the trust row. Anything floating in between lands on
+     text, so only the sun stays — tucked into the corner beside the badge. The
+     illustrated ground carries the brand on its own here. */
+  .sunGroup { left: auto; right: 3%; top: 11%; width: 19%; }
+  .cloud1, .cloud2, .cloud3, .planeGroup, .balloon,
+  .sp1, .sp2, .sp3, .mascot { display: none; }
 }
 
 /* ---- ambient motion (GPU-friendly transforms/opacity only) ---- */

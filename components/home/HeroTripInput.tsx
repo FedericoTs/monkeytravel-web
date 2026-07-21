@@ -23,14 +23,11 @@ export default function HeroTripInput({
   cta,
   startersLabel,
   starters = [],
-  ink = false,
 }: {
   placeholder: string;
   cta: string;
   startersLabel?: string;
   starters?: string[];
-  /** doodle rebrand: pen-drawn 2px outlines + hard offset shadow on the CTA */
-  ink?: boolean;
 }) {
   const router = useRouter();
   const [value, setValue] = useState("");
@@ -57,17 +54,11 @@ export default function HeroTripInput({
           placeholder={placeholder}
           aria-label={placeholder}
           maxLength={120}
-          className={`min-w-0 flex-1 rounded-xl border-2 bg-white px-5 py-4 text-base text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none ${
-            ink
-              ? "border-[var(--foreground)] focus:border-[var(--primary)]"
-              : "border-gray-200 shadow-sm focus:border-[var(--primary)]"
-          }`}
+          className="min-w-0 flex-1 rounded-xl border-2 border-gray-200 bg-white px-5 py-4 text-base text-[var(--foreground)] shadow-sm placeholder:text-[var(--foreground-muted)] focus:border-[var(--primary)] focus:outline-none"
         />
         <button
           type="submit"
-          className={`group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary)]/90 ${
-            ink ? "border-2 border-[var(--foreground)] shadow-[3px_3px_0_var(--foreground)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_var(--foreground)]" : ""
-          }`}
+          className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary)]/90"
         >
           <span>{cta}</span>
           <svg
@@ -91,9 +82,7 @@ export default function HeroTripInput({
               key={dest}
               type="button"
               onClick={() => go(dest)}
-              className={`rounded-full border bg-white px-3 py-1 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] ${
-                ink ? "border-[var(--foreground)] border-[1.5px]" : "border-gray-200"
-              }`}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
             >
               {dest}
             </button>
