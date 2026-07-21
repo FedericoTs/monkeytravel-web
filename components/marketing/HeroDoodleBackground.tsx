@@ -38,7 +38,6 @@ export default function HeroDoodleBackground() {
       </div>
 
       {/* clouds */}
-      <img src={`${HERO}/cloud-1.webp`} alt="" className={`${styles.sprite} ${styles.cloud1}`} draggable={false} loading="lazy" />
       <img src={`${HERO}/cloud-2.webp`} alt="" className={`${styles.sprite} ${styles.cloud2}`} draggable={false} loading="lazy" />
       <img src={`${HERO}/cloud-3.webp`} alt="" className={`${styles.sprite} ${styles.cloud3}`} draggable={false} loading="lazy" />
 
@@ -48,26 +47,25 @@ export default function HeroDoodleBackground() {
         <img src={`${HERO}/plane.webp`} alt="" className={styles.plane} draggable={false} loading="lazy" />
       </div>
 
-      <img src={`${HERO}/balloon.webp`} alt="" className={`${styles.sprite} ${styles.balloon}`} draggable={false} loading="lazy" />
-      <img src={`${HERO}/dot-teal.webp`} alt="" className={`${styles.sprite} ${styles.dot}`} draggable={false} loading="lazy" />
+      {/* cloud-1, the balloon, the teal dot and sparkle-4 exist in the source
+          art but not in the composition — the module stylesheet says why. */}
 
       {/* sparkles twinkle on staggered delays */}
       <img src={`${HERO}/sparkle-1.webp`} alt="" className={`${styles.sprite} ${styles.sp1}`} draggable={false} loading="lazy" />
       <img src={`${HERO}/sparkle-2.webp`} alt="" className={`${styles.sprite} ${styles.sp2}`} draggable={false} loading="lazy" />
       <img src={`${HERO}/sparkle-3.webp`} alt="" className={`${styles.sprite} ${styles.sp3}`} draggable={false} loading="lazy" />
-      <img src={`${HERO}/sparkle-4.webp`} alt="" className={`${styles.sprite} ${styles.sp4}`} draggable={false} loading="lazy" />
 
       {/* mascot: desktop only (hidden <768px via CSS), AVIF with WebP fallback */}
       <picture>
         <source
           type="image/avif"
           srcSet={`${HERO}/mascot-480.avif 480w, ${HERO}/mascot-645.avif 645w`}
-          sizes="16vw"
+          sizes="300px"
         />
         <img
           src={`${HERO}/mascot-480.webp`}
           srcSet={`${HERO}/mascot-480.webp 480w, ${HERO}/mascot-645.webp 645w`}
-          sizes="16vw"
+          sizes="300px"
           alt=""
           className={styles.mascot}
           draggable={false}

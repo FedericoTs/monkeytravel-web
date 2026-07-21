@@ -124,7 +124,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* ================================================================
             1. HERO SECTION - Group Planning Angle
             ================================================================ */}
-        <section className="relative min-h-screen pt-20 pb-12 overflow-hidden hero-gradient">
+        <section className="relative min-h-screen pt-20 pb-12 overflow-hidden hero-gradient hero-stage">
           {/* Decorative layer. The doodle brand swaps the gradient orbs for the
               illustrated scene; everything else about this hero is unchanged and
               restyled from globals.css. */}
@@ -142,7 +142,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           )}
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center min-h-[calc(100vh-5rem)]">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center min-h-[calc(100svh-5rem)] hero-stage-grid">
 
               {/* Left - Content */}
               <div className="pt-8 lg:pt-0 text-center lg:text-left order-2 lg:order-1">
@@ -182,14 +182,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     starters={t.raw('hero.starters') as string[]}
                   />
                   <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center lg:text-left">
-                    <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline">
+                    <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline hero-signin">
                       {t('hero.signIn')}
                     </Link>
                   </p>
                 </div>
 
                 {/* Trust Signals */}
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-[var(--foreground-muted)]">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-[var(--foreground-muted)] hero-trust">
                   <div className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-[var(--secondary)]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -251,12 +251,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-subtle">
-            <div className="w-6 h-10 rounded-full border-2 border-[var(--foreground-light)] flex items-start justify-center p-2">
-              <div className="w-1.5 h-3 bg-[var(--foreground-light)] rounded-full" />
+          {/* Scroll indicator. The doodle hero fills the fold with illustration
+              and the mascot stands where this would sit, so it is dropped there
+              rather than restyled — it is the one grey chrome element on an
+              otherwise fully inked page. */}
+          {!HERO_DOODLE_ENABLED && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-subtle">
+              <div className="w-6 h-10 rounded-full border-2 border-[var(--foreground-light)] flex items-start justify-center p-2">
+                <div className="w-1.5 h-3 bg-[var(--foreground-light)] rounded-full" />
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* ================================================================

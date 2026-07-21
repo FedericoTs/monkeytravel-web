@@ -1250,6 +1250,51 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   background: linear-gradient(180deg, #FFF8EE 0%, var(--background) 55%);
 }
 
+/* The homepage hero is the one section that must measure exactly one screen:
+   the mascot's feet are pinned to its bottom edge, so any padding under him
+   pushes the whole scene past the fold. `svh` is the small viewport — with the
+   mobile browser chrome showing — which is the only height that is true at
+   first paint on iOS. The plain `vh` line above it is the pre-Safari-15.4
+   fallback. */
+[data-brand="doodle"] .hero-stage {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 7rem;
+  padding-bottom: 0;
+}
+
+/* Phones have no spare vertical room, so the copy column top-anchors and the
+   trust row ends well above the foliage line. Desktop keeps the centred column
+   the two-up layout is built around. */
+[data-brand="doodle"] .hero-stage-grid {
+  align-items: start;
+}
+
+/* The palm crowns are the tallest thing in the portrait artwork and they live
+   in the bottom-right corner, which is exactly where a three-item row ends on a
+   phone. No amount of shifting the scene clears them — the trunks run the full
+   height — so the row is kept out of that corner instead and the third item
+   wraps onto its own line over clean cream. */
+[data-brand="doodle"] .hero-trust {
+  max-width: 74%;
+  justify-content: flex-start;
+}
+
+@media (min-width: 1024px) {
+  [data-brand="doodle"] .hero-trust {
+    max-width: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-brand="doodle"] .hero-stage {
+    padding-top: 5rem;
+  }
+  [data-brand="doodle"] .hero-stage-grid {
+    align-items: center;
+  }
+}
+
 /* Blueprint grids belong to the glassmorphism look. */
 [data-brand="doodle"] .bg-grid-pattern-light,
 [data-brand="doodle"] .bg-grid-pattern-accent,
@@ -1265,6 +1310,40 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   -webkit-backdrop-filter: none;
   border: 2px solid var(--foreground);
   box-shadow: 3px 3px 0 var(--foreground);
+}
+
+/* A floating card is decoration, never a control. Without this it wears the
+   same outline-plus-hard-shadow as the starter pills and the eye keeps
+   offering it a click. Keeping the ink and dropping the shadow says
+   "illustration" while staying in the brand. */
+[data-brand="doodle"] .glass-card.animate-float,
+[data-brand="doodle"] .glass-card.animate-float-slow,
+[data-brand="doodle"] .glass-card.animate-float-slow-reverse {
+  box-shadow: none;
+}
+
+/* The headline highlight is a coral-to-pale-coral gradient. On the cream field
+   the pale end drops to 1.6:1 and the last word of the biggest line on the page
+   fades out; the approved comp draws it as one flat coral. */
+[data-brand="doodle"] .gradient-text-blue {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--primary-dark);
+}
+
+/* Sign In sat directly under the CTA in full primary coral, reading as a second
+   offer competing with the one action the page exists for — at 2.7:1, and with
+   a 20px tap target. Demoted to a plain secondary link. */
+[data-brand="doodle"] .hero-signin {
+  display: inline-block;
+  padding-block: 0.5rem;
+  font-weight: 400;
+  color: var(--foreground-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+[data-brand="doodle"] .hero-signin:hover {
+  color: var(--foreground);
 }
 
 /* -- Controls -------------------------------------------------------------- */
@@ -1306,6 +1385,35 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   border-color: var(--foreground);
 }
 
+/* ...and they need a focus state, which the rule above silently removed: it is
+   unlayered, so it outranks the `focus:border-*` utilities the fields carry,
+   and `focus:outline-none` had already dropped the browser's own ring. The
+   border width does not change, so nothing reflows. */
+[data-brand="doodle"] :is(input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="number"], textarea, select):not([data-ink="off"]):is(:focus, :focus-visible) {
+  border-color: var(--primary-dark);
+  box-shadow: 3px 3px 0 var(--foreground);
+  outline: none;
+}
+
+/* Keyboard focus on the inked controls. */
+[data-brand="doodle"] :is(button, a, [role="button"]):not([data-ink="off"]):focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+/* In the comp the nav pill is outlined but not shadowed — that keeps the hero
+   CTA the only hard-shadowed coral above the fold. */
+[data-brand="doodle"] [data-monkey-nav] :is(a, button, [role="button"]):is(
+  [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"]
+) {
+  box-shadow: none;
+}
+[data-brand="doodle"] [data-monkey-nav] :is(a, button, [role="button"]):is(
+  [class^="bg-[var(--primary)]"], [class*=" bg-[var(--primary)]"]
+):hover {
+  box-shadow: 2px 2px 0 var(--foreground);
+}
+
 /* Outline pills / chips (destination starters, filters, tags). Requires a solid
    white fill so bare text links that merely round their hover state are skipped. */
 [data-brand="doodle"] :is(button, a)[class*="rounded-full"]:not([data-ink="off"]):is([class^="bg-white"], [class*=" bg-white"]) {
@@ -1317,4 +1425,23 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   background: #fff;
   border-width: 2px;
   border-color: var(--foreground);
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ----------------------------------------------------------------------------
+   The hero art layer already honours this, so without the rest of the page
+   following suit a reduced-motion visitor gets a frozen sky above a bobbing
+   phone, two drifting cards and a pinging dot — which reads as broken rather
+   than as calm. Brand-independent: applies to both arms.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-slow-reverse,
+  .animate-pulse-glow,
+  .animate-bounce-subtle,
+  .animate-ping {
+    animation: none !important;
+  }
 }

@@ -22,7 +22,13 @@
   height: 100%;
   object-fit: cover;
   object-position: center bottom;
-  transform: translateY(20%);
+  /* Two things fight over this number. Too small and the tall jungle on the
+     left rises into the trust row; too large and the ground band the mascot
+     stands on slides below the fold. 240px is the highest the art goes while
+     the check icons stay on clean cream at 1440x900. The cap stops the shift
+     growing without bound on tall windows, where the percentage would keep
+     pushing the ground further out of frame. */
+  transform: translateY(min(27%, 240px));
   /* Dissolve the top edge so the cream of the artwork meets the cream of the
      section without a visible seam where the shifted image begins. */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 9%);
@@ -36,34 +42,53 @@
 
 /* ---- sky map follows the brand reference: text owns the top-left, doodles live in the
         gap between the copy column (~48%) and the palms ---- */
-.sunGroup { left: 51%; top: 7%; width: 10.75%; aspect-ratio: 1; }
+.sunGroup { left: 51%; top: 9%; width: 10.75%; aspect-ratio: 1; }
 .sunRays  { position: absolute; inset: 0; width: 100%; }
 .sunDisc  { position: absolute; left: 19.5%; top: 19.5%; width: 61%; }
 
-/* cloud-1 was clipped by the art's left canvas edge — desktop uses the complete cloud-3
-   silhouette mid-sky instead; cloud-1 only appears on mobile, flush with the screen edge */
-.cloud1 { display: none; }
-.cloud2 { left: 64%;    top: 30%;   width: 4.5%;  }
-.cloud3 { left: 36%;    top: 5%;    width: 9%;    }
+.cloud2 { left: 58%;    top: 24%;   width: 6.5%;  }
+/* Below 12% the cloud crosses the navbar, which crops its top flat and smears
+   the rest through the nav's backdrop blur. */
+.cloud3 { left: 36%;    top: 12%;   width: 9%;    }
 
 /* ---- plane + trail group (383x158 in art space) ---- */
 .planeGroup { left: 62%; top: 11%; width: 22%; aspect-ratio: 383 / 158; }
 .plane { position: absolute; left: 0;     top: 0;     width: 42.8%; }
 .trail { position: absolute; left: 34.2%; top: 10.8%; width: 65.8%; }
 
-.balloon { left: 77.5%;  top: 20%; width: 3.6%; }
-
-/* Dropped from the composition: the lone teal dot reads as a stray pixel, and
-   the low-left sparkle lands inside the copy column. */
-.dot { display: none; }
-.sp4 { display: none; }
+/* Four sprites exist in the source art and are deliberately not rendered:
+   cloud-1 is clipped by the art's left canvas edge, the teal dot reads as a
+   stray pixel, sparkle-4 lands inside the copy column, and the balloon sits at
+   a width the phone always covers — invisible at 1440, bisected by the bezel at
+   1920 — and the reference comp has no balloon at all. */
 
 .sp1 { left: 48%;   top: 28%;   width: 2.5%; }
-.sp2 { left: 76.5%; top: 37.8%; width: 2.0%; }
+/* Sprites are placed in viewport %, but the phone they must avoid is pinned to
+   a centred 1280px container — anything past ~72% ends up behind it. */
+.sp2 { left: 70%;   top: 37.8%; width: 2.0%; }
 .sp3 { left: 85.1%; top: 49.9%; width: 1.6%; }
 
-/* ---- mascot: desktop only, feet on the hero's bottom edge like the reference ---- */
-.mascot { position: absolute; left: 51%; bottom: 0; width: 15.5%; height: auto; }
+/* ---- mascot: desktop only, feet on the hero's bottom edge like the reference ----
+   Sized by height, not width: he has to read at the same scale relative to the
+   fold whatever the window's aspect ratio is, and a width-relative figure
+   shrinks to a doll on a wide short screen. The px cap keeps him from sliding
+   under the phone on very large displays. */
+.mascot {
+  position: absolute;
+  left: calc(50% - 10px);
+  bottom: 0;
+  height: min(64%, 620px);
+  width: auto;
+}
+
+/* ---- tablet: the copy is a single centred column and the phone has not
+        appeared yet, so the whole right-hand sky map would paint behind text.
+        Only the sun survives, tucked into the corner. ---- */
+@media (max-width: 1023.98px) {
+  .cloud2, .cloud3, .planeGroup,
+  .sp1, .sp2, .sp3, .mascot { display: none; }
+  .sunGroup { left: auto; right: 4%; top: 9%; width: 14%; }
+}
 
 /* ---- mobile: portrait base anchored to the bottom + recomposed sky ---- */
 @media (max-width: 767.98px) {
@@ -75,30 +100,29 @@
     object-position: center bottom;
     /* The portrait scene fills the screen exactly, which put the foliage line
        right under the trust row. Dropping it clears the text; the dense ground
-       cover that slides off the bottom is the least interesting part. */
-    transform: translateY(12%);
+       cover that slides off the bottom is the least interesting part. The palm
+       crowns that reach highest are handled by keeping the trust row out of the
+       bottom-right corner (see .hero-trust in globals.css) rather than by
+       dropping the whole scene, which just empties the phone hero. */
+    transform: translateY(14%);
   }
   /* A phone hero has no spare sky: the navbar owns the top ~10% and the copy
      runs from the badge to the trust row. Anything floating in between lands on
      text, so only the sun stays — tucked into the corner beside the badge. The
-     illustrated ground carries the brand on its own here. */
+     illustrated ground carries the brand on its own here. (Everything else is
+     already hidden by the tablet block above.) */
   .sunGroup { left: auto; right: 3%; top: 11%; width: 19%; }
-  .cloud1, .cloud2, .cloud3, .planeGroup, .balloon,
-  .sp1, .sp2, .sp3, .mascot { display: none; }
 }
 
 /* ---- ambient motion (GPU-friendly transforms/opacity only) ---- */
 @media (prefers-reduced-motion: no-preference) {
   .sunRays { animation: heroSpin 40s linear infinite; }
-  .cloud1  { animation: heroDrift 34s ease-in-out infinite alternate; }
   .cloud2  { animation: heroDrift 26s ease-in-out infinite alternate -8s; }
   .cloud3  { animation: heroDrift 30s ease-in-out infinite alternate -17s; }
   .planeGroup { animation: heroBob 6s ease-in-out infinite; }
-  .balloon { animation: heroBob 8s ease-in-out infinite -3s; }
   .sp1 { animation: heroTwinkle 3.4s ease-in-out infinite; }
   .sp2 { animation: heroTwinkle 3.4s ease-in-out infinite -1.1s; }
   .sp3 { animation: heroTwinkle 3.4s ease-in-out infinite -2.2s; }
-  .sp4 { animation: heroTwinkle 3.4s ease-in-out infinite -0.6s; }
 }
 
 @keyframes heroSpin    { to { transform: rotate(360deg); } }
