@@ -10,9 +10,11 @@
 }
 
 /* The scene is pushed below its box so the foliage line sits under the copy
-   column instead of rising into it. What slides off the bottom is dense
-   ground cover; what opens at the top is the art's own cream, so the seam is
-   invisible against the section background. */
+   column instead of rising into it. The shift is a share of the hero height, not
+   of its width: the tall jungle on the left is the tallest thing in the artwork
+   and it is what the copy has to clear, so the shift has to grow with the box
+   the copy is centred in. (A width-relative offset looks right at one size and
+   buries the Sign In link at another.) */
 .base {
   position: absolute;
   inset: 0;
@@ -71,7 +73,10 @@
     max-height: 100%;
     object-fit: contain;
     object-position: center bottom;
-    transform: none;
+    /* The portrait scene fills the screen exactly, which put the foliage line
+       right under the trust row. Dropping it clears the text; the dense ground
+       cover that slides off the bottom is the least interesting part. */
+    transform: translateY(12%);
   }
   /* A phone hero has no spare sky: the navbar owns the top ~10% and the copy
      runs from the badge to the trust row. Anything floating in between lands on
