@@ -12,13 +12,28 @@ import styles from "./HeroDoodleBackground.module.css";
  *
  * Server component: no client JS. Drop inside a relatively-positioned hero section:
  *   <section className="relative ..."><HeroDoodleBackground /> ...content (relative z-10)</section>
+ *
+ * `layout` describes the hero the art sits behind, because that decides where
+ * the empty space is:
+ * - "split" (homepage): copy left, phone right. The sky and the mascot live in
+ *   the gap between them.
+ * - "centered" (landing pages): one centred copy column that runs the full
+ *   width. There is no gap, so the mascot and the mid-sky doodles would paint
+ *   straight over the headline — only the scenery and a corner sun remain.
  */
 
 const HERO = "/images/brand/hero";
 
-export default function HeroDoodleBackground() {
+export default function HeroDoodleBackground({
+  layout = "split",
+}: {
+  layout?: "split" | "centered";
+}) {
   return (
-    <div className={styles.root} aria-hidden="true">
+    <div
+      className={layout === "centered" ? `${styles.root} ${styles.centered}` : styles.root}
+      aria-hidden="true"
+    >
       {/* static scenery: browser downloads only the matching source */}
       <picture>
         <source media="(max-width: 767.98px)" srcSet={`${HERO}/base-mobile.webp`} />

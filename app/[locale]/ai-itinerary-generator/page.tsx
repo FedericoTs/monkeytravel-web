@@ -223,7 +223,7 @@ export default async function AIItineraryGeneratorPage({
             ================================================================ */}
         <section className="relative min-h-[80vh] pt-20 pb-16 overflow-hidden hero-gradient">
           {HERO_DOODLE_ENABLED ? (
-            <HeroDoodleBackground />
+            <HeroDoodleBackground layout="centered" />
           ) : (
             <>
               {/* Grid overlay */}

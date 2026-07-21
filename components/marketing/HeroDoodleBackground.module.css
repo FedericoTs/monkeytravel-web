@@ -81,6 +81,32 @@
   width: auto;
 }
 
+/* ---- centred heroes (the landing pages): one copy column spanning the full
+        width, so there is no gap for the mascot or the mid-sky doodles to live
+        in — they land on the headline. The scenery frames the copy on its own,
+        with the sun tucked into the top-right corner. Same reasoning as the
+        tablet block below, applied at every width. ---- */
+.centered .cloud2,
+.centered .cloud3,
+.centered .planeGroup,
+.centered .sp1,
+.centered .sp2,
+.centered .sp3,
+.centered .mascot {
+  display: none;
+}
+.centered .sunGroup {
+  left: auto;
+  right: 5%;
+  top: 12%;
+  width: 11%;
+}
+/* These heroes are ~80vh, so a cap tuned to a full-height hero would push the
+   ground clean off the bottom. */
+.centered .base {
+  transform: translateY(min(22%, 150px));
+}
+
 /* ---- tablet: the copy is a single centred column and the phone has not
         appeared yet, so the whole right-hand sky map would paint behind text.
         Only the sun survives, tucked into the corner. ---- */
@@ -111,7 +137,8 @@
      text, so only the sun stays — tucked into the corner beside the badge. The
      illustrated ground carries the brand on its own here. (Everything else is
      already hidden by the tablet block above.) */
-  .sunGroup { left: auto; right: 3%; top: 11%; width: 19%; }
+  .sunGroup,
+  .centered .sunGroup { left: auto; right: 3%; top: 11%; width: 19%; }
 }
 
 /* ---- ambient motion (GPU-friendly transforms/opacity only) ---- */
