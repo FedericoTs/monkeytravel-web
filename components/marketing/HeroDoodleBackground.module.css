@@ -1,0 +1,92 @@
+/* Layered doodle hero background — positions are % of the hero box.
+   Desktop values mirror the source art (1525x1031); mobile block repositions the
+   free-floating sky sprites over the portrait base. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.sprite {
+  position: absolute;
+  height: auto;
+}
+
+/* ---- sky map follows the brand reference: text owns the top-left, doodles live in the
+        gap between the copy column (~48%) and the palms ---- */
+.sunGroup { left: 51%; top: 7%; width: 10.75%; aspect-ratio: 1; }
+.sunRays  { position: absolute; inset: 0; width: 100%; }
+.sunDisc  { position: absolute; left: 19.5%; top: 19.5%; width: 61%; }
+
+/* cloud-1 was clipped by the art's left canvas edge — desktop uses the complete cloud-3
+   silhouette mid-sky instead; cloud-1 only appears on mobile, flush with the screen edge */
+.cloud1 { display: none; }
+.cloud2 { left: 64%;    top: 30%;   width: 4.5%;  }
+.cloud3 { left: 36%;    top: 5%;    width: 9%;    }
+
+/* ---- plane + trail group (383x158 in art space) ---- */
+.planeGroup { left: 62%; top: 11%; width: 22%; aspect-ratio: 383 / 158; }
+.plane { position: absolute; left: 0;     top: 0;     width: 42.8%; }
+.trail { position: absolute; left: 34.2%; top: 10.8%; width: 65.8%; }
+
+.balloon { left: 77.5%;  top: 20%; width: 3.6%; }
+.dot     { left: 54%;    top: 36%;   width: 1.05%; }
+
+.sp1 { left: 48%;   top: 28%;   width: 2.5%; }
+.sp2 { left: 76.5%; top: 37.8%; width: 2.0%; }
+.sp3 { left: 85.1%; top: 49.9%; width: 1.6%; }
+.sp4 { left: 45.9%; top: 86.9%; width: 1.3%; }
+
+/* ---- mascot: desktop only, feet on the hero's bottom edge like the reference ---- */
+.mascot { position: absolute; left: 51%; bottom: 0; width: 15.5%; height: auto; }
+
+/* ---- mobile: portrait base anchored to the bottom + recomposed sky ---- */
+@media (max-width: 767.98px) {
+  .base {
+    inset: auto 0 0 0;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+  /* everything stays in the top band (~0-8%) or the empty mid-cream so text is never covered */
+  .sunGroup { left: auto; right: 4%; top: 2%; width: 20%; }
+  .cloud1   { display: block; left: 0; top: 1.5%; width: 18%; }
+  .cloud2, .cloud3, .dot { display: none; }
+  .planeGroup { left: 30%; top: 3%; width: 24%; }
+  .balloon  { left: auto; right: 10%; top: 47%; width: 9%; }
+  .sp1 { left: 6%; top: 48%; width: 5%; }
+  .sp2 { left: 70%; top: 53%; width: 4%; }
+  .sp3, .sp4 { display: none; }
+  .mascot { display: none; }
+}
+
+/* ---- ambient motion (GPU-friendly transforms/opacity only) ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .sunRays { animation: heroSpin 40s linear infinite; }
+  .cloud1  { animation: heroDrift 34s ease-in-out infinite alternate; }
+  .cloud2  { animation: heroDrift 26s ease-in-out infinite alternate -8s; }
+  .cloud3  { animation: heroDrift 30s ease-in-out infinite alternate -17s; }
+  .planeGroup { animation: heroBob 6s ease-in-out infinite; }
+  .balloon { animation: heroBob 8s ease-in-out infinite -3s; }
+  .sp1 { animation: heroTwinkle 3.4s ease-in-out infinite; }
+  .sp2 { animation: heroTwinkle 3.4s ease-in-out infinite -1.1s; }
+  .sp3 { animation: heroTwinkle 3.4s ease-in-out infinite -2.2s; }
+  .sp4 { animation: heroTwinkle 3.4s ease-in-out infinite -0.6s; }
+}
+
+@keyframes heroSpin    { to { transform: rotate(360deg); } }
+@keyframes heroDrift   { from { transform: translateX(-10px); } to { transform: translateX(12px); } }
+@keyframes heroBob     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes heroTwinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }

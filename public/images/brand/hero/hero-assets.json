@@ -1,0 +1,139 @@
+{
+  "design": {
+    "w": 1525,
+    "h": 1031
+  },
+  "mobileBase": {
+    "w": 750,
+    "h": 1624,
+    "scale": 0.72
+  },
+  "assets": [
+    {
+      "name": "base-desktop",
+      "file": "base-desktop.webp",
+      "x": 0,
+      "y": 0,
+      "w": 1525,
+      "h": 1031,
+      "animated": false
+    },
+    {
+      "name": "sun-disc",
+      "file": "sun-disc.webp",
+      "x": 1089,
+      "y": 44,
+      "w": 100,
+      "h": 100,
+      "animated": false
+    },
+    {
+      "name": "sun-rays",
+      "file": "sun-rays.webp",
+      "x": 1057,
+      "y": 12,
+      "w": 164,
+      "h": 164,
+      "animated": true
+    },
+    {
+      "name": "cloud-1",
+      "file": "cloud-1.webp",
+      "x": 0,
+      "y": 131,
+      "w": 200,
+      "h": 122,
+      "animated": true
+    },
+    {
+      "name": "cloud-2",
+      "file": "cloud-2.webp",
+      "x": 945,
+      "y": 44,
+      "w": 67,
+      "h": 39,
+      "animated": true
+    },
+    {
+      "name": "cloud-3",
+      "file": "cloud-3.webp",
+      "x": 1306,
+      "y": 32,
+      "w": 158,
+      "h": 80,
+      "animated": true
+    },
+    {
+      "name": "plane",
+      "file": "plane.webp",
+      "x": 868,
+      "y": 173,
+      "w": 164,
+      "h": 88,
+      "animated": true
+    },
+    {
+      "name": "trail",
+      "file": "trail.webp",
+      "x": 999,
+      "y": 190,
+      "w": 252,
+      "h": 141,
+      "animated": false
+    },
+    {
+      "name": "balloon",
+      "file": "balloon.webp",
+      "x": 1251,
+      "y": 183,
+      "w": 55,
+      "h": 76,
+      "animated": true
+    },
+    {
+      "name": "dot-teal",
+      "file": "dot-teal.webp",
+      "x": 916,
+      "y": 325,
+      "w": 16,
+      "h": 15,
+      "animated": true
+    },
+    {
+      "name": "sparkle-1",
+      "file": "sparkle-1.webp",
+      "x": 785,
+      "y": 274,
+      "w": 38,
+      "h": 40,
+      "animated": true
+    },
+    {
+      "name": "sparkle-2",
+      "file": "sparkle-2.webp",
+      "x": 1166,
+      "y": 390,
+      "w": 31,
+      "h": 33,
+      "animated": true
+    },
+    {
+      "name": "sparkle-3",
+      "file": "sparkle-3.webp",
+      "x": 1298,
+      "y": 514,
+      "w": 25,
+      "h": 26,
+      "animated": true
+    },
+    {
+      "name": "sparkle-4",
+      "file": "sparkle-4.webp",
+      "x": 700,
+      "y": 896,
+      "w": 20,
+      "h": 17,
+      "animated": true
+    }
+  ]
+}

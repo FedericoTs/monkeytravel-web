@@ -1,6 +1,8 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
+import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
+import { HERO_DOODLE_ENABLED, INK } from '@/components/marketing/doodle';
 import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
@@ -267,17 +269,24 @@ export default async function GroupTripPlannerPage({
         {/* ================================================================
             HERO SECTION
             ================================================================ */}
-        <section className="relative min-h-[80vh] pt-20 pb-16 overflow-hidden hero-gradient">
-          {/* Grid overlay */}
-          <div className="absolute inset-0 bg-grid-pattern-light opacity-50" />
+        <section className={`relative min-h-[80vh] pt-20 pb-16 overflow-hidden ${HERO_DOODLE_ENABLED ? 'bg-[#FDF1E0]' : 'hero-gradient'}`}>
+          {HERO_DOODLE_ENABLED ? (
+            /* Doodle rebrand: layered tropical artwork (base scenery + animated sky sprites + mascot) */
+            <HeroDoodleBackground />
+          ) : (
+            <>
+              {/* Grid overlay */}
+              <div className="absolute inset-0 bg-grid-pattern-light opacity-50" />
 
-          {/* Animated orbs */}
-          <div className="absolute top-32 left-[10%] w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-[100px] animate-pulse-glow" />
-          <div className="absolute top-64 right-[5%] w-96 h-96 bg-[var(--primary)]/8 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+              {/* Animated orbs */}
+              <div className="absolute top-32 left-[10%] w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-[100px] animate-pulse-glow" />
+              <div className="absolute top-64 right-[5%] w-96 h-96 bg-[var(--primary)]/8 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+            </>
+          )}
 
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${HERO_DOODLE_ENABLED ? `bg-white ${INK.border}` : 'bg-emerald-500/10 border border-emerald-500/25'}`}>
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -299,7 +308,7 @@ export default async function GroupTripPlannerPage({
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
                 href="/trips/new"
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
+                className={`group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all ${HERO_DOODLE_ENABLED ? '' : 'shadow-lg shadow-[var(--accent)]/30'}${HERO_DOODLE_ENABLED ? ` ${INK.btnPrimary}` : ''}`}
               >
                 <span>{t('hero.cta')}</span>
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -308,7 +317,7 @@ export default async function GroupTripPlannerPage({
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all${HERO_DOODLE_ENABLED ? ` ${INK.border}` : ''}`}
               >
                 {t('hero.secondaryCta')}
               </a>
