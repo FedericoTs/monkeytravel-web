@@ -77,6 +77,28 @@ const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
 // (the overwhelming majority) now cost nothing.
 export const SAVE_TIME_PAID_LOOKUPS = 8;
 
+// Google expires photo resource names after ~29 days. MEASURED 2026-07-21:
+// 164 live probes, zero misclassifications, with an hour-resolution boundary
+// between 2026-06-22 21:09Z (dead) and 23:43Z (alive) — a ~693h lifetime.
+//
+// 21 days leaves a ~8-day safety margin under that. Refreshing sooner would
+// spend Places quota on refs that still work; later risks handing a brand-new
+// trip a ref that is already dead.
+const PHOTO_REF_MAX_AGE_DAYS = 21;
+
+// Cache rows are kept for a YEAR (ACTIVITY_IMAGE_CACHE_DAYS) because the
+// non-photo fields really are stable, so a cache hit routinely carries a photo
+// ref far past 21 days. Refreshing every stale ref we touch would put an
+// unbounded number of paid Google calls on the trip-generation critical path —
+// which already has a timeout history (task #353) — so each trip may refresh
+// at most this many. Anything beyond the cap keeps its stale ref and is
+// repaired lazily by /api/places/photo's self-heal on first view.
+//
+// 2 is deliberately small: the point is to stop the cache rotting, not to
+// repair it in one pass. Every generation heals a little, and the heal path
+// covers whatever this misses at zero generation-time cost.
+const PHOTO_REFRESH_PER_TRIP = 2;
+
 // COST KILL-SWITCH (2026-07-02). Per api_request_logs, ACTIVITY place/photo
 // resolution is the #1 Google Places line: Place Details Pro ($0.017, ~$23.5/30d)
 // + Text Search Essentials ($0.005, ~$9.3/30d) per fresh place, both at ~0% cache
@@ -388,7 +410,8 @@ async function getOrFetchPlace(
   name: string,
   destination: string,
   normalizedKey: string,
-  paidBudget: { remaining: number }
+  paidBudget: { remaining: number },
+  photoRefreshBudget: { remaining: number }
 ): Promise<PlaceRecord | null> {
   const supabase = createAdminClient();
 
@@ -431,6 +454,40 @@ async function getOrFetchPlace(
         cacheHit: true,
         costUsd: 0,
       });
+
+      // ---------- 1b. Photo-ref freshness (2026-07-21) ----------
+      // The rest of this row stays valid for a year, but the photo ref dies at
+      // ~29 days (see PHOTO_REF_MAX_AGE_DAYS). Without this check a cache hit
+      // happily hands a brand-new trip a ref that expired weeks ago — which is
+      // how 82% of stored activity photos ended up dead.
+      //
+      // NOTE this makes a *small number* of cache hits paid, which the comment
+      // on the budget gate below ("cache HITS are free + unlimited") no longer
+      // covers unconditionally. It is capped per trip and never touches the
+      // resolution budget, so it cannot starve genuinely-new activities.
+      const refAgeMs = cached.updated_at
+        ? Date.now() - Date.parse(cached.updated_at)
+        : Number.POSITIVE_INFINITY;
+      const refIsStale = refAgeMs > PHOTO_REF_MAX_AGE_DAYS * 86_400_000;
+
+      if (cached.photo_resource_name && refIsStale && photoRefreshBudget.remaining > 0) {
+        photoRefreshBudget.remaining--;
+        const fresh = await fetchPlacePhoto(cached.place_id);
+        if (fresh) {
+          void supabase
+            .from("places_v2")
+            .update({
+              photo_resource_name: fresh.photo_resource_name,
+              photo_url: fresh.photo_url,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("place_id", cached.place_id);
+          return { ...cached, ...fresh } as PlaceRecord;
+        }
+        // Refresh failed (Google down, place lost its photos). Fall through
+        // with the stale ref — the render-time self-heal gets another shot.
+      }
+
       return cached as PlaceRecord;
     }
   }
@@ -668,7 +725,8 @@ async function resolveActivityImage(
   name: string,
   destination: string,
   normalizedKey: string,
-  paidBudget: { remaining: number }
+  paidBudget: { remaining: number },
+  photoRefreshBudget: { remaining: number }
 ): Promise<string | null> {
   // Cost kill-switch (2026-07-02): when activity photos are disabled, resolve to
   // the curated-by-type fallback (the caller applies it when this returns null)
@@ -681,7 +739,7 @@ async function resolveActivityImage(
   }
   // ---------- Primary path: place_id-keyed cache ----------
   try {
-    const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget);
+    const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget, photoRefreshBudget);
     if (place?.photo_url) {
       return place.photo_url;
     }
@@ -835,6 +893,9 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // MAX_PAID_PLACE_LOOKUPS_PER_TRIP). Cache hits don't consume it; once it's
   // spent, the rest of this trip's fresh activities get curated fallbacks.
   const paidBudget = { remaining: maxPaidLookups };
+  // Separate from paidBudget on purpose: a photo-ref refresh must never eat
+  // the budget that resolves genuinely-new activities.
+  const photoRefreshBudget = { remaining: PHOTO_REFRESH_PER_TRIP };
   let placesHits = 0;
   let fallbackHits = 0;
 
@@ -843,7 +904,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       const first = occurrences[0];
       let url: string | null = null;
       try {
-        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget);
+        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }
