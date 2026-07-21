@@ -305,6 +305,17 @@ export async function attachCoverImage(
     const data = await response.json();
     if (!data?.url) return;
 
+    // Never persist the generic fallback. The route returns a stock
+    // aeroplane-wing photo when it can match neither a curated destination nor
+    // a Pexels result, and writing that to the row makes it permanent: every
+    // such trip then shows the SAME picture forever, even once the destination
+    // becomes matchable. A live audit found 8 of 27 published trips sharing
+    // that one image — Benidorm, Grand Baie, Kruger, Montreal, Prague, Puglia,
+    // Scottsdale and Torremolinos. Leaving the column NULL is better: the card
+    // falls back to its own gradient, which at least differs per card and is
+    // re-resolved on the next attempt.
+    if (data.source === "fallback") return;
+
     await supabase
       .from("trips")
       .update({ cover_image_url: data.url })
