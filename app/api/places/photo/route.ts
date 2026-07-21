@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { fetchPlacePhoto } from "@/lib/images/activity";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
 // never touches real browsing but stops scripted hammering of a route that
@@ -176,6 +178,35 @@ export async function GET(request: NextRequest) {
       // Drain the body to free the connection — we ignore the error
       // payload (it's a JSON error from Google, useless to the browser).
       try { await res.arrayBuffer(); } catch { /* ignore */ }
+
+      // ---------- SELF-HEAL (2026-07-21) ----------
+      // A permanent 4xx here usually does NOT mean "this place has no photo".
+      // It means the photo RESOURCE NAME has expired. Google rotates those
+      // tokens; lib/images/activity.ts cached them for 365 days on the
+      // (wrong) assumption that they were stable, and the resulting dead refs
+      // got baked into trips.itinerary JSONB, where they are frozen forever.
+      //
+      // The saving grace is that a dead ref still carries its place_id, so we
+      // can ask Google for a CURRENT photo for the same place and serve that.
+      // This repairs already-persisted itineraries, not just future ones —
+      // the stored URL keeps working, it just resolves through a fresh token.
+      //
+      // Cost is bounded and self-limiting: one Place Details call per dead
+      // ref, and because a success is streamed back with the same immutable
+      // cache header as the happy path, the CDN pins the bytes and that URL
+      // never reaches this code again. Transient failures (429/403) are
+      // excluded — re-resolving during a quota spike would burn MORE quota
+      // for nothing.
+      const transient = res.status === 429 || res.status === 403;
+      const placeId = !transient && name
+        ? /^places\/([^/]+)\/photos\//.exec(name)?.[1]
+        : undefined;
+
+      if (placeId) {
+        const healed = await healExpiredPhoto(placeId, name!, w, h);
+        if (healed) return healed;
+      }
+
       // 429 (rate-limit) and 403 (quota) are TRANSIENT, not a permanently-bad
       // photo_reference: serve the curated fallback now so the <img> isn't
       // broken, but do NOT cache it — pinning a transient failure would replace
@@ -183,7 +214,6 @@ export async function GET(request: NextRequest) {
       // clears. Every OTHER 4xx (400/404/410) means the reference is
       // permanently gone, so cache the fallback at the edge for an hour to stop
       // re-hitting Google on every render (wasted invocation + paid API call).
-      const transient = res.status === 429 || res.status === 403;
       return new Response(null, {
         status: 307,
         headers: {
@@ -229,6 +259,80 @@ const CURATED_FALLBACKS = [
   "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   "https://images.pexels.com/photos/2082103/pexels-photo-2082103.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
 ];
+
+/**
+ * Re-resolve a place's photo after its cached resource name expired, serve the
+ * fresh bytes, and repair the cache so the next lookup starts from a live ref.
+ *
+ * Returns a streaming 200 on success, or null to let the caller fall through to
+ * the curated fallback (place genuinely has no usable photo, key missing,
+ * Google down, etc.). Never throws — a self-heal failure must degrade to the
+ * old behaviour, never take down an image request.
+ */
+async function healExpiredPhoto(
+  placeId: string,
+  deadName: string,
+  w: number,
+  h: number
+): Promise<Response | null> {
+  try {
+    const fresh = await fetchPlacePhoto(placeId);
+    // No photo at all, or Google handed back the same dead ref — nothing to do.
+    if (!fresh || fresh.photo_resource_name === deadName) return null;
+
+    const res = await fetchWithRetry(
+      `https://places.googleapis.com/v1/${fresh.photo_resource_name}/media?maxHeightPx=${h}&maxWidthPx=${w}`,
+      { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY }, redirect: "follow" }
+    );
+    if (!res.ok || !res.body) {
+      try { await res.arrayBuffer(); } catch { /* ignore */ }
+      return null;
+    }
+
+    // Fire-and-forget: point the cache at the live ref so freshly generated
+    // itineraries stop inheriting the dead one. Deliberately not awaited —
+    // the user's image must not wait on our bookkeeping, and a failed write
+    // only costs us one more heal later.
+    void (async () => {
+      try {
+        const supabase = createAdminClient();
+        await supabase
+          .from("places_v2")
+          .update({
+            photo_resource_name: fresh.photo_resource_name,
+            photo_url: fresh.photo_url,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("place_id", placeId);
+      } catch (err) {
+        console.warn(
+          `[places/photo] heal: cache refresh failed for ${placeId}:`,
+          err instanceof Error ? err.message : err
+        );
+      }
+    })();
+
+    console.info(`[places/photo] healed expired photo ref for place ${placeId}`);
+
+    // Same immutable caching as the happy path. This is what makes the repair
+    // permanent for already-persisted itineraries: the CDN pins these bytes
+    // against the OLD (dead-ref) URL, so that URL renders correctly forever
+    // without ever calling Google again.
+    return new Response(res.body, {
+      status: 200,
+      headers: {
+        "Content-Type": res.headers.get("content-type") || "image/jpeg",
+        "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
+      },
+    });
+  } catch (err) {
+    console.warn(
+      `[places/photo] heal failed for ${placeId}:`,
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
 
 function curatedFallbackForName(name: string): string {
   // Cheap deterministic hash over the resource name — sum of char

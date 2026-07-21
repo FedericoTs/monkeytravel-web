@@ -36,8 +36,22 @@ import { logApiCall } from "@/lib/api-gateway";
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
 // 365 days — Places metadata for popular tourist sites is effectively immutable.
-// Photo reference names from the new Places API are stable, and our /api/places/photo
-// proxy resolves them on demand, so a stale ref still works.
+//
+// **2026-07-21 correction.** This constant used to be justified with "photo
+// reference names from the new Places API are stable, so a stale ref still
+// works." That is FALSE, and it was the root cause of a silent, months-long
+// image regression: Google expires photo resource names, so a ref cached for
+// up to a year is frequently dead by the time it is served. Measured on
+// 2026-07-21: all 4,920 cached refs predated Google's current token
+// generation, and refs for places whose photos Google still serves happily
+// were 4xx-ing. /api/places/photo masked it by redirecting to a curated
+// Pexels photo, so the cards looked fine and nobody noticed.
+//
+// The TTL stays at 365 days ON PURPOSE — the non-photo fields (id, name,
+// location, address) really are stable, and shortening it would multiply the
+// paid Places calls this cache exists to avoid. The photo ref is now
+// self-healed at render time instead: /api/places/photo re-resolves from the
+// place_id embedded in the dead ref and refreshes this row. See that route.
 const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 
 // Per-trip cap on PAID Google Places resolutions (cost control, 2026-06-24).
@@ -249,7 +263,7 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
  * already have the place cached (by place_id, incl. trip-backfilled rows) can
  * SKIP this paid call entirely — the core of the place_id dedup.
  */
-async function fetchPlacePhoto(
+export async function fetchPlacePhoto(
   placeId: string
 ): Promise<{ photo_resource_name: string; photo_url: string } | null> {
   if (!GOOGLE_PLACES_API_KEY) {
