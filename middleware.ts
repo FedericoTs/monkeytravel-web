@@ -280,6 +280,12 @@ export const config = {
      * - public folder
      * - api routes (except protected ones)
      */
-    "/((?!_next/static|_next/image|favicon.ico|images|screenshots|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // `manifest.json` and `sw.js` are STATIC files in public/. They were not
+    // in the exclusion list because it only names image extensions, so every
+    // fetch of them ran middleware — which calls updateSession (a Supabase
+    // round-trip) and sets cookies. 2026-07-21 production logs: 344
+    // middleware invocations/day for manifest.json alone, all of them for a
+    // file that could have come straight off the CDN.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|images|screenshots|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
