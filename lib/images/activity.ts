@@ -110,8 +110,20 @@ const PHOTO_REFRESH_PER_TRIP = 2;
 // ZERO paid Places calls. The destination HERO cover (a separate cache in
 // /api/places) stays a real photo. Flip PLACES_ACTIVITY_PHOTOS_ENABLED=true in the
 // Vercel env to restore real activity photos — no redeploy needed.
+// 2026-07-22: default flipped ON (=== "true" → !== "false") at Federico's
+// request, via code rather than the Vercel env because that is the lever this
+// repo controls. The kill switch keeps working in the opposite direction: set
+// PLACES_ACTIVITY_PHOTOS_ENABLED=false to turn activity photos off again.
+// Safe to re-enable now — and only now — because both staleness guards exist:
+// the 21-day refresh on the save-time enrich path stops newly saved trips
+// baking in expired refs, and /api/places/photo self-heals whatever slips
+// through. Re-enabling without those would have resumed persisting refs up to
+// 365 days stale (82% of which were measured dead on 2026-07-21).
+// Generation itself STAYS free: it runs with maxPaidLookups:0, so the flag
+// only re-opens spend on the save-time enrich path (~8 lookups per SAVED
+// trip), which scales with saves, not generations.
 const RESOLVE_ACTIVITY_PHOTOS =
-  process.env.PLACES_ACTIVITY_PHOTOS_ENABLED === "true";
+  process.env.PLACES_ACTIVITY_PHOTOS_ENABLED !== "false";
 
 /**
  * Normalize an activity name + destination into a stable cache key.
