@@ -895,7 +895,17 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   const paidBudget = { remaining: maxPaidLookups };
   // Separate from paidBudget on purpose: a photo-ref refresh must never eat
   // the budget that resolves genuinely-new activities.
-  const photoRefreshBudget = { remaining: PHOTO_REFRESH_PER_TRIP };
+  //
+  // Gated on maxPaidLookups > 0: trip GENERATION calls this with
+  // maxPaidLookups:0 as a hard "this request costs zero Google dollars"
+  // invariant (2026-06-30 cost pass), and a stale-ref refresh is a PAID call
+  // — allowing it here would quietly bill every generation. Generations keep
+  // whatever the cache has (stale refs are repaired at render by the
+  // /api/places/photo self-heal, for free from this path's perspective);
+  // refreshes only happen on the save-time enrich path, which already pays.
+  const photoRefreshBudget = {
+    remaining: maxPaidLookups > 0 ? PHOTO_REFRESH_PER_TRIP : 0,
+  };
   let placesHits = 0;
   let fallbackHits = 0;
 
