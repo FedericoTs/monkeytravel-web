@@ -206,7 +206,7 @@
     "items": {
       "free": {
         "question": "Is this AI travel planner really free?",
-        "answer": "Yes, MonkeyTravel is 100% free. Create unlimited trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. Group collaboration is also free — invite up to 8 friends per trip. We plan to add optional premium features down the road, but the core AI trip planner will always be free."
+        "answer": "Yes, MonkeyTravel is 100% free. Create trip itineraries, customize them, export to PDF, and share with friends — all without paying anything. Group collaboration is also free — invite up to 8 friends per trip. We plan to add optional premium features down the road, but the core AI trip planner will always be free."
       },
       "noApp": {
         "question": "Do I need to download an app?",

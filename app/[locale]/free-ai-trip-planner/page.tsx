@@ -19,24 +19,24 @@ const PAGE_PATH = '/free-ai-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens com IA Grátis — Sem Cadastro, Sem Cartão, Planos Ilimitados',
+    title: 'Planejador de Viagens com IA Grátis — Sem Cadastro, Sem Cartão',
     description:
       'Crie roteiros personalizados dia a dia com lugares reais e 3 níveis de orçamento em 30 segundos. Funciona em português, inglês, espanhol e italiano. Sem conta, nunca.',
   },
   en: {
-    title: 'Free AI Trip Planner — No Signup, No Card, Unlimited Plans',
+    title: 'Free AI Trip Planner — No Signup, No Card',
     description:
       'Create personalized day-by-day itineraries with real venues and 3 budget tiers in 30 seconds. Works in English, Spanish & Italian. No account required, ever.',
   },
   es: {
     title:
-      'Planificador de Viajes AI Gratis — Sin Registro, Sin Tarjeta, Planes Ilimitados',
+      'Planificador de Viajes AI Gratis — Sin Registro, Sin Tarjeta',
     description:
       'Crea itinerarios personalizados día a día con lugares reales y 3 niveles de presupuesto en 30 segundos. Sin cuenta necesaria, nunca.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi AI Gratis — Senza Registrazione, Senza Carta, Piani Illimitati',
+      'Pianificatore di Viaggi AI Gratis — Senza Registrazione, Senza Carta',
     description:
       'Crea itinerari personalizzati giorno per giorno con luoghi reali e 3 livelli di budget in 30 secondi. Nessun account necessario, mai.',
   },

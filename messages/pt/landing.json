@@ -206,7 +206,7 @@
     "items": {
       "free": {
         "question": "Este planejador de viagens com IA é mesmo grátis?",
-        "answer": "Sim, o MonkeyTravel é 100% grátis. Crie roteiros de viagem ilimitados, personalize-os, exporte em PDF e compartilhe com amigos — tudo sem pagar nada. A colaboração em grupo também é grátis — convide até 8 amigos por viagem. Pretendemos adicionar recursos premium opcionais no futuro, mas o planejador de viagens com IA principal será sempre grátis."
+        "answer": "Sim, o MonkeyTravel é 100% grátis. Crie roteiros de viagem, personalize-os, exporte em PDF e compartilhe com amigos — tudo sem pagar nada. A colaboração em grupo também é grátis — convide até 8 amigos por viagem. Pretendemos adicionar recursos premium opcionais no futuro, mas o planejador de viagens com IA principal será sempre grátis."
       },
       "noApp": {
         "question": "Preciso baixar um app?",

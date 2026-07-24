@@ -102,7 +102,7 @@
     "items": {
       "isFree": {
         "question": "O MonkeyTravel é realmente grátis?",
-        "answer": "Sim, o MonkeyTravel é totalmente grátis. Você pode criar roteiros ilimitados, convidar amigos e planejar viagens em grupo sem pagar nada. Sem cartão de crédito, sem período de teste, sem taxas ocultas."
+        "answer": "Sim, o MonkeyTravel é totalmente grátis. Você pode criar roteiros, convidar amigos e planejar viagens em grupo sem pagar nada. Sem cartão de crédito, sem período de teste, sem taxas ocultas."
       },
       "needAccount": {
         "question": "Preciso criar uma conta?",
