@@ -8,15 +8,20 @@ interface RateLimitRecord {
 
 const stores = new Map<string, Map<string, RateLimitRecord>>();
 
-// Detect Upstash KV at module load. Both env vars must be present on Vercel:
-//   UPSTASH_REDIS_REST_URL
-//   UPSTASH_REDIS_REST_TOKEN
-// These are NOT committed (not in .env.example) — set them in the Vercel
-// project settings. Without them the limiter still works locally and in CI,
-// but on Vercel each function instance gets its own Map, so burst protection
-// across instances is best-effort only.
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Detect Upstash Redis at module load. Accept BOTH env-var naming conventions
+// (2026-07-24): the classic Upstash-for-Vercel integration injects
+// UPSTASH_REDIS_REST_URL / _TOKEN, but the "Vercel KV powered by Upstash"
+// Marketplace product injects KV_REST_API_URL / KV_REST_API_TOKEN for the same
+// REST endpoint. Reading both means the limiter picks up shared state whichever
+// product was connected — otherwise the integration is "connected" in the
+// dashboard yet every limiter silently stays in per-instance in-memory mode.
+// Without either, the limiter still works locally/CI, but on Vercel each
+// function instance gets its own Map, so cross-instance burst protection is
+// best-effort only.
+const UPSTASH_URL =
+  process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const UPSTASH_TOKEN =
+  process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
 let redis: Redis | null = null;
 if (UPSTASH_URL && UPSTASH_TOKEN) {
