@@ -591,13 +591,32 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // dwell (bounce in <2s vs deliberate struggle) is unmeasurable. A 10s
   // heartbeat while the session sits on step 1 turns single-event sessions
   // into a measurable time series. Fire-and-forget via the existing
-  // wizard-event sink; 6/min is well under the 60/min session cap and the
-  // 10s spacing never collides with the 1s dedupe bucket (distinct rows =
-  // the dwell signal we want). Cleared on step change / unmount.
+  // wizard-event sink; the 10s spacing never collides with the 1s dedupe
+  // bucket (distinct rows = the dwell signal we want).
+  //
+  // **2026-07-24 cap.** Left uncapped, this beacon was 89% of ALL wizard-event
+  // traffic (measured: 21,842 rows / 7d across only 288 sessions — ~76 beats
+  // each) because a backgrounded tab kept firing every 10s all night (max
+  // observed: a 12.8h parked tab). The dwell signal saturates long before
+  // that: median deliberating session is ~9 beats, and past ~3 min it's a
+  // parked tab, not a struggling user. So (1) skip the beat while the tab is
+  // hidden — a backgrounded wizard is not "dwelling" — and (2) stop after 18
+  // *visible* beats (~3 min), which collapses ">3 min" into a single bucket
+  // (exactly the noise the metric should exclude). Beats now track visible
+  // dwell time, capped; this cuts ~5,400 function+middleware invocations/day
+  // with zero loss to the bounce-vs-struggle signal the metric exists for.
   useEffect(() => {
     if (step !== 1) return;
+    const MAX_BEATS = 18; // ~3 min of visible dwell, then the signal is saturated
+    let beats = 0;
     const id = setInterval(() => {
+      // A hidden/backgrounded tab is not deliberating — don't beacon, don't
+      // count it. A user who tabs away and back still gets a truthful count.
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
       void trackWizardEvent("step1_heartbeat", { locale }, arm);
+      if (++beats >= MAX_BEATS) clearInterval(id);
     }, 10000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
