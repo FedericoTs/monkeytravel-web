@@ -3,9 +3,17 @@ import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
+
+// 600/hour/IP — this route is auth-gated but was otherwise uncapped, and POST
+// fans out up to 20 upstream image fetches per call, so a single logged-in
+// user could drive real egress/bandwidth cost. 600/hr is far above any honest
+// UI usage (matches the sibling places/photo + img/proxy limiters). Distinct
+// namespace from the "img-proxy" route so their buckets don't collide.
+const imageProxyLimiter = createRateLimiter("images-proxy", 600, 60 * 60 * 1000);
 
 // Shared allowed domains (extracted to avoid duplication)
 const ALLOWED_DOMAINS = [
@@ -100,6 +108,9 @@ export async function GET(request: NextRequest) {
   // Require authentication to prevent open proxy abuse
   const { errorResponse } = await getAuthenticatedUser();
   if (errorResponse) return errorResponse;
+
+  const { allowed } = await imageProxyLimiter.check(request);
+  if (!allowed) return errors.rateLimit("Too many image requests");
 
   const { searchParams } = new URL(request.url);
   const imageUrl = searchParams.get("url");
@@ -201,6 +212,9 @@ export async function POST(request: NextRequest) {
   // Require authentication to prevent open proxy abuse
   const { errorResponse: authError } = await getAuthenticatedUser();
   if (authError) return authError;
+
+  const { allowed } = await imageProxyLimiter.check(request);
+  if (!allowed) return errors.rateLimit("Too many image requests");
 
   try {
     const body = await request.json();
