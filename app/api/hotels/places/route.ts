@@ -18,9 +18,21 @@ import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 
 // Cache duration: 30 days for hotel searches (listings are stable; real prices via booking links)
 const CACHE_DURATION_DAYS = 30;
+
+// 60/day/IP. This GET is intentionally UNAUTHENTICATED — its caller
+// (components/trip/HotelRecommendations.tsx) runs on the anon-reachable trip
+// result page, so requiring auth would break hotel recs for logged-out
+// viewers. But the only prior gate was checkApiAccess (a global admin
+// kill-switch, not per-caller), and the cache keys on coords rounded to 3
+// decimals — an attacker can nudge lat/long to force uncapped $0.032 Places
+// Nearby misses. A per-IP daily cap closes that without touching UX: a normal
+// trip view fires <=2 calls, far under 60. Same "skip auth, cap the quota"
+// posture as the Amadeus hotel/flight routes.
+const hotelsPlacesLimiter = createRateLimiter("hotels-places", 60, 24 * 60 * 60 * 1000);
 
 // Types for Google Places response
 interface PlacePhoto {
@@ -239,6 +251,13 @@ export async function GET(request: NextRequest) {
         error: `BLOCKED: ${access.message}`,
       });
       return errors.serviceUnavailable(access.message || "Hotel search API is currently disabled");
+    }
+
+    // Per-IP daily cap (see hotelsPlacesLimiter). Auth is deliberately NOT
+    // required — see the const comment; this only stops coord-nudging abuse.
+    const { allowed } = await hotelsPlacesLimiter.check(request);
+    if (!allowed) {
+      return errors.rateLimit("Too many hotel searches. Please try again later.");
     }
 
     const apiKey = process.env.GOOGLE_PLACES_API_KEY;
