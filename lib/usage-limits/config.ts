@@ -17,9 +17,19 @@ import type { SubscriptionTier, TierLimits } from "./types";
 export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
   free: {
     // AI limits (monthly) - Primary cost driver
-    aiGenerations: 3, // 3 trips per month
-    aiRegenerations: 10, // 10 activity regenerations per month
-    aiAssistantMessages: 20, // 20 AI assistant messages per day
+    //
+    // 2026-07-24 raise (founder decision): make "free" honest by giving MORE,
+    // not by walking back the marketing. Measured: free-user p90 = 2 gens/mo,
+    // all-time single-user max = 19, system-wide ~40-55 gens/day; one gen is a
+    // single gemini-2.5-flash call at ~$0.01 worst-case. At 30/mo the cap is
+    // ~15× the p90 — no real user ever hits it, so it stops being a product
+    // limit and becomes a pure anti-scripting ceiling, while premium (unlimited,
+    // -1) stays sellable and the cost backstop survives a viral spike. Enforced
+    // for real via checkUsageLimit → TIER_LIMITS (NOT unlimited, despite an old
+    // comment in generate/route.ts that this change also corrects).
+    aiGenerations: 30, // 30 trips per month
+    aiRegenerations: 100, // 100 activity regenerations per month
+    aiAssistantMessages: 100, // 100 AI assistant messages per day
 
     // Places API limits (daily) - Secondary cost driver
     placesAutocomplete: 100, // 100 autocomplete requests per day

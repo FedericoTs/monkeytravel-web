@@ -199,9 +199,13 @@ export interface RateLimitConfig {
 
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   free: {
+    // 2026-07-24: raised the hourly/daily ceilings alongside the free-tier
+    // monthly cap (TIER_LIMITS.free.aiGenerations 3→30) so a legit day of
+    // multiple generations doesn't trip THIS secondary throttle after the
+    // primary cap was loosened. Still bounds runaway/abuse.
     maxRequestsPerMinute: 5,
-    maxRequestsPerHour: 30,
-    maxTokensPerDay: 50000,
+    maxRequestsPerHour: 60,
+    maxTokensPerDay: 250000,
     cooldownMinutes: 1,
   },
   premium: {

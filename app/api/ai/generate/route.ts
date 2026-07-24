@@ -189,8 +189,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Authenticated-tier usage limits (anonymous is rate-limited above via
-    // cookie; authenticated users are unlimited per the 2026-05-23 free-tier
-    // decision but we keep checkUsageLimit wired so analytics still tracks).
+    // cookie). NOTE: authenticated free users are NOT unlimited — this route
+    // enforces the free monthly cap via checkUsageLimit → TIER_LIMITS and
+    // returns 429 below when over. (Corrected 2026-07-24; the prior comment
+    // claimed unlimited, which was never true for the code path directly
+    // below. Free cap was raised 3→30/mo the same day.)
     //
     // PERF (#190): Run checkUsageLimit alongside the cross-user cache read.
     // They hit different tables (usage_limits vs activity_cache) and share

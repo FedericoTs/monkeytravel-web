@@ -17,7 +17,11 @@
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "mt_anon";
-const MAX_GENERATIONS_PER_WINDOW = 2;
+// 2026-07-24: raised 2 → 5 (founder free-tier decision). 5/24h covers a real
+// multi-destination exploration session in one sitting while still nudging
+// signup. The user-facing "you've used your N free trips" copy interpolates
+// this constant, so it stays truthful automatically.
+const MAX_GENERATIONS_PER_WINDOW = 5;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface AnonRateLimitResult {
