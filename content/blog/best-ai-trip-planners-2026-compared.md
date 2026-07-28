@@ -7,7 +7,7 @@ description: >-
   choose the right one.
 author: Riccardo P.
 publishedAt: '2026-03-25'
-updatedAt: '2026-03-25'
+updatedAt: '2026-07-27'
 category: AI Travel
 tags:
   - ai trip planner
@@ -86,17 +86,17 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Weaknesses:** Hotel filters don't always behave correctly — you can set budget parameters and still get results outside your range. This is a real friction point when you're trying to lock in accommodation. It's currently English-only, which limits its reach for non-English travelers.
 
-**Best for:** Travelers who want to research, plan, and book without switching between four different apps. Solid choice for US-based travelers planning domestic or international trips.
+**Best for:** Travelers who want to research, plan, and book without switching between four different apps. Solid choice for US-based travelers planning domestic or international trips. (More detail — and the best alternatives for groups and non-English travelers — in our [Mindtrip review](/blog/mindtrip-review-2026).)
 
 ---
 
 ## 3. Layla AI
 
-**What it does:** Layla is a dedicated AI travel assistant with a 4.9-star rating and over 1.1 million trips planned. The free version gives you solid itinerary generation; the $49/year premium unlocks live pricing pulled from Skyscanner and Booking.com, plus a PriceLock algorithm that alerts you when prices for a route drop. It also uses video content for destination inspiration, which gives it a different feel from text-heavy competitors.
+**What it does:** Layla is a dedicated AI travel assistant with a 4.9-star rating and over 1.1 million trips planned. The free version generates itineraries but shows only a trip overview and total price — the full day-by-day detail now needs the 3-day trial or the $49/year premium, which also unlocks live pricing pulled from Skyscanner and Booking.com plus a PriceLock algorithm that alerts you when prices for a route drop. It also uses video content for destination inspiration, which gives it a different feel from text-heavy competitors. (For the full breakdown, see our [Layla AI review](/blog/layla-ai-review-2026).)
 
 **Strengths:** The live pricing integration is one of the few things in this category that actually works as advertised. If you're price-sensitive and flexible on dates, Layla's PriceLock feature can surface real savings. The founder reportedly handles support personally, which shows in the product quality and responsiveness. This is a genuinely [well-built AI itinerary generator](/ai-itinerary-generator) that goes beyond just day-by-day plans.
 
-**Weaknesses:** There are billing complaints about unexpected charges after the free trial period. This is a recurring theme in reviews and worth being aware of before you enter payment details. The free tier is useful but the most valuable features are paywalled.
+**Weaknesses:** Premium auto-renews after the free trial, so if you're only testing it, set a reminder to cancel before renewal. And the free tier, while useful, paywalls the most valuable features — including the full day-by-day detail.
 
 **Best for:** Budget-conscious travelers who are flexible on timing and want to catch price drops. Solo travelers or couples who want live pricing without a subscription to a full OTA.
 
@@ -110,7 +110,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Weaknesses:** No flights, no rental cars, no multi-country trip support beyond basic cases. Some generated descriptions don't always match the section headers they appear under — a quality control issue that appears in a noticeable percentage of outputs. It's a good tool within narrow use cases.
 
-**Best for:** Single-destination, budget-focused trips where you want a quick structured plan without complexity.
+**Best for:** Single-destination, budget-focused trips where you want a quick structured plan without complexity. (See our [Wonderplan review](/blog/wonderplan-review-2026) for a closer look and stronger free alternatives.)
 
 ---
 
@@ -160,7 +160,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **You want the most accurate real-time data:** Google Gemini. Unbeatable data access, even if the output format needs more manual work.
 
-**You're planning a group trip:** MonkeyTravel's voting feature or Mindtrip's collaborative planning. Most tools in this space still ignore the group use case. For more on this, see our [group trip planner](/group-trip-planner) guide.
+**You're planning a group trip:** MonkeyTravel's voting feature or Mindtrip's collaborative planning. Most tools in this space still ignore the group use case. Wanderlog is another hands-on option, though its AI is behind a paid plan — see our [Wanderlog alternative](/blog/wanderlog-alternative-2026) guide. For more on group planning, see our [group trip planner](/group-trip-planner) guide.
 
 **You're in the early brainstorming phase:** ChatGPT. Best for ideation and research; not your final planning tool.
 
