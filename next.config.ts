@@ -68,10 +68,12 @@ const nextConfig: NextConfig = {
       // standalone captured (18.8k imp/qtr). The standalone post at
       // content/blog/where-to-go-in-august.md (×4 locales) now serves these
       // queries with a real 200, hero, comparison table, and 12 sections.
-      ["where-to-go-in-september", "2026-travel-calendar#september"],
-      ["where-to-go-in-october",   "2026-travel-calendar#october"],
-      ["where-to-go-in-november",  "2026-travel-calendar#november"],
-      ["where-to-go-in-december",  "2026-travel-calendar#december"],
+      // 2026-07-27: where-to-go-in-{september,october,november,december}
+      // redirects REMOVED (April/August playbook). Standalone posts at
+      // content/blog/where-to-go-in-<month>.md now serve these queries with a
+      // real 200 — "where to go in november 2026" (pos 3.6), "where to travel
+      // in december 2026" (pos 2.2), plus Sep/Oct demand — instead of a 308 to
+      // the calendar anchor that can't rank for the ~50 long-tail variants.
       // 3 summer-season dupes → spring/summer pillar
       ["best-summer-destinations-2026",  "spring-summer-travel-guide"],
       ["spring-break-destinations-2026", "spring-summer-travel-guide"],
