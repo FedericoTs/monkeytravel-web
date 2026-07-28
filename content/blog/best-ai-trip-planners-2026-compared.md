@@ -56,7 +56,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 | Tool | Price | Booking Integration | Group Support | Languages | Real-Time Data | Best For |
 |---|---|---|---|---|---|---|
-| **MonkeyTravel** | Free | No | Yes (voting) | EN, ES, IT | No | Itinerary planning, multilingual groups |
+| **MonkeyTravel** | Free | No | Yes (voting) | EN, ES, IT, PT | No | Itinerary planning, multilingual groups |
 | **Mindtrip** | Free | Yes (Priceline/Viator) | Yes | EN | Yes (11M+ POIs) | Research + booking in one place |
 | **Layla AI** | Free / $49/yr | Yes (Skyscanner/Booking) | Limited | EN | Yes (live pricing) | Live pricing, solo/couple trips |
 | **Wonderplan** | Free | No | No | EN | No | Budget-focused quick plans |
@@ -64,13 +64,15 @@ For a broader look at how these tools are reshaping the industry, read our piece
 | **ChatGPT** | Free / $20/mo | Limited (plugins) | No | Many | No | Brainstorming and research |
 | **iPlan.ai** | Free | No | No | EN | No | Mobile-first quick itineraries |
 
+*Prices and features reflect each tool's publicly listed information as of July 2026 and can change — check each provider's own site for the latest.*
+
 ---
 
 ## 1. MonkeyTravel
 
-**What it does:** MonkeyTravel generates day-by-day itineraries with real venue names, estimated prices, and smart routing — all without requiring you to create an account. You pick a destination, set your trip length, choose from three budget tiers (Budget, Balanced, or Premium), and get a structured plan in seconds. It supports English, Spanish, and Italian, and has a group planning feature with a voting system for when your travel companions can't agree.
+**What it does:** MonkeyTravel generates day-by-day itineraries with real venue names, estimated prices, and smart routing — all without requiring you to create an account. You pick a destination, set your trip length, choose from three budget tiers (Budget, Balanced, or Premium), and get a structured plan in seconds. It supports English, Spanish, Italian, and Portuguese, and has a group planning feature with a voting system for when your travel companions can't agree.
 
-**Strengths:** No signup barrier is a real differentiator — you can try it in 30 seconds. The three budget tiers produce meaningfully different itineraries, not just the same plan with different restaurant price ranges. Group voting genuinely solves a pain point that most tools ignore. The multilingual support makes it useful for Spanish and Italian speakers who want planning tools in their own language. For a [free AI trip planner](/free-ai-trip-planner), it covers a lot of ground.
+**Strengths:** No signup barrier is a real differentiator — you can try it in 30 seconds. The three budget tiers produce meaningfully different itineraries, not just the same plan with different restaurant price ranges. Group voting genuinely solves a pain point that most tools ignore. The multilingual support makes it useful for Spanish, Italian, and Portuguese speakers who want planning tools in their own language. For a [free AI trip planner](/free-ai-trip-planner), it covers a lot of ground.
 
 **Weaknesses:** No real-time pricing data. The venue information is AI-generated and should be verified before you book — opening hours and prices won't always be current. There's no flight or hotel booking integration, so you'll still need to open other tabs for that. The tool works best for itinerary structure; it's not a replacement for a booking platform.
 
@@ -84,7 +86,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Strengths:** The 11M+ POI database is genuinely impressive. Mindtrip won Fast Company's "Most Innovative" award in 2025, which isn't marketing fluff — the product earns it. The maps integration means you can see your itinerary geographically, which most competitors still get wrong. It draws around 350,000 monthly US visitors for a reason. Collaborative planning features let you share and refine trips with others.
 
-**Weaknesses:** Hotel filters don't always behave correctly — you can set budget parameters and still get results outside your range. This is a real friction point when you're trying to lock in accommodation. It's currently English-only, which limits its reach for non-English travelers.
+**Weaknesses:** Some reviewers report the hotel filters don't always behave as expected — you can set budget parameters and still see results outside your range, a friction point when you're trying to lock in accommodation. It's currently English-only, which limits its reach for non-English travelers.
 
 **Best for:** Travelers who want to research, plan, and book without switching between four different apps. Solid choice for US-based travelers planning domestic or international trips. (More detail — and the best alternatives for groups and non-English travelers — in our [Mindtrip review](/blog/mindtrip-review-2026).)
 
@@ -108,7 +110,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Strengths:** The budget-first approach is clear and consistent — it doesn't bury cost information. PDF export is a practical feature for travelers who prefer printed itineraries or offline access. The chat-based planning interface makes refinement feel natural rather than form-filling.
 
-**Weaknesses:** No flights, no rental cars, no multi-country trip support beyond basic cases. Some generated descriptions don't always match the section headers they appear under — a quality control issue that appears in a noticeable percentage of outputs. It's a good tool within narrow use cases.
+**Weaknesses:** No flights, no rental cars, no multi-country trip support beyond basic cases. Some reviewers note the generated descriptions don't always match the section headers they appear under — a quality-control quibble worth knowing about. It's a good tool within narrow use cases.
 
 **Best for:** Single-destination, budget-focused trips where you want a quick structured plan without complexity. (See our [Wonderplan review](/blog/wonderplan-review-2026) for a closer look and stronger free alternatives.)
 
@@ -132,7 +134,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Strengths:** If you know how to prompt it well, ChatGPT can produce detailed travel research faster than any manual search. It's particularly good for nuanced questions — "best neighborhood to stay in Lisbon if I have young kids and want good restaurant access" — where Google returns generic listicles. For the planning and ideation phase, it's hard to beat.
 
-**Weaknesses:** No real-time pricing. No maps. No dedicated travel UI. And the hallucination risk is real — it will confidently recommend restaurants that closed two years ago, invent walking distances, and provide outdated visa information. Always verify specifics against official sources. For a deep dive on this, see our piece on [AI Trip Planner vs Travel Agent](/blog/ai-trip-planner-vs-travel-agent).
+**Weaknesses:** No real-time pricing. No maps. No dedicated travel UI. And like all general LLMs, the hallucination risk is real — it can confidently recommend places that have since closed, misjudge walking distances, or surface outdated visa information. Always verify specifics against official sources. For a deep dive on this, see our piece on [AI Trip Planner vs Travel Agent](/blog/ai-trip-planner-vs-travel-agent).
 
 **Best for:** The research and ideation phase of planning, not the final itinerary. Works best as a complement to a dedicated tool, not a replacement.
 

@@ -79,16 +79,16 @@ The core manual planner is genuinely free and generous. The catch is that the *A
 
 ## MonkeyTravel: The Free, AI-First Alternative
 
-Where Wanderlog asks you to build (or pay for AI), [MonkeyTravel](/free-ai-trip-planner) does the opposite: you pick a destination, set your dates and budget, and get a complete day-by-day itinerary — real venue names, estimated prices, smart routing — generated in about 30 seconds, **free, with no signup and no AI message limit**.
+Where Wanderlog asks you to build (or pay for AI), [MonkeyTravel](/free-ai-trip-planner) does the opposite: you pick a destination, set your dates and budget, and get a complete day-by-day itinerary — real venue names, estimated prices, smart routing — generated in about 30 seconds, **free, with no signup and no paywall on the AI**.
 
 | | Wanderlog | MonkeyTravel |
 |---|---|---|
-| AI itinerary generation | Pro only ($39.99/yr) | Free, unlimited |
+| AI itinerary generation | Pro only ($39.99/yr) | Free, no paywall |
 | Signup to start | Required | Not required |
 | Languages | English | EN, ES, IT, PT |
 | Group feature | Co-editing | Voting (decide, not just edit) |
 | Booking import | ✅ | ❌ (planning-focused) |
-| Mobile app | ✅ Mature | ✅ (iOS/Android) |
+| Mobile app | ✅ Mature | ✅ |
 
 Two things MonkeyTravel does that Wanderlog doesn't: it plans in **four languages**, and its **group voting** lets everyone weigh in and settle the plan — see the [group trip planner](/group-trip-planner) guide. It's the AI-first counterpart to Wanderlog's build-it-yourself approach.
 
@@ -111,11 +111,11 @@ Wanderlog Pro is $39.99/year, with no monthly option. It unlocks the AI assistan
 
 ### Is there a free alternative to Wanderlog?
 
-Yes. [MonkeyTravel](/free-ai-trip-planner) is a free, AI-first alternative that generates a full day-by-day itinerary with no signup and no AI message limit. It also supports Spanish, Italian, and Portuguese and has group voting.
+Yes. [MonkeyTravel](/free-ai-trip-planner) is a free, AI-first alternative that generates a full day-by-day itinerary with no signup and no paywall on the AI. It also supports Spanish, Italian, and Portuguese and has group voting.
 
 ### Is Wanderlog's AI free?
 
-Only as a small sample — the free tier includes 5 AI messages. Full AI features require the $39.99/year Pro plan. If you want unlimited AI planning for free, MonkeyTravel is the better fit.
+Only as a small sample — the free tier includes 5 AI messages. Full AI features require the $39.99/year Pro plan. If you want free AI planning with no paywall, MonkeyTravel is the better fit.
 
 ### Is Wanderlog or MonkeyTravel better?
 

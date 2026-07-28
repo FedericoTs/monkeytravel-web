@@ -72,7 +72,7 @@ The human-expert finalization step is included either way, which is a genuinely 
 
 **The paywall is on the part you actually want.** A trip overview and a total price aren't a plan. The day-by-day schedule — the thing you open the tool for — needs the trial or the $49/year premium. For a category where "free AI trip planner" is the single most-searched phrase, that's a meaningful gap.
 
-**It auto-renews.** Like most subscription trials, premium renews automatically when the trial ends. If you're only testing it, set a calendar reminder to cancel before renewal so you aren't charged for a plan you didn't mean to keep.
+**It auto-renews.** Like most subscription trials, premium typically renews automatically when the trial ends. If you're only testing it, check the current cancellation terms and set a calendar reminder to cancel before renewal.
 
 **English-only.** If you plan in Spanish, Italian, or Portuguese, Layla isn't built for you.
 
@@ -130,7 +130,7 @@ Layla is stronger on live pricing and fare tracking; Mindtrip is stronger on bre
 
 ### Does Layla AI auto-renew after the free trial?
 
-Layla's premium plan auto-renews after the trial ends, as most subscription trials do. If you're only testing premium, set a reminder to cancel before it renews so you aren't charged automatically.
+Layla's premium plan appears to auto-renew after the trial ends, as most subscription trials do. If you're only testing premium, check the current terms and set a reminder to cancel before it renews.
 
 ## Sources
 
