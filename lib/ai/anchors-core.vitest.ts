@@ -315,6 +315,15 @@ describe("anchorToActivity", () => {
     expect(day.activities).toHaveLength(1);
     expect(day.activities[0].locked).toBe(true);
   });
+
+  it("buildLockedDay sets theme — the field every view actually renders", () => {
+    // Caught on prod: the wizard result, trip detail, shared view, DaySlider
+    // and OngoingTripView all read day.theme. Setting only `title` left the
+    // wedding day with a blank subtitle while AI-filled days got one.
+    const layout = segmentTrip(TRIP_START, TRIP_END, ITALY_ANCHORS);
+    const day = buildLockedDay(layout.days[4], "EUR");
+    expect(day.theme).toBe("Wedding");
+  });
 });
 
 // ---------------------------------------------------------------------------

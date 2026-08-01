@@ -476,10 +476,17 @@ function sortDayActivities(activities: Activity[]): Activity[] {
 
 /** Build a locked day purely from its anchors (no LLM involved — $0). */
 export function buildLockedDay(day: LayoutDay, currency: string): ItineraryDay {
+  const label = day.anchors[0]?.title;
   return {
     day_number: day.dayNumber,
     date: day.date,
-    title: day.anchors[0]?.title,
+    // `theme` is what every render surface actually reads (wizard result,
+    // trip detail, shared view, DaySlider, OngoingTripView) — LLM days set
+    // it, so a locked day that set only `title` rendered with NO subtitle.
+    // On a heavily-anchored trip that blanked exactly the days the traveller
+    // cares most about (the wedding) while filler days got a nice heading.
+    theme: label,
+    title: label,
     activities: sortDayActivities(day.anchors.map((a) => anchorToActivity(a, currency))),
   };
 }
