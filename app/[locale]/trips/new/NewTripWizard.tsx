@@ -3899,6 +3899,16 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 onChange={setAnchors}
                 startDate={startDate}
                 endDate={endDate}
+                destination={destination}
+                // Pasted items with no day can't be anchors, but they're still
+                // the user's plan — fold them into the free-text requirements
+                // so generation still honours them.
+                onImportUndated={(items) =>
+                  setRequirements((prev) => {
+                    const addition = items.join(". ");
+                    return prev.trim() ? `${prev.trim()}. ${addition}` : addition;
+                  })
+                }
               />
             )}
 

@@ -17,7 +17,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AnchorSlot, AnchorType, TripAnchor } from "@/types";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
-import { captureAnchorPanelOpened } from "@/lib/posthog/events";
+import { captureAnchorPanelOpened, capturePlanImported } from "@/lib/posthog/events";
 
 // Mirrors lib/ai/anchors-core.MAX_ANCHORS (kept local so the solver module
 // stays out of the client bundle).
@@ -45,14 +45,34 @@ function makeId(): string {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+interface DroppedImport {
+  title: string;
+  reason: string;
+}
+
 interface AnchorEditorProps {
   anchors: TripAnchor[];
   onChange: (anchors: TripAnchor[]) => void;
   startDate: string;
   endDate: string;
+  /** Model context for paste-import only — never geocoded (plan §6). */
+  destination?: string;
+  /**
+   * Undated items found in a pasted plan. They can't be anchors (an anchor is
+   * a date-pinned constraint) but they ARE the user's work, so the wizard
+   * folds them into the free-text requirements instead of dropping them.
+   */
+  onImportUndated?: (items: string[]) => void;
 }
 
-export default function AnchorEditor({ anchors, onChange, startDate, endDate }: AnchorEditorProps) {
+export default function AnchorEditor({
+  anchors,
+  onChange,
+  startDate,
+  endDate,
+  destination,
+  onImportUndated,
+}: AnchorEditorProps) {
   // Message files are namespaced per-file (i18n.ts): trips.json → "trips".
   const t = useTranslations("trips");
   const locale = useLocale();
@@ -64,6 +84,19 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
     location: string;
     slot: AnchorSlot;
   }>({ date: "", type: "event", title: "", location: "", slot: "all_day" });
+
+  // Paste-a-plan import (F2). Lives inside the panel rather than as its own
+  // step-1 surface: the closed state must stay one small link, because
+  // step-1→2 conversion is the guardrail metric (task #371).
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSummary, setImportSummary] = useState<{
+    added: number;
+    dropped: DroppedImport[];
+    undated: number;
+  } | null>(null);
 
   // Every date of the trip, capped defensively (route caps the range anyway).
   const dates = useMemo(() => {
@@ -113,6 +146,100 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
 
   const removeAnchor = (id: string) => onChange(anchors.filter((a) => a.id !== id));
 
+  /**
+   * Merge imported anchors into what's already on screen.
+   *
+   * The API guarantees the batch is internally valid, but it knows nothing
+   * about the anchors the user added by hand. Re-enforcing the same two rules
+   * here (no duplicate day+title, one lodging per night) is what keeps a
+   * paste from building a set that /api/ai/generate would reject with a 400 —
+   * which would lose the whole generation, not just the bad item.
+   */
+  const mergeImported = (incoming: TripAnchor[]): { merged: TripAnchor[]; skipped: DroppedImport[] } => {
+    const merged = [...anchors];
+    const skipped: DroppedImport[] = [];
+    const seen = new Set(merged.map((a) => `${a.date}|${a.title.toLowerCase()}`));
+    const lodgingNights = new Set(
+      merged.filter((a) => a.type === "lodging").map((a) => a.date)
+    );
+
+    for (const a of incoming) {
+      if (merged.length >= MAX_ANCHORS) {
+        skipped.push({ title: a.title, reason: "over_limit" });
+        continue;
+      }
+      const key = `${a.date}|${a.title.toLowerCase()}`;
+      if (seen.has(key)) {
+        skipped.push({ title: a.title, reason: "duplicate" });
+        continue;
+      }
+      if (a.type === "lodging" && lodgingNights.has(a.date)) {
+        skipped.push({ title: a.title, reason: "second_lodging_same_night" });
+        continue;
+      }
+      seen.add(key);
+      if (a.type === "lodging") lodgingNights.add(a.date);
+      // Fresh id: the server numbers within one batch, so two imports could
+      // otherwise collide — and duplicate ids are a validateAnchors throw.
+      merged.push({ ...a, id: makeId() });
+    }
+    return { merged, skipped };
+  };
+
+  const importPlan = async () => {
+    const text = pasteText.trim();
+    if (!text || importing) return;
+
+    setImporting(true);
+    setImportError(null);
+    setImportSummary(null);
+
+    try {
+      const res = await fetch("/api/ai/import-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, startDate, endDate, destination }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Keep the pasted text on screen — retyping a plan is exactly the
+        // work this feature exists to save.
+        setImportError(data?.error || t("wizard.anchors.import.error"));
+        return;
+      }
+
+      const incoming: TripAnchor[] = Array.isArray(data.anchors) ? data.anchors : [];
+      const serverDropped: DroppedImport[] = Array.isArray(data.dropped) ? data.dropped : [];
+      const undated: string[] = Array.isArray(data.undated) ? data.undated : [];
+
+      const { merged, skipped } = mergeImported(incoming);
+      const added = merged.length - anchors.length;
+
+      onChange(merged);
+      if (undated.length > 0) onImportUndated?.(undated);
+
+      setImportSummary({
+        added,
+        dropped: [...serverDropped, ...skipped],
+        undated: undated.length,
+      });
+      setPasteText("");
+      setPasteOpen(false);
+
+      void capturePlanImported({
+        text_length: text.length,
+        anchor_count: added,
+        dropped_count: serverDropped.length + skipped.length,
+        undated_count: undated.length,
+      });
+    } catch {
+      setImportError(t("wizard.anchors.import.error"));
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (dates.length === 0) return null;
 
   return (
@@ -157,6 +284,90 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
               </svg>
             </button>
           </div>
+
+          {/* Paste-a-plan import (F2) */}
+          {!pasteOpen ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPasteOpen(true);
+                setImportSummary(null);
+              }}
+              className="mt-2 flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] underline-offset-2 hover:underline"
+            >
+              <span aria-hidden="true">📋</span>
+              {t("wizard.anchors.import.cta")}
+            </button>
+          ) : (
+            <div className="mt-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-2.5">
+              <label
+                htmlFor="anchor-paste"
+                className="mb-1 block text-[11px] font-medium text-slate-500"
+              >
+                {t("wizard.anchors.import.label")}
+              </label>
+              <textarea
+                id="anchor-paste"
+                rows={5}
+                value={pasteText}
+                maxLength={8000}
+                onChange={(e) => setPasteText(e.target.value)}
+                placeholder={t("wizard.anchors.import.placeholder")}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={importPlan}
+                  disabled={importing || pasteText.trim().length < 25}
+                  className="min-h-[44px] flex-1 rounded-lg bg-[var(--primary)] px-3 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {importing ? t("wizard.anchors.import.working") : t("wizard.anchors.import.submit")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasteOpen(false);
+                    setImportError(null);
+                  }}
+                  className="min-h-[44px] rounded-lg border border-slate-200 px-3 text-sm text-slate-600"
+                >
+                  {t("wizard.anchors.import.cancel")}
+                </button>
+              </div>
+              {importError && (
+                <p role="alert" className="mt-1.5 text-[11px] text-red-600">
+                  {importError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Import outcome — say exactly what landed and what didn't. */}
+          {importSummary && (
+            <div
+              role="status"
+              className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[11px] text-emerald-900"
+            >
+              <p className="font-medium">
+                {t("wizard.anchors.import.added", { count: importSummary.added })}
+              </p>
+              {importSummary.dropped.length > 0 && (
+                <p className="mt-0.5 text-emerald-800">
+                  {t("wizard.anchors.import.skipped", { count: importSummary.dropped.length })}{" "}
+                  {importSummary.dropped
+                    .slice(0, 3)
+                    .map((d) => d.title)
+                    .join(", ")}
+                </p>
+              )}
+              {importSummary.undated > 0 && (
+                <p className="mt-0.5 text-emerald-800">
+                  {t("wizard.anchors.import.undated", { count: importSummary.undated })}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Existing anchors */}
           {anchors.length > 0 && (

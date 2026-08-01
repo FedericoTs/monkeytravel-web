@@ -225,7 +225,19 @@
       "add": "Adicionar plano fixo",
       "remove": "Remover",
       "limit": "Máximo de {max} planos fixos",
-      "lockedBadge": "Plano fixo"
+      "lockedBadge": "Plano fixo",
+      "import": {
+        "cta": "Cole um plano que você já tem",
+        "label": "Cole seu plano — extraímos as partes fixas",
+        "placeholder": "Dia 1: chego em Veneza 09:40\n11 set: noite em Trieste\nDia 5: casamento, o dia todo",
+        "submit": "Importar",
+        "working": "Lendo…",
+        "cancel": "Cancelar",
+        "error": "Não conseguimos ler esse plano. Tente novamente.",
+        "added": "{count, plural, =0 {Nada a adicionar: já estava tudo lá} =1 {1 compromisso fixo adicionado} other {# compromissos fixos adicionados}}",
+        "skipped": "{count, plural, =1 {1 ignorado:} other {# ignorados:}}",
+        "undated": "{count, plural, =1 {1 ideia sem data foi para seus pedidos especiais} other {# ideias sem data foram para seus pedidos especiais}}"
+      }
     }
   },
   "vibes": {

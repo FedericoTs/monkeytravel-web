@@ -225,7 +225,19 @@
       "add": "Add fixed plan",
       "remove": "Remove",
       "limit": "Maximum {max} fixed plans",
-      "lockedBadge": "Fixed plan"
+      "lockedBadge": "Fixed plan",
+      "import": {
+        "cta": "Paste a plan you already have",
+        "label": "Paste your plan — we'll pull out the fixed parts",
+        "placeholder": "Day 1: land in Venice 09:40\nSep 11: night in Trieste\nDay 5: wedding, all day",
+        "submit": "Import",
+        "working": "Reading…",
+        "cancel": "Cancel",
+        "error": "Couldn't read that plan. Try again.",
+        "added": "{count, plural, =0 {Nothing new to add — it was all there already} =1 {1 fixed plan added} other {# fixed plans added}}",
+        "skipped": "{count, plural, =1 {1 skipped:} other {# skipped:}}",
+        "undated": "{count, plural, =1 {1 idea with no day went into your special requests} other {# ideas with no day went into your special requests}}"
+      }
     }
   },
   "vibes": {

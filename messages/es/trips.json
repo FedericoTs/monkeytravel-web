@@ -225,7 +225,19 @@
       "add": "Añadir plan fijo",
       "remove": "Eliminar",
       "limit": "Máximo {max} planes fijos",
-      "lockedBadge": "Plan fijo"
+      "lockedBadge": "Plan fijo",
+      "import": {
+        "cta": "Pega un plan que ya tengas",
+        "label": "Pega tu plan — extraemos las partes fijas",
+        "placeholder": "Día 1: llego a Venecia 09:40\n11 sep: noche en Trieste\nDía 5: boda, todo el día",
+        "submit": "Importar",
+        "working": "Leyendo…",
+        "cancel": "Cancelar",
+        "error": "No pudimos leer ese plan. Inténtalo de nuevo.",
+        "added": "{count, plural, =0 {Nada que añadir: ya estaba todo} =1 {1 plan fijo añadido} other {# planes fijos añadidos}}",
+        "skipped": "{count, plural, =1 {1 omitido:} other {# omitidos:}}",
+        "undated": "{count, plural, =1 {1 idea sin fecha pasó a tus peticiones especiales} other {# ideas sin fecha pasaron a tus peticiones especiales}}"
+      }
     }
   },
   "vibes": {

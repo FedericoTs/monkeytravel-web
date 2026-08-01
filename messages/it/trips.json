@@ -225,7 +225,19 @@
       "add": "Aggiungi impegno fisso",
       "remove": "Rimuovi",
       "limit": "Massimo {max} impegni fissi",
-      "lockedBadge": "Impegno fisso"
+      "lockedBadge": "Impegno fisso",
+      "import": {
+        "cta": "Incolla un piano che hai già",
+        "label": "Incolla il tuo piano — estraiamo le parti fisse",
+        "placeholder": "Giorno 1: atterro a Venezia 09:40\n11 set: notte a Trieste\nGiorno 5: matrimonio, tutto il giorno",
+        "submit": "Importa",
+        "working": "Lettura…",
+        "cancel": "Annulla",
+        "error": "Non siamo riusciti a leggere il piano. Riprova.",
+        "added": "{count, plural, =0 {Niente da aggiungere: c'era già tutto} =1 {1 impegno fisso aggiunto} other {# impegni fissi aggiunti}}",
+        "skipped": "{count, plural, =1 {1 saltato:} other {# saltati:}}",
+        "undated": "{count, plural, =1 {1 idea senza data è finita nelle richieste speciali} other {# idee senza data sono finite nelle richieste speciali}}"
+      }
     }
   },
   "vibes": {

@@ -1155,3 +1155,24 @@ export async function captureAnchorPanelOpened(event: AnchorPanelOpenedEvent) {
 export function captureAnchorsGenerated(event: AnchorsGeneratedEvent) {
   captureNavSafe("anchors_generated", event);
 }
+
+export interface PlanImportedEvent {
+  /** Size of the paste — separates one-liners from real itineraries. */
+  text_length: number;
+  /** Anchors that actually landed on screen. */
+  anchor_count: number;
+  /** Items the extractor or the merge refused. High = extraction is weak. */
+  dropped_count: number;
+  /** Undated items routed to the requirements box instead. */
+  undated_count: number;
+}
+
+/**
+ * Fired after a successful paste-a-plan import (F2). Stays async — the panel
+ * doesn't navigate, so there's no race to lose. A high dropped_count relative
+ * to anchor_count is the signal that the extraction prompt needs work.
+ */
+export async function capturePlanImported(event: PlanImportedEvent) {
+  const ph = await getPosthog();
+  ph.capture("plan_imported", event);
+}
