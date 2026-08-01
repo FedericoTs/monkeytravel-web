@@ -131,6 +131,15 @@ export interface Activity {
   booking_url?: string;
   official_website?: string;
   image_url?: string;
+  /**
+   * Anchored-trip support (F1 of docs/CONSTRAINT_PLANNER_PLAN.md): true when
+   * this activity is a user-fixed commitment (flight, wedding, booked night)
+   * materialized deterministically from a TripAnchor — editors, regeneration
+   * and the AI assistant must never move, replace or delete it.
+   */
+  locked?: boolean;
+  /** Id of the TripAnchor this locked activity was materialized from. */
+  anchor_id?: string;
 }
 
 export interface DailyBudget {
@@ -234,6 +243,12 @@ export interface TripMeta {
   // Cached travel distances to avoid API calls on repeat visits
   travel_distances?: CachedDayTravelData[];
   travel_distances_hash?: string;  // Hash of itinerary used to validate cache
+  /**
+   * Fixed commitments this trip was generated around (F1 anchored planning).
+   * Persisted so regeneration/editing can keep honouring them. JSONB-only —
+   * no migration needed (trip_meta.cities precedent).
+   */
+  anchors?: TripAnchor[];
 }
 
 // ============================================================================
@@ -334,6 +349,52 @@ export interface UserProfilePreferences {
   activeHoursEnd?: number;        // Hour when user prefers to end activities (e.g., 22 = 10:00 PM)
 }
 
+// ============================================================================
+// TRIP ANCHORS (F1 — constraint-aware planning, docs/CONSTRAINT_PLANNER_PLAN.md)
+// ============================================================================
+
+/**
+ * When during the day an anchor happens. Extends activity TimeSlot with
+ * "all_day" — an all-day anchor locks the whole day (the generator plans
+ * nothing on it). Travellers who are DONE after a commitment (e.g. a
+ * departure flight) should use "all_day" so nothing gets planned after it.
+ */
+export type AnchorSlot = TimeSlot | "all_day";
+
+/** What kind of fixed commitment an anchor represents. */
+export type AnchorType = "transport" | "event" | "lodging" | "meetup" | "custom";
+
+/**
+ * A fixed, user-owned commitment the generated trip MUST plan around:
+ * a flight, a wedding, a night that has to end in a specific town.
+ * Pure data — all solving logic lives in lib/ai/anchors-core.ts.
+ */
+export interface TripAnchor {
+  /** Client-generated stable id (uuid). */
+  id: string;
+  /** YYYY-MM-DD — must fall inside the trip range. */
+  date: string;
+  /**
+   * Omitted ⇒ "all_day" for transport/event/meetup/custom, "evening" for
+   * lodging. Lodging never locks a day — it constrains where the day ENDS.
+   */
+  time_slot?: AnchorSlot;
+  /** Optional exact start "HH:MM" (24h). */
+  start_time?: string;
+  type: AnchorType;
+  /** Short human label ("Wedding in Trieste", "Land at VCE 09:40"). */
+  title: string;
+  /** Free-text place ("Trieste", "Venice Marco Polo Airport"). */
+  location?: string;
+  /**
+   * Optional resolved coordinates. Only ever set from the existing
+   * rate-limited autocomplete — NEVER from a new paid Places lookup
+   * (cost invariant, plan §6).
+   */
+  place?: { lat: number; lng: number; place_id?: string };
+  notes?: string;
+}
+
 // Trip creation params
 export interface TripCreationParams {
   destination: string;
@@ -364,6 +425,14 @@ export interface TripCreationParams {
    * (full back-compat). `destination` still carries the combined display label.
    */
   destinations?: { city: string; nights: number }[];
+  /**
+   * Constraint-aware planning (F1, docs/CONSTRAINT_PLANNER_PLAN.md). When
+   * present with ≥1 anchor, /api/ai/generate routes to the anchored planner
+   * (lib/ai/anchored): deterministic segmentation around the anchors →
+   * per-segment parallel generation → deterministic merge. Absent ⇒ existing
+   * paths (full back-compat). Mutually exclusive with `destinations` in v1.
+   */
+  anchors?: TripAnchor[];
   // Profile-based preferences (fetched automatically from user profile)
   profilePreferences?: UserProfilePreferences;
 }
