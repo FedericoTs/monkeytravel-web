@@ -52,7 +52,8 @@ interface AnchorEditorProps {
 }
 
 export default function AnchorEditor({ anchors, onChange, startDate, endDate }: AnchorEditorProps) {
-  const t = useTranslations();
+  // Message files are namespaced per-file (i18n.ts): trips.json → "trips".
+  const t = useTranslations("trips");
   const locale = useLocale();
   const [expanded, setExpanded] = useState(anchors.length > 0);
   const [draft, setDraft] = useState<{
