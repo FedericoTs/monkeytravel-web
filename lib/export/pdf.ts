@@ -214,9 +214,10 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.text(`${locationText.substring(0, 55)}${locationText.length > 55 ? "..." : ""}`, margin + 11, yPosition + 26);
 
       // Cost
-      const costText = activity.estimated_cost.amount === 0
+      const costAmount = activity.estimated_cost?.amount ?? 0;
+      const costText = costAmount === 0
         ? "Free"
-        : `${activity.estimated_cost.currency} ${activity.estimated_cost.amount}`;
+        : `${activity.estimated_cost?.currency ?? ""} ${costAmount}`.trim();
       doc.text(costText, pageWidth - margin - 15, yPosition + 26);
 
       yPosition += 35;

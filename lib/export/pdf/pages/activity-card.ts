@@ -160,7 +160,7 @@ export function renderActivityCard(
   doc.text(locationText, contentX + padding + 5, footerY);
 
   // Cost (right side)
-  const cost = activity.estimated_cost.amount;
+  const cost = activity.estimated_cost?.amount ?? 0;
   const costText = cost === 0 ? "Free" : `${currency} ${cost}`;
   const costColor = cost === 0 ? COLORS.secondary : COLORS.text;
   doc.setTextColor(...costColor);
@@ -257,7 +257,7 @@ export function renderCompactActivityCard(
   doc.text(location, x + 80, y + 15);
 
   // Cost
-  const cost = activity.estimated_cost.amount;
+  const cost = activity.estimated_cost?.amount ?? 0;
   const costText = cost === 0 ? "Free" : `${currency} ${cost}`;
   const compactCostColor = cost === 0 ? COLORS.secondary : COLORS.text;
   doc.setTextColor(...compactCostColor);

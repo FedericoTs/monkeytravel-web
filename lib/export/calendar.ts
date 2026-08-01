@@ -68,8 +68,8 @@ export function generateICS(trip: TripForExport): string {
         "",
         `Type: ${activity.type}`,
         `Duration: ${activity.duration_minutes} minutes`,
-        activity.estimated_cost.amount > 0
-          ? `Estimated cost: ${activity.estimated_cost.currency} ${activity.estimated_cost.amount}`
+        (activity.estimated_cost?.amount ?? 0) > 0
+          ? `Estimated cost: ${activity.estimated_cost?.currency ?? ""} ${activity.estimated_cost?.amount}`
           : "Free entry",
         "",
         ...(activity.tips?.length ? ["Tips:", ...activity.tips.map((t) => `- ${t}`)] : []),
