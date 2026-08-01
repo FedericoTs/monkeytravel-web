@@ -22,12 +22,13 @@ export interface PrefilledDestination {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { Activity, GeneratedItinerary, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { Activity, GeneratedItinerary, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
+import AnchorEditor from "@/components/trip/AnchorEditor";
 import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
@@ -447,6 +448,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     { city: "", nights: 3 },
     { city: "", nights: 2 },
   ]);
+  // F1 anchored trips: fixed commitments (flights, weddings, booked nights)
+  // the generated plan must build around. Collapsed AnchorEditor on step 1;
+  // sent to /api/ai/generate and persisted into trip_meta.anchors at save.
+  const [anchors, setAnchors] = useState<TripAnchor[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   // "I'm flexible" escape hatch for the required-dates gate (step 1). Tracks
@@ -970,6 +975,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         if (draft.travelStyle === "backpacker") {
           setTravelStyle("backpacker");
         }
+        if (draft.anchors && draft.anchors.length > 0) {
+          setAnchors(draft.anchors);
+        }
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
           // Save Sprint T1: the restored trip becomes the session stack's
@@ -1013,9 +1021,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         vibes: selectedVibes,
         budgetTier,
         travelStyle,
+        anchors,
       });
     }
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, saveDraft]);
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, saveDraft]);
 
   // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
@@ -1416,6 +1425,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       { city: "", nights: 3 },
       { city: "", nights: 2 },
     ]);
+    setAnchors([]);
   };
 
   // Derive interests from selected vibes for AI prompt compatibility.
@@ -1506,6 +1516,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         vibes: selectedVibes,
         budgetTier,
         travelStyle,
+        anchors,
       });
     }
 
@@ -1577,6 +1588,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         requirements: requirements || undefined,
         travelStyle,
         ...(isMultiCity ? { destinations: mcLegs! } : {}),
+        // Anchored trips (F1): fixed commitments the plan must build around.
+        // Mutually exclusive with multi-city in v1 — the panel is hidden in
+        // multi-city mode, and this guard keeps stale state out of the call.
+        ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
       };
 
       // Reset stream progress for this generation.
@@ -1591,9 +1606,11 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // the conditional checks below well-typed.
       let streamedItinerary: GeneratedItinerary | null = null as GeneratedItinerary | null;
       let streamError: { error: string; code?: string } | null = null as { error: string; code?: string } | null;
-      // Multi-city returns one merged JSON body, not an SSE stream — skip the
-      // streaming endpoint and let the JSON fallback below carry `destinations`.
-      if (!isMultiCity) try {
+      // Multi-city and anchored trips return one merged JSON body, not an SSE
+      // stream — skip the streaming endpoint and let the JSON fallback below
+      // carry `destinations`/`anchors`.
+      const isAnchored = !isMultiCity && anchors.length > 0;
+      if (!isMultiCity && !isAnchored) try {
         await streamGeneration(
           params,
           {
@@ -1867,6 +1884,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             // generate-time draft write includes it, but this path didn't,
             // so the flag was silently dropped on the post-signup restore.
             travelStyle,
+            // Same lesson for F1 anchors: without this, the post-signup save
+            // would silently drop trip_meta.anchors.
+            anchors,
           });
         }
         // Funnel disambiguation: save_clicked > saved is the dominant
@@ -1932,6 +1952,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
         booking_links: generatedItinerary.booking_links,
         destination_best_for: generatedItinerary.destination.best_for,
         packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
+        // F1 anchors: persist the fixed commitments this trip was built
+        // around so regeneration/editing keeps honouring them.
+        ...(anchors.length > 0 ? { anchors } : {}),
       };
 
       // Server-side dedupe (defense in depth): before INSERT, check if the
@@ -2274,6 +2297,9 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     setGeneratedItinerary(snap.itinerary);
     setDestinationCoords(null);
     setMultiCityMode(false);
+    // Session-tray snapshots don't carry anchors — clear so a swapped trip
+    // never inherits another trip's fixed commitments.
+    setAnchors([]);
     setError(null);
   };
 
@@ -2949,6 +2975,15 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                                   )}
                                 </div>
                                 <h4 className="font-semibold text-slate-900">
+                                  {activity.locked && (
+                                    <span
+                                      className="mr-1"
+                                      title={t("wizard.anchors.lockedBadge")}
+                                      aria-label={t("wizard.anchors.lockedBadge")}
+                                    >
+                                      📌
+                                    </span>
+                                  )}
                                   {activity.name}
                                 </h4>
                                 {activity.description && (
@@ -3828,6 +3863,20 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
                 </div>
               )}
             </div>
+
+            {/* F1 anchored trips: "I have fixed plans" — collapsed by default
+                to a single small text link (step-1→2 conversion is the fragile
+                guardrail metric, task #371). Needs dates (anchors are
+                date-specific); hidden in multi-city mode (v1 exclusivity,
+                mirrors the API guard). */}
+            {!(MULTI_CITY_ENABLED && multiCityMode) && startDate && endDate && (
+              <AnchorEditor
+                anchors={anchors}
+                onChange={setAnchors}
+                startDate={startDate}
+                endDate={endDate}
+              />
+            )}
 
             {/* Seasonal Context Card - Auto-displays when both are set */}
             {destination && startDate && endDate && (

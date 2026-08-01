@@ -2349,5 +2349,6 @@
     "viewAction": "Ver →",
     "likesTitle": "Me gusta",
     "savesTitle": "Guardados"
-  }
+  },
+  "lockedActivity": "Plan fijo"
 }

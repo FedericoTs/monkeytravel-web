@@ -196,6 +196,36 @@
       "shareForVotes": "Ask your crew to vote",
       "notSavedPill": "Not saved",
       "sessionTrayTitle": "{count} trips this session — none saved yet"
+    },
+    "anchors": {
+      "cta": "I have fixed plans (flight, wedding, hotel…)",
+      "title": "Fixed plans",
+      "subtitle": "Your itinerary is built around these — they never move.",
+      "collapse": "Collapse",
+      "date": "Day",
+      "type": "Type",
+      "type_transport": "Flight / transport",
+      "type_event": "Event",
+      "type_lodging": "Overnight stay",
+      "type_meetup": "Meeting people",
+      "type_custom": "Other",
+      "titleLabel": "What is it?",
+      "titlePlaceholder": "e.g. Wedding in Trieste",
+      "locationLabel": "Where? (optional)",
+      "locationPlaceholder": "Where? e.g. Trieste (optional)",
+      "when": "When",
+      "slot": {
+        "all_day": "All day",
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening"
+      },
+      "lodgingHint": "Overnight: that day's plan will end near this place.",
+      "allDayHint": "Nothing else will be planned on this day.",
+      "add": "Add fixed plan",
+      "remove": "Remove",
+      "limit": "Maximum {max} fixed plans",
+      "lockedBadge": "Fixed plan"
     }
   },
   "vibes": {

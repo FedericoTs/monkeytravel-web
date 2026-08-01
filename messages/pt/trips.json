@@ -196,6 +196,36 @@
       "shareForVotes": "Peça votos ao seu grupo",
       "notSavedPill": "Não salvo",
       "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda"
+    },
+    "anchors": {
+      "cta": "Tenho planos fixos (voo, casamento, hotel…)",
+      "title": "Planos fixos",
+      "subtitle": "Seu roteiro é construído em torno desses planos — eles nunca mudam.",
+      "collapse": "Recolher",
+      "date": "Dia",
+      "type": "Tipo",
+      "type_transport": "Voo / transporte",
+      "type_event": "Evento",
+      "type_lodging": "Hospedagem",
+      "type_meetup": "Encontro",
+      "type_custom": "Outro",
+      "titleLabel": "O que é?",
+      "titlePlaceholder": "ex.: Casamento em Trieste",
+      "locationLabel": "Onde? (opcional)",
+      "locationPlaceholder": "Onde? ex.: Trieste (opcional)",
+      "when": "Quando",
+      "slot": {
+        "all_day": "O dia todo",
+        "morning": "Manhã",
+        "afternoon": "Tarde",
+        "evening": "Noite"
+      },
+      "lodgingHint": "Hospedagem: esse dia terminará perto deste lugar.",
+      "allDayHint": "Nada mais será planejado nesse dia.",
+      "add": "Adicionar plano fixo",
+      "remove": "Remover",
+      "limit": "Máximo de {max} planos fixos",
+      "lockedBadge": "Plano fixo"
     }
   },
   "vibes": {

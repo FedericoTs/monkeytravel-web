@@ -296,6 +296,13 @@ function ActivityCard({
                   >
                     {activity.type}
                   </span>
+                  {activity.locked && (
+                    /* F1 anchored trips: user-fixed commitment — never moved,
+                       replaced or deleted by generation/editing. */
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                      📌 {t("lockedActivity")}
+                    </span>
+                  )}
                   {activity.booking_required && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                       {t('activity.booking')}

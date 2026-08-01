@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import type { GeneratedItinerary } from "@/types";
+import type { GeneratedItinerary, TripAnchor } from "@/types";
 
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
 const DRAFT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -21,6 +21,12 @@ export interface ItineraryDraft {
    * "classic" in the wizard).
    */
   travelStyle?: "classic" | "backpacker";
+  /**
+   * F1 fixed commitments (anchored trips). Optional for back-compat with
+   * older drafts. Must survive the auth round trip so the post-signup save
+   * still persists trip_meta.anchors (same lesson as travelStyle above).
+   */
+  anchors?: TripAnchor[];
   savedAt: number;
   userId?: string;
 }

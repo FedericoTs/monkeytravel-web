@@ -2349,5 +2349,6 @@
     "viewAction": "Vedi →",
     "likesTitle": "Mi piace",
     "savesTitle": "Salvati"
-  }
+  },
+  "lockedActivity": "Impegno fisso"
 }

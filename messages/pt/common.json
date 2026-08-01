@@ -2349,5 +2349,6 @@
     "viewAction": "Ver →",
     "likesTitle": "Curtidas",
     "savesTitle": "Salvos"
-  }
+  },
+  "lockedActivity": "Plano fixo"
 }
