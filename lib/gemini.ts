@@ -170,8 +170,26 @@ const CACHE_HIT_RATE_WINDOW = 50; // last N calls
 const CACHE_HIT_RATE_ALERT_THRESHOLD = 15; // %; below this we emit a warning
 const CACHE_HIT_RATE_MIN_SAMPLES = 20; // don't alert until we have a real signal
 const CACHE_HIT_RATE_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 alert/hour max
-let cacheHitRolling: number[] = []; // % per call (0-100)
-let lastCacheAlertAt = 0;
+
+/**
+ * Gemini implicit caching only engages once the prompt clears a model-specific
+ * floor (1,024 tokens on the 2.5 Flash tier, 2,048 on Pro). Below it,
+ * `cachedContentTokenCount` is ALWAYS 0 — no prompt reordering can change
+ * that. Feeding those calls into the rolling average produced a permanent
+ * false alarm (Sentry JAVASCRIPT-NEXTJS-1P fired on ai.assistant-anon, whose
+ * whole prompt template is only ~540 tokens — structurally uncacheable, and
+ * worth ~$0.0001/call even if it weren't). Skip them so the metric measures
+ * only calls where caching is actually possible.
+ */
+const CACHE_MIN_ELIGIBLE_PROMPT_TOKENS = 1024;
+
+// Per-endpoint windows. Previously ONE module-level array pooled every
+// endpoint together, so a high-traffic small-prompt surface could drag the
+// global average under the threshold and mask a real cache regression on a
+// big-prompt endpoint (trip generation), or vice versa. Keyed by the same
+// label callers already pass in.
+const cacheHitRolling = new Map<string, number[]>(); // endpoint -> % per call (0-100)
+const lastCacheAlertAt = new Map<string, number>();
 
 /**
  * Exported so every API route that calls Gemini can wire the same
@@ -217,28 +235,37 @@ export function logCacheMetrics(
     console.log(`[Gemini Cache] Savings: $${savings.toFixed(6)} from cached tokens`);
   }
 
-  // Rolling cache-hit-rate alerting
-  if (promptTokenCount > 0) {
-    cacheHitRolling.push(cacheHitRatePct);
-    if (cacheHitRolling.length > CACHE_HIT_RATE_WINDOW) {
-      cacheHitRolling = cacheHitRolling.slice(-CACHE_HIT_RATE_WINDOW);
-    }
-    if (cacheHitRolling.length >= CACHE_HIT_RATE_MIN_SAMPLES) {
-      const avg =
-        cacheHitRolling.reduce((a, b) => a + b, 0) / cacheHitRolling.length;
+  // Rolling cache-hit-rate alerting — per endpoint, and only for calls whose
+  // prompt is large enough for implicit caching to engage at all.
+  if (promptTokenCount >= CACHE_MIN_ELIGIBLE_PROMPT_TOKENS) {
+    const series = cacheHitRolling.get(endpoint) ?? [];
+    series.push(cacheHitRatePct);
+    cacheHitRolling.set(
+      endpoint,
+      series.length > CACHE_HIT_RATE_WINDOW
+        ? series.slice(-CACHE_HIT_RATE_WINDOW)
+        : series
+    );
+
+    const window = cacheHitRolling.get(endpoint)!;
+    if (window.length >= CACHE_HIT_RATE_MIN_SAMPLES) {
+      const avg = window.reduce((a, b) => a + b, 0) / window.length;
       const now = Date.now();
       if (
         avg < CACHE_HIT_RATE_ALERT_THRESHOLD &&
-        now - lastCacheAlertAt > CACHE_HIT_RATE_ALERT_COOLDOWN_MS
+        now - (lastCacheAlertAt.get(endpoint) ?? 0) >
+          CACHE_HIT_RATE_ALERT_COOLDOWN_MS
       ) {
-        lastCacheAlertAt = now;
+        lastCacheAlertAt.set(endpoint, now);
         const msg =
-          `[Gemini Cache] ⚠ Rolling cache-hit rate over the last ` +
-          `${cacheHitRolling.length} calls is ${avg.toFixed(1)}% ` +
-          `(threshold: ${CACHE_HIT_RATE_ALERT_THRESHOLD}%). Likely cause: ` +
-          `a non-cacheable prefix at the start of the prompt (timestamp, ` +
-          `request ID, locale-dynamic header). Audit lib/prompts.ts and ` +
-          `move dynamic content to the END of the prompt.`;
+          `[Gemini Cache] ⚠ ${endpoint}: rolling cache-hit rate over the last ` +
+          `${window.length} cache-eligible calls is ${avg.toFixed(1)}% ` +
+          `(threshold: ${CACHE_HIT_RATE_ALERT_THRESHOLD}%). These prompts DO ` +
+          `clear the ${CACHE_MIN_ELIGIBLE_PROMPT_TOKENS}-token implicit-cache ` +
+          `floor, so this is a real regression. Likely cause: a non-cacheable ` +
+          `prefix at the start of the prompt (timestamp, request ID, ` +
+          `locale-dynamic header). Move dynamic content to the END so the ` +
+          `leading system/schema block stays byte-identical across calls.`;
         console.warn(msg);
         // Best-effort Sentry capture — wrapped so a missing/failed Sentry
         // never breaks the Gemini call path. Imported lazily so the
@@ -1701,8 +1728,22 @@ export function validateTripParams(
   }
 
   // Date validation
-  const start = new Date(params.startDate);
-  const end = new Date(params.endDate);
+  //
+  // Strict YYYY-MM-DD shape check FIRST. `new Date("20220-08-11")` (5-digit
+  // year, reachable because <input type="date"> accepts years up to 275760)
+  // parses fine under the lenient legacy parser, so it used to sail through
+  // this function — then blew up downstream in addDaysISO(), which appends
+  // "T00:00:00Z" and hits the STRICT ISO parser where a 5-digit year is
+  // Invalid Date (Sentry JAVASCRIPT-NEXTJS-1J, multi-city generation).
+  // Anchoring the format here closes that asymmetry for every caller and
+  // returns a clean 400 instead of a crash mid-generation.
+  const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+  if (!ISO_DATE.test(params.startDate ?? "") || !ISO_DATE.test(params.endDate ?? "")) {
+    return { valid: false, error: "Invalid date format" };
+  }
+
+  const start = new Date(`${params.startDate}T00:00:00Z`);
+  const end = new Date(`${params.endDate}T00:00:00Z`);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
