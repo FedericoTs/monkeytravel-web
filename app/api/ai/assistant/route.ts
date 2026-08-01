@@ -21,6 +21,7 @@ import {
   estimateCost,
 } from "@/lib/ai/config";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -936,7 +937,12 @@ export async function POST(request: NextRequest) {
 
       const found = findActivityByName(itinerary, actionIntent.activityName);
 
-      if (found) {
+      if (found && isLockedActivity(found.activity)) {
+        // F1 anchors are user-owned. The panel promises "they never move", so
+        // the assistant must honour that too — not just the regen routes.
+        replacementError = `"${found.activity.name}" is a fixed plan, so I won't replace it. If it really changed, edit it in the trip's fixed plans first.`;
+        console.log(`[AI Assistant] Refused replace on locked activity: "${found.activity.name}"`);
+      } else if (found) {
         console.log(`[AI Assistant] Found activity to replace: "${found.activity.name}" on Day ${found.dayIndex + 1}`);
 
         try {
@@ -1161,7 +1167,11 @@ export async function POST(request: NextRequest) {
 
       const found = findActivityByName(itinerary, actionIntent.activityName);
 
-      if (found) {
+      if (found && isLockedActivity(found.activity)) {
+        // A wedding doesn't become 30 minutes shorter because the AI said so.
+        replacementError = `"${found.activity.name}" is a fixed plan, so I won't change how long it runs.`;
+        console.log(`[AI Assistant] Refused duration change on locked activity: "${found.activity.name}"`);
+      } else if (found) {
         const oldDuration = found.activity.duration_minutes || 60;
         let newDuration: number;
 
@@ -1250,10 +1260,18 @@ export async function POST(request: NextRequest) {
         const targetDayIndex = Math.min(targetDayNumber - 1, modifiedItinerary.length - 1);
         const targetDay = modifiedItinerary[targetDayIndex];
 
+        const lockedOnDay = lockedActivityNames(targetDay);
+
         if (!targetDay || targetDay.activities.length < 2) {
           replacementError = targetDay?.activities.length < 2
             ? `Day ${targetDayNumber} has only ${targetDay?.activities.length || 0} activities - nothing to reorder`
             : `Day ${targetDayNumber} not found in your itinerary`;
+        } else if (lockedOnDay.length > 0) {
+          // Guarded at DAY level, not just the named activity: reordering
+          // shuffles start times across the whole day, so a pinned commitment
+          // would move even when it isn't the thing the user named.
+          replacementError = `Day ${targetDayNumber} is built around a fixed plan (${lockedOnDay.join(", ")}), so I won't reshuffle it.`;
+          console.log(`[AI Assistant] Refused reorder on day ${targetDayNumber} with locked: ${lockedOnDay.join(", ")}`);
         } else {
           // If moving a specific activity to a time slot
           if (actionIntent.activityName && actionIntent.targetTimeSlot) {
@@ -1575,8 +1593,17 @@ Return ONLY a JSON array with the optimal order of activity indices:
     // Maps the draft onto the CURRENT trip length and proposes ONE bulk
     // multi-day edit. Never changes trip length (that's add_day's job).
     if (structuralIntent.type === "apply_draft") {
+      const lockedAcrossTrip = modifiedItinerary.flatMap((d) => lockedActivityNames(d));
+
       if (modifiedItinerary.length === 0) {
         replacementError = "This trip has no itinerary days yet, so there is nothing to revise";
+      } else if (lockedAcrossTrip.length > 0) {
+        // apply_draft rewrites whole days in bulk, which would erase anchors.
+        // Pasting a plan onto an anchored trip has a proper home — the "Paste
+        // a plan" import in the fixed-plans panel, which merges instead of
+        // overwriting — so point there rather than silently clobbering.
+        replacementError = `This trip is built around fixed plans (${lockedAcrossTrip.slice(0, 3).join(", ")}), so I won't rewrite it from a pasted draft. Use "Paste a plan" in the trip's fixed plans to merge new items instead.`;
+        console.log(`[AI Assistant] Refused apply_draft on anchored trip (${lockedAcrossTrip.length} locked)`);
       } else {
         console.log(`[AI Assistant] Attempting to map pasted draft onto ${modifiedItinerary.length} days`);
         try {

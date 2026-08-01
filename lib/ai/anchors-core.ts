@@ -474,6 +474,28 @@ function sortDayActivities(activities: Activity[]): Activity[] {
   });
 }
 
+/**
+ * True when an activity came from an anchor and must not be touched by AI.
+ *
+ * Anchors are USER-OWNED state. The traveller may delete one by hand at any
+ * time; no AI path may replace, retime, reorder or drop it. The regenerate-day
+ * and regenerate-activity routes already enforce this — the assistant is the
+ * other editing surface, and per session-replay it's the one people actually
+ * use, so the same rule has to hold there.
+ */
+export function isLockedActivity(activity: { locked?: boolean } | null | undefined): boolean {
+  return activity?.locked === true;
+}
+
+/** Names of the anchored activities on a day, for a specific refusal message. */
+export function lockedActivityNames(
+  day: { activities?: Array<{ locked?: boolean; name?: string }> } | null | undefined
+): string[] {
+  return (day?.activities ?? [])
+    .filter(isLockedActivity)
+    .map((a) => a.name?.trim() || "Fixed plan");
+}
+
 /** Build a locked day purely from its anchors (no LLM involved — $0). */
 export function buildLockedDay(day: LayoutDay, currency: string): ItineraryDay {
   const label = day.anchors[0]?.title;

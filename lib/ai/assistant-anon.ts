@@ -16,6 +16,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logCacheMetrics } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import type { Activity, ItineraryDay } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -231,17 +232,28 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   const reply = str(obj.reply, "").trim();
 
   let edit: DayEdit | null = null;
+  /** Set when an edit was withheld because the day carries F1 anchors. */
+  let lockedRefusal: { dayNumber: number; names: string[] } | null = null;
   const rawEdit = obj.edit;
   if (rawEdit && typeof rawEdit === "object") {
     const e = rawEdit as Record<string, unknown>;
     const dayNumber = Math.round(num(e.day_number, 0));
     const exists = input.days.some((d) => d.day_number === dayNumber);
+    // A DayEdit REPLACES the whole day's activities, so a day holding an
+    // anchor would lose it entirely. Anchors are user-owned (F1): only the
+    // traveller removes one, never the AI.
+    const lockedNames = lockedActivityNames(
+      input.days.find((d) => d.day_number === dayNumber)
+    );
+    if (exists && lockedNames.length > 0) {
+      lockedRefusal = { dayNumber, names: lockedNames };
+    }
     const rawActs = Array.isArray(e.activities) ? e.activities : [];
     const activities = rawActs
       .map((r, i) => normalizeActivity(r, i, cur))
       .filter((x): x is Activity => x !== null);
     // Only surface an edit if it targets a real day and yields renderable activities.
-    if (exists && activities.length > 0) {
+    if (exists && activities.length > 0 && lockedNames.length === 0) {
       edit = {
         day_number: dayNumber,
         summary: str(e.summary, reply || "Updated your day"),
@@ -251,8 +263,12 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     }
   }
 
-  const finalReply =
-    reply || (edit ? edit.summary : "Here to help — ask me anything about your trip.");
+  // The model's own reply would say "I've updated Day 5". Leaving that in
+  // while withholding the edit is worse than the bug — the UI would claim a
+  // change that never happened. Override it.
+  const finalReply = lockedRefusal
+    ? `Day ${lockedRefusal.dayNumber} is built around a fixed plan (${lockedRefusal.names.join(", ")}), so I left it as it is. I can rework the other days instead.`
+    : reply || (edit ? edit.summary : "Here to help — ask me anything about your trip.");
 
   return {
     reply: finalReply,

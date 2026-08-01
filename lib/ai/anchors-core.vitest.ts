@@ -5,6 +5,8 @@ import {
   MAX_ANCHORS,
   anchorToActivity,
   buildLockedDay,
+  isLockedActivity,
+  lockedActivityNames,
   buildSegmentBrief,
   effectiveSlot,
   haversineKm,
@@ -473,5 +475,44 @@ describe("validateMergedItinerary (violations)", () => {
     wedding.activities = wedding.activities.filter((a) => a.anchor_id !== "a4");
     const issues = validateMergedItinerary(layout, itinerary);
     expect(issues.some((i) => i.includes("Wedding") && i.includes("missing"))).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Locked-activity predicates — the contract every AI editing surface relies on
+// ---------------------------------------------------------------------------
+
+describe("isLockedActivity / lockedActivityNames", () => {
+  it("only treats locked === true as locked", () => {
+    expect(isLockedActivity({ locked: true })).toBe(true);
+    expect(isLockedActivity({ locked: false })).toBe(false);
+    expect(isLockedActivity({})).toBe(false);
+    expect(isLockedActivity(null)).toBe(false);
+    expect(isLockedActivity(undefined)).toBe(false);
+  });
+
+  it("names the anchored activities on a day so refusals can be specific", () => {
+    const day = {
+      activities: [
+        { locked: true, name: "Wedding" },
+        { locked: false, name: "Museum" },
+        { name: "Dinner" },
+        { locked: true, name: "  " },
+      ],
+    };
+    expect(lockedActivityNames(day)).toEqual(["Wedding", "Fixed plan"]);
+  });
+
+  it("returns an empty list for a free day or missing input", () => {
+    expect(lockedActivityNames({ activities: [{ name: "Museum" }] })).toEqual([]);
+    expect(lockedActivityNames({})).toEqual([]);
+    expect(lockedActivityNames(null)).toEqual([]);
+  });
+
+  it("flags every day built by buildLockedDay — the anchored path end to end", () => {
+    const layout = segmentTrip(TRIP_START, TRIP_END, ITALY_ANCHORS);
+    const day = buildLockedDay(layout.days[4], "EUR");
+    expect(lockedActivityNames(day)).toEqual(["Wedding"]);
+    expect(day.activities.every((a) => isLockedActivity(a))).toBe(true);
   });
 });
