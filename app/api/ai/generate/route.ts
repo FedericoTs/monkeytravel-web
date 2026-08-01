@@ -38,6 +38,8 @@ import {
   validateLegs,
   type CityLeg,
 } from "@/lib/ai/multi-city";
+import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
+import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
@@ -166,6 +168,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Anchored trips (F1, docs/CONSTRAINT_PLANNER_PLAN.md): fixed commitments
+    // the plan must honour — a wedding, a flight, a night that must end in a
+    // specific town. Backward-compatible: requests without `anchors` are
+    // untouched. Mutually exclusive with multi-city in v1 (the anchored
+    // planner derives its own geography from the anchors themselves).
+    if (Array.isArray(body.anchors) && body.anchors.length > 0) {
+      if (isMultiCity) {
+        return errors.badRequest("anchors cannot be combined with multi-city trips yet");
+      }
+      const anchors = body.anchors as TripAnchor[];
+      try {
+        validateAnchors(params.startDate, params.endDate, anchors);
+      } catch (e) {
+        return errors.badRequest(e instanceof Error ? e.message : "Invalid anchors");
+      }
+      params.anchors = anchors;
+    }
+    const isAnchored = Boolean(params.anchors && params.anchors.length > 0);
+
     // Validate input — the whole-trip date ceiling depends on the trip shape:
     // single-city stays at 14 days, multi-city may span up to 21 (per-city
     // parallel generation keeps each leg small).
@@ -260,6 +281,24 @@ export async function POST(request: NextRequest) {
       itinerary = await generateMultiCityItinerary(params, legs!, params.startDate, {
         language: userLanguage,
       });
+    } else if (isAnchored) {
+      // Anchored: deterministic segmentation around the fixed commitments,
+      // one small parallel generation per free gap, deterministic merge
+      // (lib/ai/anchored). MUST come before the cross-user cache branch — a
+      // cached generic itinerary would silently ignore the constraints.
+      // Also skips Maps Grounding + incremental generation (segments are
+      // small by construction). A fully locked trip makes ZERO model calls.
+      console.log(
+        `[AI Generate] Anchored generation: ${params.anchors!.length} anchors, ${totalDays} days`
+      );
+      const anchored = await generateAnchoredItinerary(
+        params as TripCreationParams & { anchors: TripAnchor[] },
+        { language: userLanguage }
+      );
+      itinerary = anchored.itinerary;
+      if (anchored.issues.length > 0) {
+        console.warn(`[AI Generate] anchored issues: ${anchored.issues.join(" | ")}`);
+      }
     } else if (cachedItinerary && cachedItinerary.days.length >= 1) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
       itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
@@ -368,9 +407,10 @@ export async function POST(request: NextRequest) {
 
     const generationTime = Date.now() - startTime;
     const generatedDays = sanitizedItinerary.days.length;
-    // Multi-city is generated whole (no incremental continuation), so never
-    // advertise "more days" to fetch — that path is single-city only.
-    const hasMoreDays = !isMultiCity && generatedDays < totalDays;
+    // Multi-city and anchored trips are generated whole (no incremental
+    // continuation), so never advertise "more days" to fetch — the
+    // continuation path is plain-single-city only (and would ignore anchors).
+    const hasMoreDays = !isMultiCity && !isAnchored && generatedDays < totalDays;
 
     // Calculate cost: Cache hit = $0, Maps Grounding = $0.025, Gemini partial = $0.002, Gemini full = $0.003
     const generationCost = cacheHit

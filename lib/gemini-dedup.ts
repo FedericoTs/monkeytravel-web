@@ -68,6 +68,12 @@ export interface ItineraryDedupParams {
   pace: string;
   vibes?: string[];
   language?: string;
+  /**
+   * Anchored-trip segment brief (F1). Two anchored generations over the same
+   * dates with different constraints must NOT coalesce — the brief is part
+   * of the request identity.
+   */
+  anchorBrief?: string;
 }
 
 /**
@@ -114,6 +120,7 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     pace: params.pace,
     vibes: params.vibes || [],
     lang: params.language || "en",
+    anchor: params.anchorBrief || "",
   })}`;
 }
 

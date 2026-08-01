@@ -413,6 +413,13 @@ interface BuildPromptOptions {
   maxDays?: number; // Limit days to generate (for incremental generation)
   isPartial?: boolean; // Indicates this is a partial generation
   language?: "en" | "es" | "it"; // Language for AI response
+  /**
+   * Anchored-trip segment brief (F1, lib/ai/anchors-core.buildSegmentBrief):
+   * a deterministic constraint block — fixed commitments, start/end-near
+   * context — appended as its own prompt section. Internal only: set by
+   * lib/ai/anchored.ts, never by API clients.
+   */
+  anchorBrief?: string;
 }
 
 /**
@@ -756,6 +763,17 @@ Consider these seasonal factors when selecting activities and timing. Include se
   // Language instruction for non-English responses
   const languageSection = getLanguageInstruction(options?.language);
 
+  // Anchored-trip constraints (F1): deterministic brief from
+  // lib/ai/anchors-core — fixed commitments + where this stretch must start
+  // and end. Placed late in the prompt (near the other per-trip values) so
+  // the cache-friendly head of the request stays untouched.
+  const anchorSection = options?.anchorBrief
+    ? `## Fixed Commitments (plan around these — they are non-negotiable)
+${options.anchorBrief}
+
+`
+    : "";
+
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
   // shared-prefix cache only covers the identical head of the request.
@@ -772,7 +790,7 @@ ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
-## Booking Link Values
+${anchorSection}## Booking Link Values
 Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:
 - {DEST_SLUG} = ${destSlug}
 - {DEST_ENCODED} = ${destEncoded}
@@ -823,6 +841,7 @@ export async function generateItinerary(
     pace: params.pace,
     vibes: params.vibes,
     language: options?.language,
+    anchorBrief: options?.anchorBrief,
   });
 
   // Wrap with deduplication to prevent duplicate concurrent requests
