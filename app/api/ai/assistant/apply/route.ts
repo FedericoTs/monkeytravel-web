@@ -4,6 +4,7 @@ import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   MAX_TRIP_DAYS,
   nextDateISO,
@@ -97,6 +98,43 @@ export async function POST(request: NextRequest) {
 
     // Deep clone for modification
     const modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
+
+    // ── F1 anchor guard ────────────────────────────────────────────────
+    // This is the endpoint that PERSISTS, and it's "also callable directly"
+    // (see the ensureActivityIds note below), so it enforces the rule itself
+    // rather than trusting the proposal step to have done it. Anchors stay
+    // user-owned: removable by hand in the fixed-plans panel, never by the AI.
+    const anchorTarget =
+      changeType === "replace" || changeType === "remove"
+        ? oldActivity
+        : changeType === "adjust_duration"
+          ? activity
+          : undefined;
+
+    if (anchorTarget) {
+      const target = modifiedItinerary[dayIndex]?.activities.find(
+        (a) => a.id === anchorTarget.id || a.name === anchorTarget.name
+      );
+      if (isLockedActivity(target)) {
+        return errors.badRequest(
+          `"${target?.name}" is a fixed plan and can't be changed here. Edit it in the trip's fixed plans instead.`
+        );
+      }
+    } else if (changeType === "reorder") {
+      const locked = lockedActivityNames(modifiedItinerary[dayIndex]);
+      if (locked.length > 0) {
+        return errors.badRequest(
+          `Day ${dayNumber} is built around a fixed plan (${locked.join(", ")}) and can't be reshuffled.`
+        );
+      }
+    } else if (changeType === "apply_draft") {
+      const locked = modifiedItinerary.flatMap((d) => lockedActivityNames(d));
+      if (locked.length > 0) {
+        return errors.badRequest(
+          `This trip is built around fixed plans (${locked.slice(0, 3).join(", ")}) and can't be rewritten from a pasted draft.`
+        );
+      }
+    }
 
     if (changeType === "replace" && oldActivity && newActivity) {
       // Find and replace the activity
