@@ -1732,7 +1732,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
    bg-[var(--primary)]/10` tiles in the blog sidebar, cookie banner and
    /profile.
 
-   A matched pair of fixed w-*/h-* tokens is what separates a tile from a
+   A matched pair of fixed width/height tokens (w-N plus h-N) is what separates a tile from a
    panel: the alert blocks and info panels share the fills exactly
    (`rounded-2xl border border-amber-200 bg-amber-50 p-5`) but are fluid-width,
    and the wizard's selected option arm (`rounded-xl border-2
