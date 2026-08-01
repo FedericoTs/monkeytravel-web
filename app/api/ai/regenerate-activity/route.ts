@@ -82,6 +82,16 @@ export async function POST(request: NextRequest) {
     }
 
     const { activity: activityToReplace } = activityLocation;
+
+    // F1 anchored trips: locked activities are user-fixed commitments
+    // (wedding, flight, booked night) — the AI must never replace them.
+    // The user can still delete their own anchor via manual editing.
+    if (activityToReplace.locked) {
+      return errors.badRequest(
+        "This is a fixed plan you added — the AI won't replace it. You can remove it manually instead."
+      );
+    }
+
     const dayContext = itinerary[dayIndex];
 
     if (!dayContext) {

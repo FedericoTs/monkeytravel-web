@@ -236,6 +236,21 @@ export async function POST(request: NextRequest) {
     const sanitizedWrapper = sanitizeItinerary({ days: [newDay] } as { days: ItineraryDay[] });
     const sanitizedDay = sanitizedWrapper.days[0];
 
+    // F1 anchored trips: locked activities are user-fixed commitments
+    // (wedding, flight, booked night). A whole-day regen must never
+    // silently delete them — carry them over from the old day and keep
+    // the day sorted by slot/time. The user can still remove their own
+    // anchor via manual editing.
+    const lockedActivities = (oldDay.activities ?? []).filter((a) => a.locked);
+    if (lockedActivities.length > 0) {
+      const slotOrder: Record<string, number> = { morning: 0, afternoon: 1, evening: 2 };
+      sanitizedDay.activities = [...sanitizedDay.activities, ...lockedActivities].sort(
+        (a, b) =>
+          (slotOrder[a.time_slot] ?? 0) - (slotOrder[b.time_slot] ?? 0) ||
+          (a.start_time ?? "").localeCompare(b.start_time ?? "")
+      );
+    }
+
     // Splice the new day back into the itinerary and persist.
     const updatedItinerary = itinerary.slice();
     updatedItinerary[dayIndex] = sanitizedDay;
