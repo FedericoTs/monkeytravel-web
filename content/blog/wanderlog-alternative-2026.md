@@ -48,7 +48,7 @@ We're not affiliated with Wanderlog. MonkeyTravel is the alternative we'll put f
 
 Wanderlog is the better tool if you enjoy hand-building a detailed trip with friends, want strong booking-import and mobile features, and don't mind paying $39.99/year for AI help.
 
-If you want an AI to generate a complete day-by-day itinerary for free — in 30 seconds, without signing up, and without a per-message cap — you want an AI-first tool instead. That's the gap MonkeyTravel fills.
+If you want an AI to generate a complete day-by-day itinerary for free — in 30 seconds, without signing up, and without paying for the AI — you want an AI-first tool instead. That's the gap MonkeyTravel fills.
 
 ## Wanderlog Pro Cost (2026)
 
