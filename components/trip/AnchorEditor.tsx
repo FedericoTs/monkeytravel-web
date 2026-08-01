@@ -197,7 +197,7 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
                   <select
                     value={draft.date || dates[0]}
                     onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+                    className="w-full min-h-[44px] rounded-lg border border-slate-200 px-2 py-2 text-sm"
                   >
                     {dates.map((d) => (
                       <option key={d} value={d}>
@@ -213,7 +213,7 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
                   <select
                     value={draft.type}
                     onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value as AnchorType }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+                    className="w-full min-h-[44px] rounded-lg border border-slate-200 px-2 py-2 text-sm"
                   >
                     {ANCHOR_TYPES.map((ty) => (
                       <option key={ty} value={ty}>
@@ -237,7 +237,7 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
                 }}
                 placeholder={t("wizard.anchors.titlePlaceholder")}
                 aria-label={t("wizard.anchors.titleLabel")}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
 
               <div className="grid grid-cols-2 gap-2">
@@ -248,14 +248,14 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
                   onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
                   placeholder={t("wizard.anchors.locationPlaceholder")}
                   aria-label={t("wizard.anchors.locationLabel")}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full min-h-[44px] rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 />
                 {draft.type !== "lodging" ? (
                   <select
                     value={draft.slot}
                     onChange={(e) => setDraft((d) => ({ ...d, slot: e.target.value as AnchorSlot }))}
                     aria-label={t("wizard.anchors.when")}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+                    className="w-full min-h-[44px] rounded-lg border border-slate-200 px-2 py-2 text-sm"
                   >
                     {SLOTS.map((s) => (
                       <option key={s} value={s}>
@@ -278,7 +278,7 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
                 type="button"
                 onClick={addAnchor}
                 disabled={!draft.title.trim()}
-                className="w-full rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
+                className="w-full min-h-[44px] rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
               >
                 {t("wizard.anchors.add")}
               </button>
