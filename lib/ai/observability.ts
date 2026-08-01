@@ -47,7 +47,8 @@ export type AiEndpoint =
   | "assistant"
   | "extract-trip-context"
   | "packing-list"
-  | "start-anywhere";
+  | "start-anywhere"
+  | "import-plan";
 
 /**
  * Model identifier — what produced the result. "cache" when we served

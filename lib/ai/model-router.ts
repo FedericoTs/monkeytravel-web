@@ -46,7 +46,8 @@ export type GeminiPurpose =
   | "assistant-suggest"
   | "assistant-optimize"
   | "generate-more-days"
-  | "decide";
+  | "decide"
+  | "anchor-import";
 
 export type GeminiModelId =
   | "gemini-2.5-pro"
@@ -89,6 +90,10 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   // structured reasoning over a free-text prompt → 2-3 proposals. Cheapest tier,
   // like packing-list / trip-title. No grounding, no Places — pure model output.
   decide: "gemini-2.5-flash-lite",
+  // Paste-a-plan import (docs/CONSTRAINT_PLANNER_PLAN.md F2): pasted text →
+  // a small array of dated commitments. Same shape of work as email-parser,
+  // and responseSchema carries the contract, so the cheapest tier is enough.
+  "anchor-import": "gemini-2.5-flash-lite",
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([
