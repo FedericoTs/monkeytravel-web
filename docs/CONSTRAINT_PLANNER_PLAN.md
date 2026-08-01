@@ -161,7 +161,47 @@ Effort: **3–4 days**. Feasibility: HIGH technically; MEDIUM on cost (managed b
 
 ---
 
-## 6. Sequencing, Metrics, Open Decisions
+## 6. Places / Maps API Cost Design (BINDING — Places is the #1 expense)
+
+### 6.0 Invariants already in prod (verified in code 2026-08-01 — must NOT regress)
+
+| Invariant | Where |
+|---|---|
+| Trip **generation costs $0 in Google calls** — `maxPaidLookups: 0` | `app/api/ai/generate/route.ts:358`, `stream/route.ts:379` |
+| Paid photo lookups only at **save**, capped at **8/trip** (+2 refresh) | `SAVE_TIME_PAID_LOOKUPS = 8`, `PHOTO_REFRESH_PER_TRIP = 2` (lib/images/activity.ts) |
+| 21-day photo-ref freshness guard; place_id-keyed cache; `PLACES_ACTIVITY_PHOTOS_ENABLED` kill switch | lib/images/activity.ts |
+| Autocomplete + hotels/places already rate-limited (per-IP / 60/24h) | existing limiters |
+
+### 6.1 Hard rules for the new features
+
+**F1 Anchors — budget: $0.00 in new Google calls.**
+- Segment generation reuses the existing generation path → inherits `maxPaidLookups: 0` automatically.
+- Geometry validation (activity near `mustEndNear`?) uses **haversine on Gemini-provided activity coords** — free. **Distance Matrix / Routes calls are banned inside the solver.** Fallback when no coords: city-name string match.
+- Anchor geocoding is **optional**: the `place` field fills only if the user actively picks from the existing rate-limited, cached autocomplete (a session they'd already be paying for by typing). Result stored on the anchor — never re-looked-up. Free-text `location` is the default and fully sufficient for the solver.
+
+**F2 Import — budget: $0.00 at import time.**
+- Extraction is Gemini-only. Imported activities render with curated type-based thumbnails (existing system). Real photos resolve only through the **existing** save-time enrich-photos budget (8/trip) — no new budget line created.
+
+**F3 Rescue Mode — the ONLY feature allowed to spend, inside a sealed envelope:**
+1. **Explicit tap only.** No ambient location polling, no prefetch, no on-page-load calls. Ever.
+2. **Exactly one Nearby Search (New) call per tap**, `maxResultCount: 10`, wide `includedTypes` in that single call — never one call per category. Ranking/filtering (vibes, open-now, time-of-day) happens in our code on the one response.
+3. **Field mask pinned to the cheapest SKU tier** (`places.id, places.displayName, places.location, places.types, places.primaryType`). Adding fields silently escalates the SKU — any field-mask change requires re-verifying the SKU in Cloud Console (same protocol as the 2-call SKU split, task #368/#370).
+4. **No Places photos in the rescue sheet.** Curated type-based thumbnails only. (Photos were 71% of all Places spend historically — this is the single biggest guard.)
+5. **Per-user cap: 10 taps/day** (Upstash limiter, proven pattern) + **geohash(≈150 m) × category × 3h-time-bucket cache, 24h TTL** in the existing places cache table — repeat taps in the same area cost $0.
+6. Schedule feasibility ("you can still make your 19:00 dinner") = **haversine + speed heuristic, $0**. A real Routes call happens only *after* the user taps one specific suggestion (cost deferred to intent) — and even that is Phase-2 optional.
+7. **Observability from day 1:** log as `apiName: "places_nearby"` in api_request_logs so it appears in the admin cost dashboard; alert if daily nearby spend exceeds **$2/day** (kill switch env var `NEARBY_SUGGESTIONS_ENABLED`, mirroring `PLACES_ACTIVITY_PHOTOS_ENABLED`).
+
+**Worst case F3 spend:** 10 taps × ~$0.032 = **$0.32/user/day**; with the geohash cache and realistic usage, pennies. Global ceiling enforced by the $2/day alert + kill switch.
+
+### 6.2 Net cost impact of the whole plan
+
+| Feature | New Google spend |
+|---|---|
+| F1 Anchors (all phases) | **$0** |
+| F2 Import (A/B/C) | **$0** at import; save-time photos inside the existing 8/trip budget |
+| F3 Rescue | Capped, cached, observable, kill-switchable; ~pennies/day realistic |
+
+## 7. Sequencing, Metrics, Open Decisions
 
 **Recommended order:** F1-A → F2-A → F3 → F1-B → F2-B/C. ≈ 2.5–3 weeks of focused work, each phase independently shippable. (Swap F3 earlier only if app-store launch timing demands a demo-able mobile feature.)
 
