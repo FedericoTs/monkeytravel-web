@@ -392,6 +392,14 @@ export interface FirstTripSavedEvent {
   time_to_value_minutes: number;
   /** Was this from a template */
   from_template: boolean;
+  /**
+   * F1 anchors: did this trip carry user-declared fixed commitments?
+   * The whole bet is that constraint-shaped plans get SAVED more than
+   * generic ones (the measured 74% never-saved leak) — this flag is what
+   * makes that comparable in the funnel. Absent on pre-F1 events.
+   */
+  is_anchored?: boolean;
+  anchor_count?: number;
 }
 
 export interface ActivityModifiedEvent {
@@ -1101,4 +1109,49 @@ export async function captureEditModeSaved(event: EditModeSavedEvent) {
 export async function captureEditModeDiscarded(event: EditModeDiscardedEvent) {
   const ph = await getPosthog();
   ph.capture("edit_mode_discarded", event);
+}
+
+// ============================================================================
+// ANCHOR EVENTS (F1 constraint-aware planning) — added 2026-08-01
+// ----------------------------------------------------------------------------
+// The feature exists to attack the measured 74% never-saved leak: the bet is
+// that a plan built around YOUR wedding is worth keeping, a generic one isn't.
+// These three events make that bet falsifiable —
+//   anchor_panel_opened  → does anyone even find the collapsed CTA?
+//   anchors_generated    → of those, who actually generates with anchors?
+//   first_trip_saved.is_anchored → do anchored trips save above the 26% base?
+// Panel-opened is deliberately separate from generated: if opens are high and
+// generations low, the panel is confusing, not unwanted. Opposite pattern =
+// discovery problem. Same reasoning shape as the crew-loop instrumentation.
+// ============================================================================
+
+export interface AnchorPanelOpenedEvent {
+  /** Anchors already present when opened (>0 = returning to edit). */
+  existing_count: number;
+}
+
+export interface AnchorsGeneratedEvent {
+  anchor_count: number;
+  /** Distinct anchor types used, e.g. ["transport","event","lodging"]. */
+  anchor_types: string[];
+  /** Whole-day locks — how constrained the trip is. */
+  all_day_count: number;
+  /** Anchors that pin where a night ends (the hardest constraint). */
+  lodging_count: number;
+  trip_days: number;
+}
+
+/** Fired when the collapsed "I have fixed plans" panel is expanded. */
+export async function captureAnchorPanelOpened(event: AnchorPanelOpenedEvent) {
+  const ph = await getPosthog();
+  ph.capture("anchor_panel_opened", event);
+}
+
+/**
+ * Fired at Generate when the request carries anchors. Sync/nav-safe because
+ * generation immediately swaps the view and can navigate — same lesson as
+ * save_blocked_anon (async dynamic import loses the race).
+ */
+export function captureAnchorsGenerated(event: AnchorsGeneratedEvent) {
+  captureNavSafe("anchors_generated", event);
 }

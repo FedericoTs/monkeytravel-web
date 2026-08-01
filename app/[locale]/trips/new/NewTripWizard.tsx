@@ -90,6 +90,7 @@ import {
   captureTripGenerationCompleted,
   captureTripIntentSelected,
   captureFirstTripSaved,
+  captureAnchorsGenerated,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import {
@@ -1121,6 +1122,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               duration_days: durationDays,
               time_to_value_minutes: 0,
               from_template: false,
+              is_anchored: anchors.length > 0,
+              anchor_count: anchors.length,
             });
           } catch (e) {
             console.error("[Auto-save] first_trip_saved error:", e);
@@ -1610,6 +1613,25 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
       // stream — skip the streaming endpoint and let the JSON fallback below
       // carry `destinations`/`anchors`.
       const isAnchored = !isMultiCity && anchors.length > 0;
+
+      // F1 telemetry: how constrained is this trip? Fired at Generate (not at
+      // panel-add) so it counts intent that actually reached generation.
+      if (isAnchored) {
+        const tripDays =
+          Math.round(
+            (new Date(`${endDate}T00:00:00Z`).getTime() -
+              new Date(`${startDate}T00:00:00Z`).getTime()) / 86_400_000
+          ) + 1;
+        captureAnchorsGenerated({
+          anchor_count: anchors.length,
+          anchor_types: Array.from(new Set(anchors.map((a) => a.type))),
+          all_day_count: anchors.filter(
+            (a) => a.type !== "lodging" && (a.time_slot ?? "all_day") === "all_day"
+          ).length,
+          lodging_count: anchors.filter((a) => a.type === "lodging").length,
+          trip_days: tripDays,
+        });
+      }
       if (!isMultiCity && !isAnchored) try {
         await streamGeneration(
           params,
@@ -2055,6 +2077,8 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
             duration_days: durationDays,
             time_to_value_minutes: 0, // signup-time not threaded here
             from_template: false,
+            is_anchored: anchors.length > 0,
+            anchor_count: anchors.length,
           });
         } catch (e) {
           console.error("[Trip Save] first_trip_saved error:", e);

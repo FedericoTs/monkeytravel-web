@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AnchorSlot, AnchorType, TripAnchor } from "@/types";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
+import { captureAnchorPanelOpened } from "@/lib/posthog/events";
 
 // Mirrors lib/ai/anchors-core.MAX_ANCHORS (kept local so the solver module
 // stays out of the client bundle).
@@ -119,7 +120,12 @@ export default function AnchorEditor({ anchors, onChange, startDate, endDate }: 
       {!expanded ? (
         <button
           type="button"
-          onClick={() => setExpanded(true)}
+          onClick={() => {
+            setExpanded(true);
+            // Discovery signal: high opens + low anchors_generated ⇒ the panel
+            // confuses; low opens ⇒ the CTA isn't findable. Different fixes.
+            void captureAnchorPanelOpened({ existing_count: anchors.length });
+          }}
           className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] underline-offset-2 hover:underline"
         >
           <span aria-hidden="true">📌</span>
