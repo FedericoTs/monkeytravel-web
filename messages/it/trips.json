@@ -14,7 +14,12 @@
     "applied": "Applicato",
     "editPreview": "Aggiornare il giorno {number}?",
     "keepEditsPrompt": "Queste modifiche esistono solo in questa bozza",
-    "keepEditsButton": "Salva il viaggio per conservarle"
+    "keepEditsButton": "Salva il viaggio per conservarle",
+    "dyn": {
+      "busyDay": "Il giorno {day} ha {count} tappe — alleggerirlo?",
+      "noFood": "Niente da mangiare il giorno {day} — aggiungo una tappa?",
+      "lightDay": "Il giorno {day} sembra vuoto — aggiungo altro?"
+    }
   },
   "decision": {
     "promptLabel": "Raccontaci del tuo viaggio",
@@ -191,8 +196,8 @@
       "dayLabel": "Giorno {n}",
       "packingSuggestions": "Cosa Mettere in Valigia",
       "dailyBudget": "Budget Stimato",
-      "mobileSaveNudge": "Gratis — salvalo per modificarlo quando vuoi e aprirlo ovunque",
-      "saveHeaderNudge": "Gratis — salva e modifica quando vuoi",
+      "mobileSaveNudge": "{count, plural, one {# giorno} other {# giorni}} — salvato solo su questo browser finché non lo tieni",
+      "saveHeaderNudge": "{count, plural, one {# giorno} other {# giorni}} — solo su questo browser",
       "shareForVotes": "Fai votare il tuo gruppo",
       "notSavedPill": "Non salvato",
       "sessionTrayTitle": "{count} viaggi in questa sessione — nessuno salvato"

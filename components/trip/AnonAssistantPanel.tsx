@@ -12,8 +12,10 @@
  * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { deriveRefineSuggestions } from "@/lib/trip/refine-suggestions";
+import { captureRefineSuggestionClicked } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
 import type { Activity, ItineraryDay } from "@/types";
 
@@ -146,11 +148,28 @@ export default function AnonAssistantPanel({
     }
   };
 
-  const suggestions = [
-    t("assistant.suggest1"),
-    t("assistant.suggest2"),
-    t("assistant.suggest3"),
-  ];
+  // Suggestions derived from THIS itinerary, falling back to the static chips.
+  //
+  // The static chips ("Make day 1 more relaxed") shipped months ago and
+  // result→save_clicked never moved: 24.9% → 24.7%. They're wallpaper — the
+  // same three strings whatever we generated. The 2026-08-01 funnel read says
+  // the sessions that refine are the ones that keep (9.7% save at one
+  // generation vs 26.3% at three), so the chip has to earn the first tap by
+  // being an observation about the plan on screen, not a generic offer.
+  // Falls back rather than inventing a flaw the itinerary doesn't have.
+  const derived = useMemo(() => deriveRefineSuggestions(days), [days]);
+  const suggestions: { label: string; prompt: string; source: string }[] =
+    derived.length > 0
+      ? derived.map((d) => ({
+          label: t(`assistant.dyn.${d.key}`, d.params),
+          prompt: d.prompt,
+          source: d.key,
+        }))
+      : ([1, 2, 3] as const).map((n) => ({
+          label: t(`assistant.suggest${n}`),
+          prompt: t(`assistant.suggest${n}`),
+          source: `static${n}`,
+        }));
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
@@ -298,13 +317,19 @@ export default function AnonAssistantPanel({
         <div className="mt-4 flex flex-wrap gap-2">
           {suggestions.map((s) => (
             <button
-              key={s}
+              key={s.source}
               type="button"
-              onClick={() => ask(s)}
+              onClick={() => {
+                // `source` distinguishes derived chips from the static
+                // fallback, so the funnel can tell whether specificity is what
+                // earned the tap — the whole point of the change.
+                void captureRefineSuggestionClicked({ source: s.source, derived: derived.length > 0 });
+                ask(s.prompt);
+              }}
               disabled={loading}
               className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-50"
             >
-              {s}
+              {s.label}
             </button>
           ))}
         </div>

@@ -1156,6 +1156,28 @@ export function captureAnchorsGenerated(event: AnchorsGeneratedEvent) {
   captureNavSafe("anchors_generated", event);
 }
 
+export interface RefineSuggestionClickedEvent {
+  /** "busyDay" | "noFood" | "lightDay" for derived chips, "static1..3" otherwise. */
+  source: string;
+  /** True when the chips were derived from this itinerary rather than static. */
+  derived: boolean;
+}
+
+/**
+ * Fired when a result-page assistant chip is tapped.
+ *
+ * This is the falsifiable half of the 2026-08-01 bet: sessions that refine save
+ * at 26.3% vs 9.7% for one-and-done, and the static chips never moved
+ * result→save_clicked (24.9% → 24.7%). `derived` splits taps by whether the
+ * chip described THIS trip, so we can tell whether specificity is what earned
+ * the tap — or whether chips simply aren't the lever and we should stop
+ * building them.
+ */
+export async function captureRefineSuggestionClicked(event: RefineSuggestionClickedEvent) {
+  const ph = await getPosthog();
+  ph.capture("refine_suggestion_clicked", event);
+}
+
 export interface PlanImportedEvent {
   /** Size of the paste — separates one-liners from real itineraries. */
   text_length: number;

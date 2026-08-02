@@ -14,7 +14,12 @@
     "applied": "Applied",
     "editPreview": "Update Day {number}?",
     "keepEditsPrompt": "These edits live only in this draft",
-    "keepEditsButton": "Save trip to keep them"
+    "keepEditsButton": "Save trip to keep them",
+    "dyn": {
+      "busyDay": "Day {day} has {count} stops — lighten it?",
+      "noFood": "Nothing to eat on day {day} — add a food stop?",
+      "lightDay": "Day {day} looks empty — add more?"
+    }
   },
   "decision": {
     "promptLabel": "Tell us about your trip",
@@ -191,8 +196,8 @@
       "dayLabel": "Day {n}",
       "packingSuggestions": "Packing Suggestions",
       "dailyBudget": "Est. Budget",
-      "mobileSaveNudge": "Free — save to edit anytime & open on any device",
-      "saveHeaderNudge": "Free — keep & edit anytime",
+      "mobileSaveNudge": "{count, plural, one {# day} other {# days}} planned — saved only on this browser until you keep it",
+      "saveHeaderNudge": "{count, plural, one {# day} other {# days}} planned — only on this browser",
       "shareForVotes": "Ask your crew to vote",
       "notSavedPill": "Not saved",
       "sessionTrayTitle": "{count} trips this session — none saved yet"
