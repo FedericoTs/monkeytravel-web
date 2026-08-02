@@ -1599,10 +1599,11 @@ Return ONLY a JSON array with the optimal order of activity indices:
         replacementError = "This trip has no itinerary days yet, so there is nothing to revise";
       } else if (lockedAcrossTrip.length > 0) {
         // apply_draft rewrites whole days in bulk, which would erase anchors.
-        // Pasting a plan onto an anchored trip has a proper home — the "Paste
-        // a plan" import in the fixed-plans panel, which merges instead of
-        // overwriting — so point there rather than silently clobbering.
-        replacementError = `This trip is built around fixed plans (${lockedAcrossTrip.slice(0, 3).join(", ")}), so I won't rewrite it from a pasted draft. Use "Paste a plan" in the trip's fixed plans to merge new items instead.`;
+        // Deliberately does NOT point at the wizard's "Paste a plan" import:
+        // that panel only exists on step 1, before the trip is saved, so on a
+        // saved trip it would be a door that isn't there. Offer what actually
+        // works today — per-day edits on the unpinned days.
+        replacementError = `This trip is built around fixed plans (${lockedAcrossTrip.slice(0, 3).join(", ")}), so I won't rewrite it wholesale from a pasted draft. Tell me what to change on a specific day and I'll do that instead.`;
         console.log(`[AI Assistant] Refused apply_draft on anchored trip (${lockedAcrossTrip.length} locked)`);
       } else {
         console.log(`[AI Assistant] Attempting to map pasted draft onto ${modifiedItinerary.length} days`);
