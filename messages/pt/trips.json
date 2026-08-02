@@ -18,7 +18,7 @@
     "dyn": {
       "busyDay": "O dia {day} tem {count} paradas — aliviar?",
       "noFood": "Nada para comer no dia {day} — adicionar um lugar?",
-      "lightDay": "O dia {day} parece vazio — adicionar mais?"
+      "lightDay": "O dia {day} tem só {count, plural, one {# parada} other {# paradas}} — adicionar mais?"
     }
   },
   "decision": {

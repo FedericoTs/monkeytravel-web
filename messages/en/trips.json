@@ -18,7 +18,7 @@
     "dyn": {
       "busyDay": "Day {day} has {count} stops — lighten it?",
       "noFood": "Nothing to eat on day {day} — add a food stop?",
-      "lightDay": "Day {day} looks empty — add more?"
+      "lightDay": "Day {day} has only {count, plural, one {# stop} other {# stops}} — add more?"
     }
   },
   "decision": {
