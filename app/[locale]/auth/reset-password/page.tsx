@@ -19,19 +19,62 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const t = useTranslations("auth.resetPassword");
 
-  // Check if user has a valid session (came from email link)
+  // Establish the recovery session that arrives from the email link.
+  //
+  // Supabase's /auth/v1/verify 303s here with the session in the URL
+  // *fragment* (`#access_token=...&type=recovery`), which the browser
+  // client consumes asynchronously via detectSessionInUrl. A single
+  // immediate getSession() can therefore race the parse and render the
+  // "invalid link" screen for a perfectly good link — so subscribe first,
+  // then poll, and only give up after the fragment has had a beat.
   useEffect(() => {
-    const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+    const supabase = createClient();
+    let cancelled = false;
+    let graceTimer: ReturnType<typeof setTimeout> | undefined;
 
-      if (session) {
-        setHasValidSession(true);
-      }
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+
+    // A dead link comes back as `#error=access_denied&error_code=otp_expired`.
+    // Show the invalid-link screen rather than an empty form that cannot save.
+    if (hash.includes("error=")) {
+      setHasValidSession(false);
+      setSessionChecked(true);
+      return;
+    }
+
+    const accept = () => {
+      if (cancelled) return;
+      setHasValidSession(true);
       setSessionChecked(true);
     };
 
-    checkSession();
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) accept();
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session) {
+        accept();
+        return;
+      }
+      // No session yet. If a fragment is present the client may still be
+      // consuming it; the listener above will fire. Otherwise there is
+      // nothing to wait for.
+      if (hash.length > 1) {
+        graceTimer = setTimeout(() => {
+          if (!cancelled) setSessionChecked(true);
+        }, 1500);
+      } else {
+        setSessionChecked(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (graceTimer) clearTimeout(graceTimer);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

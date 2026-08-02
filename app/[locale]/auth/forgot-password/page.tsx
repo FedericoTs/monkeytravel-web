@@ -46,10 +46,27 @@ function ForgotPasswordForm() {
 
     const supabase = createClient();
 
+    // Land the user DIRECTLY on the set-new-password page.
+    //
+    // Why not /auth/callback: the recovery email points at Supabase's
+    // `/auth/v1/verify`, which consumes the token itself and 303s to
+    // `redirect_to` with the session in the URL *fragment*
+    // (`#access_token=...`). Fragments are never sent to the server, so
+    // /auth/callback — a route handler — saw token_hash=null, fell through
+    // to its "Could not authenticate" branch, and bounced to /auth/login.
+    // The fragment survived the bounce, the browser client silently
+    // consumed it, and the user ended up *logged in but never asked for a
+    // new password*. Their password was therefore never changed: 13 users
+    // requested a reset and auth.audit_log_entries recorded zero
+    // `user_modified` events. They then hit "incorrect password" forever.
+    //
+    // /auth/reset-password is a client page, so its browser client parses
+    // the fragment (detectSessionInUrl) into the @supabase/ssr cookie
+    // store and the set-password form actually renders.
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: `${window.location.origin}/auth/callback?type=recovery&locale=${locale}`,
+        redirectTo: getLocaleUrl("/auth/reset-password"),
       }
     );
 
