@@ -688,7 +688,8 @@ export async function captureTripIntentSelected(event: TripIntentSelectedEvent) 
  * Fires when the user actually puts a share link somewhere — clipboard or the
  * native share sheet.
  *
- * Distinct from `crew_link_created` on purpose. Minting a link and SENDING it
+ * Distinct from the mint itself, which is recorded as
+ * share_prompt_action { action: 'invite' }. Minting a link and SENDING it
  * are different acts, and the 2026-08-04 audit could not tell them apart:
  * 7 people had ever minted, and we had no idea how many of those links were
  * ever pasted anywhere. Without this the funnel stops one step short of the

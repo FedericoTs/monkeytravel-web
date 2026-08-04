@@ -143,3 +143,79 @@ plus `crew_link_created / (trip_created)` per week in PostHog.
 - **Moving the prompt off the wizard could lower impressions.** Some users never
   return to the trip. Watch `share_prompt_shown` volume: if it falls more than
   ~30%, the engagement gate is too strict — loosen the dwell before abandoning C1.
+
+---
+
+## Implementation status — 2026-08-04, all shipped
+
+| | Change | Commit | Notes |
+|---|---|---|---|
+| C1 | Ask moved onto the trip, engagement-gated | `0fea966` | Shipped, gate narrower than specced — see below |
+| C2 | Copy branches on `trip_intent` | `7dafcb1` | Shipped, different i18n location |
+| C3 | Mint on click, in place | `7dafcb1` | Shipped |
+| C4 | Instrumentation | `7dafcb1` + `0fea966` | Shipped, one acceptance line was unbuildable |
+
+Both production deploys are `READY`.
+
+### Where the implementation diverges from this spec
+
+Recorded because a spec that no longer matches the code is worse than no spec.
+
+**C1 — the engagement gate is two triggers, not three.** Specced: "scrolled past
+day 1, expanded any day, or 25s dwell". Built: `window.scrollY > 600` **or** 25s
+dwell. There is no expand-a-day trigger; day expansion does not currently emit
+anything `SharePromptOnTrip` can observe, and adding a callback into the day
+components to feed a prompt would have coupled them to it. Scroll depth is a
+proxy for the same thing. If prompt volume disappoints, this is the first knob.
+
+**C1 — file paths.** The spec names `components/trip/TripDetailClient.tsx`; the
+real path is `app/[locale]/trips/[id]/TripDetailClient.tsx`, and the logic lives
+in a new `components/trip/SharePromptOnTrip.tsx` rather than inside that 3,000-line
+component.
+
+**C2 — the i18n keys are not where this spec says.** Specced
+`wizard.sharePrompt.*` in `messages/{locale}/trips.json`. Built: `share.intent.*`
+plus seven `share.afterSave.*` keys in `common.json`, because the modal already
+read its other copy from `common.json` and splitting one component's strings
+across two namespaces is how keys go missing in a later locale sweep. The third
+branch is keyed `unknown`, not `absent`.
+
+**C3 — the acceptance line named an event that does not exist.** It reads
+"`crew_link_created` fires on that click". There is no such event in the codebase
+and there never was. The mint is recorded as `share_prompt_action { action:
+'invite' }`, which already existed; the *send* is the new `share_link_copied`.
+The behavioural half of that acceptance — one click produces a copyable URL with
+no page transition — is met.
+
+**C4 — `trip_shared` was deleted, not wired.** The spec offered both. It had zero
+call sites, and a never-fired export makes share tracking look present when it is
+absent.
+
+### Regression introduced and fixed in the same session
+
+Moving the ask off the save moment left the **publish-to-explore opt-out tick
+unreachable**: the wizard's modal is never opened any more, and nothing passed
+`onPublish` on the new surface. Caught before it could be measured, fixed in
+`72ba507` — the publish call now lives inside `SharePromptOnTrip`, gated
+server-side on `isExploreUgcEnabled() && isOwnerView && !isPublic`.
+
+The `!isPublic` term is new and was not in this spec: the wizard could not know
+it (a just-created trip is private by definition), but on the trip page offering
+to publish an already-public trip is a dead affordance.
+
+### Not verified live
+
+Every gate on the new prompt requires an authed owner on a saved, unshared trip,
+so none of C1–C4 has been exercised end-to-end against production. It is verified
+by construction: tsc, eslint, 198 unit tests, and the existing share route's own
+contract. The first real signal will be event volume, not a manual test.
+
+### What to read first, in order
+
+1. `share_prompt_shown` **volume** vs the pre-`0fea966` baseline. The guardrail
+   above still stands: a fall of more than ~30% means the gate is too strict, and
+   the dwell should be loosened before concluding C1 was wrong.
+2. `share_prompt_variant_shown` split by `intent` — does the group branch convert
+   better than solo, or was 71% stated intent that does not predict behaviour?
+3. `share_link_copied` over mints. This is the number that was invisible before.
+4. Mint rate against the 7% → ≥20% target.
