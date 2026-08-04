@@ -213,12 +213,18 @@ interface TripDetailClientProps {
    * we just render the ReactNode in the action toolbar.
    */
   engagementSlot?: React.ReactNode;
+  /** Server-resolved: explore on, viewer is owner, trip not already public. */
+  canPublish?: boolean;
+  /** Prefills the /explore author byline on the share prompt's publish tick. */
+  ownerDisplayName?: string | null;
 }
 
 export default function TripDetailClient({
   trip,
   dateRange,
   isCollaborativeTrip = false,
+  canPublish = false,
+  ownerDisplayName,
   userRole = "owner",
   collaboratorCount = 0,
   engagementSlot,
@@ -3042,6 +3048,9 @@ export default function TripDetailClient({
         destination={getTripDestination(trip)}
         isOwner={isOwner}
         tripIntent={trip.meta?.trip_intent}
+        canPublish={canPublish}
+        authorDisplayName={ownerDisplayName}
+        isAnchored={(trip.meta?.anchors?.length ?? 0) > 0}
         onManageCollaborators={openCrewShareModal}
       />
 

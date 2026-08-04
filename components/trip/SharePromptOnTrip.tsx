@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { captureSharePromptVariantShown } from "@/lib/posthog/events";
+import {
+  captureSharePromptVariantShown,
+  captureExploreTripPublished,
+  captureExploreTripPublishFailed,
+} from "@/lib/posthog/events";
 
 const ShareAfterSaveModal = dynamic(
   () => import("@/components/trip/ShareAfterSaveModal"),
@@ -37,11 +41,16 @@ interface Props {
   isOwner: boolean;
   /** From trip_meta.trip_intent. Absent = the user never answered. */
   tripIntent?: "solo" | "group";
-  /** Mirrors EXPLORE_UGC_ENABLED so the publish tick isn't offered when /explore is off. */
-  exploreUgcEnabled?: boolean;
+  /**
+   * Resolved server-side: explore is on AND the trip is not already public.
+   * False hides the publish tick entirely rather than offering an affordance
+   * that would 404 (or no-op) on submit.
+   */
+  canPublish?: boolean;
+  /** Prefills the /explore author byline. Optional — the route defaults it. */
+  authorDisplayName?: string | null;
   isAnchored?: boolean;
   onManageCollaborators: () => void;
-  onPublish?: () => Promise<void> | void;
 }
 
 export default function SharePromptOnTrip({
@@ -51,10 +60,10 @@ export default function SharePromptOnTrip({
   destination,
   isOwner,
   tripIntent,
-  exploreUgcEnabled = false,
+  canPublish = false,
+  authorDisplayName,
   isAnchored = false,
   onManageCollaborators,
-  onPublish,
 }: Props) {
   const [eligible, setEligible] = useState(false);
   const [engaged, setEngaged] = useState(false);
@@ -137,6 +146,30 @@ export default function SharePromptOnTrip({
     }
   };
 
+  // Publishes inline rather than chaining into PublishTripModal. The author
+  // note that modal collects is optional and almost nobody reached it; the
+  // full form still lives on this same page for anyone who wants to write one.
+  const handlePublish = async () => {
+    const res = await fetch(`/api/trips/${tripId}/publish`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ authorDisplayName: authorDisplayName || undefined }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      void captureExploreTripPublishFailed({
+        trip_id: tripId,
+        reason: String(data?.reason || data?.error || res.status).slice(0, 80),
+      }).catch(() => {});
+      return;
+    }
+    void captureExploreTripPublished({
+      trip_id: tripId,
+      has_author_name: Boolean(authorDisplayName),
+      has_author_note: false,
+    }).catch(() => {});
+  };
+
   if (!open) return null;
 
   return (
@@ -144,7 +177,7 @@ export default function SharePromptOnTrip({
       isOpen={open}
       onClose={handleClose}
       onInvite={onManageCollaborators}
-      onPublish={exploreUgcEnabled ? onPublish : undefined}
+      onPublish={canPublish ? handlePublish : undefined}
       isAnchored={isAnchored}
       tripId={tripId}
       tripTitle={tripTitle}

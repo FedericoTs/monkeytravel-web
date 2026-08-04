@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import type { Metadata } from "next";
@@ -161,6 +162,11 @@ export default async function TripDetailPage({
         cachedTravelHash,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
+      // The publish tick on the share prompt: only when /explore is
+      // reachable AND the trip is not already public. Resolved here because
+      // the flag is a server-only env read.
+      canPublish={isExploreUgcEnabled() && isOwnerView && !isPublic}
+      ownerDisplayName={ownerName}
       isCollaborativeTrip={isCollaborativeTrip}
       userRole={userRole}
       collaboratorCount={totalVoters}
