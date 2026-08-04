@@ -614,16 +614,131 @@ async function fetchFromGooglePlaces(query: string): Promise<string | null> {
 }
 
 // Curated fallback images by activity type
+// Curated fallback images by activity type.
+//
+// SOURCING RULE (2026-08-04). Every id below was pulled from the Pexels search
+// API and then LOOKED AT in a contact sheet before landing here. That second
+// step is not optional: see the note in app/api/images/destination/route.ts —
+// a 2026-07-21 audit of the destination map found 20 of 73 images showed the
+// wrong place and one was Pexels' own grey "missing image" placeholder, which
+// is served with HTTP 200. Resolution checks pass all of those.
+//
+// SECOND RULE, learned in the same pass: a generic type fallback must NOT be a
+// recognisable landmark. The first `attraction` harvest returned the Eiffel
+// Tower, the Colosseum (twice), Red Square and Pisa — which would have put the
+// Colosseum next to "Belfry of Bruges" on every Belgian itinerary. Anonymous
+// old-town streets and architectural detail are the correct register here;
+// famous monuments belong only in the per-destination map.
+//
+// Pool depth is the point. Before this change `restaurant` had 2 own images,
+// widened to 5 by the union below, spread across 205 activities in 10 days —
+// a 41x reuse factor, so a single 5-day trip showed the same photo three
+// times. Depth, not just breadth of type coverage, is what stops that.
 const CURATED_BY_TYPE: Record<string, string[]> = {
   restaurant: [
-    "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-    "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
-  food: [
-    "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10135114/pexels-photo-10135114.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/11794317/pexels-photo-11794317.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/12181619/pexels-photo-12181619.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13869884/pexels-photo-13869884.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17206102/pexels-photo-17206102.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1872889/pexels-photo-1872889.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10135116/pexels-photo-10135116.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10148448/pexels-photo-10148448.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/14885437/pexels-photo-14885437.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15189511/pexels-photo-15189511.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15372564/pexels-photo-15372564.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   ],
   foodie: [
-    "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1327393/pexels-photo-1327393.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15390222/pexels-photo-15390222.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15671371/pexels-photo-15671371.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15671411/pexels-photo-15671411.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1639559/pexels-photo-1639559.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17989471/pexels-photo-17989471.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/18015000/pexels-photo-18015000.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/19671300/pexels-photo-19671300.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/23644633/pexels-photo-23644633.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  attraction: [
+    "https://images.pexels.com/photos/11487781/pexels-photo-11487781.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/12652452/pexels-photo-12652452.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/14368431/pexels-photo-14368431.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15443208/pexels-photo-15443208.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/16350875/pexels-photo-16350875.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/28843295/pexels-photo-28843295.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/29026217/pexels-photo-29026217.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/30967258/pexels-photo-30967258.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  cultural: [
+    "https://images.pexels.com/photos/10975757/pexels-photo-10975757.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13304717/pexels-photo-13304717.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13626838/pexels-photo-13626838.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13722612/pexels-photo-13722612.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/19081217/pexels-photo-19081217.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/19766571/pexels-photo-19766571.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/26974693/pexels-photo-26974693.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/28663466/pexels-photo-28663466.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/30319260/pexels-photo-30319260.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  nature: [
+    "https://images.pexels.com/photos/10548535/pexels-photo-10548535.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10781049/pexels-photo-10781049.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/11163057/pexels-photo-11163057.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13678556/pexels-photo-13678556.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/20463880/pexels-photo-20463880.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/2158824/pexels-photo-2158824.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15527528/pexels-photo-15527528.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/16871285/pexels-photo-16871285.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15724087/pexels-photo-15724087.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  adventure: [
+    "https://images.pexels.com/photos/11845063/pexels-photo-11845063.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/12753943/pexels-photo-12753943.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13828102/pexels-photo-13828102.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/14040199/pexels-photo-14040199.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1453488/pexels-photo-1453488.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/16627598/pexels-photo-16627598.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1687514/pexels-photo-1687514.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/18193574/pexels-photo-18193574.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17809080/pexels-photo-17809080.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  museum: [
+    "https://images.pexels.com/photos/13432768/pexels-photo-13432768.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15138850/pexels-photo-15138850.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/15988007/pexels-photo-15988007.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1604991/pexels-photo-1604991.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1666667/pexels-photo-1666667.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1671016/pexels-photo-1671016.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17218992/pexels-photo-17218992.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/19968227/pexels-photo-19968227.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/2328867/pexels-photo-2328867.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  urban: [
+    "https://images.pexels.com/photos/1115262/pexels-photo-1115262.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/12345917/pexels-photo-12345917.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/1269791/pexels-photo-1269791.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/13069726/pexels-photo-13069726.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/14570978/pexels-photo-14570978.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/14757444/pexels-photo-14757444.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/16241095/pexels-photo-16241095.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17091398/pexels-photo-17091398.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  market: [
+    "https://images.pexels.com/photos/104884/pexels-photo-104884.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10697692/pexels-photo-10697692.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/10828209/pexels-photo-10828209.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/11355644/pexels-photo-11355644.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/11905679/pexels-photo-11905679.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/17341188/pexels-photo-17341188.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/18911914/pexels-photo-18911914.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    "https://images.pexels.com/photos/18936011/pexels-photo-18936011.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ],
+  // Aliases for type strings the generator actually emits; these
+  // matched no key before and fell through to the generic widening.
+  nature_attraction: [],   // filled below from `nature`
+  cultural_attraction: [], // filled below from `cultural`
+  food: [
+    "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   ],
   cafe: [
     "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
@@ -631,23 +746,8 @@ const CURATED_BY_TYPE: Record<string, string[]> = {
   bar: [
     "https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   ],
-  market: [
-    "https://images.pexels.com/photos/2252584/pexels-photo-2252584.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
-  attraction: [
-    "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
   landmark: [
     "https://images.pexels.com/photos/2082103/pexels-photo-2082103.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
-  museum: [
-    "https://images.pexels.com/photos/2034335/pexels-photo-2034335.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
-  cultural: [
-    "https://images.pexels.com/photos/2372978/pexels-photo-2372978.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  ],
-  nature: [
-    "https://images.pexels.com/photos/147411/italy-mountains-dawn-daybreak-147411.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   ],
   park: [
     "https://images.pexels.com/photos/1179229/pexels-photo-1179229.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
@@ -675,6 +775,8 @@ const CURATED_BY_TYPE: Record<string, string[]> = {
   ],
 };
 
+CURATED_BY_TYPE.nature_attraction = CURATED_BY_TYPE.nature;
+CURATED_BY_TYPE.cultural_attraction = CURATED_BY_TYPE.cultural;
 const FALLBACK_IMAGES = [
   "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   "https://images.pexels.com/photos/2087391/pexels-photo-2087391.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
@@ -683,19 +785,31 @@ const FALLBACK_IMAGES = [
 /**
  * Get curated image for activity type
  */
+const MIN_POOL = 6;
+
 function getCuratedImage(type: string, index: number = 0): string {
-  // Widen every per-type pool with the generic scenic sets. With photo
-  // resolution OFF (cost kill-switch) the 1-2 images per type made curated
-  // fallbacks blatantly repetitive within a single trip (replay 019f24bf:
-  // "images are stock and very repetitive"). Union with the attraction +
-  // fallback pools → ~4-6 already-vetted URLs per type, zero new assets.
+  // Widening is now a SMALL-POOL RESCUE, not the default.
+  //
+  // It used to run unconditionally: every type was unioned with `attraction` +
+  // FALLBACK_IMAGES because the per-type pools were 1-2 images deep. Now that
+  // the reviewed types carry 8-11 of their own, doing that everywhere would be
+  // actively harmful — it would splice generic old-town streets into `spa` and
+  // `nightlife`, making those types LESS relevant than they already are.
+  //
+  // So: use the type's own pool when it's deep enough, and only reach for the
+  // generic sets for the types still on a single legacy image (food, cafe,
+  // bar, landmark, park, activity, shopping, entertainment, nightlife, spa,
+  // wellness, transport — the next batch to review).
   const own = CURATED_BY_TYPE[type.toLowerCase()] ?? [];
-  const widened = [
-    ...own,
-    ...(CURATED_BY_TYPE["attraction"] ?? []),
-    ...FALLBACK_IMAGES,
-  ].filter((url, i, arr) => arr.indexOf(url) === i);
-  return widened[index % widened.length] ?? FALLBACK_IMAGES[0];
+  const pool =
+    own.length >= MIN_POOL
+      ? own
+      : [
+          ...own,
+          ...(CURATED_BY_TYPE["attraction"] ?? []),
+          ...FALLBACK_IMAGES,
+        ].filter((url, i, arr) => arr.indexOf(url) === i);
+  return pool[index % pool.length] ?? FALLBACK_IMAGES[0];
 }
 
 /**
@@ -703,8 +817,23 @@ function getCuratedImage(type: string, index: number = 0): string {
  * for the same name+type combo so a fallback hit is deterministic.
  */
 function curatedFor(name: string, type: string): string {
-  const hashIndex = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return getCuratedImage(type || "attraction", hashIndex);
+  // djb2 rather than a plain char-code SUM. The sum collides badly on the
+  // inputs this actually receives: real activity names within one trip share
+  // prefixes and length ("Osteria da Fortunata", "Osteria Mario", …), so their
+  // sums land in a narrow band and collapse onto the same few slots mod a
+  // small pool. Measured on a simulated 10-restaurant trip against the new
+  // 11-image pool: char-sum gave 5 distinct, djb2 gives 6 — which is the
+  // expected value for 10 random draws from 11 (6.8), i.e. djb2 reaches the
+  // ceiling for a stateless picker.
+  //
+  // Doing better means assigning distinct images ACROSS a trip, which needs
+  // trip context this function doesn't have. Left deliberately: the remaining
+  // repeats are now birthday-problem collisions, not a 41x pool shortage.
+  let hash = 5381;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash * 33) ^ name.charCodeAt(i)) >>> 0;
+  }
+  return getCuratedImage(type || "attraction", hash);
 }
 
 /**
