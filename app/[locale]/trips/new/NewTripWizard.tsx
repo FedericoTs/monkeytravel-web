@@ -2396,6 +2396,10 @@ export default function NewTripPage({
 
         {/* Share After Save Modal - Critical for virality */}
         <ShareAfterSaveModal
+          // Branches the copy: only a user who said "with friends" gets the
+          // crew/voting pitch. 71% do — and until now all of them got the same
+          // generic ask as everyone else.
+          tripIntent={tripIntent}
           isOpen={showShareAfterSaveModal}
           onClose={() => {
             setShowShareAfterSaveModal(false);

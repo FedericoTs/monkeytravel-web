@@ -10,10 +10,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe } from "lucide-react";
+import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe, Check, Copy, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
-import { captureSharePromptShown, captureSharePromptAction } from "@/lib/posthog/events";
+import {
+  captureSharePromptShown,
+  captureSharePromptAction,
+  captureShareLinkCopied,
+} from "@/lib/posthog/events";
 import { useExperiment } from "@/lib/posthog/hooks";
 import { FLAG_SHARE_MODAL_TIMING_EXP, type ShareModalTimingVariant } from "@/lib/posthog/flags";
 
@@ -44,6 +48,17 @@ interface ShareAfterSaveModalProps {
   tripTitle: string;
   tripDays: number;
   destination: string;
+  /**
+   * What the user said on wizard step 1. Measured 2026-08-04: 71% pick
+   * "with friends" (stable all-time and 30d, 34% answer rate) — yet only 7%
+   * of savers ever mint a share link. The prompt used to ignore this and ask
+   * everyone the same way, which is the gap this branch closes.
+   *
+   * Only `group` gets the voting pitch. Showing "get your crew to vote" to
+   * someone who explicitly said they travel alone is the same mistake in
+   * reverse, so `solo` gets a plain keep-the-link framing.
+   */
+  tripIntent?: "solo" | "group" | "unspecified";
 }
 
 const COLLABORATION_BENEFITS = [
@@ -71,6 +86,7 @@ export default function ShareAfterSaveModal({
   tripTitle,
   tripDays,
   destination,
+  tripIntent = "unspecified",
 }: ShareAfterSaveModalProps) {
   const t = useTranslations("common");
   // Helper to access share translations with proper prefix
@@ -83,6 +99,18 @@ export default function ShareAfterSaveModal({
   // Publishing is fire-and-forget across two exit paths (invite + done);
   // this guard keeps a double-click from POSTing twice.
   const hasPublished = useRef(false);
+
+  // --- Mint-in-place (C3) ---------------------------------------------------
+  // The primary CTA used to router.push('/trips/{id}?share=invite') — it sent
+  // the user to ANOTHER page and asked them to act again, so the link was not
+  // created until they did. Measured: 9 people clicked invite in 60 days, but
+  // only 7 have ever minted a link, all time. The click was intent and we
+  // dropped it on a page transition. Now the click IS the mint.
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintFailed, setMintFailed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // A/B Test: Share modal timing experiment
   // Variants: control (0s), delayed-2s (2s), delayed-5s (5s)
@@ -115,6 +143,15 @@ export default function ShareAfterSaveModal({
       // Companion to the render-phase checkbox re-arm above. Ref writes belong
       // in an effect, not in render.
       hasPublished.current = false;
+      // Clear the minted link too, so a reopen starts from the CTA rather than
+      // a stale URL from a previous trip.
+      setShareUrl(null);
+      setMintFailed(false);
+      setCopied(false);
+      if (copyResetRef.current) {
+        clearTimeout(copyResetRef.current);
+        copyResetRef.current = null;
+      }
       return;
     }
 
@@ -153,6 +190,11 @@ export default function ShareAfterSaveModal({
 
   // Active variant (use "control" if PostHog timed out)
   const activeVariant = posthogTimedOut ? "control" : experimentVariant;
+
+  // Copy branch. "unspecified" gets a neutral middle rather than the group
+  // pitch — we only earn the crew framing when the user actually said so.
+  const intentKey: "group" | "solo" | "unknown" =
+    tripIntent === "group" ? "group" : tripIntent === "solo" ? "solo" : "unknown";
 
   // Track prompt shown (only once)
   useEffect(() => {
@@ -297,17 +339,72 @@ export default function ShareAfterSaveModal({
     closeWithExitAnimation();
   };
 
-  const handleInvite = () => {
+  /**
+   * Primary CTA. Mints the link HERE and shows it, instead of navigating.
+   *
+   * On failure we stay open with a retry: navigating away on error is exactly
+   * how intent got lost before, and a user who wanted to share should not be
+   * punished for a network blip.
+   */
+  const handleInvite = async () => {
+    if (isMinting) return;
     publishIfChecked();
-    // Track in GA4
     trackSharePromptAction({ tripId, action: "invite" });
-    // Track in PostHog with experiment variant
     captureSharePromptAction({
       trip_id: tripId,
       action: "invite",
       experiment_variant: activeVariant,
     });
-    onInvite();
+
+    setIsMinting(true);
+    setMintFailed(false);
+    try {
+      const res = await fetch(`/api/trips/${tripId}/share`, { method: "POST" });
+      if (!res.ok) throw new Error(`share failed: ${res.status}`);
+      const data = await res.json();
+      if (!data?.shareUrl) throw new Error("share response had no url");
+      setShareUrl(data.shareUrl);
+      // Offer the native sheet immediately on mobile — it is the single
+      // biggest determinant of whether a link actually gets SENT, and this is
+      // a phone-first flow. A rejected/unsupported share leaves the copy UI in
+      // place, so there is no dead end either way.
+      void shareNatively(data.shareUrl, true);
+    } catch (err) {
+      console.error("[ShareAfterSaveModal] mint failed:", err);
+      setMintFailed(true);
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  /** Native share sheet. `silent` suppresses logging for the auto-attempt. */
+  const shareNatively = async (url: string, silent = false) => {
+    const nav = typeof navigator !== "undefined" ? navigator : undefined;
+    if (!nav?.share) return false;
+    try {
+      await nav.share({ title: tripTitle, url });
+      captureShareLinkCopied({ trip_id: tripId, method: "native_share" });
+      return true;
+    } catch {
+      // AbortError when the user dismisses the sheet — not an error worth
+      // surfacing, and definitely not worth closing the modal over.
+      if (!silent) console.debug("[ShareAfterSaveModal] native share dismissed");
+      return false;
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      captureShareLinkCopied({ trip_id: tripId, method: "copy" });
+      if (copyResetRef.current) clearTimeout(copyResetRef.current);
+      copyResetRef.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard can be blocked by permissions. The input is selectable, so
+      // manual copy still works — don't throw a scary state at the user.
+    }
   };
 
   // Don't render until delay has passed (for experiment variants)
@@ -371,10 +468,10 @@ export default function ShareAfterSaveModal({
             {/* Collaboration CTA */}
             <div className="p-6">
               <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
-                {ts("afterSave.travelingWithFriends")}
+                {ts(`intent.${intentKey}.headline`)}
               </h3>
               <p className="text-slate-500 text-center text-sm mb-6">
-                {ts("afterSave.inviteToCollaborate")}
+                {ts(`intent.${intentKey}.subhead`)}
               </p>
 
               {/* Benefits */}
@@ -404,16 +501,59 @@ export default function ShareAfterSaveModal({
 
               {/* Actions */}
               <div className="flex flex-col gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleInvite}
-                  className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors"
-                >
-                  <Users className="w-5 h-5" />
-                  {ts("afterSave.inviteTripBuddies")}
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </motion.button>
+                {/* The link, once minted — shown in place. No navigation. */}
+                {shareUrl ? (
+                  <div className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-3">
+                    <p className="text-sm font-medium text-slate-900 mb-2">
+                      {ts(`intent.${intentKey}.linkReady`)}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={shareUrl}
+                        aria-label={ts("afterSave.shareLinkLabel")}
+                        onFocus={(e) => e.currentTarget.select()}
+                        className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600"
+                      />
+                      <button
+                        onClick={handleCopy}
+                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--primary)]/90 transition-colors"
+                      >
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied ? ts("afterSave.copied") : ts("afterSave.copy")}
+                      </button>
+                    </div>
+                    {typeof navigator !== "undefined" && "share" in navigator && (
+                      <button
+                        onClick={() => void shareNatively(shareUrl)}
+                        className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        {ts("afterSave.shareVia")}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleInvite}
+                    disabled={isMinting}
+                    className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-70"
+                  >
+                    <Users className="w-5 h-5" />
+                    {isMinting ? ts("afterSave.creatingLink") : ts(`intent.${intentKey}.cta`)}
+                    {!isMinting && <ArrowRight className="w-4 h-4 ml-1" />}
+                  </motion.button>
+                )}
+
+                {/* Stay open on failure with a retry. Navigating away on error
+                    is precisely how intent used to get lost. */}
+                {mintFailed && !shareUrl && (
+                  <p className="text-center text-xs text-red-600">
+                    {ts("afterSave.linkFailed")}
+                  </p>
+                )}
 
                 {/* Publish-to-Explore, as an opt-OUT tick rather than the
                     button-into-a-second-modal it used to be. That chain cost
@@ -445,6 +585,20 @@ export default function ShareAfterSaveModal({
                       </span>
                     </span>
                   </label>
+                )}
+
+                {/* Full collaborator management still lives on /trips/[id].
+                    Demoted to a secondary link: it is a real destination for
+                    the few who want per-person invites, but it must not be the
+                    default path — routing everyone there is what cost us the
+                    mint in the first place. */}
+                {shareUrl && (
+                  <button
+                    onClick={onInvite}
+                    className="w-full py-2 px-4 text-sm font-medium text-[var(--primary)] hover:underline"
+                  >
+                    {ts("afterSave.manageCollaborators")}
+                  </button>
                 )}
 
                 <button

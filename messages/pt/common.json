@@ -1164,7 +1164,14 @@
       "publishOptInAnchored": "Esta viagem tem compromissos que você fixou, então ela continua privada a menos que você escolha compartilhá-la.",
       "done": "Concluído",
       "maybeLater": "Talvez Depois",
-      "collaboratorStats": "Viagens com colaboradores têm 3x mais atividades planejadas"
+      "collaboratorStats": "Viagens com colaboradores têm 3x mais atividades planejadas",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "shareVia": "Compartilhar…",
+      "creatingLink": "Criando link…",
+      "linkFailed": "Não deu para criar o link. Toque de novo para tentar.",
+      "shareLinkLabel": "Link de compartilhamento",
+      "manageCollaborators": "Convidar por e-mail →"
     },
     "collaborationBenefits": {
       "planTogether": {
@@ -1178,6 +1185,26 @@
       "suggestIdeas": {
         "title": "Sugerir Ideias",
         "description": "Os colaboradores podem propor novas atividades"
+      }
+    },
+    "intent": {
+      "group": {
+        "headline": "Seu grupo ainda não viu isso",
+        "subhead": "Mande o roteiro e veja o que eles realmente fariam.",
+        "cta": "Peça os votos deles",
+        "linkReady": "Mande isto para o seu grupo"
+      },
+      "solo": {
+        "headline": "Deixe à mão",
+        "subhead": "Um link que você abre em qualquer lugar, ou repassa se os planos mudarem.",
+        "cta": "Copiar link",
+        "linkReady": "Seu link"
+      },
+      "unknown": {
+        "headline": "Mande para quem vai com você",
+        "subhead": "Eles podem ver e acrescentar as próprias ideias.",
+        "cta": "Copiar link",
+        "linkReady": "Seu link"
       }
     }
   },

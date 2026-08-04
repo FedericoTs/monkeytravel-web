@@ -691,6 +691,24 @@ export async function captureTripIntentSelected(event: TripIntentSelectedEvent) 
   ph.capture("trip_intent_selected", event);
 }
 
+/**
+ * Fires when the user actually puts a share link somewhere — clipboard or the
+ * native share sheet.
+ *
+ * Distinct from `crew_link_created` on purpose. Minting a link and SENDING it
+ * are different acts, and the 2026-08-04 audit could not tell them apart:
+ * 7 people had ever minted, and we had no idea how many of those links were
+ * ever pasted anywhere. Without this the funnel stops one step short of the
+ * only thing that matters.
+ */
+export async function captureShareLinkCopied(event: {
+  trip_id: string;
+  method: "copy" | "native_share";
+}) {
+  const ph = await getPosthog();
+  ph.capture("share_link_copied", event);
+}
+
 export async function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {
   const ph = await getPosthog();
   ph.capture("trip_generation_completed", event);

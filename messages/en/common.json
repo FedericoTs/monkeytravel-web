@@ -1164,7 +1164,14 @@
       "publishOptInAnchored": "This trip has plans you pinned, so it stays private unless you choose to share it.",
       "done": "Done",
       "maybeLater": "Maybe Later",
-      "collaboratorStats": "Trips with collaborators have 3x more activities planned"
+      "collaboratorStats": "Trips with collaborators have 3x more activities planned",
+      "copy": "Copy",
+      "copied": "Copied",
+      "shareVia": "Share…",
+      "creatingLink": "Creating link…",
+      "linkFailed": "Couldn't create the link. Tap again to retry.",
+      "shareLinkLabel": "Share link",
+      "manageCollaborators": "Invite people by email →"
     },
     "collaborationBenefits": {
       "planTogether": {
@@ -1178,6 +1185,26 @@
       "suggestIdeas": {
         "title": "Suggest Ideas",
         "description": "Collaborators can propose new activities"
+      }
+    },
+    "intent": {
+      "group": {
+        "headline": "Your crew hasn't seen this yet",
+        "subhead": "Send them the plan and see what they'd actually do.",
+        "cta": "Get their votes",
+        "linkReady": "Send this to your crew"
+      },
+      "solo": {
+        "headline": "Keep this handy",
+        "subhead": "A link you can open anywhere, or send on if plans change.",
+        "cta": "Copy link",
+        "linkReady": "Your link"
+      },
+      "unknown": {
+        "headline": "Send it to whoever's coming",
+        "subhead": "They can look through it and add their own ideas.",
+        "cta": "Copy link",
+        "linkReady": "Your link"
       }
     }
   },
