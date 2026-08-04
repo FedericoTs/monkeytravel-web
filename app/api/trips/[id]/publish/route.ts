@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { randomUUID } from "node:crypto";
 
 /**
@@ -49,6 +50,41 @@ const MAX_PUBLISHED_PER_WEEK = 10;
  *
  * Raise back to 24-48 if we see drive-by spam in production.
  */
+/**
+ * Every human-readable label of a pinned commitment on this trip.
+ *
+ * Reads BOTH signals on purpose, because they can disagree:
+ *   - `itinerary[].activities[].locked` — what actually renders on the page,
+ *     and therefore what a visitor would see if it went public.
+ *   - `trip_meta.anchors[].title` — the source anchors the user typed. Still
+ *     present (and still personal) even if a regeneration dropped the locked
+ *     flag from the rendered day, which is exactly the case where reading only
+ *     the itinerary would quietly declare an anchored trip safe to publish.
+ *
+ * Either signal alone is a false negative waiting to happen, so the union wins.
+ */
+function collectAnchorLabels(trip: {
+  itinerary?: unknown;
+  trip_meta?: unknown;
+}): string[] {
+  const labels = new Set<string>();
+
+  const days = Array.isArray(trip.itinerary) ? trip.itinerary : [];
+  for (const day of days) {
+    for (const name of lockedActivityNames(day)) labels.add(name);
+  }
+
+  const anchors = (trip.trip_meta as { anchors?: unknown })?.anchors;
+  if (Array.isArray(anchors)) {
+    for (const anchor of anchors) {
+      const title = (anchor as { title?: string })?.title?.trim();
+      labels.add(title || "Fixed plan");
+    }
+  }
+
+  return [...labels];
+}
+
 const MIN_TRIP_AGE_HOURS = 0;
 const MIN_ACTIVITIES = 3;
 const MAX_DURATION_DAYS = 30;
@@ -78,13 +114,34 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   const { data: trip, error: lookupErr } = await supabase
     .from("trips")
     .select(
-      "id, user_id, visibility, share_token, created_at, itinerary, start_date, end_date"
+      "id, user_id, visibility, share_token, created_at, itinerary, start_date, end_date, trip_meta"
     )
     .eq("id", tripId)
     .single();
   if (lookupErr || !trip) return errors.notFound("Trip not found");
   if (trip.user_id !== user.id) {
     return errors.forbidden("Only the trip owner can publish");
+  }
+
+  // Anchored trips are never published by default.
+  //
+  // An anchor is a real-world commitment the user pinned: "Sarah's wedding",
+  // a flight they already booked, dinner with a named friend. That is personal
+  // data about identifiable people, and unlike the AI-generated body of an
+  // itinerary it is not something the user wrote expecting an audience.
+  //
+  // The client pre-ticks "publish" for UNANCHORED trips — an opt-out default is
+  // what actually moves publish volume (261 trips → 14 public, 5 publishers) —
+  // and leaves it untouched when anchors exist. This is the server half of that
+  // rule, and it is the half that matters: a client default can be wrong, stale
+  // or hand-rolled, so authority to publish an anchored trip has to be an
+  // explicit per-request acknowledgement rather than an absent checkbox.
+  const anchorLabels = collectAnchorLabels(trip);
+  if (anchorLabels.length > 0 && body?.confirmAnchored !== true) {
+    return errors.badRequest(
+      "This trip is built around fixed plans you pinned. Publishing would make them public, so it needs an explicit confirmation.",
+      { reason: "anchored_confirm_required", anchors: anchorLabels.slice(0, 5) }
+    );
   }
 
   // Anti-spam: trip age.

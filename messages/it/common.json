@@ -1159,6 +1159,10 @@
       "inviteToCollaborate": "Invitali a collaborare al tuo viaggio!",
       "inviteTripBuddies": "Invita Compagni di Viaggio",
       "publishToExplore": "Condividi con la community",
+      "publishOptIn": "Condividi questo viaggio su Explore",
+      "publishOptInHelp": "Altri viaggiatori potranno vederlo e copiarlo. Puoi annullare la pubblicazione quando vuoi.",
+      "publishOptInAnchored": "Questo viaggio contiene impegni che hai fissato, quindi resta privato a meno che tu non scelga di condividerlo.",
+      "done": "Fatto",
       "maybeLater": "Forse Dopo",
       "collaboratorStats": "I viaggi con collaboratori hanno 3 volte più attività pianificate"
     },
@@ -2214,6 +2218,9 @@
     "notePlaceholder": "es. Luna di miele a maggio, abbiamo dato priorità a luoghi nascosti e mattinate rilassate",
     "noteHelp": "Una breve descrizione mostrata sotto il titolo. {count}/{max}",
     "cancel": "Annulla",
+    "anchoredTitle": "Questo viaggio include impegni che hai fissato",
+    "anchoredBody": "Pubblicandolo, questi diventano visibili a chiunque su Explore:",
+    "anchoredConfirm": "Pubblica comunque",
     "publishAction": "Pubblica viaggio",
     "publishing": "Pubblicazione...",
     "errorFallback": "Pubblicazione fallita"

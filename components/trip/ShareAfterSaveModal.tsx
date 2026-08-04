@@ -22,11 +22,24 @@ interface ShareAfterSaveModalProps {
   onClose: () => void;
   onInvite: () => void;
   /**
-   * Optional: when provided, renders a second CTA that opens the
-   * Publish-to-Explore flow. Omit on surfaces where publishing isn't
-   * relevant (e.g. anon-saved trips, EXPLORE_UGC_ENABLED off).
+   * Publishes the trip to /explore. When provided, renders the opt-out
+   * publish checkbox. Omit on surfaces where publishing isn't relevant
+   * (anon-saved trips, EXPLORE_UGC_ENABLED off).
+   *
+   * Called at most once, and only from an affirmative button click — never
+   * from a dismissal. Fire-and-forget: we don't block the user's exit on a
+   * network round-trip, and /trips/[id] renders the true publish state on
+   * arrival, so a silent failure self-corrects on the very next screen.
    */
-  onPublish?: () => void;
+  onPublish?: () => Promise<void> | void;
+  /**
+   * True when the trip is built around pinned commitments (a booked flight,
+   * a wedding, dinner with a named friend). Anchors are personal data about
+   * identifiable people that the user did not write for an audience, so the
+   * opt-out default is suppressed and the box starts unticked. The server
+   * enforces the same rule independently — see the publish route.
+   */
+  isAnchored?: boolean;
   tripId: string;
   tripTitle: string;
   tripDays: number;
@@ -53,6 +66,7 @@ export default function ShareAfterSaveModal({
   onClose,
   onInvite,
   onPublish,
+  isAnchored = false,
   tripId,
   tripTitle,
   tripDays,
@@ -64,6 +78,11 @@ export default function ShareAfterSaveModal({
   const [isExiting, setIsExiting] = useState(false);
   const [showDelayed, setShowDelayed] = useState(false);
   const hasTrackedView = useRef(false);
+  // Opt-out for ordinary trips, opt-in for anchored ones.
+  const [publishChecked, setPublishChecked] = useState(!isAnchored);
+  // Publishing is fire-and-forget across two exit paths (invite + done);
+  // this guard keeps a double-click from POSTing twice.
+  const hasPublished = useRef(false);
 
   // A/B Test: Share modal timing experiment
   // Variants: control (0s), delayed-2s (2s), delayed-5s (5s)
@@ -73,11 +92,29 @@ export default function ShareAfterSaveModal({
   // Timeout to prevent modal from being blocked if PostHog is slow/fails
   const [posthogTimedOut, setPosthogTimedOut] = useState(false);
 
+  // Re-arm the checkbox each time the modal opens, so a reopen can't inherit
+  // a stale tick — and so an `isAnchored` that arrives a render late (the
+  // parent derives it from wizard state) still suppresses the opt-out default.
+  //
+  // Adjusted during render rather than in an effect: React re-runs this
+  // component before touching the DOM, so the user never sees a frame with the
+  // wrong default. An effect would paint the box ticked first and correct it
+  // after — a visible flash on exactly the control where a wrong default
+  // matters most.
+  const [lastOpen, setLastOpen] = useState(isOpen);
+  if (isOpen !== lastOpen) {
+    setLastOpen(isOpen);
+    if (isOpen) setPublishChecked(!isAnchored);
+  }
+
   // Apply delay based on experiment variant
   useEffect(() => {
     if (!isOpen) {
       setShowDelayed(false);
       setPosthogTimedOut(false);
+      // Companion to the render-phase checkbox re-arm above. Ref writes belong
+      // in an effect, not in render.
+      hasPublished.current = false;
       return;
     }
 
@@ -204,15 +241,30 @@ export default function ShareAfterSaveModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, tripId, onClose]);
 
-  const handleSkip = () => {
-    // Track in GA4
-    trackSharePromptAction({ tripId, action: "skip" });
-    // Track in PostHog with experiment variant
+  /**
+   * Run the publish, if the user left the box ticked.
+   *
+   * Deliberately NOT called from handleDismiss. A ticked checkbox plus a click
+   * on a labelled button is consent; closing a modal is not. Publishing on X /
+   * Escape / backdrop would mean a user who fled the dialog wakes up with their
+   * itinerary on a public page, and no default-on checkbox makes that honest.
+   */
+  const publishIfChecked = () => {
+    if (!onPublish || !publishChecked || hasPublished.current) return;
+    hasPublished.current = true;
+    // Reuse the share_prompt event so publishes stay in the existing funnel,
+    // tagged with a distinct action so the conversion splits out. GA4 falls
+    // back to "invite" — its legacy schema only accepts that union.
+    trackSharePromptAction({ tripId, action: "invite" });
     captureSharePromptAction({
       trip_id: tripId,
-      action: "skip",
+      action: "publish",
       experiment_variant: activeVariant,
     });
+    void Promise.resolve(onPublish()).catch(() => {});
+  };
+
+  const closeWithExitAnimation = () => {
     setIsExiting(true);
     setTimeout(() => {
       setIsExiting(false);
@@ -220,7 +272,33 @@ export default function ShareAfterSaveModal({
     }, 200);
   };
 
+  /** X, Escape, backdrop. Abandons the dialog — publishes nothing. */
+  const handleDismiss = () => {
+    trackSharePromptAction({ tripId, action: "skip" });
+    captureSharePromptAction({
+      trip_id: tripId,
+      action: "skip",
+      experiment_variant: activeVariant,
+    });
+    closeWithExitAnimation();
+  };
+
+  /** The tertiary button: an affirmative "I'm finished here". */
+  const handleDone = () => {
+    publishIfChecked();
+    if (!publishChecked) {
+      trackSharePromptAction({ tripId, action: "skip" });
+      captureSharePromptAction({
+        trip_id: tripId,
+        action: "skip",
+        experiment_variant: activeVariant,
+      });
+    }
+    closeWithExitAnimation();
+  };
+
   const handleInvite = () => {
+    publishIfChecked();
     // Track in GA4
     trackSharePromptAction({ tripId, action: "invite" });
     // Track in PostHog with experiment variant
@@ -230,21 +308,6 @@ export default function ShareAfterSaveModal({
       experiment_variant: activeVariant,
     });
     onInvite();
-  };
-
-  const handlePublish = () => {
-    // Reuse the same PostHog event so the explore-publish CTA shows up in
-    // the existing share_prompt funnel. We tag it with a distinct action
-    // string ("publish") so we can split-out the conversion in product
-    // analytics. GA4 falls back to "invite" since the legacy schema only
-    // accepts that union; not worth widening today.
-    trackSharePromptAction({ tripId, action: "invite" });
-    captureSharePromptAction({
-      trip_id: tripId,
-      action: "publish",
-      experiment_variant: activeVariant,
-    });
-    onPublish?.();
   };
 
   // Don't render until delay has passed (for experiment variants)
@@ -258,7 +321,7 @@ export default function ShareAfterSaveModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={handleSkip}
+          onClick={handleDismiss}
         >
           <motion.div
             ref={panelRef}
@@ -276,7 +339,7 @@ export default function ShareAfterSaveModal({
             <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white">
               {/* Close button */}
               <button
-                onClick={handleSkip}
+                onClick={handleDismiss}
                 aria-label={t("buttons.closeModal")}
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
               >
@@ -352,29 +415,45 @@ export default function ShareAfterSaveModal({
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </motion.button>
 
-                {/* Publish-to-Explore secondary CTA. Only renders when
-                    the parent passes onPublish (i.e. EXPLORE_UGC_ENABLED
-                    + authed user). Same prominence tier as the invite
-                    button so the user sees publishing as a real option,
-                    not a hidden link — /explore needs UGC supply more
-                    than collaboration does right now. */}
+                {/* Publish-to-Explore, as an opt-OUT tick rather than the
+                    button-into-a-second-modal it used to be. That chain cost
+                    two clicks and a form at the exact moment the user wants
+                    to be done, and it showed: 261 trips produced 14 public
+                    ones from 5 publishers. The tick rides along with an exit
+                    the user was already taking.
+
+                    Pre-ticked only for unanchored trips (see isAnchored), and
+                    only ever acted on from the two buttons below — never from
+                    a dismissal. */}
                 {onPublish && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handlePublish}
-                    className="w-full py-3 px-4 bg-white text-[var(--primary)] border-2 border-[var(--primary)]/30 rounded-xl font-medium flex items-center justify-center gap-2 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
-                  >
-                    <Globe className="w-5 h-5" />
-                    {ts("afterSave.publishToExplore")}
-                  </motion.button>
+                  <label className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer hover:border-slate-300 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={publishChecked}
+                      onChange={(e) => setPublishChecked(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                    />
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
+                        <Globe className="w-4 h-4 text-[var(--primary)]" aria-hidden="true" />
+                        {ts("afterSave.publishOptIn")}
+                      </span>
+                      <span className="block text-xs text-slate-500 mt-0.5">
+                        {isAnchored
+                          ? ts("afterSave.publishOptInAnchored")
+                          : ts("afterSave.publishOptInHelp")}
+                      </span>
+                    </span>
+                  </label>
                 )}
 
                 <button
-                  onClick={handleSkip}
+                  onClick={handleDone}
                   className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl font-medium transition-colors text-sm"
                 >
-                  {ts("afterSave.maybeLater")}
+                  {publishChecked && onPublish
+                    ? ts("afterSave.done")
+                    : ts("afterSave.maybeLater")}
                 </button>
               </div>
 

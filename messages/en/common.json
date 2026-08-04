@@ -1159,6 +1159,10 @@
       "inviteToCollaborate": "Invite them to collaborate on your trip!",
       "inviteTripBuddies": "Invite Trip Buddies",
       "publishToExplore": "Share with the community",
+      "publishOptIn": "Share this trip on Explore",
+      "publishOptInHelp": "Other travelers can see and copy it. You can unpublish anytime.",
+      "publishOptInAnchored": "This trip has plans you pinned, so it stays private unless you choose to share it.",
+      "done": "Done",
       "maybeLater": "Maybe Later",
       "collaboratorStats": "Trips with collaborators have 3x more activities planned"
     },
@@ -2214,6 +2218,9 @@
     "notePlaceholder": "e.g., Honeymoon in May, prioritized hidden gems and slow mornings",
     "noteHelp": "A short blurb shown under the title. {count}/{max}",
     "cancel": "Cancel",
+    "anchoredTitle": "This trip includes plans you pinned",
+    "anchoredBody": "Publishing makes these visible to anyone on Explore:",
+    "anchoredConfirm": "Publish anyway",
     "publishAction": "Publish trip",
     "publishing": "Publishing...",
     "errorFallback": "Publish failed"

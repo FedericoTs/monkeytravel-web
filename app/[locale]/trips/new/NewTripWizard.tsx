@@ -59,7 +59,6 @@ const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistant
 const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
-const PublishTripModal = dynamic(() => import("@/components/explore/PublishTripModal"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
 const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
@@ -91,6 +90,8 @@ import {
   captureTripIntentSelected,
   captureFirstTripSaved,
   captureAnchorsGenerated,
+  captureExploreTripPublished,
+  captureExploreTripPublishFailed,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import {
@@ -503,10 +504,6 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // Post-save sharing modal state (critical for virality)
   const [showShareAfterSaveModal, setShowShareAfterSaveModal] = useState(false);
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
-  // Publish-to-Explore auto-prompt state. Wired into ShareAfterSaveModal's
-  // onPublish callback. Owner clicks → share modal closes → publish modal
-  // opens with their author name prefilled. See onPublish handler below.
-  const [showPublishModal, setShowPublishModal] = useState(false);
   const [authedDisplayName, setAuthedDisplayName] = useState<string>("");
 
   // LocalStorage draft persistence
@@ -2372,45 +2369,54 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
               router.push(`/trips/${savedTripId}?share=invite`);
             }
           }}
-          // Only expose the publish CTA when /explore is reachable for
-          // this user — flag mirrors the server gate, so hiding the
-          // button avoids a CTA that would 404 on submit.
+          // Only expose the publish tick when /explore is reachable for this
+          // user — the flag mirrors the server gate, so hiding it avoids an
+          // affordance that would 404 on submit.
+          //
+          // Publishes inline instead of chaining into PublishTripModal. The
+          // author note that modal collects is optional and almost nobody was
+          // reaching it; the full form still lives on /trips/[id] for anyone
+          // who wants to write one.
           onPublish={
             exploreUgcEnabled && savedTripId
-              ? () => {
-                  setShowShareAfterSaveModal(false);
-                  setShowPublishModal(true);
+              ? async () => {
+                  const res = await fetch(`/api/trips/${savedTripId}/publish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      authorDisplayName: authedDisplayName || undefined,
+                    }),
+                  });
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    void captureExploreTripPublishFailed({
+                      trip_id: savedTripId,
+                      reason: String(data?.reason || data?.error || res.status).slice(0, 80),
+                    }).catch(() => {});
+                    return;
+                  }
+                  void captureExploreTripPublished({
+                    trip_id: savedTripId,
+                    has_author_name: Boolean(authedDisplayName),
+                    has_author_note: false,
+                  }).catch(() => {});
                 }
               : undefined
           }
+          // Anchored trips carry pinned real-world commitments, so the
+          // opt-out default is suppressed. The publish route enforces the
+          // same rule server-side.
+          isAnchored={anchors.length > 0}
           tripId={savedTripId || ""}
           tripTitle={`${generatedItinerary.destination.name} Trip`}
           tripDays={generatedItinerary.days.length}
           destination={fullDestination}
         />
 
-        {/* Publish-to-Explore modal — chained off the ShareAfterSaveModal
-            "Publish" CTA. Stays mounted (cheap, dynamic) so React preserves
-            the user's typed authorName/Note across reopen. On close we send
-            the user to /trips/[id] regardless of outcome (same destination
-            as the share modal's skip path) so the post-save journey ends
-            somewhere coherent. On successful publish, jump straight to
-            /explore so the user immediately sees their card live. */}
-        {savedTripId && (
-          <PublishTripModal
-            tripId={savedTripId}
-            isOpen={showPublishModal}
-            defaultAuthorName={authedDisplayName}
-            onClose={() => {
-              setShowPublishModal(false);
-              router.push(`/trips/${savedTripId}`);
-            }}
-            onPublished={() => {
-              setShowPublishModal(false);
-              router.push("/explore");
-            }}
-          />
-        )}
+        {/* PublishTripModal used to be chained off this flow. It now lives
+            only on /trips/[id] (see PublishToggle), where a user who wants to
+            write an author note goes deliberately. The post-save path
+            publishes inline from the share modal's checkbox instead. */}
 
         {/* Auth Prompt Modal — anonymous user clicks Save Trip on the
             generated itinerary.

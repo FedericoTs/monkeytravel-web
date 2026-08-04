@@ -50,17 +50,24 @@ export default function PublishTripModal({
   const [authorNote, setAuthorNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * Anchor labels the server refused to publish without an explicit ack.
+   * Non-empty means we've shown the user exactly which pinned commitments
+   * would go public and are waiting for a second, informed click.
+   */
+  const [anchorsToConfirm, setAnchorsToConfirm] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setError(null);
+      setAnchorsToConfirm([]);
       // Don't reset authorName/Note across opens — preserve user typing
       // in case the publish failed for an anti-spam reason and they want
       // to retry later.
     }
   }, [isOpen]);
 
-  const submit = useCallback(async () => {
+  const submit = useCallback(async (confirmAnchored = false) => {
     if (busy) return;
     setBusy(true);
     setError(null);
@@ -71,9 +78,22 @@ export default function PublishTripModal({
         body: JSON.stringify({
           authorDisplayName: authorName.trim() || undefined,
           authorNote: authorNote.trim() || undefined,
+          ...(confirmAnchored ? { confirmAnchored: true } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
+      // The server refuses anchored trips until the user acknowledges what
+      // going public would expose. Name the anchors rather than restating a
+      // generic warning — "Sarah's wedding" is the information that makes
+      // the second click an actual decision.
+      if (res.status === 400 && data?.reason === "anchored_confirm_required") {
+        setAnchorsToConfirm(
+          Array.isArray(data.anchors) && data.anchors.length > 0
+            ? data.anchors
+            : ["Fixed plan"]
+        );
+        return;
+      }
       if (!res.ok) {
         throw new Error(data?.error || `Publish failed (${res.status})`);
       }
@@ -183,6 +203,18 @@ export default function PublishTripModal({
             </p>
           </div>
 
+          {anchorsToConfirm.length > 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
+              <p className="font-medium">{t("anchoredTitle")}</p>
+              <p className="mt-1 text-amber-800">{t("anchoredBody")}</p>
+              <ul className="mt-2 space-y-0.5 list-disc pl-5 text-amber-800">
+                {anchorsToConfirm.map((label) => (
+                  <li key={label}>{label}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {error && (
             <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700">
               {error}
@@ -197,12 +229,19 @@ export default function PublishTripModal({
             >
               {t("cancel")}
             </button>
+            {/* Wrapped, not passed by reference: `onClick={submit}` would hand
+                React's MouseEvent to the confirmAnchored param, which is
+                truthy — silently acknowledging anchors the user never saw. */}
             <button
-              onClick={submit}
+              onClick={() => submit(anchorsToConfirm.length > 0)}
               disabled={busy}
               className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--primary)] text-white font-semibold hover:opacity-95 transition-all shadow-sm disabled:opacity-60"
             >
-              {busy ? t("publishing") : t("publishAction")}
+              {busy
+                ? t("publishing")
+                : anchorsToConfirm.length > 0
+                  ? t("anchoredConfirm")
+                  : t("publishAction")}
             </button>
           </div>
         </div>
