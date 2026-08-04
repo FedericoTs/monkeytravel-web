@@ -15,6 +15,12 @@ import { HERO_DOODLE_ENABLED } from "@/components/marketing/doodle";
 const SessionTracker = dynamic(
   () => import("@/components/analytics/SessionTracker")
 );
+// AcquisitionCapture: first-touch channel bucket for ORGANIC arrivals, so
+// users.acquisition_source stops being blind to everything except UTM-tagged
+// partner links. Consent-gated inside the component; renders null.
+const AcquisitionCapture = dynamic(
+  () => import("@/components/analytics/AcquisitionCapture")
+);
 // NativeBoot: service-worker registration + Android back-button handler.
 // Self-gates inside the Capacitor shell and on /trips/* paths — safe to
 // always mount, costs ~0 on marketing pages.
@@ -223,6 +229,8 @@ export default async function RootLayout({
         <SpeedInsights />
         {/* Session tracking for retention analytics */}
         <SessionTracker />
+        {/* First-touch acquisition channel (organic/referral/direct) */}
+        <AcquisitionCapture />
         {/* Service worker (offline trips) + Android back-button handler */}
         <NativeBoot />
         {/* Google Analytics 4 - only load if measurement ID is configured.
