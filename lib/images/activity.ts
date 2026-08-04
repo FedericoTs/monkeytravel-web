@@ -891,14 +891,15 @@ function getCuratedImage(type: string, index: number = 0): string {
   //
   // It used to run unconditionally: every type was unioned with `attraction` +
   // FALLBACK_IMAGES because the per-type pools were 1-2 images deep. Now that
-  // the reviewed types carry 8-11 of their own, doing that everywhere would be
+  // every reviewed type carries 7-11 of its own, doing that everywhere would be
   // actively harmful — it would splice generic old-town streets into `spa` and
   // `nightlife`, making those types LESS relevant than they already are.
   //
-  // So: use the type's own pool when it's deep enough, and only reach for the
-  // generic sets for the types still on a single legacy image (food, cafe,
-  // bar, landmark, park, activity, shopping, entertainment, nightlife, spa,
-  // wellness, transport — the next batch to review).
+  // So: use the type's own pool when it's deep enough. As of the second review
+  // pass all 21 known types clear MIN_POOL, so this rescue now only fires for
+  // an UNKNOWN type string (a new activity type the generator starts emitting
+  // before anyone curates a pool for it) — which is exactly the case where
+  // falling back to generic scenery is the right answer.
   const own = CURATED_BY_TYPE[type.toLowerCase()] ?? [];
   const pool =
     own.length >= MIN_POOL
@@ -915,7 +916,7 @@ function getCuratedImage(type: string, index: number = 0): string {
  * Stable curated-image picker based on activity name. Returns the same image
  * for the same name+type combo so a fallback hit is deterministic.
  */
-function curatedFor(name: string, type: string): string {
+export function curatedFor(name: string, type: string): string {
   // djb2 rather than a plain char-code SUM. The sum collides badly on the
   // inputs this actually receives: real activity names within one trip share
   // prefixes and length ("Osteria da Fortunata", "Osteria Mario", …), so their
@@ -933,6 +934,69 @@ function curatedFor(name: string, type: string): string {
     hash = ((hash * 33) ^ name.charCodeAt(i)) >>> 0;
   }
   return getCuratedImage(type || "attraction", hash);
+}
+
+/**
+ * Activity type strings are `[a-z_]` in practice (`nature_attraction`,
+ * `cultural_attraction`, …). Anything else is rejected on read rather than
+ * sanitized — a type we don't recognise resolves to generic scenery anyway,
+ * so there's nothing to gain from trying to salvage a malformed one.
+ */
+const TYPE_HINT_RE = /^[a-z_]{1,32}$/;
+
+/** Read a `t=` type hint back off a proxy URL. Invalid/absent → "". */
+export function readActivityTypeHint(raw: string | null | undefined): string {
+  const t = (raw ?? "").toLowerCase();
+  return TYPE_HINT_RE.test(t) ? t : "";
+}
+
+/**
+ * Tag a `/api/places/photo` proxy URL with the activity type it was resolved
+ * for, so that if Google's photo later dies the proxy can pick a fallback that
+ * MATCHES the activity instead of generic scenery.
+ *
+ * Why the hint has to live in the URL: the proxy is addressed only by a Google
+ * photo resource name, and the URL is what gets frozen into `trips.itinerary`
+ * JSONB. There is no other channel — by the time the browser requests the
+ * image, the activity that owns it is long out of scope.
+ *
+ * Why it is NOT set in `fetchPlacePhoto`: that result is cached per place_id in
+ * `places_v2.photo_url`, and one place can back activities of different types
+ * (a market that is `market` on one trip and `food` on another). Baking a type
+ * into the cached row would let whichever trip resolved it first decide the
+ * fallback for everyone. So the hint is attached HERE, per activity, at fan-out.
+ *
+ * No-op for anything that isn't our proxy — curated Pexels URLs are already
+ * final and carry no place to hang a query param.
+ */
+export function withActivityTypeHint(url: string, type: string): string {
+  if (!url.startsWith("/api/places/photo")) return url;
+  const t = (type || "").toLowerCase();
+  if (!TYPE_HINT_RE.test(t)) return url;
+  // Never double-append: fetchActivityImages can re-run over an itinerary whose
+  // URLs it already tagged (save-time enrichment re-walks generated trips).
+  if (/[?&]t=/.test(url)) return url;
+  return `${url}&t=${t}`;
+}
+
+/**
+ * Move the `t=` hint from an old proxy URL onto its replacement.
+ *
+ * Needed because `places_v2.photo_url` is cached per PLACE and so carries no
+ * hint: any code path that swaps a fresh canonical URL in over an old one (see
+ * lib/places/refreshItineraryPhotos.ts) would otherwise strip the hint and
+ * silently downgrade that activity's dead-photo fallback to generic scenery.
+ *
+ * Lives here rather than at the call site so all three hint operations share
+ * one definition of what a hint looks like. No-op when the old URL has no hint
+ * (everything written before 2026-08-04), when the replacement already carries
+ * one, or when the replacement isn't our proxy.
+ */
+export function carryTypeHint(oldUrl: string | undefined | null, fresh: string): string {
+  if (!oldUrl || !fresh.startsWith("/api/places/photo")) return fresh;
+  if (/[?&]t=/.test(fresh)) return fresh;
+  const hint = /[?&]t=([^&]*)/.exec(oldUrl)?.[1];
+  return hint && TYPE_HINT_RE.test(hint) ? `${fresh}&t=${hint}` : fresh;
 }
 
 /**
@@ -1163,7 +1227,10 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       if (url) {
         placesHits++;
         for (const occ of occurrences) {
-          occ.activity.image_url = url;
+          // Per-occurrence, not per-group: occurrences share a normalized NAME,
+          // but nothing forces them to share a type, and the hint is only worth
+          // carrying if it describes the activity it's attached to.
+          occ.activity.image_url = withActivityTypeHint(url, occ.type);
         }
       } else {
         // Places returned nothing — fall back to curated per-activity.

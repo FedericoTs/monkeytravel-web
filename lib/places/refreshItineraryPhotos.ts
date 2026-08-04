@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { carryTypeHint } from "@/lib/images/activity";
 import type { ItineraryDay } from "@/types";
 
 /**
@@ -178,8 +179,15 @@ export async function refreshItineraryPhotos<T extends DayLike>(
       const placeId = extractPlaceIdFromAnyUrl(url);
       if (!placeId) return activity;
       const fresh = canonical.get(placeId);
-      if (!fresh || fresh === url) return activity;
-      return { ...activity, image_url: fresh };
+      if (!fresh) return activity;
+      // places_v2.photo_url is cached per PLACE and so carries no `t=` activity
+      // type hint. Swapping it in naked would strip the hint this activity
+      // already had, silently downgrading its dead-photo fallback to generic
+      // scenery. Carry the hint across rather than re-deriving it: it reflects
+      // the type this URL was actually resolved for.
+      const withHint = carryTypeHint(url, fresh);
+      if (withHint === url) return activity;
+      return { ...activity, image_url: withHint };
     });
     return { ...day, activities };
   });

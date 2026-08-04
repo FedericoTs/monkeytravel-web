@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
-import { fetchPlacePhoto } from "@/lib/images/activity";
+import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
@@ -116,6 +116,12 @@ export async function GET(request: NextRequest) {
   const ref = searchParams.get("ref");
   const wRaw = parseInt(searchParams.get("w") || "600", 10);
   const hRaw = parseInt(searchParams.get("h") || "400", 10);
+  // Activity type this photo belongs to, so a dead photo falls back to a
+  // matching image rather than generic scenery. Absent on every URL written
+  // before 2026-08-04 and on non-activity callers (hotels, destination heroes)
+  // — validated to "" in that case, never rejected: a missing hint must degrade
+  // the fallback, never fail the image request.
+  const typeHint = readActivityTypeHint(searchParams.get("t"));
 
   // Exactly one of the two addressing modes. `name` is the New API
   // resource name; `ref` is a legacy photo_reference.
@@ -220,7 +226,7 @@ export async function GET(request: NextRequest) {
           // Hash whichever identifier addressed this photo — either is a
           // stable per-photo string, so the same broken photo keeps the
           // same fallback and the CDN caches one redirect target for it.
-          Location: curatedFallbackForName(name ?? ref!),
+          Location: curatedFallbackForName(name ?? ref!, typeHint),
           "Cache-Control": transient ? "no-store" : "public, max-age=3600",
         },
       });
@@ -240,25 +246,6 @@ export async function GET(request: NextRequest) {
     },
   });
 }
-
-/**
- * Pexels curated photos keyed by a deterministic hash of the photo
- * resource name. Same broken URL → same fallback every time (so the
- * CDN caches a single redirect target per upstream-broken photo).
- *
- * Photos hand-picked for activity-page atmospherics: open scenery,
- * urban moments, food close-ups. The grid is deliberately broad so
- * no single fallback dominates and pages with multiple broken URLs
- * still get visual variety.
- */
-const CURATED_FALLBACKS = [
-  "https://images.pexels.com/photos/2087391/pexels-photo-2087391.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  "https://images.pexels.com/photos/2034335/pexels-photo-2034335.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-  "https://images.pexels.com/photos/2082103/pexels-photo-2082103.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
-];
 
 /**
  * Re-resolve a place's photo after its cached resource name expired, serve the
@@ -334,11 +321,28 @@ async function healExpiredPhoto(
   }
 }
 
-function curatedFallbackForName(name: string): string {
-  // Cheap deterministic hash over the resource name — sum of char
-  // codes modulo the list length. Same name → same fallback always.
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash + name.charCodeAt(i)) | 0;
-  const idx = Math.abs(hash) % CURATED_FALLBACKS.length;
-  return CURATED_FALLBACKS[idx];
+/**
+ * Pick the stock image to serve when a Google photo is permanently gone.
+ *
+ * Delegates to the shared `curatedFor` in lib/images/activity.ts (21 reviewed
+ * pools, 7-11 images each) instead of the 6-image list this route used to
+ * carry. Two things change as a result:
+ *
+ *   1. It is TYPE-AWARE. The old list was picked blind, so a dead photo on a
+ *      dinner reservation could render a mountain. `t` (set per activity by
+ *      withActivityTypeHint at resolve time) means a `restaurant` gets a
+ *      restaurant and a `spa` gets a spa.
+ *   2. The pool is ~30x deeper, so a trip with several dead photos no longer
+ *      shows the same stock image three times.
+ *
+ * Deterministic in the same way as before — same URL → same fallback — so the
+ * CDN still caches exactly one redirect target per broken photo.
+ *
+ * `type` is "" for the millions of already-persisted itinerary URLs written
+ * before the hint existed. `curatedFor` treats that as `attraction`, which is
+ * the same generic-scenery behaviour those URLs get today: no regression, and
+ * they upgrade for free if the itinerary is ever re-enriched.
+ */
+function curatedFallbackForName(name: string, type: string): string {
+  return curatedFor(name, type);
 }
