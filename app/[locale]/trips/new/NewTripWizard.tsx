@@ -103,7 +103,7 @@ import {
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { useFlag, useExperiment, usePostHog } from "@/lib/posthog";
-import { FLAG_AUTO_SAVE_V1, FLAG_EXPLORE_UGC, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
+import { FLAG_AUTO_SAVE_V1, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
 import DecisionIntake from "@/components/wizard/DecisionIntake";
 import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
@@ -304,9 +304,27 @@ interface NewTripWizardProps {
    * known destination (free-text fallback handled below).
    */
   prefilledDestination: PrefilledDestination | null;
+  /**
+   * Whether the /explore publish surface is reachable. Resolved server-side
+   * from EXPLORE_UGC_ENABLED and passed down.
+   *
+   * This used to be read from the PostHog flag `explore-ugc-v1` instead. That
+   * flag was never created, so `useFlag` returned nothing, `onPublish` was
+   * always undefined, and the post-save publish CTA has been invisible in
+   * production since it shipped — which is the real reason 261 saved trips
+   * produced only 14 public ones. The 14 came from the /trips/[id] toggle,
+   * which gates on the env flag and was live the whole time.
+   *
+   * Now both surfaces read the same switch. EXPLORE_UGC_ENABLED=false in
+   * Vercel is the kill switch for both.
+   */
+  exploreUgcEnabled: boolean;
 }
 
-export default function NewTripPage({ prefilledDestination }: NewTripWizardProps) {
+export default function NewTripPage({
+  prefilledDestination,
+  exploreUgcEnabled,
+}: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations("trips");
@@ -1036,13 +1054,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   // are explicit (no auto-save until the flag has actually evaluated).
   const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
   const autoSaveEnabled = autoSaveEnabledRaw === true;
-  // Explore-UGC gate for the post-save Publish CTA. The PostHog flag
-  // mirrors the server-side EXPLORE_UGC_ENABLED env (server is the source
-  // of truth — the publish API itself 404s when env is off). We use the
-  // client flag only to hide the button when the user isn't in the cohort,
-  // so we don't surface a CTA that would silently fail.
-  const { enabled: exploreUgcFlagRaw } = useFlag(FLAG_EXPLORE_UGC);
-  const exploreUgcEnabled = exploreUgcFlagRaw === true;
+  // The Explore-UGC gate now arrives as a prop, resolved server-side from
+  // EXPLORE_UGC_ENABLED (see this route's page.tsx). It used to be read from
+  // the PostHog flag FLAG_EXPLORE_UGC, which was never created — so the CTA
+  // was dead in production from the day it shipped.
 
   const autoSaveFormState: PersistTripFormState = {
     destination,

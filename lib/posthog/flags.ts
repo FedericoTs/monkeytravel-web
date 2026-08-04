@@ -241,6 +241,18 @@ export type FrontDoorVariant = "wizard" | "decision";
  *   - explore_trip_reported        (abuse signal)
  *   - trip_likes/save insert rate  (engagement)
  */
+/**
+ * @deprecated Never created in PostHog — no consumer, do not re-wire.
+ *
+ * This was meant to be the cohort ramp on top of EXPLORE_UGC_ENABLED. The env
+ * flag went true but the PostHog flag was never made, so `useFlag` returned
+ * nothing and the post-save Publish CTA rendered for zero users from the day
+ * it shipped. Verified 2026-08-04 by querying PostHog's /flags endpoint
+ * directly: 10 flags served to this project, none matching /explore/.
+ *
+ * Kept as a tombstone rather than deleted so the next person to reach for a
+ * cohort ramp here reads this first. EXPLORE_UGC_ENABLED is the only switch.
+ */
 export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
 
 // ============================================================================
