@@ -213,6 +213,32 @@ export async function GET(request: NextRequest) {
         if (healed) return healed;
       }
 
+      // Reaching here means BOTH the original ref and the self-heal failed, so
+      // the user gets a stock image instead of the real place.
+      //
+      // Measured 2026-08-04 (200 sampled itinerary URLs against prod): this
+      // fires for ~0% of them. 73% of stored refs were already dead, and the
+      // heal above rescued every single one. So a NON-TRIVIAL rate here is not
+      // "a few unlucky photos" — it means the heal itself has stopped working,
+      // and the whole product is quietly serving stock photography. That has a
+      // plausible cause with precedent in this repo: a banned or rotated Google
+      // key, or exhausted quota.
+      //
+      // Logged at warn (not info) precisely so it is alertable, and deliberately
+      // not sampled — at the measured rate the volume is ~nil, and if that stops
+      // being true the volume IS the signal. `reason` separates the transient
+      // quota case from a genuinely dead reference so a spike can be triaged
+      // without re-running the probe campaign that produced these numbers.
+      //
+      // Read the count as ORIGIN MISSES, not user impressions: the permanent
+      // branch below caches the redirect at the edge for an hour, so one log
+      // line can stand behind many rendered stock images.
+      console.warn(
+        `[places/photo] curated fallback served — reason=${
+          transient ? "transient_quota" : placeId ? "heal_failed" : "no_place_id"
+        } upstream=${res.status} type=${typeHint || "none"} place=${placeId ?? "n/a"}`
+      );
+
       // 429 (rate-limit) and 403 (quota) are TRANSIENT, not a permanently-bad
       // photo_reference: serve the curated fallback now so the <img> isn't
       // broken, but do NOT cache it — pinning a transient failure would replace
