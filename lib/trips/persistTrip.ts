@@ -14,7 +14,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GeneratedItinerary, TripVibe } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 
 export interface TripFormState {
@@ -33,6 +33,17 @@ export interface TripFormState {
    * for backwards compat — old drafts have no value.
    */
   travelStyle?: "classic" | "backpacker";
+  /**
+   * Fixed commitments the traveller pinned on step 1 (a booked flight, a
+   * wedding, dinner with a named friend).
+   *
+   * Persisted because the rendered `locked` flag on an activity is a DERIVED
+   * signal — a regeneration or an assistant edit can drop it while the user's
+   * original commitment still stands. Anything that has to ask "is this trip
+   * built around something private?" (today: the publish guard) needs the
+   * source of truth, not just its projection into the itinerary.
+   */
+  anchors?: TripAnchor[];
 }
 
 export interface PersistInput {
@@ -111,6 +122,10 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     ...(formState.travelStyle === "backpacker"
       ? { travel_style: "backpacker" as const }
       : {}),
+    // Only written when the trip actually has anchors, so the key stays absent
+    // (rather than an empty array) on the overwhelming majority of rows — the
+    // publish guard reads it with `Array.isArray`, which treats both alike.
+    ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
   };
 
   return {

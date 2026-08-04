@@ -452,7 +452,10 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
   ]);
   // F1 anchored trips: fixed commitments (flights, weddings, booked nights)
   // the generated plan must build around. Collapsed AnchorEditor on step 1;
-  // sent to /api/ai/generate and persisted into trip_meta.anchors at save.
+  // sent to /api/ai/generate, and carried into trip_meta.anchors at save via
+  // autoSaveFormState. (That last part was only a comment until 2026-08-04 —
+  // TripFormState had no anchors field, so every saved trip landed without
+  // them. Found by querying prod: 0 of 261 rows had trip_meta.anchors.)
   const [anchors, setAnchors] = useState<TripAnchor[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -1050,6 +1053,7 @@ export default function NewTripPage({ prefilledDestination }: NewTripWizardProps
     vibes: selectedVibes,
     derivedInterests: deriveInterestsFromVibes(),
     travelStyle,
+    anchors,
   };
 
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
