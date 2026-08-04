@@ -44,6 +44,23 @@ export interface TripFormState {
    * source of truth, not just its projection into the itinerary.
    */
   anchors?: TripAnchor[];
+  /**
+   * Whether the user said they were travelling solo or with others, from the
+   * "Who's coming?" toggle on wizard step 1.
+   *
+   * The toggle has existed since the Phase-1 collab audit and fires a PostHog
+   * event, but the answer was never written to the trip — so the question
+   * "do our users actually travel in groups?" could not be answered from the
+   * database, and PostHog needs a personal API key to query. That matters a
+   * lot right now: the whole invite / crew / voting / expense-split surface
+   * assumes group travel, and as of 2026-08-04 it had produced 4 invites and
+   * 1 collaborator across 370 users. Either the group thesis is wrong, or the
+   * loop is broken — and stated intent is the cheapest way to tell them apart.
+   *
+   * "unspecified" is not persisted (the key stays absent), so a row carrying
+   * trip_intent means the user actively chose.
+   */
+  tripIntent?: "solo" | "group" | "unspecified";
 }
 
 export interface PersistInput {
@@ -126,6 +143,12 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     // (rather than an empty array) on the overwhelming majority of rows — the
     // publish guard reads it with `Array.isArray`, which treats both alike.
     ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
+    // Only written when the user actually picked, so `trip_intent is not null`
+    // reads as "answered" and the untouched-default case stays distinguishable
+    // from a deliberate choice.
+    ...(formState.tripIntent === "solo" || formState.tripIntent === "group"
+      ? { trip_intent: formState.tripIntent }
+      : {}),
   };
 
   return {

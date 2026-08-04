@@ -997,6 +997,11 @@ export default function NewTripPage({
         if (draft.anchors && draft.anchors.length > 0) {
           setAnchors(draft.anchors);
         }
+        // Restore the "Who's coming?" answer. Absent on pre-2026-08-04 drafts,
+        // in which case the wizard keeps its "unspecified" default.
+        if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
+          setTripIntent(draft.tripIntent);
+        }
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
           // Save Sprint T1: the restored trip becomes the session stack's
@@ -1041,9 +1046,14 @@ export default function NewTripPage({
         budgetTier,
         travelStyle,
         anchors,
+        tripIntent,
       });
     }
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, saveDraft]);
+    // tripIntent belongs here: without it the effect doesn't re-run when the
+    // user changes "Who's coming?" after generating, and the draft keeps the
+    // stale answer — which would quietly corrupt the very measurement this
+    // field exists to produce.
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, tripIntent, saveDraft]);
 
   // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
@@ -1069,6 +1079,12 @@ export default function NewTripPage({
     derivedInterests: deriveInterestsFromVibes(),
     travelStyle,
     anchors,
+    // "Who's coming?" has been asked on step 1 since the Phase-1 collab audit
+    // and captured to PostHog, but never written to the trip — so the answer
+    // was unqueryable from the database and effectively unavailable (reading
+    // PostHog needs a personal API key). Persisting it is what turns the
+    // toggle into evidence for the group-vs-solo decision.
+    tripIntent,
   };
 
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
@@ -1324,6 +1340,9 @@ export default function NewTripPage({
       if (draft.travelStyle === "backpacker") {
         setTravelStyle("backpacker");
       }
+      if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
+        setTripIntent(draft.tripIntent);
+      }
       setGeneratedItinerary(draft.generatedItinerary);
       // Save Sprint T1: mirror the restore into the session stack so the
       // banner-restored trip is durable in the tray (and not re-pushed as a
@@ -1536,6 +1555,7 @@ export default function NewTripPage({
         budgetTier,
         travelStyle,
         anchors,
+        tripIntent,
       });
     }
 
@@ -1925,6 +1945,8 @@ export default function NewTripPage({
             // Same lesson for F1 anchors: without this, the post-signup save
             // would silently drop trip_meta.anchors.
             anchors,
+            // ...and the same for the "Who's coming?" answer.
+            tripIntent,
           });
         }
         // Funnel disambiguation: save_clicked > saved is the dominant

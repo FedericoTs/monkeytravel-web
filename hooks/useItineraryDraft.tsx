@@ -27,6 +27,15 @@ export interface ItineraryDraft {
    * still persists trip_meta.anchors (same lesson as travelStyle above).
    */
   anchors?: TripAnchor[];
+  /**
+   * "Who's coming?" answer from step 1. Same round-trip lesson as travelStyle
+   * and anchors above: the wizard remounts with fresh state after the signup
+   * redirect, so anything not in the draft is silently reset. Without this the
+   * answer would be lost for exactly the users who complete signup — i.e. the
+   * ones whose trips actually get saved — biasing the solo-vs-group read
+   * toward "unspecified" precisely where the evidence matters.
+   */
+  tripIntent?: "solo" | "group" | "unspecified";
   savedAt: number;
   userId?: string;
 }
