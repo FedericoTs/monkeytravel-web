@@ -3,6 +3,7 @@ import { destinations } from "@/lib/destinations/data";
 import { getAllSlugs as getBlogSlugs, getPostDates, hasLocaleTranslation } from "@/lib/blog/api";
 import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { getAllAuthors } from "@/lib/blog/authors";
+import { competitorSlugs } from "@/lib/comparison/competitors";
 
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
@@ -122,6 +123,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // canonical entry-point rather than diluting it across N facets.
   const explorePaths = ['/explore'];
 
+  // **2026-08-03**: "<competitor> alternative" comparison pages. Bottom-funnel
+  // branded search is the one SERP class a young domain can realistically win
+  // — the incumbent never writes the page, so we compete against other small
+  // sites rather than against their brand authority. Derived from the
+  // competitor registry so adding a competitor never means editing the
+  // sitemap. Monthly cadence: claims are re-verified, not rewritten.
+  const comparePaths = competitorSlugs().map((slug) => `/compare/${slug}`);
+
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;
     for (const path of seoLandingPaths) {
@@ -133,6 +142,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
     for (const path of toolPaths) {
+      landingPages.push({
+        url: `${baseUrl}${prefix}${path}`,
+        lastModified: ptAware(locale, LASTMOD_LANDING),
+        changeFrequency: 'monthly',
+        priority: PRIORITY_LANDING,
+      });
+    }
+    for (const path of comparePaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_LANDING),
