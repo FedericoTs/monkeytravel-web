@@ -231,6 +231,12 @@ export interface TripMeta {
    * the trip detail / share view (see Hostelworld partnership wedge).
    */
   travel_style?: "classic" | "backpacker";
+  /**
+   * The wizard's "Who's coming?" answer. Only written when the user actually
+   * picked, so `undefined` means unanswered rather than "solo" — the two are
+   * different and the share prompt branches on that distinction.
+   */
+  trip_intent?: "solo" | "group";
   weather_note?: string;           // Weather info for the destination
   highlights?: string[];           // Trip highlights (3-5 bullet points)
   booking_links?: {                // Affiliate booking links

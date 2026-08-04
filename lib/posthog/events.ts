@@ -524,13 +524,6 @@ export async function captureSharePromptAction(event: SharePromptActionEvent) {
   ph.capture("share_prompt_action", event);
 }
 
-/**
- * Capture trip shared
- */
-export async function captureTripShared(event: TripSharedEvent) {
-  const ph = await getPosthog();
-  ph.capture("trip_shared", event);
-}
 
 /**
  * Capture referral conversion
@@ -701,6 +694,36 @@ export async function captureTripIntentSelected(event: TripIntentSelectedEvent) 
  * ever pasted anywhere. Without this the funnel stops one step short of the
  * only thing that matters.
  */
+/**
+ * Which copy branch the share prompt actually rendered, and where.
+ *
+ * The prompt now branches on trip_intent (71% of users say "with friends").
+ * Without recording the branch we would see the outcome but not which ask
+ * produced it, making the group-vs-solo framing unmeasurable.
+ */
+export async function captureSharePromptVariantShown(event: {
+  trip_id: string;
+  intent: "solo" | "group" | "unspecified";
+  surface: "trip_detail" | "post_save";
+}) {
+  const ph = await getPosthog();
+  ph.capture("share_prompt_variant_shown", event);
+}
+
+/**
+ * The share/invite modal opened on the trip page.
+ *
+ * 81 people reached trip detail in 60 days and what they did with the share
+ * button was entirely invisible — there was no event for it at all.
+ */
+export async function captureShareModalOpened(event: {
+  trip_id: string;
+  source: "prompt" | "trip_detail";
+}) {
+  const ph = await getPosthog();
+  ph.capture("share_modal_opened", event);
+}
+
 export async function captureShareLinkCopied(event: {
   trip_id: string;
   method: "copy" | "native_share";

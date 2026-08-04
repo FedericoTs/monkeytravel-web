@@ -1184,10 +1184,11 @@ export default function NewTripPage({
         // (the mirror effect at ~894 also sets it). Guard to once/session so a
         // Start-Over -> new insert doesn't nag.
         setSavedTripId(tripId);
-        if (typeof window !== "undefined" && !sessionStorage.getItem("share_after_save_shown")) {
-          sessionStorage.setItem("share_after_save_shown", "true");
-          setShowShareAfterSaveModal(true);
-        }
+        // The share ask no longer fires here. It used to open the instant the
+        // row was inserted — before the user had read the itinerary they were
+        // being asked to send. 82 of 100 savers saw it and 85% skipped.
+        // It now lives on /trips/[id] behind an engagement gate; see
+        // components/trip/SharePromptOnTrip.tsx (spec C1).
       } else {
         // Don't re-fire referral/bananas on regen — only count the
         // first save. Just emit the distinct trip_updated event for
@@ -2157,9 +2158,12 @@ export default function NewTripPage({
         /* non-fatal */
       }
 
-      // Show sharing prompt instead of immediate redirect (critical for virality)
+      // Go straight to the trip. The share ask used to interrupt here; it now
+      // waits until the user has actually looked at the itinerary, on the trip
+      // page itself (components/trip/SharePromptOnTrip.tsx, spec C1). The
+      // redirect that the modal's onClose used to perform happens directly.
       setSavedTripId(trip.id);
-      setShowShareAfterSaveModal(true);
+      router.push(`/trips/${trip.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
       // Funnel marker: this is the AUTHED-save genuine-failure path

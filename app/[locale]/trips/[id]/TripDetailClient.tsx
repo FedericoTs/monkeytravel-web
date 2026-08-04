@@ -125,6 +125,8 @@ const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"),
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
+// Share ask, gated on engagement — self-contained, renders null until it fires.
+const SharePromptOnTrip = dynamic(() => import("@/components/trip/SharePromptOnTrip"), { ssr: false });
 const ActivityRatingModal = dynamic(() => import("@/components/timeline/ActivityRatingModal"), { ssr: false });
 const RouteOptimizationModal = dynamic(
   () => import("@/components/trip/RouteOptimizationModal").then((m) => ({ default: m.RouteOptimizationModal })),
@@ -3023,6 +3025,25 @@ export default function TripDetailClient({
       {isCollaborativeTrip && (
         <CollaboratorOnboarding isOwner={userRole === "owner"} />
       )}
+
+      {/* The share ask (spec C1). Renders null until the owner has actually
+          engaged with the trip, and only when no link exists yet — it used to
+          fire in the wizard the moment the row was inserted, before the user
+          had read what they were being asked to send.
+
+          Deliberately OUTSIDE the isCollaborativeTrip gate: the whole point is
+          to reach owners of trips that have no collaborators yet. Gating it on
+          "already collaborative" would only ever ask people who had already
+          done the thing being asked for. */}
+      <SharePromptOnTrip
+        tripId={trip.id}
+        tripTitle={trip.title}
+        tripDays={trip.itinerary?.length ?? 0}
+        destination={getTripDestination(trip)}
+        isOwner={isOwner}
+        tripIntent={trip.meta?.trip_intent}
+        onManageCollaborators={openCrewShareModal}
+      />
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}
       {!isEditMode && <MobileBottomNav activePage="trip-detail" tripId={trip.id} />}
