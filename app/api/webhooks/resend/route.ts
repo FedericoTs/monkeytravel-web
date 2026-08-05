@@ -128,10 +128,15 @@ interface ResendWebhookPayload {
     | "email.delivery_delayed"
     | "contact.updated"
     | "contact.deleted"
+    | "email.received"
     | string;
   data?: {
     email_id?: string;
     to?: string[];
+    // email.received (inbound) — who wrote in, and about what.
+    from?: string;
+    subject?: string;
+    text?: string;
     // contact.* events carry the contact's own email + opt-out flag
     email?: string;
     unsubscribed?: boolean;
@@ -278,6 +283,82 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ recorded: "marketing_opt_out", ...r });
     }
     return NextResponse.json({ ok: true, ignored: eventType });
+  }
+
+  // ── Inbound mail (privacy@ / legal@ / anything at the root) ──────────────
+  //
+  // The root MX went live 2026-08-05 and both privacy@ and legal@ were
+  // confirmed receiving. But Resend's inbox is pull-only: mail lands and
+  // nothing tells anyone. A GDPR erasure request carries a 30-day statutory
+  // clock, so "we'll notice next time we log in" is not a mechanism.
+  //
+  // Forward a heads-up to a human inbox. This is an OPS alert, deliberately
+  // NOT routed through dispatchEmail(): that path applies marketing
+  // suppression and idempotency, so a single bounce against the ops address
+  // would silently disable our own alerting. Ops alerts must not be
+  // suppressible by the thing they are alerting about.
+  if (eventType === "email.received") {
+    const alertTo = process.env.INBOUND_ALERT_TO || "federicosciuca@gmail.com";
+    const inboundFrom = String(payload.data?.from ?? "unknown sender");
+    const inboundTo = (payload.data?.to ?? []).join(", ") || "unknown recipient";
+    const inboundSubject = String(payload.data?.subject ?? "(no subject)");
+
+    // Loop guard. The root MX is catch-all, so mail we send FROM
+    // noreply@monkeytravel.app can come back to us (auto-replies, or our own
+    // configuration probes). Notifying on those would be noise at best and,
+    // if the alert address ever auto-replied, a ping-pong at worst.
+    if (/@monkeytravel\.app>?\s*$/i.test(inboundFrom.trim())) {
+      console.log("[resend-webhook] inbound from own domain — not alerting", inboundFrom);
+      return NextResponse.json({ ok: true, ignored: "inbound_self" });
+    }
+
+    try {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        console.error("[resend-webhook] RESEND_API_KEY missing — cannot alert on inbound");
+        return NextResponse.json({ ok: true, alerted: false, reason: "no api key" });
+      }
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: process.env.EMAIL_FROM || "MonkeyTravel <noreply@monkeytravel.app>",
+          to: [alertTo],
+          reply_to: inboundFrom,
+          subject: `[inbox] ${inboundTo}: ${inboundSubject}`.slice(0, 180),
+          text:
+            `New mail to ${inboundTo}
+
+` +
+            `From:    ${inboundFrom}
+` +
+            `Subject: ${inboundSubject}
+
+` +
+            `${String(payload.data?.text ?? "").slice(0, 2000)}
+
+` +
+            `--
+Reply directly to this message to answer the sender.
+` +
+            `Full message: Resend dashboard → Emails → Received.`,
+        }),
+      });
+      if (!res.ok) {
+        console.error("[resend-webhook] inbound alert send failed", res.status, await res.text());
+        return NextResponse.json({ ok: true, alerted: false, status: res.status });
+      }
+      console.log(`[resend-webhook] inbound alert sent to ${alertTo} re: ${inboundTo}`);
+      return NextResponse.json({ ok: true, alerted: true });
+    } catch (err) {
+      // Never 500 here: a failed alert must not make Resend retry the
+      // inbound event forever. Log loudly, ack the webhook.
+      console.error("[resend-webhook] inbound alert threw", err);
+      return NextResponse.json({ ok: true, alerted: false });
+    }
   }
 
   // Map email.* event → email_log status update.
