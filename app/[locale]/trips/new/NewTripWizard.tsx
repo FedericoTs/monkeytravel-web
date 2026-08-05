@@ -422,6 +422,33 @@ export default function NewTripPage({
               : localCoinArm === "decision"
                 ? "decision"
                 : "wizard";
+  // Is `arm` a real assignment, or just the loading default?
+  //
+  // Every branch above falls through to "wizard" while things resolve:
+  // isAuthenticated starts null, the PostHog variant arrives late, and
+  // localCoinArm is null until its mount effect runs. `arm` therefore reads
+  // "wizard" for the first few ms of EVERY session — including sessions that
+  // the coin is about to assign to decision.
+  //
+  // Measured 2026-08-04: that made the recorded split 78/22 instead of 50/50,
+  // because step_1 fires on mount and stamped the loading default as if it
+  // were a decision. Worse, it biased the comparison — the wizard bucket
+  // absorbed every fast-bouncing session, so the decision arm looked better
+  // on first_value purely by survivorship.
+  //
+  // Fix: distinguish "resolved to wizard" from "not resolved yet", and never
+  // stamp an arm we haven't actually picked. front_door is optional in the
+  // server contract, so omitting it records an honest unknown.
+  const armResolved =
+    frontDoorOverride === "wizard" ||
+    frontDoorOverride === "decision" ||
+    isAuthenticated === true || // authed → genuinely forced to wizard
+    (isAuthenticated === false &&
+      (frontDoorEnvForce === "wizard" ||
+        frontDoorEnvForce === "decision" ||
+        frontDoorVariant === "decision" ||
+        frontDoorVariant === "wizard" ||
+        localCoinArm !== null));
   // Stable ref so the once-attached abandonment listener reads the current arm
   // instead of a stale mount-time closure.
   const armRef = useRef<FrontDoorArm>(arm);
@@ -436,8 +463,11 @@ export default function NewTripPage({
   const posthog = usePostHog();
   useEffect(() => {
     if (!posthog) return;
+    // Same reason as armResolved above: registering the loading default would
+    // tag every PostHog event of a decision-arm session as "wizard".
+    if (!armResolved) return;
     posthog.register({ front_door: arm });
-  }, [posthog, arm]);
+  }, [posthog, arm, armResolved]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
@@ -566,6 +596,13 @@ export default function NewTripPage({
   // and wizardCompletedRef below.
   const trackedStepsRef = useRef<Set<number>>(new Set());
   useEffect(() => {
+    // Wait for a real arm before EITHER sink fires. Placed above the PostHog
+    // capture too, not just the Supabase mirror: an unresolved pass would
+    // otherwise emit a step-view before posthog.register() has attached the
+    // front_door super-property, and would emit it twice.
+    if (!armResolved) {
+      return;
+    }
     captureTripWizardStepViewed({
       step_number: step,
       step_name: STEP_NAMES_CONST[step - 1],
@@ -607,8 +644,11 @@ export default function NewTripPage({
         locale,
       }, arm);
     }
+    // armResolved is a REQUIRED dep: it flips false->true one tick after mount
+    // (the coin's effect) and that flip is what actually fires the step view.
+    // exhaustive-deps is disabled here, so it would not have been caught.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, armResolved]);
 
   // ── Step-1 dwell heartbeat (UX10X Phase 0.3) ─────────────────────────────
   // 56% of anon step-1 abandoner sessions log exactly ONE event, so their
