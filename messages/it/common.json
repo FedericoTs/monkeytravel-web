@@ -1517,7 +1517,9 @@
           "label": "Alternative",
           "prompt": "Suggerisci attività alternative che potrei fare"
         }
-      }
+      },
+      "notAppliedTitle": "Non sono riuscito a fare quella modifica",
+      "notAppliedBody": "Ho capito cosa volevi, ma la modifica non è stata applicata al tuo piano — quindi non è cambiato nulla. Prova a indicare un'attività alla volta (\"sostituisci X con Y\", \"aggiungi Z al giorno 2\"), oppure modifica la giornata direttamente nel piano."
     },
     "cards": {
       "addToTrip": "Aggiungi al viaggio",

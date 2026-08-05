@@ -1240,3 +1240,23 @@ export async function capturePlanImported(event: PlanImportedEvent) {
   const ph = await getPosthog();
   ph.capture("plan_imported", event);
 }
+
+/**
+ * The assistant told the user it changed their plan, and the server did not
+ * confirm a write.
+ *
+ * This was the product's loudest complaint and its least visible one: the
+ * model's claim was persisted with applied:true, so every dashboard read
+ * "success" while users typed "i really can't see any changes". 14 user turns
+ * against 1 real action in a single measured session (2026-08-04).
+ *
+ * Watch this rate. It is the honest denominator for "does the agent actually
+ * do what it says" — and the thing to drive toward zero by widening intent
+ * coverage, not by hiding the message.
+ */
+export async function captureAssistantClaimUnverified(props: {
+  trip_id: string;
+  action_type: string;
+}) {
+  return capture("assistant_claim_unverified", props);
+}

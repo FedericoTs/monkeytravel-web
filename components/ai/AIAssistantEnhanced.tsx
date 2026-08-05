@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { captureAssistantClaimUnverified } from "@/lib/posthog/events";
 import type { ItineraryDay, AssistantCard, Activity } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
@@ -320,11 +321,44 @@ export default function AIAssistantEnhanced({
           // "I don't see the updates on the webpage")
           const verifiedApplied =
             !!data.message?.action?.applied && !!data.modifiedItinerary;
-          const assistantMsg: Message =
-            data.message?.action?.applied && !verifiedApplied
-              ? { ...data.message, action: { ...data.message.action, applied: false } }
-              : data.message;
+
+          // The badge downgrade below was not enough on its own. Users read the
+          // PROSE, not the badge — so when the model wrote "Done! I've added it
+          // to Day 2" and nothing had been written, they saw a success sentence
+          // next to an unchanged plan and asked again. And again.
+          //
+          // Measured 2026-08-04 from ai_conversations: one session ran 14 user
+          // turns against 1 real action, cycling "have you changed the
+          // itinerary?" / "when are you gonna update it" / "i can't see the
+          // changes". That is the single most repeated utterance in the product.
+          //
+          // So when the server did NOT confirm a write, replace the claim
+          // outright instead of letting contradictory copy stand. Saying "I
+          // couldn't do that, here's what does work" ends the loop; a cheerful
+          // lie restarts it.
+          const claimedButUnverified =
+            !!data.message?.action?.applied && !verifiedApplied;
+
+          const assistantMsg: Message = claimedButUnverified
+            ? {
+                ...data.message,
+                content: `${t("notAppliedTitle")}
+
+${t("notAppliedBody")}`,
+                action: { ...data.message.action, applied: false },
+              }
+            : data.message;
           setMessages((prev) => [...prev, assistantMsg]);
+
+          if (claimedButUnverified) {
+            // This was completely invisible before: the model's claim was
+            // persisted as applied:true server-side, so the DB said "success"
+            // while the user was typing "i really can't see any changes".
+            void captureAssistantClaimUnverified({
+              trip_id: tripId,
+              action_type: String(data.message?.action?.type ?? "unknown"),
+            }).catch(() => {});
+          }
 
           // If action was applied, set up undo state
           if (verifiedApplied && data.previousItinerary) {
