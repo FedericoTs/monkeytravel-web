@@ -2058,35 +2058,18 @@ export default function NewTripPage({
         ...(anchors.length > 0 ? { anchors } : {}),
       };
 
-      // Server-side dedupe (defense in depth): before INSERT, check if the
-      // same user already saved a trip with the same title + start_date in
-      // the last 60s. If so, reuse it. RLS scopes this SELECT to the
-      // caller's own trips so no privacy leak. Catches:
-      //   - cross-tab double-save (client ref doesn't share across tabs)
-      //   - hard-refresh-then-resave (ref reset, draft still present)
-      //   - any client guard regression
+      // Atomic server-side dedupe: the previous check-then-insert here (31e1d41)
+      // caught slow double-clicks but not concurrency — this path racing the
+      // auto-save arm produced a mixed-arm duplicate pair on 2026-07-02. The
+      // insert_trip_dedup RPC advisory-locks (user, title, start_date), runs
+      // the same 60s-window reuse check, and inserts — atomically. Also still
+      // catches cross-tab double-save, hard-refresh-then-resave, and any
+      // client guard regression. RLS applies (SECURITY INVOKER); user_id is
+      // taken from auth.uid() server-side.
       const tripTitle = `${generatedItinerary.destination.name} Trip`;
-      const sixtySecondsAgo = new Date(Date.now() - 60_000).toISOString();
-      const { data: existingTrip } = await supabase
-        .from("trips")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("title", tripTitle)
-        .eq("start_date", startDate)
-        .gte("created_at", sixtySecondsAgo)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      let trip: { id: string };
-      if (existingTrip) {
-        // Reuse the row that already landed. Treat as a successful save.
-        trip = existingTrip;
-      } else {
-        const { data: inserted, error: tripError } = await supabase
-          .from("trips")
-          .insert({
-            user_id: user.id,
+      const { data: dedupSave, error: tripError } = await supabase
+        .rpc("insert_trip_dedup", {
+          p_row: {
             title: tripTitle,
             description: generatedItinerary.destination.description,
             start_date: startDate,
@@ -2103,13 +2086,14 @@ export default function NewTripPage({
             tags: deriveInterestsFromVibes(), // Auto-derived from vibes
             trip_meta: tripMeta, // Preserve AI-generated metadata
             packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
-          })
-          .select()
-          .single();
+          },
+        })
+        .single();
 
-        if (tripError) throw tripError;
-        trip = inserted;
-      }
+      if (tripError) throw tripError;
+      const dedupRow = dedupSave as { trip_id: string; reused: boolean } | null;
+      if (!dedupRow?.trip_id) throw new Error("Trip insert returned no id");
+      const trip: { id: string } = { id: dedupRow.trip_id };
 
       // Calculate trip duration
       const durationDays = Math.ceil(

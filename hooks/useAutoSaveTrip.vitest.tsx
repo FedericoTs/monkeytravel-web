@@ -224,6 +224,51 @@ describe("useAutoSaveTrip", () => {
     expect(mocks.saveTrip).toHaveBeenCalledTimes(1);
   });
 
+  it("serializes a new itinerary identity arriving mid-INSERT: one INSERT, then UPDATE (the 0.0-0.35s duplicate-trip bug)", async () => {
+    // Regression for the 2026-08-10 duplicate-trips finding: streaming
+    // finalize / day-edit apply / draft restore mint a NEW itinerary object
+    // while the first INSERT is still in flight. Before serialization the
+    // hook started a second concurrent persist that also took the INSERT
+    // branch (savedTripId not yet known) — two rows 0.0-0.35s apart.
+    const first = makeItinerary(1);
+    const second = makeItinerary(2);
+    const mocks = makeMocks();
+
+    let resolveSave!: (v: { tripId: string; durationDays: number }) => void;
+    mocks.saveTrip.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    const { result, rerender } = renderAutoSaveHook({ itinerary: first, mocks });
+    await waitFor(() => expect(result.current.status).toBe("saving"));
+
+    // Second identity lands while the INSERT is still in flight.
+    rerender({ itinerary: second });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    // The second persist must be QUEUED, not started: still exactly one
+    // saveTrip call, and no updateTrip yet.
+    expect(mocks.saveTrip).toHaveBeenCalledTimes(1);
+    expect(mocks.updateTrip).not.toHaveBeenCalled();
+
+    // First INSERT resolves → the queued persist now sees savedTripId and
+    // becomes an UPDATE of the same row.
+    await act(async () => {
+      resolveSave({ tripId: "trip-1", durationDays: 5 });
+    });
+    await waitFor(() => expect(mocks.updateTrip).toHaveBeenCalledTimes(1));
+    expect(mocks.saveTrip).toHaveBeenCalledTimes(1);
+    expect(mocks.updateTrip).toHaveBeenCalledWith(
+      "trip-1",
+      expect.objectContaining({ itinerary: second }),
+    );
+    expect(result.current.savedTripId).toBe("trip-1");
+  });
+
   it("surfaces save errors and lets retry succeed", async () => {
     const itinerary = makeItinerary();
     const mocks = makeMocks();

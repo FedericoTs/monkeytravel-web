@@ -212,60 +212,46 @@ export async function insertTrip(
   const fallback = pickFallbackCoverImage(input.itinerary);
   const row = buildTripRow(input, userId, fallback);
 
-  // Server-side dedupe (defense in depth). The autosave hook serializes
-  // calls within a single mount via pendingSaveRef, but cross-tab saves,
-  // hook remounts, or any other caller of insertTrip can still hit the
-  // race. Before inserting, check if the same user already has a trip
-  // with the same title + start_date created in the last 60s. If so,
-  // reuse it — same contract as the row would have had on first save.
-  // RLS scopes the SELECT to the caller's own trips.
-  //
-  // Surfaced 2026-06-01: paul.harrington@hostelworld.com landed 2 identical
-  // Warsaw trips 4 seconds apart on signup. The NewTripWizard manual-save
-  // path got its own dedupe in commit 31e1d41; this is the autosave-path
-  // counterpart.
-  const sixtySecondsAgo = new Date(Date.now() - 60_000).toISOString();
-  const { data: existing } = await supabase
-    .from("trips")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("title", row.title)
-    .eq("start_date", row.start_date)
-    .gte("created_at", sixtySecondsAgo)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (existing?.id) {
-    return {
-      tripId: existing.id,
-      durationDays: computeDurationDays(input.formState),
-    };
-  }
-
+  // Atomic server-side dedupe. The previous check-then-insert here (added
+  // 2026-06-01 after paul.harrington@hostelworld.com landed 2 identical
+  // Warsaw trips 4s apart) killed slow double-clicks but not concurrency:
+  // two saves 0.0-0.35s apart both passed the SELECT before either INSERT
+  // committed (19 duplicate pairs measured 2026-08-10, median gap 0s). The
+  // insert_trip_dedup RPC takes a pg_advisory_xact_lock on (user, title,
+  // start_date) so concurrent saves serialize, then runs the same 60s-window
+  // check, then inserts — one round-trip, no race. SECURITY INVOKER, so RLS
+  // still applies and user_id comes from auth.uid() server-side.
   const { data, error } = await supabase
-    .from("trips")
-    .insert(row)
-    .select("id")
+    .rpc("insert_trip_dedup", { p_row: row })
     .single();
 
   if (error) throw error;
-  if (!data?.id) throw new Error("Trip insert returned no id");
+  const result = data as { trip_id: string; reused: boolean } | null;
+  if (!result?.trip_id) throw new Error("Trip insert returned no id");
+
+  if (result.reused) {
+    // The concurrent first save already ran the side effects below —
+    // re-running them would double-enqueue reminders.
+    return {
+      tripId: result.trip_id,
+      durationDays: computeDurationDays(input.formState),
+    };
+  }
 
   // Fire-and-forget enqueue of the pre-trip reminder cascade. Internally
   // gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; a failed enqueue logs
   // + Sentry-captures but never re-throws — saving a trip must NEVER
   // fail because the reminder queue is sick. See
   // lib/notifications/scheduling.ts for the full contract.
-  void scheduleTripNotifications({ tripId: data.id, userId });
+  void scheduleTripNotifications({ tripId: result.trip_id, userId });
 
   // Upgrade this kept trip's curated activity photos → real Google photos
   // (server-side, budget-capped). Generation runs with zero paid lookups now,
   // so this is where saved trips get their real photos. Fire-and-forget.
-  enrichTripPhotos(data.id);
+  enrichTripPhotos(result.trip_id);
 
   return {
-    tripId: data.id,
+    tripId: result.trip_id,
     durationDays: computeDurationDays(input.formState),
   };
 }

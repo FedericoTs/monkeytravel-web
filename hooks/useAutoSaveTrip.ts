@@ -186,6 +186,17 @@ export function useAutoSaveTrip({
   );
 
   // Auto-save trigger.
+  //
+  // Serialization (2026-08-10): a new itinerary object identity landing while
+  // an INSERT is still in flight used to start a SECOND concurrent persist —
+  // savedTripIdRef was still null, so both took the INSERT branch, and the
+  // server's 60s dedupe was check-then-insert so both passed (19 duplicate
+  // trips measured, gaps 0.0-0.35s: streaming finalize / day-edit apply /
+  // draft restore all mint new identities). Chaining on the pending promise
+  // means the second persist waits, sees savedTripIdRef set, and correctly
+  // becomes an UPDATE with the latest content. The server-side advisory-lock
+  // RPC (insert_trip_dedup) backstops paths this ref can't see (two tabs,
+  // remounts).
   useEffect(() => {
     if (!enabled) return;
     if (!isAuthenticated) return;
@@ -193,9 +204,14 @@ export function useAutoSaveTrip({
     if (lastAttemptedItineraryRef.current === itinerary) return;
     lastAttemptedItineraryRef.current = itinerary;
 
-    pendingSaveRef.current = persist(itinerary).finally(() => {
-      pendingSaveRef.current = null;
+    const prev = pendingSaveRef.current;
+    const chained: Promise<void> = (
+      prev ? prev.catch(() => {}).then(() => persist(itinerary)) : persist(itinerary)
+    ).finally(() => {
+      // Only clear if no newer save has been chained on since.
+      if (pendingSaveRef.current === chained) pendingSaveRef.current = null;
     });
+    pendingSaveRef.current = chained;
   }, [enabled, isAuthenticated, itinerary, persist]);
 
   const retry = useCallback(async () => {
