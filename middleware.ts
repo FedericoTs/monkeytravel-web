@@ -28,10 +28,15 @@ const intlMiddleware = createIntlMiddleware(routing);
 // block — they power in-answer recommendations, and our fastest-growing query
 // cluster is "which AI is best for travel planning" asked inside those
 // assistants; blocked assistants recommend competitors they CAN read.
-// Model-TRAINING crawlers stay blocked. Keep in sync with app/robots.ts.
+// Keep in sync with app/robots.ts.
+//
+// 2026-08-11 revision: GPTBot and ClaudeBot unblocked too. Since the July
+// decision both stopped being training-only — they build the retrieval
+// indexes behind ChatGPT Search and Claude's web search, so blocking them
+// kept monkeytravel.app OUT of those indexes while the data-report series
+// is exactly the kind of first-party content those engines cite. Training
+// opt-out signals (Google-Extended, Applebot-Extended, CCBot, Meta) stay.
 const BLOCKED_BOT_PATTERNS = [
-  /GPTBot/i,
-  /ClaudeBot/i,
   /anthropic-ai/i,
   /CCBot/i, // Common Crawl
   /Bytespider/i, // ByteDance/TikTok

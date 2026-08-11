@@ -71,11 +71,13 @@ const ALLOW_PATHS = [
 // PerplexityBot, Perplexity-User. Our fastest-growing query cluster is
 // "which AI is best for travel planning" — asked inside ChatGPT/Perplexity —
 // and blocked assistants can't read or cite MonkeyTravel, so they recommend
-// competitors they CAN read (Mindtrip, Layla). Model-TRAINING crawlers
-// (GPTBot, ClaudeBot, CCBot, Google-Extended, …) stay blocked.
+// competitors they CAN read (Mindtrip, Layla).
+//
+// 2026-08-11 revision: GPTBot and ClaudeBot allowed too — they now feed the
+// ChatGPT Search / Claude search retrieval indexes, not just training, and
+// blocking them excluded us from those indexes entirely. Pure-training
+// opt-outs (CCBot, Google-Extended, Applebot-Extended, …) stay blocked.
 const BLOCKED_AI_AGENTS = [
-  "GPTBot",
-  "ClaudeBot",
   "anthropic-ai",
   "CCBot",
   "Bytespider",
