@@ -318,6 +318,8 @@ function TripConciergeChatInner({
         body.activity = proposal.activity;
         body.oldDuration = proposal.oldDuration;
         body.newDuration = proposal.newDuration;
+      } else if (proposal.type === "shift_days") {
+        body.shiftByDays = proposal.shiftByDays;
       }
 
       const res = await fetch("/api/ai/assistant/apply", {

@@ -77,6 +77,18 @@ export type PendingChange =
       /** Current days the draft didn't cover — they stay untouched. */
       unmappedDayNumbers?: number[];
       reason?: string;
+    }
+  | {
+      /**
+       * P2 Stage C (concierge): push days dayNumber..lastDayNumber
+       * `shiftByDays` days later — the cancelled-flight primitive.
+       */
+      type: "shift_days";
+      dayNumber: number;
+      shiftByDays: number;
+      lastDayNumber: number;
+      newLastDate?: string;
+      reason?: string;
     };
 
 interface PreviewChangeCardProps {
@@ -124,10 +136,12 @@ export default function PreviewChangeCard({
           <div className="flex-1">
             <span className="text-sm font-semibold text-slate-800">{t("suggestedChange")}</span>
             <span className="text-xs text-slate-500 ml-2">
-              {/* apply_draft spans several days — no single day chip */}
+              {/* multi-day changes get a day-count chip, not a single day */}
               {change.type === "apply_draft"
                 ? t("daysCount", { count: change.days.length })
-                : t("day", { number: change.dayNumber })}
+                : change.type === "shift_days"
+                  ? t("daysCount", { count: change.lastDayNumber - change.dayNumber + 1 })
+                  : t("day", { number: change.dayNumber })}
             </span>
           </div>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
@@ -287,6 +301,31 @@ export default function PreviewChangeCard({
                 {t("unmappedDays", { days: change.unmappedDayNumbers!.join(", ") })}
               </p>
             )}
+          </div>
+        )}
+
+        {/* SHIFT_DAYS: the affected day range + how far it moves */}
+        {change.type === "shift_days" && (
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3">
+            <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-slate-800">
+                {t("shiftDaysSummary", {
+                  from: change.dayNumber,
+                  to: change.lastDayNumber,
+                  count: change.shiftByDays,
+                })}
+              </div>
+              {change.newLastDate && (
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {t("tripExtendedTo", { date: change.newLastDate })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

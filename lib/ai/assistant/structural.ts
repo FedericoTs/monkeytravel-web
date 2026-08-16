@@ -189,6 +189,22 @@ export function nextDateISO(
 }
 
 /**
+ * `date` shifted by `days` (positive = later), or null when the input
+ * doesn't parse. Powers the shift_days change type (P2 Stage C — "our
+ * flight got cancelled, push the rest of the trip back a day").
+ */
+export function addDaysISO(
+  date: string | null | undefined,
+  days: number
+): string | null {
+  const iso = toISODate(date);
+  if (!iso || !Number.isFinite(days)) return null;
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + Math.trunc(days));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
  * New trips.end_date after appending a day dated `appendedDate`, or null
  * when no update is needed (stored end_date already covers it). String
  * compare is safe on normalized YYYY-MM-DD.

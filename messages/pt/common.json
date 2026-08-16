@@ -1563,6 +1563,7 @@
       "daysCount": "{count} dias",
       "activitiesCount": "{count} atividades",
       "tripExtendedTo": "Viagem estendida: nova data de término {date}",
+      "shiftDaysSummary": "Os dias {from}–{to} são adiados em {count, plural, one {# dia} other {# dias}}",
       "unmappedDays": "Sem alterações (não estavam no seu rascunho): dia {days}",
       "previewBadge": "Pré-visualização",
       "before": "ANTES",

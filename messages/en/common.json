@@ -1563,6 +1563,7 @@
       "daysCount": "{count} days",
       "activitiesCount": "{count} activities",
       "tripExtendedTo": "Trip extended — new end date: {date}",
+      "shiftDaysSummary": "Days {from}–{to} move {count, plural, one {# day} other {# days}} later",
       "unmappedDays": "Unchanged (not in your draft): Day {days}",
       "previewBadge": "Preview",
       "before": "BEFORE",

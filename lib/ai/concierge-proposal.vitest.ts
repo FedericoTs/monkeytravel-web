@@ -146,6 +146,42 @@ describe("resolveConciergeProposal", () => {
     expect((p as { oldActivity: Activity }).oldActivity.id).toBe("act_bbb");
   });
 
+  it("resolves shift_days with the affected range and post-shift end date", () => {
+    const noLocks: ItineraryDay[] = [
+      { day_number: 1, date: "2026-09-01", activities: [act("a1", "One")] },
+      { day_number: 2, date: "2026-09-02", activities: [act("a2", "Two")] },
+      { day_number: 3, date: "2026-09-03", activities: [act("a3", "Three")] },
+    ];
+    const p = resolveConciergeProposal(
+      JSON.stringify({ type: "shift_days", dayNumber: 2, shiftByDays: 2, reason: "Flight cancelled" }),
+      noLocks
+    );
+    expect(p).toMatchObject({
+      type: "shift_days",
+      dayNumber: 2,
+      shiftByDays: 2,
+      lastDayNumber: 3,
+      newLastDate: "2026-09-05",
+      reason: "Flight cancelled",
+    });
+  });
+
+  it("rejects shift_days with out-of-bounds K and when the range holds a locked day", () => {
+    const noLocks: ItineraryDay[] = [
+      { day_number: 1, date: "2026-09-01", activities: [act("a1", "One")] },
+    ];
+    expect(
+      resolveConciergeProposal(JSON.stringify({ type: "shift_days", dayNumber: 1, shiftByDays: 0 }), noLocks)
+    ).toBeNull();
+    expect(
+      resolveConciergeProposal(JSON.stringify({ type: "shift_days", dayNumber: 1, shiftByDays: 9 }), noLocks)
+    ).toBeNull();
+    // ITINERARY day 2 is locked — shifting from day 1 sweeps it in.
+    expect(
+      resolveConciergeProposal(JSON.stringify({ type: "shift_days", dayNumber: 1, shiftByDays: 1 }), ITINERARY)
+    ).toBeNull();
+  });
+
   it("rejects an add without a usable name; accepts one with defaults filled", () => {
     expect(
       resolveConciergeProposal(JSON.stringify({ type: "add", dayNumber: 1, newActivity: {} }), ITINERARY)

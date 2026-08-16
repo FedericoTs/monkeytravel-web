@@ -23,11 +23,16 @@
 
 import type { Activity, ItineraryDay } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { addDaysISO } from "@/lib/ai/assistant/structural";
 
 export const PROPOSAL_MARKER = "<<<PROPOSAL>>>";
 
-/** Change types the concierge may propose in v1 — today-scoped, single-activity. */
-const ALLOWED_TYPES = ["replace", "add", "remove", "adjust_duration"] as const;
+/**
+ * Change types the concierge may propose: single-activity edits plus the
+ * Stage C structural primitive shift_days (the cancelled-flight case —
+ * push every day from N onward K days later).
+ */
+const ALLOWED_TYPES = ["replace", "add", "remove", "adjust_duration", "shift_days"] as const;
 type ProposalType = (typeof ALLOWED_TYPES)[number];
 
 /**
@@ -46,6 +51,18 @@ export type ConciergeProposal =
       oldDuration: number;
       newDuration: number;
       dayNumber: number;
+      reason?: string;
+    }
+  | {
+      type: "shift_days";
+      /** First day_number to push later; every day through the end moves. */
+      dayNumber: number;
+      /** 1-7 days later. */
+      shiftByDays: number;
+      /** Last affected day_number — display only. */
+      lastDayNumber: number;
+      /** The last day's post-shift date — display only. */
+      newLastDate?: string;
       reason?: string;
     };
 
@@ -216,6 +233,33 @@ export function resolveConciergeProposal(
     );
     if (!newActivity) return null;
     return { type, newActivity, dayNumber, reason };
+  }
+
+  if (type === "shift_days") {
+    const k =
+      typeof raw.shiftByDays === "number" &&
+      Number.isInteger(raw.shiftByDays) &&
+      raw.shiftByDays >= 1 &&
+      raw.shiftByDays <= 7
+        ? raw.shiftByDays
+        : null;
+    if (k === null) return null;
+    const affected = itinerary.filter((d) => d.day_number >= dayNumber);
+    if (affected.length === 0) return null;
+    // Same rule /apply enforces: a date-pinned commitment in the affected
+    // range makes the shift undoable — drop the proposal, keep the answer.
+    if (affected.some((d) => (d.activities ?? []).some((a) => isLocked(a)))) {
+      return null;
+    }
+    const lastDay = affected[affected.length - 1];
+    return {
+      type,
+      dayNumber,
+      shiftByDays: k,
+      lastDayNumber: lastDay.day_number,
+      newLastDate: addDaysISO(lastDay.date, k) ?? undefined,
+      reason,
+    };
   }
 
   // Remaining types all target a stored activity.

@@ -9,11 +9,12 @@ import {
   MAX_TRIP_DAYS,
   nextDateISO,
   computeExtendedEndDate,
+  addDaysISO,
 } from "@/lib/ai/assistant/structural";
 
 interface ApplyChangeRequest {
   tripId: string;
-  changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "add_day" | "apply_draft";
+  changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "add_day" | "apply_draft" | "shift_days";
   oldActivity?: Activity;
   newActivity?: Activity;
   dayNumber: number;
@@ -29,6 +30,11 @@ interface ApplyChangeRequest {
   // For apply_draft (structural — users pasting whole multi-day drafts):
   // the revised replacement days, persisted in ONE write.
   days?: ItineraryDay[];
+  // For shift_days (P2 Stage C — the cancelled-flight primitive): every day
+  // from `dayNumber` onward moves this many days LATER (1-7). The resulting
+  // calendar hole before `dayNumber` is the point — extra free days where
+  // the traveller currently is. start_date moves too when dayNumber === 1.
+  shiftByDays?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -44,7 +50,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return errors.badRequest("Body must be valid JSON");
     }
-    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days } = body;
+    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays } = body;
 
     // Validate based on change type.
     // Bug-bounty 2026-05-24 P1: `!dayNumber` rejected `dayNumber === 0`
@@ -73,6 +79,16 @@ export async function POST(request: NextRequest) {
 
     if (changeType === "apply_draft" && (!Array.isArray(days) || days.length === 0)) {
       return errors.badRequest("Missing days for apply_draft operation");
+    }
+
+    if (
+      changeType === "shift_days" &&
+      (typeof shiftByDays !== "number" ||
+        !Number.isInteger(shiftByDays) ||
+        shiftByDays < 1 ||
+        shiftByDays > 7)
+    ) {
+      return errors.badRequest("shiftByDays must be an integer between 1 and 7");
     }
 
     // Fetch current trip
@@ -132,6 +148,18 @@ export async function POST(request: NextRequest) {
       if (locked.length > 0) {
         return errors.badRequest(
           `This trip is built around fixed plans (${locked.slice(0, 3).join(", ")}) and can't be rewritten from a pasted draft.`
+        );
+      }
+    } else if (changeType === "shift_days") {
+      // Shifting dates would silently move date-pinned commitments (a booked
+      // flight, a wedding) to days they don't belong to — refuse when any
+      // affected day carries a locked activity, same rule as reorder.
+      const locked = modifiedItinerary
+        .slice(dayIndex)
+        .flatMap((d) => lockedActivityNames(d));
+      if (locked.length > 0) {
+        return errors.badRequest(
+          `Days ${dayNumber} onward include fixed plans (${locked.slice(0, 3).join(", ")}) whose dates can't be moved.`
         );
       }
     }
@@ -232,9 +260,40 @@ export async function POST(request: NextRequest) {
 
     // Structural results threaded into the update + response below.
     let newEndDate: string | null = null;
+    let newStartDate: string | null = null;
     let appliedDayNumber = dayNumber;
     let daysUpdatedCount: number | undefined;
     let structuralName: string | undefined;
+
+    if (changeType === "shift_days" && typeof shiftByDays === "number") {
+      // Push every day from dayNumber to the end `shiftByDays` days later.
+      // day_numbers stay 1..N ordinals; only dates (and the trip window)
+      // move. The calendar gap this opens before dayNumber is deliberate.
+      let shifted = 0;
+      for (let i = dayIndex; i < modifiedItinerary.length; i++) {
+        const newDate = addDaysISO(modifiedItinerary[i].date, shiftByDays);
+        if (newDate) {
+          modifiedItinerary[i].date = newDate;
+          shifted++;
+        }
+      }
+      if (shifted === 0) {
+        return errors.badRequest("None of the affected days have a parseable date to shift");
+      }
+      const lastDay = modifiedItinerary[modifiedItinerary.length - 1];
+      // end_date moves in the SAME write as the itinerary (add_day precedent).
+      // Fallback via the shifted last day covers rows with a mangled end_date.
+      newEndDate =
+        addDaysISO(trip.end_date as string | undefined, shiftByDays) ??
+        computeExtendedEndDate(trip.end_date as string | undefined, lastDay.date);
+      if (dayNumber === 1) {
+        // Whole-trip shift ("our outbound flight moved") — the start moves too.
+        newStartDate = addDaysISO(trip.start_date as string | undefined, shiftByDays);
+      }
+      daysUpdatedCount = shifted;
+      structuralName = `Day ${dayNumber}–${lastDay.day_number} +${shiftByDays}d`;
+      console.log(`[AI Assistant Apply] Shifted days ${dayNumber}-${lastDay.day_number} by +${shiftByDays}d, end_date → ${newEndDate ?? "unchanged"}`);
+    }
 
     if (changeType === "add_day" && day) {
       // Re-validate against the STORED trip (not the preview snapshot):
@@ -304,8 +363,10 @@ export async function POST(request: NextRequest) {
       .from("trips")
       .update({
         itinerary: modifiedItinerary,
-        // add_day: end date moves in the same write as the itinerary.
+        // add_day / shift_days: trip window moves in the same write as the
+        // itinerary — never as a second call that can half-fail.
         ...(newEndDate ? { end_date: newEndDate } : {}),
+        ...(newStartDate ? { start_date: newStartDate } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);
@@ -318,8 +379,9 @@ export async function POST(request: NextRequest) {
     return apiSuccess({
       success: true,
       modifiedItinerary,
-      // add_day: the persisted end date, so the client can report it.
+      // add_day / shift_days: the persisted trip window, so the client can report it.
       ...(newEndDate ? { newEndDate } : {}),
+      ...(newStartDate ? { newStartDate } : {}),
       action: {
         type: changeType,
         applied: true,

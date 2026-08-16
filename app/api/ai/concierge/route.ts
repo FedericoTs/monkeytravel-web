@@ -201,8 +201,9 @@ EDIT PROPOSAL protocol:
 - Only when the user's message asks for a concrete change. Questions get answers, not proposals.
 - Write your conversational answer first (explain what you suggest and why, in their language).
 - Then output, as the VERY LAST line: ${PROPOSAL_MARKER} followed on the same line by minified JSON:
-  {"type":"replace"|"add"|"remove"|"adjust_duration","dayNumber":<n>,"targetActivityId":"<the activity's id from the itinerary JSON>","newActivity":{"name":"...","type":"restaurant|attraction|activity|nature","description":"1-2 sentences","location":"neighborhood","address":"street address if known","start_time":"HH:MM","duration_minutes":<n>,"estimated_cost":{"amount":<n>,"currency":"<trip currency>","tier":"budget"|"moderate"|"premium"}},"newDuration":<minutes>,"reason":"one short sentence"}
-- Field rules: replace → targetActivityId + newActivity. add → newActivity only. remove → targetActivityId only. adjust_duration → targetActivityId + newDuration.
+  {"type":"replace"|"add"|"remove"|"adjust_duration"|"shift_days","dayNumber":<n>,"targetActivityId":"<the activity's id from the itinerary JSON>","newActivity":{"name":"...","type":"restaurant|attraction|activity|nature","description":"1-2 sentences","location":"neighborhood","address":"street address if known","start_time":"HH:MM","duration_minutes":<n>,"estimated_cost":{"amount":<n>,"currency":"<trip currency>","tier":"budget"|"moderate"|"premium"}},"newDuration":<minutes>,"shiftByDays":<1-7>,"reason":"one short sentence"}
+- Field rules: replace → targetActivityId + newActivity. add → newActivity only. remove → targetActivityId only. adjust_duration → targetActivityId + newDuration. shift_days → dayNumber (the FIRST day to push later) + shiftByDays.
+- shift_days is for schedule disruptions ("our flight got cancelled, push everything from tomorrow back a day"): EVERY day from dayNumber to the end of the trip moves later by shiftByDays and the trip's end date extends. Never propose it when any affected day contains a "locked": true activity.
 - Use the EXACT activity id from the itinerary JSON. Only propose real venues you are confident exist. Never target an activity marked "locked": true — those are the traveller's fixed plans.
 - At most ONE proposal per reply. Nothing may follow the JSON.`;
 
