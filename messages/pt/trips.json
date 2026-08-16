@@ -18,8 +18,15 @@
     "dyn": {
       "busyDay": "O dia {day} tem {count} paradas — aliviar?",
       "noFood": "Nada para comer no dia {day} — adicionar um lugar?",
-      "lightDay": "O dia {day} tem só {count, plural, one {# parada} other {# paradas}} — adicionar mais?"
+      "lightDay": "O dia {day} tem só {count, plural, one {# parada} other {# paradas}} — adicionar mais?",
+      "longGap": "O dia {day} tem um intervalo de {hours} horas — preencher?"
     }
+  },
+  "daySummary": {
+    "title": "Dia {day}",
+    "planned": "{time} de atividades",
+    "ofBudget": "de ~{time}",
+    "overpacked": "Dia cheio"
   },
   "decision": {
     "promptLabel": "Conte-nos sobre a sua viagem",

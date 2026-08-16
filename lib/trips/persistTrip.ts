@@ -153,6 +153,10 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
     // Same absent-when-empty convention for the must-do wishlist (P3a).
     ...(formState.mustDos?.length ? { must_dos: formState.mustDos } : {}),
+    // Pace the trip was generated at (P3b). Always present on the form, so
+    // always written — the feasibility strip on the detail/share views reads
+    // it to pick the day-time budget; absent (older rows) reads as moderate.
+    pace: formState.pace,
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.

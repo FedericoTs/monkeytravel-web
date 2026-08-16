@@ -623,14 +623,14 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                           );
                         })}
                       </div>
-                      {/* Day travel summary */}
-                      {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
-                        <DaySummary
-                          dayNumber={day.day_number}
-                          segments={travelData.get(day.day_number)!.segments}
-                          className="mt-4"
-                        />
-                      )}
+                      {/* Day travel + feasibility summary */}
+                      <DaySummary
+                        dayNumber={day.day_number}
+                        segments={travelData.get(day.day_number)?.segments ?? []}
+                        activities={day.activities}
+                        pace={trip.meta?.pace}
+                        className="mt-4"
+                      />
                     </>
                   ) : (
                     /* Timeline View */
@@ -713,14 +713,14 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                           );
                         })}
                       </div>
-                      {/* Day travel summary for timeline */}
-                      {travelData.get(day.day_number)?.segments && travelData.get(day.day_number)!.segments.length > 0 && (
-                        <DaySummary
-                          dayNumber={day.day_number}
-                          segments={travelData.get(day.day_number)!.segments}
-                          className="mt-4"
-                        />
-                      )}
+                      {/* Day travel + feasibility summary for timeline */}
+                      <DaySummary
+                        dayNumber={day.day_number}
+                        segments={travelData.get(day.day_number)?.segments ?? []}
+                        activities={day.activities}
+                        pace={trip.meta?.pace}
+                        className="mt-4"
+                      />
                     </>
                   )}
                 </div>

@@ -2,14 +2,14 @@ import { describe, it, expect } from "vitest";
 import { deriveRefineSuggestions } from "./refine-suggestions";
 import type { Activity, ItineraryDay } from "@/types";
 
-function act(name: string, type = "attraction", locked = false): Activity {
+function act(name: string, type = "attraction", locked = false, startTime = "10:00"): Activity {
   return {
     name,
     type: type as Activity["type"],
     description: "",
     location: "",
     time_slot: "morning",
-    start_time: "10:00",
+    start_time: startTime,
     duration_minutes: 60,
     estimated_cost: { amount: 0, currency: "EUR", tier: "free" },
     tips: [],
@@ -73,6 +73,43 @@ describe("deriveRefineSuggestions", () => {
     ]);
     // Day 1 is one activity and has no food, but it's anchored: never named.
     expect(s.every((x) => x.params.day !== 1)).toBe(true);
+  });
+
+  it("flags a long dead gap between activities (>=3h after the previous one ends)", () => {
+    // Museum 09:00-10:00, then nothing until 14:00 — a 4-hour hole.
+    const s = deriveRefineSuggestions([
+      day(1, [
+        act("Museum", "attraction", false, "09:00"),
+        act("Lunch spot", "restaurant", false, "14:00"),
+        act("Gallery", "attraction", false, "16:00"),
+      ]),
+    ]);
+    const gap = s.find((x) => x.key === "longGap");
+    expect(gap).toBeDefined();
+    expect(gap!.params).toEqual({ day: 1, hours: 4 });
+    expect(gap!.prompt).toContain("Museum");
+    expect(gap!.prompt).toContain("Lunch spot");
+  });
+
+  it("does NOT flag ordinary spacing under 3 hours", () => {
+    const s = deriveRefineSuggestions([
+      day(1, [
+        act("Museum", "attraction", false, "09:00"),
+        act("Lunch", "restaurant", false, "12:00"),
+        act("Park", "attraction", false, "14:30"),
+      ]),
+    ]);
+    expect(s.some((x) => x.key === "longGap")).toBe(false);
+  });
+
+  it("skips gap detection over unparseable start times instead of guessing", () => {
+    const s = deriveRefineSuggestions([
+      day(1, [
+        act("Vague thing", "attraction", false, "morning-ish"),
+        act("Dinner", "restaurant", false, "20:00"),
+      ]),
+    ]);
+    expect(s.some((x) => x.key === "longGap")).toBe(false);
   });
 
   it("returns [] rather than inventing a problem, so the caller can fall back", () => {

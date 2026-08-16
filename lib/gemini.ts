@@ -11,6 +11,7 @@ import {
   getMoreDaysDedupKey,
   getDayDedupKey,
 } from "./gemini-dedup";
+import { paceBudgetPromptClause } from "./trip/pace";
 
 // Threshold for incremental generation (days)
 // NOTE: Incremental generation is disabled (threshold set to 99) because:
@@ -646,7 +647,7 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
 Rules:
 1. Return ONLY valid JSON, no markdown or extra text
 2. All dates must be in YYYY-MM-DD format starting from the trip start date given in the request
-3. Include 3-5 activities per day based on the requested travel pace
+3. Match the requested travel pace: the request quantifies it as a target activities-per-day and a daily time budget — keep every day's total scheduled activity time (sum of duration_minutes) within that budget
 4. Use REAL place names that exist on Google Maps
 5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
 6. Activities should flow logically through each day
@@ -783,7 +784,7 @@ ${options.anchorBrief}
 - Dates: ${params.startDate} to ${params.endDate}
 - Duration: ${duration} days${options?.isPartial ? ` (partial - generating first ${duration} of ${totalDuration})` : ""}
 - Budget Tier: ${params.budgetTier}
-- Travel Pace: ${params.pace}
+- Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
@@ -1529,7 +1530,7 @@ Return ONE day object (NOT an array) with this exact shape:
 Rules:
 1. Return ONLY the JSON object for the day. No markdown, no array, no extra text.
 2. day_number MUST be exactly ${params.dayNumber}; date MUST be exactly "${params.date}".
-3. Include 3-5 activities based on ${params.pace} pace.
+3. Match the ${params.pace} pace: ${paceBudgetPromptClause(params.pace)}.
 4. Do NOT include any place from the already-visited list.
 5. Use PRECISE coordinates (6 decimal places).`;
 
@@ -1994,7 +1995,7 @@ Return an array of days:
 
 Rules:
 1. Return ONLY valid JSON array, no markdown
-2. Each day should have 3-5 activities based on ${params.pace} pace
+2. Match the ${params.pace} pace: ${paceBudgetPromptClause(params.pace)}
 3. Avoid ALL places already visited
 4. Use PRECISE coordinates with 6 decimal places (e.g., 48.858370) for exact locations
 5. Dates increment from ${generationStartDate}`;

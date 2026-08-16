@@ -2081,6 +2081,9 @@ export default function NewTripPage({
         ...(anchors.length > 0 ? { anchors } : {}),
         // P3a must-dos: same source-of-truth reasoning as anchors.
         ...(mustDos.length > 0 ? { must_dos: mustDos } : {}),
+        // P3b: pace the trip was generated at — the feasibility strip on the
+        // detail/share views reads it to pick the day-time budget.
+        pace,
       };
 
       // Atomic server-side dedupe: the previous check-then-insert here (31e1d41)

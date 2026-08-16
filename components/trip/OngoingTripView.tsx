@@ -569,15 +569,14 @@ export default function OngoingTripView({
                         })}
                       </div>
 
-                      {/* Day travel summary */}
-                      {travelData.get(day.day_number)?.segments &&
-                        travelData.get(day.day_number)!.segments.length > 0 && (
-                          <DaySummary
-                            dayNumber={day.day_number}
-                            segments={travelData.get(day.day_number)!.segments}
-                            className="mt-4"
-                          />
-                        )}
+                      {/* Day travel + feasibility summary */}
+                      <DaySummary
+                        dayNumber={day.day_number}
+                        segments={travelData.get(day.day_number)?.segments ?? []}
+                        activities={day.activities}
+                        pace={meta?.pace}
+                        className="mt-4"
+                      />
                     </div>
                   );
                 })}

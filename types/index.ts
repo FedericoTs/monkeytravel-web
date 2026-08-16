@@ -255,6 +255,18 @@ export interface TripMeta {
    * no migration needed (trip_meta.cities precedent).
    */
   anchors?: TripAnchor[];
+  /**
+   * Must-do wishlist from wizard step 2 (P3a). Written by both save arms
+   * since 2026-08-16; source of truth for the traveller's explicit wishes
+   * even when an edit drops the generated activity.
+   */
+  must_dos?: string[];
+  /**
+   * Travel pace the trip was generated at (P3b feasibility strip). Written
+   * on save since 2026-08-16; older rows lack it and read as "moderate"
+   * via normalizePace() in lib/trip/pace.ts.
+   */
+  pace?: "relaxed" | "moderate" | "active";
 }
 
 // ============================================================================

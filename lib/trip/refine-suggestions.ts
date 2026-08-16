@@ -31,6 +31,46 @@ export interface RefineSuggestion {
 const BUSY_THRESHOLD = 6;
 /** ...and "light" at or below this, excluding fully-anchored days. */
 const LIGHT_THRESHOLD = 2;
+/** A between-activities gap reads as "dead time" from this many minutes. */
+const LONG_GAP_MINUTES = 180;
+
+/** "HH:MM" → minutes since midnight, or null on anything unparseable. */
+function parseStartMinutes(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!m) return null;
+  const hours = Number(m[1]);
+  const minutes = Number(m[2]);
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+interface DayGap {
+  fromName: string;
+  toName: string;
+  gapMinutes: number;
+}
+
+/**
+ * The longest between-activities idle stretch in a day, or null when
+ * nothing qualifies. Skips pairs where either side has an unparseable
+ * start_time or a missing duration — better silent than wrong.
+ */
+function findLongGap(day: ItineraryDay): DayGap | null {
+  const acts = day.activities ?? [];
+  let longest: DayGap | null = null;
+  for (let i = 0; i < acts.length - 1; i++) {
+    const start = parseStartMinutes(acts[i].start_time);
+    const nextStart = parseStartMinutes(acts[i + 1].start_time);
+    const duration = typeof acts[i].duration_minutes === "number" ? acts[i].duration_minutes : null;
+    if (start === null || nextStart === null || duration === null || duration <= 0) continue;
+    const gap = nextStart - (start + duration);
+    if (gap >= LONG_GAP_MINUTES && (longest === null || gap > longest.gapMinutes)) {
+      longest = { fromName: acts[i].name, toName: acts[i + 1].name, gapMinutes: gap };
+    }
+  }
+  return longest;
+}
 
 function isFood(a: { type?: string; name?: string }): boolean {
   const t = (a.type ?? "").toLowerCase();
@@ -86,7 +126,23 @@ export function deriveRefineSuggestions(
     });
   }
 
-  // 3. A suspiciously empty day.
+  // 3. A long dead gap inside a day (P3b — declared in the key union since
+  // launch, first implemented 2026-08-16). Concrete and checkable: the
+  // traveller can see the 4-hour hole between the museum and dinner.
+  for (const d of usable) {
+    const gap = findLongGap(d);
+    if (gap) {
+      const hours = Math.round(gap.gapMinutes / 60);
+      out.push({
+        key: "longGap",
+        params: { day: d.day_number, hours },
+        prompt: `Day ${d.day_number} has about ${hours} hours of dead time between ${gap.fromName} and ${gap.toName}. Fill the gap with something nearby.`,
+      });
+      break; // one gap suggestion is enough — the chips row is small
+    }
+  }
+
+  // 4. A suspiciously empty day.
   const light = usable.find((d) => (d.activities?.length ?? 0) > 0 && (d.activities?.length ?? 0) <= LIGHT_THRESHOLD);
   if (light) {
     out.push({

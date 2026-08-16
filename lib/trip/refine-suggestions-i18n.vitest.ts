@@ -24,10 +24,10 @@ function get(obj: unknown, dotted: string): unknown {
   return dotted.split(".").reduce<unknown>((acc, k) => (acc as Record<string, unknown>)?.[k], obj);
 }
 
-function act(name: string, type = "attraction"): Activity {
+function act(name: string, type = "attraction", startTime = "10:00"): Activity {
   return {
     name, type: type as Activity["type"], description: "", location: "",
-    time_slot: "morning", start_time: "10:00", duration_minutes: 60,
+    time_slot: "morning", start_time: startTime, duration_minutes: 60,
     estimated_cost: { amount: 0, currency: "EUR", tier: "free" },
     tips: [], booking_required: false,
   } as Activity;
@@ -37,7 +37,7 @@ const day = (n: number, a: Activity[]): ItineraryDay => ({ day_number: n, date: 
 /** A trip that triggers every derivation branch at once. */
 const TRIGGERS_ALL: ItineraryDay[] = [
   day(1, [act("A"), act("B"), act("C"), act("D"), act("E"), act("F")]), // busy
-  day(2, [act("Museum"), act("Park"), act("Gallery")]),                 // no food
+  day(2, [act("Museum", "attraction", "09:00"), act("Park", "attraction", "14:00"), act("Gallery", "attraction", "16:00")]), // no food + 4h gap
   day(3, [act("Solo thing")]),                                          // light
 ];
 
@@ -46,7 +46,7 @@ describe("refine suggestion i18n coverage", () => {
 
   it("the fixture actually exercises every suggestion key", () => {
     expect(new Set(derived.map((d) => d.key))).toEqual(
-      new Set(["busyDay", "noFood", "lightDay"])
+      new Set(["busyDay", "noFood", "longGap", "lightDay"])
     );
   });
 

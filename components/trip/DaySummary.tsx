@@ -1,24 +1,44 @@
 "use client";
 
 import { useMemo } from "react";
-import { Route, Clock, Footprints, Car, Bus, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Route, Clock, Footprints, Car, Bus, TrendingUp, CalendarClock, AlertTriangle } from "lucide-react";
 import type { TravelSegment } from "@/lib/hooks/useTravelDistances";
+import {
+  PACE_BUDGETS,
+  isOverpacked,
+  normalizePace,
+  sumPlannedMinutes,
+  type TripPace,
+} from "@/lib/trip/pace";
 
 interface DaySummaryProps {
   dayNumber: number;
   segments: TravelSegment[];
+  /**
+   * The day's activities (P3b feasibility strip). When provided, the strip
+   * shows total planned activity time against the pace budget and flags
+   * overpacked days. Structural type so callers can pass Activity[] as-is.
+   */
+  activities?: ReadonlyArray<{ duration_minutes?: number | null }>;
+  /** Trip pace; anything unknown/absent (older trips) reads as "moderate". */
+  pace?: TripPace | string;
   className?: string;
 }
 
 /**
- * Day-level travel summary showing total distance, time, and mode breakdown
- * Uses Fresh Voyager theme colors
+ * Day-level feasibility strip: total travel distance/time + mode breakdown
+ * (when travel segments are computed) and planned-activity-time vs the pace
+ * budget (when activities are passed). Uses Fresh Voyager theme colors.
  */
 export function DaySummary({
   dayNumber,
   segments,
+  activities,
+  pace,
   className = "",
 }: DaySummaryProps) {
+  const t = useTranslations("trips");
   const stats = useMemo(() => {
     const totals = segments.reduce(
       (acc, seg) => ({
@@ -50,8 +70,19 @@ export function DaySummary({
     };
   }, [segments]);
 
-  // Don't render if no segments
-  if (segments.length === 0) {
+  const feasibility = useMemo(() => {
+    const plannedMinutes = sumPlannedMinutes(activities);
+    if (plannedMinutes === 0) return null;
+    const normalizedPace = normalizePace(pace);
+    return {
+      plannedText: formatMinutes(plannedMinutes),
+      budgetText: formatMinutes(PACE_BUDGETS[normalizedPace].maxActivityMinutes),
+      overpacked: isOverpacked(activities, normalizedPace),
+    };
+  }, [activities, pace]);
+
+  // Don't render if there's neither travel data nor planned time to show
+  if (segments.length === 0 && !feasibility) {
     return null;
   }
 
@@ -69,55 +100,83 @@ export function DaySummary({
       <div className="flex items-center gap-1.5">
         <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-          Day {dayNumber} Travel
+          {t("daySummary.title", { day: dayNumber })}
         </span>
       </div>
 
-      <div className="h-4 w-px bg-slate-200" />
-
-      {/* Total distance */}
-      <div className="flex items-center gap-1.5 text-sm">
-        <Route className="w-4 h-4 text-[var(--secondary)]" />
-        <span className="font-semibold text-slate-700">{stats.distanceText}</span>
-      </div>
-
-      <div className="h-4 w-px bg-slate-200" />
-
-      {/* Total travel time */}
-      <div className="flex items-center gap-1.5 text-sm">
-        <Clock className="w-4 h-4 text-[var(--primary)]" />
-        <span className="font-semibold text-slate-700">~{stats.durationText}</span>
-      </div>
-
-      <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-
-      {/* Mode breakdown */}
-      <div className="flex items-center gap-3 text-xs text-slate-500">
-        {stats.walks > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-50">
-              <Footprints className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="font-medium text-emerald-700">{stats.walks}x</span>
+      {/* Planned activity time vs pace budget */}
+      {feasibility && (
+        <>
+          <div className="h-4 w-px bg-slate-200" />
+          <div className="flex items-center gap-1.5 text-sm">
+            <CalendarClock className="w-4 h-4 text-[var(--secondary)]" />
+            <span className="font-semibold text-slate-700">
+              {t("daySummary.planned", { time: feasibility.plannedText })}
+            </span>
+            <span className="text-xs text-slate-400">
+              {t("daySummary.ofBudget", { time: feasibility.budgetText })}
+            </span>
+          </div>
+          {feasibility.overpacked && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200/70">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              <span className="text-xs font-medium text-amber-700">
+                {t("daySummary.overpacked")}
+              </span>
             </div>
-            <span className="text-slate-400">{stats.walkingDistanceText}</span>
+          )}
+        </>
+      )}
+
+      {segments.length > 0 && (
+        <>
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Total distance */}
+          <div className="flex items-center gap-1.5 text-sm">
+            <Route className="w-4 h-4 text-[var(--secondary)]" />
+            <span className="font-semibold text-slate-700">{stats.distanceText}</span>
           </div>
-        )}
-        {stats.drives > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-blue-50">
-              <Car className="w-3.5 h-3.5 text-blue-600" />
-              <span className="font-medium text-blue-700">{stats.drives}x</span>
-            </div>
-            <span className="text-slate-400">{stats.drivingDistanceText}</span>
+
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Total travel time */}
+          <div className="flex items-center gap-1.5 text-sm">
+            <Clock className="w-4 h-4 text-[var(--primary)]" />
+            <span className="font-semibold text-slate-700">~{stats.durationText}</span>
           </div>
-        )}
-        {stats.transits > 0 && (
-          <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-purple-50">
-            <Bus className="w-3.5 h-3.5 text-purple-600" />
-            <span className="font-medium text-purple-700">{stats.transits}x</span>
+
+          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+          {/* Mode breakdown */}
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            {stats.walks > 0 && (
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-50">
+                  <Footprints className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="font-medium text-emerald-700">{stats.walks}x</span>
+                </div>
+                <span className="text-slate-400">{stats.walkingDistanceText}</span>
+              </div>
+            )}
+            {stats.drives > 0 && (
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-blue-50">
+                  <Car className="w-3.5 h-3.5 text-blue-600" />
+                  <span className="font-medium text-blue-700">{stats.drives}x</span>
+                </div>
+                <span className="text-slate-400">{stats.drivingDistanceText}</span>
+              </div>
+            )}
+            {stats.transits > 0 && (
+              <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-purple-50">
+                <Bus className="w-3.5 h-3.5 text-purple-600" />
+                <span className="font-medium text-purple-700">{stats.transits}x</span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -136,8 +195,15 @@ function formatDistance(meters: number): string {
  * Format duration in seconds to human readable string
  */
 function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
+  return formatMinutes(Math.round(seconds / 60));
+}
+
+/**
+ * Format a minute count to human readable string ("5h 30m", "45 min")
+ */
+function formatMinutes(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
 
   if (hours > 0) {
     return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
