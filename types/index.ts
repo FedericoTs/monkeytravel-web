@@ -413,6 +413,17 @@ export interface TripCreationParams {
   interests: string[];
   requirements?: string;
   /**
+   * Must-do wishlist (P3a, docs/PRODUCT_PLAN_COCREATION_2026_08.md). Undated,
+   * unlocated things the traveller explicitly wants — "Great Wall", "eat
+   * Peking duck", "Zhangjiajie". Distinct from `anchors` (date-pinned
+   * commitments) and from `requirements` (constraints prose): these are
+   * positive wishes the generator must SCHEDULE, each on a sensible day.
+   * Presence of must-dos makes the generation personalized, which bypasses
+   * the cross-user itinerary cache (a cached generic plan would silently
+   * ignore them). Max 10 items, each ≤80 chars (validateTripParams).
+   */
+  mustDos?: string[];
+  /**
    * Travel style preset. Shipped 2026-05-28 as the wedge for partner
    * conversations (Hostelworld in particular — backpacker is their
    * core demo).

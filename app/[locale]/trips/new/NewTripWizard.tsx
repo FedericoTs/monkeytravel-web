@@ -544,6 +544,11 @@ export default function NewTripPage({
   const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [requirements, setRequirements] = useState("");
+  // Must-do wishlist (P3a): undated wishes ("Great Wall", "eat Peking duck")
+  // entered as chips on step 2. Distinct from anchors (date-pinned) and from
+  // the requirements prose. Caps mirror validateTripParams (10 × 80 chars).
+  const [mustDos, setMustDos] = useState<string[]>([]);
+  const [mustDoInput, setMustDoInput] = useState("");
   const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
 
   // UX enhancement state
@@ -1030,6 +1035,7 @@ export default function NewTripPage({
         setPace(draft.pace as "relaxed" | "moderate" | "active");
         setSelectedVibes(draft.vibes as TripVibe[]);
         setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+        if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
         // travelStyle may be undefined on pre-2026-05-28 drafts → "classic"
         if (draft.travelStyle === "backpacker") {
           setTravelStyle("backpacker");
@@ -1086,14 +1092,15 @@ export default function NewTripPage({
         budgetTier,
         travelStyle,
         anchors,
+        mustDos,
         tripIntent,
       });
     }
     // tripIntent belongs here: without it the effect doesn't re-run when the
     // user changes "Who's coming?" after generating, and the draft keeps the
     // stale answer — which would quietly corrupt the very measurement this
-    // field exists to produce.
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, tripIntent, saveDraft]);
+    // field exists to produce. Same for mustDos (P3a).
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft]);
 
   // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
@@ -1119,6 +1126,7 @@ export default function NewTripPage({
     derivedInterests: deriveInterestsFromVibes(),
     travelStyle,
     anchors,
+    mustDos,
     // "Who's coming?" has been asked on step 1 since the Phase-1 collab audit
     // and captured to PostHog, but never written to the trip — so the answer
     // was unqueryable from the database and effectively unavailable (reading
@@ -1378,6 +1386,7 @@ export default function NewTripPage({
       setPace(draft.pace as "relaxed" | "moderate" | "active");
       setSelectedVibes(draft.vibes as TripVibe[]);
       setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+      if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
       if (draft.travelStyle === "backpacker") {
         setTravelStyle("backpacker");
       }
@@ -1495,6 +1504,8 @@ export default function NewTripPage({
     setPace("moderate");
     setSelectedVibes([]);
     setRequirements("");
+    setMustDos([]);
+    setMustDoInput("");
     setSeasonalContext(null);
     // Multi-city rows survived Start Over, and the sync effect would
     // rebuild destination/endDate from the stale route on its next run.
@@ -1596,6 +1607,7 @@ export default function NewTripPage({
         budgetTier,
         travelStyle,
         anchors,
+        mustDos,
         tripIntent,
       });
     }
@@ -1666,6 +1678,9 @@ export default function NewTripPage({
         seasonalContext: seasonalContext || undefined,
         interests: derivedInterests, // Auto-derived from vibes
         requirements: requirements || undefined,
+        // Must-do wishlist (P3a) — undated wishes the plan must schedule.
+        // Presence bypasses the cross-user cache server-side.
+        ...(mustDos.length > 0 ? { mustDos } : {}),
         travelStyle,
         ...(isMultiCity ? { destinations: mcLegs! } : {}),
         // Anchored trips (F1): fixed commitments the plan must build around.
@@ -1708,6 +1723,12 @@ export default function NewTripPage({
           lodging_count: anchors.filter((a) => a.type === "lodging").length,
           trip_days: tripDays,
         });
+      }
+
+      // P3a telemetry: fired at Generate (like anchors above) so it counts
+      // wishes that actually reached generation, not abandoned chips.
+      if (mustDos.length > 0) {
+        void capture("must_dos_generated", { must_do_count: mustDos.length });
       }
       if (!isMultiCity && !isAnchored) try {
         await streamGeneration(
@@ -1983,6 +2004,8 @@ export default function NewTripPage({
             // generate-time draft write includes it, but this path didn't,
             // so the flag was silently dropped on the post-signup restore.
             travelStyle,
+            // Same for the P3a must-do wishlist.
+            mustDos,
             // Same lesson for F1 anchors: without this, the post-signup save
             // would silently drop trip_meta.anchors.
             anchors,
@@ -2056,6 +2079,8 @@ export default function NewTripPage({
         // F1 anchors: persist the fixed commitments this trip was built
         // around so regeneration/editing keeps honouring them.
         ...(anchors.length > 0 ? { anchors } : {}),
+        // P3a must-dos: same source-of-truth reasoning as anchors.
+        ...(mustDos.length > 0 ? { must_dos: mustDos } : {}),
       };
 
       // Atomic server-side dedupe: the previous check-then-insert here (31e1d41)
@@ -4044,6 +4069,72 @@ export default function NewTripPage({
               onVibesChange={handleVibesChange}
               maxVibes={3}
             />
+
+            {/* Must-do wishlist (P3a) — visible, first-class, on step 2 ON
+                PURPOSE: step 1 is the fragile funnel gate (task #371), step 2
+                is past it. Undated wishes, unlike the date-pinned anchors. */}
+            <div>
+              <label htmlFor="must-do-input" className="block text-sm font-medium text-slate-700 mb-1">
+                {t("wizard.step2.mustDos.title")}{" "}
+                <span className="font-normal text-slate-400">{t("wizard.step2.mustDos.optional")}</span>
+              </label>
+              <p className="text-xs text-slate-500 mb-2">{t("wizard.step2.mustDos.hint")}</p>
+              {mustDos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {mustDos.map((item) => (
+                    <span
+                      key={item}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-medium text-[var(--primary)]"
+                    >
+                      {item}
+                      <button
+                        type="button"
+                        onClick={() => setMustDos((prev) => prev.filter((m) => m !== item))}
+                        aria-label={t("wizard.step2.mustDos.remove", { item })}
+                        className="text-[var(--primary)]/60 hover:text-[var(--primary)] min-h-[24px] min-w-[24px]"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {mustDos.length < 10 && (
+                <input
+                  id="must-do-input"
+                  type="text"
+                  value={mustDoInput}
+                  maxLength={80}
+                  onChange={(e) => setMustDoInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      const item = mustDoInput.trim().replace(/,+$/, "");
+                      if (!item) return;
+                      setMustDos((prev) =>
+                        prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= 10
+                          ? prev
+                          : [...prev, item]
+                      );
+                      setMustDoInput("");
+                    }
+                  }}
+                  onBlur={() => {
+                    // Don't lose a typed-but-unconfirmed wish on tap-away (mobile).
+                    const item = mustDoInput.trim().replace(/,+$/, "");
+                    if (!item) return;
+                    setMustDos((prev) =>
+                      prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= 10
+                        ? prev
+                        : [...prev, item]
+                    );
+                    setMustDoInput("");
+                  }}
+                  placeholder={t("wizard.step2.mustDos.placeholder")}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors text-sm"
+                />
+              )}
+            </div>
 
             {/* Collapsible Advanced Preferences */}
             <div className="border-t border-slate-200 pt-4">

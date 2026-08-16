@@ -69,6 +69,11 @@ export interface ItineraryDedupParams {
   vibes?: string[];
   language?: string;
   /**
+   * Must-do wishlist (P3a). Same identity rule as anchorBrief: two requests
+   * over the same trip shape with different wishes must not coalesce.
+   */
+  mustDos?: string[];
+  /**
    * Anchored-trip segment brief (F1). Two anchored generations over the same
    * dates with different constraints must NOT coalesce — the brief is part
    * of the request identity.
@@ -120,6 +125,7 @@ export function getItineraryDedupKey(params: ItineraryDedupParams): string {
     pace: params.pace,
     vibes: params.vibes || [],
     lang: params.language || "en",
+    mustDos: params.mustDos || [],
     anchor: params.anchorBrief || "",
   })}`;
 }

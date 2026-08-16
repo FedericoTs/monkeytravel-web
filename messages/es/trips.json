@@ -161,7 +161,14 @@
       "daysLabel": "{count} días",
       "customize": "Personaliza presupuesto, ritmo y preferencias",
       "generate": "Generar Itinerario",
-      "back": "Atrás"
+      "back": "Atrás",
+      "mustDos": {
+        "title": "¿Algo que tengas que ver, hacer o probar sí o sí?",
+        "optional": "(opcional)",
+        "hint": "Nombra los lugares o platos exactos: encajaremos cada uno en el día adecuado.",
+        "placeholder": "p. ej. La Gran Muralla, pato pekinés — pulsa Intro para añadir",
+        "remove": "Quitar {item}"
+      }
     },
     "step3": {
       "title": "¿Cual es tu estilo de viaje?",

@@ -161,7 +161,14 @@
       "daysLabel": "{count} days",
       "customize": "Customize budget, pace & preferences",
       "generate": "Generate Itinerary",
-      "back": "Back"
+      "back": "Back",
+      "mustDos": {
+        "title": "Anything you must see, do or eat?",
+        "optional": "(optional)",
+        "hint": "Name the exact places or dishes — we'll fit each one into the right day.",
+        "placeholder": "e.g. Great Wall, Peking duck — press Enter to add",
+        "remove": "Remove {item}"
+      }
     },
     "step3": {
       "title": "What's your travel vibe?",

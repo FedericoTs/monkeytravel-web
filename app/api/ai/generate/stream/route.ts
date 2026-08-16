@@ -168,11 +168,26 @@ export async function POST(request: NextRequest) {
     seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
     interests: (body.interests as string[]) || [],
     requirements: body.requirements as TripCreationParams["requirements"],
+    // Must-do wishlist (P3a) — mirrors the non-streaming route; the
+    // validator below enforces count/length/injection limits.
+    ...(Array.isArray(body.mustDos) && body.mustDos.length > 0
+      ? {
+          mustDos: (body.mustDos as unknown[])
+            .map((m) => String(m ?? "").trim())
+            .filter(Boolean)
+            .slice(0, 10),
+        }
+      : {}),
     // Whitelist travelStyle (same pattern as the non-streaming route).
     // Untrusted input can't flow into the AI system prompt.
     travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
     profilePreferences,
   };
+
+  // Personalized generations bypass the cross-user cache in BOTH directions —
+  // a cached generic itinerary would ignore the wishes, and a wish-tailored
+  // result must not poison the shared pool (same rule as the JSON route).
+  const isPersonalized = Boolean(params.mustDos?.length);
 
   const validation = validateTripParams(params);
   if (!validation.valid) {
@@ -248,7 +263,7 @@ export async function POST(request: NextRequest) {
       // PERF (#190): the cache read was hoisted out of the SSE generator
       // and is now part of the pre-flight Promise.all above. We just
       // consume the pre-resolved value here.
-      const cached = preflightCachedItinerary;
+      const cached = isPersonalized ? null : preflightCachedItinerary;
       if (cached && cached.days.length >= 1) {
         const adjusted = adjustItineraryDates(
           cached,
@@ -385,8 +400,9 @@ export async function POST(request: NextRequest) {
       // 6b. Cache write — only when we actually generated fresh.
       // Backpacker + classic each have their own cache pool (Tier 1.2
       // migration). Fire-and-forget via waitUntil so it never blocks
-      // the complete event.
-      if (!cacheHit) {
+      // the complete event. Personalized (must-do) results never enter
+      // the shared pool.
+      if (!cacheHit && !isPersonalized) {
         const cacheWriteItinerary = finalItinerary;
         waitUntil(
           cacheItinerary(

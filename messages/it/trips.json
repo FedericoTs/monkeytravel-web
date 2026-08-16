@@ -161,7 +161,14 @@
       "daysLabel": "{count} giorni",
       "customize": "Personalizza budget, ritmo e preferenze",
       "generate": "Genera Itinerario",
-      "back": "Indietro"
+      "back": "Indietro",
+      "mustDos": {
+        "title": "C'è qualcosa che devi assolutamente vedere, fare o mangiare?",
+        "optional": "(facoltativo)",
+        "hint": "Scrivi i luoghi o i piatti esatti: inseriremo ognuno nel giorno giusto.",
+        "placeholder": "es. Grande Muraglia, anatra alla pechinese — premi Invio per aggiungere",
+        "remove": "Rimuovi {item}"
+      }
     },
     "step3": {
       "title": "Qual e il tuo stile di viaggio?",

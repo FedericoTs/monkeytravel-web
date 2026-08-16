@@ -140,10 +140,26 @@ export async function POST(request: NextRequest) {
       seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
       interests: (body.interests as string[]) || [],
       requirements: body.requirements as TripCreationParams["requirements"],
+      // Must-do wishlist (P3a). Trim + drop empties client-shape-agnostically;
+      // validateTripParams enforces count/length/injection limits below.
+      ...(Array.isArray(body.mustDos) && body.mustDos.length > 0
+        ? {
+            mustDos: (body.mustDos as unknown[])
+              .map((m) => String(m ?? "").trim())
+              .filter(Boolean)
+              .slice(0, 10),
+          }
+        : {}),
       travelStyle,
       // Include profile preferences (automatically fetched from user profile)
       profilePreferences,
     };
+
+    // Personalized generations must not read OR write the cross-user cache:
+    // a cached generic itinerary would silently ignore the traveller's wishes
+    // (same reasoning as the anchored branch below), and a wish-tailored
+    // itinerary must not poison the generic pool for everyone else.
+    const isPersonalized = Boolean(params.mustDos?.length);
 
 
     // Multi-city: when the client sends a `destinations` array of >1 leg, route
@@ -299,7 +315,7 @@ export async function POST(request: NextRequest) {
       if (anchored.issues.length > 0) {
         console.warn(`[AI Generate] anchored issues: ${anchored.issues.join(" | ")}`);
       }
-    } else if (cachedItinerary && cachedItinerary.days.length >= 1) {
+    } else if (!isPersonalized && cachedItinerary && cachedItinerary.days.length >= 1) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
       itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
       cacheHit = true;
@@ -348,7 +364,8 @@ export async function POST(request: NextRequest) {
       // Only cache full itineraries (not partial ones). Backpacker
       // results now have their own cache pool (Tier 1.2 migration
       // 2026-05-28), so the previous skip-cache hack is gone.
-      if (!isPartialGeneration) {
+      // Personalized (must-do) results never enter the shared pool.
+      if (!isPartialGeneration && !isPersonalized) {
         await cacheItinerary(
           supabase,
           params.destination,

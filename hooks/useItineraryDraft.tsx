@@ -28,6 +28,11 @@ export interface ItineraryDraft {
    */
   anchors?: TripAnchor[];
   /**
+   * P3a must-do wishlist from step 2. Optional for back-compat; same auth
+   * round-trip survival reasoning as anchors above.
+   */
+  mustDos?: string[];
+  /**
    * "Who's coming?" answer from step 1. Same round-trip lesson as travelStyle
    * and anchors above: the wizard remounts with fresh state after the signup
    * redirect, so anything not in the draft is silently reset. Without this the

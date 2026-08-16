@@ -161,7 +161,14 @@
       "daysLabel": "{count} dias",
       "customize": "Personalize orçamento, ritmo e preferências",
       "generate": "Gerar Roteiro",
-      "back": "Voltar"
+      "back": "Voltar",
+      "mustDos": {
+        "title": "Algo que você precisa ver, fazer ou comer?",
+        "optional": "(opcional)",
+        "hint": "Diga os lugares ou pratos exatos: vamos encaixar cada um no dia certo.",
+        "placeholder": "ex.: Muralha da China, pato de Pequim — pressione Enter para adicionar",
+        "remove": "Remover {item}"
+      }
     },
     "step3": {
       "title": "Qual é o seu clima de viagem?",

@@ -45,6 +45,14 @@ export interface TripFormState {
    */
   anchors?: TripAnchor[];
   /**
+   * Must-do wishlist from wizard step 2 (P3a). Persisted so post-save
+   * surfaces (assistant, regeneration) can keep honouring the traveller's
+   * explicit wishes — the same "source of truth vs projection" reasoning
+   * as anchors above: an assistant edit can drop the generated activity
+   * while the wish still stands.
+   */
+  mustDos?: string[];
+  /**
    * Whether the user said they were travelling solo or with others, from the
    * "Who's coming?" toggle on wizard step 1.
    *
@@ -143,6 +151,8 @@ function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string
     // (rather than an empty array) on the overwhelming majority of rows — the
     // publish guard reads it with `Array.isArray`, which treats both alike.
     ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
+    // Same absent-when-empty convention for the must-do wishlist (P3a).
+    ...(formState.mustDos?.length ? { must_dos: formState.mustDos } : {}),
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.

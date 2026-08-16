@@ -788,7 +788,15 @@ ${options.anchorBrief}
 ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
-${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
+${
+  params.mustDos && params.mustDos.length > 0
+    ? `
+## Traveller Must-Dos (explicitly requested — schedule every one)
+The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.
+${params.mustDos.map((m) => `- ${m}`).join("\n")}
+`
+    : ""
+}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
 ${anchorSection}## Booking Link Values
 Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:
@@ -1742,6 +1750,30 @@ export function validateTripParams(
     for (const pattern of DANGEROUS_PATTERNS) {
       if (pattern.test(params.requirements)) {
         return { valid: false, error: "Invalid input detected" };
+      }
+    }
+  }
+
+  // Validate must-dos if present — same injection defenses as requirements,
+  // plus shape limits (the wizard enforces these too; this is the server
+  // boundary for direct API callers).
+  if (params.mustDos !== undefined) {
+    if (!Array.isArray(params.mustDos) || params.mustDos.length > 10) {
+      return { valid: false, error: "Must-dos must be a list of at most 10 items" };
+    }
+    for (const item of params.mustDos) {
+      if (typeof item !== "string" || item.trim().length === 0 || item.length > 80) {
+        return { valid: false, error: "Each must-do must be 1-80 characters" };
+      }
+      for (const blocked of BLACKLIST) {
+        if (item.toLowerCase().includes(blocked.toLowerCase())) {
+          return { valid: false, error: "Invalid characters in must-dos" };
+        }
+      }
+      for (const pattern of DANGEROUS_PATTERNS) {
+        if (pattern.test(item)) {
+          return { valid: false, error: "Invalid input detected" };
+        }
       }
     }
   }
