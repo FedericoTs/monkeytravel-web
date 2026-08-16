@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
+import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { randomUUID } from "node:crypto";
 
 /**
@@ -233,6 +234,11 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     duration_days: durationDays,
     total_activities: totalActivities,
   });
+
+  // A published trip is browsed by strangers on /explore — upgrade any
+  // curated fallback images to real place photos after the response
+  // returns (24h cooldown; see lib/images/enrichTrip.ts).
+  after(() => enrichTripByIdAdmin(tripId, "publish"));
 
   return apiSuccess({
     tripId: updated.id,

@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
-import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { fetchActivityImages, SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activity";
+import { SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activity";
+import { enrichTripRecord } from "@/lib/images/enrichTrip";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * Enrich Activity Photos API (2026-06-30 cost pass)
@@ -40,36 +41,42 @@ export async function POST(
     );
     if (tripError) return tripError;
 
-    const itinerary = trip.itinerary as ItineraryDay[] | null;
-    if (!itinerary || !Array.isArray(itinerary) || itinerary.length === 0) {
-      return apiSuccess({ success: true, message: "No itinerary to enrich", updated: 0 });
+    // Save-path budget, cooldown-exempt: a regeneration right after save
+    // introduces new curated images that deserve an immediate upgrade, and
+    // re-runs are cheap (real proxy URLs are never re-paid).
+    const outcome = await enrichTripRecord(
+      supabase,
+      {
+        id: tripId,
+        title: trip.title as string | null,
+        itinerary: trip.itinerary,
+        trip_meta: trip.trip_meta,
+      },
+      { maxPaidLookups: SAVE_TIME_PAID_LOOKUPS, respectCooldown: false }
+    );
+
+    if (outcome.skipped !== "no_itinerary") {
+      captureServerEvent(user.id, "photos_enriched", {
+        trip_id: tripId,
+        trigger: "save",
+        skipped: outcome.skipped,
+        real_before: outcome.before.real,
+        real_after: outcome.after.real,
+        total_activities: outcome.after.total,
+        paid_budget: SAVE_TIME_PAID_LOOKUPS,
+      }).catch(() => {});
     }
 
-    // Canonical destination (buildTripRow writes trip_meta.destination); fall
-    // back to the title strip the same way getTripDestination would.
-    const meta = (trip.trip_meta ?? {}) as { destination?: string };
-    const destination =
-      meta.destination || (trip.title as string | undefined)?.replace(/ Trip$/, "") || "";
-
-    // Resolve real Google photos (budget-capped), upgrading the curated
-    // fallbacks baked at generation. Mutates each activity's image_url in place;
-    // existing real proxy URLs are preserved (reresolveCurated keeps them).
-    await fetchActivityImages(itinerary, destination, {
-      maxPaidLookups: SAVE_TIME_PAID_LOOKUPS,
-      reresolveCurated: true,
+    // `updated` = activities upgraded to a real photo THIS call (the old
+    // response returned the DAY count here, which made the one success
+    // signal unusable as a metric).
+    return apiSuccess({
+      success: true,
+      updated: outcome.after.real - outcome.before.real,
+      real: outcome.after.real,
+      total: outcome.after.total,
+      skipped: outcome.skipped,
     });
-
-    const { error: updateError } = await supabase
-      .from("trips")
-      .update({ itinerary })
-      .eq("id", tripId);
-
-    if (updateError) {
-      console.error("[EnrichPhotos] Update error:", updateError);
-      return errors.internal("Failed to update trip", "EnrichPhotos");
-    }
-
-    return apiSuccess({ success: true, updated: itinerary.length });
   } catch (error) {
     console.error("[EnrichPhotos] Error:", error);
     return errors.internal("Failed to enrich photos", "EnrichPhotos");

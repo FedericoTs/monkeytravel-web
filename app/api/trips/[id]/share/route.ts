@@ -1,6 +1,7 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { v4 as uuidv4 } from "uuid";
@@ -48,6 +49,10 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
 
     // If already shared, return existing token
     if (trip.share_token) {
+      // Voters are about to look at this trip again — make sure its activity
+      // photos are real, not the curated generation-time fallbacks. Runs after
+      // the response (next/server `after`); 24h cooldown makes repeats free.
+      after(() => enrichTripByIdAdmin(id, "share"));
       const shareUrl = await buildShareUrl(user.id, trip.share_token as string);
       return apiSuccess({
         success: true,
@@ -92,6 +97,11 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     captureServerEvent(user.id, "crew_link_created", {
       tripId: id,
     }).catch(() => {});
+
+    // First share is the moment voters start arriving: upgrade curated
+    // fallback images to real place photos (full-trip budget) after the
+    // response returns. See lib/images/enrichTrip.ts for the cost model.
+    after(() => enrichTripByIdAdmin(id, "share"));
 
     const shareUrl = await buildShareUrl(user.id, shareToken);
 
