@@ -987,6 +987,34 @@ export async function captureConciergeQuotaBlocked(event: ConciergeQuotaBlockedE
   ph.capture("concierge_quota_blocked", event);
 }
 
+// P2 Stage B (concierge edit channel): proposal funnel — shown → applied is
+// the plan's success metric ("% of concierge proposals applied").
+interface ConciergeProposalShownEvent {
+  trip_id: string;
+  proposal_type: string;
+  day_number: number;
+}
+
+interface ConciergeProposalAppliedEvent {
+  trip_id: string;
+  proposal_type: string;
+  day_number: number;
+}
+
+export async function captureConciergeProposalShown(
+  event: ConciergeProposalShownEvent
+) {
+  const ph = await getPosthog();
+  ph.capture("concierge_proposal_shown", event);
+}
+
+export async function captureConciergeProposalApplied(
+  event: ConciergeProposalAppliedEvent
+) {
+  const ph = await getPosthog();
+  ph.capture("concierge_proposal_applied", event);
+}
+
 export async function captureConciergeError(event: ConciergeErrorEvent) {
   const ph = await getPosthog();
   ph.capture("concierge_error", event);

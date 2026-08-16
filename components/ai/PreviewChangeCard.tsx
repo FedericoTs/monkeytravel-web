@@ -34,6 +34,17 @@ export type PendingChange =
       reason?: string;
     }
   | {
+      /**
+       * P2 (2026-08): produced by the in-trip concierge's edit channel
+       * ("we're behind — drop something"). The result-page assistant still
+       * never previews removals; /apply has always supported them.
+       */
+      type: "remove";
+      oldActivity: Activity;
+      dayNumber: number;
+      reason?: string;
+    }
+  | {
       type: "adjust_duration";
       activity: { id: string; name: string; type: string };
       oldDuration: number;
@@ -165,6 +176,21 @@ export default function PreviewChangeCard({
         {change.type === "add" && (
           <div className="ring-2 ring-emerald-400/30 rounded-xl">
             <MiniActivityCard activity={change.newActivity} isNew />
+          </div>
+        )}
+
+        {/* REMOVE: the outgoing activity struck through — no replacement */}
+        {change.type === "remove" && (
+          <div className="relative">
+            <div className="relative opacity-60">
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-red-400 to-transparent" />
+              </div>
+              <MiniActivityCard activity={change.oldActivity} />
+            </div>
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">
+              {t("removing")}
+            </div>
           </div>
         )}
 

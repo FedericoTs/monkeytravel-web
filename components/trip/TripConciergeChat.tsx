@@ -5,33 +5,52 @@ import { useTranslations } from "next-intl";
 import { Compass, Send, Sparkles, Loader2 } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
+import PreviewChangeCard, { type PendingChange } from "@/components/ai/PreviewChangeCard";
+import type { ItineraryDay } from "@/types";
 import {
   captureConciergeOpened,
   captureConciergeQuestionSent,
   captureConciergeResponseReceived,
   captureConciergeQuotaBlocked,
   captureConciergeError,
+  captureConciergeProposalShown,
+  captureConciergeProposalApplied,
 } from "@/lib/posthog/events";
 
 /**
- * F4 In-trip AI Concierge — context-aware Q&A modal (task #242).
+ * In-trip AI Concierge — context-aware chat modal (F4 / task #242, upgraded
+ * by P2 "live replanning" 2026-08-16).
  *
- * Differs from the planning AIAssistantEnhanced in three ways the user
- * actually feels:
- *   - Read-only — never modifies the itinerary. Lower stakes, less
- *     confirmation friction, you can ask anything.
- *   - Today-aware — when the trip is live (today falls inside the
- *     window), the API auto-injects today's activities so you can
- *     ask "what's near Castello after lunch?" without restating.
- *   - Single-turn — each ask is independent. No conversation memory
- *     in v1; the UI shows your last question + the answer, then
- *     resets when you ask again. Lower latency, lower cost, simpler.
+ * What changed in P2:
+ *   - No longer read-only. The API can attach ONE edit proposal to an
+ *     answer; we render the same PreviewChangeCard the planning assistant
+ *     uses, and Apply posts to the existing /api/ai/assistant/apply
+ *     (anchor guards + single write live there). Confirm-first, always.
+ *   - Today-aware for real: we send the client's LOCAL date so "today"
+ *     can't be off by one for evening users west of UTC.
+ *   - Multi-turn: the server replays recent persisted turns, so
+ *     follow-ups ("make it cheaper") resolve. The UI still shows the
+ *     last exchange — memory lives server-side.
+ *   - itineraryVersion counter rides on every ask and busts the server's
+ *     60s trip-context cache after an applied edit.
+ *
+ * v1 access rule: only the trip owner can APPLY (all /apply write paths
+ * are owner-scoped). Collaborators get the prose suggestion without a
+ * card — widening writes is a separate decision.
  *
  * Flag: NEXT_PUBLIC_CONCIERGE_ENABLED. Defaults off so we can ship
  * the code path + DB plumbing now and enable per-environment.
  */
 interface TripConciergeChatProps {
   tripId: string;
+  /** True only for the trip owner — gates the Apply flow (see above). */
+  canEdit?: boolean;
+  /**
+   * Called with the persisted post-apply itinerary (the /apply response's
+   * `modifiedItinerary` — proof of write, never the model's claim) so the
+   * page can update its rendered state without a reload.
+   */
+  onItineraryChange?: (itinerary: ItineraryDay[]) => void;
   className?: string;
 }
 
@@ -42,8 +61,19 @@ export default function TripConciergeChat(props: TripConciergeChatProps) {
   return <TripConciergeChatInner {...props} />;
 }
 
+/** Local calendar date as YYYY-MM-DD — the user's "today", not the server's. */
+function localToday(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function TripConciergeChatInner({
   tripId,
+  canEdit = false,
+  onItineraryChange,
   className = "",
 }: TripConciergeChatProps) {
   const t = useTranslations("common.concierge");
@@ -55,6 +85,12 @@ function TripConciergeChatInner({
   const [answer, setAnswer] = useState<string | null>(null);
   const [isLiveTrip, setIsLiveTrip] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
+  // P2 edit channel state
+  const [proposal, setProposal] = useState<PendingChange | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  // Bumped after every successful apply; sent with each ask so the server's
+  // trip-context cache key changes and post-edit answers see the new plan.
+  const [itineraryVersion, setItineraryVersion] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Autofocus the textarea when the modal opens. The slight delay lets
@@ -80,6 +116,22 @@ function TripConciergeChatInner({
     void captureConciergeOpened({ trip_id: tripId }).catch(() => {});
   }, [isOpen, tripId]);
 
+  const handleProposalShown = useCallback(
+    (p: PendingChange) => {
+      // v1: collaborators get the prose suggestion only — /apply is
+      // owner-scoped, so rendering them an Apply button would be a lie.
+      if (!canEdit) return;
+      if (p.type === "add_day" || p.type === "apply_draft") return; // not produced by concierge v1
+      setProposal(p);
+      void captureConciergeProposalShown({
+        trip_id: tripId,
+        proposal_type: p.type,
+        day_number: "dayNumber" in p ? p.dayNumber : 0,
+      }).catch(() => {});
+    },
+    [canEdit, tripId]
+  );
+
   const handleAsk = useCallback(async () => {
     if (loading) return;
     const q = question.trim();
@@ -87,6 +139,7 @@ function TripConciergeChatInner({
     setLoading(true);
     setLastQuestion(q);
     setAnswer("");
+    setProposal(null); // a new ask supersedes any un-applied proposal
     // Stamp the start so we can record response_time_ms on success.
     // `performance.now()` is monotonic and won't drift if the clock moves.
     const startedAt = performance.now();
@@ -97,6 +150,7 @@ function TripConciergeChatInner({
     try {
       // Streaming path (perf task #245). The server emits SSE events:
       //   data: {"type":"chunk","text":"…"}
+      //   data: {"type":"proposal","proposal":{…}}   (P2 — at most one)
       //   data: {"type":"done","isLiveTrip":bool,"dayNumber":n}
       //   data: {"type":"error","message":"…"}
       // We accumulate `chunk.text` into the answer state on each event so
@@ -111,7 +165,12 @@ function TripConciergeChatInner({
           // contract dual-mode for callers that can't read streams.
           Accept: "text/event-stream",
         },
-        body: JSON.stringify({ tripId, question: q }),
+        body: JSON.stringify({
+          tripId,
+          question: q,
+          clientToday: localToday(),
+          itineraryVersion,
+        }),
       });
 
       if (!res.ok) {
@@ -137,10 +196,12 @@ function TripConciergeChatInner({
           answer: string;
           isLiveTrip: boolean;
           dayNumber: number | null;
+          proposal?: PendingChange;
         };
         setAnswer(data.answer || "");
         setIsLiveTrip(Boolean(data.isLiveTrip));
         setQuestion("");
+        if (data.proposal) handleProposalShown(data.proposal);
         void captureConciergeResponseReceived({
           trip_id: tripId,
           response_time_ms: Math.round(performance.now() - startedAt),
@@ -176,11 +237,14 @@ function TripConciergeChatInner({
           try {
             const event = JSON.parse(payloadStr) as
               | { type: "chunk"; text: string }
+              | { type: "proposal"; proposal: PendingChange }
               | { type: "done"; isLiveTrip: boolean; dayNumber: number | null }
               | { type: "error"; message: string };
             if (event.type === "chunk") {
               accumulated += event.text;
               setAnswer(accumulated);
+            } else if (event.type === "proposal") {
+              handleProposalShown(event.proposal);
             } else if (event.type === "done") {
               setIsLiveTrip(Boolean(event.isLiveTrip));
             } else if (event.type === "error") {
@@ -225,7 +289,71 @@ function TripConciergeChatInner({
     } finally {
       setLoading(false);
     }
-  }, [loading, question, tripId, t, addToast, isLiveTrip]);
+  }, [loading, question, tripId, itineraryVersion, t, addToast, isLiveTrip, handleProposalShown]);
+
+  /**
+   * Apply the pending proposal via the EXISTING confirm-then-apply endpoint.
+   * Same honesty guard as the result-page assistant: success is only success
+   * when the response carries `modifiedItinerary` (proof the trips row was
+   * actually written) — an ok-but-empty response is reported as a failure,
+   * never narrated as applied.
+   */
+  const handleApply = useCallback(async () => {
+    if (!proposal || isApplying) return;
+    setIsApplying(true);
+    try {
+      const body: Record<string, unknown> = {
+        tripId,
+        changeType: proposal.type,
+        dayNumber: "dayNumber" in proposal ? proposal.dayNumber : 0,
+      };
+      if (proposal.type === "replace") {
+        body.oldActivity = proposal.oldActivity;
+        body.newActivity = proposal.newActivity;
+      } else if (proposal.type === "add") {
+        body.newActivity = proposal.newActivity;
+      } else if (proposal.type === "remove") {
+        body.oldActivity = proposal.oldActivity;
+      } else if (proposal.type === "adjust_duration") {
+        body.activity = proposal.activity;
+        body.oldDuration = proposal.oldDuration;
+        body.newDuration = proposal.newDuration;
+      }
+
+      const res = await fetch("/api/ai/assistant/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        modifiedItinerary?: ItineraryDay[];
+        action?: { applied?: boolean };
+        error?: string;
+      };
+
+      const verified =
+        res.ok && data.action?.applied === true && Array.isArray(data.modifiedItinerary);
+      if (!verified) {
+        addToast(data.error || t("applyError"), "error");
+        return;
+      }
+
+      onItineraryChange?.(data.modifiedItinerary as ItineraryDay[]);
+      setItineraryVersion((v) => v + 1); // bust the server trip-context cache
+      void captureConciergeProposalApplied({
+        trip_id: tripId,
+        proposal_type: proposal.type,
+        day_number: "dayNumber" in proposal ? proposal.dayNumber : 0,
+      }).catch(() => {});
+      setProposal(null);
+      addToast(t("proposalApplied"), "success");
+    } catch (err) {
+      console.error("[concierge] apply failed", err);
+      addToast(t("applyError"), "error");
+    } finally {
+      setIsApplying(false);
+    }
+  }, [proposal, isApplying, tripId, onItineraryChange, addToast, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter to send, Shift+Enter for newline — standard chat convention.
@@ -303,6 +431,23 @@ function TripConciergeChatInner({
             </div>
           )}
 
+          {/* P2 edit channel: the concierge's proposed change, confirm-first.
+              "Try different" prefills a follow-up rather than auto-asking —
+              a re-roll should be a deliberate (quota-consuming) send. */}
+          {proposal && (
+            <PreviewChangeCard
+              change={proposal}
+              onApply={handleApply}
+              onTryDifferent={() => {
+                setProposal(null);
+                setQuestion(t("tryDifferentPrefill"));
+                inputRef.current?.focus();
+              }}
+              onCancel={() => setProposal(null)}
+              isApplying={isApplying}
+            />
+          )}
+
           {/* Input */}
           <div>
             <label htmlFor="concierge-question" className="sr-only">
@@ -321,7 +466,7 @@ function TripConciergeChatInner({
             />
             <div className="mt-1 flex items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                {t("hint")}
+                {canEdit ? t("hintEditable") : t("hint")}
               </p>
               <button
                 type="button"

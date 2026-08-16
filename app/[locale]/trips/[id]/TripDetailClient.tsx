@@ -1842,6 +1842,32 @@ export default function TripDetailClient({
           </div>
         )}
 
+        {/* In-trip Concierge (F4 / task #242, edit channel P2 2026-08-16).
+            Rendered in EVERY phase — before P2 it lived inside the
+            !isActiveTripPhase branch, i.e. the one chat that vanished
+            exactly while the user was ON the trip. Flag-gated; renders
+            null when the env flag is off. Owner-only apply: /apply is
+            owner-scoped server-side, canEdit only gates the UI. */}
+        <div className="mb-4 space-y-2">
+          <TripConciergeChat
+            tripId={trip.id}
+            canEdit={isOwner}
+            onItineraryChange={(next) => {
+              // The /apply endpoint already persisted this itinerary —
+              // adopt it as BOTH edited and saved state so the ambient
+              // auto-save doesn't immediately re-PATCH an identical body.
+              const withIds = ensureActivityIds(next);
+              setEditedItinerary(withIds);
+              setSavedItinerary(withIds);
+              setItineraryVersion((v) => v + 1);
+            }}
+          />
+          {/* Past Q+A pairs for THIS trip (david-cassoni follow-up).
+              Lazy expand-to-fetch; renders nothing when the Concierge
+              env-flag is off. */}
+          <ConciergeHistory tripId={trip.id} />
+        </div>
+
         {/* Pre-Trip Phase - Countdown Hero and Checklist */}
         {isPreTripPhase && (
           <div className="space-y-4 mb-6">
@@ -1924,17 +1950,6 @@ export default function TripDetailClient({
             Hides itself entirely when the destination has no active alert,
             so it never adds visual noise to safe-destination trips. */}
         <TravelAdvisoryBanner country={destination} className="mb-4" />
-
-        {/* In-trip Concierge (F4 / task #242). Flag-gated; renders null
-            when the env flag is off so we can ship the wiring now and
-            flip it on per-environment. */}
-        <div className="mb-4 space-y-2">
-          <TripConciergeChat tripId={trip.id} />
-          {/* Past Q+A pairs for THIS trip (david-cassoni follow-up).
-              Lazy expand-to-fetch; renders nothing when the Concierge
-              env-flag is off. */}
-          <ConciergeHistory tripId={trip.id} />
-        </div>
 
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
