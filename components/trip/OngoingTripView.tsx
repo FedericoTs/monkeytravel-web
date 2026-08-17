@@ -18,6 +18,7 @@ import DaySummary from "./DaySummary";
 import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
+import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { parseLocalDate } from "@/lib/utils/date-local";
 import { hapticSuccess, hapticLight, hapticError } from "@/lib/native/haptics";
@@ -224,15 +225,9 @@ export default function OngoingTripView({
   // Check which tab to highlight
   const isTodayTab = activeTab === "today";
 
-  // Multi-city: derive the route (city + consecutive nights) from the saved
-  // itinerary's city-tagged days. Empty for single-city trips → ribbon hidden.
-  const mcStops: { city: string; nights: number }[] = [];
-  for (const day of displayItinerary) {
-    if (!day.city) continue;
-    const last = mcStops[mcStops.length - 1];
-    if (last && last.city === day.city) last.nights += 1;
-    else mcStops.push({ city: day.city, nights: 1 });
-  }
+  // Multi-city: route stops (city + consecutive nights + P4 transit labels
+  // from the merged transfer legs). Empty for single-city trips → hidden.
+  const mcStops = buildJourneyStops(displayItinerary, locale);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

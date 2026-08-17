@@ -75,7 +75,9 @@ import {
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
 import { hapticSelection } from "@/lib/native/haptics";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
+import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import {
   DndContext,
   DragEndEvent,
@@ -524,6 +526,12 @@ export default function TripDetailClient({
   // Prefer trip_meta.destination (canonical) over title-strip — see
   // lib/trips/destination.ts. Fixes non-English / renamed trips.
   const destination = getTripDestination(trip);
+
+  // P4 transport spine: multi-city route stops for the Journey ribbon —
+  // trip detail is the LAST surface to get it (wizard + ongoing view had it
+  // since the wedge; the plan flagged the gap). Empty on single-city trips.
+  const locale = useLocale();
+  const journeyStops = buildJourneyStops(editedItinerary, locale);
 
   // Trip phase detection for Timeline feature.
   //
@@ -1950,6 +1958,11 @@ export default function TripDetailClient({
             Hides itself entirely when the destination has no active alert,
             so it never adds visual noise to safe-destination trips. */}
         <TravelAdvisoryBanner country={destination} className="mb-4" />
+
+        {/* Multi-city Journey ribbon with P4 transit labels ("TRENO · 4h") */}
+        {journeyStops.length > 1 && (
+          <JourneyRibbon stops={journeyStops} className="mb-4" />
+        )}
 
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">

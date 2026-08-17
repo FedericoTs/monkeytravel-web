@@ -16,6 +16,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
+import { splitCities } from "@/lib/ai/multi-city-core";
 
 export interface TripFormState {
   destination: string;
@@ -108,15 +109,9 @@ export function computeDurationDays(formState: TripFormState): number {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-// Inverse of the wizard's joinCities ("A, B & C"). Only labels containing
-// " & " are treated as routes — plain "City, Country" freetext stays single.
-function splitCities(label: string): string[] {
-  if (!label.includes(" & ")) return [label.trim()].filter(Boolean);
-  return label
-    .split(/s*(?:,|&)s*/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
+// splitCities moved to lib/ai/multi-city-core.ts (next to its inverse
+// joinCities) as part of the P4 regex fix — the local copy had an unescaped
+// \s that ate trailing "s" characters ("Paris, Rome & Milan" → "Pari").
 
 function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string | null) {
   const { itinerary, formState } = input;

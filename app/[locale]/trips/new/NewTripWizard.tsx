@@ -34,6 +34,7 @@ import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal
 import { streamGeneration } from "@/lib/streaming/client";
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
+import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
 
 // Multi-city wedge (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the default
@@ -2440,15 +2441,10 @@ export default function NewTripPage({
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
-    // Multi-city: derive the route stops (city + consecutive nights) from the
-    // city-tagged days for the Journey ribbon. Empty on single-city trips.
-    const mcStops: { city: string; nights: number }[] = [];
-    for (const day of generatedItinerary.days) {
-      if (!day.city) continue;
-      const last = mcStops[mcStops.length - 1];
-      if (last && last.city === day.city) last.nights += 1;
-      else mcStops.push({ city: day.city, nights: 1 });
-    }
+    // Multi-city: route stops (city + consecutive nights + P4 transit labels
+    // from the merged transfer legs) for the Journey ribbon. Empty on
+    // single-city trips.
+    const mcStops = buildJourneyStops(generatedItinerary.days, locale);
 
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);

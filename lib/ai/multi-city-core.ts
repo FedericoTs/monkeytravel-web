@@ -11,6 +11,7 @@
  * actually calls Gemini lives in lib/ai/multi-city.ts.
  */
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
+import { buildTransferActivity } from "./transfer-legs";
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
 export const MAX_CITIES = 5;
@@ -36,6 +37,22 @@ export function joinCities(cities: string[]): string {
   if (c.length === 1) return c[0];
   if (c.length === 2) return `${c[0]} & ${c[1]}`;
   return `${c.slice(0, -1).join(", ")} & ${c[c.length - 1]}`;
+}
+
+// Inverse of joinCities. Only labels containing " & " are treated as routes —
+// plain "City, Country" freetext stays single. Lives here (next to its
+// inverse) since the P4 fix: the previous copy in lib/trips/persistTrip.ts
+// split on the pattern  s*(?:,|&)s*  — missing backslashes on \s, so literal
+// "s" characters around separators were eaten and "Paris, Rome & Milan"
+// persisted trip_meta.cities as ["Pari", "Rome", "Milan"].
+// (Line comments on purpose: the buggy pattern contains "*/" and would
+// terminate a block comment early — exactly the bug this note documents.)
+export function splitCities(label: string): string[] {
+  if (!label.includes(" & ")) return [label.trim()].filter(Boolean);
+  return label
+    .split(/\s*(?:,|&)\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** Add `days` to a YYYY-MM-DD date (UTC), returning YYYY-MM-DD. */
@@ -93,7 +110,13 @@ export function validateLegs(legs: CityLeg[], expectedTotalNights?: number): voi
 export function mergeCityItineraries(
   legs: CityLeg[],
   results: GeneratedItinerary[],
-  tripStartDate: string
+  tripStartDate: string,
+  opts?: {
+    /** Trip language for the transfer-leg labels ("Treno per Roma"). */
+    language?: string;
+    /** P4 escape hatch — defaults to inserting transfer legs. */
+    insertTransfers?: boolean;
+  }
 ): GeneratedItinerary {
   if (legs.length !== results.length) {
     throw new MultiCityError(
@@ -104,13 +127,37 @@ export function mergeCityItineraries(
     throw new MultiCityError("mergeCityItineraries: nothing to merge");
   }
 
+  const insertTransfers = opts?.insertTransfers !== false;
+  const currency = results[0].trip_summary?.currency ?? "USD";
+
   const mergedDays: ItineraryDay[] = [];
   let globalIndex = 0;
   for (let i = 0; i < results.length; i++) {
     const city = legs[i].city.trim();
-    for (const day of results[i].days ?? []) {
+    const cityDays = results[i].days ?? [];
+    for (let d = 0; d < cityDays.length; d++) {
+      const day = cityDays[d];
+      // P4 transport spine v1: an estimated inter-city transfer leg on each
+      // leg-boundary morning ("otherwise it's just a list of activities").
+      // Distance comes from the neighbouring activities' own coordinates —
+      // pure heuristic, no API. See lib/ai/transfer-legs.ts.
+      const activities =
+        insertTransfers && i > 0 && d === 0
+          ? [
+              buildTransferActivity({
+                fromCity: legs[i - 1].city.trim(),
+                toCity: city,
+                fromDays: results[i - 1].days ?? [],
+                toDays: cityDays,
+                currency,
+                language: opts?.language,
+              }),
+              ...(day.activities ?? []),
+            ]
+          : day.activities;
       mergedDays.push({
         ...day,
+        activities,
         day_number: globalIndex + 1,
         date: addDaysISO(tripStartDate, globalIndex),
         city,

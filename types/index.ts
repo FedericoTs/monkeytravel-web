@@ -113,6 +113,12 @@ export interface Activity {
     | "cultural" | "museum" | "landmark" | "spa" | "wellness"
     | "entertainment" | "nightlife" | "nature" | "park" | "event"
     | string;  // Allow custom types from AI generation
+  /**
+   * P4 transport spine: set on code-generated inter-city transfer legs
+   * (lib/ai/transfer-legs.ts) so the JourneyRibbon can label the hop
+   * ("TRAIN · 4h 10m") without string-matching activity names.
+   */
+  transport_mode?: "train" | "flight";
   description: string;
   location: string;
   address?: string; // Full street address for map links

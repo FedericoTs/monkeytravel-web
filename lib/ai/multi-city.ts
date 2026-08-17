@@ -56,7 +56,11 @@ export async function generateMultiCityItinerary(
     perCityParams.map((p) => generateItinerary(p, options))
   );
 
-  const merged = mergeCityItineraries(legs, results, tripStartDate);
+  // Transfer-leg labels follow the same language the per-city generations
+  // used — it rides on the generation options, not the base params.
+  const merged = mergeCityItineraries(legs, results, tripStartDate, {
+    language: options?.language,
+  });
 
   // Post-merge validation — warn, don't throw: a usable trip beats a hard fail.
   const expectedDays = legs.reduce((s, l) => s + l.nights, 0);
