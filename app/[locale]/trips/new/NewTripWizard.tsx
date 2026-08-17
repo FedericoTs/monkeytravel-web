@@ -391,21 +391,18 @@ export default function NewTripPage({
   //      the plan's 7-day sanity window at 50%.
   const frontDoorOverride = searchParams.get("front_door");
   const { variant: frontDoorVariant } = useExperiment(FLAG_FRONT_DOOR);
-  // Coin resolves post-hydration (useEffect) to avoid SSR/client hydration
-  // mismatch — the wizard paints first, then a decision-arm visitor switches.
-  // Same accepted flicker as the PostHog late-resolution path above.
-  const [localCoinArm, setLocalCoinArm] = useState<FrontDoorArm | null>(null);
+  // EXPERIMENT ENDED 2026-08-17: wizard won decisively (anon since Jul 1 —
+  // save rate 11.8% vs 5.4%, result rate 51% vs 35%, n=3,067 sessions; flag
+  // "front-door" now serves wizard 100%). The local 50/50 coin is retired:
+  // it only ever existed as the assignment path for PostHog-blocked
+  // browsers, and leaving it in place would keep enrolling ad-blocked
+  // visitors into the LOSING arm forever, immune to the flag rollback.
+  // Sweep the stale sticky key so returning decision-arm browsers cut over.
   useEffect(() => {
     try {
-      const KEY = "mt_front_door_arm";
-      let v = window.localStorage.getItem(KEY);
-      if (v !== "wizard" && v !== "decision") {
-        v = Math.random() < 0.5 ? "decision" : "wizard";
-        window.localStorage.setItem(KEY, v);
-      }
-      setLocalCoinArm(v as FrontDoorArm);
+      window.localStorage.removeItem("mt_front_door_arm");
     } catch {
-      setLocalCoinArm("wizard"); // storage blocked (private mode) → safe default
+      /* storage blocked — nothing to clean */
     }
   }, []);
   const frontDoorEnvForce = process.env.NEXT_PUBLIC_FRONT_DOOR_FORCE;
@@ -420,16 +417,14 @@ export default function NewTripPage({
             ? (frontDoorEnvForce as FrontDoorArm)
             : frontDoorVariant === "decision" || frontDoorVariant === "wizard"
               ? (frontDoorVariant as FrontDoorArm)
-              : localCoinArm === "decision"
-                ? "decision"
-                : "wizard";
+              : "wizard"; // post-experiment default — no coin
   // Is `arm` a real assignment, or just the loading default?
   //
-  // Every branch above falls through to "wizard" while things resolve:
-  // isAuthenticated starts null, the PostHog variant arrives late, and
-  // localCoinArm is null until its mount effect runs. `arm` therefore reads
-  // "wizard" for the first few ms of EVERY session — including sessions that
-  // the coin is about to assign to decision.
+  // During the experiment, every branch above fell through to "wizard"
+  // while things resolved (isAuthenticated starts null, the PostHog
+  // variant arrives late, the since-retired local coin resolved in a
+  // mount effect) — so `arm` read "wizard" for the first few ms of EVERY
+  // session, including sessions about to be assigned to decision.
   //
   // Measured 2026-08-04: that made the recorded split 78/22 instead of 50/50,
   // because step_1 fires on mount and stamped the loading default as if it
@@ -440,16 +435,16 @@ export default function NewTripPage({
   // Fix: distinguish "resolved to wizard" from "not resolved yet", and never
   // stamp an arm we haven't actually picked. front_door is optional in the
   // server contract, so omitting it records an honest unknown.
+  //
+  // Post-experiment simplification (2026-08-17): with the coin retired,
+  // "wizard" IS the real assignment for anon users — not a loading
+  // placeholder — so the arm is resolved as soon as the auth state is
+  // known. A late-arriving flag variant can still refine it (today the
+  // flag serves wizard 100%, so this is a no-op).
   const armResolved =
     frontDoorOverride === "wizard" ||
     frontDoorOverride === "decision" ||
-    isAuthenticated === true || // authed → genuinely forced to wizard
-    (isAuthenticated === false &&
-      (frontDoorEnvForce === "wizard" ||
-        frontDoorEnvForce === "decision" ||
-        frontDoorVariant === "decision" ||
-        frontDoorVariant === "wizard" ||
-        localCoinArm !== null));
+    isAuthenticated !== null;
   // Stable ref so the once-attached abandonment listener reads the current arm
   // instead of a stale mount-time closure.
   const armRef = useRef<FrontDoorArm>(arm);
