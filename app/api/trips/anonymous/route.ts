@@ -109,13 +109,30 @@ export async function POST(request: NextRequest) {
       return errors.internal("Could not create the share link.");
     }
 
-    // Same treatment the authenticated share route gives a trip about to be
-    // looked at by other people: upgrade the curated generation-time images to
-    // real photos. Without this every anonymous share would land on a gradient
-    // hero — the exact failure mode that produced a string of P0 bugs on the
-    // /shared pages. Runs after the response (next/server `after`) so it never
-    // delays the link, and the 24h cooldown inside makes repeats free.
-    after(() => enrichTripByIdAdmin(data.id as string, "share"));
+    // Two steps, in this order, both after the response (next/server `after`)
+    // so neither delays the link.
+    //
+    // 1. enrichTripByIdAdmin upgrades the curated generation-time ACTIVITY
+    //    images to real photos — the same treatment the authenticated share
+    //    route gives a trip about to be seen by other people.
+    //
+    // 2. Then pick a hero cover. This second step is NOT optional and was
+    //    missing in the first version: enrichTripRecord writes activity images
+    //    only and never touches `cover_image_url`, while /shared renders its
+    //    hero with disableApiCalls={true} and therefore never fetches one
+    //    client-side. A null cover is thus a guaranteed coral gradient — the
+    //    exact P0 look already fixed twice on this surface. Verified live: a
+    //    Valencia share had 19/19 activity photos and a gradient hero.
+    //
+    //    The authenticated path computes its cover inside handleSaveTrip, which
+    //    is client-side and unavailable here, so we mirror that function's own
+    //    fallback: reuse the first real activity photo. Enrichment runs first so
+    //    the image chosen is an upgraded photo rather than a placeholder, and it
+    //    costs no extra API call because the URL is already in the itinerary.
+    after(async () => {
+      await enrichTripByIdAdmin(data.id as string, "share");
+      await backfillCoverFromItinerary(data.id as string);
+    });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -132,5 +149,53 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("[anon-share] unexpected error:", err);
     return errors.internal("Could not create the share link.");
+  }
+}
+
+/**
+ * Give an anonymous shared trip a hero cover, reusing a photo it already has.
+ *
+ * Only ever fills a NULL cover — never overwrites one a real owner set — and
+ * is a no-op when the itinerary has no usable photo, in which case the page
+ * keeps its gradient rather than rendering a broken image.
+ */
+async function backfillCoverFromItinerary(tripId: string): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data: trip } = await admin
+      .from("trips")
+      .select("cover_image_url, itinerary")
+      .eq("id", tripId)
+      .single();
+
+    if (!trip || trip.cover_image_url) return;
+
+    const days = Array.isArray(trip.itinerary) ? trip.itinerary : [];
+    let cover: string | null = null;
+    for (const day of days) {
+      const acts = (day as { activities?: unknown })?.activities;
+      if (!Array.isArray(acts)) continue;
+      for (const a of acts) {
+        const url = (a as { image_url?: unknown })?.image_url;
+        if (typeof url === "string" && url.trim() !== "") {
+          cover = url;
+          break;
+        }
+      }
+      if (cover) break;
+    }
+    if (!cover) return;
+
+    // `is("cover_image_url", null)` repeated on the write: between the read and
+    // here the trip could have been claimed and given a cover by its new owner.
+    await admin
+      .from("trips")
+      .update({ cover_image_url: cover })
+      .eq("id", tripId)
+      .is("cover_image_url", null);
+  } catch (err) {
+    // A missing hero is a cosmetic degradation, never a reason to surface an
+    // error for a link that was already handed to the planner successfully.
+    console.error("[anon-share] cover backfill failed:", err);
   }
 }
