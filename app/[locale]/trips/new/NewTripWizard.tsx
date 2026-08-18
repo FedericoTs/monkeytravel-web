@@ -2750,7 +2750,7 @@ export default function NewTripPage({
         </div>
 
         {/* Mobile Sticky Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 sm:hidden safe-area-inset-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 sm:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
           {/* Mobile save motivation — the desktop ValuePropositionBanner is
               hidden sm:block, so mobile got a bare Save button with no "why".
               A compact free/benefit line at the always-visible save moment,
@@ -2767,9 +2767,29 @@ export default function NewTripPage({
             </p>
           )}
           {/* Ask your crew to vote — mobile, full-width above the save row.
-              Shown pre-save (the peak share-intent moment); routes through the
-              normal save/auth flow to the collaboration prompt. */}
-          {!savedTripId && (
+              Shown pre-save (the peak share-intent moment).
+
+              For a SIGNED-OUT planner this button used to call handleSaveTrip(),
+              i.e. route straight into the auth wall — the exact wall the
+              anonymous share loop exists to remove, on the surface where most
+              of the traffic actually is. Signed-out planners now get the
+              anonymous share button; everyone else keeps the save/auth route to
+              the collaboration prompt. isAuthenticated is tri-state, so only an
+              explicit `false` swaps — `null` means still resolving and must not
+              flash a share button at someone who turns out to be signed in. */}
+          {!savedTripId && (isAuthenticated === false && generatedItinerary ? (
+            <AnonymousShareButton
+              className="mb-2"
+              trip={{
+                title: `${generatedItinerary.destination.name} Trip`,
+                description: generatedItinerary.destination.description,
+                destination,
+                startDate,
+                endDate,
+                itinerary: generatedItinerary.days,
+              }}
+            />
+          ) : (
             <button
               type="button"
               onClick={() => handleSaveTrip()}
@@ -2780,7 +2800,7 @@ export default function NewTripPage({
               </svg>
               {t("wizard.result.shareForVotes")}
             </button>
-          )}
+          ))}
           <div className="flex items-center gap-2">
             {/* Start Over - Mobile */}
             <button
