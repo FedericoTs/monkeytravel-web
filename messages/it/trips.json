@@ -214,7 +214,13 @@
       "saveHeaderNudge": "{count, plural, one {# giorno} other {# giorni}} — solo su questo browser",
       "shareForVotes": "Fai votare il tuo gruppo",
       "notSavedPill": "Non salvato",
-      "sessionTrayTitle": "{count} viaggi in questa sessione — nessuno salvato"
+      "sessionTrayTitle": "{count} viaggi in questa sessione — nessuno salvato",
+      "shareAnonCta": "Condividi questo viaggio",
+      "shareAnonCreating": "Creazione del link...",
+      "shareAnonCopy": "Copia",
+      "shareAnonCopied": "Copiato",
+      "shareAnonError": "Non è stato possibile creare il link. Riprova.",
+      "shareAnonHint": "Chiunque abbia il link può vederlo e votare. Registrati per salvarlo e modificarlo."
     },
     "anchors": {
       "cta": "Ho già impegni fissi (volo, matrimonio, hotel…)",

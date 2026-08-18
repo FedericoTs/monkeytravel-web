@@ -61,6 +61,12 @@ const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTra
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
+// Anonymous share loop (hop one). Only ever rendered for signed-out planners,
+// so it stays out of the bundle for the authenticated majority path.
+const AnonymousShareButton = dynamic(
+  () => import("@/components/trip/AnonymousShareButton"),
+  { ssr: false }
+);
 const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
 const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
 const WaitlistSignup = dynamic(() => import("@/components/beta").then((m) => m.WaitlistSignup), { ssr: false });
@@ -2714,6 +2720,30 @@ export default function NewTripPage({
                     </>
                   )}
                 </button>
+              )}
+
+              {/* Anonymous share loop, hop one. Signed-out planners had no way
+                  to send a trip to anyone: minting a link required an
+                  authenticated owner, so only 17% of trips were ever shared.
+                  This mints an ownerless, read-only link and keeps a claim
+                  token so the trip follows them into the account they create.
+
+                  isAuthenticated === false, not !isAuthenticated: the flag is
+                  tri-state and `null` means still resolving. Rendering on null
+                  would flash a share button at users who turn out to be signed
+                  in. Also hidden once a trip is saved — at that point the
+                  owner-based share flow is the right one. */}
+              {isAuthenticated === false && !savedTripId && generatedItinerary && (
+                <AnonymousShareButton
+                  trip={{
+                    title: `${generatedItinerary.destination.name} Trip`,
+                    description: generatedItinerary.destination.description,
+                    destination,
+                    startDate,
+                    endDate,
+                    itinerary: generatedItinerary.days,
+                  }}
+                />
               )}
             </div>
           </div>

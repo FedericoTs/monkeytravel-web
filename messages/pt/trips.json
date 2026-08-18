@@ -214,7 +214,13 @@
       "saveHeaderNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador",
       "shareForVotes": "Peça votos ao seu grupo",
       "notSavedPill": "Não salvo",
-      "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda"
+      "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda",
+      "shareAnonCta": "Partilhar esta viagem",
+      "shareAnonCreating": "A criar a ligação...",
+      "shareAnonCopy": "Copiar",
+      "shareAnonCopied": "Copiado",
+      "shareAnonError": "Não foi possível criar a ligação. Tente novamente.",
+      "shareAnonHint": "Qualquer pessoa com a ligação pode ver e votar. Crie conta para guardar e editar."
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",

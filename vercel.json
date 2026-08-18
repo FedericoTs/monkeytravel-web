@@ -39,7 +39,9 @@
       "memory": 256
     }
   },
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "crons": [
     {
       "path": "/api/cron/recompute-editors-picks",
@@ -64,6 +66,10 @@
     {
       "path": "/api/cron/enrich-shared-trips",
       "schedule": "17 5 * * *"
+    },
+    {
+      "path": "/api/cron/sweep-unclaimed-trips",
+      "schedule": "53 3 * * *"
     }
   ],
   "redirects": [

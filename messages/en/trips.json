@@ -214,7 +214,13 @@
       "saveHeaderNudge": "{count, plural, one {# day} other {# days}} planned — only on this browser",
       "shareForVotes": "Ask your crew to vote",
       "notSavedPill": "Not saved",
-      "sessionTrayTitle": "{count} trips this session — none saved yet"
+      "sessionTrayTitle": "{count} trips this session — none saved yet",
+      "shareAnonCta": "Share this trip",
+      "shareAnonCreating": "Creating link...",
+      "shareAnonCopy": "Copy",
+      "shareAnonCopied": "Copied",
+      "shareAnonError": "Couldn't create the link. Please try again.",
+      "shareAnonHint": "Anyone with the link can view and vote. Sign up to keep and edit it."
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",

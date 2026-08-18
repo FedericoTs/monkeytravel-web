@@ -143,6 +143,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .then(({ initPushOnce }) => initPushOnce())
             .catch(() => undefined);
         }
+
+        // Anonymous share loop: if this browser shared a trip while signed
+        // out, hand that trip to the account that just appeared. Dynamically
+        // imported for the same reason as push above — the vast majority of
+        // sign-ins have no pending claim and shouldn't pay for the chunk.
+        //
+        // SIGNED_IN only, deliberately. It covers both signup and login, which
+        // is every path that turns an anonymous planner into an owner. A user
+        // who signed up in a *different* tab won't claim until their next
+        // sign-in, which is fine: the claim token is valid for 30 days.
+        //
+        // Fire-and-forget: claimPendingTrip never throws and never blocks the
+        // auth transition. A failed claim must not be able to break signing in.
+        void import("@/lib/trips/anonymous-claim-client")
+          .then(({ claimPendingTrip }) => claimPendingTrip())
+          .catch(() => undefined);
       }
     });
 
