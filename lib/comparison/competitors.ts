@@ -68,40 +68,44 @@ const YES_NO = (
 
 /* ------------------------------------------------------------------ */
 /* Wanderlog                                                           */
-/* Claims verified 2026-07-03, docs/WANDERLOG_TEARDOWN_2026_07.md      */
+/* Claims re-verified hands-on 2026-08-18. Wanderlog CHANGED since the    */
+/* July teardown: creating a trip no longer requires an account (the      */
+/* signup modal now offers "Salta e registrati piu tardi" and skipping    */
+/* lands you in a real planner). Sharing is still gated - the Condividi   */
+/* wall has no skip. Two claims were corrected in this pass; see          */
+/* docs/WANDERLOG_TEARDOWN_2026_07.md for the older, now-partly-stale run.*/
 /* ------------------------------------------------------------------ */
 
 const wanderlog: Competitor = {
   slug: "wanderlog-alternative",
   name: "Wanderlog",
-  // 2026-07-03, NOT the date this page was authored (2026-08-03, b78a2c2).
-  // This field is rendered to visitors as when the claims were checked, so it
-  // must track the hands-on pass in sourceDoc below — which is dated Jul 3 and
-  // is what every them:* cell actually rests on. The original value was the
-  // authoring date, which overstated the freshness of the research by a month.
-  researchedAt: "2026-07-03",
+  // Bumped to 2026-08-18 only AFTER re-walking the competitor's real flow and
+  // correcting the two claims that pass proved false. The field is rendered to
+  // visitors as "when we checked", so it may never run ahead of the evidence:
+  // it sat at 2026-07-03 until this verification existed to justify moving it.
+  researchedAt: "2026-08-18",
   sourceDoc: "docs/WANDERLOG_TEARDOWN_2026_07.md",
 
   meta: {
     en: {
       title: "Wanderlog Alternative — AI Itineraries in Minutes, No Signup",
       description:
-        "Wanderlog is a great manual planner, but it takes hours and needs an account first. MonkeyTravel generates a full itinerary in minutes, free, with no signup — and your group can vote without one either.",
+        "Wanderlog is a great manual planner, but it takes hours and gates sharing behind an account. MonkeyTravel generates a full itinerary in minutes, free — share the link and let your group vote, no signup.",
     },
     es: {
       title: "Alternativa a Wanderlog — Itinerarios con AI, sin registro",
       description:
-        "Wanderlog es un gran planificador manual, pero lleva horas y exige cuenta antes de empezar. MonkeyTravel genera el itinerario completo en minutos, gratis y sin registro — y tu grupo vota sin cuenta.",
+        "Wanderlog es un gran planificador manual, pero lleva horas y exige cuenta para compartir. MonkeyTravel genera el itinerario completo en minutos, gratis — comparte el enlace y que tu grupo vote, sin registro.",
     },
     it: {
       title: "Alternativa a Wanderlog — Itinerari con AI, senza registrazione",
       description:
-        "Wanderlog è un ottimo pianificatore manuale, ma richiede ore e un account prima di iniziare. MonkeyTravel genera l'itinerario completo in pochi minuti, gratis e senza registrazione — e il tuo gruppo vota senza account.",
+        "Wanderlog è un ottimo pianificatore manuale, ma richiede ore e un account per condividere. MonkeyTravel genera l'itinerario completo in pochi minuti, gratis — condividi il link e fai votare il tuo gruppo, senza registrazione.",
     },
     pt: {
       title: "Alternativa ao Wanderlog — Roteiros com IA, sem cadastro",
       description:
-        "O Wanderlog é um ótimo planejador manual, mas leva horas e exige conta antes de começar. O MonkeyTravel gera o roteiro completo em minutos, grátis e sem cadastro — e seu grupo vota sem conta.",
+        "O Wanderlog é um ótimo planejador manual, mas leva horas e exige conta para compartilhar. O MonkeyTravel gera o roteiro completo em minutos, grátis — compartilhe o link e deixe seu grupo votar, sem cadastro.",
     },
   },
 
@@ -172,7 +176,13 @@ const wanderlog: Competitor = {
         pt: "Montado à mão, lugar por lugar",
       }
     ),
-    YES_NO(true, false, {
+    // them:true since 2026-08-18. This said false and was CORRECT in July, when
+    // an account was required before any trip. Wanderlog has since softened it:
+    // the signup modal carries "Salta e registrati piu tardi" and skipping
+    // really does open a working planner. Verified by doing it. Kept as a
+    // parity row rather than deleted - a table that only lists wins is an
+    // advert, and the honest row is what makes the losing rows believable.
+    YES_NO(true, true, {
       en: "Try it without creating an account",
       es: "Pruébalo sin crear cuenta",
       it: "Provalo senza creare un account",
@@ -210,10 +220,12 @@ const wanderlog: Competitor = {
     // sequence is the whole crew loop, and the account wall blocks all three.
     // "the trip itself" distinguishes this from the "Try it without creating
     // an account" row above, which is about generating rather than sending.
-    // `them: false` rests on docs/WANDERLOG_TEARDOWN_2026_07.md ("account
-    // required before ANY trip") - if no trip can exist without an account,
-    // no trip can be shared without one. researchedAt deliberately NOT bumped:
-    // no fresh hands-on pass was run for this row.
+    // `them: false` verified hands-on 2026-08-18, NOT inferred: created a trip
+    // anonymously (skipping the soft signup modal), then clicked Condividi on
+    // it. That raised "Registrati per salvare le modifiche" with Facebook /
+    // Google / email and NO skip affordance, and produced no link. The create
+    // wall bends; the share wall does not. This is the one gate that still
+    // holds, which is precisely why it is the row worth having.
     YES_NO(true, false, {
       en: "Share the trip itself — no account needed to send the link",
       es: "Comparte el viaje — sin cuenta para enviar el enlace",
