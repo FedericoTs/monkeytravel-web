@@ -59,7 +59,7 @@
       },
       "invite": {
         "title": "Invita con un Enlace",
-        "description": "Comparte un solo enlace. Sin descargas de app, sin necesidad de crear cuenta para los espectadores. Tus amigos se unen en segundos."
+        "description": "Comparte un solo enlace. Sin descargas de app y sin necesidad de cuenta — ni para crear el enlace ni para abrirlo. Tus amigos se unen en segundos."
       },
       "multilingual": {
         "title": "Grupos Multilingües",
@@ -119,7 +119,7 @@
       },
       "needAccount": {
         "question": "¿Todos necesitan una cuenta?",
-        "answer": "Solo el creador del viaje necesita una cuenta. Los amigos pueden ver y votar a través de un enlace compartido sin crear una cuenta. Crear una cuenta gratuita desbloquea permisos de edición y preferencias guardadas."
+        "answer": "No. Puedes planificar un viaje y compartir el enlace sin cuenta, y tus amigos pueden verlo y votar sin cuenta también. Crear una cuenta gratuita es lo que guarda el viaje en tus viajes, te permite editarlo y desbloquea el asistente de IA — y si te registras después de compartir, el viaje que ya creaste se queda contigo."
       },
       "votingWorks": {
         "question": "¿Cómo funciona el sistema de votación?",

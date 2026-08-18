@@ -59,7 +59,7 @@
       },
       "invite": {
         "title": "Invite with a Link",
-        "description": "Share a single link. No app downloads, no account creation required for viewers. Friends can join in seconds."
+        "description": "Share a single link. No app downloads, and no account needed — not to create the link, not to open it. Friends can join in seconds."
       },
       "multilingual": {
         "title": "Multilingual Groups",
@@ -119,7 +119,7 @@
       },
       "needAccount": {
         "question": "Does everyone need an account?",
-        "answer": "Only the trip creator needs an account. Friends can view and vote via a shared link without creating an account. Creating a free account unlocks editing permissions and saved preferences."
+        "answer": "No. You can plan a trip and share the link without an account, and your friends can view and vote without one either. A free account is what saves the trip to your trips, lets you edit it and unlocks the AI concierge — and if you sign up after sharing, the trip you already made comes with you."
       },
       "votingWorks": {
         "question": "How does the voting system work?",
