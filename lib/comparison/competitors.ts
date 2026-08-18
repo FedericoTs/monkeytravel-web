@@ -74,7 +74,12 @@ const YES_NO = (
 const wanderlog: Competitor = {
   slug: "wanderlog-alternative",
   name: "Wanderlog",
-  researchedAt: "2026-08-03",
+  // 2026-07-03, NOT the date this page was authored (2026-08-03, b78a2c2).
+  // This field is rendered to visitors as when the claims were checked, so it
+  // must track the hands-on pass in sourceDoc below — which is dated Jul 3 and
+  // is what every them:* cell actually rests on. The original value was the
+  // authoring date, which overstated the freshness of the research by a month.
+  researchedAt: "2026-07-03",
   sourceDoc: "docs/WANDERLOG_TEARDOWN_2026_07.md",
 
   meta: {
