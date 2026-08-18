@@ -1,5 +1,5 @@
 import { NextRequest, after } from "next/server";
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -68,7 +68,12 @@ export async function POST(request: NextRequest) {
 
     // Two DIFFERENT secrets, and they must never be the same value: share_token
     // is public and read-only, claim_token confers ownership exactly once.
-    const shareToken = randomBytes(24).toString("base64url");
+    //
+    // share_token is a UUID COLUMN, not text — a base64url string is rejected
+    // by Postgres and 500s the whole route. (The authenticated share route
+    // imports uuid for exactly this reason.) claim_token is text, so it keeps
+    // the higher-entropy random string.
+    const shareToken = randomUUID();
     const claimToken = randomBytes(32).toString("base64url");
     const claimExpiresAt = claimExpiryFrom(new Date());
 
@@ -78,7 +83,11 @@ export async function POST(request: NextRequest) {
         user_id: null,
         title: trip.title,
         description: trip.description,
-        destination: trip.destination,
+        // `destination` is NOT a top-level column on trips — it lives inside
+        // the trip_meta JSONB, which is where persistTrip writes it and where
+        // every reader (destination helper, /explore filters, analytics) looks
+        // for it. Passing it at top level makes PostgREST reject the insert.
+        trip_meta: { destination: trip.destination },
         start_date: trip.startDate,
         end_date: trip.endDate,
         status: "planning",
