@@ -2628,6 +2628,16 @@ export default function NewTripPage({
                   2026-07-03). Saved trip → deep-link to the vote/invite tab;
                   unsaved → the normal save/auth path, which lands on the
                   ShareAfterSave collaboration prompt. */}
+              {/* Hidden for a signed-out planner with nothing saved yet: in that
+                  state this button's else-branch calls handleSaveTrip(), i.e. the
+                  auth wall — and AnonymousShareButton is already rendered a few
+                  lines below offering the no-signup path. Showing both would put
+                  the walled door next to the open one. Same reasoning as the
+                  mobile sticky bar; that surface was fixed first and this desktop
+                  twin was missed, so the trap survived on desktop. Authenticated
+                  users (and anyone who has saved) keep it — for them it routes to
+                  the collaboration prompt, which is the right destination. */}
+              {!(isAuthenticated === false && !savedTripId) && (
               <button
                 type="button"
                 onClick={() => {
@@ -2645,6 +2655,7 @@ export default function NewTripPage({
                 </svg>
                 {t("wizard.result.shareForVotes")}
               </button>
+              )}
               {/* Save motivation at the PERSISTENT save point. The desktop
                   ValuePropositionBanner sits once above the schedule (line ~2306)
                   and scrolls away, leaving this sticky-header Save button with no
