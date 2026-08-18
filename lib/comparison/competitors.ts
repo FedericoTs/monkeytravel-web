@@ -199,6 +199,22 @@ const wanderlog: Competitor = {
       it: "Il gruppo vota le attività — senza account",
       pt: "O grupo vota nas atividades — sem conta",
     }),
+    // Added 2026-08-18 with the anonymous share loop. Deliberately placed
+    // directly after the voting row so the three no-account rows read as one
+    // escalating block: try it -> share it -> your group votes on it. That
+    // sequence is the whole crew loop, and the account wall blocks all three.
+    // "the trip itself" distinguishes this from the "Try it without creating
+    // an account" row above, which is about generating rather than sending.
+    // `them: false` rests on docs/WANDERLOG_TEARDOWN_2026_07.md ("account
+    // required before ANY trip") - if no trip can exist without an account,
+    // no trip can be shared without one. researchedAt deliberately NOT bumped:
+    // no fresh hands-on pass was run for this row.
+    YES_NO(true, false, {
+      en: "Share the trip itself — no account needed to send the link",
+      es: "Comparte el viaje — sin cuenta para enviar el enlace",
+      it: "Condividi il viaggio — nessun account per inviare il link",
+      pt: "Compartilhe a viagem — sem conta para enviar o link",
+    }),
     YES_NO(true, false, {
       en: "Plan around fixed commitments (a wedding, booked flights)",
       es: "Planifica alrededor de citas fijas (una boda, vuelos ya reservados)",
