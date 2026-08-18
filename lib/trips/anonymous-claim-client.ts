@@ -49,21 +49,27 @@ export async function shareAnonymousTrip(payload: {
     body: JSON.stringify(payload),
   });
 
+  // apiSuccess() returns the payload FLAT, not under a `data` key: `wrap`
+  // defaults to false and not one of the 222 apiSuccess call sites in this
+  // codebase opts into wrapping. Reading `json.data.shareUrl` here made a
+  // perfectly successful 200 render the error state — the API created the
+  // trip, the UI told the planner it had failed, and the row was orphaned
+  // until the sweeper collected it. Caught only by clicking the real button.
   const json = (await res.json().catch(() => null)) as
-    | { data?: AnonymousShareResult; error?: string }
+    | (AnonymousShareResult & { error?: string })
     | null;
 
-  if (!res.ok || !json?.data?.shareUrl) {
+  if (!res.ok || !json?.shareUrl) {
     throw new Error(json?.error || "Could not create the share link.");
   }
 
   try {
-    await prefs.set(CLAIM_TOKEN_KEY, json.data.claimToken);
+    await prefs.set(CLAIM_TOKEN_KEY, json.claimToken);
   } catch {
     /* private mode / storage disabled — the link still works */
   }
 
-  return json.data;
+  return json;
 }
 
 /** True when this browser is holding a trip that could still be claimed. */
@@ -102,8 +108,13 @@ export async function claimPendingTrip(): Promise<string | null> {
       body: JSON.stringify({ claimToken }),
     });
 
+    // Flat, for the same reason as above — /api/trips/claim also returns via
+    // apiSuccess. Reading `json.data.claimed` made every SUCCESSFUL claim look
+    // like a failure to the client: the trip really was transferred server
+    // side, but this returned null and the token was already cleared, so
+    // nothing downstream could tell the planner their trip had arrived.
     const json = (await res.json().catch(() => null)) as
-      | { data?: { claimed?: boolean; tripId?: string | null } }
+      | { claimed?: boolean; tripId?: string | null }
       | null;
 
     // A 401 means the session was not ready yet — keep the token so the next
@@ -115,7 +126,7 @@ export async function claimPendingTrip(): Promise<string | null> {
 
     await prefs.remove(CLAIM_TOKEN_KEY).catch(() => {});
 
-    return json?.data?.claimed ? json.data.tripId ?? null : null;
+    return json?.claimed ? json.tripId ?? null : null;
   } catch {
     // Network failure — leave the token in place and try again next time.
     return null;
