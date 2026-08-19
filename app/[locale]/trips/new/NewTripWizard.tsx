@@ -43,8 +43,47 @@ const MULTI_CITY_ENABLED = process.env.NEXT_PUBLIC_MULTI_CITY_ENABLED === "true"
 
 // Post-generation + modal UI is gated by user action / state — split it
 // out of the initial wizard chunk so the form paints faster (P10).
-const DestinationHero = dynamic(() => import("@/components/DestinationHero"), { ssr: false });
-const ActivityCard = dynamic(() => import("@/components/ActivityCard"), { ssr: false });
+//
+// CLS NOTE (2026-08-19): splitting these out was right for step 1, but the
+// chunks land AFTER the itinerary renders and every component pops in from
+// zero height, shoving the page down. Measured on production: sessions that
+// reach the result view have CLS p75 1.091 / median 0.509, against 0.023 for
+// step-1-only sessions — and 50 of the 52 rage clicks on this page happen in
+// that same view. Two defences, in order:
+//   1. preloadResultViewChunks() spends the ~60s of generation fetching these
+//      so they are already warm when the result renders (the real fix);
+//   2. the two that dominate the shift carry a correctly-sized `loading` box,
+//      so a slow network degrades to a skeleton instead of a jump.
+// Heights are measured off the live components on production, not guessed
+// (17 real cards, same selector at both widths):
+//   hero  — 400px at every width (the component hard-codes h-[400px])
+//   card  — 363px at 375w, 324px at 1280w
+// Note the card is SHORTER on desktop despite its taller image (h-40 vs
+// h-32), because the description wraps to fewer lines. That is counter-
+// intuitive enough to be worth stating: an earlier draft of this assumed
+// desktop was taller and would have injected ~69px of shift per card across
+// 27 cards. Re-measure before touching either number — a placeholder of the
+// WRONG height creates a shift instead of preventing one.
+const HeroSkeleton = () => (
+  <div
+    className="h-[400px] w-full rounded-xl bg-slate-100 animate-pulse"
+    aria-hidden="true"
+  />
+);
+const ActivityCardSkeleton = () => (
+  <div
+    className="h-[363px] sm:h-[324px] w-full rounded-xl bg-slate-100 animate-pulse"
+    aria-hidden="true"
+  />
+);
+const DestinationHero = dynamic(() => import("@/components/DestinationHero"), {
+  ssr: false,
+  loading: () => <HeroSkeleton />,
+});
+const ActivityCard = dynamic(() => import("@/components/ActivityCard"), {
+  ssr: false,
+  loading: () => <ActivityCardSkeleton />,
+});
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
@@ -70,6 +109,36 @@ const AnonymousShareButton = dynamic(
 const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
 const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
 const WaitlistSignup = dynamic(() => import("@/components/beta").then((m) => m.WaitlistSignup), { ssr: false });
+
+/**
+ * Warm the result-view chunks while the itinerary is being generated.
+ *
+ * Generation takes ~60s, and for all of it the visitor is looking at
+ * GenerationProgress while the network sits idle. Fetching the post-generation
+ * components during that window means they resolve instantly when the result
+ * mounts, so nothing pops in from zero height — which is what produced a
+ * median CLS of 0.509 on this view. It costs no extra bytes overall: these
+ * chunks were going to be downloaded a moment later regardless. It is only
+ * called from handleGenerate, so step-1-only visitors (the majority, and the
+ * reason this UI is split out at all) still never fetch any of it.
+ *
+ * Deliberately fire-and-forget. Each rejection is swallowed because a failed
+ * prefetch must be a non-event: dynamic() will simply load the chunk the
+ * normal way, and an unhandled rejection here would surface as a bogus error.
+ */
+function preloadResultViewChunks(): void {
+  const warm = (p: Promise<unknown>) => {
+    p.catch(() => {});
+  };
+  warm(import("@/components/DestinationHero"));
+  warm(import("@/components/ActivityCard"));
+  warm(import("@/components/TripMap"));
+  warm(import("@/components/trip/AnonAssistantPanel"));
+  warm(import("@/components/trip/RegenerateButton"));
+  warm(import("@/components/trip/ValuePropositionBanner"));
+  warm(import("@/components/trip/ExportMenu"));
+  warm(import("@/components/trip/AnonymousShareButton"));
+}
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
@@ -1616,6 +1685,12 @@ export default function NewTripPage({
 
     setGenerating(true);
     setError(null);
+
+    // Start fetching the result-view chunks now, not when the result mounts.
+    // handleGenerate is the single choke point for every generation path, so
+    // this one call covers the classic wizard, the decision arm, regenerate
+    // and post-auth resume alike. See preloadResultViewChunks for why.
+    preloadResultViewChunks();
 
     const generationStartTime = Date.now();
     captureTripWizardStepCompleted({
