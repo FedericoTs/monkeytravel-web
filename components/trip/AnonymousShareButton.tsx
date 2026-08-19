@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { shareAnonymousTrip } from "@/lib/trips/anonymous-claim-client";
+import {
+  captureAnonShareClicked,
+  captureAnonShareCreated,
+  captureAnonShareFailed,
+  captureAnonShareCopied,
+} from "@/lib/posthog/events";
 
 /**
  * Share control for a trip generated while signed OUT.
@@ -44,9 +50,19 @@ export default function AnonymousShareButton({ trip, onShared, className = "" }:
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Shared shape for every event in this loop, so click / mint / send are
+  // directly comparable in a funnel without re-deriving properties per call.
+  const analyticsBase = {
+    destination: trip.destination,
+    duration_days: Array.isArray(trip.itinerary) ? trip.itinerary.length : 0,
+  };
+
   async function handleShare() {
     if (state === "creating") return; // re-entry guard: minting creates a row
     setState("creating");
+    // Captured after the guard so a double-press cannot inflate the
+    // denominator the mint rate is measured against.
+    void captureAnonShareClicked(analyticsBase);
     try {
       const result = await shareAnonymousTrip({
         title: trip.title,
@@ -59,17 +75,25 @@ export default function AnonymousShareButton({ trip, onShared, className = "" }:
       });
       setShareUrl(result.shareUrl);
       setState("ready");
+      void captureAnonShareCreated({ ...analyticsBase, trip_id: result.tripId });
       onShared?.(result.shareUrl);
-      void copy(result.shareUrl);
-    } catch {
+      void copy(result.shareUrl, "auto");
+    } catch (err) {
       setState("error");
+      void captureAnonShareFailed({
+        ...analyticsBase,
+        reason: err instanceof Error ? err.message : "unknown",
+      });
     }
   }
 
-  async function copy(url: string) {
+  async function copy(url: string, trigger: "auto" | "manual") {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      // Only the successful write counts as distribution — a blocked
+      // clipboard means the link never left the page.
+      void captureAnonShareCopied({ ...analyticsBase, trigger });
       window.setTimeout(() => setCopied(false), 2200);
     } catch {
       /* clipboard blocked — the input below is selectable as the fallback */
@@ -89,7 +113,7 @@ export default function AnonymousShareButton({ trip, onShared, className = "" }:
           />
           <button
             type="button"
-            onClick={() => copy(shareUrl)}
+            onClick={() => copy(shareUrl, "manual")}
             className="shrink-0 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
           >
             {copied ? t("wizard.result.shareAnonCopied") : t("wizard.result.shareAnonCopy")}

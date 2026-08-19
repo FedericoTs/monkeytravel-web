@@ -1288,3 +1288,63 @@ export async function captureAssistantClaimUnverified(props: {
 }) {
   return capture("assistant_claim_unverified", props);
 }
+
+// ============================================================================
+// ANONYMOUS SHARE LOOP (hop one)
+// ============================================================================
+
+/**
+ * The anonymous share loop shipped 2026-08-18 with no instrumentation at all.
+ * Its first real use — a 9-day Lisbon trip minted at 00:22 UTC on 08-19 — was
+ * only discovered by querying Postgres directly, because not one event reached
+ * PostHog. That is the whole growth loop running blind.
+ *
+ * These fire client-side, deliberately: the question worth answering is what
+ * fraction of anonymous result-viewers share, which requires the events to sit
+ * on the same person as `itinerary_generated` and `save_nudge_shown`. A
+ * server-side capture from /api/trips/anonymous has no reliable distinct_id
+ * for a signed-out visitor, so it would land unjoined and could not answer it.
+ *
+ * Four events, because minting is not sharing. `crew_link_created` already
+ * conflates the two for authenticated users and the 2026-08-04 audit could not
+ * tell them apart; this loop keeps click / mint / send separate from the start.
+ */
+// A `type` rather than an `interface` on purpose: capture() takes
+// Record<string, unknown>, and TypeScript treats an interface as having no
+// implicit index signature, so an interface here fails to assign.
+export type AnonShareEvent = {
+  /** Absent on the click event — the row does not exist yet. */
+  trip_id?: string;
+  destination: string;
+  duration_days: number;
+};
+
+/** Intent: the signed-out planner pressed Share. Denominator for mint rate. */
+export async function captureAnonShareClicked(event: AnonShareEvent) {
+  return capture("anon_share_clicked", event);
+}
+
+/** The ownerless row and its share_token exist. */
+export async function captureAnonShareCreated(event: AnonShareEvent) {
+  return capture("anon_share_created", event);
+}
+
+/**
+ * The mint failed. Worth its own event rather than a property: the three
+ * production bugs on this route (missing `destination` column, uuid
+ * share_token, flat apiSuccess payload) all returned a broken experience while
+ * every dashboard stayed silent. A visible failure rate is the alarm.
+ */
+export async function captureAnonShareFailed(event: AnonShareEvent & { reason: string }) {
+  return capture("anon_share_failed", event);
+}
+
+/**
+ * The link actually left the page — copied to the clipboard. This is the only
+ * event in the set that represents distribution; the rest are intent.
+ */
+export async function captureAnonShareCopied(
+  event: AnonShareEvent & { trigger: "auto" | "manual" }
+) {
+  return capture("anon_share_copied", event);
+}
