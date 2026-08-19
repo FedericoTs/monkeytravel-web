@@ -4,10 +4,11 @@ import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createRateLimiter } from "@/lib/api/rate-limit";
-import { safeImageFetch } from "@/lib/api/safe-image-fetch";
+import { safeImageFetch, readCapped, imageContentType, MAX_IMAGE_BYTES } from "@/lib/api/safe-image-fetch";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
+
 
 // 600/hour/IP — this route is auth-gated but was otherwise uncapped, and POST
 // fans out up to 20 upstream image fetches per call, so a single logged-in
@@ -200,12 +201,19 @@ export async function GET(request: NextRequest) {
       return errors.serviceUnavailable(`Failed to fetch image (status: ${response.status})`);
     }
 
-    // Get the image data as ArrayBuffer
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Reject a non-image BEFORE spending memory on its body.
+    const contentType = imageContentType(response);
+    if (!contentType) {
+      return errors.badRequest(
+        `Not an image: ${response.headers.get("content-type")}`
+      );
+    }
 
-    // Determine content type
-    const contentType = response.headers.get("content-type") || "image/jpeg";
+    // Read with the cap enforced during the read, not after it.
+    const buffer = await readCapped(response, MAX_IMAGE_BYTES);
+    if (!buffer) {
+      return errors.badRequest(`Image exceeds ${MAX_IMAGE_BYTES / 1024 / 1024} MB`);
+    }
 
     // Convert to base64
     const base64 = buffer.toString("base64");
@@ -293,9 +301,23 @@ export async function POST(request: NextRequest) {
             return { url: imageUrl, error: `HTTP ${response.status}` };
           }
 
-          const arrayBuffer = await response.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const contentType = response.headers.get("content-type") || "image/jpeg";
+          // Same cap and content-type gate as GET. Doubly worth it on this
+          // path: it fans out over a whole itinerary, so an unbounded body
+          // here multiplies by the number of images in the batch.
+          const contentType = imageContentType(response);
+          if (!contentType) {
+            return {
+              url: imageUrl,
+              error: `Not an image: ${response.headers.get("content-type")}`,
+            };
+          }
+          const buffer = await readCapped(response, MAX_IMAGE_BYTES);
+          if (!buffer) {
+            return {
+              url: imageUrl,
+              error: `Image exceeds ${MAX_IMAGE_BYTES / 1024 / 1024} MB`,
+            };
+          }
           const base64 = buffer.toString("base64");
           const dataUrl = `data:${contentType};base64,${base64}`;
 

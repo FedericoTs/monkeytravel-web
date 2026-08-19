@@ -1,5 +1,6 @@
+/** @vitest-environment node */
 import { describe, it, expect, vi } from "vitest";
-import { safeImageFetch, isInternalHostname } from "./safe-image-fetch";
+import { safeImageFetch, isInternalHostname, readCapped, imageContentType } from "./safe-image-fetch";
 
 /**
  * The allowlist used to guard only the URL the caller passed in. With
@@ -177,4 +178,125 @@ describe("isInternalHostname", () => {
     // hosts that merely start with the digits of a private range
     "10x.example.com", "127-foo.example.com",
   ])("allows %s", (h) => expect(isInternalHostname(h)).toBe(false));
+});
+
+/**
+ * readCapped / imageContentType — the size and type gates for the BUFFERING
+ * proxy (app/api/images/proxy), which had neither.
+ *
+ * These run against real Response objects backed by real ReadableStreams, not
+ * mocks, because the whole point of readCapped is its streaming behaviour: a
+ * Content-Length check alone is not enough, since the header is absent on
+ * chunked responses and an upstream is free to lie about it.
+ */
+
+/** Response whose body is delivered in `chunks`, counting how many were pulled. */
+function streamResponse(
+  chunks: Uint8Array[],
+  headers: Record<string, string> = {}
+): { response: Response; pulled: () => number } {
+  let pulls = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (pulls < chunks.length) {
+        controller.enqueue(chunks[pulls]);
+        pulls += 1;
+      } else {
+        controller.close();
+      }
+    },
+  });
+  return {
+    response: new Response(stream, { headers }),
+    pulled: () => pulls,
+  };
+}
+
+const kb = (n: number) => new Uint8Array(n * 1024).fill(65);
+
+describe("readCapped — size gate", () => {
+  it("returns the full body when under the cap", async () => {
+    const { response } = streamResponse([kb(1), kb(1)]);
+    const buf = await readCapped(response, 10 * 1024);
+    expect(buf).not.toBeNull();
+    expect(buf!.length).toBe(2048);
+  });
+
+  it("accepts a body EXACTLY at the cap (boundary is inclusive)", async () => {
+    const { response } = streamResponse([new Uint8Array(100).fill(1)]);
+    const buf = await readCapped(response, 100);
+    expect(buf).not.toBeNull();
+    expect(buf!.length).toBe(100);
+  });
+
+  it("rejects a body ONE byte over the cap", async () => {
+    const { response } = streamResponse([new Uint8Array(101).fill(1)]);
+    expect(await readCapped(response, 100)).toBeNull();
+  });
+
+  it("STOPS EARLY instead of draining a hostile body", async () => {
+    // 100 chunks of 1KB, cap at 2KB — must abort after ~3 pulls, not 100.
+    const chunks = Array.from({ length: 100 }, () => kb(1));
+    const { response, pulled } = streamResponse(chunks);
+    expect(await readCapped(response, 2 * 1024)).toBeNull();
+    expect(pulled()).toBeLessThan(5);
+  });
+
+  it("caps a body with NO content-length (the chunked case a header check misses)", async () => {
+    const { response } = streamResponse([kb(50), kb(50)]);
+    expect(response.headers.get("content-length")).toBeNull();
+    expect(await readCapped(response, 10 * 1024)).toBeNull();
+  });
+
+  it("caps a body whose content-length LIES about being small", async () => {
+    // The reason the cap is enforced during the read rather than from the header.
+    const { response } = streamResponse([kb(500)], { "content-length": "10" });
+    expect(await readCapped(response, 100 * 1024)).toBeNull();
+  });
+
+  it("returns an empty buffer for an empty body, not null", async () => {
+    const { response } = streamResponse([]);
+    const buf = await readCapped(response, 1024);
+    expect(buf).not.toBeNull();
+    expect(buf!.length).toBe(0);
+  });
+
+  it("returns null when there is no body at all", async () => {
+    expect(await readCapped(new Response(null, { status: 204 }), 1024)).toBeNull();
+  });
+
+  it("preserves the exact bytes it read", async () => {
+    const payload = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+    const { response } = streamResponse([payload]);
+    const buf = await readCapped(response, 1024);
+    expect(Array.from(buf!)).toEqual(Array.from(payload));
+  });
+});
+
+describe("imageContentType — type gate", () => {
+  const withType = (ct?: string) =>
+    new Response("x", { headers: ct ? { "content-type": ct } : {} });
+
+  it.each(["image/jpeg", "image/png", "image/webp", "image/avif"])(
+    "accepts %s",
+    (ct) => expect(imageContentType(withType(ct))).toBe(ct)
+  );
+
+  it("accepts a parameterised image type", () => {
+    expect(imageContentType(withType("image/svg+xml; charset=utf-8")))
+      .toBe("image/svg+xml; charset=utf-8");
+  });
+
+  it.each(["text/html", "application/json", "text/plain", "application/pdf"])(
+    "REJECTS %s — this is the gap: such a body used to be base64ed and cached as a photo",
+    (ct) => expect(imageContentType(withType(ct))).toBeNull()
+  );
+
+  it("falls back to image/jpeg when the header is absent", () => {
+    // Deliberate, and matches the sibling proxies: some CDNs omit the header on
+    // valid images, and hard-requiring it would break them.
+    const r = new Response("x");
+    r.headers.delete("content-type");
+    expect(imageContentType(r)).toBe("image/jpeg");
+  });
 });

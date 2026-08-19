@@ -176,3 +176,59 @@ export async function safeImageFetch(
 
   return { ok: false, status: 502, reason: `more than ${maxHops} redirects` };
 }
+
+/**
+ * Upper bound on a proxied image, matching app/api/img/proxy.
+ *
+ * This route had NO size limit at all, which mattered more here than in the
+ * sibling proxies: they stream the upstream body straight through, whereas
+ * this one buffers the whole thing and base64-encodes it into Postgres. An
+ * unbounded response therefore cost memory AND a giant cache row — base64 is
+ * ~1.37x the binary size, so 10 MB in becomes a ~13.7 MB text column.
+ * Real covers are well under 1 MB, so this is generous.
+ */
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Read a response body, aborting as soon as it exceeds `max`.
+ *
+ * A Content-Length check alone is not enough: the header is absent on chunked
+ * responses and an upstream is free to lie about it. Reading with a running
+ * total means we never hold more than one chunk beyond the cap, and we cancel
+ * the stream rather than draining a hostile body to completion.
+ *
+ * Returns null when the cap is exceeded, so callers reject rather than cache.
+ */
+export async function readCapped(response: Response, max: number): Promise<Buffer | null> {
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.length;
+    if (total > max) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks);
+}
+
+/**
+ * Reject a body the upstream did not label as an image.
+ *
+ * Mirrors the sibling proxies exactly, including the `|| "image/jpeg"`
+ * fallback: some CDNs omit the header on perfectly valid images, and hard
+ * requiring it would break them. What this does stop is a response that
+ * positively declares itself something else — an HTML error page or a JSON
+ * blob — being base64-encoded and cached as though it were a photo.
+ */
+export function imageContentType(response: Response): string | null {
+  const ct = response.headers.get("content-type") || "image/jpeg";
+  return ct.startsWith("image/") ? ct : null;
+}
