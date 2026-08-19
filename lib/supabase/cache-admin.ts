@@ -2,7 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Service-role client for the `google_places_cache` table.
+ * Service-role client for the globally-shared cache tables.
+ *
+ * Used by google_places_cache, geocode_cache and distance_cache — all of which
+ * hold data that is not per-user and must be written only by the server.
  *
  * WHY THIS EXISTS
  * The cache was read AND written through the ANON client, and its RLS policies
@@ -43,7 +46,7 @@ let client: SupabaseClient | null | undefined;
  * but working — rather than 500 the route. Callers therefore null-check and
  * skip the cache, exactly as they previously swallowed an error.
  */
-export function placesCacheDb(): SupabaseClient | null {
+export function cacheAdminDb(): SupabaseClient | null {
   if (client !== undefined) return client;
   try {
     client = createAdminClient();

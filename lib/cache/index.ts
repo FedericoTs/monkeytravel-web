@@ -25,7 +25,7 @@
  */
 
 import crypto from "crypto";
-import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
+import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 
 // ============================================================================
 // Types
@@ -286,9 +286,9 @@ export async function getFromDatabase<T>(
   cacheType: string
 ): Promise<T | null> {
   try {
-    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // Service role: see lib/supabase/cache-admin.ts. Null means no
     // service key — treat as a cache miss rather than throwing.
-    const db = placesCacheDb();
+    const db = cacheAdminDb();
     if (!db) return null;
 
     const { data, error } = await db
@@ -328,7 +328,7 @@ export async function saveToDatabase<T>(
   cacheDays: number
 ): Promise<void> {
   try {
-    const db = placesCacheDb();
+    const db = cacheAdminDb();
     if (!db) return;
 
     const expiresAt = new Date(Date.now() + cacheDays * 24 * 60 * 60 * 1000);

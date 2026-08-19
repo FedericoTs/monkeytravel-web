@@ -9,7 +9,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
+import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -34,9 +34,9 @@ function generateCacheKey(placeId: string): string {
  */
 async function getFromCache(cacheKey: string): Promise<unknown | null> {
   try {
-    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // Service role: see lib/supabase/cache-admin.ts. Null means no
     // service key — treat as a cache miss rather than throwing.
-    const db = placesCacheDb();
+    const db = cacheAdminDb();
     if (!db) return null;
 
     const { data, error } = await db
@@ -71,7 +71,7 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
  */
 async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
   try {
-    const db = placesCacheDb();
+    const db = cacheAdminDb();
     if (!db) return;
 
     const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);

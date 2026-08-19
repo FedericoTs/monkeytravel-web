@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { estimateTravelTime, calculateHaversineDistance, determineOptimalMode } from "@/lib/utils/travel-estimation";
@@ -210,13 +210,22 @@ export async function POST(request: NextRequest) {
       driving: drivingCount,
     });
 
-    // Step 1: Check cache for all pairs
+    // Step 1: Check cache for all pairs.
+    //
+    // Service role, not the anon client — see the note in
+    // app/api/travel/geocode/route.ts. distance_cache carried the same pair of
+    // WITH CHECK (true) policies, and a forged row skews the travel times the
+    // scheduler builds itineraries from. A null client means no service key:
+    // behave as though nothing were cached rather than failing the request.
+    const db = cacheAdminDb();
     const hashes = pairsWithModes.map((p) => p.hash);
-    const { data: cached, error: cacheError } = await supabase
-      .from("distance_cache")
-      .select("*")
-      .in("route_hash", hashes)
-      .gt("expires_at", new Date().toISOString());
+    const { data: cached, error: cacheError } = db
+      ? await db
+          .from("distance_cache")
+          .select("*")
+          .in("route_hash", hashes)
+          .gt("expires_at", new Date().toISOString())
+      : { data: null, error: null };
 
     if (cacheError) {
       console.error("[Distance API] Cache lookup error:", cacheError);
@@ -241,9 +250,10 @@ export async function POST(request: NextRequest) {
           source: "cache",
         });
 
-        // Update hit count asynchronously
-        supabase
-          .from("distance_cache")
+        // Update hit count asynchronously. Optional chaining short-circuits
+        // the whole chain when there is no service client.
+        db
+          ?.from("distance_cache")
           .update({
             hit_count: cachedResult.hit_count + 1,
             last_accessed_at: new Date().toISOString(),
@@ -398,8 +408,8 @@ export async function POST(request: NextRequest) {
 
                 // Cache the result - use coordinates if available
                 if (pair.origin && pair.destination) {
-                  supabase
-                    .from("distance_cache")
+                  db
+                    ?.from("distance_cache")
                     .insert({
                       route_hash: pair.hash,
                       origin_lat: pair.origin.lat,

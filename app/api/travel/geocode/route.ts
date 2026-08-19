@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -96,13 +96,25 @@ export async function POST(request: NextRequest) {
       index,
     }));
 
-    // Step 1: Check cache for all addresses
+    // Step 1: Check cache for all addresses.
+    //
+    // Service role, not the anon client: geocode_cache is global data that
+    // anon could previously INSERT and UPDATE at will (policies "Anyone can
+    // insert/update into geocode cache", both WITH CHECK true), so a forged
+    // row could hand every user wrong coordinates for an address — and unlike
+    // a wrong place NAME, wrong coordinates are not visually obvious. The
+    // accompanying migration drops those policies, which requires the writes
+    // to come from the service role. A null client means no service key: fall
+    // through as though nothing were cached rather than failing the request.
+    const db = cacheAdminDb();
     const hashes = addressHashes.map((h) => h.hash);
-    const { data: cached, error: cacheError } = await supabase
-      .from("geocode_cache")
-      .select("*")
-      .in("address_hash", hashes)
-      .gt("expires_at", new Date().toISOString());
+    const { data: cached, error: cacheError } = db
+      ? await db
+          .from("geocode_cache")
+          .select("*")
+          .in("address_hash", hashes)
+          .gt("expires_at", new Date().toISOString())
+      : { data: null, error: null };
 
     if (cacheError) {
       console.error("[Geocode] Cache lookup error:", cacheError);
@@ -127,9 +139,10 @@ export async function POST(request: NextRequest) {
           source: "cache",
         });
 
-        // Update hit count asynchronously (fire and forget)
-        supabase
-          .from("geocode_cache")
+        // Update hit count asynchronously (fire and forget). Optional chaining
+        // short-circuits the whole chain when there is no service client.
+        db
+          ?.from("geocode_cache")
           .update({
             hit_count: cachedResult.hit_count + 1,
             last_accessed_at: new Date().toISOString(),
@@ -184,8 +197,8 @@ export async function POST(request: NextRequest) {
             else if (locationType === "GEOMETRIC_CENTER") confidence = 0.6;
 
             // Cache the result (fire and forget)
-            supabase
-              .from("geocode_cache")
+            db
+              ?.from("geocode_cache")
               .insert({
                 address_hash: hash,
                 original_address: address,
