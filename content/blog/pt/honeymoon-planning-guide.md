@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Trip Planning"
-tags: ["lua de mel", "destinos de lua de mel 2026", "planejamento de lua de mel", "orçamento de lua de mel", "viagens românticas"]
+tags: ["viagens românticas", "planejamento de viagem"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Casal observando o pôr do sol de um terraço privativo com vista para o Mar Egeu"
 readingTime: 18

@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Travel Tips"
-tags:
-  - poder do passaporte
-  - viagem sem visto
-  - ranking de passaportes
-  - documentos de viagem
+tags: ["documentos de viagem", "dados de viagem"]
 image: /images/blog/passport-power-index-2026.jpg
 imageAlt: >-
   Passaportes do mundo abertos em leque sobre um mapa, ao lado de um globo

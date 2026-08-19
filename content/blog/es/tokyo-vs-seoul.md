@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - tokyo
-  - seoul
-  - comparison
-  - asia
-  - city guide
+tags: ["comparación", "guía de ciudad", "asia", "seúl"]
 image: /images/blog/tokyo-vs-seoul.jpg
 imageAlt: >-
   Imagen dividida comparando el cruce de Shibuya en Tokio y la aldea Bukchon

@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-30"
 updatedAt: "2026-05-30"
 category: "Trip Planning"
-tags: ["destinos de lua de mel", "melhores luas de mel 2026", "destinos românticos", "ideias de lua de mel", "viagem de luxo"]
+tags: ["viagens românticas", "melhores destinos"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Casal vestindo linho branco combinando em um terraço à beira de um penhasco com vista para o Mediterrâneo ao pôr do sol"
 readingTime: 16

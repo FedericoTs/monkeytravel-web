@@ -13,12 +13,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-08-17'
 category: AI Travel
-tags:
-  - tendenze viaggi 2026
-  - statistiche sui viaggi 2026
-  - pianificare viaggi con l'AI
-  - come si organizzano i viaggi
-  - report sui dati di viaggio
+tags: ["dati di viaggio", "pianificazione viaggi", "pianificatore di viaggio ai"]
 image: /images/blog/most-planned-destinations-2026.jpg
 imageAlt: >-
   Visualizzazione di dati sulle tendenze di pianificazione dei viaggi 2026 su un

@@ -9,13 +9,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - turismo wellness
-  - ritiri yoga
-  - recupero burnout
-  - destinazioni spa
-  - '2026'
-  - benessere
+tags: ["viaggi benessere", "migliori destinazioni"]
 image: /images/blog/best-wellness-retreats-2026.jpg
 imageAlt: >-
   Piscina a sfioro con vista sulla giungla tropicale in un ritiro wellness a

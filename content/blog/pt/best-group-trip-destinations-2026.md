@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "Destination Guides"
-tags:
-  - destinos para viagens em grupo
-  - melhores lugares para viajar com amigos
-  - ideias de viagem em grupo
-  - viagens em grupo baratas
-  - viajar com amigos 2026
+tags: ["viagem em grupo", "melhores destinos"]
 image: /images/blog/group-trip-destinations-2026.jpg
 imageAlt: Grupo de amigos contemplando uma cidade litorânea do Mediterrâneo ao pôr do sol
 readingTime: 8

@@ -8,12 +8,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - new york
-  - itinerary
-  - usa
-  - city guide
-  - 5-day trip
+tags: ["itinerary", "city guide", "united states", "week-long trip", "new york"]
 image: /images/blog/new-york-5-day-itinerary.jpg
 imageAlt: Manhattan skyline with the Empire State Building at sunset
 readingTime: 14

@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - digital nomad destinations
-  - best places to work remotely 2026
-  - digital nomad visa
-  - remote work travel
-  - nomad cities 2026
+tags: ["digital nomad", "best destinations", "trip planning"]
 image: /images/blog/best-digital-nomad-destinations-2026.jpg
 imageAlt: >-
   Laptop open at a rooftop coworking space overlooking a sun-drenched city

@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - paris
-  - roteiro
-  - frança
-  - 3 dias
-  - viagem europa
+tags: ["roteiro", "guia da cidade", "europa", "viagem de fim de semana", "paris"]
 image: /images/blog/3-day-paris-itinerary.jpg
 imageAlt: Vista da Torre Eiffel a partir do Trocadéro ao pôr do sol com arquitetura parisiense
 readingTime: 7

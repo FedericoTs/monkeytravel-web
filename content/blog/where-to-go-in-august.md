@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-12"
 updatedAt: "2026-07-12"
 category: "Seasonal Travel"
-tags: ["august travel", "where to go in august", "august destinations", "summer travel 2026", "peak season travel"]
+tags: ["seasonal", "monthly travel guide", "summer travel", "best destinations"]
 image: "/images/blog/where-to-go-in-august.jpg"
 imageAlt: "Turquoise alpine lake beneath jagged Dolomites peaks on a clear August morning"
 readingTime: 12

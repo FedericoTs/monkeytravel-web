@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - tokyo
-  - itinerario
-  - giappone
-  - 4 giorni
-  - viaggi asia
+tags: ["itinerario", "guida città", "giappone", "asia", "viaggio weekend", "tokyo"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
 imageAlt: 'Incrocio di Shibuya al crepuscolo con luci al neon e folla a Tokyo, Giappone'
 readingTime: 9

@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - seúl
-  - itinerario
-  - corea del sur
-  - guía de ciudad
-  - viaje de 5 días
-  - k-beauty
+tags: ["itinerario", "guía de ciudad", "asia", "viaje de una semana", "seúl"]
 image: /images/blog/seoul-5-day-itinerary.jpg
 imageAlt: 'Palacio Gyeongbokgung con la montaña Bukhansan al fondo, Seúl, Corea del Sur'
 readingTime: 14

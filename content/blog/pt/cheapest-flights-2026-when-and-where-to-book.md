@@ -10,13 +10,7 @@ author: Emanuela P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: "Budget Travel"
-tags:
-  - voos baratos
-  - ofertas de voos
-  - viagens econômicas
-  - '2026'
-  - dicas de reserva
-  - tarifas aéreas
+tags: ["viagem econômica", "planejamento de viagem"]
 image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
 imageAlt: >-
   Asa de avião sobre um mosaico de campos de cultivo ao pôr do sol, vista da

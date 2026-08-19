@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - follaje otoñal
-  - otoño
-  - estacional
-  - naturaleza
-  - fotografía
+tags: ["estacional", "viajes de otoño", "viajes de naturaleza", "mejores destinos"]
 image: /images/blog/best-fall-foliage-destinations.jpg
 imageAlt: >-
   Follaje otoñal vibrante en rojo y naranja a lo largo de un camino en Nueva

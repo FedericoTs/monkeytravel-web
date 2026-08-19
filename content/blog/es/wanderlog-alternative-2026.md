@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - wanderlog
-  - alternativa a wanderlog
-  - precio de wanderlog pro
-  - planificador de viajes con ai
-  - planificador de viajes con ai gratis
+tags: ["planificador de viajes con ai", "reseña", "comparación", "tecnología de viajes"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Planificación de viajes con AI en la pantalla de un portátil y un móvil
 readingTime: 9

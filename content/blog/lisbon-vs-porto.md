@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - lisbon
-  - porto
-  - comparison
-  - portugal
-  - city guide
+tags: ["comparison", "city guide", "europe"]
 image: /images/blog/lisbon-vs-porto.jpg
 imageAlt: >-
   Split image comparing Lisbon's colorful hillside and Porto's Ribeira district

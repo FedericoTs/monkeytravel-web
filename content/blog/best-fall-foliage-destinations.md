@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - fall foliage
-  - autumn
-  - seasonal
-  - nature
-  - photography
+tags: ["seasonal", "autumn travel", "nature travel", "best destinations"]
 image: /images/blog/best-fall-foliage-destinations.jpg
 imageAlt: >-
   Vibrant red and orange fall foliage along a New England road with a covered

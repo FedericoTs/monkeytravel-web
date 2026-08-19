@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["golden route giappone", "tokyo kyoto osaka", "itinerario giappone", "jr pass 2026", "giappone multi-città"]
+tags: ["itinerario", "giappone", "asia", "viaggio multi-città", "viaggio di una settimana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
 imageAlt: "Shinkansen che sfreccia davanti al monte Fuji tra Tokyo e Kyoto"
 readingTime: 10

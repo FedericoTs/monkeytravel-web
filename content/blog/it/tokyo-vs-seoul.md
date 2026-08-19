@@ -8,12 +8,7 @@ author: Enrico E.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - tokyo
-  - seoul
-  - comparison
-  - asia
-  - city guide
+tags: ["confronto", "guida città", "asia", "seul"]
 image: /images/blog/tokyo-vs-seoul.jpg
 imageAlt: >-
   Immagine divisa che confronta l'incrocio di Shibuya a Tokyo e il villaggio

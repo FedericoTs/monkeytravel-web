@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dove andare a dicembre", "viaggi a dicembre", "mete di dicembre", "vacanze di Natale 2026", "mercatini di Natale in Europa", "dove andare a Capodanno"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi invernali", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-december.jpg"
 imageAlt: "Bancarelle illuminate di un mercatino di Natale nella piazza di un centro storico europeo imbiancato, al tramonto di dicembre"
 readingTime: 12

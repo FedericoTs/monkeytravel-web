@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - poder del pasaporte
-  - viajes sin visa
-  - ranking de pasaportes
-  - documentos de viaje
+tags: ["documentos de viaje", "datos de viaje"]
 image: /images/blog/passport-power-index-2026.jpg
 imageAlt: >-
   Pasaportes del mundo desplegados sobre un mapa junto a un globo terráqueo y

@@ -9,13 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - aurora boreal
-  - viajes de invierno
-  - noruega
-  - islandia
-  - finlandia
-  - viajes árticos
+tags: ["estacional", "viajes de invierno", "viajes de naturaleza", "mejores destinos", "europa"]
 image: /images/blog/best-places-to-see-northern-lights.jpg
 imageAlt: >-
   Auroras boreales verdes y violetas danzando sobre un paisaje ártico nevado con

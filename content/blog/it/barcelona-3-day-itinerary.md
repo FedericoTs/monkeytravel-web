@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - barcellona
-  - itinerario
-  - spagna
-  - 3 giorni
-  - viaggi europa
+tags: ["itinerario", "guida città", "europa", "viaggio weekend", "barcellona"]
 image: /images/blog/barcelona-3-day-itinerary.jpg
 imageAlt: >-
   Vista panoramica dello skyline di Barcellona con le torri della Sagrada

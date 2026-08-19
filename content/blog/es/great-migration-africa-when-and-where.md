@@ -9,14 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - africa
-  - safari
-  - gran migración
-  - vida salvaje
-  - estacional
-  - tanzania
-  - kenia
+tags: ["estacional", "viajes de naturaleza", "mejores destinos"]
 image: /images/blog/great-migration-africa-when-and-where.jpg
 imageAlt: Manada de ñus cruzando el río Mara durante la Gran Migración en Kenia
 readingTime: 9

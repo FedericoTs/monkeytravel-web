@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - bachelorette trip planning
-  - bachelorette party ideas
-  - group trip planning
-  - bachelorette destinations
-  - bride trip
+tags: ["viajes en grupo", "planificación de viajes"]
 image: /images/blog/bachelorette-trip-planning.jpg
 imageAlt: Group of women celebrating on a rooftop terrace with cocktails at sunset
 readingTime: 7

@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
+import { retiredTagTarget } from "@/lib/blog/retired-tags";
 import { tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
@@ -113,11 +114,21 @@ export default async function BlogTagPage({ params }: PageProps) {
   // drops the dead tag URLs cleanly, link equity consolidates onto /blog, and
   // crawlers stop hammering pages that will never return. Valid tags (>=1 post)
   // fall through and render normally below.
+  //
+  // One exception: the vocabulary normalization renamed five INDEXED archives
+  // (see lib/blog/retired-tags.ts). Those have a direct successor holding the
+  // same posts, so they redirect there rather than to /blog, which keeps the
+  // equity on a relevant page instead of dumping it on the index.
+  const successor = retiredTagTarget(tag, locale);
+  const fallback = successor
+    ? `${localePrefix}/blog/tag/${successor}`
+    : `${localePrefix}/blog`;
+
   const display = resolveTagDisplay(tag, locale);
-  if (!display) permanentRedirect(`${localePrefix}/blog`);
+  if (!display) permanentRedirect(fallback);
 
   const posts = getPostsByTagSlug(tag, locale);
-  if (posts.length === 0) permanentRedirect(`${localePrefix}/blog`);
+  if (posts.length === 0) permanentRedirect(fallback);
 
   const t = await getTranslations("blog");
 

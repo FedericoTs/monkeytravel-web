@@ -8,12 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - group trip budget
-  - split travel costs
-  - travel expenses friends
-  - group travel money
-  - trip cost sharing
+tags: ["group travel", "budget travel", "trip planning"]
 image: /images/blog/group-trip-split-costs.jpg
 imageAlt: Friends at a restaurant table splitting the bill on their phones
 readingTime: 7

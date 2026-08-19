@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - viaggi senza visto
-  - potere del passaporto
-  - documenti di viaggio
-  - requisiti visto
+tags: ["documenti di viaggio", "migliori destinazioni"]
 image: /images/blog/visa-free-destinations-by-passport.jpg
 imageAlt: >-
   Mappa mondiale con timbri di passaporto e pin di destinazioni senza visto che

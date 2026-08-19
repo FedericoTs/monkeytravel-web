@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - sardinia
-  - itinerary
-  - italy
-  - beach
-  - 7 days
-  - costa smeralda
-  - ogliastra
-  - road trip
+tags: ["itinerary", "italy", "europe", "week-long trip"]
 image: /images/blog/itinerario-sardegna-7-giorni.jpg
 imageAlt: Cala Goloritzé in Sardinia with turquoise water and limestone cliffs
 readingTime: 10

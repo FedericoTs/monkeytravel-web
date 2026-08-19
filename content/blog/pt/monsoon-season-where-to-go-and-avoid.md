@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Seasonal Travel"
-tags:
-  - monção
-  - asia
-  - sazonal
-  - viagem econômica
-  - clima
+tags: ["sazonal", "ásia", "viagem econômica"]
 image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
 imageAlt: >-
   Exuberantes terraços de arroz verdes durante a temporada de monções com nuvens

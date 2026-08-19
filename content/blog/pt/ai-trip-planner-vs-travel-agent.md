@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "AI Travel"
-tags:
-  - planejador de viagens com ia
-  - agente de viagens
-  - planejamento de viagem
-  - comparação
-  - tecnologia de viagens
+tags: ["planejador de viagens com ia", "comparação", "tecnologia de viagens", "planejamento de viagem"]
 image: /images/blog/ai-vs-travel-agent.jpg
 imageAlt: >-
   Tela dividida mostrando um celular com roteiro feito por IA e a mesa de uma

@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - italia
-  - itinerario
-  - roma
-  - firenze
-  - venezia
-  - costiera amalfitana
-  - 5 giorni
-  - viaggi europa
+tags: ["itinerario", "italia", "europa", "viaggio di una settimana", "viaggio multi-città", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
 imageAlt: >-
   Vista del Duomo di Firenze e dello skyline della città al tramonto dal

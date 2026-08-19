@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["para onde ir em setembro", "viajar em setembro", "onde viajar em setembro", "destinos de setembro", "melhores destinos setembro 2026", "viajar em época intermédia"]
+tags: ["sazonal", "guia mensal de viagens", "viagem de outono", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-september.jpg"
 imageAlt: "Aldeia cicládica caiada de branco sobre uma baía turquesa e calma do Egeu na luz suave de setembro"
 readingTime: 12

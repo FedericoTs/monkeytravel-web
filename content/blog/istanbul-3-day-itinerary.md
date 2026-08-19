@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - istanbul
-  - itinerary
-  - turkey
-  - city guide
-  - 3-day trip
+tags: ["itinerary", "city guide", "weekend trip", "istanbul"]
 image: /images/blog/istanbul-3-day-itinerary.jpg
 imageAlt: Hagia Sophia and the Blue Mosque at sunset in Istanbul
 readingTime: 11

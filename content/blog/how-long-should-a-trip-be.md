@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: Trip Planning
-tags:
-  - how long should a trip be
-  - average trip length
-  - trip planning tips
-  - vacation length
-  - travel statistics 2026
+tags: ["travel data", "trip planning"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Calendar and map showing trip length planning
 readingTime: 6

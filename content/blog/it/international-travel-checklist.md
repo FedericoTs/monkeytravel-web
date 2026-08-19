@@ -11,11 +11,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - viaggi internazionali
-  - checklist di viaggio
-  - preparazione al viaggio
-  - primo viaggio internazionale
+tags: ["checklist di viaggio", "primo viaggio", "pianificazione viaggi"]
 image: /images/blog/international-travel-checklist.jpg
 imageAlt: >-
   Passaporto, carta d'imbarco e accessori essenziali da viaggio su un tavolo di

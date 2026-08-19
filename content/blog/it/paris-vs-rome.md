@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - parigi
-  - roma
-  - confronto
-  - europa
-  - guida città
+tags: ["confronto", "guida città", "europa", "roma"]
 image: /images/blog/paris-vs-rome.jpg
 imageAlt: Immagine divisa che confronta la Torre Eiffel a Parigi e il Colosseo a Roma
 readingTime: 10

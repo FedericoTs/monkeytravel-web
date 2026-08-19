@@ -11,12 +11,7 @@ author: Federico S.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: "Travel Tips"
-tags:
-  - estresse no planejamento de viagens
-  - dicas de planejamento de férias
-  - planejador de viagens com IA
-  - fadiga de decisão em viagens
-  - planejamento de viagens sem estresse
+tags: ["planejador de viagens com ia", "planejamento de viagem"]
 image: /images/blog/travel-planning-stress.jpg
 imageAlt: >-
   Pessoa cercada por guias de viagem e abas do navegador abertas com cara de

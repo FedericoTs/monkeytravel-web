@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-30"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["viajar en abril", "dónde ir en abril", "destinos de abril", "viajes primavera 2026", "temporada media"]
+tags: ["estacional", "guía mensual de viajes", "viajes de primavera", "temporada media", "mejores destinos"]
 image: "/images/blog/where-to-go-in-april.jpg"
 imageAlt: "Cerezos en flor junto a un canal de Kioto al atardecer, a principios de abril"
 readingTime: 14

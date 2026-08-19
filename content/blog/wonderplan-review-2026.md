@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - wonderplan
-  - wonderplan review
-  - wonderplan alternative
-  - free ai trip planner
-  - ai trip planner
+tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/how-to-plan-a-trip-with-ai.jpg
 imageAlt: AI trip planning shown on a laptop and phone screen
 readingTime: 8

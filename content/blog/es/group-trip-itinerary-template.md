@@ -8,12 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - group trip itinerary
-  - trip itinerary template
-  - group travel planning
-  - travel itinerary friends
-  - day by day trip plan
+tags: ["viajes en grupo", "itinerario", "planificación de viajes"]
 image: /images/blog/group-trip-itinerary-template.jpg
 imageAlt: A shared travel itinerary displayed on a tablet with a map and checklist
 readingTime: 7

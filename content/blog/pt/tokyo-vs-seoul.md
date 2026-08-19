@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: "Destination Guides"
-tags:
-  - tóquio
-  - seul
-  - comparação
-  - ásia
-  - guia da cidade
+tags: ["comparação", "guia da cidade", "ásia", "seul"]
 image: /images/blog/tokyo-vs-seoul.jpg
 imageAlt: >-
   Imagem dividida comparando o Cruzamento de Shibuya em Tóquio e a vila Bukchon

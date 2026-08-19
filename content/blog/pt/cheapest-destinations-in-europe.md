@@ -9,11 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Budget Travel"
-tags:
-  - europa
-  - viagem econômica
-  - destinos baratos
-  - mochilão
+tags: ["viagem econômica", "melhores destinos", "europa"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
 imageAlt: Ruas coloridas do centro histórico em uma cidade europeia econômica
 readingTime: 12

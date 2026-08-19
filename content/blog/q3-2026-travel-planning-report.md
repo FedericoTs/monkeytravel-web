@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: AI Travel
-tags:
-  - travel statistics 2026
-  - travel planning data
-  - travel trends q3 2026
-  - average trip length
-  - group travel statistics
+tags: ["travel data", "trip planning", "group travel"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Traveler planning a trip on a laptop with data charts overlaid
 readingTime: 7

@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - viajes sin visa
-  - poder del pasaporte
-  - documentos de viaje
-  - requisitos de visa
+tags: ["documentos de viaje", "mejores destinos"]
 image: /images/blog/visa-free-destinations-by-passport.jpg
 imageAlt: >-
   Mapa mundial con sellos de pasaporte y pines de destinos sin visa destacando

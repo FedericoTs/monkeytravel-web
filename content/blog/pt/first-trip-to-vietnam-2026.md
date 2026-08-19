@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: "Destination Guides"
-tags:
-  - vietna
-  - primeira viagem
-  - roteiro
-  - guia de destino
-  - viagens asia
-  - viagem economica
+tags: ["primeira viagem", "ásia", "roteiro", "viagem econômica"]
 image: /images/blog/first-trip-to-vietnam-2026.jpg
 imageAlt: 'Formações de calcário da Baía de Ha Long ao nascer do sol com barco junco tradicional, Vietnã'
 readingTime: 12

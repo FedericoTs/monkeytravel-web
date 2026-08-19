@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: "Travel Tips"
-tags:
-  - viagem solo
-  - planejador de viagens com IA
-  - dicas de viagem solo
-  - viajar sozinho
-  - planejamento de viagem solo 2026
+tags: ["viagem sozinho", "planejador de viagens com ia", "planejamento de viagem"]
 image: /images/blog/solo-travel-ai.jpg
 imageAlt: Viajante solo com mochila contemplando uma paisagem montanhosa deslumbrante na luz dourada do entardecer
 readingTime: 7

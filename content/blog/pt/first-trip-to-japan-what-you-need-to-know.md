@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "Destination Guides"
-tags:
-  - japão
-  - primeira viagem
-  - dicas de viagem
-  - guia de destino
-  - viagem pela ásia
+tags: ["primeira viagem", "japão", "ásia", "planejamento de viagem"]
 image: /images/blog/first-trip-japan.jpg
 imageAlt: 'Portões torii tradicionais em Kyoto, Japão, com cerejeiras em flor'
 readingTime: 6

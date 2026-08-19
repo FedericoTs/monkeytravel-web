@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - foliage autunnale
-  - autunno
-  - stagionale
-  - natura
-  - fotografia
+tags: ["stagionale", "viaggi autunnali", "viaggi nella natura", "migliori destinazioni"]
 image: /images/blog/best-fall-foliage-destinations.jpg
 imageAlt: >-
   Foliage autunnale vibrante in rosso e arancione lungo una strada del New

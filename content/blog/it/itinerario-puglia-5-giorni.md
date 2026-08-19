@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - puglia
-  - itinerary
-  - italy
-  - bari
-  - salento
-  - lecce
-  - trulli
-  - 5 days
+tags: ["itinerario", "italia", "europa", "viaggio di una settimana"]
 image: /images/blog/itinerario-puglia-5-giorni.jpg
 imageAlt: Trulli di Alberobello con tetti conici in pietra e cielo azzurro
 readingTime: 9

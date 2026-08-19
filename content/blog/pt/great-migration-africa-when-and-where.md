@@ -9,14 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - africa
-  - safari
-  - grande migração
-  - vida selvagem
-  - sazonal
-  - tanzania
-  - quênia
+tags: ["sazonal", "viagem na natureza", "melhores destinos"]
 image: /images/blog/great-migration-africa-when-and-where.jpg
 imageAlt: Manada de gnus atravessando o rio Mara durante a Grande Migração no Quênia
 readingTime: 9

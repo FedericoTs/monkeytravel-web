@@ -8,12 +8,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - nueva york
-  - itinerario
-  - estados unidos
-  - guía de ciudad
-  - viaje de 5 días
+tags: ["itinerario", "guía de ciudad", "estados unidos", "viaje de una semana", "nueva york"]
 image: /images/blog/new-york-5-day-itinerary.jpg
 imageAlt: Skyline de Manhattan con el Empire State Building al atardecer
 readingTime: 14

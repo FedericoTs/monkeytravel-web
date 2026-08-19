@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["isole greche itinerario", "itinerario santorini", "itinerario mykonos", "traghetti cicladi", "grecia 2026"]
+tags: ["itinerario", "europa", "viaggio di una settimana", "viaggio multi-città"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
 imageAlt: "Case imbiancate a calce sopra la caldera di Santorini al crepuscolo con un traghetto che attraversa l'Egeo in basso"
 readingTime: 9

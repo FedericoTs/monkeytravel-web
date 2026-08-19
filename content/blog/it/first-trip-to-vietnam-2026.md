@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - vietnam
-  - primo viaggio
-  - itinerario
-  - guida destinazione
-  - viaggi asia
-  - viaggio economico
+tags: ["primo viaggio", "asia", "itinerario", "viaggi economici"]
 image: /images/blog/first-trip-to-vietnam-2026.jpg
 imageAlt: 'La Baia di Ha Long all''alba con una tradizionale giunca, Vietnam'
 readingTime: 12

@@ -9,13 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - sustainable travel 2026
-  - eco-friendly destinations
-  - responsible tourism
-  - green travel
-  - regenerative travel
-  - sustainable tourism guide
+tags: ["sustainable travel", "trip planning", "best destinations"]
 image: /images/blog/sustainable-travel-guide-2026.jpg
 imageAlt: >-
   Lush rainforest canopy viewed from a sustainable eco-lodge, mist rising over

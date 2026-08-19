@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Destination Guides
-tags:
-  - japan
-  - first time travel
-  - travel tips
-  - destination guide
-  - asia travel
+tags: ["primo viaggio", "giappone", "asia", "pianificazione viaggi"]
 image: /images/blog/first-trip-japan.jpg
 imageAlt: 'Traditional torii gates in Kyoto, Japan with cherry blossoms'
 readingTime: 6

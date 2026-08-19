@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-07-27"
 category: "Seasonal Travel"
-tags: ["october travel 2026", "where to go in october", "october destinations", "fall travel 2026", "shoulder season travel", "best places to visit in october"]
+tags: ["seasonal", "monthly travel guide", "autumn travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-october.jpg"
 imageAlt: "Golden autumn maples framing a temple path in Kyoto under soft October light"
 readingTime: 12

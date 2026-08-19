@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - international travel
-  - travel checklist
-  - travel preparation
-  - first international trip
+tags: ["travel checklist", "first time travel", "trip planning"]
 image: /images/blog/international-travel-checklist.jpg
 imageAlt: >-
   Passport, boarding pass, and travel essentials laid out on a wooden table

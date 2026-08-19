@@ -11,13 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - sol de medianoche
-  - ártico
-  - noruega
-  - islandia
-  - estacional
-  - verano
+tags: ["estacional", "viajes de verano", "viajes de naturaleza", "mejores destinos", "europa"]
 image: /images/blog/midnight-sun-best-destinations.jpg
 imageAlt: >-
   Sol de medianoche bañando con luz dorada las Islas Lofoten en Noruega a

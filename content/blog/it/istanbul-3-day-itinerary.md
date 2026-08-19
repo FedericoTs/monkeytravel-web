@@ -11,12 +11,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - istanbul
-  - itinerario
-  - turchia
-  - guida città
-  - viaggio di 3 giorni
+tags: ["itinerario", "guida città", "viaggio weekend", "istanbul"]
 image: /images/blog/istanbul-3-day-itinerary.jpg
 imageAlt: Santa Sofia e la Moschea Blu al tramonto a Istanbul
 readingTime: 11

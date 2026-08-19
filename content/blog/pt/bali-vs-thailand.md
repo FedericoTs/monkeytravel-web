@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - bali
-  - tailândia
-  - comparação
-  - sudeste asiático
-  - viagem econômica
+tags: ["comparação", "ásia", "viagem econômica", "melhores destinos"]
 image: /images/blog/bali-vs-thailand.jpg
 imageAlt: Imagem dividida comparando os terraços de arroz de Bali e o cenário de praia da Tailândia
 readingTime: 10

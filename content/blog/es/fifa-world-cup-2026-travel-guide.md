@@ -11,14 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-04-01'
 updatedAt: '2026-04-01'
 category: Destination Guides
-tags:
-  - FIFA World Cup 2026
-  - sports travel
-  - multi-city trip
-  - united states
-  - canada
-  - mexico
-  - AI travel planner
+tags: ["viaje multiciudad", "estados unidos", "planificación de viajes"]
 image: /images/blog/fifa-world-cup-2026-travel-guide.jpg
 imageAlt: >-
   Vista aerea de un estadio de futbol lleno durante un partido del Mundial con

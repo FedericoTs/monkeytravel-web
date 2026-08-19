@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["ilhas gregas roteiro", "roteiro santorini", "roteiro mykonos", "balsas cíclades", "grécia 2026"]
+tags: ["roteiro", "europa", "viagem de uma semana", "viagem multicidade"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
 imageAlt: "Casas caiadas de branco acima da caldeira de Santorini ao entardecer com uma balsa cruzando o Egeu abaixo"
 readingTime: 9

@@ -9,12 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "AI Travel"
-tags:
-  - planejamento de viagens com ia
-  - tecnologia de viagens
-  - roteiro com ia
-  - futuro das viagens
-  - ferramentas de planejamento de viagens
+tags: ["planejador de viagens com ia", "tecnologia de viagens", "planejamento de viagem"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Pessoa usando um celular que mostra um roteiro de viagem gerado por IA com um mapa
 readingTime: 5

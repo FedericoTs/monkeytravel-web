@@ -10,13 +10,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - turismo gastronomico
-  - viaggi culinari
-  - migliori destinazioni 2026
-  - viaggi enogastronomici
-  - ristoranti
-  - street food
+tags: ["viaggi enogastronomici", "migliori destinazioni"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Colorata varietà di piatti di diverse cucine su un tavolo di mercato
 readingTime: 11

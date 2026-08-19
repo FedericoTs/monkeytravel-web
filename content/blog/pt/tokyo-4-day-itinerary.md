@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - tóquio
-  - roteiro
-  - japão
-  - 4 dias
-  - viagem ásia
+tags: ["roteiro", "guia da cidade", "japão", "ásia", "viagem de fim de semana", "tóquio"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
 imageAlt: 'Cruzamento de Shibuya ao entardecer com luzes de neon e multidões em Tóquio, Japão'
 readingTime: 9

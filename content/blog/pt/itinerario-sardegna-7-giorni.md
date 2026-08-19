@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: "Destination Guides"
-tags:
-  - sardenha
-  - roteiro
-  - italia
-  - praia
-  - 7 dias
-  - costa smeralda
-  - ogliastra
-  - road trip
+tags: ["roteiro", "itália", "europa", "viagem de uma semana"]
 image: /images/blog/itinerario-sardegna-7-giorni.jpg
 imageAlt: Cala Goloritzé na Sardenha com água turquesa e falésias de calcário
 readingTime: 10

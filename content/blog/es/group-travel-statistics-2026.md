@@ -12,12 +12,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: Trip Planning
-tags:
-  - estadísticas de viajes en grupo
-  - planificación de viajes en grupo
-  - estadísticas de viajes 2026
-  - planificar un viaje con amigos
-  - datos de viajes
+tags: ["viajes en grupo", "datos de viaje", "planificación de viajes"]
 image: /images/blog/best-group-trip-destinations-2026.jpg
 imageAlt: Grupo de amigos planificando un viaje juntos alrededor de una mesa
 readingTime: 6

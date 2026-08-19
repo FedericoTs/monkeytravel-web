@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - seul
-  - itinerario
-  - corea del sud
-  - guida città
-  - viaggio 5 giorni
-  - k-beauty
+tags: ["itinerario", "guida città", "asia", "viaggio di una settimana", "seul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
 imageAlt: >-
   Palazzo Gyeongbokgung con la montagna Bukhansan sullo sfondo, Seul, Corea del

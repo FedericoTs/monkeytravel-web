@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "Trip Planning"
-tags:
-  - viagem em grupo
-  - planejamento de viagem
-  - viajar com amigos
-  - colaboração
-  - dicas de viagem
+tags: ["viagem em grupo", "planejamento de viagem"]
 image: /images/blog/group-trip-planning.jpg
 imageAlt: Grupo de amigos olhando um mapa juntos enquanto planejam uma viagem
 readingTime: 5

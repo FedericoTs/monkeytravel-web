@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - quantas atividades por dia
-  - planejamento de roteiro
-  - dicas de roteiro de viagem
-  - dados de planejamento de viagem
-  - roteiro dia a dia
+tags: ["roteiro", "dados de viagem", "planejamento de viagem"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Mesa com pratos de comida local representando um terço de todo roteiro de viagem
 readingTime: 6

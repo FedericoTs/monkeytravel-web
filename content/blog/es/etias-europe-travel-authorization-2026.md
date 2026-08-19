@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Travel Tips
-tags:
-  - etias
-  - europe travel
-  - travel authorization
-  - schengen
-  - us travel documents
+tags: ["documentos de viaje", "europa", "planificación de viajes"]
 image: /images/blog/etias-europe-travel-authorization-2026.jpg
 imageAlt: >-
   Bandera de la Unión Europea con un pasaporte y pantalla de autorización de

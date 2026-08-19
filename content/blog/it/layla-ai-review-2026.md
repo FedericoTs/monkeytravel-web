@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - layla ai
-  - recensione layla
-  - alternativa a layla
-  - pianificatore di viaggio ai
-  - pianificatore di viaggio ai gratis
+tags: ["pianificatore di viaggio ai", "recensione", "confronto", "tecnologia di viaggio"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Pianificazione di viaggi con AI mostrata su schermi di laptop e smartphone
 readingTime: 9

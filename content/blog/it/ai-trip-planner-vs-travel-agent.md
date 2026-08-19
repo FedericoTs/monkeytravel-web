@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: AI Travel
-tags:
-  - ai travel planner
-  - travel agent
-  - trip planning
-  - comparison
-  - travel technology
+tags: ["pianificatore di viaggio ai", "confronto", "tecnologia di viaggio", "pianificazione viaggi"]
 image: /images/blog/ai-vs-travel-agent.jpg
 imageAlt: >-
   Split screen showing a phone with AI itinerary and a traditional travel agency

@@ -10,13 +10,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - japón
-  - cerezo en flor
-  - sakura
-  - estacional
-  - tokio
-  - kioto
+tags: ["estacional", "viajes de primavera", "japón", "asia", "tokio", "kioto"]
 image: /images/blog/japan-cherry-blossom-season-guide.jpg
 imageAlt: >-
   Cerezos en plena floración a lo largo del río Meguro en Tokio con pétalos

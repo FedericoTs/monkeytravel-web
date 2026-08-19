@@ -8,12 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - group travel mistakes
-  - travel with friends tips
-  - group trip problems
-  - group vacation planning
-  - travel conflict avoidance
+tags: ["group travel", "trip planning"]
 image: /images/blog/group-travel-mistakes.jpg
 imageAlt: Friends looking frustrated while reading a map together in a European city
 readingTime: 7

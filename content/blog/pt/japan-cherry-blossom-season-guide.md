@@ -10,13 +10,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Seasonal Travel"
-tags:
-  - japão
-  - cerejeira em flor
-  - sakura
-  - sazonal
-  - tóquio
-  - quioto
+tags: ["sazonal", "viagem de primavera", "japão", "ásia", "tóquio", "quioto"]
 image: /images/blog/japan-cherry-blossom-season-guide.jpg
 imageAlt: Cerejeiras em plena floração ao longo do rio Meguro, em Tóquio, com pétalas cor-de-rosa
 readingTime: 8

@@ -18,6 +18,9 @@ import { getRelatedPosts, getAllFrontmatter } from "./api";
 
 const LOCALES = ["en", "it", "es", "pt"] as const;
 
+/** getRelatedPosts re-reads the content tree per call; see localeFrontmatter. */
+const SCAN_TIMEOUT = 60_000;
+
 /**
  * Frontmatter for one locale, read once.
  *
@@ -52,7 +55,7 @@ describe("getRelatedPosts — locale is honoured", () => {
     // 25% is a floor that the bug cannot pass but healthy content clears easily.
     const ratio = matched / (slugs.length * 3);
     expect(ratio).toBeGreaterThan(0.25);
-  });
+  }, SCAN_TIMEOUT);
 
   it.each(LOCALES)("%s: related sets are varied, not the same recent posts everywhere", (locale) => {
     const slugs = localeFrontmatter(locale).map((f) => f.slug);
@@ -63,19 +66,26 @@ describe("getRelatedPosts — locale is honoured", () => {
     // Pre-fix: pt produced 26 distinct sets across 84 posts, one of them on 20
     // pages. Post-fix every locale produces 60+.
     expect(sets.size).toBeGreaterThan(slugs.length * 0.5);
-  });
+  }, SCAN_TIMEOUT);
 
   it("pt draws the current post's tags from the pt file, not the English one", () => {
     // The direct expression of the bug: a post whose pt tags are fully
     // translated must still find pt-tagged neighbours.
     const slug = "greek-island-hopping-itinerary";
     const own = localeFrontmatter("pt").find((f) => f.slug === slug);
-    expect(own?.tags).toContain("roteiro santorini"); // pt, not "santorini itinerary"
+    const en = localeFrontmatter("en").find((f) => f.slug === slug);
+
+    // The pt and en vocabularies are disjoint for this post, which is exactly
+    // what made the dropped-locale bug invisible: comparing one against the
+    // other yields no matches at all.
+    expect(own?.tags).toContain("roteiro");
+    expect(en?.tags).toContain("itinerary");
+    expect(own?.tags).not.toContain("itinerary");
 
     const related = getRelatedPosts(slug, 3, "pt");
     expect(related).toHaveLength(3);
     expect(related.every((r) => r.slug !== slug)).toBe(true);
-  });
+  }, SCAN_TIMEOUT);
 
   it("never returns the post itself, and respects the limit", () => {
     for (const locale of LOCALES) {
@@ -86,5 +96,5 @@ describe("getRelatedPosts — locale is honoured", () => {
         expect(r.some((x) => x.slug === s)).toBe(false);
       }
     }
-  });
+  }, SCAN_TIMEOUT);
 });

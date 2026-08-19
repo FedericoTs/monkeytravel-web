@@ -9,13 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Budget Travel
-tags:
-  - cheap flights
-  - flight deals
-  - budget travel
-  - '2026'
-  - booking tips
-  - airfare
+tags: ["budget travel", "trip planning"]
 image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
 imageAlt: 'Airplane wing over a patchwork of farmland at sunset, viewed from window seat'
 readingTime: 10

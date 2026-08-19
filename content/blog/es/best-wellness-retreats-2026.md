@@ -11,13 +11,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - turismo de bienestar
-  - retiros de yoga
-  - recuperación del burnout
-  - destinos de spa
-  - '2026'
-  - wellness
+tags: ["viajes de bienestar", "mejores destinos"]
 image: /images/blog/best-wellness-retreats-2026.jpg
 imageAlt: >-
   Piscina infinita con vistas a la jungla tropical en un retiro de bienestar en

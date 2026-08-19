@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Seasonal Travel"
-tags: ["viagem primavera", "viagem verão", "destinos de verão 2026", "spring break 2026", "coolcation", "meia-estação"]
+tags: ["sazonal", "viagem de primavera", "viagem de verão", "meia-estação", "melhores destinos"]
 image: "/images/blog/best-summer-destinations-2026.jpg"
 imageAlt: "Colagem de praia de verão, montanha alpina e cidade mediterrânea — três estilos de viagem na estação quente"
 readingTime: 16

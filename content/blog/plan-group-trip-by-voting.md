@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - group trip voting
-  - plan a group trip
-  - group itinerary
-  - group travel planning
-  - trip planning with friends
+tags: ["group travel", "itinerary", "trip planning"]
 image: /images/blog/group-trip-planning.jpg
 imageAlt: Group of friends voting on trip activities together on their phones
 readingTime: 6

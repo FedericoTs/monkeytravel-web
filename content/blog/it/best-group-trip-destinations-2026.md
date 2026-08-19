@@ -11,12 +11,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Destination Guides
-tags:
-  - destinazioni viaggio di gruppo
-  - viaggiare con amici
-  - idee vacanze di gruppo
-  - viaggi di gruppo economici
-  - viaggi con amici 2026
+tags: ["viaggi di gruppo", "migliori destinazioni"]
 image: /images/blog/group-trip-destinations-2026.jpg
 imageAlt: Group of friends overlooking a coastal Mediterranean town at sunset
 readingTime: 8

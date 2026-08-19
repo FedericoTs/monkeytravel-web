@@ -9,14 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - africa
-  - safari
-  - grande migrazione
-  - fauna selvatica
-  - stagionale
-  - tanzania
-  - kenya
+tags: ["stagionale", "viaggi nella natura", "migliori destinazioni"]
 image: /images/blog/great-migration-africa-when-and-where.jpg
 imageAlt: >-
   Mandria di gnu che attraversa il fiume Mara durante la Grande Migrazione in

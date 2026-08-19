@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["islas griegas ruta", "itinerario santorini", "itinerario mykonos", "ferris cícladas", "grecia 2026"]
+tags: ["itinerario", "europa", "viaje de una semana", "viaje multiciudad"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
 imageAlt: "Casas encaladas sobre la caldera de Santorini al atardecer con un ferry cruzando el Egeo abajo"
 readingTime: 9

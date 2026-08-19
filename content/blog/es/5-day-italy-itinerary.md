@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - italia
-  - itinerario
-  - roma
-  - florencia
-  - venecia
-  - costa amalfitana
-  - 5 días
-  - viajes europa
+tags: ["itinerario", "italia", "europa", "viaje de una semana", "viaje multiciudad", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
 imageAlt: >-
   Vista del Duomo de Florencia y el skyline de la ciudad al atardecer desde

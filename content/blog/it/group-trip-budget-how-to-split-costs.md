@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - budget viaggio di gruppo
-  - dividere spese viaggio
-  - spese viaggio amici
-  - soldi viaggio gruppo
-  - condivisione costi viaggio
+tags: ["viaggi di gruppo", "viaggi economici", "pianificazione viaggi"]
 image: /images/blog/group-trip-split-costs.jpg
 imageAlt: Friends at a restaurant table splitting the bill on their phones
 readingTime: 7

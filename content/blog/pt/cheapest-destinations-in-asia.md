@@ -9,11 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Budget Travel"
-tags:
-  - ásia
-  - viagem econômica
-  - destinos baratos
-  - mochilão
+tags: ["viagem econômica", "melhores destinos", "ásia"]
 image: /images/blog/cheapest-destinations-in-asia.jpg
 imageAlt: Colorido mercado flutuante com barcos de produtos frescos no Sudeste Asiático
 readingTime: 12

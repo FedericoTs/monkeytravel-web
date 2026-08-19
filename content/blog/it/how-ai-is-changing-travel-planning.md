@@ -9,12 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: AI Travel
-tags:
-  - ai travel planning
-  - travel technology
-  - ai itinerary
-  - future of travel
-  - trip planning tools
+tags: ["pianificatore di viaggio ai", "tecnologia di viaggio", "pianificazione viaggi"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Person using a phone showing an AI-generated travel itinerary with a map
 readingTime: 5

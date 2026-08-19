@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-07-27"
 category: "Seasonal Travel"
-tags: ["september travel", "where to go in september", "september travel 2026", "shoulder season travel", "september travel destinations", "best places to visit in september 2026"]
+tags: ["seasonal", "monthly travel guide", "autumn travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-september.jpg"
 imageAlt: "Whitewashed Cycladic village above a calm turquoise Aegean bay in soft September light"
 readingTime: 12

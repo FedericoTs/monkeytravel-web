@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: Travel Tips
-tags:
-  - solo travel
-  - AI trip planner
-  - solo travel tips
-  - travel alone
-  - solo travel planning 2026
+tags: ["solo travel", "ai trip planner", "trip planning"]
 image: /images/blog/solo-travel-ai.jpg
 imageAlt: Solo traveler with backpack looking at a scenic mountain vista at golden hour
 readingTime: 7

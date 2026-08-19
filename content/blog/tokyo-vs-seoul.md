@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - tokyo
-  - seoul
-  - comparison
-  - asia
-  - city guide
+tags: ["comparison", "city guide", "asia", "seoul"]
 image: /images/blog/tokyo-vs-seoul.jpg
 imageAlt: >-
   Split image comparing Tokyo's Shibuya Crossing and Seoul's Bukchon Hanok

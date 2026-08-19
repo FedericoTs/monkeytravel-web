@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - lisbon
-  - itinerary
-  - portugal
-  - city guide
-  - 3-day trip
+tags: ["itinerary", "city guide", "europe", "weekend trip", "lisbon"]
 image: /images/blog/lisbon-3-day-itinerary.jpg
 imageAlt: Colorful tram 28 winding through Alfama's narrow streets in Lisbon
 readingTime: 11

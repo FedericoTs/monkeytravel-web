@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Seasonal Travel"
-tags: ["calendario de viajes", "cuándo viajar", "viajes estacionales", "viajes 2026", "guía mensual de viajes"]
+tags: ["estacional", "guía mensual de viajes", "planificación de viajes"]
 image: "/images/blog/2026-travel-calendar.jpg"
 imageAlt: "Calendario que muestra destinos a lo largo de los 12 meses de 2026 con marcadores estacionales"
 readingTime: 22

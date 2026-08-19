@@ -11,13 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - sole di mezzanotte
-  - artico
-  - norvegia
-  - islanda
-  - stagionale
-  - estate
+tags: ["stagionale", "viaggi estivi", "viaggi nella natura", "migliori destinazioni", "europa"]
 image: /images/blog/midnight-sun-best-destinations.jpg
 imageAlt: >-
   Sole di mezzanotte che bagna di luce dorata le Isole Lofoten in Norvegia a

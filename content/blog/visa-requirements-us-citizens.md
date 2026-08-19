@@ -8,11 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - visa requirements
-  - us passport
-  - travel documents
-  - american travelers
+tags: ["travel documents", "united states"]
 image: /images/blog/visa-requirements-us-citizens.jpg
 imageAlt: US passport on a world map with boarding passes and travel stamps
 readingTime: 11

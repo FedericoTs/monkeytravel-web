@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Seasonal Travel"
-tags: ["travel calendar", "when to travel", "seasonal travel", "2026 travel", "monthly travel guide"]
+tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/trending-destinations-may-2026.jpg"
 imageAlt: "Calendar showing destinations across all 12 months of 2026 with seasonal markers"
 readingTime: 22

@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - londra
-  - itinerario
-  - inghilterra
-  - guida città
-  - viaggio di 4 giorni
+tags: ["itinerario", "guida città", "europa", "viaggio weekend", "londra"]
 image: /images/blog/london-4-day-itinerary.jpg
 imageAlt: Big Ben e le Houses of Parliament lungo il Tamigi a Londra
 readingTime: 12

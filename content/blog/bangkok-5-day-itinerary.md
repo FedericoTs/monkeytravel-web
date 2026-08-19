@@ -8,12 +8,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bangkok
-  - itinerary
-  - thailand
-  - city guide
-  - 5-day trip
+tags: ["itinerary", "city guide", "asia", "week-long trip", "bangkok"]
 image: /images/blog/bangkok-5-day-itinerary.jpg
 imageAlt: Wat Arun temple at sunset with the Chao Phraya River in Bangkok
 readingTime: 13

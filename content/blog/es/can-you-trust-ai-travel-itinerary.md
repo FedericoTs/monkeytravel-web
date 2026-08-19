@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: AI Travel
-tags:
-  - AI travel accuracy
-  - AI itinerary
-  - trip planning tips
-  - AI travel limitations
-  - travel planning verification
+tags: ["planificador de viajes con ai", "tecnología de viajes", "planificación de viajes", "itinerario"]
 image: /images/blog/trust-ai-itinerary.jpg
 imageAlt: Viajero comprobando un itinerario impreso contra un mapa en un aeropuerto
 readingTime: 6

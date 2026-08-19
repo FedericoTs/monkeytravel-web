@@ -9,13 +9,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - food travel
-  - culinary tourism
-  - best destinations 2026
-  - foodie travel
-  - restaurants
-  - street food
+tags: ["food travel", "best destinations"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Colorful spread of dishes from multiple cuisines on a market table
 readingTime: 11

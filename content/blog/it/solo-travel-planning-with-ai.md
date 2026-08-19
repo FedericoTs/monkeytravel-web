@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: Travel Tips
-tags:
-  - solo travel
-  - AI trip planner
-  - solo travel tips
-  - travel alone
-  - solo travel planning 2026
+tags: ["viaggi in solitaria", "pianificatore di viaggio ai", "pianificazione viaggi"]
 image: /images/blog/solo-travel-ai.jpg
 imageAlt: Viaggiatore solitario con zaino che ammira un panorama montano al tramonto
 readingTime: 7

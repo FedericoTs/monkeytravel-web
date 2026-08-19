@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - londres
-  - itinerario
-  - inglaterra
-  - guía de ciudad
-  - viaje de 4 días
+tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "londres"]
 image: /images/blog/london-4-day-itinerary.jpg
 imageAlt: Big Ben y las Casas del Parlamento junto al río Támesis en Londres
 readingTime: 12

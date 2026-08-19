@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: "AI Travel"
-tags:
-  - precisão de viagens com IA
-  - roteiro com IA
-  - dicas de planejamento de viagem
-  - limitações de viagens com IA
-  - verificação de planejamento de viagem
+tags: ["planejador de viagens com ia", "tecnologia de viagens", "planejamento de viagem", "roteiro"]
 image: /images/blog/trust-ai-itinerary.jpg
 imageAlt: Viajante conferindo um roteiro impresso contra um mapa em um aeroporto
 readingTime: 6

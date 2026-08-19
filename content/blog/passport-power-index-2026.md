@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - passport power
-  - visa-free travel
-  - passport ranking
-  - travel documents
+tags: ["travel documents", "travel data"]
 image: /images/blog/passport-power-index-2026.jpg
 imageAlt: >-
   World passports fanned out on a map next to a globe and boarding pass,

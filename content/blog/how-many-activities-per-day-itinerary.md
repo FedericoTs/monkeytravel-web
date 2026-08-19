@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - how many activities per day
-  - itinerary planning
-  - trip itinerary tips
-  - travel planning data
-  - day by day itinerary
+tags: ["itinerary", "travel data", "trip planning"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Table with local food dishes representing a third of every travel itinerary
 readingTime: 6

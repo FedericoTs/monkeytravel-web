@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - istambul
-  - roteiro
-  - turquia
-  - guia de cidade
-  - viagem de 3 dias
+tags: ["roteiro", "guia da cidade", "viagem de fim de semana", "istambul"]
 image: /images/blog/istanbul-3-day-itinerary.jpg
 imageAlt: Santa Sofia e a Mesquita Azul ao pôr do sol em Istambul
 readingTime: 11

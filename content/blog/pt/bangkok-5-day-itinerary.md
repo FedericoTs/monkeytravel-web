@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bangkok
-  - roteiro
-  - tailândia
-  - guia da cidade
-  - viagem de 5 dias
+tags: ["roteiro", "guia da cidade", "ásia", "viagem de uma semana", "bangkok"]
 image: /images/blog/bangkok-5-day-itinerary.jpg
 imageAlt: Templo Wat Arun ao pôr do sol com o rio Chao Phraya em Bangkok
 readingTime: 13

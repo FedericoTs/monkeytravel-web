@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - londres
-  - roteiro
-  - inglaterra
-  - guia da cidade
-  - viagem de 4 dias
+tags: ["roteiro", "guia da cidade", "europa", "viagem de fim de semana", "londres"]
 image: /images/blog/london-4-day-itinerary.jpg
 imageAlt: Big Ben e o Palácio de Westminster às margens do Rio Tâmisa em Londres
 readingTime: 12

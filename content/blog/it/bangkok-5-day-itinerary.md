@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bangkok
-  - itinerario
-  - thailandia
-  - guida città
-  - viaggio 5 giorni
+tags: ["itinerario", "guida città", "asia", "viaggio di una settimana", "bangkok"]
 image: /images/blog/bangkok-5-day-itinerary.jpg
 imageAlt: Tempio Wat Arun al tramonto con il fiume Chao Phraya a Bangkok
 readingTime: 13

@@ -11,13 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-04-01'
 updatedAt: '2026-04-01'
 category: Travel Tips
-tags:
-  - united states
-  - travel safety
-  - travel advisory
-  - immigration
-  - visa requirements
-  - FIFA World Cup 2026
+tags: ["travel safety", "united states", "travel documents"]
 image: /images/blog/is-it-safe-to-travel-to-the-us-2026.jpg
 imageAlt: >-
   Aerial view of the Statue of Liberty and New York Harbor with an international

@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["viajar en diciembre", "dónde viajar en diciembre", "destinos de diciembre", "viajes invierno 2026", "mercadillos de Navidad en Europa", "mejores destinos para visitar en diciembre"]
+tags: ["estacional", "guía mensual de viajes", "viajes de invierno", "mejores destinos"]
 image: "/images/blog/where-to-go-in-december.jpg"
 imageAlt: "Puestos iluminados de un mercadillo navideño en la plaza de un casco antiguo europeo nevado, al anochecer de diciembre"
 readingTime: 12

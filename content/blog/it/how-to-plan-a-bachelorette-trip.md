@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - addio al nubilato
-  - idee addio al nubilato
-  - viaggio di gruppo
-  - destinazioni addio al nubilato
-  - viaggio sposa
+tags: ["viaggi di gruppo", "pianificazione viaggi"]
 image: /images/blog/bachelorette-trip-planning.jpg
 imageAlt: Group of women celebrating on a rooftop terrace with cocktails at sunset
 readingTime: 7

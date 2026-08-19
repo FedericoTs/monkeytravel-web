@@ -9,13 +9,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: "Trip Planning"
-tags:
-  - turismo de bem-estar
-  - retiros de yoga
-  - recuperação do burnout
-  - destinos de spa
-  - '2026'
-  - bem-estar
+tags: ["viagem de bem-estar", "melhores destinos"]
 image: /images/blog/best-wellness-retreats-2026.jpg
 imageAlt: Piscina de borda infinita com vista para a selva tropical em um retiro de bem-estar em Bali
 readingTime: 11

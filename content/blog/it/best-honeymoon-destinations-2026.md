@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-30"
 updatedAt: "2026-08-17"
 category: "Trip Planning"
-tags: ["mete luna di miele", "viaggio di nozze 2026", "mete romantiche", "idee luna di miele", "viaggi di lusso"]
+tags: ["viaggi romantici", "migliori destinazioni"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Coppia in lino bianco coordinato su una terrazza a picco sul mare, con vista sul Mediterraneo al tramonto"
 readingTime: 16

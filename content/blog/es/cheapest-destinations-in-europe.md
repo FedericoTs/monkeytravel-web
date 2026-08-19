@@ -9,11 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Budget Travel
-tags:
-  - europe
-  - budget travel
-  - cheap destinations
-  - backpacking
+tags: ["viajes económicos", "mejores destinos", "europa"]
 image: /images/blog/cheapest-destinations-in-europe.jpg
 imageAlt: Calles coloridas del casco antiguo en una ciudad europea económica
 readingTime: 12

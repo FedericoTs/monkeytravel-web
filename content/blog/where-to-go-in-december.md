@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-07-27"
 category: "Seasonal Travel"
-tags: ["december travel 2026", "where to go in december", "december destinations", "winter travel 2026", "christmas market cities", "best places to visit in december"]
+tags: ["seasonal", "monthly travel guide", "winter travel", "best destinations"]
 image: "/images/blog/where-to-go-in-december.jpg"
 imageAlt: "Glowing Christmas market stalls in a snow-dusted European old town square at dusk in December"
 readingTime: 12

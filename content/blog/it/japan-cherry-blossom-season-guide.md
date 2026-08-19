@@ -10,13 +10,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - giappone
-  - ciliegio in fiore
-  - sakura
-  - stagionale
-  - tokyo
-  - kyoto
+tags: ["stagionale", "viaggi di primavera", "giappone", "asia", "tokyo", "kyoto"]
 image: /images/blog/japan-cherry-blossom-season-guide.jpg
 imageAlt: Ciliegi in piena fioritura lungo il fiume Meguro a Tokyo con petali rosa
 readingTime: 8

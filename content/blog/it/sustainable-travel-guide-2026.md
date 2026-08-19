@@ -10,13 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - viaggio sostenibile 2026
-  - destinazioni eco-friendly
-  - turismo responsabile
-  - viaggio verde
-  - turismo rigenerativo
-  - guida turismo sostenibile
+tags: ["viaggi sostenibili", "pianificazione viaggi", "migliori destinazioni"]
 image: /images/blog/sustainable-travel-guide-2026.jpg
 imageAlt: >-
   Lussureggiante chioma di foresta pluviale vista da un ecolodge sostenibile,

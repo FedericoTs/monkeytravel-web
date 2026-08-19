@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "Trip Planning"
-tags:
-  - planejamento de despedida de solteira
-  - ideias de despedida de solteira
-  - planejamento de viagem em grupo
-  - destinos para despedida de solteira
-  - viagem da noiva
+tags: ["viagem em grupo", "planejamento de viagem"]
 image: /images/blog/bachelorette-trip-planning.jpg
 imageAlt: Grupo de mulheres comemorando em um terraço com coquetéis ao pôr do sol
 readingTime: 7

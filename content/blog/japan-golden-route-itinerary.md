@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["japan golden route", "tokyo kyoto osaka", "japan itinerary", "jr pass 2026", "multi-city japan"]
+tags: ["itinerary", "japan", "asia", "multi-city trip", "week-long trip"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
 imageAlt: "Shinkansen bullet train passing Mount Fuji between Tokyo and Kyoto"
 readingTime: 10

@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: "AI Travel"
-tags:
-  - planejador de viagens com ia
-  - melhores ferramentas de viagem com ia
-  - ferramentas de planejamento de viagens 2026
-  - gerador de roteiros com ia
-  - comparação de apps de viagem
+tags: ["planejador de viagens com ia", "comparação", "avaliação", "tecnologia de viagens"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
 imageAlt: >-
   Comparação lado a lado de ferramentas de planejamento de viagens com IA em

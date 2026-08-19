@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - visa-free travel
-  - passport power
-  - travel documents
-  - visa requirements
+tags: ["travel documents", "best destinations"]
 image: /images/blog/visa-free-destinations-by-passport.jpg
 imageAlt: >-
   World map with passport stamps and visa-free destination pins highlighting

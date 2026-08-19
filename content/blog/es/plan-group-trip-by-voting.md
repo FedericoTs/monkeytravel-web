@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - votación para viajes en grupo
-  - planificar un viaje en grupo
-  - itinerario de grupo
-  - planificación de viajes en grupo
-  - planificar viajes con amigos
+tags: ["viajes en grupo", "itinerario", "planificación de viajes"]
 image: /images/blog/group-trip-planning.jpg
 imageAlt: Grupo de amigos votando juntos las actividades del viaje desde sus móviles
 readingTime: 6

@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - mindtrip
-  - recensione mindtrip
-  - alternativa a mindtrip
-  - prezzi mindtrip
-  - pianificatore di viaggio ai
+tags: ["pianificatore di viaggio ai", "recensione", "confronto", "tecnologia di viaggio"]
 image: /images/blog/plan-trip-with-ai.jpg
 imageAlt: Pianificazione di viaggi con AI mostrata su schermi di laptop e smartphone
 readingTime: 9

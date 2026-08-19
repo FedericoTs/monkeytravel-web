@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Trip Planning"
-tags: ["destinazioni più pianificate 2026", "tendenze di viaggio 2026", "dove viaggiare nel 2026", "dati di pianificazione viaggi", "viaggi multi-città 2026"]
+tags: ["dati di viaggio", "migliori destinazioni", "viaggio multi-città"]
 image: "/images/blog/most-planned-destinations-2026.jpg"
 imageAlt: "Mappa del mondo con linee di rotta che collegano le dieci destinazioni più pianificate del 2026"
 readingTime: 9

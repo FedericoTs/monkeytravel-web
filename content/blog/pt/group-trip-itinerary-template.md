@@ -8,12 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: Trip Planning
-tags:
-  - roteiro viagem em grupo
-  - modelo de roteiro de viagem
-  - planejamento de viagem em grupo
-  - roteiro de viagem com amigos
-  - plano de viagem dia a dia
+tags: ["viagem em grupo", "roteiro", "planejamento de viagem"]
 image: /images/blog/group-trip-itinerary-template.jpg
 imageAlt: Um roteiro de viagem compartilhado exibido em um tablet com mapa e checklist
 readingTime: 7

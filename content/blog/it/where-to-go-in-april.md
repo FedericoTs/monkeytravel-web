@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-30"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dove andare ad aprile", "viaggi ad aprile", "mete di aprile", "vacanze primavera 2026", "viaggiare in media stagione"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi di primavera", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-april.jpg"
 imageAlt: "Ciliegi in fiore lungo un canale di Kyoto al tramonto, ai primi di aprile"
 readingTime: 14

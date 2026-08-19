@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Seasonal Travel"
-tags:
-  - folhagem de outono
-  - outono
-  - sazonal
-  - natureza
-  - fotografia
+tags: ["sazonal", "viagem de outono", "viagem na natureza", "melhores destinos"]
 image: /images/blog/best-fall-foliage-destinations.jpg
 imageAlt: >-
   Folhagem de outono vibrante em vermelho e laranja ao longo de uma estrada da

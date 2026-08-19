@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: AI Travel
-tags:
-  - weekend getaway
-  - 3 day trip
-  - AI trip planner
-  - short trip planning
-  - quick vacation ideas
+tags: ["ai trip planner", "weekend trip", "trip planning", "itinerary"]
 image: /images/blog/weekend-getaway-ai.jpg
 imageAlt: >-
   Couple with small luggage arriving at a charming European city for a weekend

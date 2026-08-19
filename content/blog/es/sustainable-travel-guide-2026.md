@@ -10,13 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - viaje sostenible 2026
-  - destinos ecológicos
-  - turismo responsable
-  - viaje verde
-  - turismo regenerativo
-  - guía turismo sostenible
+tags: ["viajes sostenibles", "planificación de viajes", "mejores destinos"]
 image: /images/blog/sustainable-travel-guide-2026.jpg
 imageAlt: >-
   Frondoso dosel de selva tropical visto desde un ecolodge sostenible, niebla

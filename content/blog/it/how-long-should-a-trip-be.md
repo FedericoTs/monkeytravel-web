@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: Trip Planning
-tags:
-  - quanto deve durare un viaggio
-  - durata media dei viaggi
-  - consigli per pianificare un viaggio
-  - durata delle vacanze
-  - statistiche di viaggio 2026
+tags: ["dati di viaggio", "pianificazione viaggi"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Calendario e mappa per pianificare la durata di un viaggio
 readingTime: 6

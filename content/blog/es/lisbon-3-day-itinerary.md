@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - lisboa
-  - itinerario
-  - portugal
-  - guía de ciudad
-  - viaje de 3 días
+tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "lisboa"]
 image: /images/blog/lisbon-3-day-itinerary.jpg
 imageAlt: Colorido tranvía 28 recorriendo las estrechas calles de Alfama en Lisboa
 readingTime: 11

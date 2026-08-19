@@ -8,15 +8,7 @@ author: Federico S.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - puglia
-  - itinerary
-  - italy
-  - bari
-  - salento
-  - lecce
-  - trulli
-  - 5 days
+tags: ["itinerary", "italy", "europe", "week-long trip"]
 image: /images/blog/itinerario-puglia-5-giorni.jpg
 imageAlt: Trulli houses in Alberobello with conical stone roofs and blue sky
 readingTime: 9

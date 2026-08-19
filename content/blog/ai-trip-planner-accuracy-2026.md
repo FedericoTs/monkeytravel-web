@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: AI Travel
-tags:
-  - ai trip planner accuracy
-  - ai travel planning
-  - ai itinerary quality
-  - travel ai 2026
-  - trip planning data
+tags: ["ai trip planner", "travel data", "travel technology", "trip planning"]
 image: /images/blog/can-you-trust-ai-travel-itinerary.jpg
 imageAlt: Traveler reviewing an AI-generated itinerary on a laptop
 readingTime: 7

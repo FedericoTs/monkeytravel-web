@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: "Trip Planning"
-tags:
-  - destinos para nômades digitais
-  - melhores lugares para trabalhar remotamente 2026
-  - visto de nômade digital
-  - trabalho remoto e viagem
-  - cidades para nômades 2026
+tags: ["nômades digitais", "melhores destinos", "planejamento de viagem"]
 image: /images/blog/best-digital-nomad-destinations-2026.jpg
 imageAlt: >-
   Laptop aberto em um espaço de coworking na cobertura com vista para o horizonte

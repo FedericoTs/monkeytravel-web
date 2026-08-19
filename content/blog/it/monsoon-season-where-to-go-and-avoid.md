@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - monsone
-  - asia
-  - stagionale
-  - viaggi economici
-  - meteo
+tags: ["stagionale", "asia", "viaggi economici"]
 image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
 imageAlt: >-
   Lussureggianti terrazze di riso verdi durante la stagione dei monsoni con

@@ -11,11 +11,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - requisitos de visa
-  - pasaporte estadounidense
-  - documentos de viaje
-  - viajeros americanos
+tags: ["documentos de viaje", "estados unidos"]
 image: /images/blog/visa-requirements-us-citizens.jpg
 imageAlt: >-
   Pasaporte estadounidense sobre un mapa mundial con tarjetas de embarque y

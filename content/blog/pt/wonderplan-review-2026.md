@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - wonderplan
-  - avaliação wonderplan
-  - alternativa ao wonderplan
-  - planejador de viagens com ia grátis
-  - planejador de viagens com ia
+tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/how-to-plan-a-trip-with-ai.jpg
 imageAlt: Planejamento de viagem com IA exibido em telas de laptop e celular
 readingTime: 8

@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-07-27"
 category: "Seasonal Travel"
-tags: ["november travel", "where to go in november", "november destinations", "november travel 2026", "off-season travel", "dry season travel"]
+tags: ["seasonal", "monthly travel guide", "autumn travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-november.jpg"
 imageAlt: "Thousands of glowing lanterns rising over Chiang Mai during the November Yi Peng festival"
 readingTime: 12

@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["para onde ir em outubro", "viajar em outubro", "destinos de outubro", "viagens outono 2026", "viajar em época intermédia", "melhores lugares para visitar em outubro"]
+tags: ["sazonal", "guia mensal de viagens", "viagem de outono", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-october.jpg"
 imageAlt: "Áceres dourados de outono a emoldurar o caminho de um templo em Quioto sob a luz suave de outubro"
 readingTime: 12

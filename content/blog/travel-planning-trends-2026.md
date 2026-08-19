@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - travel trends 2026
-  - travel planning statistics
-  - ai travel planning
-  - how people plan trips
-  - travel data report
+tags: ["travel data", "trip planning", "ai trip planner"]
 image: /images/blog/most-planned-destinations-2026.jpg
 imageAlt: Data visualization of 2026 travel planning trends on a laptop and phone
 readingTime: 9

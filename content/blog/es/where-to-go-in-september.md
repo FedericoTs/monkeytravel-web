@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dónde viajar en septiembre", "viajar en septiembre", "dónde ir en septiembre", "destinos de septiembre", "mejores destinos septiembre 2026", "viajar en temporada media"]
+tags: ["estacional", "guía mensual de viajes", "viajes de otoño", "temporada media", "mejores destinos"]
 image: "/images/blog/where-to-go-in-september.jpg"
 imageAlt: "Pueblo cicládico encalado sobre una bahía turquesa y en calma del Egeo con la luz suave de septiembre"
 readingTime: 12

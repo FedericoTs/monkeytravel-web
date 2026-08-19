@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - tendenze di viaggio 2026
-  - mood di viaggio
-  - dati sulla pianificazione dei viaggi
-  - cosa vogliono i viaggiatori
-  - statistiche di viaggio 2026
+tags: ["dati di viaggio", "pianificazione viaggi"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Viaggiatore che sceglie mood e interessi di viaggio su una schermata di pianificazione
 readingTime: 6

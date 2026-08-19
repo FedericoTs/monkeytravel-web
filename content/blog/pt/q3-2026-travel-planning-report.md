@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: AI Travel
-tags:
-  - estatísticas de viagem 2026
-  - dados de planejamento de viagem
-  - tendências de viagem q3 2026
-  - duração média de viagem
-  - estatísticas de viagem em grupo
+tags: ["dados de viagem", "planejamento de viagem", "viagem em grupo"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Viajante planejando uma viagem no notebook com gráficos de dados sobrepostos
 readingTime: 7

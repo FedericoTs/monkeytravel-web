@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - travel trends 2026
-  - travel moods
-  - trip planning data
-  - what travelers want
-  - travel statistics 2026
+tags: ["travel data", "trip planning"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Traveler choosing trip vibes and interests on a planning screen
 readingTime: 6

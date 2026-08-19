@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-30"
 updatedAt: "2026-05-30"
 category: "Seasonal Travel"
-tags: ["april travel", "where to go in april", "april destinations", "spring travel 2026", "shoulder season"]
+tags: ["seasonal", "monthly travel guide", "spring travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-april.jpg"
 imageAlt: "Cherry blossoms along a canal in Kyoto at sunset in early April"
 readingTime: 14

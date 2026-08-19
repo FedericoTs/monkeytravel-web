@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: AI Travel
-tags:
-  - weekend getaway
-  - 3 day trip
-  - AI trip planner
-  - short trip planning
-  - quick vacation ideas
+tags: ["planificador de viajes con ai", "viaje de fin de semana", "planificación de viajes", "itinerario"]
 image: /images/blog/weekend-getaway-ai.jpg
 imageAlt: >-
   Pareja con equipaje pequeño llegando a una encantadora ciudad europea para una

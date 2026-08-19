@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - italia
-  - roteiro
-  - roma
-  - florenca
-  - veneza
-  - costa amalfitana
-  - 5 dias
-  - viagem europa
+tags: ["roteiro", "itália", "europa", "viagem de uma semana", "viagem multicidade", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
 imageAlt: >-
   Vista do Duomo de Florença e do horizonte da cidade ao entardecer a partir do

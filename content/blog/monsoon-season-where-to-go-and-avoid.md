@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - monsoon
-  - asia
-  - seasonal
-  - budget travel
-  - weather
+tags: ["seasonal", "asia", "budget travel"]
 image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
 imageAlt: >-
   Lush green rice terraces during monsoon season with dramatic rain clouds in

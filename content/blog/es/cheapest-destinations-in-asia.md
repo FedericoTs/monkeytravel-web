@@ -9,11 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Budget Travel
-tags:
-  - asia
-  - budget travel
-  - cheap destinations
-  - backpacking
+tags: ["viajes económicos", "mejores destinos", "asia"]
 image: /images/blog/cheapest-destinations-in-asia.jpg
 imageAlt: >-
   Colorido mercado flotante con botes de productos frescos en el Sudeste

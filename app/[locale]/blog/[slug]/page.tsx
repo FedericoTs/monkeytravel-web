@@ -221,7 +221,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
   const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
   const loc = locale as Locale;
-  const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags);
+  const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags, locale);
   const tripsNewHref = primaryDestination
     ? `/trips/new?destination=${primaryDestination.slug}`
     : "/trips/new";

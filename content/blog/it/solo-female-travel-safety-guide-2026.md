@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Travel Tips
-tags:
-  - viaggio in solitaria
-  - viaggio femminile
-  - sicurezza in viaggio
-  - donne viaggiatrici
-  - viaggiare da sole
+tags: ["viaggi in solitaria", "sicurezza in viaggio"]
 image: /images/blog/solo-female-travel-safety-guide-2026.jpg
 imageAlt: Donna viaggiatrice con zaino che ammira un paesaggio costiero al tramonto
 readingTime: 11

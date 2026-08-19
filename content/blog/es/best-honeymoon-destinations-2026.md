@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-30"
 updatedAt: "2026-08-17"
 category: "Trip Planning"
-tags: ["destinos luna de miel", "mejores lunas de miel 2026", "viaje de novios", "ideas para la luna de miel", "viajes de lujo"]
+tags: ["viajes románticos", "mejores destinos"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Pareja vestida de lino blanco a juego en una terraza sobre un acantilado con vistas al Mediterráneo al atardecer"
 readingTime: 16

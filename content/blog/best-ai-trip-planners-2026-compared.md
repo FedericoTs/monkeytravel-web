@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-03-25'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - ai trip planner
-  - best ai travel tools
-  - trip planning tools 2026
-  - ai itinerary generator
-  - travel apps comparison
+tags: ["ai trip planner", "comparison", "review", "travel technology"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
 imageAlt: Side-by-side comparison of AI trip planning tools on laptop and phone screens
 readingTime: 10

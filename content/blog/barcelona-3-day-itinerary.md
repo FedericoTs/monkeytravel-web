@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - barcelona
-  - itinerary
-  - spain
-  - 3 days
-  - europe travel
+tags: ["itinerary", "city guide", "europe", "weekend trip", "barcelona"]
 image: /images/blog/barcelona-3-day-itinerary.jpg
 imageAlt: >-
   Panoramic view of Barcelona skyline with Sagrada Familia towers and

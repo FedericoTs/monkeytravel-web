@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - tokyo
-  - itinerary
-  - japan
-  - 4 days
-  - asia travel
+tags: ["itinerary", "city guide", "japan", "asia", "weekend trip", "tokyo"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
 imageAlt: 'Shibuya Crossing at dusk with neon lights and crowds in Tokyo, Japan'
 readingTime: 9

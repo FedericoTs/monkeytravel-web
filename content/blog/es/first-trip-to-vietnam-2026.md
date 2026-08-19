@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - vietnam
-  - primer viaje
-  - itinerario
-  - guía de destino
-  - viajes asia
-  - viaje económico
+tags: ["primer viaje", "asia", "itinerario", "viajes económicos"]
 image: /images/blog/first-trip-to-vietnam-2026.jpg
 imageAlt: 'Bahía de Ha Long al amanecer con barco junco tradicional, Vietnam'
 readingTime: 12

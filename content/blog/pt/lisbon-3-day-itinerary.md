@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - lisboa
-  - roteiro
-  - portugal
-  - guia da cidade
-  - viagem de 3 dias
+tags: ["roteiro", "guia da cidade", "europa", "viagem de fim de semana", "lisboa"]
 image: /images/blog/lisbon-3-day-itinerary.jpg
 imageAlt: Colorido bonde 28 serpenteando pelas ruas estreitas de Alfama em Lisboa
 readingTime: 11

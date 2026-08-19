@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - lista valigia
-  - bagaglio da viaggio
-  - consigli per fare la valigia
-  - essenziali da viaggio
+tags: ["checklist di viaggio", "pianificazione viaggi"]
 image: /images/blog/travel-packing-checklist.jpg
 imageAlt: >-
   Valigia aperta su un letto con vestiti ben organizzati, cubi da imballaggio ed

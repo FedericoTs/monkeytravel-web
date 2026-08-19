@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: "Destination Guides"
-tags:
-  - lisboa
-  - porto
-  - comparação
-  - portugal
-  - guia da cidade
+tags: ["comparação", "guia da cidade", "europa"]
 image: /images/blog/lisbon-vs-porto.jpg
 imageAlt: >-
   Imagem dividida comparando a colina colorida de Lisboa e o distrito da Ribeira

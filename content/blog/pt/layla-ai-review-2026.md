@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-07-27'
 updatedAt: '2026-07-27'
 category: AI Travel
-tags:
-  - layla ai
-  - avaliação layla
-  - alternativa à layla
-  - planejador de viagens com ia
-  - planejador de viagens com ia grátis
+tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/ai-travel-planning-2026.jpg
 imageAlt: Planejamento de viagem com IA exibido em telas de laptop e celular
 readingTime: 9

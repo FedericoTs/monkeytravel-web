@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dove andare a ottobre", "viaggi a ottobre", "mete di ottobre", "vacanze autunno 2026", "viaggiare in media stagione", "posti da visitare a ottobre"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi autunnali", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-october.jpg"
 imageAlt: "Aceri dorati d'autunno incorniciano il sentiero di un tempio a Kyoto sotto la luce morbida di ottobre"
 readingTime: 12

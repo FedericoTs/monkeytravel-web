@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: AI Travel
-tags:
-  - AI trip planning
-  - how to plan a trip
-  - AI travel guide
-  - trip planning for beginners
-  - AI itinerary generator
+tags: ["ai trip planner", "trip planning", "first time travel"]
 image: /images/blog/plan-trip-with-ai.jpg
 imageAlt: >-
   Person using a smartphone app to generate a travel itinerary with AI

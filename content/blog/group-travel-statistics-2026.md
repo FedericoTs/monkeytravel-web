@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-05'
 updatedAt: '2026-08-05'
 category: Trip Planning
-tags:
-  - group travel statistics
-  - group trip planning
-  - travel statistics 2026
-  - planning a trip with friends
-  - travel data
+tags: ["group travel", "travel data", "trip planning"]
 image: /images/blog/best-group-trip-destinations-2026.jpg
 imageAlt: Group of friends planning a trip together around a table
 readingTime: 6

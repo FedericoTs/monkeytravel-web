@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Travel Tips
-tags:
-  - planificador de viajes con AI
-  - ChatGPT
-  - planificacion de viajes
-  - comparativa
-  - herramientas de viaje
+tags: ["planificador de viajes con ai", "comparación", "tecnología de viajes"]
 image: /images/blog/chatgpt-vs-ai-trip-planners.jpg
 imageAlt: >-
   Pantalla dividida comparando una conversacion en ChatGPT y un itinerario de un

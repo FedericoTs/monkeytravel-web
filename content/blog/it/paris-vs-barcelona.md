@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Destination Guides
-tags:
-  - paris
-  - barcelona
-  - comparison
-  - europe
-  - city guide
+tags: ["confronto", "guida città", "europa", "barcellona"]
 image: /images/blog/paris-vs-barcelona.jpg
 imageAlt: >-
   Immagine divisa che confronta la Torre Eiffel a Parigi e la Sagrada Familia a

@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - vietnam
-  - first time travel
-  - itinerary
-  - destination guide
-  - asia travel
-  - budget travel
+tags: ["first time travel", "asia", "itinerary", "budget travel"]
 image: /images/blog/first-trip-to-vietnam-2026.jpg
 imageAlt: 'Ha Long Bay limestone karsts at sunrise with traditional junk boat, Vietnam'
 readingTime: 12

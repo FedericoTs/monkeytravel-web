@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["ruta dorada japón", "tokio kioto osaka", "itinerario japón", "jr pass 2026", "japón multiciudad"]
+tags: ["itinerario", "japón", "asia", "viaje multiciudad", "viaje de una semana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
 imageAlt: "Tren bala Shinkansen pasando frente al monte Fuji entre Tokio y Kioto"
 readingTime: 10

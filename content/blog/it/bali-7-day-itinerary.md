@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bali
-  - itinerario
-  - indonesia
-  - 7 giorni
-  - viaggi asia
+tags: ["itinerario", "asia", "viaggio di una settimana", "bali"]
 image: /images/blog/bali-7-day-itinerary.jpg
 imageAlt: 'Terrazze di riso di Tegallalang a Ubud, Bali con livelli verdi e palme'
 readingTime: 9

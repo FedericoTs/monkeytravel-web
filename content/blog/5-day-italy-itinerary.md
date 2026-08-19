@@ -9,15 +9,7 @@ author: Federico S.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - italy
-  - itinerary
-  - rome
-  - florence
-  - venice
-  - amalfi coast
-  - 5 days
-  - europe travel
+tags: ["itinerary", "italy", "europe", "week-long trip", "multi-city trip", "rome"]
 image: /images/blog/5-day-italy-itinerary.jpg
 imageAlt: >-
   View of Florence's Duomo and city skyline at golden hour from Piazzale

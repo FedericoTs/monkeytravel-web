@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Destination Guides"
-tags: ["greek island hopping", "santorini itinerary", "mykonos itinerary", "cyclades ferries", "greece 2026"]
+tags: ["itinerary", "europe", "week-long trip", "multi-city trip"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
 imageAlt: "Whitewashed houses above the Santorini caldera at dusk with a ferry crossing the Aegean below"
 readingTime: 9

@@ -9,11 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - lista para hacer la maleta
-  - equipaje de viaje
-  - consejos para empacar
-  - esenciales de viaje
+tags: ["checklist de viaje", "planificación de viajes"]
 image: /images/blog/travel-packing-checklist.jpg
 imageAlt: >-
   Maleta abierta sobre una cama con ropa bien organizada, cubos de empaque y

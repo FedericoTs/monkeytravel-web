@@ -11,13 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - midnight sun
-  - arctic
-  - norway
-  - iceland
-  - seasonal
-  - summer
+tags: ["seasonal", "summer travel", "nature travel", "best destinations", "europe"]
 image: /images/blog/midnight-sun-best-destinations.jpg
 imageAlt: >-
   Midnight sun casting golden light over the Lofoten Islands in Norway at

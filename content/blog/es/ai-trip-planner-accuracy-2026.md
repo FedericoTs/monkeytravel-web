@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: AI Travel
-tags:
-  - precisión de los planificadores de viajes con ai
-  - planificación de viajes con ai
-  - calidad de itinerarios con ai
-  - ai de viajes 2026
-  - datos de planificación de viajes
+tags: ["planificador de viajes con ai", "datos de viaje", "tecnología de viajes", "planificación de viajes"]
 image: /images/blog/can-you-trust-ai-travel-itinerary.jpg
 imageAlt: Viajero revisando un itinerario generado por AI en un portátil
 readingTime: 7

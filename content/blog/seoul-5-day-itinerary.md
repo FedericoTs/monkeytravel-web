@@ -9,13 +9,7 @@ author: Enrico E.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Destination Guides
-tags:
-  - seoul
-  - itinerary
-  - south korea
-  - city guide
-  - 5-day trip
-  - k-beauty
+tags: ["itinerary", "city guide", "asia", "week-long trip", "seoul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
 imageAlt: >-
   Gyeongbokgung Palace with Bukhansan mountain in the background, Seoul, South

@@ -9,14 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - northern lights
-  - aurora borealis
-  - winter travel
-  - norway
-  - iceland
-  - finland
-  - arctic travel
+tags: ["seasonal", "winter travel", "nature travel", "best destinations", "europe"]
 image: /images/blog/best-places-to-see-northern-lights.jpg
 imageAlt: >-
   Vivid green and purple northern lights dancing over a snowy Arctic landscape

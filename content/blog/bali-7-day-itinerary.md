@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bali
-  - itinerary
-  - indonesia
-  - 7 days
-  - asia travel
+tags: ["itinerary", "asia", "week-long trip", "bali"]
 image: /images/blog/bali-7-day-itinerary.jpg
 imageAlt: 'Tegallalang rice terraces in Ubud, Bali with lush green tiers and palm trees'
 readingTime: 9

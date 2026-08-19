@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - barcelona
-  - roteiro
-  - espanha
-  - 3 dias
-  - viagem pela europa
+tags: ["roteiro", "guia da cidade", "europa", "viagem de fim de semana", "barcelona"]
 image: /images/blog/barcelona-3-day-itinerary.jpg
 imageAlt: >-
   Vista panorâmica do horizonte de Barcelona com as torres da Sagrada Família e

@@ -9,14 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Seasonal Travel"
-tags:
-  - aurora boreal
-  - luzes do norte
-  - viagem de inverno
-  - noruega
-  - islândia
-  - finlândia
-  - viagem ao ártico
+tags: ["sazonal", "viagem de inverno", "viagem na natureza", "melhores destinos", "europa"]
 image: /images/blog/best-places-to-see-northern-lights.jpg
 imageAlt: >-
   Aurora boreal verde e violeta vibrante dançando sobre uma paisagem ártica

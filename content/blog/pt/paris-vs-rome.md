@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Destination Guides"
-tags:
-  - paris
-  - roma
-  - comparação
-  - europa
-  - guia de cidades
+tags: ["comparação", "guia da cidade", "europa", "roma"]
 image: /images/blog/paris-vs-rome.jpg
 imageAlt: Imagem dividida comparando a Torre Eiffel em Paris e o Coliseu em Roma
 readingTime: 10

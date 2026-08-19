@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Trip Planning"
-tags: ["luna de miel", "destinos luna de miel 2026", "planificación luna de miel", "presupuesto luna de miel", "viajes románticos"]
+tags: ["viajes románticos", "planificación de viajes"]
 image: "/images/blog/honeymoon-planning-guide.jpg"
 imageAlt: "Una pareja contempla el atardecer desde una terraza privada con vistas al mar Egeo"
 readingTime: 18

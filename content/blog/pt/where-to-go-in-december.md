@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["para onde ir em dezembro", "viajar em dezembro", "destinos de dezembro", "viagens de inverno 2026", "mercados de Natal na Europa", "onde passar a passagem de ano"]
+tags: ["sazonal", "guia mensal de viagens", "viagem de inverno", "melhores destinos"]
 image: "/images/blog/where-to-go-in-december.jpg"
 imageAlt: "Bancas iluminadas de um mercado de Natal na praça de um centro histórico europeu polvilhado de neve, ao anoitecer de dezembro"
 readingTime: 12

@@ -11,12 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: "Travel Tips"
-tags:
-  - viagem solo
-  - viagem feminina
-  - segurança em viagens
-  - mulheres viajando sozinhas
-  - viajar sozinha
+tags: ["viagem sozinho", "segurança em viagens"]
 image: /images/blog/solo-female-travel-safety-guide-2026.jpg
 imageAlt: >-
   Mulher viajando sozinha com mochila contemplando uma paisagem costeira ao

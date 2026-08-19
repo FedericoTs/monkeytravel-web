@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - quante attività al giorno
-  - pianificazione dell'itinerario
-  - consigli per l'itinerario di viaggio
-  - dati sulla pianificazione dei viaggi
-  - itinerario giorno per giorno
+tags: ["itinerario", "dati di viaggio", "pianificazione viaggi"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Tavola con piatti locali che rappresentano un terzo di ogni itinerario di viaggio
 readingTime: 6

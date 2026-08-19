@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - london
-  - itinerary
-  - england
-  - city guide
-  - 4-day trip
+tags: ["itinerary", "city guide", "europe", "weekend trip", "london"]
 image: /images/blog/london-4-day-itinerary.jpg
 imageAlt: Big Ben and the Houses of Parliament along the Thames River in London
 readingTime: 12

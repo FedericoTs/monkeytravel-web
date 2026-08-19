@@ -11,13 +11,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Seasonal Travel"
-tags:
-  - sol da meia-noite
-  - ártico
-  - noruega
-  - islândia
-  - sazonal
-  - verão
+tags: ["sazonal", "viagem de verão", "viagem na natureza", "melhores destinos", "europa"]
 image: /images/blog/midnight-sun-best-destinations.jpg
 imageAlt: >-
   Sol da meia-noite banhando com luz dourada as Ilhas Lofoten na Noruega à

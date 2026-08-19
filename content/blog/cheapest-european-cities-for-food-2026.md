@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Budget Travel
-tags:
-  - budget travel
-  - europe
-  - food travel
-  - cheap eats
-  - street food
+tags: ["budget travel", "food travel", "europe", "best destinations"]
 image: /images/blog/cheapest-european-cities-for-food-2026.jpg
 imageAlt: Affordable European street food spread at an outdoor market
 readingTime: 9

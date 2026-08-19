@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dove andare a novembre", "viaggi a novembre", "mete di novembre", "viaggi novembre 2026", "viaggiare in bassa stagione", "viaggi in stagione secca"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi autunnali", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-november.jpg"
 imageAlt: "Migliaia di lanterne luminose che si alzano su Chiang Mai durante il festival Yi Peng di novembre"
 readingTime: 12

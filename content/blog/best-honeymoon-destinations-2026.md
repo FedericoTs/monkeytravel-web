@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-30"
 updatedAt: "2026-05-30"
 category: "Trip Planning"
-tags: ["honeymoon destinations", "best honeymoons 2026", "romantic destinations", "honeymoon ideas", "luxury travel"]
+tags: ["romantic travel", "best destinations"]
 image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Couple in matching white linen on a cliffside terrace overlooking the Mediterranean at sunset"
 readingTime: 16

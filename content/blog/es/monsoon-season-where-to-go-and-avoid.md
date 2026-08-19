@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - monzón
-  - asia
-  - estacional
-  - viajes económicos
-  - clima
+tags: ["estacional", "asia", "viajes económicos"]
 image: /images/blog/monsoon-season-where-to-go-and-avoid.jpg
 imageAlt: >-
   Exuberantes terrazas de arroz verdes durante la temporada de monzones con

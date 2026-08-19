@@ -9,12 +9,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-18'
 updatedAt: '2026-02-18'
 category: "Budget Travel"
-tags:
-  - itália
-  - viagem econômica
-  - europa
-  - planejamento de viagem
-  - roteiro
+tags: ["viagem econômica", "itália", "europa", "roteiro", "planejamento de viagem"]
 image: /images/blog/italy-budget-travel.jpg
 imageAlt: 'Vista das casas coloridas em Cinque Terre, Itália, ao pôr do sol'
 readingTime: 5

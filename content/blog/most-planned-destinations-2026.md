@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-06"
 updatedAt: "2026-07-06"
 category: "Trip Planning"
-tags: ["most planned destinations 2026", "travel trends 2026", "where to travel in 2026", "trip planning data", "multi-city trips 2026"]
+tags: ["travel data", "best destinations", "multi-city trip"]
 image: "/images/blog/most-planned-destinations-2026.jpg"
 imageAlt: "World map with route lines connecting the ten most-planned travel destinations of 2026"
 readingTime: 9

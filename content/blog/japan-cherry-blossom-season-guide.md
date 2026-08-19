@@ -9,13 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - japan
-  - cherry blossom
-  - sakura
-  - seasonal
-  - tokyo
-  - kyoto
+tags: ["seasonal", "spring travel", "japan", "asia", "tokyo", "kyoto"]
 image: /images/blog/japan-cherry-blossom-season-guide.jpg
 imageAlt: Cherry blossoms in full bloom along the Meguro River in Tokyo with pink petals
 readingTime: 8

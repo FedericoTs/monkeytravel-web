@@ -9,12 +9,7 @@ author: Francesca A.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
 category: Budget Travel
-tags:
-  - viagem econômica
-  - europa
-  - viagem gastronômica
-  - comer barato
-  - comida de rua
+tags: ["viagem econômica", "viagem gastronômica", "europa", "melhores destinos"]
 image: /images/blog/cheapest-european-cities-for-food-2026.jpg
 imageAlt: Mesa de comida de rua europeia barata em um mercado ao ar livre
 readingTime: 9

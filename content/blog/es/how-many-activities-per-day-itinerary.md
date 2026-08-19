@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - cuántas actividades por día
-  - planificación de itinerarios
-  - consejos para itinerarios de viaje
-  - datos de planificación de viajes
-  - itinerario día a día
+tags: ["itinerario", "datos de viaje", "planificación de viajes"]
 image: /images/blog/best-food-destinations-2026.jpg
 imageAlt: Mesa con platos de comida local que representan un tercio de todo itinerario de viaje
 readingTime: 6

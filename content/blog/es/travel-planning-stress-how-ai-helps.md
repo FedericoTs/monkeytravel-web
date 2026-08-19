@@ -11,12 +11,7 @@ author: Federico S.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: Travel Tips
-tags:
-  - travel planning stress
-  - vacation planning tips
-  - AI trip planner
-  - decision fatigue travel
-  - stress-free travel planning
+tags: ["planificador de viajes con ai", "planificación de viajes"]
 image: /images/blog/travel-planning-stress.jpg
 imageAlt: >-
   Persona rodeada de guías de viaje y pestañas del navegador abiertas con cara

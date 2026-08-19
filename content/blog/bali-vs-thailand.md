@@ -8,12 +8,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - bali
-  - thailand
-  - comparison
-  - southeast asia
-  - budget travel
+tags: ["comparison", "asia", "budget travel", "best destinations"]
 image: /images/blog/bali-vs-thailand.jpg
 imageAlt: Split image comparing Bali rice terraces and Thai beach scenery
 readingTime: 10

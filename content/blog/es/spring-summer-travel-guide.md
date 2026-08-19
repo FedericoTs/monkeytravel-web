@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Seasonal Travel"
-tags: ["viajes primavera", "viajes verano", "destinos verano 2026", "spring break 2026", "coolcation", "temporada media"]
+tags: ["estacional", "viajes de primavera", "viajes de verano", "temporada media", "mejores destinos"]
 image: "/images/blog/spring-summer-travel-guide.jpg"
 imageAlt: "Collage de playa veraniega, montaña alpina y ciudad mediterránea — tres estilos de viaje en temporada cálida"
 readingTime: 16

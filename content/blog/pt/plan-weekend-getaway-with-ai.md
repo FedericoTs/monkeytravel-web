@@ -9,12 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-02-19'
 updatedAt: '2026-02-19'
 category: "AI Travel"
-tags:
-  - escapada de fim de semana
-  - viagem de 3 dias
-  - planejador de viagens com IA
-  - planejamento de viagem curta
-  - ideias de viagem rápida
+tags: ["planejador de viagens com ia", "viagem de fim de semana", "planejamento de viagem", "roteiro"]
 image: /images/blog/weekend-getaway-ai.jpg
 imageAlt: >-
   Casal com pouca bagagem chegando a uma charmosa cidade europeia para uma

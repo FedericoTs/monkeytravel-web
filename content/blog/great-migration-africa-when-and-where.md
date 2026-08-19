@@ -9,14 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Seasonal Travel
-tags:
-  - africa
-  - safari
-  - great migration
-  - wildlife
-  - seasonal
-  - tanzania
-  - kenya
+tags: ["seasonal", "nature travel", "best destinations"]
 image: /images/blog/great-migration-africa-when-and-where.jpg
 imageAlt: Wildebeest herd crossing the Mara River during the Great Migration in Kenya
 readingTime: 9

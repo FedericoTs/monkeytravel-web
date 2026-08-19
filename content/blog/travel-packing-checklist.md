@@ -8,11 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - packing checklist
-  - travel packing
-  - packing tips
-  - travel essentials
+tags: ["travel checklist", "trip planning"]
 image: /images/blog/travel-packing-checklist.jpg
 imageAlt: >-
   Open suitcase on a bed with neatly organized clothes, packing cubes, and

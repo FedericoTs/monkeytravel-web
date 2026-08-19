@@ -6,7 +6,7 @@ author: "Francesca A."
 publishedAt: "2026-05-06"
 updatedAt: "2026-05-06"
 category: "Trip Planning"
-tags: ["luna di miele", "destinazioni luna di miele 2026", "pianificazione luna di miele", "budget luna di miele", "viaggi romantici"]
+tags: ["viaggi romantici", "pianificazione viaggi"]
 image: "/images/blog/honeymoon-planning-guide.jpg"
 imageAlt: "Una coppia guarda il tramonto da una terrazza privata affacciata sul mar Egeo"
 readingTime: 18

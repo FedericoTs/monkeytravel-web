@@ -10,12 +10,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - tendências de viagem 2026
-  - climas de viagem
-  - dados de planejamento de viagem
-  - o que os viajantes querem
-  - estatísticas de viagem 2026
+tags: ["dados de viagem", "planejamento de viagem"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Viajante escolhendo climas e interesses da viagem em uma tela de planejamento
 readingTime: 6

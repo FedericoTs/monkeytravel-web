@@ -9,12 +9,7 @@ author: Enrico E.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - tokio
-  - itinerario
-  - japón
-  - 4 días
-  - viajes asia
+tags: ["itinerario", "guía de ciudad", "japón", "asia", "viaje de fin de semana", "tokio"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
 imageAlt: 'Cruce de Shibuya al atardecer con luces de neón y multitudes en Tokio, Japón'
 readingTime: 9

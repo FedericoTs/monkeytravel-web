@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-12"
 updatedAt: "2026-07-12"
 category: "Seasonal Travel"
-tags: ["dove andare ad agosto", "viaggi ad agosto", "mete di agosto", "vacanze estate 2026", "viaggiare in alta stagione"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi estivi", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-august.jpg"
 imageAlt: "Lago alpino turchese sotto le cime frastagliate delle Dolomiti in una limpida mattina d'agosto"
 readingTime: 12

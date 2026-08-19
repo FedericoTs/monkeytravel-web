@@ -12,13 +12,7 @@ author: Riccardo P.
 publishedAt: '2026-04-01'
 updatedAt: '2026-04-01'
 category: Travel Tips
-tags:
-  - stati uniti
-  - sicurezza viaggio
-  - avviso di viaggio
-  - immigrazione
-  - requisiti visto
-  - Coppa del Mondo FIFA 2026
+tags: ["sicurezza in viaggio", "stati uniti", "documenti di viaggio"]
 image: /images/blog/is-it-safe-to-travel-to-the-us-2026.jpg
 imageAlt: >-
   Vista aerea della Statua della Liberta e del porto di New York con un

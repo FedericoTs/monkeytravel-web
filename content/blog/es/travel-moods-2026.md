@@ -11,12 +11,7 @@ author: Riccardo P.
 publishedAt: '2026-08-07'
 updatedAt: '2026-08-07'
 category: Trip Planning
-tags:
-  - tendencias de viaje 2026
-  - moods de viaje
-  - datos de planificación de viajes
-  - qué quieren los viajeros
-  - estadísticas de viajes 2026
+tags: ["datos de viaje", "planificación de viajes"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Viajero eligiendo el ambiente y los intereses del viaje en una pantalla de planificación
 readingTime: 6

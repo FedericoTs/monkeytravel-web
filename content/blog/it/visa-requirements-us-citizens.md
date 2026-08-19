@@ -8,11 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Travel Tips
-tags:
-  - requisiti visto
-  - passaporto americano
-  - documenti di viaggio
-  - viaggiatori americani
+tags: ["documenti di viaggio", "stati uniti"]
 image: /images/blog/visa-requirements-us-citizens.jpg
 imageAlt: >-
   Passaporto americano su una mappa del mondo con carte d'imbarco e timbri di

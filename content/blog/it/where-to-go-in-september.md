@@ -6,7 +6,7 @@ author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
 category: "Seasonal Travel"
-tags: ["dove andare a settembre", "viaggi a settembre", "mete di settembre", "dove andare in vacanza a settembre", "mete settembre 2026", "viaggiare in bassa stagione"]
+tags: ["stagionale", "guida mensile ai viaggi", "viaggi autunnali", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-september.jpg"
 imageAlt: "Villaggio cicladico imbiancato a calce sopra una calma baia turchese dell'Egeo nella luce morbida di settembre"
 readingTime: 12

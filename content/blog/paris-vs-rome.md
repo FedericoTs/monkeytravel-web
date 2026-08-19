@@ -8,12 +8,7 @@ author: Francesca A.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: Destination Guides
-tags:
-  - paris
-  - rome
-  - comparison
-  - europe
-  - city guide
+tags: ["comparison", "city guide", "europe", "rome"]
 image: /images/blog/paris-vs-rome.jpg
 imageAlt: Split image comparing the Eiffel Tower in Paris and the Colosseum in Rome
 readingTime: 10

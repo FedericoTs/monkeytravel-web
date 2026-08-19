@@ -8,11 +8,7 @@ author: Giuseppe G.
 publishedAt: '2026-02-20'
 updatedAt: '2026-02-20'
 category: "Travel Tips"
-tags:
-  - lista de bagagem
-  - arrumar a mala
-  - dicas para arrumar a mala
-  - essenciais de viagem
+tags: ["checklist de viagem", "planejamento de viagem"]
 image: /images/blog/travel-packing-checklist.jpg
 imageAlt: >-
   Mala aberta sobre uma cama com roupas bem organizadas, organizadores de mala e

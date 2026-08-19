@@ -9,13 +9,7 @@ author: Francesca A.
 publishedAt: '2026-03-25'
 updatedAt: '2026-03-25'
 category: Trip Planning
-tags:
-  - wellness travel
-  - yoga retreats
-  - burnout recovery
-  - spa destinations
-  - '2026'
-  - wellness tourism
+tags: ["wellness travel", "best destinations"]
 image: /images/blog/best-wellness-retreats-2026.jpg
 imageAlt: Infinity pool overlooking tropical jungle at a wellness retreat in Bali
 readingTime: 11
