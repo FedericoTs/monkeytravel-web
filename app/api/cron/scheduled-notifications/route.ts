@@ -54,6 +54,39 @@ import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 // window. 200 leaves headroom for backlog after a cron outage.
 const MAX_ROWS_PER_RUN = 200;
 
+/**
+ * Where the reminder copy actually lives in the assembled message tree.
+ *
+ * i18n.ts mounts each file under its own namespace, so common.json becomes
+ * `common` and these strings sit at common.tripReminderEmail.*. Kept as one
+ * constant because it is needed in two places and getting it wrong is silent
+ * — see assertTranslated below for why that mattered.
+ */
+const REMINDER_NS = "common.tripReminderEmail";
+
+/**
+ * Reject a string that is really an unresolved message key.
+ *
+ * next-intl does NOT throw on a missing message. Its default onError logs and
+ * getMessageFallback substitutes the full key path, so the mail still sends
+ * with "tripReminderEmail.morning_of.heading" where the sentence should be.
+ * That is exactly what reached real inboxes from 2026-06 until 2026-08-19,
+ * subject line included, and two of those were opened. The try/catch above
+ * never fired because nothing ever threw; the rows were marked `sent`.
+ *
+ * So the send path cannot trust the translator. A value still carrying
+ * "tripReminderEmail." is a fallback, never copy — no real sentence contains
+ * it — and it must fail loudly instead of being delivered.
+ */
+function assertTranslated(values: Record<string, string>): string | null {
+  for (const [key, value] of Object.entries(values)) {
+    if (value.includes("tripReminderEmail.")) {
+      return `${key} did not resolve (got "${value.slice(0, 80)}")`;
+    }
+  }
+  return null;
+}
+
 type SlotRow = {
   id: string;
   user_id: string;
@@ -299,14 +332,21 @@ async function processRow(
     return "skipped";
   }
 
-  // 2d. Resolve locale → load the slot-specific strings from the
-  //     tripReminderEmail namespace (en/it/es).
+  // 2d. Resolve locale → load the slot-specific strings.
+  //
+  // The namespace MUST carry the `common.` prefix. i18n.ts assembles messages
+  // keyed by FILE — `messages/<locale>/common.json` is mounted as the `common`
+  // namespace — and tripReminderEmail lives at the top level of that file, so
+  // the real path is common.tripReminderEmail.<slot>. Asking for
+  // `tripReminderEmail.<slot>` resolves to nothing. (Compare
+  // app/api/tools/packing-list/route.ts, which correctly uses
+  // "tools.packingList.categories".)
   const locale = resolveLocale(user.preferred_language);
   let t: Awaited<ReturnType<typeof getTranslations>>;
   try {
     t = await getTranslations({
       locale,
-      namespace: `tripReminderEmail.${row.slot}`,
+      namespace: `${REMINDER_NS}.${row.slot}`,
     });
   } catch (err) {
     await persistOutcome(
@@ -321,7 +361,7 @@ async function processRow(
 
   const ctaT = await getTranslations({
     locale,
-    namespace: "tripReminderEmail",
+    namespace: REMINDER_NS,
   });
 
   // Strip trailing " Trip" suffix if present, so emails read
@@ -332,6 +372,30 @@ async function processRow(
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
+
+  // Resolve the copy BEFORE handing it to the mailer, so an unresolved key
+  // can be caught while it is still just a string in memory.
+  //
+  // `destination` goes to BOTH, even though most slots only reference it in
+  // the body. weather_3d is the exception — its heading is "Three days to
+  // {destination}" in all four locales — and next-intl falls back to the key
+  // path when a referenced placeholder is not supplied, so calling
+  // t("heading") bare silently broke that one slot on its own, independently
+  // of the namespace bug. Passing it unconditionally also means a translator
+  // moving {destination} into another heading cannot break the mail; unused
+  // values are ignored.
+  const heading = t("heading", { destination });
+  const body = t("body", { destination });
+  const ctaLabel = ctaT("cta");
+
+  const unresolved = assertTranslated({ heading, body, ctaLabel });
+  if (unresolved) {
+    // Deliberately a failure, not a degraded send. The row stays visible as
+    // `failed` with the reason, and once the copy is fixed it can be retried
+    // — which is strictly better than a delivered email full of key paths.
+    await persistOutcome(svc, row.id, "failed", "i18n_load_error", unresolved);
+    return "failed";
+  }
 
   const result = await dispatchEmail({
     recipientEmail: user.email,
@@ -348,9 +412,9 @@ async function processRow(
         slot: row.slot,
         destination,
         tripDates: formatDateRange(trip.start_date, trip.end_date, locale),
-        heading: t("heading"),
-        body: t("body", { destination }),
-        ctaLabel: ctaT("cta"),
+        heading,
+        body,
+        ctaLabel,
         tripUrl,
       },
     },
