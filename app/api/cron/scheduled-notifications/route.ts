@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { dispatchEmail } from "@/lib/email/send";
 import type { TripReminderSlot } from "@/lib/email/templates/TripReminder";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
+import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -106,44 +107,6 @@ function serviceClient() {
   return createServiceClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-/**
- * Normalise a stored preferred_language down to a supported locale.
- * Defaults to "en" — keeps the email going out even if the column has
- * an exotic / null value.
- */
-function resolveLocale(raw: string | null | undefined): "en" | "it" | "es" {
-  if (raw === "it" || raw === "es") return raw;
-  return "en";
-}
-
-/**
- * Format a date range "Sep 1 – Sep 7" in the recipient's locale.
- * Falls back gracefully when end < start or either side is invalid.
- */
-function formatDateRange(
-  start: string,
-  end: string | null,
-  locale: "en" | "it" | "es"
-): string {
-  try {
-    const s = new Date(start);
-    if (Number.isNaN(s.getTime())) return "";
-    const fmt = new Intl.DateTimeFormat(
-      locale === "it" ? "it-IT" : locale === "es" ? "es-ES" : "en-US",
-      { month: "short", day: "numeric" }
-    );
-    const startLabel = fmt.format(s);
-    if (!end) return startLabel;
-    const e = new Date(end);
-    if (Number.isNaN(e.getTime()) || e.getTime() < s.getTime()) {
-      return startLabel;
-    }
-    return `${startLabel} – ${fmt.format(e)}`;
-  } catch {
-    return "";
-  }
 }
 
 export async function GET(request: NextRequest) {

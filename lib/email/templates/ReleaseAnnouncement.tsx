@@ -36,7 +36,15 @@ interface ReleaseCopy {
   ctaUrl: string;
 }
 
-const COPY: Record<Exclude<EmailLocale, "es">, ReleaseCopy> = {
+/**
+ * en/it only, deliberately. This is the one-off May 2026 traffic-spike apology,
+ * not a localized product surface — `releaseEmailSubject` and
+ * `releaseEmailText` below both read `locale === "it" ? COPY.it : COPY.en`, so
+ * no other locale is ever indexed at runtime. Spanish was already excluded for
+ * that reason; Portuguese joins it now that EmailLocale includes "pt", rather
+ * than inventing Portuguese copy for an announcement that has already been sent.
+ */
+const COPY: Record<Exclude<EmailLocale, "es" | "pt">, ReleaseCopy> = {
   en: {
     subject: "What's new on MonkeyTravel (and a small confession)",
     preview: "Some features you asked for, and an apology for the slow week.",

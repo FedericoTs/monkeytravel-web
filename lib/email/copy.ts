@@ -1,5 +1,5 @@
 /**
- * Localized copy for emails (en / es / it).
+ * Localized copy for emails (en / es / it / pt).
  *
  * Emails render in contexts that are OUTSIDE the next-intl request scope —
  * the Supabase "Send Email" auth hook, the notification cron, and the
@@ -8,14 +8,20 @@
  * callers can resolve synchronously. This mirrors the string-prop design of
  * TripReminder.tsx.
  *
- * Keep the three locales in lockstep with the rest of the app
- * (messages/{en,es,it}) — same supported set: English, Spanish, Italian.
+ * Keep these locales in lockstep with `routing.locales`. Portuguese was added
+ * to the app — routing, 84 translated blog posts, localized landing pages —
+ * but not here, so every transactional email fell back to English for pt users
+ * even where the message copy itself had been translated. Because each block
+ * below is a `Record<EmailLocale, …>`, widening the type is what forces a
+ * Portuguese entry to exist everywhere rather than silently defaulting.
+ *
+ * Portuguese here is pt-BR, matching the rest of the product.
  */
 
-export type EmailLocale = "en" | "es" | "it";
+export type EmailLocale = "en" | "es" | "it" | "pt";
 
 export function normalizeEmailLocale(input: unknown): EmailLocale {
-  return input === "es" || input === "it" ? input : "en";
+  return input === "es" || input === "it" || input === "pt" ? input : "en";
 }
 
 interface LayoutCopy {
@@ -42,6 +48,12 @@ export const layoutCopy: Record<EmailLocale, LayoutCopy> = {
     footerReason:
       "Ricevi questa email perché hai un account MonkeyTravel attivo.",
     manage: "Gestisci le preferenze",
+  },
+  pt: {
+    tagline: "Planejamento de viagens com IA",
+    footerReason:
+      "Você está recebendo este e-mail porque tem uma conta ativa no MonkeyTravel.",
+    manage: "Gerenciar preferências",
   },
 };
 
@@ -93,6 +105,18 @@ export const confirmSignupCopy: Record<EmailLocale, ConfirmSignupCopy> = {
     ignore:
       "Non hai creato un account MonkeyTravel? Puoi ignorare questa email: nessun account verrà creato senza conferma.",
   },
+  pt: {
+    subject: "Confirme seu e-mail — MonkeyTravel",
+    welcome: "Bem-vindo a bordo! 🐵",
+    welcomeNamed: (n) => `Bem-vindo a bordo, ${n}! 🐵`,
+    lead: "Você está a um toque do planejamento de viagens com IA. Confirme seu e-mail para ativar sua conta.",
+    cta: "Confirmar meu e-mail",
+    body: "Depois de entrar, é só escolher um destino e criaremos um roteiro personalizado dia a dia: voos, hospedagens e o que fazer, tudo em um só lugar.",
+    linkFallback:
+      "Se o botão não funcionar, copie este link no seu navegador:",
+    ignore:
+      "Não criou uma conta no MonkeyTravel? Pode ignorar este e-mail — nenhuma conta será criada sem confirmação.",
+  },
 };
 
 export type AuthActionKind =
@@ -128,6 +152,10 @@ export const authSharedCopy: Record<EmailLocale, AuthSharedCopy> = {
   it: {
     linkFallback: "Se il pulsante non funziona, copia questo link nel browser:",
     codeLabel: "Oppure inserisci questo codice:",
+  },
+  pt: {
+    linkFallback: "Se o botão não funcionar, copie este link no seu navegador:",
+    codeLabel: "Ou insira este código:",
   },
 };
 
@@ -182,6 +210,18 @@ export const blogEmailCopy: Record<EmailLocale, BlogEmailCopy> = {
     readArticle: "Leggi l'articolo →",
     browseAll: "Sfoglia tutti gli articoli",
     minRead: (n) => `${n} min di lettura`,
+  },
+  pt: {
+    digestSubject: "Esta semana no MonkeyTravel ✈️",
+    digestHeading: "Novidades do blog",
+    digestIntro:
+      "Algumas leituras novas para inspirar sua próxima aventura: dicas, guias e ideias de destinos.",
+    announceSubject: (t) => `Novo no blog: ${t}`,
+    announcePreview: (t) => `Acabou de sair — ${t}`,
+    newPostLabel: "Novo no blog",
+    readArticle: "Ler artigo →",
+    browseAll: "Ver todos os artigos",
+    minRead: (n) => `${n} min de leitura`,
   },
 };
 
@@ -303,6 +343,44 @@ export const authActionCopy: Record<
       cta: "Accetta l'invito",
     },
   },
+  pt: {
+    recovery: {
+      subject: "Redefina sua senha do MonkeyTravel",
+      heading: "Redefina sua senha 🔑",
+      lead: "Recebemos um pedido para redefinir sua senha do MonkeyTravel. Toque abaixo para escolher uma nova.",
+      cta: "Redefinir minha senha",
+      footer:
+        "Não pediu para redefinir a senha? Pode ignorar este e-mail — sua senha não será alterada.",
+    },
+    magiclink: {
+      subject: "Seu link mágico do MonkeyTravel",
+      heading: "Seu link mágico ✨",
+      lead: "Toque abaixo para entrar no MonkeyTravel com segurança. Sem senha.",
+      cta: "Entrar no MonkeyTravel",
+      footer: "Não tentou entrar? Pode ignorar este e-mail.",
+    },
+    email_change: {
+      subject: "Confirme seu novo e-mail do MonkeyTravel",
+      heading: "Confirme seu novo e-mail 📧",
+      lead: "Confirme este endereço para concluir a atualização do e-mail da sua conta MonkeyTravel.",
+      cta: "Confirmar novo e-mail",
+      footer:
+        "Não solicitou esta alteração? Proteja sua conta e entre em contato com o suporte.",
+    },
+    reauthentication: {
+      subject: "Confirme que é você — MonkeyTravel",
+      heading: "Confirme que é você 🔒",
+      lead: "Use o código abaixo para confirmar esta alteração importante na sua conta MonkeyTravel.",
+      cta: "Confirmar",
+      footer: "Não solicitou isto? Pode ignorar este e-mail.",
+    },
+    invite: {
+      subject: "Você foi convidado para o MonkeyTravel",
+      heading: "Você foi convidado para o MonkeyTravel 🐵",
+      lead: "Toque abaixo para aceitar o convite e começar a planejar viagens com IA.",
+      cta: "Aceitar convite",
+    },
+  },
 };
 
 // ── Collaboration notifications: trip invite ────────────────────────────
@@ -355,6 +433,19 @@ export const inviteCopy: Record<EmailLocale, InviteEmailCopy> = {
     copyLink: "Oppure copia questo link:",
     subject: (n, d) => `${n} ti ha invitato a organizzare ${d}`,
   },
+  pt: {
+    heading: (n) => `${n} convidou você para uma viagem`,
+    roleDescription: {
+      editor: "Você poderá adicionar, remover e reorganizar atividades.",
+      voter:
+        "Você poderá votar nas atividades e sugerir novas; a palavra final é de quem organiza a viagem.",
+      viewer:
+        "Você poderá ver os detalhes da viagem, mas não fazer alterações.",
+    },
+    cta: "Abrir a viagem",
+    copyLink: "Ou copie este link:",
+    subject: (n, d) => `${n} convidou você para planejar ${d}`,
+  },
 };
 
 // ── Research outreach: feedback request ─────────────────────────────────
@@ -397,6 +488,15 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     body: "Stiamo decidendo cosa costruire dopo e preferiamo sentirlo da te piuttosto che tirare a indovinare. Due minuti di feedback sincero — cosa funziona, cosa ti dà fastidio, cosa vorresti che facesse — farebbero davvero la differenza sulla direzione del progetto.",
     cta: "Condividi il tuo parere",
     copyLink: "Oppure copia questo link nel browser:",
+  },
+  pt: {
+    subject: (n) => (n ? `${n}, posso te fazer uma pergunta?` : "Posso te fazer uma pergunta?"),
+    preview: "Você já usou o MonkeyTravel — sua opinião sincera valeria muito.",
+    heading: (n) => (n ? `Oi ${n}, posso te pedir um favor rápido?` : "Posso te pedir um favor rápido?"),
+    lead: "Você planejou uma viagem com o MonkeyTravel, então sua opinião é a que mais importa para nós.",
+    body: "Estamos decidindo o que construir a seguir e preferimos ouvir você a ficar adivinhando. Dois minutos de feedback sincero — o que funciona, o que incomoda, o que você gostaria que ele fizesse — mudariam de verdade o rumo do projeto.",
+    cta: "Compartilhar minha opinião",
+    copyLink: "Ou copie este link no seu navegador:",
   },
 };
 
@@ -456,5 +556,19 @@ export const voteCastCopy: Record<EmailLocale, VoteCastEmailCopy> = {
     turnOffPrefix: "Non vuoi riceverle? Puoi disattivarle nelle",
     turnOffLink: "impostazioni di notifica",
     subject: (d) => `Nuovi commenti sul tuo viaggio a ${d}`,
+  },
+  pt: {
+    heading: "Novo feedback sobre uma atividade",
+    votePhrase: {
+      love: "amou",
+      flexible: "está tranquilo com",
+      concerns: "levantou dúvidas sobre",
+      no: "votou não em",
+    },
+    lead: (n, p) => `${n} ${p} uma atividade da sua viagem.`,
+    cta: "Ver a viagem",
+    turnOffPrefix: "Não quer receber estes e-mails? Você pode desativá-los em",
+    turnOffLink: "configurações de notificação",
+    subject: (d) => `Novo feedback na sua viagem para ${d}`,
   },
 };
