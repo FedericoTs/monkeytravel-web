@@ -303,16 +303,26 @@ export async function updateTrip(
  * immediately starts a new wizard run the discarded autosave doesn't
  * surface anywhere. Recovery is a manual UPDATE deleted_at = NULL from
  * the Supabase SQL editor.
+ *
+ * 2026-08-19 — goes through soft_delete_trip() for the same reason the
+ * DELETE route does. The direct UPDATE this replaced could never succeed
+ * from a user-scoped client: a tombstone satisfies no branch of
+ * trips_select_consolidated (`deleted_at IS NULL AND ...`), so RLS rejects
+ * the new row with 42501. Callers here pass createClient(), the browser
+ * client, so Start Over / Discard was throwing for every user since
+ * 2026-06-08 just like the API route was 500ing. See
+ * `app/api/trips/[id]/route.ts` for the full analysis.
  */
 export async function deleteTrip(
   supabase: SupabaseClient,
   tripId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("trips")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", tripId)
-    .is("deleted_at", null);
+  // Ownership and the already-deleted guard are enforced inside the
+  // function against auth.uid(); it returns false rather than throwing
+  // when there was nothing to delete, which keeps discard idempotent.
+  const { error } = await supabase.rpc("soft_delete_trip", {
+    p_trip_id: tripId,
+  });
   if (error) throw error;
 }
 
