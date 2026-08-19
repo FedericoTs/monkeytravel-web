@@ -9,7 +9,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -34,7 +34,12 @@ function generateCacheKey(placeId: string): string {
  */
 async function getFromCache(cacheKey: string): Promise<unknown | null> {
   try {
-    const { data, error } = await supabase
+    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // service key — treat as a cache miss rather than throwing.
+    const db = placesCacheDb();
+    if (!db) return null;
+
+    const { data, error } = await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", cacheKey)
@@ -45,7 +50,7 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
     if (error || !data) return null;
 
     // Update hit count asynchronously
-    supabase
+    db
       .from("google_places_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
@@ -66,9 +71,12 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
  */
 async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
   try {
+    const db = placesCacheDb();
+    if (!db) return;
+
     const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase.from("google_places_cache").upsert(
+    const { error } = await db.from("google_places_cache").upsert(
       {
         place_id: cacheKey,
         cache_type: "details",
@@ -208,9 +216,13 @@ export async function GET(request: NextRequest) {
       countryCode,
     };
 
-    // Save to cache and log API usage
-    saveToCache(cacheKey, result);
-    logDetailsApiRequest({ responseTimeMs: Date.now() - startTime });
+    // Save to cache and log API usage. Awaited so the writes complete before
+    // the serverless function freezes after sending the response (fire-and-
+    // forget writes are dropped intermittently on Vercel). Matches the sibling
+    // app/api/places/route.ts; without the await this cache under-populated
+    // and every miss re-ran a paid Place Details lookup.
+    await saveToCache(cacheKey, result);
+    await logDetailsApiRequest({ responseTimeMs: Date.now() - startTime });
 
     // Increment usage counter for authenticated users (only on API calls, not cache hits)
     if (user) {

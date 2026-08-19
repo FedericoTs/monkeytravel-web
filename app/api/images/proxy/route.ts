@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
 import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
@@ -39,7 +39,12 @@ function getImageCacheKey(imageUrl: string): string {
  */
 async function getCachedImage(cacheKey: string): Promise<{ dataUrl: string; contentType: string } | null> {
   try {
-    const { data, error } = await supabase
+    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // service key — treat as a cache miss rather than throwing.
+    const db = placesCacheDb();
+    if (!db) return null;
+
+    const { data, error } = await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", `img:${cacheKey}`)
@@ -49,7 +54,7 @@ async function getCachedImage(cacheKey: string): Promise<{ dataUrl: string; cont
     if (error || !data) return null;
 
     // Update hit count (fire and forget)
-    supabase
+    db
       .from("google_places_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
@@ -70,9 +75,12 @@ async function getCachedImage(cacheKey: string): Promise<{ dataUrl: string; cont
  */
 async function cacheImage(cacheKey: string, dataUrl: string, contentType: string, originalUrl: string): Promise<void> {
   try {
+    const db = placesCacheDb();
+    if (!db) return;
+
     const expiresAt = new Date(Date.now() + IMAGE_CACHE_DAYS * 24 * 60 * 60 * 1000);
 
-    await supabase.from("google_places_cache").upsert(
+    await db.from("google_places_cache").upsert(
       {
         place_id: `img:${cacheKey}`,
         cache_type: "image_base64",

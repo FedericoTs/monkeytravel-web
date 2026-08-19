@@ -14,7 +14,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { supabase } from "@/lib/supabase";
+import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -168,7 +168,12 @@ function generateCacheKey(lat: number, lng: number, radius: number): string {
  */
 async function getFromCache(cacheKey: string): Promise<unknown | null> {
   try {
-    const { data, error } = await supabase
+    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // service key — treat as a cache miss rather than throwing.
+    const db = placesCacheDb();
+    if (!db) return null;
+
+    const { data, error } = await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", cacheKey)
@@ -178,7 +183,7 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
     if (error || !data) return null;
 
     // Update hit count asynchronously (fire and forget)
-    supabase
+    db
       .from("google_places_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
@@ -198,9 +203,12 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
  */
 async function saveToCache(cacheKey: string, data: unknown): Promise<void> {
   try {
+    const db = placesCacheDb();
+    if (!db) return;
+
     const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    await supabase.from("google_places_cache").upsert(
+    await db.from("google_places_cache").upsert(
       {
         place_id: cacheKey,
         cache_type: "hotels_nearby",

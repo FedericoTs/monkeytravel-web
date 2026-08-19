@@ -25,7 +25,7 @@
  */
 
 import crypto from "crypto";
-import { supabase } from "@/lib/supabase";
+import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
 
 // ============================================================================
 // Types
@@ -286,7 +286,12 @@ export async function getFromDatabase<T>(
   cacheType: string
 ): Promise<T | null> {
   try {
-    const { data, error } = await supabase
+    // Service role: see lib/supabase/places-cache-admin.ts. Null means no
+    // service key — treat as a cache miss rather than throwing.
+    const db = placesCacheDb();
+    if (!db) return null;
+
+    const { data, error } = await db
       .from("google_places_cache")
       .select("id, data, hit_count") // Optimized: only fetch needed fields
       .eq("place_id", cacheKey)
@@ -297,7 +302,7 @@ export async function getFromDatabase<T>(
     if (error || !data) return null;
 
     // Update hit count asynchronously (fire and forget)
-    supabase
+    db
       .from("google_places_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
@@ -323,9 +328,12 @@ export async function saveToDatabase<T>(
   cacheDays: number
 ): Promise<void> {
   try {
+    const db = placesCacheDb();
+    if (!db) return;
+
     const expiresAt = new Date(Date.now() + cacheDays * 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase.from("google_places_cache").upsert(
+    const { error } = await db.from("google_places_cache").upsert(
       {
         place_id: cacheKey,
         cache_type: cacheType,

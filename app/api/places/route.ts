@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { placesCacheDb } from "@/lib/supabase/places-cache-admin";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
@@ -77,7 +77,13 @@ function generateCacheKey(query: string, type: string): string {
  */
 async function getFromCache(cacheKey: string): Promise<unknown | null> {
   try {
-    const { data, error } = await supabase
+    // Service role: the public write policies on this table are being dropped,
+    // and reads move with the writes so there is a single client to reason
+    // about. Null means no service key — treat as a miss, never throw.
+    const db = placesCacheDb();
+    if (!db) return null;
+
+    const { data, error } = await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", cacheKey)
@@ -87,7 +93,7 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
     if (error || !data) return null;
 
     // Update hit count asynchronously
-    supabase
+    db
       .from("google_places_cache")
       .update({
         hit_count: (data.hit_count || 0) + 1,
@@ -107,9 +113,12 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
  */
 async function saveToCache(cacheKey: string, cacheType: string, data: unknown): Promise<void> {
   try {
+    const db = placesCacheDb();
+    if (!db) return;
+
     const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase.from("google_places_cache").upsert(
+    const { error } = await db.from("google_places_cache").upsert(
       {
         place_id: cacheKey,
         cache_type: cacheType,
