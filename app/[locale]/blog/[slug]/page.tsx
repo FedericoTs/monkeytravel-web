@@ -8,7 +8,7 @@ import { routing } from "@/lib/i18n/routing";
 import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrevNextPosts, extractToc, hasLocaleTranslation, tOr } from "@/lib/blog/api";
 import { getAuthorByFrontmatterId } from "@/lib/blog/authors";
 import type { BlogFrontmatter } from "@/lib/blog/types";
-import { getDestinationsForBlogPost, getLandingPagesForBlogPost } from "@/lib/cross-links";
+import { getDestinationsForBlogPost } from "@/lib/cross-links";
 import { getRegionForPost } from "@/lib/blog/regions";
 import type { Locale } from "@/lib/destinations/types";
 import {
@@ -24,6 +24,7 @@ import Footer from "@/components/Footer";
 import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
 import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
+import { landingPagesForPost } from "@/lib/blog/landing-page-links";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
@@ -219,7 +220,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
   const related = getRelatedPosts(slug, 3, locale);
   const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
-  const relatedLandingPages = getLandingPagesForBlogPost(slug, frontmatter.tags, 3);
+  // Concept-based, not keyword-based: see lib/blog/landing-page-links.ts.
+  // The keyword version put /free-ai-trip-planner on 80 of 84 posts and left
+  // /multi-city-trip-planner with none, and matched ~20% worse on it/es/pt
+  // because its keywords are English while tags are localized.
+  const relatedLandingPages = landingPagesForPost(slug, 3);
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags, locale);
   const tripsNewHref = primaryDestination

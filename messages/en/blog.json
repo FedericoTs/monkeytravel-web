@@ -82,14 +82,16 @@
       "weekendTripPlanner": "Weekend Trip Planner",
       "aiItineraryGenerator": "AI Itinerary Generator",
       "packingList": "Packing List Generator",
-      "visaChecker": "Visa Requirements Checker"
+      "visaChecker": "Visa Requirements Checker",
+      "multiCityTripPlanner": "Multi-City Trip Planner"
     }
   },
   "tag": {
     "eyebrow": "Tagged",
     "subtitle": "{count, plural, =1 {1 article} other {# articles}} on this topic.",
     "metaTitle": "{tag} — Travel guides and tips",
-    "metaDescription": "Read our travel guides on {tag}. {count, plural, =1 {1 article} other {# articles}}, all written for travelers planning real trips."
+    "metaDescription": "Read our travel guides on {tag}. {count, plural, =1 {1 article} other {# articles}}, all written for travelers planning real trips.",
+    "ctaHeading": "Plan a trip like this"
   },
   "breadcrumbs": {
     "home": "Home",

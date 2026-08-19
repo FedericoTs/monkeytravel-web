@@ -82,14 +82,16 @@
       "weekendTripPlanner": "Planificador de Escapadas de Fin de Semana",
       "aiItineraryGenerator": "Generador de Itinerarios AI",
       "packingList": "Generador de Lista de Equipaje",
-      "visaChecker": "Verificador de Visa"
+      "visaChecker": "Verificador de Visa",
+      "multiCityTripPlanner": "Planificador de Viajes Multiciudad"
     }
   },
   "tag": {
     "eyebrow": "Etiqueta",
     "subtitle": "{count, plural, =1 {1 artículo} other {# artículos}} sobre este tema.",
     "metaTitle": "{tag} — Guías y consejos de viaje",
-    "metaDescription": "Lee nuestras guías de viaje sobre {tag}. {count, plural, =1 {1 artículo} other {# artículos}}, todos escritos para viajeros que planifican viajes reales."
+    "metaDescription": "Lee nuestras guías de viaje sobre {tag}. {count, plural, =1 {1 artículo} other {# artículos}}, todos escritos para viajeros que planifican viajes reales.",
+    "ctaHeading": "Planifica un viaje así"
   },
   "breadcrumbs": {
     "home": "Inicio",

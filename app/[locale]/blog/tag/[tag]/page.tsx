@@ -6,6 +6,7 @@ import { routing } from "@/lib/i18n/routing";
 import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { retiredTagTarget } from "@/lib/blog/retired-tags";
 import { tagAlternateSlugs } from "@/lib/blog/tag-alternates";
+import { landingPageForTag } from "@/lib/blog/landing-page-links";
 import type { Locale } from "@/lib/blog/tag-taxonomy";
 import { tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
@@ -150,6 +151,8 @@ export default async function BlogTagPage({ params }: PageProps) {
     { name: display, url: `${SITE_URL}${localePrefix}/blog/tag/${tag}` },
   ]);
 
+  const plannerLink = landingPageForTag(tag, locale);
+
   const nonce = await getNonce();
 
   return (
@@ -205,6 +208,30 @@ export default async function BlogTagPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {/* Hub -> commercial page. A tag archive is a topic hub with 5+ posts
+            and a place in the sitemap, so pointing it at the ONE planner page
+            for that topic is the most precise internal-link signal available:
+            /blog/tag/group-travel -> /group-trip-planner. Only specific pages
+            qualify — a generic filler here would land the same link on every
+            archive and recreate the dilution this replaced. */}
+        {plannerLink && (
+          <section className="pb-14 bg-white">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-6 py-8 sm:px-10 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)] mb-3">
+                  {t("tag.ctaHeading")}
+                </h2>
+                <Link
+                  href={plannerLink.path}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-white font-semibold hover:bg-[var(--primary)]/90 transition-colors min-h-[44px]"
+                >
+                  {t(`detail.relatedToolsLabels.${plannerLink.labelKey}`)}
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* SR-only nav — guarantees crawl discoverability of every linked post */}
         <nav aria-label={t("index.allPostsLabel")} className="sr-only">
