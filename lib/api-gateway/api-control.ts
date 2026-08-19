@@ -28,6 +28,29 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * Service-role client for api_request_logs.
+ *
+ * This table is pure server telemetry: user_id is set explicitly on the row,
+ * never derived from the caller session, so it does not need — and should not
+ * depend on — a user-scoped client. It used the cookie client, which resolves
+ * to the anon role for anonymous traffic, and that is the only reason anon
+ * needed INSERT on the table. Moving the writes here lets that grant be
+ * revoked without blinding anonymous API logging.
+ *
+ * Returns null rather than throwing when the service key is absent: dropping a
+ * telemetry row is warn-level, exactly as the surrounding code already treats
+ * a failed insert.
+ */
+let logDb: ReturnType<typeof createAdminClient> | null | undefined;
+function apiLogDb() {
+  if (logDb !== undefined) return logDb;
+  try { logDb = createAdminClient(); }
+  catch { console.warn("[ApiControl] no service role — API-call logging disabled"); logDb = null; }
+  return logDb;
+}
 
 /**
  * IMPORTANT: No in-memory caching for API config
@@ -217,7 +240,8 @@ export async function getApiCostFromConfig(apiName: string): Promise<number> {
  */
 export async function logApiCall(params: LogApiCallParams): Promise<void> {
   try {
-    const supabase = await createClient();
+    const supabase = apiLogDb();
+    if (!supabase) return;
 
     // Get cost from config if not provided
     const cost = params.costUsd > 0
@@ -272,7 +296,8 @@ export async function logBlockedCall(
   reason: string
 ): Promise<void> {
   try {
-    const supabase = await createClient();
+    const supabase = apiLogDb();
+    if (!supabase) return;
 
     await supabase.from("api_request_logs").insert({
       api_name: apiName,

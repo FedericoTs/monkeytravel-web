@@ -15,7 +15,25 @@
  * - If user adds 10 activities: 90% cost reduction
  */
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * Service-role client for destination_activity_bank.
+ *
+ * The bank is a GLOBAL, shared pool of AI-generated activities keyed by
+ * destination hash — not per-user data — yet it was read and written through
+ * the cookie client, which resolves to anon for anonymous traffic. That is the
+ * only reason anon held INSERT/UPDATE on it, and those grants let anyone
+ * poison activity content that is then served into other users itineraries.
+ *
+ * Every caller is server-side (app/api/ai/generate, app/api/ai/assistant), so
+ * there is no client bundle to leak into; Next.js never inlines a non
+ * NEXT_PUBLIC_ env var regardless. Throws only if the service key is missing,
+ * which would already be fatal for trip generation.
+ */
+function bankDb() {
+  return createAdminClient();
+}
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 import type { Activity } from "@/types";
@@ -68,7 +86,7 @@ export async function searchActivityBank(
     limit?: number;
   } = {}
 ): Promise<Activity[]> {
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
   const { query, type, budgetTier, timeSlot, limit = 10 } = options;
 
@@ -147,7 +165,7 @@ export async function findMatchingActivity(
     existingActivityNames?: string[]; // Avoid duplicates
   } = {}
 ): Promise<Activity | null> {
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
 
   // Parse user request to extract keywords
@@ -284,7 +302,7 @@ function extractKeywords(text: string): string[] {
  * Check if the activity bank has been populated for a destination
  */
 export async function isActivityBankPopulated(destination: string): Promise<boolean> {
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
 
   const { count, error } = await supabase
@@ -315,7 +333,7 @@ export async function populateActivityBank(
 ): Promise<{ count: number; cost: number }> {
   console.log(`[ActivityBank] Populating bank for: ${destination}`);
 
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
 
   // Check if already populated
@@ -489,7 +507,7 @@ export async function getActivityBankStats(destination: string): Promise<{
   hitCount: number;
   expiresAt: string | null;
 }> {
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
 
   const { data, error } = await supabase
@@ -532,7 +550,7 @@ export async function saveToActivityBank(
     return false;
   }
 
-  const supabase = await createClient();
+  const supabase = bankDb();
   const destinationHash = hashDestination(destination);
 
   // Extract keywords from activity name and description
