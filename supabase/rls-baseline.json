@@ -1,0 +1,2527 @@
+[
+  {
+    "table": "activity_proposals",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "Proposers can delete own pending proposals",
+        "roles": [
+          "public"
+        ],
+        "using": "((proposed_by = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "Suggesters can create proposals",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((proposed_by = ( SELECT auth.uid() AS uid)) AND user_can_vote(trip_id, ( SELECT auth.uid() AS uid)))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Trip members can view proposals",
+        "roles": [
+          "public"
+        ],
+        "using": "user_can_access_trip(trip_id, ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "activity_proposals_update_consolidated",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)) OR ((proposed_by = ( SELECT auth.uid() AS uid)) AND (status = ANY (ARRAY['pending'::text, 'voting'::text]))))",
+        "permissive": true,
+        "with_check": "(user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)) OR ((proposed_by = ( SELECT auth.uid() AS uid)) AND (status = ANY (ARRAY['pending'::text, 'voting'::text]))))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "activity_reactions",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Trip members can add reactions",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND user_can_access_trip(trip_id, ( SELECT auth.uid() AS uid)))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Trip members can view reactions",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND user_can_access_trip(trip_id, ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "DELETE",
+        "name": "Users can remove own reactions",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "activity_status",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Trip members can view status",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND user_can_access_trip(trip_id, ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Trip owners can update status",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = activity_status.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = activity_status.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "Trip voters can insert status",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "user_can_vote(trip_id, ( SELECT auth.uid() AS uid))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "activity_timelines",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "Trip owner can delete activity timelines",
+        "roles": [
+          "public"
+        ],
+        "using": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "Trip owner can insert activity timelines",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Trip owner can update activity timelines",
+        "roles": [
+          "public"
+        ],
+        "using": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Trip owner or collaborator can view activity timelines",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)) OR user_is_trip_collaborator(trip_id, ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "activity_votes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Trip members can view votes",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND user_can_access_trip(trip_id, ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "DELETE",
+        "name": "Users can delete own votes",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Users can update own votes",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "INSERT",
+        "name": "Voters can cast votes",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND user_can_vote(trip_id, ( SELECT auth.uid() AS uid)))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "ai_conversations",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "ALL",
+        "name": "Users can manage own conversations",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "ai_prompts",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Admins can create prompts",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      },
+      {
+        "cmd": "DELETE",
+        "name": "Admins can delete prompts",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "is_admin_user()",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Admins can update prompts",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "is_admin_user()",
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "ai_prompts_select",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((is_active = true) OR is_admin_user())",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "ai_usage",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Users can insert own usage",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Users can view own usage",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "anon_assistant_logs",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "anonymous_activity_votes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read anonymous votes",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "api_config",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "api_config_admin_insert",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "api_config_admin_update",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "is_admin_user()",
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "api_config_public_select",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "api_request_logs",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "api_request_logs_authenticated_select",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "banana_redemption_catalog",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can view catalog",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "banana_redemptions",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Users can view own redemptions",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "banana_transactions",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Users can view own banana transactions",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "contact_messages",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "anon can insert contact messages",
+        "roles": [
+          "anon"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(((length(name) >= 1) AND (length(name) <= 200)) AND ((length(email) >= 5) AND (length(email) <= 320)) AND (email ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'::text) AND (topic = ANY (ARRAY['support'::text, 'partnership'::text, 'press'::text, 'feedback'::text, 'other'::text])) AND ((length(message) >= 10) AND (length(message) <= 5000)) AND ((locale IS NULL) OR (length(locale) <= 8)) AND ((user_agent IS NULL) OR (length(user_agent) <= 500)) AND ((referer IS NULL) OR (length(referer) <= 500)) AND ((ip_hash IS NULL) OR (length(ip_hash) <= 64)))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "destination_activity_bank",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "destination_activity_bank_delete_service_role",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.role() AS role) = 'service_role'::text)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "name": "destination_activity_bank_select_consolidated",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "destination_activity_cache",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read destination_activity_cache",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "destinations",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "destinations_insert_authenticated",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.role() AS role) = 'authenticated'::text)"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "destinations_select_all",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "device_tokens",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "users delete own device_tokens",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "users insert own device_tokens",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "users read own device_tokens",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "distance_cache",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read distance cache",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "ALL",
+        "name": "Service role can manage distance cache",
+        "roles": [
+          "service_role"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": "true"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "email_log",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "email_log_select_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(recipient_email = (( SELECT users.email\n   FROM auth.users\n  WHERE (users.id = ( SELECT auth.uid() AS uid))))::text)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "email_subscribers",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "email_subscribers_anon_insert",
+        "roles": [
+          "anon",
+          "authenticated",
+          "service_role"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((email IS NOT NULL) AND ((length(email) >= 5) AND (length(email) <= 254)) AND (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'::text))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "email_subscribers_anon_select",
+        "roles": [
+          "anon",
+          "authenticated",
+          "service_role"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "fcdo_advisory_cache",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "fcdo_advisory_cache_select_public",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "funnel_events",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "funnel_events_insert_self",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((user_id IS NULL) OR (user_id = ( SELECT auth.uid() AS uid)))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "funnel_events_select_admin",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.jwt() AS jwt) ->> 'email'::text) = ANY (ARRAY['federicosciuca@gmail.com'::text, 'azzolina.francesca@gmail.com'::text, 'marinoenrico3@gmail.com'::text]))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "geo_cities",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "geo_cities_read_all",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "geocode_cache",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read geocode cache",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "ALL",
+        "name": "Service role can manage geocode cache",
+        "roles": [
+          "service_role"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": "true"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "google_places_cache",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read places cache",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "hostelworld_clicks",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "mcp_itineraries",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Public can read unclaimed itineraries",
+        "roles": [
+          "public"
+        ],
+        "using": "(claimed_by IS NULL)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Users can claim itineraries",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (claimed_by IS NULL))",
+        "permissive": true,
+        "with_check": "(claimed_by = ( SELECT auth.uid() AS uid))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "notifications",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "notifications_select_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "notifications_update_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "page_views",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Allow authenticated reads",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "page_views_anon_insert",
+        "roles": [
+          "anon",
+          "authenticated",
+          "service_role"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((path IS NOT NULL) AND (length(path) <= 2048))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "places_v2",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "places_v2_lookup",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "proposal_votes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Trip members can view proposal votes",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM activity_proposals p\n  WHERE ((p.id = proposal_votes.proposal_id) AND user_can_access_trip(p.trip_id, ( SELECT auth.uid() AS uid)))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "DELETE",
+        "name": "Users can delete own proposal votes",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Users can update own proposal votes",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "Voters can vote on proposals",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1\n   FROM activity_proposals p\n  WHERE ((p.id = proposal_votes.proposal_id) AND (p.status = ANY (ARRAY['pending'::text, 'voting'::text])) AND user_can_vote(p.trip_id, ( SELECT auth.uid() AS uid))))))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "push_log",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "users read own push_log",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "referral_codes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Users can insert own referral code",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "referral_codes_select_consolidated",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "referral_events",
+    "grants": {
+      "anon": [
+        "SELECT"
+      ],
+      "authenticated": [
+        "SELECT"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Users can view events for own referral code",
+        "roles": [
+          "public"
+        ],
+        "using": "(referral_code_id IN ( SELECT referral_codes.id\n   FROM referral_codes\n  WHERE (referral_codes.user_id = ( SELECT auth.uid() AS uid))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "referral_events_service_role_update",
+        "roles": [
+          "service_role"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": "true"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "referral_tiers",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "referral_tiers_select_consolidated",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "scheduled_notifications",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "sn_select_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "site_config",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read site config",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "site_config_admin_insert",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "site_config_admin_update",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "is_admin_user()",
+        "permissive": true,
+        "with_check": "is_admin_user()"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "spatial_ref_sys",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": false
+  },
+  {
+    "table": "tester_codes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "tester_codes_delete",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "tester_codes_insert",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "tester_codes_select",
+        "roles": [
+          "public"
+        ],
+        "using": "((is_active = true) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "tester_codes_update",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_calendar_syncs",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "tcs_select_owner_or_collab",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_calendar_syncs.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators tc\n  WHERE ((tc.trip_id = trip_calendar_syncs.trip_id) AND (tc.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_checklists",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "trip_checklists_delete",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_checklists.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid)))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_checklists_insert",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_checklists.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid)))))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trip_checklists_select",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_checklists.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid)))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "trip_checklists_update",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_checklists.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid)))))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_collaborators",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Trip owners can insert collaborators",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Trip owners can update collaborators",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "DELETE",
+        "name": "trip_collaborators_delete_consolidated",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((user_id = ( SELECT auth.uid() AS uid)) OR user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trip_collaborators_select_consolidated",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)) OR user_is_trip_collaborator(trip_id, ( SELECT auth.uid() AS uid)) OR (user_id = ( SELECT auth.uid() AS uid)))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_deletion_feedback",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "trip_deletion_feedback_insert_own",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_expense_splits",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "trip_expense_splits_delete_creator_or_owner",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM (trip_expenses e\n     LEFT JOIN trips t ON ((t.id = e.trip_id)))\n  WHERE ((e.id = trip_expense_splits.expense_id) AND ((e.created_by = ( SELECT auth.uid() AS uid)) OR (t.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_expense_splits_insert_creator_or_owner",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(EXISTS ( SELECT 1\n   FROM (trip_expenses e\n     LEFT JOIN trips t ON ((t.id = e.trip_id)))\n  WHERE ((e.id = trip_expense_splits.expense_id) AND ((e.created_by = ( SELECT auth.uid() AS uid)) OR (t.user_id = ( SELECT auth.uid() AS uid))))))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trip_expense_splits_select_member",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM (trip_expenses e\n     JOIN trips t ON ((t.id = e.trip_id)))\n  WHERE ((e.id = trip_expense_splits.expense_id) AND ((t.user_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM trip_collaborators tc\n          WHERE ((tc.trip_id = e.trip_id) AND (tc.user_id = ( SELECT auth.uid() AS uid)))))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "trip_expense_splits_update_creator_or_owner",
+        "roles": [
+          "public"
+        ],
+        "using": "(EXISTS ( SELECT 1\n   FROM (trip_expenses e\n     LEFT JOIN trips t ON ((t.id = e.trip_id)))\n  WHERE ((e.id = trip_expense_splits.expense_id) AND ((e.created_by = ( SELECT auth.uid() AS uid)) OR (t.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": "(EXISTS ( SELECT 1\n   FROM (trip_expenses e\n     LEFT JOIN trips t ON ((t.id = e.trip_id)))\n  WHERE ((e.id = trip_expense_splits.expense_id) AND ((e.created_by = ( SELECT auth.uid() AS uid)) OR (t.user_id = ( SELECT auth.uid() AS uid))))))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_expenses",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "trip_expenses_delete_creator_or_owner",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) = created_by) OR (EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_expenses.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_expenses_insert_member",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((( SELECT auth.uid() AS uid) = created_by) AND ((EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_expenses.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators tc\n  WHERE ((tc.trip_id = trip_expenses.trip_id) AND (tc.user_id = ( SELECT auth.uid() AS uid)))))))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trip_expenses_select_member",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_expenses.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators tc\n  WHERE ((tc.trip_id = trip_expenses.trip_id) AND (tc.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "trip_expenses_update_creator_or_owner",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) = created_by) OR (EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_expenses.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))))",
+        "permissive": true,
+        "with_check": "((( SELECT auth.uid() AS uid) = created_by) OR (EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_expenses.trip_id) AND (t.user_id = ( SELECT auth.uid() AS uid))))))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_invites",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "Owners and editors can create invites",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))"
+      },
+      {
+        "cmd": "DELETE",
+        "name": "Owners and editors can delete invites",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "Owners and editors can update invites",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Owners and editors can view invites",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_itinerary_snapshots",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_likes",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "trip_likes_public_read",
+        "roles": [
+          "public"
+        ],
+        "using": "((EXISTS ( SELECT 1\n   FROM trips t\n  WHERE ((t.id = trip_likes.trip_id) AND (t.visibility = 'public'::text) AND (t.is_hidden = false)))) OR ((( SELECT auth.uid() AS uid) IS NOT NULL) AND (user_id = ( SELECT auth.uid() AS uid))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "DELETE",
+        "name": "trip_likes_self_delete",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_likes_self_insert",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_reports",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_saves",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "trip_saves_self_delete",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_saves_self_insert",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trip_saves_self_read",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trip_views",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Public can read trip views for public trips",
+        "roles": [
+          "public"
+        ],
+        "using": "(trip_id IN ( SELECT trips.id\n   FROM trips\n  WHERE (trips.visibility = 'public'::text)))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trip_views_anon_insert",
+        "roles": [
+          "anon",
+          "authenticated",
+          "service_role"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(trip_id IS NOT NULL)"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "trips",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "trips_delete_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "trips_insert_own",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "trips_select_consolidated",
+        "roles": [
+          "public"
+        ],
+        "using": "((deleted_at IS NULL) AND ((user_id = ( SELECT auth.uid() AS uid)) OR (share_token IS NOT NULL) OR ((is_template = true) AND (visibility = 'public'::text)) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trips.id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid))))) OR ((visibility = 'public'::text) AND (share_token IS NOT NULL) AND (is_hidden = false))))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "trips_update",
+        "roles": [
+          "public"
+        ],
+        "using": "((deleted_at IS NULL) AND ((user_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trips.id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = 'editor'::text))))))",
+        "permissive": true,
+        "with_check": "((user_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trips.id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = 'editor'::text)))))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "user_calendar_connections",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "ucc_select_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "user_feedback",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "user_tester_access",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "name": "user_tester_access_delete",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "name": "user_tester_access_insert",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "user_tester_access_select",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "user_tester_access_update",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "permissive": true,
+        "with_check": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "user_usage",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "ALL",
+        "name": "Service role can manage usage",
+        "roles": [
+          "service_role"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": "true"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "Users can view their own usage",
+        "roles": [
+          "public"
+        ],
+        "using": "(( SELECT auth.uid() AS uid) = user_id)",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "users",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "users_insert_own",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "(id = ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "users_select_public",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "name": "users_update_own",
+        "roles": [
+          "public"
+        ],
+        "using": "(id = ( SELECT auth.uid() AS uid))",
+        "permissive": true,
+        "with_check": "(id = ( SELECT auth.uid() AS uid))"
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "weather_cache",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "wizard_step_events",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "name": "wizard_step_events_insert_self",
+        "roles": [
+          "public"
+        ],
+        "using": null,
+        "permissive": true,
+        "with_check": "((user_id IS NULL) OR (user_id = ( SELECT auth.uid() AS uid)))"
+      },
+      {
+        "cmd": "SELECT",
+        "name": "wizard_step_events_select_admin",
+        "roles": [
+          "public"
+        ],
+        "using": "((( SELECT auth.jwt() AS jwt) ->> 'email'::text) = ANY (ARRAY['federicosciuca@gmail.com'::text, 'azzolina.francesca@gmail.com'::text, 'marinoenrico3@gmail.com'::text]))",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  }
+]
