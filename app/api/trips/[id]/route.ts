@@ -170,32 +170,62 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
  *
  * Recovery: `UPDATE trips SET deleted_at = NULL WHERE id = '...'` from
  * the Supabase SQL editor. Self-serve restore UI is a follow-up.
+ *
+ * 2026-08-19 — WHY THIS GOES THROUGH AN RPC
+ * The direct UPDATE above never worked. From the day soft-delete shipped
+ * (2026-06-08) until today, every user's delete failed with 42501 "new row
+ * violates row-level security policy", surfaced as a 500. It read as rare
+ * (2 error events, 1 user) only because deleting a trip is rare; the write
+ * was impossible, not flaky. The 14 rows carrying deleted_at were all
+ * written by the service role, which bypasses RLS.
+ *
+ * Two policies blocked it independently, which is why the first fix was not
+ * enough:
+ *   1. trips_update had USING (deleted_at IS NULL AND ...) and no WITH
+ *      CHECK. Postgres copies USING into WITH CHECK when it is omitted, so
+ *      the tombstone was rejected for having deleted_at set. The original
+ *      migration's comment — "No WITH CHECK so we don't trap the soft-delete
+ *      itself" — asserted the exact opposite of the documented behaviour.
+ *   2. Even with that corrected, trips_select_consolidated is
+ *      `deleted_at IS NULL AND (...)`, so a tombstone matches NO select
+ *      branch and the new row is unreachable.
+ *
+ * Relaxing (2) was rejected: 61 files query `trips` and only one filters
+ * deleted_at itself, so that policy is what hides deleted trips everywhere.
+ * Loosening it would make deleted trips reappear across the product.
+ *
+ * So the one write that must legitimately produce an invisible row goes
+ * through soft_delete_trip(), a SECURITY DEFINER function that bypasses RLS
+ * and re-checks ownership itself. It is owner-only (an editor collaborator
+ * may edit a trip but must not delete it) and idempotent.
  */
 export async function DELETE(request: NextRequest, context: TripRouteContext) {
   try {
     const { id } = await context.params;
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    // `user` is intentionally not destructured: the RPC derives the caller
+    // from auth.uid() server-side rather than trusting an id passed in.
+    // This call still gates the route on a valid session via errorResponse,
+    // and the function refuses an anonymous caller as a second line.
+    const { supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Soft-delete: stamp deleted_at instead of removing the row. The
-    // updated UPDATE-policy USING clause requires deleted_at IS NULL on
-    // the OLD row, so a double-delete from a stale UI hits the WHERE
-    // filter (0 rows match) and returns success — idempotent. The
-    // explicit `.is("deleted_at", null)` guard makes that behavior
-    // legible regardless of any future RLS reshuffle.
-    const { error } = await supabase
-      .from("trips")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .is("deleted_at", null);
+    // Ownership and the deleted_at guard both live inside the function —
+    // see the RPC's definition and the header note above for why this
+    // cannot be a plain .update() through RLS.
+    const { data: deleted, error } = await supabase.rpc("soft_delete_trip", {
+      p_trip_id: id,
+    });
 
     if (error) {
       console.error("[Trips] Error soft-deleting trip:", error);
       return errors.internal("Failed to delete trip", "Trips");
     }
 
-    return apiSuccess({ success: true });
+    // `false` means nothing was tombstoned: already deleted, already gone, or
+    // not this user's trip. All three are reported as success, which keeps a
+    // double-tap from a stale UI idempotent and tells a prober nothing about
+    // whether some other user's trip id exists.
+    return apiSuccess({ success: true, deleted: deleted === true });
   } catch (error) {
     console.error("[Trips] Error soft-deleting trip:", error);
     return errors.internal("Failed to delete trip", "Trips");
