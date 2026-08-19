@@ -1,3 +1,27 @@
+/**
+ * Batch geocoding — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
+ *
+ * `google_geocoding` has been disabled in `api_config` since 2025-12-06 on cost
+ * grounds, so this route returns 503 to every caller. It has no callers left:
+ * c91cb8e removed the three that remained, because a 503 is not a useful thing
+ * to send a user (HotelRecommendations was rendering "Could not find
+ * destination coordinates" at them, for a failure no retry could fix).
+ *
+ * It is kept deliberately so reconnecting is cheap if the cost calculus
+ * changes. To bring it back:
+ *   1. Flip api_config.enabled = true for 'google_geocoding'.
+ *   2. TripMap — restore the batch call in Step 2. Step 1 still groups
+ *      address-only activities into `addressToActivityMap` precisely so the
+ *      call slots back in with nothing else to rewire.
+ *   3. HotelRecommendations — restore the destination-geocoding fallback in
+ *      fetchHotels() for the `coverage < 30` branch (see c91cb8e for the exact
+ *      code, including the bestGeocodingAddress memo it depended on).
+ *   4. app/api/trips/[id]/backfill-coordinates was deleted in the same commit;
+ *      recover from git history if the legacy-trip backfill is wanted again.
+ *
+ * geocode_cache is server-write-only as of cb1d35f, so writes here go through
+ * the service role (cacheAdminDb) — that part needs no change.
+ */
 import { NextRequest } from "next/server";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";

@@ -1,3 +1,19 @@
+/**
+ * Distance Matrix — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
+ *
+ * `google_distance_matrix` has been disabled in `api_config` since 2025-12-06
+ * on cost grounds, so this route returns 503. It had ZERO callers even before
+ * that: nothing in app/, lib/, components/ or hooks/ references it, and the
+ * scheduler falls back to the local haversine estimate in
+ * lib/utils/travel-estimation (already imported below).
+ *
+ * Kept deliberately so reconnecting is cheap. To bring it back, flip
+ * api_config.enabled for 'google_distance_matrix' and wire a caller; the
+ * caching, batching and mode-selection logic here is intact.
+ *
+ * distance_cache is server-write-only as of cb1d35f, so writes go through the
+ * service role (cacheAdminDb) — that part needs no change.
+ */
 import { NextRequest } from "next/server";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";
