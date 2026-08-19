@@ -245,57 +245,23 @@ export default function TripMap({
         }
       }
 
-      // Step 2: Batch geocode via server-side cached API (NOT client-side!)
-      // ONLY if API calls are enabled
-      if (addressesToGeocode.length > 0 && !disableApiCalls) {
-        try {
-          const response = await fetch("/api/travel/geocode", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ addresses: addressesToGeocode }),
+      // Step 2: activities that only have an address get no marker.
+      //
+      // This used to batch-geocode them through /api/travel/geocode. That API
+      // has been disabled in api_config since 2025-12-06 on cost grounds, so
+      // every call returned 503 and fell straight into the failure branch that
+      // pushed these activities without a location — exactly what the loop
+      // below does. The request was pure latency plus a logged error, and
+      // removing it changes nothing a user sees.
+      //
+      // Step 1 still groups these by address into addressToActivityMap, so if
+      // geocoding is ever re-enabled the batch call slots back in here.
+      for (const [, activityList] of addressToActivityMap) {
+        for (const { day, activity } of activityList) {
+          mappedActivities.push({
+            ...activity,
+            dayNumber: day.day_number,
           });
-
-          if (response.ok) {
-            const data = await response.json();
-            const geocodedMap = new Map<string, { lat: number; lng: number }>();
-
-            for (const result of data.results || []) {
-              geocodedMap.set(result.address, { lat: result.lat, lng: result.lng });
-            }
-
-            // Map geocoded results back to activities
-            for (const [address, activityList] of addressToActivityMap) {
-              const coords = geocodedMap.get(address);
-              for (const { day, activity } of activityList) {
-                mappedActivities.push({
-                  ...activity,
-                  dayNumber: day.day_number,
-                  resolvedLocation: coords,
-                });
-              }
-            }
-          } else {
-            // API failed - add activities without locations
-            for (const [, activityList] of addressToActivityMap) {
-              for (const { day, activity } of activityList) {
-                mappedActivities.push({
-                  ...activity,
-                  dayNumber: day.day_number,
-                });
-              }
-            }
-          }
-        } catch (error) {
-          console.error("[TripMap] Geocoding error:", error);
-          // On error, add activities without locations
-          for (const [, activityList] of addressToActivityMap) {
-            for (const { day, activity } of activityList) {
-              mappedActivities.push({
-                ...activity,
-                dayNumber: day.day_number,
-              });
-            }
-          }
         }
       }
 

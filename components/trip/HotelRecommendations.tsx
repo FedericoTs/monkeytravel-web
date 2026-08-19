@@ -432,86 +432,6 @@ export default function HotelRecommendations({
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }, [startDate, endDate]);
 
-  // Extract the best address from itinerary for geocoding
-  // This solves the ambiguity problem (e.g., "Georgetown" could be DC or TX,
-  // but "710 S Main St, Georgetown, TX 78626" is unambiguous)
-  const bestGeocodingAddress = useMemo(() => {
-    // First, try to get an address from the first activity
-    for (const day of itinerary) {
-      for (const activity of day.activities) {
-        // Prefer full addresses with state/country info
-        if (activity.address && activity.address.length > 20) {
-          return activity.address;
-        }
-        // Fall back to location if available
-        if (activity.location && activity.location.length > 10) {
-          return activity.location;
-        }
-      }
-    }
-    // Last resort: use the destination (trip title)
-    return destination;
-  }, [itinerary, destination]);
-
-  // Fetch hotels via geocoding (fallback when no activity coordinates)
-  // Uses SERVER-SIDE CACHED geocoding to avoid direct Google API costs
-  const fetchHotelsViaGeocoding = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setSearchMode("destination");
-
-    try {
-      // Use the best available address for geocoding (solves ambiguity)
-      // e.g., "Georgetown, TX 78626" instead of just "Georgetown"
-      const geocodeQuery = bestGeocodingAddress;
-      console.log("[HotelRecommendations] Geocoding with:", geocodeQuery);
-
-      // Use server-side cached geocoding API instead of direct Google API call
-      // This saves ~$0.005 per request via Supabase cache
-      const geocodeResponse = await fetch("/api/travel/geocode", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addresses: [geocodeQuery] }),
-      });
-      const geocodeData = await geocodeResponse.json();
-
-      if (!geocodeResponse.ok || !geocodeData.results?.[0]) {
-        throw new Error("Could not find destination coordinates");
-      }
-
-      const location = {
-        lat: geocodeData.results[0].lat,
-        lng: geocodeData.results[0].lng,
-      };
-      console.log("[HotelRecommendations] Geocoded to:", location, geocodeData.results[0].formattedAddress);
-
-      // Now search for hotels near that location
-      const params = new URLSearchParams({
-        latitude: location.lat.toString(),
-        longitude: location.lng.toString(),
-        radius: "10000", // 10km default radius for destination search
-        destination,
-        startDate, // Pass trip dates for booking links
-        endDate,
-      });
-
-      const response = await fetch(`/api/hotels/places?${params}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch hotels");
-      }
-
-      setHotels(data.hotels || []);
-      setHasLoaded(true);
-    } catch (err) {
-      console.error("Error fetching hotels via geocoding:", err);
-      setError(err instanceof Error ? err.message : "Failed to load hotels");
-    } finally {
-      setLoading(false);
-    }
-  }, [bestGeocodingAddress, destination, startDate, endDate]);
-
   // Fetch hotels using activity centroid
   const fetchHotelsViaGeoCenter = useCallback(async () => {
     if (!geoCenter) return;
@@ -547,15 +467,25 @@ export default function HotelRecommendations({
     }
   }, [geoCenter, destination, startDate, endDate]);
 
-  // Fetch hotels - prefer geo center, fallback to destination geocoding
+  // Fetch hotels from the itinerary geo centre, or report none.
   const fetchHotels = useCallback(async () => {
     if (geoCenter && geoCenter.coverage >= 30) {
       await fetchHotelsViaGeoCenter();
-    } else {
-      // Fallback: geocode destination and search nearby
-      await fetchHotelsViaGeocoding();
+      return;
     }
-  }, [geoCenter, fetchHotelsViaGeoCenter, fetchHotelsViaGeocoding]);
+    // No usable coordinates from the itinerary, and there is no longer a
+    // destination-geocoding fallback: /api/travel/geocode has been disabled in
+    // api_config since 2025-12-06 on cost grounds, so that path returned 503
+    // and surfaced "Could not find destination coordinates" to the user — an
+    // error message for something that was never their problem and that no
+    // retry could fix.
+    //
+    // An empty result renders the existing "no hotels" state instead, which is
+    // the honest outcome: without coordinates we genuinely cannot locate any.
+    setHotels([]);
+    setError(null);
+    setHasLoaded(true);
+  }, [geoCenter, fetchHotelsViaGeoCenter]);
 
   // Auto-fetch when section becomes visible (lazy loading)
   useEffect(() => {
