@@ -5,6 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import { getAllTagSlugs, resolveTagDisplay, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { retiredTagTarget } from "@/lib/blog/retired-tags";
+import { tagAlternateSlugs } from "@/lib/blog/tag-alternates";
+import type { Locale } from "@/lib/blog/tag-taxonomy";
 import { tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
@@ -49,13 +51,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = t("tag.metaTitle", { tag: display });
   const description = t("tag.metaDescription", { tag: display, count: posts.length });
 
-  // hreflang alternates — only emit for locales that actually have this tag
+  // hreflang alternates — only emit for locales that actually have this tag.
+  //
+  // Tags are LOCALIZED, so the equivalent archive in another locale lives at a
+  // different slug: /blog/tag/europe is /it/blog/tag/europa. This used to test
+  // the same slug in every locale, which linked only the handful spelled
+  // identically across languages (`asia`) and left 71 of 80 sitemap tag URLs
+  // hreflang-isolated — some of them asymmetric, which Google discards outright.
+  // lib/blog/tag-alternates.ts reads the taxonomy backwards to get the right
+  // slug per locale. Unknown slugs fall back to the old same-slug behaviour.
+  const alternates = tagAlternateSlugs(tag, locale);
   const languages: Record<string, string> = {};
   for (const l of routing.locales) {
-    if (resolveTagDisplay(tag, l)) {
-      const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-      languages[l] = `${SITE_URL}${prefix}/blog/tag/${tag}`;
-    }
+    const localeSlug = alternates ? alternates[l as Locale] : tag;
+    if (!localeSlug) continue;
+    if (!resolveTagDisplay(localeSlug, l)) continue;
+    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
+    languages[l] = `${SITE_URL}${prefix}/blog/tag/${localeSlug}`;
   }
   if (languages[routing.defaultLocale]) {
     languages["x-default"] = languages[routing.defaultLocale];
