@@ -36,36 +36,64 @@ function localeFrontmatter(locale: string) {
   return fm;
 }
 
-/** Related links for `slug` that share at least one tag with it. */
-function tagMatchedLinks(slug: string, locale: string): number {
-  const own = localeFrontmatter(locale).find((f) => f.slug === slug);
-  if (!own) return 0;
-  const tags = new Set(own.tags);
-  return getRelatedPosts(slug, 3, locale).filter((r) =>
-    r.tags.some((t) => tags.has(t))
-  ).length;
+/**
+ * Every metric this file asserts, computed in ONE pass per locale and memoized.
+ *
+ * getRelatedPosts calls getAllFrontmatter internally on every invocation, and
+ * that is React-`cache()`d — a no-op outside a request context — so each call
+ * re-reads all 84 markdown files. Running the two assertions separately meant
+ * 84 calls x 84 reads x 4 locales, TWICE: ~56k file reads, which pushed the
+ * file past 120s under load and made it fail intermittently on timeout rather
+ * than on anything real.
+ *
+ * Sharing one memoized pass halves the work and makes each test O(1) after the
+ * first locale it touches.
+ */
+interface LocaleStats {
+  posts: number;
+  /** Related links whose post shares at least one tag with the current post. */
+  tagMatched: number;
+  /** Distinct related-post triples — low means everything links to the same 3. */
+  distinctSets: number;
+}
+
+const statsCache = new Map<string, LocaleStats>();
+
+function stats(locale: string): LocaleStats {
+  const cached = statsCache.get(locale);
+  if (cached) return cached;
+
+  const all = localeFrontmatter(locale);
+  const sets = new Set<string>();
+  let tagMatched = 0;
+
+  for (const own of all) {
+    const tags = new Set(own.tags);
+    const related = getRelatedPosts(own.slug, 3, locale);
+    tagMatched += related.filter((r) => r.tags.some((t) => tags.has(t))).length;
+    sets.add(related.map((r) => r.slug).join("|"));
+  }
+
+  const computed: LocaleStats = { posts: all.length, tagMatched, distinctSets: sets.size };
+  statsCache.set(locale, computed);
+  return computed;
 }
 
 describe("getRelatedPosts — locale is honoured", () => {
   it.each(LOCALES)("%s: related posts are mostly tag-matched, not category-only", (locale) => {
-    const slugs = localeFrontmatter(locale).map((f) => f.slug);
-    const matched = slugs.reduce((n, s) => n + tagMatchedLinks(s, locale), 0);
+    const { posts, tagMatched } = stats(locale);
 
     // Pre-fix pt scored 2/252 (0.8%). Post-fix all four locales sit above 45%.
     // 25% is a floor that the bug cannot pass but healthy content clears easily.
-    const ratio = matched / (slugs.length * 3);
-    expect(ratio).toBeGreaterThan(0.25);
+    expect(tagMatched / (posts * 3)).toBeGreaterThan(0.25);
   }, SCAN_TIMEOUT);
 
   it.each(LOCALES)("%s: related sets are varied, not the same recent posts everywhere", (locale) => {
-    const slugs = localeFrontmatter(locale).map((f) => f.slug);
-    const sets = new Set(
-      slugs.map((s) => getRelatedPosts(s, 3, locale).map((r) => r.slug).join("|"))
-    );
+    const { posts, distinctSets } = stats(locale);
 
     // Pre-fix: pt produced 26 distinct sets across 84 posts, one of them on 20
     // pages. Post-fix every locale produces 60+.
-    expect(sets.size).toBeGreaterThan(slugs.length * 0.5);
+    expect(distinctSets).toBeGreaterThan(posts * 0.5);
   }, SCAN_TIMEOUT);
 
   it("pt draws the current post's tags from the pt file, not the English one", () => {
