@@ -307,7 +307,20 @@ export function getRelatedPosts(
   limit = 3,
   locale = "en"
 ): BlogFrontmatter[] {
-  const current = parseFrontmatter(slug);
+  // The locale MUST be passed through here. Without it this parsed the ENGLISH
+  // file while `all` below holds LOCALIZED frontmatter, so the two tag sets were
+  // drawn from different languages and overlapped almost never: pt matched a tag
+  // on 2 of 252 related links (82 of 84 posts had zero overlap), leaving every
+  // score to collapse onto the +2 category bonus. Ties then resolve by
+  // publishedAt DESC, so nearly every post in a category showed the SAME three
+  // most-recent posts — one identical set of related links appeared on 20 of the
+  // 84 pt posts. it/es were less severe only because some of their tags happen to
+  // be untranslated proper nouns.
+  //
+  // parseFrontmatter falls back to the English file when a locale file is
+  // missing, and getAllFrontmatter falls back the same way per post, so both
+  // sides stay in the same language for EN-only posts too.
+  const current = parseFrontmatter(slug, locale);
   if (!current) return [];
 
   const all = getAllFrontmatter(locale);
