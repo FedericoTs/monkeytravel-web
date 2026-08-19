@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { safeImageFetch } from "@/lib/api/safe-image-fetch";
 
 // Abuse ceiling for the generic media proxy — generous for real pages,
 // hostile to scripted egress/bandwidth abuse.
@@ -97,20 +98,26 @@ export async function GET(request: NextRequest) {
     return new Response("Host not allowed", { status: 400 });
   }
 
-  let upstream: Response;
-  try {
-    upstream = await fetchWithRetry(parsed.toString(), {
-      headers: {
-        // Identify as a generic fetcher. Some CDNs (Pexels via Cloudflare)
-        // serve 504 to browser User-Agents but 200 to non-browser fetches.
-        "User-Agent": "MonkeyTravelImageProxy/1.0 (+https://monkeytravel.app)",
-        Accept: "image/*",
-      },
-      redirect: "follow",
-    });
-  } catch {
-    return new Response("Upstream fetch failed", { status: 502 });
+  // Redirects are followed one hop at a time with ALLOWED_HOSTS re-checked
+  // against each target, because the checks above only ever guarded hop zero:
+  // an allowlisted host answering 302 could previously send us anywhere.
+  // safeImageFetch also applies the internal-address block this route never
+  // had. fetchWithRetry is passed through so the existing 5xx retry survives.
+  const fetched = await safeImageFetch(parsed.toString(), {
+    allowedHosts: ALLOWED_HOSTS,
+    fetchImpl: (u, i) => fetchWithRetry(u, i),
+    headers: {
+      // Identify as a generic fetcher. Some CDNs (Pexels via Cloudflare)
+      // serve 504 to browser User-Agents but 200 to non-browser fetches.
+      "User-Agent": "MonkeyTravelImageProxy/1.0 (+https://monkeytravel.app)",
+      Accept: "image/*",
+    },
+  });
+
+  if (!fetched.ok) {
+    return new Response(fetched.reason, { status: fetched.status });
   }
+  const upstream = fetched.response;
 
   if (!upstream.ok || !upstream.body) {
     return new Response(`Upstream ${upstream.status}`, { status: upstream.status });

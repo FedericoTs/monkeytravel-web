@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { safeImageFetch } from "@/lib/api/safe-image-fetch";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -174,13 +175,26 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Image Proxy] Cache MISS for ${url.hostname}`);
 
-    // Fetch the image
-    const response = await fetch(decodedUrl, {
+    // Fetch the image. The allowlist and internal-address checks above only
+    // guarded the URL the caller supplied; this re-applies both to every
+    // redirect target, since fetch's default redirect:"follow" would otherwise
+    // have carried us off-allowlist on a 302 from an allowlisted host.
+    // isDomainAllowed is passed as a predicate so the suffix matching this
+    // route relies on (e.g. any *.googleusercontent.com) is preserved exactly.
+    const fetched = await safeImageFetch(decodedUrl, {
+      allowedHosts: isDomainAllowed,
       headers: {
         "User-Agent": "MonkeyTravel/1.0 (PDF Generator)",
         "Accept": "image/*",
       },
     });
+
+    if (!fetched.ok) {
+      return fetched.status === 403
+        ? errors.forbidden(fetched.reason)
+        : errors.serviceUnavailable(`Failed to fetch image: ${fetched.reason}`);
+    }
+    const response = fetched.response;
 
     if (!response.ok) {
       return errors.serviceUnavailable(`Failed to fetch image (status: ${response.status})`);
@@ -258,13 +272,22 @@ export async function POST(request: NextRequest) {
             };
           }
 
-          // Fetch if not cached
-          const response = await fetch(imageUrl, {
+          // Fetch if not cached. Same per-hop validation as GET — and note
+          // this batch path checked isDomainAllowed but NOT the internal
+          // address list that GET applies, so routing it through the helper
+          // closes that gap as well as the redirect one.
+          const fetched = await safeImageFetch(imageUrl, {
+            allowedHosts: isDomainAllowed,
             headers: {
               "User-Agent": "MonkeyTravel/1.0 (PDF Generator)",
               "Accept": "image/*",
             },
           });
+
+          if (!fetched.ok) {
+            return { url: imageUrl, error: fetched.reason };
+          }
+          const response = fetched.response;
 
           if (!response.ok) {
             return { url: imageUrl, error: `HTTP ${response.status}` };
