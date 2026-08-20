@@ -463,7 +463,7 @@ interface FeedbackOutreachCopy {
 
 export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
   en: {
-    subject: (n) => (n ? `${n}, can I ask you something?` : "Can I ask you something?"),
+    subject: () => "What should we build next?",
     preview: "You've actually used MonkeyTravel — your honest take would mean a lot.",
     heading: (n) => (n ? `Hi ${n}, can I ask a quick favor?` : "Can I ask a quick favor?"),
     lead: "You've actually planned a trip with MonkeyTravel — which makes your opinion the one we trust most.",
@@ -472,7 +472,7 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     copyLink: "Or copy this link into your browser:",
   },
   es: {
-    subject: (n) => (n ? `${n}, ¿te puedo preguntar algo?` : "¿Te puedo preguntar algo?"),
+    subject: () => "¿Qué construimos ahora?",
     preview: "Ya has usado MonkeyTravel — tu opinión sincera significaría mucho.",
     heading: (n) => (n ? `Hola ${n}, ¿te pido un favor rápido?` : "¿Te pido un favor rápido?"),
     lead: "Has planeado un viaje con MonkeyTravel, así que tu opinión es la que más nos importa.",
@@ -481,7 +481,7 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     copyLink: "O copia este enlace en tu navegador:",
   },
   it: {
-    subject: (n) => (n ? `${n}, posso farti una domanda?` : "Posso farti una domanda?"),
+    subject: () => "Cosa costruiamo adesso?",
     preview: "Hai già usato MonkeyTravel — la tua opinione sincera conterebbe molto.",
     heading: (n) => (n ? `Ciao ${n}, posso chiederti un favore veloce?` : "Posso chiederti un favore veloce?"),
     lead: "Hai organizzato un viaggio con MonkeyTravel, quindi la tua opinione è quella che ci interessa di più.",
@@ -490,7 +490,7 @@ export const feedbackOutreachCopy: Record<EmailLocale, FeedbackOutreachCopy> = {
     copyLink: "Oppure copia questo link nel browser:",
   },
   pt: {
-    subject: (n) => (n ? `${n}, posso te fazer uma pergunta?` : "Posso te fazer uma pergunta?"),
+    subject: () => "O que a gente constrói agora?",
     preview: "Você já usou o MonkeyTravel — sua opinião sincera valeria muito.",
     heading: (n) => (n ? `Oi ${n}, posso te pedir um favor rápido?` : "Posso te pedir um favor rápido?"),
     lead: "Você planejou uma viagem com o MonkeyTravel, então sua opinião é a que mais importa para nós.",
