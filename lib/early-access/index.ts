@@ -287,13 +287,3 @@ export async function validateCode(
   return { valid: true };
 }
 
-/**
- * Decrement free_trips_remaining for a user after using their free trip.
- *
- * No-op since the beta gate was removed 2026-05-23. Free-trip accounting is
- * no longer enforced. Returns a large sentinel so any caller using the return
- * value as "remaining" displays as effectively unlimited.
- */
-export async function decrementFreeTrips(_userId: string): Promise<number> {
-  return 999;
-}

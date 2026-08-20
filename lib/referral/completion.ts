@@ -52,7 +52,7 @@ export async function completeReferralIfEligible(
     // Get user's referral info
     const { data: currentUser, error: userError } = await supabase
       .from("users")
-      .select("referred_by_code, referral_completed_at, free_trips_remaining")
+      .select("referred_by_code, referral_completed_at")
       .eq("id", userId)
       .single();
 

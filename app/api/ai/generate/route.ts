@@ -20,7 +20,7 @@ import {
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkEarlyAccess, incrementEarlyAccessUsage, decrementFreeTrips } from "@/lib/early-access";
+import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -490,7 +490,6 @@ export async function POST(request: NextRequest) {
         // The early-access counters are no-ops now (see lib/early-access)
         // but kept in case a paywall ever lands.
         await incrementUsage(user.id, "aiGenerations", 1);
-        await decrementFreeTrips(user.id);
         await incrementEarlyAccessUsage(user.id, "generation");
 
         updatedUsage = {

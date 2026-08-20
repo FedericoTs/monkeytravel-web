@@ -69,7 +69,6 @@ export default function CompleteProfilePage() {
               preferences,
               notification_settings: notificationSettings,
               onboarding_completed: true,
-              free_trips_remaining: 1,
             })
             .eq("id", user.id);
 
@@ -96,7 +95,7 @@ export default function CompleteProfilePage() {
         }
       } else {
         // No local preferences - redirect immediately
-        // The callback already set onboarding_completed and free_trips_remaining
+        // The callback already set onboarding_completed
         router.push(redirectUrl);
       }
     };

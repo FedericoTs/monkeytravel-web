@@ -247,11 +247,6 @@ export async function GET(request: Request) {
         // Check if user already completed onboarding before signup
         // If from_onboarding=true, they completed anonymous onboarding first
         const onboardingCompleted = fromOnboarding;
-        // Give all new users 2 free generations so they experience value before
-        // hitting the beta code gate. Previously: 1 if from onboarding, 0 otherwise
-        // — meaning most users were blocked immediately on their first attempt.
-        const freeTripsRemaining = 2;
-
         // Capture `error` here. Previously this upsert was fire-and-forget:
         // if RLS rejected the row or the network blipped, the user proceeded
         // to /trips/new with NO users row — silently breaking paywall, usage
@@ -267,7 +262,6 @@ export async function GET(request: Request) {
           preferred_language: locale,
           preferences: {}, // Will be filled by complete-profile page if from onboarding
           onboarding_completed: true, // Skip onboarding — users can personalize later in profile settings
-          free_trips_remaining: freeTripsRemaining,
           welcome_completed: true, // Skip welcome gate — go straight to trip creation
           trial_ends_at: getTrialEndDate().toISOString(), // 7-day trial for existing feature
           is_pro: false,

@@ -18,7 +18,6 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import {
   incrementEarlyAccessUsage,
-  decrementFreeTrips,
 } from "@/lib/early-access";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -451,7 +450,6 @@ export async function POST(request: NextRequest) {
             if (!cacheHit) {
               if (user) {
                 await incrementUsage(user.id, "aiGenerations", 1);
-                await decrementFreeTrips(user.id);
                 await incrementEarlyAccessUsage(user.id, "generation");
               } else {
                 await recordAnonymousGeneration();

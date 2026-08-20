@@ -233,8 +233,6 @@ function SignupForm() {
           quietHoursEnd: localPrefs.activeHoursStart,
         };
         profileData.onboarding_completed = true;
-        // Grant 1 free trip for new users who completed onboarding
-        profileData.free_trips_remaining = 1;
       } else {
         // No onboarding done - use defaults
         profileData.preferences = {};
@@ -249,8 +247,6 @@ function SignupForm() {
           marketingNotifications: true, // opt-out: subscribed by default; false is written ONLY on an explicit unsubscribe, making it a reliable opt-out signal
         };
         profileData.onboarding_completed = false;
-        // No free trips if onboarding not completed
-        profileData.free_trips_remaining = 0;
       }
 
       const { error: profileError } = await supabase
