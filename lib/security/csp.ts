@@ -72,6 +72,16 @@ export function buildCspHeader(nonce: string): string {
       // blocks the core collect call (analytics.google.com/g/collect) and
       // we silently lose GA measurement. Verified blocked in prod 2026-07-02.
       "https://analytics.google.com",
+      // ...and GA4 routes EU/UK traffic through REGIONAL subdomains
+      // (region1.analytics.google.com, region2., ...), which the apex entry
+      // above does not cover — a CSP `*.host` wildcard matches subdomains
+      // only, and a bare `host` matches only the apex, so BOTH are required.
+      // The 2026-07-02 fix restored measurement for US traffic and left every
+      // EU hit still blocked; observed again in prod 2026-08-19 on /pt with
+      // "Refused to connect to region1.analytics.google.com". That silently
+      // dropped pageviews from Italy, Spain and Portugal — the markets the
+      // localized content exists to reach.
+      "https://*.analytics.google.com",
       "https://stats.g.doubleclick.net",
       "https://www.google.com",
       "https://*.vercel-insights.com",
