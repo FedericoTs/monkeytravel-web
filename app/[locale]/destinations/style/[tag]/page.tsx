@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
+import { ogImages, twitterImages } from "@/lib/seo/og-image";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -67,8 +68,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       locale: ogLocale,
       alternateLocale,
+      images: ogImages(title),
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: twitterImages },
   };
 }
 

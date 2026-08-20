@@ -45,6 +45,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title: `${referrerName} invited you to MonkeyTravel!`,
       description: "Get 1 FREE AI-generated trip when you sign up.",
+      // Matches this page's OWN openGraph image, not the site-wide card:
+      // a referral landing page should preview as a referral.
+      images: ["/images/og-referral.jpg"],
     },
   };
 }

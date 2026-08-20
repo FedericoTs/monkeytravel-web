@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import TemplatesPageClient from "./TemplatesPageClient";
+import { ogImages } from "@/lib/seo/og-image";
 
 /**
  * Locale-aware metadata for /templates ("Curated Escapes").
@@ -30,6 +31,7 @@ export async function generateMetadata({
       title: `${title} | MonkeyTravel`,
       description,
       type: "website",
+      images: ogImages(`${title} | MonkeyTravel`),
     },
   };
 }

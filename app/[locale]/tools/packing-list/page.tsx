@@ -9,6 +9,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { getNonce } from "@/lib/security/nonce";
+import { ogImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -65,6 +66,7 @@ export async function generateMetadata({
       description: m.description,
       url: canonical,
       type: "website",
+      images: ogImages(m.title),
     },
   };
 }

@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
+import { ogImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -57,6 +58,7 @@ export async function generateMetadata({
       description: m.description,
       url: canonical,
       type: "website",
+      images: ogImages(m.title),
     },
   };
 }

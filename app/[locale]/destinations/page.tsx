@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { DestinationGrid, DestinationFeatured, DestinationLane } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
+import { ogImages } from "@/lib/seo/og-image";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -57,6 +58,7 @@ export async function generateMetadata({
       locale: ogLocale,
       alternateLocale,
       type: "website",
+      images: ogImages(title),
     },
   };
 }

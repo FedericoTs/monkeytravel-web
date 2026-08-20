@@ -14,6 +14,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ChatGPTImportClient from "./ChatGPTImportClient";
+import { ogImages } from "@/lib/seo/og-image";
 
 interface MCPItinerary {
   id: string;
@@ -70,6 +71,7 @@ export async function generateMetadata({
     openGraph: {
       title: `Your ${itinerary.days}-Day ${itinerary.destination} Itinerary`,
       description: `ChatGPT created this trip for you. Save it to MonkeyTravel to edit, share, and explore!`,
+      images: ogImages(`Your ${itinerary.days}-Day ${itinerary.destination} Itinerary`),
     },
   };
 }

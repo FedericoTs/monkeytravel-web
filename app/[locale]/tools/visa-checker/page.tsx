@@ -15,6 +15,7 @@ import { fetchGovukAdvisory } from "@/lib/visa/govuk-advisory";
 import VisaCheckerForm from "./VisaCheckerForm";
 import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
 import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
+import { ogImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -90,6 +91,7 @@ export async function generateMetadata({
       description,
       url: canonical,
       type: "website",
+      images: ogImages(title),
     },
   };
 }

@@ -9,6 +9,7 @@ import TripCard from "@/components/explore/TripCard";
 import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import type { BudgetTier } from "@/lib/explore/types";
+import { ogImages } from "@/lib/seo/og-image";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -90,6 +91,7 @@ export async function generateMetadata({
       description: t("metaDescription"),
       type: "website",
       url: canonical,
+      images: ogImages(`${t("pageTitle")} | MonkeyTravel`),
     },
     alternates: {
       canonical,
