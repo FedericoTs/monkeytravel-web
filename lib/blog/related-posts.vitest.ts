@@ -1,5 +1,5 @@
 /** @vitest-environment node */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { getRelatedPosts, getAllFrontmatter } from "./api";
 
 /**
@@ -18,7 +18,22 @@ import { getRelatedPosts, getAllFrontmatter } from "./api";
 
 const LOCALES = ["en", "it", "es", "pt"] as const;
 
-/** getRelatedPosts re-reads the content tree per call; see localeFrontmatter. */
+/**
+ * These suites are slow by construction, and the cost is an artifact of the
+ * TEST environment rather than a signal about production.
+ *
+ * getRelatedPosts calls getAllFrontmatter on every invocation. That is wrapped
+ * in React's `cache()`, which memoizes per request in production but is a
+ * plain no-op outside a request context — so in vitest every call re-reads all
+ * 84 markdown files: ~7k reads per locale, ~28k in total.
+ *
+ * The work is done once in beforeAll rather than inside whichever test happens
+ * to touch a locale first. Otherwise that one test absorbs the entire cost and
+ * fails on timeout under suite load while every other test passes — which it
+ * did, in a different locale each run, looking like flakiness in the assertion
+ * rather than in the setup.
+ */
+const SETUP_TIMEOUT = 240_000;
 const SCAN_TIMEOUT = 60_000;
 
 /**
@@ -78,6 +93,11 @@ function stats(locale: string): LocaleStats {
   statsCache.set(locale, computed);
   return computed;
 }
+
+beforeAll(() => {
+  // Warm every locale up front so the assertions below are O(1).
+  for (const locale of LOCALES) stats(locale);
+}, SETUP_TIMEOUT);
 
 describe("getRelatedPosts — locale is honoured", () => {
   it.each(LOCALES)("%s: related posts are mostly tag-matched, not category-only", (locale) => {
