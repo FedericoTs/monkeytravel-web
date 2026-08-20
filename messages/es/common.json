@@ -1,7 +1,7 @@
 {
   "feedbackSurvey": {
     "title": "Ayúdanos a mejorar MonkeyTravel",
-    "subtitle": "Has planificado viajes reales con nosotros. 30 segundos de opinión sincera significarían mucho.",
+    "subtitle": "Has planificado viajes reales con nosotros. Un minuto de opinión sincera significaría mucho.",
     "q1Label": "¿Para qué usas realmente MonkeyTravel?",
     "q1Placeholder": "p. ej. itinerarios día a día, encontrar restaurantes, compartir planes con amigos...",
     "q2Label": "¿Qué estuvo a punto de hacerte dejar de usarlo?",
@@ -26,7 +26,18 @@
     "privacyPolicy": "Política de Privacidad",
     "linkExpiredTitle": "Este enlace ha caducado",
     "linkExpiredBody": "No te preocupes: abre MonkeyTravel y aún podrás compartir tu opinión desde la página de tus viajes.",
-    "openApp": "Abrir MonkeyTravel"
+    "openApp": "Abrir MonkeyTravel",
+    "q5Label": "¿Cómo descubriste MonkeyTravel?",
+    "q5_search": "Google / buscador",
+    "q5_social": "Redes sociales",
+    "q5_friend": "Me lo contó alguien",
+    "q5_article": "Un blog o artículo",
+    "q5_ai": "ChatGPT u otra IA",
+    "q5_other": "De otra forma",
+    "q6Label": "Antes de un viaje, ¿te gustaría que te enviáramos cosas que vale la pena saber sobre tu destino?",
+    "q6_yes": "Sí",
+    "q6_maybe": "Quizá",
+    "q6_no": "No"
   },
   "navigation": {
     "features": "Características",

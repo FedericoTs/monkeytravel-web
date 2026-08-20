@@ -16,6 +16,23 @@ import { verifyFeedbackToken } from "@/lib/feedback/token";
 const SOURCES = ["in_app", "email_link", "newsletter"] as const;
 const WOULD = ["yes", "maybe", "no"] as const;
 
+/**
+ * Newer questions live in the `extra` jsonb column rather than as typed
+ * columns, so the question set can change without a migration each time.
+ *
+ * `found_via` is the one this survey most needed and did not have: acquisition
+ * is the binding constraint, and referrer data cannot answer it because
+ * session attribution breaks across the OAuth redirect. Asking is the only
+ * reliable channel signal available.
+ *
+ * `pretrip_content` tests a specific product bet — sending destination
+ * material as the trip approaches — before anyone builds it.
+ *
+ * Both are closed sets so the answers aggregate; free text here would be
+ * unanalysable at this sample size.
+ */
+const FOUND_VIA = ["search", "social", "friend", "article", "ai", "other"] as const;
+
 // 5 submissions/hour, keyed by user id when present, IP otherwise. This is the
 // only public write path into user_feedback (the table is RLS-locked and the
 // insert goes through the service-role client), so this limiter is the sole
@@ -88,12 +105,26 @@ export async function POST(request: NextRequest) {
   const almostStopped = clean(body.almost_stopped, 1500);
   const lastBooked = clean(body.last_booked_where, 200);
 
+  const foundViaRaw = typeof body.found_via === "string" ? body.found_via : "";
+  const foundVia = FOUND_VIA.includes(foundViaRaw as never) ? foundViaRaw : null;
+  const pretripRaw =
+    typeof body.pretrip_content === "string" ? body.pretrip_content : "";
+  const pretripContent = WOULD.includes(pretripRaw as never) ? pretripRaw : null;
+
+  // Only set keys that were actually answered — an `extra` full of nulls makes
+  // every later `->>` query ambiguous about "unanswered" vs "answered nothing".
+  const extra: Record<string, string> = {};
+  if (foundVia) extra.found_via = foundVia;
+  if (pretripContent) extra.pretrip_content = pretripContent;
+
   // Don't persist empty rows — require at least one substantive answer.
   if (
     !usesFor &&
     !almostStopped &&
     !lastBooked &&
     !would &&
+    !foundVia &&
+    !pretripContent &&
     !(openToChat && contactEmail)
   ) {
     return apiSuccess({ saved: false });
@@ -109,6 +140,7 @@ export async function POST(request: NextRequest) {
     would_book_through_us: would,
     open_to_chat: openToChat,
     contact_email: openToChat ? contactEmail : null,
+    extra,
   });
 
   if (error) {

@@ -92,6 +92,18 @@ export function verifyFeedbackToken(token: string): FeedbackVerifyResult {
   try {
     secret = getSecret();
   } catch {
+    // LOUD ON PURPOSE. Every failure reason below renders the same "this link
+    // has expired" page, which is the right message for a real expiry and a
+    // LIE when the secret is unset: in that state every recipient of an
+    // outreach email is told their link expired, the survey collects nothing,
+    // and no user-visible signal distinguishes it from normal wear. This is an
+    // ops failure, not a user error, so it belongs in the logs where the
+    // health watcher and Sentry can see it.
+    console.error(
+      "[feedback/token] SIGNING SECRET MISSING — every /feedback/<token> link " +
+        "is being rejected as expired. Set FEEDBACK_LINK_SECRET (or " +
+        "EMAIL_UNSUBSCRIBE_SECRET) to a 32-byte hex string."
+    );
     return { ok: false, reason: "secret_missing" };
   }
 

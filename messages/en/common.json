@@ -1,7 +1,7 @@
 {
   "feedbackSurvey": {
     "title": "Help shape MonkeyTravel",
-    "subtitle": "You've planned real trips with us. 30 seconds of honest feedback would mean a lot.",
+    "subtitle": "You've planned real trips with us. A minute of honest feedback would mean a lot.",
     "q1Label": "What do you actually use MonkeyTravel for?",
     "q1Placeholder": "e.g. day-by-day itineraries, finding restaurants, sharing plans with friends...",
     "q2Label": "What almost made you stop using it?",
@@ -26,7 +26,18 @@
     "privacyPolicy": "Privacy Policy",
     "linkExpiredTitle": "This link has expired",
     "linkExpiredBody": "No worries — open MonkeyTravel and you can still share your feedback from your trips page.",
-    "openApp": "Open MonkeyTravel"
+    "openApp": "Open MonkeyTravel",
+    "q5Label": "How did you find MonkeyTravel?",
+    "q5_search": "Google / search",
+    "q5_social": "Social media",
+    "q5_friend": "A friend told me",
+    "q5_article": "A blog or article",
+    "q5_ai": "ChatGPT or another AI",
+    "q5_other": "Something else",
+    "q6Label": "Before a trip, would you want us to send you things worth knowing about your destination?",
+    "q6_yes": "Yes",
+    "q6_maybe": "Maybe",
+    "q6_no": "No"
   },
   "navigation": {
     "features": "Features",
