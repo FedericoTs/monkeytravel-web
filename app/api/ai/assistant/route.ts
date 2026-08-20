@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -47,7 +48,7 @@ import { formatMinutesToTime } from "@/lib/datetime/format";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
-type SupportedLanguage = "en" | "es" | "it";
+
 
 /**
  * Get the user's preferred language from cookies or profile
@@ -58,9 +59,10 @@ async function getUserLanguage(
 ): Promise<SupportedLanguage> {
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("NEXT_LOCALE");
-  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
-    return localeCookie.value as SupportedLanguage;
-  }
+  // Regional tags ("pt-BR") must resolve to their base language rather than
+  // fall through to English — a strict membership test silently downgraded
+  // those users to an English itinerary.
+  if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
 
   try {
     const { data: profile } = await supabase
@@ -69,8 +71,8 @@ async function getUserLanguage(
       .eq("id", userId)
       .single();
 
-    if (profile?.preferred_language && ["en", "es", "it"].includes(profile.preferred_language)) {
-      return profile.preferred_language as SupportedLanguage;
+    if (profile?.preferred_language) {
+      return resolveAiLanguage(profile.preferred_language);
     }
   } catch {
     // Ignore errors
@@ -85,9 +87,10 @@ async function getUserLanguage(
 function getLanguageInstruction(language: SupportedLanguage): string {
   if (language === "en") return "";
 
-  const instructions: Record<"es" | "it", string> = {
+  const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
     es: `\n\nIMPORTANTE: Responde COMPLETAMENTE en espanol. Los nombres de actividades, descripciones, consejos y el resumen deben estar en espanol.`,
     it: `\n\nIMPORTANTE: Rispondi COMPLETAMENTE in italiano. I nomi delle attivita, le descrizioni, i consigli e il riepilogo devono essere in italiano.`,
+    pt: `\n\nIMPORTANTE: Responda COMPLETAMENTE em português. Os nomes das atividades, descrições, dicas e o resumo devem estar em português.`,
   };
 
   return instructions[language];

@@ -18,6 +18,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
@@ -32,14 +33,15 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
 import type { ItineraryDay, TripVibe } from "@/types";
 
-type SupportedLanguage = "en" | "es" | "it";
+
 
 async function getUserLanguage(): Promise<SupportedLanguage> {
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("NEXT_LOCALE");
-  if (localeCookie?.value && ["en", "es", "it"].includes(localeCookie.value)) {
-    return localeCookie.value as SupportedLanguage;
-  }
+  // Regional tags ("pt-BR") must resolve to their base language rather than
+  // fall through to English — a strict membership test silently downgraded
+  // those users to an English itinerary.
+  if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
   return "en";
 }
 

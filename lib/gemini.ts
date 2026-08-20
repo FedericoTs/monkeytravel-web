@@ -4,6 +4,7 @@ import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
 import { getModelForPurpose, getSiblingModel } from "./ai/model-router";
+import type { SupportedLanguage } from "./ai/language";
 import {
   withDeduplication,
   getItineraryDedupKey,
@@ -413,7 +414,7 @@ function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePrefe
 interface BuildPromptOptions {
   maxDays?: number; // Limit days to generate (for incremental generation)
   isPartial?: boolean; // Indicates this is a partial generation
-  language?: "en" | "es" | "it"; // Language for AI response
+  language?: SupportedLanguage; // Language for AI response
   /**
    * Anchored-trip segment brief (F1, lib/ai/anchors-core.buildSegmentBrief):
    * a deterministic constraint block — fixed commitments, start/end-near
@@ -427,10 +428,10 @@ interface BuildPromptOptions {
  * Get language instruction for AI response
  * Tells Gemini to generate content in the user's preferred language
  */
-function getLanguageInstruction(language?: "en" | "es" | "it"): string {
+export function getLanguageInstruction(language?: SupportedLanguage): string {
   if (!language || language === "en") return "";
 
-  const instructions: Record<"es" | "it", string> = {
+  const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
     es: `
 ## IDIOMA OBLIGATORIO
 DEBES responder COMPLETAMENTE en espanol.
@@ -449,6 +450,15 @@ DEVI rispondere COMPLETAMENTE in italiano.
 - Riepilogo del viaggio: in italiano
 - Formato dell'ora: 24h (es: 14:00 invece di 2:00 PM)
 - IMPORTANTE: Mantieni la struttura JSON esatta, cambia solo il contenuto testuale in italiano`,
+    pt: `
+## IDIOMA OBRIGATÓRIO
+VOCÊ DEVE responder COMPLETAMENTE em português.
+- Nomes das atividades: use o nome local, com tradução quando for útil
+- Descrições: escritas naturalmente em português
+- Dicas (tips): em português
+- Resumo da viagem: em português
+- Formato de hora: 24h (ex: 14:00 em vez de 2:00 PM)
+- IMPORTANTE: Mantenha a estrutura JSON exata, mude apenas o conteúdo de texto para português`,
   };
 
   return instructions[language] + "\n\n";
@@ -1118,7 +1128,7 @@ export interface RegenerateActivityParams {
     category?: "attraction" | "restaurant" | "activity" | "transport";
     similarTo?: boolean; // If true, generate something similar
   };
-  language?: "en" | "es" | "it";
+  language?: SupportedLanguage;
   /**
    * Trip's travel style — when "backpacker", the replacement is biased
    * toward hostel-friendly / budget / social options. Read from
@@ -1391,7 +1401,7 @@ export interface RegenerateDayParams {
   /** Optional user-provided steering (e.g., "less walking", "focus on food"). */
   instructions?: string;
   profilePreferences?: UserProfilePreferences;
-  language?: "en" | "es" | "it";
+  language?: SupportedLanguage;
   /**
    * Trip's travel style — pass "backpacker" so the regenerated day
    * matches the rest of the trip (hostels, free activities, social).
@@ -1865,7 +1875,7 @@ export interface GenerateMoreDaysParams {
   startFromDay: number; // Day number to start generating (1-indexed)
   daysToGenerate: number; // Number of days to generate
   profilePreferences?: UserProfilePreferences;
-  language?: "en" | "es" | "it";
+  language?: SupportedLanguage;
 }
 
 // Continue generation prompt - now loaded from database via getPrompt()

@@ -21,21 +21,15 @@ import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserProfilePreferences } from "@/types";
 
-export type SupportedLanguage = "en" | "es" | "it";
+export type { SupportedLanguage } from "./language";
+import { isSupportedLanguage, resolveAiLanguage, type SupportedLanguage } from "./language";
 
 export interface UserGenerationContext {
   profilePreferences: UserProfilePreferences;
   userLanguage: SupportedLanguage;
 }
 
-const VALID_LANGUAGES: readonly SupportedLanguage[] = ["en", "es", "it"];
-
-function isSupportedLanguage(value: unknown): value is SupportedLanguage {
-  return (
-    typeof value === "string" &&
-    (VALID_LANGUAGES as readonly string[]).includes(value)
-  );
-}
+// The list and the guard live in ./language so all six AI call sites agree.
 
 /**
  * Read locale cookie (next-intl sets NEXT_LOCALE). Works for both
@@ -46,9 +40,11 @@ async function readLocaleCookie(): Promise<SupportedLanguage | null> {
   try {
     const cookieStore = await cookies();
     const localeCookie = cookieStore.get("NEXT_LOCALE");
-    if (localeCookie?.value && isSupportedLanguage(localeCookie.value)) {
-      return localeCookie.value;
-    }
+    // Base subtag, so a regional tag ("pt-BR") resolves instead of being
+    // silently downgraded to English. Returns null — not "en" — for an
+    // unrecognised value, so the caller can still fall through to the profile.
+    const base = localeCookie?.value?.trim().toLowerCase().split(/[-_]/)[0];
+    if (base && isSupportedLanguage(base)) return base;
   } catch {
     // cookies() can throw in odd contexts; treat as no preference set.
   }
@@ -143,8 +139,8 @@ export async function loadUserContext(
   let userLanguage: SupportedLanguage = "en";
   if (localeFromCookie) {
     userLanguage = localeFromCookie;
-  } else if (profileRow && isSupportedLanguage(profileRow.preferred_language)) {
-    userLanguage = profileRow.preferred_language;
+  } else if (profileRow?.preferred_language) {
+    userLanguage = resolveAiLanguage(profileRow.preferred_language);
   }
 
   return { profilePreferences, userLanguage };

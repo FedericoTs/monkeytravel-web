@@ -56,7 +56,8 @@ function getServiceClient(): SupabaseClient {
   return _cachedServiceClient;
 }
 
-export type SupportedLanguage = "en" | "es" | "it";
+export type { SupportedLanguage } from "./language";
+import type { SupportedLanguage } from "./language";
 export type TravelStyle = "classic" | "backpacker";
 
 /** MD5 of the lowercased + collapsed destination. Stable across casing. */
