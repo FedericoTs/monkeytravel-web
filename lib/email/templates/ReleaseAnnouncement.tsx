@@ -130,10 +130,19 @@ const COPY: Record<Exclude<EmailLocale, "es" | "pt">, ReleaseCopy> = {
 };
 
 export default function ReleaseEmail({ name, locale }: ReleaseEmailProps) {
-  const t = locale === "it" ? COPY.it : COPY.en;
+  /**
+   * The language this email is ACTUALLY written in. COPY only has en and it, so
+   * every other locale renders English — and the layout chrome must agree, or a
+   * recipient gets a translated footer wrapped around English copy. That was a
+   * hand-written `locale === "es" ? "en"` before; once EmailLocale gained "pt"
+   * and layoutCopy gained a Portuguese entry, pt would have slipped through and
+   * produced exactly that mismatch.
+   */
+  const bodyLocale = locale === "it" ? "it" : "en";
+  const t = COPY[bodyLocale];
 
   return (
-    <EmailLayout preview={t.preview} locale={locale === "es" ? "en" : locale}>
+    <EmailLayout preview={t.preview} locale={bodyLocale}>
       <Heading as="h1" style={h1}>
         {t.greeting(name)}
       </Heading>
