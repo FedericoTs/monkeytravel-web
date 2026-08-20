@@ -68,6 +68,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       siteName: 'MonkeyTravel',
       locale: ogLocale,
       alternateLocale,
+      // MUST be repeated here. A page-level `openGraph` REPLACES the root
+      // layout's block, it does not deep-merge — so omitting images left the
+      // homepage, the most-shared URL on the site, with no og:image at all.
+      // (Verified missing in production HTML before this was added.)
+      images: [
+        {
+          url: `${BASE_URL}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: meta.title,
+        },
+      ],
     },
   };
 }
