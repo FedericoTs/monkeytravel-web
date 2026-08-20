@@ -50,6 +50,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isDmarcReport } from "@/lib/email/inbound-alerts";
 
 const WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET;
 
@@ -302,6 +303,24 @@ export async function POST(request: NextRequest) {
     const inboundFrom = String(payload.data?.from ?? "unknown sender");
     const inboundTo = (payload.data?.to ?? []).join(", ") || "unknown recipient";
     const inboundSubject = String(payload.data?.subject ?? "(no subject)");
+
+    // DMARC aggregate reports land at dmarc@ (rua= in the _dmarc TXT record)
+    // and must never page a human. EVERY mailbox provider that receives mail
+    // claiming to be from us sends one DAILY — Google, Microsoft, Yahoo and
+    // the long tail — so this is a standing flood, not an occasional message.
+    //
+    // Alerting on them would also be pointless: the payload is a zipped XML
+    // attachment, and this alert path forwards `data.text` only. The human
+    // would get hundreds of notifications a year, each with an empty body.
+    //
+    // The reports still arrive and are retained in Resend's inbound store;
+    // they are read from there when reviewing SPF/DKIM alignment before
+    // tightening the policy (p=quarantine → p=reject). Dropping the ALERT is
+    // not dropping the DATA.
+    if (isDmarcReport(payload.data?.to)) {
+      console.log("[resend-webhook] DMARC aggregate report — stored, not alerting:", inboundSubject);
+      return NextResponse.json({ ok: true, ignored: "dmarc_report" });
+    }
 
     // Loop guard. The root MX is catch-all, so mail we send FROM
     // noreply@monkeytravel.app can come back to us (auto-replies, or our own
