@@ -9,6 +9,17 @@
  *
  * To add a real photo: drop `/public/images/authors/{slug}.jpg` (square,
  * 400x400 minimum). The bio page auto-picks it up.
+ *
+ * ON LOCALIZATION: `title`, `shortBio` and `fullBio` are English-only, for
+ * every locale — not just Portuguese. That is deliberate and already handled:
+ * app/[locale]/about/authors/[slug] canonicalizes every locale URL to the EN
+ * one and emits hreflang for `en` + `x-default` only, so Google indexes a
+ * single version rather than seeing four near-duplicates. The /es/ /it/ /pt/
+ * URLs still render and defer.
+ *
+ * So there is nothing locale-shaped to "fix" here. Localizing the bios is a
+ * content decision (6 authors x 3 fields x 3 locales), not a bug fix, and it
+ * would also mean dropping the EN-only canonical above.
  */
 
 export interface Author {
@@ -28,8 +39,21 @@ export interface Author {
   expertise: string[];
   /** Number of countries the author has visited (for the bio sidebar) */
   countriesVisited: number;
-  /** Languages the author writes in (used for ES/IT byline overrides) */
-  languages: ReadonlyArray<"en" | "es" | "it">;
+  /**
+   * Languages the author actually writes in. Rendered verbatim on the bio page
+   * as "EN, ES, IT".
+   *
+   * NOT a UI locale list, and deliberately not tied to routing.locales — this
+   * is a biographical claim about a person, so a locale is only added here when
+   * that person really does write it. The rest of the app gained `pt` in 2026;
+   * these arrays intentionally did not follow, because nobody has said these
+   * authors write Portuguese.
+   *
+   * The old comment here claimed it drove "ES/IT byline overrides". No such
+   * mechanism exists — grep for `.languages` and the only consumer is the
+   * display on app/[locale]/about/authors/[slug]. Left as display-only.
+   */
+  languages: ReadonlyArray<"en" | "es" | "it" | "pt">;
   /** Twitter/X handle without @, optional */
   twitter?: string;
   /** LinkedIn profile slug, optional */
