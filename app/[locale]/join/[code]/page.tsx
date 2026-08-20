@@ -34,17 +34,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${referrerName} invited you to MonkeyTravel!`,
-    description: "Get 1 FREE AI-generated trip when you sign up. Plan amazing adventures with AI-powered itineraries.",
+    description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
     openGraph: {
       title: `${referrerName} invited you to MonkeyTravel!`,
-      description: "Get 1 FREE AI-generated trip when you sign up. Plan amazing adventures with AI-powered itineraries.",
+      description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
       type: "website",
       images: ["/images/og-referral.jpg"],
     },
     twitter: {
       card: "summary_large_image",
       title: `${referrerName} invited you to MonkeyTravel!`,
-      description: "Get 1 FREE AI-generated trip when you sign up.",
+      description: "Plan a trip together in about 30 seconds. Free — no card, no trial.",
       // Matches this page's OWN openGraph image, not the site-wide card:
       // a referral landing page should preview as a referral.
       images: ["/images/og-referral.jpg"],

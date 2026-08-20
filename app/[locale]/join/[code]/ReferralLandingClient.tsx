@@ -113,18 +113,28 @@ export default function ReferralLandingClient({
 
           {/* Main heading */}
           <div className="text-center mb-12">
+            {/*
+              Was "Get 1 FREE AI Trip When You Sign Up" — wrong in both
+              directions. Anonymous visitors already get 5 trips a day without
+              an account (lib/anonymous/rate-limit.ts), and signing up gives 30
+              a month (TIER_LIMITS.free.aiGenerations), not one. It undersold
+              the product by 30x while also promising a gate that isn't there.
+
+              The real reason to sign up is that anonymous trips live only in
+              that browser — the result page says so itself ("saved only on
+              this browser"). So the pitch is keeping them, not unlocking them.
+            */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-              Get{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
-                1 FREE
-              </span>{" "}
-              AI Trip
+              Plan the trip together.
               <br />
-              When You Sign Up
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
+                30 AI trips a month
+              </span>
+              , free
             </h1>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Plan your perfect adventure in seconds with AI-powered itineraries.
-              Your friend {firstName} is already using MonkeyTravel!
+              {firstName} is already planning on MonkeyTravel. Create an account
+              to keep your itineraries, share them, and vote on the plan together.
             </p>
           </div>
 
@@ -139,10 +149,10 @@ export default function ReferralLandingClient({
 
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                  Your Welcome Gift
+                  What you get
                 </h2>
                 <p className="text-slate-600">
-                  Create your first AI trip completely free
+                  Free, with no card and no trial to expire
                 </p>
               </div>
 
@@ -165,6 +175,12 @@ export default function ReferralLandingClient({
                   </div>
                   <span className="text-slate-700">Budget estimates & packing lists</span>
                 </div>
+                <div className="flex items-center gap-3 bg-white/60 rounded-xl p-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <span className="text-slate-700">Your trips saved, not stuck in one browser</span>
+                </div>
               </div>
 
               <button
@@ -173,7 +189,7 @@ export default function ReferralLandingClient({
                 className="w-full px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-300/50 transition-all hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                <span>Claim Your Free Trip</span>
+                <span>Start planning — free</span>
                 <ChevronRight className="w-5 h-5" />
               </button>
 
