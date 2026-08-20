@@ -33,6 +33,15 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Drop `X-Powered-By: Next.js`. Next sets it by default on page responses
+  // (verified present on the apex in production 2026-08-20; route handlers and
+  // the 308 apex->www redirect never carried it). It leaks the framework, which
+  // narrows an attacker's search for version-specific exploits and buys nothing.
+  //
+  // Server-side by construction — Next omits the header at the origin, so there
+  // is no client-side check to bypass.
+  poweredByHeader: false,
+
   // Enforce no trailing slashes — prevents /about vs /about/ duplication
   trailingSlash: false,
 
