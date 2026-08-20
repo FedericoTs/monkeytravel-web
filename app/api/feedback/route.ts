@@ -107,6 +107,8 @@ export async function POST(request: NextRequest) {
 
   const foundViaRaw = typeof body.found_via === "string" ? body.found_via : "";
   const foundVia = FOUND_VIA.includes(foundViaRaw as never) ? foundViaRaw : null;
+  const mobileRaw = typeof body.mobile_app === "string" ? body.mobile_app : "";
+  const mobileApp = WOULD.includes(mobileRaw as never) ? mobileRaw : null;
   const pretripRaw =
     typeof body.pretrip_content === "string" ? body.pretrip_content : "";
   const pretripContent = WOULD.includes(pretripRaw as never) ? pretripRaw : null;
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
   const extra: Record<string, string> = {};
   if (foundVia) extra.found_via = foundVia;
   if (pretripContent) extra.pretrip_content = pretripContent;
+  if (mobileApp) extra.mobile_app = mobileApp;
 
   // Don't persist empty rows — require at least one substantive answer.
   if (
@@ -125,6 +128,7 @@ export async function POST(request: NextRequest) {
     !would &&
     !foundVia &&
     !pretripContent &&
+    !mobileApp &&
     !(openToChat && contactEmail)
   ) {
     return apiSuccess({ saved: false });

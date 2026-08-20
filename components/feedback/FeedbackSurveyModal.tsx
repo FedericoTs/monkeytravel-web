@@ -60,6 +60,8 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
   const [foundVia, setFoundVia] = useState<FoundVia>("");
   // Tests the pre-trip destination-content idea before anyone builds it.
   const [pretrip, setPretrip] = useState<WouldBook>("");
+  // States that no app exists as much as it measures demand — see q7Label.
+  const [mobileApp, setMobileApp] = useState<WouldBook>("");
   const [openToChat, setOpenToChat] = useState(false);
   const [contactEmail, setContactEmail] = useState("");
 
@@ -93,6 +95,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
           would_book_through_us: wouldBook || null,
           found_via: foundVia || null,
           pretrip_content: pretrip || null,
+          mobile_app: mobileApp || null,
           open_to_chat: openToChat,
           contact_email: openToChat ? contactEmail.trim() || null : null,
         }),
@@ -124,6 +127,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
     usesFor.trim() ||
     foundVia ||
     pretrip ||
+    mobileApp ||
       almostStopped.trim() ||
       lastBookedWhere.trim() ||
       wouldBook ||
@@ -249,6 +253,28 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
                   }`}
                 >
                   {t(`q6_${v}`)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend id="feedback-q7-label" className="text-sm font-medium text-slate-800">{t("q7Label")}</legend>
+            <div className="flex gap-2 mt-2" role="radiogroup" aria-labelledby="feedback-q7-label">
+              {(["yes", "maybe", "no"] as const).map((v) => (
+                <button
+                  type="button"
+                  key={v}
+                  role="radio"
+                  onClick={() => setMobileApp(v)}
+                  aria-checked={mobileApp === v}
+                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                    mobileApp === v
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                      : "border-slate-300 text-slate-600 hover:border-slate-400"
+                  }`}
+                >
+                  {t(`q7_${v}`)}
                 </button>
               ))}
             </div>

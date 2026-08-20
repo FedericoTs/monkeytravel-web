@@ -37,7 +37,11 @@
     "q6Label": "Antes de uma viagem, você gostaria que a gente enviasse coisas que vale a pena saber sobre o seu destino?",
     "q6_yes": "Sim",
     "q6_maybe": "Talvez",
-    "q6_no": "Não"
+    "q6_no": "Não",
+    "q7Label": "Ainda não temos app — é um site. Você usaria um app se a gente criasse?",
+    "q7_yes": "Sim",
+    "q7_maybe": "Talvez",
+    "q7_no": "Não, o site resolve"
   },
   "navigation": {
     "features": "Recursos",

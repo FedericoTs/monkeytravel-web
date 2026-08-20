@@ -37,7 +37,11 @@
     "q6Label": "Antes de un viaje, ¿te gustaría que te enviáramos cosas que vale la pena saber sobre tu destino?",
     "q6_yes": "Sí",
     "q6_maybe": "Quizá",
-    "q6_no": "No"
+    "q6_no": "No",
+    "q7Label": "Todavía no tenemos app móvil — es una web. ¿Usarías una app si la creáramos?",
+    "q7_yes": "Sí",
+    "q7_maybe": "Quizá",
+    "q7_no": "No, la web me vale"
   },
   "navigation": {
     "features": "Características",

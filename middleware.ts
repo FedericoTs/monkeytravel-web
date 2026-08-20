@@ -200,15 +200,28 @@ export async function middleware(request: NextRequest) {
   // .well-known/* serves Universal Links / Android App Links manifests —
   // Apple + Google fetch these unauthenticated and DO NOT follow locale
   // redirects, so they MUST bypass i18n entirely.
+  // Locale-stripped path, so route tests below match on /pt/x as well as /x.
+  // Declared here rather than at the isPublicOnly block further down because
+  // the feedback exemption needs it too — see below.
+  const pathNoLocale = pathname.replace(/^\/(en|es|it|pt)(?=\/|$)/, "") || "/";
+
   const shouldSkipIntl =
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/.well-known/") ||
     // The "." catch skips static assets, but signed feedback tokens contain a
-    // "." (payload.hmac) — exempt /feedback/ so the default-locale (no-prefix)
-    // path still gets i18n routing instead of 404ing.
-    (pathname.includes(".") && !pathname.startsWith("/feedback/")) ||
+    // "." (payload.hmac) — exempt /feedback/ so it still gets i18n routing
+    // instead of 404ing.
+    //
+    // Tested on the LOCALE-STRIPPED path. The original check used `pathname`,
+    // which only exempts the unprefixed default-locale URL: /pt/feedback/<token>
+    // does not start with "/feedback/", so it fell into the static-asset skip,
+    // intlMiddleware never ran, no locale was set, and getMessages() fell back
+    // to English. `params.locale` still came from the URL segment, so the page
+    // <title> localized correctly while the entire form rendered in English —
+    // which is exactly how it went unnoticed.
+    (pathname.includes(".") && !pathNoLocale.startsWith("/feedback/")) ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth/signout");
 
