@@ -54,8 +54,18 @@ export default function LanguageSwitcher({
         ? pathWithoutLocale || "/"
         : `/${newLocale}${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
 
-    // Set cookie for persistence
-    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+    // Set cookie for persistence.
+    //
+    // `Secure` only over https — a Secure cookie is silently DROPPED on plain
+    // http, which would break locale switching on localhost. Production is
+    // https-only (HSTS preload), so this is always set for real users.
+    //
+    // No `HttpOnly` here, deliberately: this line is the client-side write, so
+    // the flag would stop the switcher working at all. next-intl takes the same
+    // position — its localeCookie config exposes `secure` and `sameSite` but
+    // not `httpOnly`. The cookie holds a UI language, not a credential.
+    const secureFlag = window.location.protocol === "https:" ? ";Secure" : "";
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax${secureFlag}`;
 
     // Navigate to new locale
     router.push(newPath);
