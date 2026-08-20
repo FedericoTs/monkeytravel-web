@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { geolocation } from "@vercel/functions";
+import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 
 // Track page views with geo data (non-blocking).
 // Returns the session_id that was used (so the caller can set the cookie on
@@ -108,6 +109,10 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // Adds `Secure` to the auth cookie. This is the path that rewrites the
+      // session on every refresh, so without it the token loses the attribute
+      // again on the next request even if it was set correctly at login.
+      cookieOptions: SUPABASE_AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return request.cookies.getAll();

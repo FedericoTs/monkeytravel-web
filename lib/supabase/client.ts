@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 
 import { migrateAuthStorageOnce } from "@/lib/native/migrate-auth";
 import { capacitorPreferencesStorage } from "@/lib/supabase/native-storage";
+import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 
 // Fire the one-shot legacy-token migration before any client is
 // constructed. Self-gated to native + already-migrated, so it's a
@@ -38,8 +39,12 @@ export function createClient() {
     );
   }
 
+  // On web the session lives in `document.cookie`. This is the write that
+  // happens at email/password login, BEFORE any server round-trip, so it is
+  // the first place the token can leak the `Secure` attribute.
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookieOptions: SUPABASE_AUTH_COOKIE_OPTIONS }
   );
 }
