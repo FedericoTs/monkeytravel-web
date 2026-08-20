@@ -61,6 +61,19 @@ describe("CSP connect-src allows the analytics endpoints GA4 actually uses", () 
     expect(src).toContain("https://*.analytics.google.com");
   });
 
+  it("allows the affiliate loader to fetch its config", () => {
+    // emrldco.com was in script-src but not connect-src, so the script ran and
+    // then failed on https://emrldco.com/entrypoint_config — it rendered no
+    // affiliate links at all in production.
+    expect(allows(connectSrc(), "https://emrldco.com/entrypoint_config?t=483997")).toBe(true);
+  });
+
+  it("does NOT allow the affiliate script's third-party error reporting", () => {
+    // sentry.avs.io is Aviasales' own Sentry. Affiliate links work without it,
+    // and allowing it would ship visited page URLs to a third party.
+    expect(allows(connectSrc(), "https://sentry.avs.io/api/20/envelope/")).toBe(false);
+  });
+
   it("still refuses hosts that are not on the allowlist", () => {
     // Guard against someone 'fixing' a block by widening the policy to https:.
     const src = connectSrc();

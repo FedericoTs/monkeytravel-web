@@ -96,6 +96,22 @@ export function buildCspHeader(nonce: string): string {
       // upcoming payments work even though no inline Stripe script ships
       // today).
       "https://api.stripe.com",
+      // Travelpayouts/Emerald affiliate loader. Its script is already trusted
+      // in script-src, but it fetches https://emrldco.com/entrypoint_config
+      // before it will render any affiliate link — and that fetch was blocked
+      // here, so the script loaded, failed with "config is not valid", and
+      // produced nothing. Observed on production 2026-08-19.
+      //
+      // components/AffiliateScript.tsx attributed that error to the loader
+      // 403ing on non-whitelisted hosts and states "prod is unaffected"; that
+      // is true of localhost but was NOT true of production, where our own CSP
+      // was the cause. Allowing connect to a host we already execute scripts
+      // from is a strictly smaller grant than the script-src entry it needs.
+      //
+      // Deliberately NOT allowing sentry.avs.io: that is the affiliate
+      // script's own error reporting to a third party, it is not needed for
+      // affiliate links to work, and it would ship page URLs off-site.
+      "https://emrldco.com",
     ],
     "frame-src": [
       "'self'",

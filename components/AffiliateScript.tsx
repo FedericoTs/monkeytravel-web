@@ -36,7 +36,15 @@ interface AffiliateScriptProps {
 // monkeytravel.app). On localhost / preview it 403s its entrypoint_config fetch
 // and logs "config is not valid" ×4 on every page load — harmless but it
 // pollutes local console/network traces during dev (UX10X Phase 0.4). Gate the
-// whole component to production; prod is unaffected (already whitelisted → 200).
+// whole component to production.
+//
+// CORRECTION (2026-08-19): "prod is unaffected" was wrong. The same
+// "config is not valid" error was firing on monkeytravel.app itself — not from
+// the loader's host allowlist, but because our own CSP had emrldco.com in
+// script-src and NOT connect-src, so the entrypoint_config fetch was refused
+// and no affiliate link ever rendered. Two different causes producing an
+// identical console line, which is why it read as a dev-only annoyance.
+// connect-src now allows it; see the note in lib/security/csp.ts.
 const AFFILIATE_ENABLED = process.env.NODE_ENV === "production";
 
 export default function AffiliateScript({ nonce }: AffiliateScriptProps) {
