@@ -1824,14 +1824,14 @@
     }
   },
   "referral": {
-    "title": "Convide Amigos, Ganhe Viagens Grátis",
-    "subtitle": "Dê 1 viagem, ganhe 1 viagem para cada amigo",
+    "title": "Convide amigos e ganhe bananas",
+    "subtitle": "50 bananas para cada amigo que entrar",
     "tryAgain": "Tentar de novo",
     "howItWorks": "Como funciona",
     "steps": {
       "step1": "Compartilhe seu link exclusivo com amigos",
       "step2": "Eles se cadastram e criam a primeira viagem",
-      "step3": "Vocês dois ganham 1 viagem com IA grátis!"
+      "step3": "Você ganha 50 bananas para usar em gerações extras ou fila prioritária"
     },
     "yourReferralLink": "Seu link de indicação",
     "copy": "Copiar",
@@ -1839,13 +1839,13 @@
     "shareVia": "Compartilhar via",
     "stats": {
       "friendsJoined": "Amigos que entraram",
-      "tripsEarned": "Viagens ganhas"
+      "linkClicks": "Cliques no link"
     },
     "share": {
-      "twitterText": "Tenho usado o MonkeyTravel para planejar viagens incríveis com IA! Junte-se a mim e ganhe uma viagem GRÁTIS ao se cadastrar:",
-      "whatsappText": "Oi! Tenho usado o MonkeyTravel para planejar viagens incríveis com IA. Junte-se a mim e nós dois ganhamos uma viagem GRÁTIS!",
-      "emailSubject": "Você foi convidado para o MonkeyTravel - Ganhe uma viagem com IA GRÁTIS!",
-      "emailBody": "Oi!\n\nTenho usado o MonkeyTravel para planejar viagens incríveis com IA, e achei que você também ia adorar.\n\nEntre usando o meu link e nós dois ganhamos uma viagem gerada por IA GRÁTIS!\n\nBoas viagens!"
+      "twitterText": "Ando planejando viagens com o MonkeyTravel: a IA monta um roteiro dia a dia em uns 30 segundos, de graça. Bora:",
+      "whatsappText": "Oi! Estou usando o MonkeyTravel para planejar viagens: a IA monta um roteiro completo dia a dia em uns 30 segundos e é de graça. Testa:",
+      "emailSubject": "Você foi convidado para o MonkeyTravel",
+      "emailBody": "Oi!\n\nAndo usando o MonkeyTravel para planejar viagens com IA e acho que você vai gostar.\n\nDigite uma cidade e ele monta um roteiro completo dia a dia em uns 30 segundos: de graça, e você nem precisa de conta para testar.\n\nBoa viagem!"
     }
   },
   "dataExport": {

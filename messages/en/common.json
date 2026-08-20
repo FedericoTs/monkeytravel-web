@@ -1824,14 +1824,14 @@
     }
   },
   "referral": {
-    "title": "Invite Friends, Get Free Trips",
-    "subtitle": "Give 1 trip, get 1 trip for each friend",
+    "title": "Invite friends, earn bananas",
+    "subtitle": "50 bananas for every friend who joins",
     "tryAgain": "Try again",
     "howItWorks": "How it works",
     "steps": {
       "step1": "Share your unique link with friends",
       "step2": "They sign up and create their first trip",
-      "step3": "You both get 1 free AI trip!"
+      "step3": "You earn 50 bananas — spend them on extra generations or priority queue"
     },
     "yourReferralLink": "Your referral link",
     "copy": "Copy",
@@ -1839,13 +1839,13 @@
     "shareVia": "Share via",
     "stats": {
       "friendsJoined": "Friends joined",
-      "tripsEarned": "Trips earned"
+      "linkClicks": "Link clicks"
     },
     "share": {
-      "twitterText": "I've been using MonkeyTravel to plan amazing AI-powered trips! Join me and get a FREE trip when you sign up:",
-      "whatsappText": "Hey! I've been using MonkeyTravel to plan amazing trips with AI. Join me and we both get a FREE trip!",
-      "emailSubject": "You're invited to MonkeyTravel - Get a FREE AI trip!",
-      "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan amazing trips with AI, and I thought you'd love it too.\n\nJoin using my link and we'll both get a FREE AI-generated trip!\n\nHappy travels!"
+      "twitterText": "I've been planning trips with MonkeyTravel — the AI builds a full day-by-day itinerary in about 30 seconds, free. Join me:",
+      "whatsappText": "Hey! I've been using MonkeyTravel to plan trips — the AI builds a full day-by-day itinerary in about 30 seconds, and it's free. Try it:",
+      "emailSubject": "You're invited to MonkeyTravel",
+      "emailBody": "Hey!\n\nI've been using MonkeyTravel to plan trips with AI, and I thought you'd like it.\n\nDrop in a city and it builds a full day-by-day itinerary in about 30 seconds — free, and you don't need an account to try it.\n\nHappy travels!"
     }
   },
   "dataExport": {

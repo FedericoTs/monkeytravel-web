@@ -272,9 +272,9 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     <div>
                       <div className="flex items-center justify-center gap-1.5 text-slate-600 mb-1">
                         <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span className="text-lg font-bold text-slate-900">{stats.conversions}</span>
+                        <span className="text-lg font-bold text-slate-900">{stats.clicks}</span>
                       </div>
-                      <p className="text-xs text-slate-500">{t("stats.tripsEarned")}</p>
+                      <p className="text-xs text-slate-500">{t("stats.linkClicks")}</p>
                     </div>
                   </div>
                 </div>

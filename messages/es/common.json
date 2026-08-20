@@ -1824,14 +1824,14 @@
     }
   },
   "referral": {
-    "title": "Invita Amigos, Consigue Viajes Gratis",
-    "subtitle": "Da 1 viaje, recibe 1 viaje por cada amigo",
+    "title": "Invita a amigos y gana bananas",
+    "subtitle": "50 bananas por cada amigo que se una",
     "tryAgain": "Intentar de nuevo",
     "howItWorks": "Cómo funciona",
     "steps": {
       "step1": "Comparte tu enlace único con amigos",
       "step2": "Ellos se registran y crean su primer viaje",
-      "step3": "¡Ambos reciben 1 viaje AI gratis!"
+      "step3": "Ganas 50 bananas para gastar en generaciones extra o cola prioritaria"
     },
     "yourReferralLink": "Tu enlace de referido",
     "copy": "Copiar",
@@ -1839,13 +1839,13 @@
     "shareVia": "Compartir vía",
     "stats": {
       "friendsJoined": "Amigos unidos",
-      "tripsEarned": "Viajes ganados"
+      "linkClicks": "Clics en el enlace"
     },
     "share": {
-      "twitterText": "¡He estado usando MonkeyTravel para planificar viajes increíbles con AI! Únete y obtén un viaje GRATIS al registrarte:",
-      "whatsappText": "¡Hola! He estado usando MonkeyTravel para planificar viajes increíbles con AI. ¡Únete y ambos obtendremos un viaje GRATIS!",
-      "emailSubject": "Estás invitado a MonkeyTravel - ¡Obtén un viaje AI GRATIS!",
-      "emailBody": "¡Hola!\n\nHe estado usando MonkeyTravel para planificar viajes increíbles con AI, y pensé que te encantaría también.\n\n¡Únete usando mi enlace y ambos obtendremos un viaje generado por AI GRATIS!\n\n¡Felices viajes!"
+      "twitterText": "Llevo un tiempo planificando viajes con MonkeyTravel: la IA crea un itinerario día a día en unos 30 segundos, gratis. Únete:",
+      "whatsappText": "¡Hola! Estoy usando MonkeyTravel para planificar viajes: la IA crea un itinerario completo día a día en unos 30 segundos y es gratis. Pruébalo:",
+      "emailSubject": "Te invito a MonkeyTravel",
+      "emailBody": "¡Hola!\n\nLlevo un tiempo usando MonkeyTravel para planificar viajes con IA y creo que te va a gustar.\n\nEscribe una ciudad y crea un itinerario completo día a día en unos 30 segundos: gratis, y no necesitas cuenta para probarlo.\n\n¡Buen viaje!"
     }
   },
   "dataExport": {
