@@ -114,8 +114,29 @@ export default async function SharedTripPage({ params }: PageProps) {
   // the two counters stay comparable. Distinct id preference: authed user id
   // (rare on this anon-first page; getUser() is a local no-op without a
   // session cookie) → mt_anon_voter cookie (ties the visit to later
-  // crew_vote_cast events) → "anonymous". Fire-and-forget like
-  // logSharedTripVisit; never blocks or breaks the render.
+  // crew_vote_cast events) → a per-visit random id.
+  //
+  // WHY NOT A SHARED "anonymous" CONSTANT (the previous behaviour)
+  //
+  // Measured 2026-08-21: 189 of 251 visits in 30 days (75%) carried the
+  // literal distinct_id "anonymous". That did two bad things at once — it
+  // made uniq(person_id) report 19 for what was really hundreds of people,
+  // and it merged unrelated strangers into a single PostHog person profile
+  // that accumulated all of their properties.
+  //
+  // A per-visit random id fixes both. The tradeoff is deliberate and worth
+  // stating: a returning visitor without the vote cookie now counts as a new
+  // id each time, so uniques are an OVER-count where they used to be a wild
+  // under-count. Visit and funnel-step counts are unaffected.
+  //
+  // The alternative — minting a stable visitor cookie on view — was rejected
+  // on purpose. mt_anon_voter is a FUNCTIONAL cookie (one vote per browser);
+  // setting an identifier merely to watch someone read a page makes it an
+  // analytics cookie, and consent lives in localStorage (see
+  // lib/consent/storage.ts), which the server cannot read. So there is no way
+  // to honour a refusal here. Fewer stable ids is the correct default.
+  //
+  // Fire-and-forget like logSharedTripVisit; never blocks or breaks render.
   void (async () => {
     try {
       const h = await headers();
@@ -123,19 +144,29 @@ export default async function SharedTripPage({ params }: PageProps) {
       if (CRAWLER_UA_RE.test(ua)) return;
       const cookieStore = await cookies();
       const anonVoterId = cookieStore.get("mt_anon_voter")?.value;
-      let distinctId = anonVoterId || "anonymous";
+      // `visitor_scope` says how much this row's distinct_id can be trusted,
+      // so a funnel can filter to the rows that actually support the question
+      // it is asking. Never aggregate uniques across scopes.
+      let distinctId = anonVoterId ?? `share-visit-${crypto.randomUUID()}`;
+      let visitorScope: "user" | "cookie" | "per-visit" = anonVoterId
+        ? "cookie"
+        : "per-visit";
       try {
         const supabase = await createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (user?.id) distinctId = user.id;
+        if (user?.id) {
+          distinctId = user.id;
+          visitorScope = "user";
+        }
       } catch {
         // stay anonymous
       }
       await captureServerEvent(distinctId, "crew_link_visited", {
         tripId: trip.id,
         shareToken: token,
+        visitor_scope: visitorScope,
       });
     } catch {
       // never break the render for telemetry

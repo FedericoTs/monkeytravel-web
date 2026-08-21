@@ -18,8 +18,6 @@ import {
   captureSharePromptAction,
   captureShareLinkCopied,
 } from "@/lib/posthog/events";
-import { useExperiment } from "@/lib/posthog/hooks";
-import { FLAG_SHARE_MODAL_TIMING_EXP, type ShareModalTimingVariant } from "@/lib/posthog/flags";
 
 interface ShareAfterSaveModalProps {
   isOpen: boolean;
@@ -112,13 +110,22 @@ export default function ShareAfterSaveModal({
   const [copied, setCopied] = useState(false);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // A/B Test: Share modal timing experiment
-  // Variants: control (0s), delayed-2s (2s), delayed-5s (5s)
-  const { variant: timingVariant, isLoading: isVariantLoading } = useExperiment(FLAG_SHARE_MODAL_TIMING_EXP);
-  const experimentVariant = (timingVariant as ShareModalTimingVariant) || "control";
-
-  // Timeout to prevent modal from being blocked if PostHog is slow/fails
-  const [posthogTimedOut, setPosthogTimedOut] = useState(false);
+  // The share-modal timing experiment (share-modal-timing-exp) ran from
+  // 2025-12-25 to 2026-08-21 and is retired. Measured over its last 90 days,
+  // real conversion — publish + invite, excluding "skip" — was:
+  //
+  //     control     26.3%  (10 of 38)
+  //     delayed-5s  26.5%  ( 9 of 34)
+  //     delayed-2s  17.1%  ( 7 of 41)
+  //
+  // ~35-40 exposures per arm after eight months. At this traffic the split
+  // could never reach significance, and it was diluting an already-small
+  // sample three ways. Shipped `control`: the delay hypothesis showed no
+  // upside, and no delay is the simplest code.
+  //
+  // Collapsing this also deleted a real UX liability — the modal used to
+  // block on PostHog for up to 1.5s before it could appear at all, purely to
+  // learn which delay bucket the user was in.
 
   // Re-arm the checkbox each time the modal opens, so a reopen can't inherit
   // a stale tick — and so an `isAnchored` that arrives a render late (the
@@ -135,11 +142,9 @@ export default function ShareAfterSaveModal({
     if (isOpen) setPublishChecked(!isAnchored);
   }
 
-  // Apply delay based on experiment variant
   useEffect(() => {
     if (!isOpen) {
       setShowDelayed(false);
-      setPosthogTimedOut(false);
       // Companion to the render-phase checkbox re-arm above. Ref writes belong
       // in an effect, not in render.
       hasPublished.current = false;
@@ -155,41 +160,9 @@ export default function ShareAfterSaveModal({
       return;
     }
 
-    // Start a timeout - if PostHog doesn't load within 1.5s, show modal anyway
-    const posthogTimeout = setTimeout(() => {
-      if (isVariantLoading) {
-        console.warn("[ShareAfterSaveModal] PostHog timed out, using default variant");
-        setPosthogTimedOut(true);
-      }
-    }, 1500);
-
-    // Wait for variant to load OR timeout (prevents infinite blocking)
-    if (isVariantLoading && !posthogTimedOut) {
-      return () => clearTimeout(posthogTimeout);
-    }
-
-    // Clear the timeout since PostHog loaded
-    clearTimeout(posthogTimeout);
-
-    // Determine delay based on variant (use "control" if timed out)
-    const activeVariant = posthogTimedOut ? "control" : experimentVariant;
-    const delayMap: Record<ShareModalTimingVariant, number> = {
-      "control": 0,        // Immediate
-      "delayed-2s": 2000,  // 2 second delay
-      "delayed-5s": 5000,  // 5 second delay
-    };
-    const delay = delayMap[activeVariant] ?? 0;
-
-    if (delay > 0) {
-      const timer = setTimeout(() => setShowDelayed(true), delay);
-      return () => clearTimeout(timer);
-    } else {
-      setShowDelayed(true);
-    }
-  }, [isOpen, experimentVariant, isVariantLoading, posthogTimedOut]);
-
-  // Active variant (use "control" if PostHog timed out)
-  const activeVariant = posthogTimedOut ? "control" : experimentVariant;
+    // Shipped variant is `control`: show immediately, no PostHog round-trip.
+    setShowDelayed(true);
+  }, [isOpen]);
 
   // Copy branch. "unspecified" gets a neutral middle rather than the group
   // pitch — we only earn the crew framing when the user actually said so.
@@ -205,18 +178,19 @@ export default function ShareAfterSaveModal({
         tripDestination: destination,
         tripDays,
       });
-      // Track in PostHog with experiment variant for A/B analysis
       captureSharePromptShown({
         trip_id: tripId,
         trip_destination: destination,
         trip_days: tripDays,
         location: "post_save",
-        experiment_variant: activeVariant,
-        delay_ms: activeVariant === "control" ? 0 : activeVariant === "delayed-2s" ? 2000 : 5000,
+        // Kept on the event (rather than dropped) so post-retirement rows
+        // still parse alongside the eight months of experiment history.
+        experiment_variant: "control",
+        delay_ms: 0,
       });
       hasTrackedView.current = true;
     }
-  }, [isOpen, showDelayed, tripId, destination, tripDays, activeVariant]);
+  }, [isOpen, showDelayed, tripId, destination, tripDays]);
 
   // Focus trap: cycle Tab/Shift+Tab inside the panel and capture initial focus
   // so screen-reader users land inside the dialog. Framer-motion controls the
@@ -301,7 +275,7 @@ export default function ShareAfterSaveModal({
     captureSharePromptAction({
       trip_id: tripId,
       action: "publish",
-      experiment_variant: activeVariant,
+      experiment_variant: "control",
     });
     void Promise.resolve(onPublish()).catch(() => {});
   };
@@ -320,7 +294,7 @@ export default function ShareAfterSaveModal({
     captureSharePromptAction({
       trip_id: tripId,
       action: "skip",
-      experiment_variant: activeVariant,
+      experiment_variant: "control",
     });
     closeWithExitAnimation();
   };
@@ -333,7 +307,7 @@ export default function ShareAfterSaveModal({
       captureSharePromptAction({
         trip_id: tripId,
         action: "skip",
-        experiment_variant: activeVariant,
+        experiment_variant: "control",
       });
     }
     closeWithExitAnimation();
@@ -353,7 +327,7 @@ export default function ShareAfterSaveModal({
     captureSharePromptAction({
       trip_id: tripId,
       action: "invite",
-      experiment_variant: activeVariant,
+      experiment_variant: "control",
     });
 
     setIsMinting(true);
