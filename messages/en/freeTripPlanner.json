@@ -24,7 +24,8 @@
     "definition": "An AI trip planner turns a destination and a set of dates into a day-by-day itinerary — choosing specific places and ordering them into a route that makes sense to walk or drive.",
     "vsChatbot": "That is the difference from asking a chatbot. A chatbot gives you suggestions you still have to research, schedule and sequence yourself. A planner gives you the schedule: named venues, grouped by day, with the travel between them already accounted for.",
     "product": "MonkeyTravel builds one in about 30 seconds, at three budget levels, using real places and current prices rather than invented ones. It works in English, Spanish, Italian and Portuguese, and it does not require an account.",
-    "honest": "It gets things wrong sometimes — a venue closes, a price moves. So every stop stays editable, and you can read the whole plan before signing up for anything."
+    "honest": "It gets things wrong sometimes — a venue closes, a price moves. So every stop stays editable, and you can read the whole plan before signing up for anything.",
+    "imageAlt": "A three-day Barcelona itinerary generated in MonkeyTravel: Day 1 opens with Sagrada Família at 09:00 for 180 minutes, tagged as an attraction, above a summary showing 12 activities at a moderate pace."
   },
   "features": {
     "title": "Everything You Need to Plan Better Trips",

@@ -84,6 +84,11 @@ const ALLOW_PATHS = [
 // (and Applebot-Extended, Apple Intelligence), so blocking them is a
 // retrieval decision too — though it does NOT touch AI Overviews or AI Mode,
 // which Googlebot serves under nosnippet / max-snippet / noindex.
+// DECISION 2026-08-21: Google-Extended is now ALLOWED — grounding in the
+// Gemini consumer app was judged worth more than the training opt-out, the
+// same call already made for GPTBot and ClaudeBot. AI Overviews were never
+// affected either way. Applebot-Extended stays blocked: same shape of
+// decision, not yet made — not an oversight.
 // The full tradeoff lives in middleware.ts above BLOCKED_BOT_PATTERNS;
 // keep both notes in sync. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
 const BLOCKED_AI_AGENTS = [
@@ -91,7 +96,6 @@ const BLOCKED_AI_AGENTS = [
   "CCBot",
   "Bytespider",
   "Amazonbot",
-  "Google-Extended",
   "Applebot-Extended",
   "SemrushBot",
   "AhrefsBot",

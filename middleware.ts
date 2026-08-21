@@ -53,9 +53,20 @@ const intlMiddleware = createIntlMiddleware(routing);
 //   - DOES cost grounding in the Gemini consumer app, and Applebot-Extended
 //     does the same for Apple Intelligence.
 //
-// Keeping the block may well be right — a training opt-out has real value,
-// and that is a policy call, not an SEO one. This note exists so the next
-// person makes it deliberately instead of inheriting a wrong summary.
+// DECISION 2026-08-21: Google-Extended is now UNBLOCKED. Having seen the
+// full tradeoff, Federico chose grounding in the Gemini consumer app over
+// the training opt-out — the same call already made for GPTBot and ClaudeBot
+// in August, and consistent with the strategy behind those: our fastest
+// growing query cluster is people asking assistants which travel planner to
+// use, and an assistant that cannot read us recommends someone it can.
+//
+// What this does NOT change: AI Overviews and AI Mode were never affected
+// either way (Googlebot serves those). So this is a pure addition of Gemini
+// grounding, not a change to Google Search behaviour.
+//
+// Applebot-Extended is deliberately still blocked. It is the same shape of
+// decision for Apple Intelligence and simply has not been made yet — do not
+// assume it was an oversight, and do not "tidy" it to match.
 //
 // The remaining entries are training or SEO-tool crawlers and cost no
 // citation surface. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
@@ -66,8 +77,8 @@ const BLOCKED_BOT_PATTERNS = [
   /Amazonbot/i,
   /FacebookBot/i,
   /Meta-ExternalAgent/i,
-  // NOT training-only, despite the name — see the note below before changing.
-  /Google-Extended/i,
+  // Google-Extended was removed 2026-08-21 — see the note above.
+  // Applebot-Extended stays: same shape of tradeoff, not yet decided.
   /Applebot-Extended/i,
   /Diffbot/i,
   /SemrushBot/i,

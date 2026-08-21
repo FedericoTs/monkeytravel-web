@@ -24,7 +24,8 @@
     "definition": "Um planejador de viagens com IA transforma um destino e algumas datas em um roteiro dia a dia: escolhe lugares específicos e os organiza em um trajeto que faz sentido percorrer a pé ou de carro.",
     "vsChatbot": "É essa a diferença em relação a perguntar a um chatbot. Um chatbot dá sugestões que você ainda precisa pesquisar, organizar e colocar em ordem. Um planejador entrega o roteiro pronto: lugares com nome, agrupados por dia, com os deslocamentos já considerados.",
     "product": "O MonkeyTravel faz isso em cerca de 30 segundos, com três níveis de orçamento, usando lugares reais e preços atuais em vez de inventados. Funciona em inglês, espanhol, italiano e português, e não exige conta.",
-    "honest": "Ele também erra às vezes: um lugar fecha, um preço muda. Por isso cada parada continua editável, e você lê o roteiro inteiro antes de se cadastrar em qualquer coisa."
+    "honest": "Ele também erra às vezes: um lugar fecha, um preço muda. Por isso cada parada continua editável, e você lê o roteiro inteiro antes de se cadastrar em qualquer coisa.",
+    "imageAlt": "Um roteiro de três dias por Barcelona gerado no MonkeyTravel: o dia 1 começa com a Sagrada Família às 09:00 por 180 minutos, marcada como atração, acima de um resumo que mostra 12 atividades em ritmo moderado."
   },
   "features": {
     "title": "Tudo o Que Você Precisa Para Planejar Viagens Melhores",

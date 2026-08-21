@@ -10,6 +10,7 @@ import {
   generateWebPageSchema,
   jsonLdScriptProps,
 } from '@/lib/seo/structured-data';
+import PhoneMockup from '@/components/PhoneMockup';
 import LastUpdated from '@/components/seo/LastUpdated';
 import { getNonce } from '@/lib/security/nonce';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -345,15 +346,37 @@ export default async function FreeTripPlannerPage({
             per locale — keep it inside that band when editing.
             ================================================================ */}
         <section className="py-20 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6">
-              {t('whatIs.heading')}
-            </h2>
-            <div className="space-y-4 text-lg leading-relaxed text-[var(--foreground-muted)]">
-              <p>{t('whatIs.definition')}</p>
-              <p>{t('whatIs.vsChatbot')}</p>
-              <p>{t('whatIs.product')}</p>
-              <p>{t('whatIs.honest')}</p>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_auto] gap-12 lg:gap-16 items-center">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6">
+                  {t('whatIs.heading')}
+                </h2>
+                <div className="space-y-4 text-lg leading-relaxed text-[var(--foreground-muted)]">
+                  <p>{t('whatIs.definition')}</p>
+                  <p>{t('whatIs.vsChatbot')}</p>
+                  <p>{t('whatIs.product')}</p>
+                  <p>{t('whatIs.honest')}</p>
+                </div>
+              </div>
+
+              {/* A real generated itinerary, not an illustration. The audit
+                  found all 13 images on this page were chrome — decorative
+                  hero layers with correctly-empty alt — so the page had no
+                  substantive imagery at all (GEO-ANALYSIS finding 6).
+
+                  Deliberately NOT hidden on small screens. The obvious
+                  layout instinct here is `hidden lg:flex`, which would drop
+                  the image from the MOBILE dom — and Google indexes
+                  mobile-first, so the crawler would never see the one
+                  content image on the page. It stacks instead. */}
+              <div className="flex justify-center">
+                <PhoneMockup
+                  scale="lg"
+                  screenImage="/screenshots/trip-barcelona-itinerary.webp"
+                  alt={t('whatIs.imageAlt')}
+                />
+              </div>
             </div>
           </div>
         </section>

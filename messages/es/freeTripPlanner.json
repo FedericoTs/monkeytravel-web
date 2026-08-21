@@ -24,7 +24,8 @@
     "definition": "Un planificador de viajes AI convierte un destino y unas fechas en un itinerario día a día: elige lugares concretos y los ordena en una ruta que tiene sentido recorrer a pie o en coche.",
     "vsChatbot": "Esa es la diferencia con preguntarle a un chatbot. Un chatbot te da sugerencias que todavía tienes que investigar, organizar y ordenar tú. Un planificador te da el horario: lugares con nombre, agrupados por día, con los desplazamientos entre ellos ya calculados.",
     "product": "MonkeyTravel lo hace en unos 30 segundos, con tres niveles de presupuesto, usando lugares reales y precios actuales en lugar de inventados. Funciona en inglés, español, italiano y portugués, y no necesita cuenta.",
-    "honest": "También se equivoca a veces: un sitio cierra, un precio cambia. Por eso cada parada se puede editar, y puedes leer el plan entero antes de registrarte en nada."
+    "honest": "También se equivoca a veces: un sitio cierra, un precio cambia. Por eso cada parada se puede editar, y puedes leer el plan entero antes de registrarte en nada.",
+    "imageAlt": "Un itinerario de tres días por Barcelona generado en MonkeyTravel: el día 1 empieza con la Sagrada Família a las 09:00 durante 180 minutos, etiquetada como atracción, sobre un resumen que muestra 12 actividades a ritmo moderado."
   },
   "features": {
     "title": "Todo Lo Que Necesitas Para Planificar Mejores Viajes",

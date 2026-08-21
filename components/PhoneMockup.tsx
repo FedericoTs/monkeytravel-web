@@ -9,6 +9,18 @@ interface PhoneMockupProps {
    * eager loading. Use ONLY for the above-the-fold hero instance.
    */
   priority?: boolean;
+  /**
+   * What the screenshot actually shows, in a sentence.
+   *
+   * Defaults to a generic string because that is what every existing caller
+   * was getting implicitly. Pass a real description wherever the image is
+   * carrying meaning rather than decoration: it is the accessible name for
+   * screen-reader users, and it is also the only part of an image an
+   * extraction model can read — docs/GEO-ANALYSIS.md finding 6 flagged that
+   * this page had no substantive imagery at all, and an image nobody can
+   * describe does not fix that.
+   */
+  alt?: string;
 }
 
 const scaleStyles = {
@@ -22,6 +34,7 @@ export default function PhoneMockup({
   className = '',
   scale = 'lg',
   priority = false,
+  alt = 'App screenshot',
 }: PhoneMockupProps) {
   return (
     <div className={`relative ${scaleStyles[scale]} ${className}`}>
@@ -45,7 +58,7 @@ export default function PhoneMockup({
             {screenImage ? (
               <Image
                 src={screenImage}
-                alt="App screenshot"
+                alt={alt}
                 fill
                 sizes="(max-width: 768px) 60vw, 280px"
                 priority={priority}
