@@ -19,6 +19,13 @@
       "instant": "Risultati istantanei"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di viaggi AI?",
+    "definition": "Un pianificatore di viaggi AI trasforma una destinazione e delle date in un itinerario giorno per giorno: sceglie luoghi precisi e li mette in un percorso che ha senso fare a piedi o in auto.",
+    "vsChatbot": "È questa la differenza rispetto a chiedere a un chatbot. Un chatbot ti dà suggerimenti che devi comunque cercare, organizzare e mettere in ordine tu. Un pianificatore ti dà il programma: luoghi con nome, raggruppati per giorno, con gli spostamenti già calcolati.",
+    "product": "MonkeyTravel lo crea in circa 30 secondi, su tre livelli di budget, usando luoghi reali e prezzi attuali invece che inventati. Funziona in inglese, spagnolo, italiano e portoghese e non richiede un account.",
+    "honest": "A volte sbaglia: un locale chiude, un prezzo cambia. Per questo ogni tappa resta modificabile e puoi leggere tutto il piano prima di registrarti."
+  },
   "features": {
     "title": "Tutto Ciò Che Serve Per Pianificare Viaggi Migliori",
     "subtitle": "Nessun costo nascosto, nessuna barriera con carta di credito. Tutte le funzionalità disponibili dal primo giorno.",
@@ -37,7 +44,7 @@
       },
       "multiLanguage": {
         "title": "Pianifica Nella Tua Lingua",
-        "description": "MonkeyTravel funziona in inglese, spagnolo e italiano. Ricevi itinerari e consigli nella lingua che preferisci."
+        "description": "MonkeyTravel funziona in inglese, spagnolo, italiano e portoghese. Ricevi itinerari e consigli nella lingua che preferisci."
       },
       "groupPlanning": {
         "title": "Pianificazione di Viaggi di Gruppo",
@@ -114,7 +121,7 @@
       },
       "languages": {
         "question": "Quali lingue supporta MonkeyTravel?",
-        "answer": "MonkeyTravel è completamente disponibile in inglese, spagnolo e italiano — incluso il contenuto degli itinerari generati con AI, non solo l'interfaccia. Altre lingue saranno disponibili presto."
+        "answer": "MonkeyTravel è completamente disponibile in inglese, spagnolo, italiano e portoghese — incluso il contenuto degli itinerari generati con AI, non solo l'interfaccia. Altre lingue saranno disponibili presto."
       },
       "groupTrips": {
         "question": "Posso pianificare un viaggio di gruppo con MonkeyTravel?",

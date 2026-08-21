@@ -25,7 +25,7 @@ const META: Record<string, { title: string; description: string }> = {
   en: {
     title: 'Free AI Trip Planner — No Signup, No Card',
     description:
-      'Create personalized day-by-day itineraries with real venues and 3 budget tiers in 30 seconds. Works in English, Spanish & Italian. No account required, ever.',
+      'Create personalized day-by-day itineraries with real venues and 3 budget tiers in 30 seconds. Works in English, Spanish, Italian & Portuguese. No account required, ever.',
   },
   es: {
     title:
@@ -317,6 +317,35 @@ export default async function FreeTripPlannerPage({
         </section>
 
         {/* ================================================================
+            WHAT IS AN AI TRIP PLANNER — definitional block
+            ================================================================
+            The page used to open on a benefit claim ("get an itinerary in
+            under 60 seconds") and never define its own category, so it could
+            not answer a "what is an ai trip planner" query at all. It also
+            scored 0 of 20 sections inside the 134-167 word band that
+            extraction models favour — everything was either a 19-28 word
+            feature blurb or one 218-word FAQ lump. See docs/GEO-ANALYSIS.md.
+
+            This block is the fix: one self-contained answer, long enough to
+            lift whole. Copy lives under `whatIs` in
+            messages/{en,es,it,pt}/freeTripPlanner.json and runs 134-143 words
+            per locale — keep it inside that band when editing.
+            ================================================================ */}
+        <section className="py-20 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6">
+              {t('whatIs.heading')}
+            </h2>
+            <div className="space-y-4 text-lg leading-relaxed text-[var(--foreground-muted)]">
+              <p>{t('whatIs.definition')}</p>
+              <p>{t('whatIs.vsChatbot')}</p>
+              <p>{t('whatIs.product')}</p>
+              <p>{t('whatIs.honest')}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
             FEATURES GRID
             ================================================================ */}
         <section id="features" className="py-24 bg-white relative overflow-hidden">
@@ -482,9 +511,9 @@ export default async function FreeTripPlannerPage({
                   className="group bg-white rounded-2xl overflow-hidden shadow-sm"
                 >
                   <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                    <span className="font-semibold text-[var(--foreground)] pr-4">
+                    <h3 className="font-semibold text-[var(--foreground)] pr-4">
                       {t(`faq.items.${key}.question`)}
-                    </span>
+                    </h3>
                     <div className="w-8 h-8 rounded-full bg-[var(--background-alt)] flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                       <svg
                         className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"

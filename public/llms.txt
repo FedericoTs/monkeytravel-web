@@ -1,6 +1,6 @@
 # MonkeyTravel
 
-> MonkeyTravel is a free AI-powered trip planner that generates personalized day-by-day travel itineraries with real venues, actual prices, and smart routing. Available in English, Spanish, and Italian. No signup required.
+> MonkeyTravel is a free AI-powered trip planner that generates personalized day-by-day travel itineraries with real venues, actual prices, and smart routing. Available in English, Spanish, Italian, and Portuguese. No signup required.
 
 ## Core Pages
 

@@ -16,7 +16,7 @@ import TranslationsClient from "./TranslationsClient";
  */
 export const metadata: Metadata = {
   title: "Translations Admin",
-  description: "Edit MonkeyTravel translations across English, Spanish, and Italian.",
+  description: "Edit MonkeyTravel translations across English, Spanish, Italian, and Portuguese.",
   robots: { index: false, follow: false },
 };
 

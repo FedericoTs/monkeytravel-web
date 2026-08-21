@@ -463,9 +463,9 @@ export default async function MultiCityTripPlannerPage({
                   className="group bg-white rounded-2xl overflow-hidden shadow-sm"
                 >
                   <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                    <span className="font-semibold text-[var(--foreground)] pr-4">
+                    <h3 className="font-semibold text-[var(--foreground)] pr-4">
                       {t(`faq.items.${key}.question`)}
-                    </span>
+                    </h3>
                     <div className="w-8 h-8 rounded-full bg-[var(--background-alt)] flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                       <svg
                         className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"

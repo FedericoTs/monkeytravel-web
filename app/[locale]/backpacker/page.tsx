@@ -489,7 +489,7 @@ export default async function BackpackerLandingPage({
               {faqItems.map((item) => (
                 <details key={item.question} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden">
                   <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
-                    <span className="font-semibold text-slate-900 pr-4">{item.question}</span>
+                    <h3 className="font-semibold text-slate-900 pr-4">{item.question}</h3>
                     <svg className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
