@@ -1,0 +1,37 @@
+-- mt_users_set_username must see the whole table to do its job.
+--
+-- trg_users_username is a BEFORE INSERT trigger on public.users that picks a
+-- free username by scanning for collisions:
+--
+--     while exists (select 1 from public.users where lower(username) = lower(cand))
+--
+-- It is SECURITY INVOKER, so that scan runs with the inserting role's RLS. Two
+-- app paths insert into public.users as `authenticated`, not as service_role:
+--
+--     app/[locale]/auth/signup/page.tsx   (browser client, .upsert)
+--     app/auth/callback/route.ts:254      (cookie client, .upsert)
+--
+-- PostgreSQL fires BEFORE INSERT triggers before ON CONFLICT is resolved, so
+-- the trigger runs on every one of those upserts. Once public.users is
+-- restricted to the row owner (20260820210000) the scan can only ever see the
+-- caller's own row, so it stops finding collisions and hands out the base name
+-- to everybody.
+--
+-- There is a UNIQUE INDEX on lower(username) (users_username_lower_key), so the
+-- consequence is not a duplicate username — it is a duplicate-key error on
+-- INSERT. Both call sites swallow that error and continue ("Don't block signup
+-- if profile creation fails"), which means the user finishes signup with no
+-- public.users row: no preferences, no notification settings, no usage limits.
+--
+-- A uniqueness generator is only correct if it can see every row, whoever is
+-- inserting. That is what SECURITY DEFINER expresses here. The function reads
+-- nothing but `username`, returns no rows to the caller, and only assigns
+-- NEW.username, so it widens no read surface. search_path is already pinned on
+-- the function, which is what makes SECURITY DEFINER safe to grant.
+--
+-- Signup via the auth trigger (on_auth_user_created -> handle_new_user) was
+-- never affected: that function is SECURITY DEFINER owned by postgres, and
+-- public.users is not FORCE ROW LEVEL SECURITY, so the owner already bypasses
+-- RLS for the whole nested trigger chain.
+
+alter function public.mt_users_set_username() security definer;
