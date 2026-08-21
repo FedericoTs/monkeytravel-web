@@ -38,16 +38,26 @@
  * So: filter the warning, keep the dependency tree intact, and revisit when
  * Sentry is upgraded on purpose.
  *
- * WHY IT IS SCOPED TO THE OTEL FRAME
+ * WHY IT IS NOT SCOPED BY STACK
  *
- * Blanket-suppressing DEP0169 would also hide the warning if OUR code ever
- * started calling url.parse() — exactly the signal worth keeping. So the filter
- * checks the emitting stack and only swallows warnings raised from inside
- * @opentelemetry. Anything else is passed straight through untouched, and the
- * suppression stops working by itself the moment the source changes.
+ * The first attempt only swallowed the warning when the emitting stack matched
+ * /node_modules/@opentelemetry/. It shipped and did nothing: verified against
+ * production with forced cold starts, DEP0169 kept firing. The reason is that
+ * Next bundles server code, so the caller frame is a .next/server/chunks/* path
+ * rather than the original node_modules path — the regex could never match.
+ *
+ * Rather than chase bundler-dependent paths at runtime, the safety property is
+ * enforced STATICALLY instead: silence-otel-url-parse-deprecation.vitest.ts
+ * scans our own source and fails if anything under app/, lib/ or components/
+ * ever calls url.parse(). That check is reliable, runs in CI, and fails loudly
+ * at the moment the assumption breaks — which fragile stack matching did not.
+ *
+ * So the runtime filter is deliberately simple: drop DEP0169, full stop. It is
+ * safe precisely because the test guarantees the only possible source is a
+ * dependency.
  */
 
-const OTEL_FRAME = /[\\/]node_modules[\\/]@opentelemetry[\\/]/;
+const SUPPRESSED_CODE = "DEP0169";
 
 let installed = false;
 
@@ -72,13 +82,8 @@ export function silenceOtelUrlParseDeprecation(): void {
         ? (rest[0] as { code?: string }).code
         : (rest[1] as string | undefined);
 
-    if (code === "DEP0169") {
-      // Where is it actually being raised from? Capture the live stack rather
-      // than trusting the warning object, which Node builds internally.
-      const emittedFrom = new Error().stack ?? "";
-      if (OTEL_FRAME.test(emittedFrom)) {
-        return; // known, harmless, upstream — and already fixed in 0.221.0
-      }
+    if (code === SUPPRESSED_CODE) {
+      return; // known, harmless, upstream — already fixed in otel 0.221.0
     }
 
     return (original as (...args: unknown[]) => void)(warning, ...rest);
