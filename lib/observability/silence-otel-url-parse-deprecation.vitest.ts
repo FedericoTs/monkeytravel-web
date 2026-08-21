@@ -106,8 +106,16 @@ describe("our own source must never call url.parse()", () => {
     return out;
   }
 
-  it("has no url.parse() call anywhere in app/, lib/ or components/", () => {
-    const offenders: string[] = [];
+  /**
+   * Scanned once at collection time rather than inside the test.
+   *
+   * Walking app/ + lib/ + components/ synchronously is fast on an idle
+   * machine, but with ~40 vitest workers competing for the disk it ran past
+   * the 5s default timeout and failed this file for a reason unrelated to
+   * what it asserts. Hoisting takes it out of the timed window.
+   */
+  const offenders: string[] = (() => {
+    const found: string[] = [];
     for (const root of ROOTS) {
       for (const file of walk(root)) {
         const src = readFileSync(file, "utf8")
@@ -115,10 +123,14 @@ describe("our own source must never call url.parse()", () => {
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/^\s*\/\/.*$/gm, "");
         if (LEGACY_URL_PARSE.test(src)) {
-          offenders.push(file.split("\\").join("/"));
+          found.push(file.split("\\").join("/"));
         }
       }
     }
+    return found;
+  })();
+
+  it("has no url.parse() call anywhere in app/, lib/ or components/", () => {
     expect(
       offenders,
       `url.parse() found in our own source. We suppress DEP0169 globally in ` +

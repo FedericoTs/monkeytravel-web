@@ -37,9 +37,17 @@ export function generateOrganizationSchema(): OrganizationSchema {
     name: SITE_NAME,
     url: SITE_URL,
     logo: LOGO_URL,
+    // Every profile the site actually links from its footer. Keep these two
+    // lists in sync: the footer linked x.com, Instagram and LinkedIn while
+    // sameAs claimed only the pre-rebrand twitter.com URL, so the
+    // machine-readable entity graph was both incomplete and pointing at the
+    // old domain. That gap matters more for AI citation than for classic
+    // search — brand mentions correlate far more strongly with being cited
+    // than backlinks do, and a profile a parser cannot see cannot count.
     sameAs: [
-      "https://twitter.com/monkeytravel",
-      // Add more social profiles as they're created
+      "https://x.com/monkeytravel",
+      "https://instagram.com/monkeytravel.app",
+      "https://linkedin.com/company/monkeytravel",
     ],
     contactPoint: {
       "@type": "ContactPoint",

@@ -7,7 +7,6 @@ import { Link, routing } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
   generateBreadcrumbSchema,
-  generateSoftwareApplicationSchema,
   jsonLdScriptProps,
 } from '@/lib/seo/structured-data';
 import { getNonce } from '@/lib/security/nonce';
@@ -197,7 +196,6 @@ export default async function MultiCityTripPlannerPage({
         {...jsonLdScriptProps([
           generateFAQSchema(faqItems),
           generateBreadcrumbSchema(breadcrumbItems),
-          generateSoftwareApplicationSchema(),
         ], nonce)}
       />
 

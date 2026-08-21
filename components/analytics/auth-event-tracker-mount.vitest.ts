@@ -27,6 +27,33 @@ const layout = fs.readFileSync(
   "utf8"
 );
 
+/**
+ * Scan once at module load, not inside a test.
+ *
+ * A recursive sync walk of app/ + components/ takes milliseconds on an idle
+ * machine but blew past vitest's 5s default timeout when the suite ran with
+ * ~40 worker processes competing for the disk. Doing it per-test made this
+ * file fail for reasons that had nothing to do with the assertion.
+ */
+const mountSites: string[] = (() => {
+  const hits: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+        walk(full);
+      } else if (/\.tsx$/.test(entry.name)) {
+        const src = fs.readFileSync(full, "utf8");
+        // The JSX element, not the import or a comment mentioning it.
+        if (/<AuthEventTracker\s*\/>/.test(src)) hits.push(path.relative(repoRoot, full));
+      }
+    }
+  };
+  for (const r of ["app", "components"]) walk(path.join(repoRoot, r));
+  return hits;
+})();
+
 describe("AuthEventTracker mount point", () => {
   it("is mounted in the locale layout, so it sees every landing page", () => {
     expect(
@@ -47,28 +74,9 @@ describe("AuthEventTracker mount point", () => {
   });
 
   it("is mounted exactly once across the app, so signups are not double-counted", () => {
-    const roots = ["app", "components"];
-    const hits: string[] = [];
-
-    const walk = (dir: string) => {
-      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
-          walk(full);
-        } else if (/\.tsx$/.test(entry.name)) {
-          const src = fs.readFileSync(full, "utf8");
-          // The JSX element, not the import or a comment mentioning it.
-          if (/<AuthEventTracker\s*\/>/.test(src)) hits.push(path.relative(repoRoot, full));
-        }
-      }
-    };
-
-    for (const r of roots) walk(path.join(repoRoot, r));
-
     expect(
-      hits,
-      `AuthEventTracker should be rendered in exactly one place; found: ${hits.join(", ")}`
+      mountSites,
+      `AuthEventTracker should be rendered in exactly one place; found: ${mountSites.join(", ")}`
     ).toHaveLength(1);
   });
 });
