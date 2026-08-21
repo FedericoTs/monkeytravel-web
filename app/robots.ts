@@ -75,8 +75,17 @@ const ALLOW_PATHS = [
 //
 // 2026-08-11 revision: GPTBot and ClaudeBot allowed too — they now feed the
 // ChatGPT Search / Claude search retrieval indexes, not just training, and
-// blocking them excluded us from those indexes entirely. Pure-training
-// opt-outs (CCBot, Google-Extended, Applebot-Extended, …) stay blocked.
+// blocking them excluded us from those indexes entirely. CCBot,
+// Google-Extended, Applebot-Extended and the SEO-tool crawlers stay blocked.
+//
+// 2026-08-21 correction: the line above used to call that group "pure-training
+// opt-outs". CCBot and the SEO tools are; Google-Extended and
+// Applebot-Extended are NOT. Google-Extended also gates Gemini app grounding
+// (and Applebot-Extended, Apple Intelligence), so blocking them is a
+// retrieval decision too — though it does NOT touch AI Overviews or AI Mode,
+// which Googlebot serves under nosnippet / max-snippet / noindex.
+// The full tradeoff lives in middleware.ts above BLOCKED_BOT_PATTERNS;
+// keep both notes in sync. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
 const BLOCKED_AI_AGENTS = [
   "anthropic-ai",
   "CCBot",

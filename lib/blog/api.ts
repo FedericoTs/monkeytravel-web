@@ -158,7 +158,9 @@ export function extractToc(html: string): TocItem[] {
   return items;
 }
 
-function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFrontmatter; content: string } | null {
+type ParsedPost = { frontmatter: BlogFrontmatter; content: string } | null;
+
+function readAndParseFrontmatter(slug: string, locale: string): ParsedPost {
   // Try locale-specific file first, fall back to English
   const localePath = path.join(BLOG_DIR, locale, `${slug}.md`);
   const defaultPath = path.join(BLOG_DIR, `${slug}.md`);
@@ -169,6 +171,45 @@ function parseFrontmatter(slug: string, locale = "en"): { frontmatter: BlogFront
   const raw = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(raw);
   return { frontmatter: data as BlogFrontmatter, content };
+}
+
+/**
+ * Process-lifetime memo for parsed blog markdown, keyed by locale+slug.
+ *
+ * WHY
+ *
+ * Every read here is two `existsSync` calls plus a `readFileSync` plus a
+ * gray-matter parse, and getAllFrontmatter() does that for all ~84 posts.
+ * That function is wrapped in React's `cache()`, which dedupes only WITHIN a
+ * single request — so a warm serverless instance re-read and re-parsed the
+ * entire corpus on every request, and anything calling it more than once per
+ * request paid the full cost each time.
+ *
+ * Safe because content/blog is immutable at runtime: it ships with the
+ * deployment, and the only runtime filesystem writer in the app
+ * (app/api/admin/translations/route.ts) writes to messages/, never here.
+ *
+ * NOT applied in development, where hot-reloading an edited .md file matters
+ * more than the parse cost. Tests DO get it — this is what took
+ * related-posts.vitest.ts from re-parsing the corpus on each of its 40
+ * getRelatedPosts() calls (blowing a 60s timeout under parallel load) to
+ * parsing it once.
+ */
+const frontmatterMemo = new Map<string, ParsedPost>();
+const MEMOIZE_FRONTMATTER = process.env.NODE_ENV !== "development";
+
+function parseFrontmatter(slug: string, locale = "en"): ParsedPost {
+  if (!MEMOIZE_FRONTMATTER) return readAndParseFrontmatter(slug, locale);
+
+  const key = `${locale} ${slug}`;
+  // `has` rather than a truthiness check: a missing post memoizes as null,
+  // and that negative result is worth keeping too.
+  const hit = frontmatterMemo.get(key);
+  if (hit !== undefined || frontmatterMemo.has(key)) return hit ?? null;
+
+  const parsed = readAndParseFrontmatter(slug, locale);
+  frontmatterMemo.set(key, parsed);
+  return parsed;
 }
 
 /**

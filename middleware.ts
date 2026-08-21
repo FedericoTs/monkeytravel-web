@@ -36,6 +36,29 @@ const intlMiddleware = createIntlMiddleware(routing);
 // kept monkeytravel.app OUT of those indexes while the data-report series
 // is exactly the kind of first-party content those engines cite. Training
 // opt-out signals (Google-Extended, Applebot-Extended, CCBot, Meta) stay.
+//
+// 2026-08-21 correction — what Google-Extended actually costs.
+//
+// This list used to annotate it "Google AI training (separate from
+// googlebot)". That is incomplete, and the missing half is the part that
+// matters: Google-Extended is ALSO the gate for Gemini app grounding and
+// Vertex AI grounding. It is a retrieval control as much as a training one,
+// so the same test applied to GPTBot and ClaudeBot above applies here —
+// it just reaches a less comfortable answer.
+//
+// To be precise about the tradeoff, because the name invites the wrong guess:
+//   - Does NOT affect AI Overviews or AI Mode. Those are served by Googlebot
+//     and governed by nosnippet / max-snippet / noindex. Blocking
+//     Google-Extended costs us nothing there.
+//   - DOES cost grounding in the Gemini consumer app, and Applebot-Extended
+//     does the same for Apple Intelligence.
+//
+// Keeping the block may well be right — a training opt-out has real value,
+// and that is a policy call, not an SEO one. This note exists so the next
+// person makes it deliberately instead of inheriting a wrong summary.
+//
+// The remaining entries are training or SEO-tool crawlers and cost no
+// citation surface. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
 const BLOCKED_BOT_PATTERNS = [
   /anthropic-ai/i,
   /CCBot/i, // Common Crawl
@@ -43,8 +66,9 @@ const BLOCKED_BOT_PATTERNS = [
   /Amazonbot/i,
   /FacebookBot/i,
   /Meta-ExternalAgent/i,
-  /Google-Extended/i, // Google AI training (separate from googlebot)
-  /Applebot-Extended/i, // Apple AI training (separate from Applebot)
+  // NOT training-only, despite the name — see the note below before changing.
+  /Google-Extended/i,
+  /Applebot-Extended/i,
   /Diffbot/i,
   /SemrushBot/i,
   /AhrefsBot/i,
