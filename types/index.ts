@@ -127,7 +127,16 @@ export interface Activity {
     lng: number;
   };
   google_place_id?: string; // Google Maps Place ID for lookups
-  estimated_cost: {
+  /**
+   * OPTIONAL on purpose. The itinerary is model-generated JSON and Gemini
+   * regularly omits this block — Sentry JAVASCRIPT-NEXTJS-12 was
+   * "Cannot read properties of undefined (reading 'amount')" on /trips/:id,
+   * 17 occurrences, from an unguarded `activity.estimated_cost.amount` inside
+   * a nested map. Declaring it required made TypeScript vouch for a field the
+   * model does not guarantee. Same failure family as the missing trip_summary
+   * that ensureTripSummary() backfills.
+   */
+  estimated_cost?: {
     amount: number;
     currency: string;
     tier: "free" | "budget" | "moderate" | "expensive";

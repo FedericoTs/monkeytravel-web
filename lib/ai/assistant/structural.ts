@@ -277,7 +277,7 @@ function normalizeActivity(
       amount: Number(rawCost.amount) || 0,
       currency: asString(rawCost.currency, "EUR"),
       tier:
-        (asString(rawCost.tier) as Activity["estimated_cost"]["tier"]) ||
+        (asString(rawCost.tier) as NonNullable<Activity["estimated_cost"]>["tier"]) ||
         "moderate",
     },
     tips: Array.isArray(raw.tips)

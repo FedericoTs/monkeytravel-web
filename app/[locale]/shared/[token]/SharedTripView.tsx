@@ -673,10 +673,16 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
-                                        {formatPrice(
-                                          activity.estimated_cost.amount,
-                                          activity.estimated_cost.currency || trip.budget?.currency || "USD"
-                                        )}
+                                        {/* Gemini omits estimated_cost often enough that this
+                                            crashed the page (Sentry JAVASCRIPT-NEXTJS-12).
+                                            Render nothing when it is missing — defaulting to 0
+                                            would print "Free", inventing a claim about price. */}
+                                        {activity.estimated_cost
+                                          ? formatPrice(
+                                              activity.estimated_cost.amount,
+                                              activity.estimated_cost.currency || trip.budget?.currency || "USD"
+                                            )
+                                          : null}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
                                         {activity.type}

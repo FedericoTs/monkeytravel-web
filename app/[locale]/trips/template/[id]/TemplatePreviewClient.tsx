@@ -439,10 +439,14 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
-                                        {formatPrice(
-                                          activity.estimated_cost.amount,
-                                          activity.estimated_cost.currency || template.budget?.currency || "EUR"
-                                        )}
+                                        {/* See SharedTripView: estimated_cost is optional in
+                                            practice; omit rather than claim "Free". */}
+                                        {activity.estimated_cost
+                                          ? formatPrice(
+                                              activity.estimated_cost.amount,
+                                              activity.estimated_cost.currency || template.budget?.currency || "EUR"
+                                            )
+                                          : null}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
                                         {activity.type}
