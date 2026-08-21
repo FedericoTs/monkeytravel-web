@@ -41,17 +41,28 @@
  * success state.
  *
  * HANDLE FETCH SCOPING
- *   The recipient handle JOIN runs through the user-scoped supabase
- *   client (NOT service_role), so public.users RLS gates exactly which
- *   rows the requesting user can see. That's the same client pattern
- *   batchFetchUserProfiles uses across /api/trips/[id]/collaborators
- *   and /api/trips/[id]/votes — the existing public.users RLS already
- *   allows trip members to read each other's profile columns (see
- *   migration 20260531_day10_user_payment_handles.sql comments).
+ *   This used to run through the user-scoped client and lean on
+ *   public.users RLS to gate the read. That worked only because the row
+ *   policy was USING (true) — i.e. it gated nothing. Since
+ *   20260820210000 the policy is id = auth.uid(), so the user-scoped
+ *   client returns the CALLER's row and nobody else's: every recipient's
+ *   handles would come back empty and the settle-up modal would show its
+ *   "no payment handles" empty state, with only a Sentry line to say so.
+ *
+ *   Authorization for this read is the membership probe below, not RLS.
+ *   Once that probe passes, the caller is a member of this trip and the
+ *   recipients are exactly the counterparties the RPC computed for it —
+ *   so the handles are fetched with the service client, scoped to those
+ *   ids.
+ *
+ *   These columns deliberately do NOT live in public_profiles: that view
+ *   is readable by anon, and PayPal/Venmo/Wise handles are not public
+ *   profile data.
  */
 
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 
@@ -131,14 +142,10 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       new Set(rows.map((r) => r.to_user_id).filter(Boolean)),
     );
 
-    // Fetch handles via the user-scoped supabase client so public.users
-    // RLS gates the read. The same row shape is already exposed to trip
-    // members by /api/trips/[id]/collaborators via batchFetchUserProfiles
-    // — adding three more profile columns is the same trust boundary,
-    // not a wider one. A non-member who somehow reached this code path
-    // would already have been bounced by the membership probe above; a
-    // legit member only sees rows for users they share a trip with,
-    // which is precisely the recipients in this RPC result.
+    // Fetched with the service client — see HANDLE FETCH SCOPING above.
+    // The membership probe is the authorization; recipientIds are the
+    // counterparties the RPC computed for THIS trip, so the read stays
+    // scoped to people the caller demonstrably shares a trip with.
     const handlesById = new Map<
       string,
       {
@@ -148,7 +155,7 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       }
     >();
     if (recipientIds.length > 0) {
-      const { data: handleRows, error: handleErr } = await supabase
+      const { data: handleRows, error: handleErr } = await createAdminClient()
         .from("users")
         .select("id, paypal_handle, venmo_handle, wise_handle")
         .in("id", recipientIds);
