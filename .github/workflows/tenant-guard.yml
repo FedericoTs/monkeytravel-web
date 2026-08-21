@@ -1,0 +1,61 @@
+# tenant-guard — block a merge when multi-tenant / cross-user isolation can leak.
+#
+# Runs the STATIC guards on every PR and every push to master. They need no
+# database and no `npm ci`, so the job is seconds and cannot touch prod. Config
+# lives in tenant-guard.config.json at the repo root (per-user tenant model:
+# user_id is the tenant column; see that file's allowlists).
+#
+# WHY THIS EXISTS: running this tool on 2026-08-21 caught a CRITICAL live bug —
+# public_profiles was anon-WRITABLE (an auto-updatable security_invoker=false
+# view that inherited Supabase's default anon write grants, bypassing RLS). The
+# static run did NOT catch it; the runtime anon-writes guard did. So the static
+# job below is the floor, and the runtime job is the ceiling worth reaching —
+# see RUNTIME GUARDS at the bottom.
+#
+# Pinned to an exact version (no moving v0 tag exists upstream yet) so a tool
+# release can't change what blocks a merge without a deliberate bump here.
+
+name: tenant-guard
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  security-events: write   # so findings land in the Security tab + PR diff
+
+jobs:
+  static:
+    name: static guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FedericoTs/tenant-guard@v0.25.1
+        with:
+          command: run
+          # fail-on-error defaults to true → a finding blocks the merge.
+          # upload-sarif defaults to true → annotations on the PR diff.
+
+  # ── RUNTIME GUARDS (not enabled yet) ────────────────────────────────────────
+  # The runtime guards (anon-reads, anon-writes, rpc, views, …) are the layer
+  # that caught the public_profiles write hole. They perform write probes inside
+  # a rolled-back transaction, so they MUST run against a throwaway test/staging
+  # database — NEVER production. This repo's local dev currently points at the
+  # production Supabase project, so there is no safe URL to wire in yet.
+  #
+  # To enable, stand up a disposable seeded DB (a Supabase branch, or a Postgres
+  # service container restored from a schema dump), store its connection string
+  # as the secret TEST_DATABASE_URL, and uncomment:
+  #
+  # runtime:
+  #   name: runtime proofs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: FedericoTs/tenant-guard@v0.25.1
+  #       with:
+  #         command: all
+  #         database-url: ${{ secrets.TEST_DATABASE_URL }}
