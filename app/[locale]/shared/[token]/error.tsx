@@ -1,6 +1,6 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
+import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { useEffect } from "react";
 import { Link } from "@/lib/i18n/routing";
 
@@ -11,9 +11,7 @@ interface ErrorProps {
 
 export default function SharedTripError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { errorType: "shared-trip-error" },
-    });
+    reportBoundaryError(error, "shared-trip-error");
   }, [error]);
 
   return (

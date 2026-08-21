@@ -10,6 +10,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { useEffect } from "react";
 
 interface GlobalErrorProps {
@@ -65,12 +66,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     }
 
     // Report the error to Sentry
-    Sentry.captureException(error, {
-      tags: {
-        errorType: "global-error",
-        digest: error.digest,
-      },
-    });
+    reportBoundaryError(error, "global-error");
   }, [error]);
 
   return (

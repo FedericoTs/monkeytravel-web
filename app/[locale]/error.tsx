@@ -22,8 +22,8 @@
  * keep their own error.tsx alongside the route.
  */
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { Link } from "@/lib/i18n/routing";
 
 interface ErrorProps {
@@ -33,9 +33,11 @@ interface ErrorProps {
 
 export default function LocaleError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { errorType: "locale-root-error" },
-    });
+    // Rich capture: keeps error.digest and the RAW stack string, so the event
+    // stays diagnosable even when Sentry parses no frames — which is exactly
+    // what happened to the TDZ family (JAVASCRIPT-NEXTJS-23 arrived with
+    // "No stacktrace available").
+    reportBoundaryError(error, "locale-root-error");
   }, [error]);
 
   return (

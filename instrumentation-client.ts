@@ -103,9 +103,12 @@ function initMonitoring() {
         "atomicFindClose",
         // Facebook borked
         "fb_xd_fragment",
-        // Network errors
-        "Network Error",
-        "NetworkError",
+        // Network errors. These string entries are CASE-SENSITIVE substring
+        // matches, which is why Sentry JAVASCRIPT-NEXTJS-1Z ("TypeError:
+        // network error" — lowercase, the Safari/WebKit spelling) slipped
+        // past "Network Error" and "NetworkError" and was filed as a real
+        // issue. The regex below covers every casing in one entry.
+        /network\s*error/i,
         "Failed to fetch",
         "Load failed",
         // Chrome extensions
