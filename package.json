@@ -20,6 +20,8 @@
     "verify:deploy": "tsx scripts/verify-deploy-smoke.ts",
     "test:bananas": "tsx scripts/banana-load-test.mts",
     "rls:check": "tsx scripts/rls-baseline.mts",
+    "e2e:fixtures": "tsx scripts/e2e-fixtures.mts",
+    "e2e:login": "tsx scripts/e2e-login.mts",
     "rls:baseline": "tsx scripts/rls-baseline.mts --write"
   },
   "dependencies": {

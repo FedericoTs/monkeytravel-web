@@ -46,6 +46,8 @@ const ANON_REFERRAL_CODE = "RGRCZ8";
 const AUTH_STATE = process.env.USERS_RLS_AUTH_STATE;
 const ADMIN_STATE = process.env.USERS_RLS_ADMIN_STATE;
 const TRIP_ID = process.env.USERS_RLS_TRIP_ID;
+// Defaults to the id scripts/e2e-fixtures.mts assigns; override for another trip.
+const ACTIVITY_ID = process.env.USERS_RLS_ACTIVITY_ID ?? "e2e-act-1";
 
 test.describe("users lockdown — anonymous surfaces @prod", () => {
   test("referral landing still names the referrer", async ({ page }) => {
@@ -171,6 +173,86 @@ test.describe("users lockdown — signed in", () => {
         c.email,
         "collaborator email must not be echoed to the client"
       ).toBeUndefined();
+    }
+  });
+
+  test("activity votes are attributed to real people", async ({ request }) => {
+    // This route used to read voters via a PostgREST embed —
+    // `users:user_id (display_name, avatar_url)` nested in a select on
+    // activity_votes. An embed of an RLS-denied table returns NULL rather than
+    // erroring, so the whole crew would silently render as "Unknown". 9ac2f6a
+    // replaced it with a public_profiles lookup.
+    test.skip(!TRIP_ID, "set USERS_RLS_TRIP_ID");
+    const res = await request.get(
+      `/api/trips/${TRIP_ID}/activities/${ACTIVITY_ID}/vote`
+    );
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const votes = body.votes ?? body.data?.votes ?? [];
+    expect(votes.length, "no votes on the fixture activity").toBeGreaterThan(1);
+
+    for (const v of votes) {
+      expect(
+        v.user?.display_name,
+        `vote by ${v.user_id} has no voter name — the embed replacement regressed`
+      ).toBeTruthy();
+      expect(v.user.display_name).not.toBe("Unknown");
+    }
+  });
+
+  test("proposal votes are attributed to real people", async ({ request }) => {
+    // Same embed pattern, three more routes (proposals, proposals/[id],
+    // proposals/[id]/vote).
+    test.skip(!TRIP_ID, "set USERS_RLS_TRIP_ID");
+    const res = await request.get(`/api/trips/${TRIP_ID}/proposals`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const proposals = body.proposals ?? body.data?.proposals ?? [];
+    expect(proposals.length, "no proposals on the fixture trip").toBeGreaterThan(0);
+
+    const allVotes = proposals.flatMap(
+      (p: { votes?: unknown[] }) => p.votes ?? []
+    );
+    expect(allVotes.length, "proposal has no votes").toBeGreaterThan(1);
+    for (const v of allVotes as Array<{ user?: { display_name?: string } }>) {
+      expect(v.user?.display_name, "proposal voter has no name").toBeTruthy();
+      expect(v.user!.display_name).not.toBe("Unknown");
+    }
+  });
+
+  test("settle up shows both names and the payee's handles", async ({
+    request,
+  }) => {
+    // Two separate regressions meet here:
+    //   compute_trip_settlements LEFT JOINed public.users for display_name, so
+    //   restricted rows made every name blank -> the route renders "—".
+    //   The payment-handle lookup used the user-scoped client (48013fc), so
+    //   handles came back null and the pay buttons showed an empty state.
+    // Amounts stayed correct throughout, which is what makes both invisible.
+    test.skip(!TRIP_ID, "set USERS_RLS_TRIP_ID");
+    const res = await request.get(`/api/trips/${TRIP_ID}/settlements`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const transfers = body.transfers ?? body.data?.transfers ?? [];
+    expect(
+      transfers.length,
+      "no transfers — fixture expense/splits missing?"
+    ).toBeGreaterThan(0);
+
+    for (const t of transfers) {
+      expect(t.fromUser?.name, "payer name blank").toBeTruthy();
+      expect(t.fromUser.name, "payer name fell back to the em-dash").not.toBe("—");
+      expect(t.toUser?.name, "payee name blank").toBeTruthy();
+      expect(t.toUser.name, "payee name fell back to the em-dash").not.toBe("—");
+      const handles = [
+        t.toUser.paypal_handle,
+        t.toUser.venmo_handle,
+        t.toUser.wise_handle,
+      ].filter(Boolean);
+      expect(
+        handles.length,
+        "payee has no payment handles — the service-client fix regressed"
+      ).toBeGreaterThan(0);
     }
   });
 });
