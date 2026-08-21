@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -191,6 +192,9 @@ import {
   type TripFormState as PersistTripFormState,
   type PersistInput,
 } from "@/lib/trips/persistTrip";
+
+// Upper bound for the wizard start date (see lib/dates/iso-date.ts).
+const MAX_TRIP_START_DATE = maxTripStartDate();
 
 // Localized loading fallback for the lazy map. It renders inside the
 // NextIntlClientProvider tree (it replaces TripMap in place while the chunk
@@ -4079,9 +4083,22 @@ export default function NewTripPage({
                     type="date"
                     value={startDate}
                     min={new Date().toISOString().split("T")[0]}
+                    // Bounded on BOTH ends. Without a max, a typed year of
+                    // "20220" is a perfectly acceptable <input type="date">
+                    // value (the spec allows years to 275760), and it flowed
+                    // into multi-city generation where addDaysISO threw
+                    //   MultiCityError: addDaysISO: invalid date "20220-05-01"
+                    // because ISO 8601 needs a sign for extended years
+                    // (+020220-05-01), so new Date() returns NaN. Sentry
+                    // JAVASCRIPT-NEXTJS-1J, 5 occurrences.
+                    max={MAX_TRIP_START_DATE}
                     onChange={(e) => {
                       trackFieldInteraction("start_date");
-                      setStartDate(e.target.value);
+                      // max alone is not enough: Chrome still reports an
+                      // out-of-range-but-parseable date through .value. Accept
+                      // only a real YYYY-MM-DD, so a malformed year can never
+                      // reach the itinerary maths.
+                      setStartDate(sanitizeIsoDate(e.target.value));
                     }}
                     aria-label="Trip start date"
                     className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"

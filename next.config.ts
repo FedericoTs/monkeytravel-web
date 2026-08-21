@@ -346,9 +346,36 @@ const sentryConfig = {
   // Tunneling (disabled - use default Sentry endpoints)
   tunnelRoute: undefined,
 
-  // Disable source map upload in CI to prevent timeouts
+  // Source map upload.
+  //
+  // This was `disable: !!process.env.VERCEL` — i.e. disabled on EVERY production
+  // build, since VERCEL is always set there. The effect was that Sentry could
+  // not symbolicate anything: every frame in every issue read like
+  //
+  //   app:///_next/static/chunks/05nok7-~2rps7.js:1:133736 (ud)
+  //
+  // so the 8 open issues (including a ReferenceError hitting 6 users on the trip
+  // page) were effectively undebuggable. The plugin was still injecting
+  // _sentryDebugIds into the bundles — confirmed in the live chunks — it just
+  // never uploaded the maps those IDs point at, which is the half that matters.
+  //
+  // Re-enabled. The original comment cites build timeouts, which is a real
+  // concern, so the errorHandler below makes that failure mode non-fatal: if the
+  // upload times out, errors, or SENTRY_AUTH_TOKEN is absent, the build logs a
+  // warning and continues. Worst case is the status quo (minified stacks), never
+  // a broken deploy.
   sourcemaps: {
-    disable: !!process.env.VERCEL,
+    disable: false,
+  },
+
+  // Never fail a production build over telemetry. Without this, the Sentry
+  // plugin throws on upload problems and takes the whole deploy with it.
+  errorHandler: (err: Error) => {
+    console.warn(
+      "[sentry] source map upload did not complete — stacks will stay minified. " +
+        "Build continues.",
+      err?.message ?? err
+    );
   },
 };
 
