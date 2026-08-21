@@ -19,6 +19,7 @@ import { NextRequest } from "next/server";
 import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
+import { getHistoricalDateRange } from "@/lib/weather/historical-range";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Lazy service-role client for the RLS-locked weather_cache table. The weather
@@ -76,20 +77,8 @@ function getWeatherCondition(code: number): { condition: string; icon: string } 
   return { condition: "Variable", icon: "🌤️" };
 }
 
-// Calculate date range for historical lookup (same dates, previous year)
-function getHistoricalDateRange(startDate: string, endDate: string): { start: string; end: string } {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  // Go back one year
-  start.setFullYear(start.getFullYear() - 1);
-  end.setFullYear(end.getFullYear() - 1);
-
-  return {
-    start: start.toISOString().split("T")[0],
-    end: end.toISOString().split("T")[0],
-  };
-}
+// getHistoricalDateRange now lives in lib/weather/historical-range.ts so the
+// date maths is under test — see that file for why it steps back whole years.
 
 /**
  * Generate cache key for weather data
