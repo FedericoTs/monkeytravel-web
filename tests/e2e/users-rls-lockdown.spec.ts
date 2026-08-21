@@ -90,6 +90,30 @@ test.describe("users lockdown — anonymous surfaces @prod", () => {
     ).toBe("ok");
   });
 
+  test("referral click API returns the real referrer, not 'A friend'", async ({
+    request,
+  }) => {
+    // Caught in production AFTER the lockdown shipped: this endpoint is hit by
+    // anonymous visitors following a referral link and read public.users for
+    // the referrer's name. anon lost that grant entirely, and the route
+    // deliberately ignores the error (click tracking is best-effort) — so the
+    // only symptom was every referral landing quietly saying "A friend".
+    //
+    // The /join/[code] PAGE was fixed in 9ac2f6a; this API was a second,
+    // separate reader of the same data and was missed.
+    const res = await request.post("/api/referral/click", {
+      data: { code: ANON_REFERRAL_CODE },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const payload = body.data ?? body;
+    expect(
+      payload.referrer_name,
+      "referrer_name degraded to the 'A friend' fallback — the anon profile read is broken again"
+    ).not.toBe("A friend");
+    expect(payload.referrer_name).toBeTruthy();
+  });
+
   test("explore still attributes trips to their creators", async ({
     request,
   }) => {
@@ -254,6 +278,47 @@ test.describe("users lockdown — signed in", () => {
         "payee has no payment handles — the service-client fix regressed"
       ).toBeGreaterThan(0);
     }
+  });
+});
+
+test.describe("users lockdown — admin gate holds for a NON-admin", () => {
+  // Runnable without an admin account, and it covers the risk the
+  // admin-session tests cannot: admin-ness is an allowlist in lib/admin.ts, so
+  // when these routes moved to the service client (which bypasses RLS), the
+  // ONLY thing still separating an ordinary user from every user's email is
+  // getAuthenticatedAdmin(). If that gate ever fell open, the service client
+  // behind it would hand out all 450 rows.
+  //
+  // 403 (not 401) is the assertion that matters: 401 would mean the session
+  // was not sent and the test proved nothing.
+  test.skip(!AUTH_STATE, "set USERS_RLS_AUTH_STATE (a NON-admin account)");
+  test.use({ storageState: AUTH_STATE });
+
+  for (const route of [
+    "/api/admin/costs",
+    "/api/admin/google-metrics",
+    "/api/admin/stats",
+  ]) {
+    test(`${route} refuses a signed-in non-admin`, async ({ request }) => {
+      const res = await request.get(route);
+      expect(
+        res.status(),
+        `${route} must 403 a non-admin — 200 means the gate fell open in front of a service-role read`
+      ).toBe(403);
+      const body = await res.text();
+      expect(body, "a refusal must not carry data").not.toMatch(/@gmail\.com/);
+    });
+  }
+
+  test("/admin bounces a signed-in non-admin to the homepage", async ({
+    page,
+  }) => {
+    await page.goto("/admin");
+    // lib/supabase/middleware.ts redirects !isAdmin(user.email) to "/".
+    expect(
+      new URL(page.url()).pathname,
+      "a non-admin reached /admin"
+    ).not.toMatch(/^\/admin/);
   });
 });
 

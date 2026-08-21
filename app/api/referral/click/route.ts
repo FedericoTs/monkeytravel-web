@@ -28,9 +28,16 @@ export async function POST(request: NextRequest) {
       return errors.notFound("Invalid referral code");
     }
 
-    // Get referrer's display name
+    // Get referrer's display name.
+    //
+    // Reads public_profiles, not public.users. This endpoint is hit by
+    // ANONYMOUS visitors following a referral link, and since 20260820210000
+    // anon has no grant on public.users at all — this query started returning
+    // 42501. The error is not checked (deliberately: click tracking is
+    // best-effort), so the only symptom was referrer_name below silently
+    // degrading to "A friend" on every referral landing.
     const { data: referrer } = await supabase
-      .from("users")
+      .from("public_profiles")
       .select("display_name, avatar_url")
       .eq("id", referralCode.user_id)
       .single();

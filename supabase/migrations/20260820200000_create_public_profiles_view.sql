@@ -45,3 +45,17 @@ grant select on public.public_profiles to anon, authenticated;
 -- PostgREST caches privileges alongside the schema; without this the view is
 -- not routable until the next unrelated DDL.
 notify pgrst, 'reload schema';
+
+-- EXPECTED SECURITY-ADVISOR FINDING
+--
+-- Supabase's linter reports this view under `security_definer_view` at ERROR
+-- level: "View `public.public_profiles` is defined with the SECURITY DEFINER
+-- property". That is the entire point of the view and is intentional — a
+-- security_invoker view would inherit public.users' owner-only row policy and
+-- return nothing, which is precisely the breakage this view exists to prevent.
+--
+-- The safety here does not come from RLS, it comes from the fixed column list
+-- above. Do not "fix" the advisor by flipping security_invoker on; that
+-- silently blanks every collaborator name, vote attribution and referral
+-- landing page. If the finding ever needs to be actioned, the correct move is
+-- to narrow the column list, not to change the invoker mode.
