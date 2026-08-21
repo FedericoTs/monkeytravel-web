@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
+import { estimateCost } from "@/lib/posthog/llm-analytics";
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
@@ -174,6 +175,51 @@ const CACHE_HIT_RATE_MIN_SAMPLES = 20; // don't alert until we have a real signa
 const CACHE_HIT_RATE_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 alert/hour max
 
 /**
+ * Materiality gate — the alert must be worth a human's attention.
+ *
+ * MEASURED 2026-08-21. generateItinerary alerted at 0.0% and the message
+ * asserted "this is a real regression … audit lib/prompts.ts". Both halves were
+ * wrong, and chasing them cost hours:
+ *
+ *   - The prefix is NOT dynamic. buildStaticChatHistory is byte-identical by
+ *     construction (cached system prompt + constant spec + constant ack).
+ *   - It is not call spacing either: three real production generations fired
+ *     17-40s apart all returned cached=0.
+ *     16:49:52 prompt=1761 cached=0 · 16:50:32 prompt=1761 cached=0 ·
+ *     16:50:49 prompt=1760 cached=0
+ *   - So implicit caching simply never engages here. It is not a regression;
+ *     it has never worked.
+ *
+ * And the prize is tiny. With this repo's own pricing (gemini-2.5-flash:
+ * $0.15/1M in, $0.0375/1M cached), input is only ~11.6% of a call's cost and
+ * caching discounts 75% of that. Best case for the ~1,260-token prefix:
+ *
+ *   $0.00014/call -> ~$1.55/year at today's ~30 generations/day
+ *                    ~$15/year even at 10x the traffic
+ *
+ * An alert that fires repeatedly, names the wrong cause, and points at a
+ * rounding error is worse than no alert: it burns the attention a real
+ * regression needs. So the hit-rate threshold alone is no longer enough —
+ * the projected annual waste must also clear this bar.
+ */
+const CACHE_ALERT_MIN_ANNUAL_USD = 50;
+
+/**
+ * Minimum wall-clock span the rolling window must cover before its call rate is
+ * treated as representative.
+ *
+ * Without this, annualising from the window's own span inflates wildly on a
+ * burst: 20 calls arriving in 10 seconds project (miss / 10s) x 1 year and
+ * would fire the alert on a trickle of real traffic. You cannot infer an annual
+ * rate from ten seconds. Below this span the projection is skipped entirely
+ * rather than guessed at.
+ */
+const CACHE_ALERT_MIN_OBSERVATION_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Samples keep a timestamp + priced miss so waste can be annualised. */
+type CacheSample = { pct: number; ts: number; missedUsd: number };
+
+/**
  * Gemini implicit caching only engages once the prompt clears a model-specific
  * floor (1,024 tokens on the 2.5 Flash tier, 2,048 on Pro). Below it,
  * `cachedContentTokenCount` is ALWAYS 0 — no prompt reordering can change
@@ -190,7 +236,7 @@ const CACHE_MIN_ELIGIBLE_PROMPT_TOKENS = 1024;
 // global average under the threshold and mask a real cache regression on a
 // big-prompt endpoint (trip generation), or vice versa. Keyed by the same
 // label callers already pass in.
-const cacheHitRolling = new Map<string, number[]>(); // endpoint -> % per call (0-100)
+const cacheHitRolling = new Map<string, CacheSample[]>(); // endpoint -> samples
 const lastCacheAlertAt = new Map<string, number>();
 
 /**
@@ -210,7 +256,10 @@ export function logCacheMetrics(
     candidatesTokenCount?: number;
     cachedContentTokenCount?: number;
     totalTokenCount?: number;
-  }
+  },
+  /** Model id, so the materiality gate can price the miss with real rates.
+   *  Optional: callers that omit it fall back to the flash tier. */
+  model: string = "gemini-2.5-flash"
 ) {
   if (!usageMetadata) return;
 
@@ -240,8 +289,16 @@ export function logCacheMetrics(
   // Rolling cache-hit-rate alerting — per endpoint, and only for calls whose
   // prompt is large enough for implicit caching to engage at all.
   if (promptTokenCount >= CACHE_MIN_ELIGIBLE_PROMPT_TOKENS) {
+    // Upper bound on what caching could have saved on THIS call: price every
+    // uncached prompt token as if it could have been served from cache. If even
+    // that optimistic figure is immaterial, the alert is not worth sending.
+    const uncached = Math.max(0, promptTokenCount - cachedContentTokenCount);
+    const missedUsd =
+      estimateCost(model, promptTokenCount, 0, cachedContentTokenCount) -
+      estimateCost(model, promptTokenCount, 0, cachedContentTokenCount + uncached);
+
     const series = cacheHitRolling.get(endpoint) ?? [];
-    series.push(cacheHitRatePct);
+    series.push({ pct: cacheHitRatePct, ts: Date.now(), missedUsd });
     cacheHitRolling.set(
       endpoint,
       series.length > CACHE_HIT_RATE_WINDOW
@@ -251,23 +308,38 @@ export function logCacheMetrics(
 
     const window = cacheHitRolling.get(endpoint)!;
     if (window.length >= CACHE_HIT_RATE_MIN_SAMPLES) {
-      const avg = window.reduce((a, b) => a + b, 0) / window.length;
+      const avg = window.reduce((a, b) => a + b.pct, 0) / window.length;
       const now = Date.now();
+
+      // Annualise the observed waste from the window's own call rate, so the
+      // projection reflects real traffic rather than an assumed volume.
+      const spanMs = now - window[0].ts;
+      const missedInWindow = window.reduce((a, b) => a + b.missedUsd, 0);
+      // Only project once the window covers enough wall-clock to be a rate.
+      const projectedAnnualUsd =
+        spanMs >= CACHE_ALERT_MIN_OBSERVATION_MS
+          ? (missedInWindow / spanMs) * 365 * 24 * 60 * 60 * 1000
+          : 0;
+
       if (
         avg < CACHE_HIT_RATE_ALERT_THRESHOLD &&
+        projectedAnnualUsd >= CACHE_ALERT_MIN_ANNUAL_USD &&
         now - (lastCacheAlertAt.get(endpoint) ?? 0) >
           CACHE_HIT_RATE_ALERT_COOLDOWN_MS
       ) {
         lastCacheAlertAt.set(endpoint, now);
+        // State what was measured; do not assert a cause. The last time this
+        // message guessed ("non-cacheable prefix … audit lib/prompts.ts") the
+        // guess was wrong and the investigation cost hours.
         const msg =
-          `[Gemini Cache] ⚠ ${endpoint}: rolling cache-hit rate over the last ` +
-          `${window.length} cache-eligible calls is ${avg.toFixed(1)}% ` +
-          `(threshold: ${CACHE_HIT_RATE_ALERT_THRESHOLD}%). These prompts DO ` +
-          `clear the ${CACHE_MIN_ELIGIBLE_PROMPT_TOKENS}-token implicit-cache ` +
-          `floor, so this is a real regression. Likely cause: a non-cacheable ` +
-          `prefix at the start of the prompt (timestamp, request ID, ` +
-          `locale-dynamic header). Move dynamic content to the END so the ` +
-          `leading system/schema block stays byte-identical across calls.`;
+          `[Gemini Cache] ${endpoint}: cache-hit rate ${avg.toFixed(1)}% over ` +
+          `${window.length} eligible calls (threshold ${CACHE_HIT_RATE_ALERT_THRESHOLD}%), ` +
+          `projecting ~$${projectedAnnualUsd.toFixed(0)}/year of avoidable input cost ` +
+          `on ${model}. Worth investigating at this size. Check, in order: is the ` +
+          `leading history block byte-identical across calls; is the shared prefix ` +
+          `comfortably above the model's implicit-cache floor ` +
+          `(${CACHE_MIN_ELIGIBLE_PROMPT_TOKENS}+ tokens); are consecutive calls close ` +
+          `enough together to land in the same cache window.`;
         console.warn(msg);
         // Best-effort Sentry capture — wrapped so a missing/failed Sentry
         // never breaks the Gemini call path. Imported lazily so the
@@ -962,7 +1034,7 @@ async function generateItineraryInternal(
     const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
-    logCacheMetrics("generateItinerary", response.usageMetadata);
+    logCacheMetrics("generateItinerary", response.usageMetadata, modelName);
 
     // Try to parse JSON, with a defensive repair pass for truncated output
     // (Sentry JAVASCRIPT-NEXTJS-V — model hits maxOutputTokens mid-string).
@@ -2285,7 +2357,7 @@ export async function* generateItineraryStream(
   const finalResponse = await result.response;
   const canonicalText = finalResponse.text();
   const latencyMs = performance.now() - startTime;
-  logCacheMetrics("generateItineraryStream", finalResponse.usageMetadata);
+  logCacheMetrics("generateItineraryStream", finalResponse.usageMetadata, modelName);
 
   // Fire-and-forget LLM analytics — same shape as generateItinerary.
   captureLLMGeneration({
