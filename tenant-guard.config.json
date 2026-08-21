@@ -1,0 +1,145 @@
+{
+  "$schema": "https://github.com/FedericoTs/tenant-guard/blob/main/examples/tenant-guard.config.json",
+  "migrations": {
+    "dir": "supabase/migrations",
+    "grandfather": [
+      "20241205",
+      "20251226",
+      "20260523",
+      "20260524",
+      "20260528",
+      "20260529",
+      "20260530",
+      "20260531",
+      "20260601",
+      "20260621",
+      "20260703"
+    ]
+  },
+  "definerGrants": {
+    "baseline": 0,
+    "allowlist": [
+      "user_is_trip_owner"
+    ]
+  },
+  "routeOrgScoping": {
+    "routesDir": "app/api",
+    "allowlist": [],
+    "tenantSignals": [
+      "user_id",
+      "userId",
+      "user.id",
+      "organization_id",
+      "organizationId",
+      "tenant_id",
+      "account_id"
+    ]
+  },
+  "rlsProof": {
+    "urlEnv": "TENANT_GUARD_DATABASE_URL",
+    "role": "authenticated",
+    "becomeTenant": [
+      "select set_config('app.current_tenant', $1, true)"
+    ],
+    "grandfather": []
+  },
+  "rlsDrift": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "anonWrites": {
+    "role": "anon",
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "anonReads": {
+    "role": "anon",
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "schemaTenancy": {
+    "allowlist": []
+  },
+  "createGrants": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "crossTenantFk": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "defaultPrivileges": {
+    "schemas": [
+      "public"
+    ],
+    "failRoles": [
+      "PUBLIC"
+    ],
+    "allowlist": []
+  },
+  "poolerBleed": {
+    "schemas": [
+      "public"
+    ],
+    "sourceDirs": [
+      "src",
+      "app",
+      "lib",
+      "server",
+      "api",
+      "db"
+    ],
+    "allowlist": []
+  },
+  "shadowTables": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "roleCapabilities": {
+    "allowlist": []
+  },
+  "definerRpc": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "realtimeIsolation": {
+    "topicSeparator": ":",
+    "allowlist": []
+  },
+  "constraintOracles": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "storageIsolation": {
+    "pathSegment": 1,
+    "allowlist": []
+  },
+  "identityTrust": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  },
+  "viewIsolation": {
+    "schemas": [
+      "public"
+    ],
+    "allowlist": []
+  }
+}

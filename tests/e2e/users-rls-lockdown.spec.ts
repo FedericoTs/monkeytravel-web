@@ -114,6 +114,36 @@ test.describe("users lockdown — anonymous surfaces @prod", () => {
     expect(payload.referrer_name).toBeTruthy();
   });
 
+  test("public_profiles is READ-ONLY — anon cannot write through the view", async ({
+    request,
+  }) => {
+    // The view is security_invoker=false (runs as owner) over a single table,
+    // which makes it auto-updatable; Supabase's default privileges handed anon
+    // INSERT/UPDATE/DELETE. Before 20260821110000 an anon PATCH/DELETE here
+    // rewrote or deleted ANY user's row, bypassing RLS. Proven and closed.
+    const anonKey = process.env.SUPABASE_ANON_KEY;
+    test.skip(!anonKey, "set SUPABASE_ANON_KEY to exercise the raw PostgREST write path");
+    const base = "https://sevfbahwmlbdlnbhqwyi.supabase.co/rest/v1/public_profiles";
+    const headers = { apikey: anonKey!, Authorization: `Bearer ${anonKey}` };
+
+    const read = await request.get(`${base}?select=id&limit=1`, { headers });
+    expect(read.status(), "anon should still READ the view").toBe(200);
+    const id = (await read.json())[0]?.id;
+    expect(id).toBeTruthy();
+
+    const patch = await request.patch(`${base}?id=eq.${id}`, {
+      headers: { ...headers, "content-type": "application/json", Prefer: "return=representation" },
+      data: { display_name: "e2e-write-probe" },
+    });
+    expect(
+      patch.status(),
+      "anon WROTE through public_profiles — the RLS-bypassing view write path is open again"
+    ).toBeGreaterThanOrEqual(400);
+
+    const del = await request.delete(`${base}?id=eq.${id}`, { headers });
+    expect(del.status(), "anon DELETED through public_profiles").toBeGreaterThanOrEqual(400);
+  });
+
   test("explore still attributes trips to their creators", async ({
     request,
   }) => {
