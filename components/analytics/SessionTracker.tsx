@@ -109,12 +109,14 @@ export default function SessionTracker() {
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id)
           .eq("status", "active"),
-        // Beta access check
+        // Beta access check. maybeSingle, not single: most users have no
+        // tester row, and .single() turns that absence into a 406 error on
+        // every tracked page load.
         supabase
           .from("user_tester_access")
           .select("id")
           .eq("user_id", user.id)
-          .single(),
+          .maybeSingle(),
       ]);
 
       // Calculate account age

@@ -26,7 +26,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({
     locale,
-    namespace: "expenses.payments.settings",
+    namespace: "common.expenses.payments.settings",
   });
   return {
     // Strip brand suffix — root layout's title.template adds it.

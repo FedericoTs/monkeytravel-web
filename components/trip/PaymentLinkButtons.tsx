@@ -87,7 +87,7 @@ export default function PaymentLinkButtons({
   tripId,
   className,
 }: PaymentLinkButtonsProps) {
-  const t = useTranslations("expenses.payments");
+  const t = useTranslations("common.expenses.payments");
 
   // Resolve once per render. Each provider gets a row only if its
   // handle is set AND the deeplink builder accepts it.

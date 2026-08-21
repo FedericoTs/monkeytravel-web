@@ -32,8 +32,8 @@ const EMPTY_HANDLES: HandlesState = {
 };
 
 export default function PaymentHandlesClient() {
-  const t = useTranslations("expenses.payments.settings");
-  const tCommon = useTranslations("expenses.payments");
+  const t = useTranslations("common.expenses.payments.settings");
+  const tCommon = useTranslations("common.expenses.payments");
   const { addToast } = useToast();
 
   const [handles, setHandles] = useState<HandlesState>(EMPTY_HANDLES);

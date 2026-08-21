@@ -59,11 +59,12 @@ export async function getEarlyAccessStatus(
   const supabase = await createClient();
 
   // Check if user has redeemed a code
+  // maybeSingle: "no tester row" is the normal case, not an error.
   const { data: access, error } = await supabase
     .from("user_tester_access")
     .select("*")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (error || !access) {
     return {
