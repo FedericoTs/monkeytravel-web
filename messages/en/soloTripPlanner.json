@@ -19,6 +19,14 @@
       "instant": "Solo-optimized"
     }
   },
+  "whatIs": {
+    "heading": "What is a solo trip planner?",
+    "definition": "A solo trip planner builds an itinerary for one person, which is a different problem from shrinking a group plan down to one seat.",
+    "distinguish": "Travelling alone changes what a good day looks like. You can move faster and change your mind at noon, but you also eat alone, carry your own bag, and some places are simply better reached in daylight.",
+    "product": "MonkeyTravel builds a day-by-day schedule with real venues and the travel time between them, at three budget levels, and everything stays editable when you decide to stay somewhere an extra night.",
+    "example": "It also means the plan should be easy to abandon. The best solo days often start on schedule and end somewhere you had no intention of going.",
+    "honest": "It is a planning tool, not a safety service. Check local guidance for anywhere you are unsure about, and trust that over the itinerary."
+  },
   "features": {
     "title": "Everything a Solo Traveler Needs",
     "subtitle": "AI-powered planning designed specifically for independent travelers. Safety, spontaneity, and social connections built in.",

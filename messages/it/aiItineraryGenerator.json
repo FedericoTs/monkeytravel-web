@@ -19,6 +19,14 @@
       "instant": "Pronto in 30 secondi"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un generatore di itinerari AI?",
+    "definition": "Un generatore di itinerari AI prende una destinazione e un numero di giorni e restituisce un programma finito: quali luoghi, in che ordine, in quale giorno — invece di un elenco di opzioni da sistemare da solo.",
+    "distinguish": "La parte difficile non è scegliere bei posti. È metterli in sequenza: tenere ogni giornata coerente sulla mappa, lasciare tempo per mangiare e spostarsi, e non farti attraversare la città nell'ora sbagliata.",
+    "product": "MonkeyTravel crea il piano completo giorno per giorno in circa 30 secondi, con luoghi reali e prezzi attuali su tre livelli di budget. Ogni blocco si può spostare o sostituire.",
+    "example": "Un piano di tre giorni a Lisbona dovrebbe tenere Belém in un unico blocco invece di spargerlo su due mattine. Quel tipo di ordine è quasi tutto il lavoro del generatore.",
+    "honest": "Nessun generatore azzecca una città al primo colpo. Consideralo una buona prima bozza da modificare, non un piano da seguire alla cieca."
+  },
   "stats": {
     "generationTime": "Tempo di Generazione",
     "destinations": "Destinazioni",
@@ -106,10 +114,6 @@
   "faq": {
     "title": "Domande Frequenti",
     "items": {
-      "whatIsIt": {
-        "question": "Cos'è un generatore di itinerari con AI?",
-        "answer": "Un generatore di itinerari con AI utilizza l'intelligenza artificiale per creare automaticamente piani di viaggio completi giorno per giorno basati sulla tua destinazione, date, budget e preferenze. Il generatore di MonkeyTravel va oltre includendo dati reali dei luoghi, prezzi attuali, percorsi intelligenti e molteplici opzioni di budget — non solo una lista generica di suggerimenti."
-      },
       "howFast": {
         "question": "Quanto velocemente genera un itinerario?",
         "answer": "MonkeyTravel genera un itinerario completo giorno per giorno in meno di 30 secondi. Otterrai tre livelli di budget (Economico, Bilanciato, Premium) con luoghi reali, prezzi e blocchi orari ottimizzati — tutto pronto per personalizzare o esportare immediatamente."

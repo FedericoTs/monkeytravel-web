@@ -21,6 +21,14 @@
       "fast": "30-second generation"
     }
   },
+  "whatIs": {
+    "heading": "What is a backpacker trip planner?",
+    "definition": "A backpacker trip planner builds a route around hostels, cheap food and public transport, rather than a shorter trip built around hotels and taxis.",
+    "distinguish": "The difference is not only price. Long trips have their own problems: where you will actually meet people, which cities deserve three nights instead of one, and how to keep moving without spending every other day in transit.",
+    "product": "MonkeyTravel plans hostel-first days with free walking tours, street food and public transit, at three budget levels, using real venues and current prices.",
+    "example": "Six weeks through Southeast Asia is a different planning problem from six days in Rome, and a planner built for the second will quietly ruin the first.",
+    "honest": "It does not check hostel availability or book beds. In high season the good ones go early, so treat the accommodation as a suggestion and book it yourself."
+  },
   "stats": {
     "label": "Backpackers using MonkeyTravel — last 30 days",
     "clicks": "hostel searches launched",
@@ -81,14 +89,30 @@
     "daysLabel": "{days} days",
     "hostelZoneLabel": "Hostel zone: {neighbourhood}",
     "items": {
-      "lisbon": { "neighbourhood": "Bairro Alto" },
-      "barcelona": { "neighbourhood": "El Born / El Raval" },
-      "berlin": { "neighbourhood": "Friedrichshain" },
-      "prague": { "neighbourhood": "Žižkov" },
-      "budapest": { "neighbourhood": "District VII" },
-      "athens": { "neighbourhood": "Plaka / Monastiraki" },
-      "bangkok": { "neighbourhood": "Khao San / Sukhumvit" },
-      "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
+      "lisbon": {
+        "neighbourhood": "Bairro Alto"
+      },
+      "barcelona": {
+        "neighbourhood": "El Born / El Raval"
+      },
+      "berlin": {
+        "neighbourhood": "Friedrichshain"
+      },
+      "prague": {
+        "neighbourhood": "Žižkov"
+      },
+      "budapest": {
+        "neighbourhood": "District VII"
+      },
+      "athens": {
+        "neighbourhood": "Plaka / Monastiraki"
+      },
+      "bangkok": {
+        "neighbourhood": "Khao San / Sukhumvit"
+      },
+      "tokyo": {
+        "neighbourhood": "Asakusa / Shibuya"
+      }
     }
   },
   "trendingTrips": {

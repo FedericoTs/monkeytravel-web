@@ -19,6 +19,14 @@
       "instant": "3 budget tiers"
     }
   },
+  "whatIs": {
+    "heading": "What is a budget trip planner?",
+    "definition": "A budget trip planner builds the itinerary around what you can spend, instead of building one first and hoping the total works out.",
+    "distinguish": "That only means something if the budget actually shapes the choices — cheaper neighbourhoods, free viewpoints, markets instead of restaurants, walking instead of taxis. A number added up at the end is a receipt, not a plan.",
+    "product": "MonkeyTravel plans at three budget levels and shows current prices per activity, so you can see where the money goes before you commit. Changing tier rebuilds the itinerary rather than trimming it.",
+    "example": "In practice that is the difference between a 60-euro day and a 140-euro day in the same city, doing broadly similar things. The plan changes, not just the total.",
+    "honest": "Prices move, and ours are estimates drawn from real venue data rather than live quotes. Check anything you are actually booking."
+  },
   "features": {
     "title": "Budget Travel, Without the Compromise",
     "subtitle": "Every itinerary includes actual costs so you know exactly what you'll spend before you go.",

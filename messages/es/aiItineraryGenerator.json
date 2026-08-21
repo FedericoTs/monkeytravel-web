@@ -19,6 +19,14 @@
       "instant": "Listo en 30 segundos"
     }
   },
+  "whatIs": {
+    "heading": "¿Qué es un generador de itinerarios AI?",
+    "definition": "Un generador de itinerarios AI toma un destino y un número de días y devuelve un horario terminado: qué lugares, en qué orden y qué día, en vez de una lista de opciones que tienes que ordenar tú.",
+    "distinguish": "Lo difícil no es elegir buenos sitios. Es secuenciarlos: que cada día tenga sentido geográfico, que quede tiempo para comer y desplazarse, y que no acabes cruzando la ciudad a la hora equivocada.",
+    "product": "MonkeyTravel crea el plan completo día a día en unos 30 segundos, con lugares reales y precios actuales en tres niveles de presupuesto. Cada bloque se puede mover o cambiar después.",
+    "example": "Un plan de tres días en Lisboa debería dejar Belém en un solo bloque en vez de repartirlo entre dos mañanas. Ese tipo de orden es casi todo lo que hace el generador.",
+    "honest": "Ningún generador acierta una ciudad a la primera. Trátalo como un buen primer borrador que vas a editar, no como un plan que seguir a ciegas."
+  },
   "stats": {
     "generationTime": "Tiempo de Generación",
     "destinations": "Destinos",
@@ -106,10 +114,6 @@
   "faq": {
     "title": "Preguntas Frecuentes",
     "items": {
-      "whatIsIt": {
-        "question": "¿Qué es un generador de itinerarios con AI?",
-        "answer": "Un generador de itinerarios con AI utiliza inteligencia artificial para crear automáticamente planes de viaje completos día a día basados en tu destino, fechas, presupuesto y preferencias. El generador de MonkeyTravel va más allá al incluir datos reales de lugares, precios actuales, rutas inteligentes y múltiples opciones de presupuesto — no solo una lista genérica de sugerencias."
-      },
       "howFast": {
         "question": "¿Qué tan rápido genera un itinerario?",
         "answer": "MonkeyTravel genera un itinerario completo día a día en menos de 30 segundos. Obtendrás tres niveles de presupuesto (Económico, Equilibrado, Premium) con lugares reales, precios y bloques de tiempo optimizados — todo listo para personalizar o exportar de inmediato."

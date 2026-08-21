@@ -19,6 +19,14 @@
       "instant": "3 livelli di budget"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di viaggi economici?",
+    "definition": "Un pianificatore di viaggi economici costruisce l'itinerario partendo da quanto puoi spendere, invece di farne uno e sperare che il totale torni.",
+    "distinguish": "Ha senso solo se il budget cambia davvero le scelte: quartieri più economici, punti panoramici gratuiti, mercati invece di ristoranti, camminare invece di prendere taxi. Un numero sommato alla fine è una ricevuta, non un piano.",
+    "product": "MonkeyTravel pianifica su tre livelli di budget e mostra i prezzi attuali per attività, così vedi dove vanno i soldi prima di impegnarti. Cambiare livello ricostruisce l'itinerario, non lo taglia.",
+    "example": "In pratica è la differenza tra una giornata da 60 euro e una da 140 nella stessa città, facendo cose simili. Cambia il piano, non solo il totale.",
+    "honest": "I prezzi cambiano, e i nostri sono stime basate su dati reali dei luoghi, non preventivi in tempo reale. Verifica tutto ciò che prenoti davvero."
+  },
   "features": {
     "title": "Viaggi Economici, Senza Compromessi",
     "subtitle": "Ogni itinerario include costi reali così sai esattamente quanto spenderai prima di partire.",

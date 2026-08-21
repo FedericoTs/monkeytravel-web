@@ -19,6 +19,14 @@
       "instant": "Risultati istantanei"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di viaggi in famiglia?",
+    "definition": "Un pianificatore di viaggi in famiglia costruisce un programma che funziona per tutti insieme, comprese le persone che hanno bisogno di un pisolino, di un bagno o di una pausa dai musei.",
+    "distinguish": "Il vincolo vero è il ritmo, non i luoghi. Una giornata comoda da soli diventa impraticabile con un bambino di cinque anni: servono meno tappe, più margine e distanze brevi, così nessuno crolla negli spostamenti.",
+    "product": "MonkeyTravel costruisce le giornate sul ritmo che scegli, con luoghi reali e i tempi di spostamento, su tre livelli di budget. Tutto ciò che non va bene per la tua famiglia si può sostituire.",
+    "example": "Un museo la mattina, pranzo lì vicino e un parco il pomeriggio è una giornata vera. Tre musei dall'altra parte della città è un piano che si legge bene e finisce in lacrime.",
+    "honest": "Non conosce i tuoi figli. Prendi il ritmo come punto di partenza e togli una tappa appena la giornata sembra piena."
+  },
   "features": {
     "title": "Tutto Ciò Che la Tua Famiglia Ha Bisogno Per il Viaggio Perfetto",
     "subtitle": "Dai neonati agli adolescenti, MonkeyTravel crea itinerari che tutta la famiglia adorerà. Nessun costo nascosto, nessuno stress.",

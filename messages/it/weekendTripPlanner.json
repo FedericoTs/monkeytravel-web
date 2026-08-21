@@ -19,6 +19,14 @@
       "instant": "Pronto in 15 min"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di weekend?",
+    "definition": "Un pianificatore di weekend costruisce un itinerario di due o tre giorni, dove la risorsa scarsa sono le ore e non i soldi.",
+    "distinguish": "In un viaggio breve una decisione sbagliata costa molto di più. Una tappa messa male, un lungo attraversamento della città, e hai speso una fetta consistente del viaggio per arrivare nei posti invece che per starci.",
+    "product": "MonkeyTravel ordina le giornate in modo geografico e rende esplicito il tempo tra una tappa e l'altra, così il sabato non diventa in silenzio tre ore di trasporti. Luoghi reali, prezzi attuali, tre livelli di budget.",
+    "example": "Due giorni sono circa otto ore utili ciascuno, una volta tolti sonno, pasti e viaggio. Pianificare su quel numero invece che su una lista di desideri è tutto il lavoro.",
+    "honest": "Ottimizza il percorso, non i tuoi orari dei treni. Se arrivi tardi il venerdì, accorcia tu il primo giorno prima di partire."
+  },
   "features": {
     "title": "Tutto Ciò Che Serve Per il Weekend Perfetto",
     "subtitle": "Smetti di sprecare il tuo prezioso weekend a pianificare. Lascia che l'AI gestisca la logistica così tu puoi goderti il divertimento.",

@@ -19,6 +19,14 @@
       "instant": "Ready in 30 seconds"
     }
   },
+  "whatIs": {
+    "heading": "What is an AI itinerary generator?",
+    "definition": "An AI itinerary generator takes a destination and a number of days and returns a finished schedule — which places, in what order, on which day — instead of a list of options to sort out yourself.",
+    "distinguish": "The hard part is not picking good places. It is sequencing them: keeping each day geographically coherent, leaving room to eat and travel between stops, and not stranding you across the city at the wrong hour.",
+    "product": "MonkeyTravel produces a full day-by-day plan in about 30 seconds, with real venues and current prices at three budget levels. Every block can be moved or replaced afterwards.",
+    "example": "A three-day Lisbon plan should keep Belém in one block rather than scattering it across two mornings. That kind of ordering is most of what the generator is for.",
+    "honest": "No generator gets a city right on the first pass. Treat the output as a strong first draft you edit, not a plan to follow blindly."
+  },
   "stats": {
     "generationTime": "Generation Time",
     "destinations": "Destinations",
@@ -106,10 +114,6 @@
   "faq": {
     "title": "Frequently Asked Questions",
     "items": {
-      "whatIsIt": {
-        "question": "What is an AI itinerary generator?",
-        "answer": "An AI itinerary generator uses artificial intelligence to automatically create complete, day-by-day travel plans based on your destination, dates, budget, and preferences. MonkeyTravel's generator goes further by including real venue data, current prices, smart routing, and multiple budget options — not just a generic list of suggestions."
-      },
       "howFast": {
         "question": "How fast does it generate an itinerary?",
         "answer": "MonkeyTravel generates a complete day-by-day itinerary in under 30 seconds. You'll get three budget tiers (Budget, Balanced, Premium) with real venues, prices, and optimized time blocks — all ready to customize or export immediately."

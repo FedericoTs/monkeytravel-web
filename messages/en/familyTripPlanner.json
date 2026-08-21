@@ -19,6 +19,14 @@
       "instant": "Instant results"
     }
   },
+  "whatIs": {
+    "heading": "What is a family trip planner?",
+    "definition": "A family trip planner builds a schedule that works for everyone at once, including the people who need a nap, a toilet, or a break from museums.",
+    "distinguish": "The real constraint is pace, not places. A day that is comfortable alone becomes unworkable with a five-year-old, so the problem is fitting fewer stops with more slack, close enough together that nobody falls apart in transit.",
+    "product": "MonkeyTravel builds days around a pace you choose, with real venues and the travel time between them, at three budget levels. Anything that does not suit your family can be swapped out.",
+    "example": "A morning museum, lunch nearby and an afternoon park is a real day. Three museums across town is a plan that reads well and ends in tears.",
+    "honest": "It does not know your children. Treat the pace as a starting point, and cut a stop whenever the day looks tight."
+  },
   "features": {
     "title": "Everything Your Family Needs for the Perfect Trip",
     "subtitle": "From toddlers to teens, MonkeyTravel builds itineraries the whole family will love. No hidden fees, no stress.",

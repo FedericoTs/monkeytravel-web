@@ -19,6 +19,14 @@
       "days": "Hasta 21 días"
     }
   },
+  "whatIs": {
+    "heading": "¿Qué es un planificador de viajes a varias ciudades?",
+    "definition": "Un planificador de viajes a varias ciudades reparte un mismo viaje entre distintos destinos y calcula cuánto quedarse en cada uno, en qué orden y cómo moverse entre ellos.",
+    "distinguish": "La dificultad extra está en los enlaces. Los días que se van en desplazarse son los que nadie cuenta, y una ruta que se ve limpia en el mapa puede acabar siendo un vuelo a las 6 que se come toda una mañana.",
+    "product": "MonkeyTravel planifica cada ciudad día a día y mantiene las transiciones a la vista, así un viaje de tres ciudades se lee como un único horario continuo y no como tres planes grapados.",
+    "example": "Roma, Florencia y Venecia en diez días no son tres viajes separados. Son unos siete días aprovechables y tres moviéndose, y dónde pongas el corte importa.",
+    "honest": "No reserva transporte ni consulta horarios en vivo. Confirma las conexiones antes de fijar la forma del viaje."
+  },
   "stats": {
     "items": {
       "cities": {

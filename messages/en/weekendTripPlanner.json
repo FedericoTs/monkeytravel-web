@@ -19,6 +19,14 @@
       "instant": "Ready in 15 min"
     }
   },
+  "whatIs": {
+    "heading": "What is a weekend trip planner?",
+    "definition": "A weekend trip planner builds a two- or three-day itinerary, where the scarce resource is hours rather than money.",
+    "distinguish": "On a short trip the cost of a bad decision is much higher. One badly placed stop, one long crossing of the city, and you have spent a meaningful fraction of the entire trip getting somewhere rather than being there.",
+    "product": "MonkeyTravel plans the days in geographic order with the travel time between stops made explicit, so a Saturday does not quietly turn into three hours of transit. Real venues, current prices, three budget levels.",
+    "example": "Two days is roughly eight usable hours each once you subtract sleep, meals and getting there. Planning against that number instead of a wishlist is the whole job.",
+    "honest": "It optimises the route, not your train times. If you arrive late on Friday, shorten day one yourself before you set off."
+  },
   "features": {
     "title": "Everything You Need for the Perfect Weekend",
     "subtitle": "Stop wasting your precious weekend planning. Let AI handle the logistics so you can focus on the fun.",

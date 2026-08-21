@@ -19,6 +19,14 @@
       "days": "Fino a 21 giorni"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di viaggi in più città?",
+    "definition": "Un pianificatore di viaggi in più città divide un solo viaggio tra diverse destinazioni e stabilisce quanto restare in ognuna, in che ordine e come spostarsi tra loro.",
+    "distinguish": "La difficoltà in più sono gli incastri. I giorni persi negli spostamenti sono quelli che nessuno conta, e un percorso ordinato sulla mappa può comunque significare un volo alle 6 che si mangia un'intera mattinata.",
+    "product": "MonkeyTravel pianifica ogni città giorno per giorno e tiene visibili le transizioni, così un viaggio in tre città si legge come un unico programma continuo e non come tre piani cuciti insieme.",
+    "example": "Roma, Firenze e Venezia in dieci giorni non sono tre viaggi separati. Sono circa sette giorni utili e tre passati a spostarsi, e dove metti il taglio conta.",
+    "honest": "Non prenota i trasporti e non legge gli orari in tempo reale. Verifica le coincidenze prima di fissare la forma del viaggio."
+  },
   "stats": {
     "items": {
       "cities": {

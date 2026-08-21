@@ -19,6 +19,14 @@
       "instant": "Optimizado para viajeros solitarios"
     }
   },
+  "whatIs": {
+    "heading": "¿Qué es un planificador de viajes en solitario?",
+    "definition": "Un planificador de viajes en solitario crea un itinerario para una persona, que es un problema distinto de encoger un plan de grupo hasta dejar una plaza.",
+    "distinguish": "Viajar solo cambia lo que es un buen día. Puedes ir más rápido y cambiar de idea a mediodía, pero también comes solo, cargas tu propia mochila y hay sitios que sencillamente se visitan mejor de día.",
+    "product": "MonkeyTravel crea un horario día a día con lugares reales y el tiempo de desplazamiento entre ellos, en tres niveles de presupuesto, y todo sigue siendo editable si decides quedarte una noche más.",
+    "example": "También significa que el plan debe ser fácil de abandonar. Los mejores días en solitario suelen empezar según lo previsto y acabar en un sitio al que no pensabas ir.",
+    "honest": "Es una herramienta de planificación, no un servicio de seguridad. Consulta las recomendaciones locales de cualquier sitio que te genere dudas y hazles caso antes que al itinerario."
+  },
   "features": {
     "title": "Todo Lo Que un Viajero Solitario Necesita",
     "subtitle": "Planificación con AI diseñada específicamente para viajeros independientes. Seguridad, espontaneidad y conexiones sociales incluidas.",

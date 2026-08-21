@@ -19,6 +19,14 @@
       "instant": "Listo en 15 min"
     }
   },
+  "whatIs": {
+    "heading": "¿Qué es un planificador de escapadas de fin de semana?",
+    "definition": "Un planificador de escapadas de fin de semana crea un itinerario de dos o tres días, donde el recurso escaso son las horas y no el dinero.",
+    "distinguish": "En un viaje corto, una mala decisión cuesta mucho más. Una parada mal colocada, un trayecto largo cruzando la ciudad, y te has gastado una parte considerable del viaje en llegar a los sitios en vez de estar en ellos.",
+    "product": "MonkeyTravel ordena los días geográficamente y deja explícito el tiempo entre paradas, para que un sábado no se convierta sin querer en tres horas de transporte. Lugares reales, precios actuales, tres niveles de presupuesto.",
+    "example": "Dos días son unas ocho horas útiles cada uno una vez restas dormir, comer y llegar. Planificar contra ese número en vez de contra una lista de deseos es todo el trabajo.",
+    "honest": "Optimiza la ruta, no tus horarios de tren. Si llegas tarde el viernes, acorta tú mismo el primer día antes de salir."
+  },
   "features": {
     "title": "Todo Lo Que Necesitas Para el Fin de Semana Perfecto",
     "subtitle": "Deja de desperdiciar tu preciado fin de semana planificando. Deja que la AI se encargue de la logística para que tú disfrutes.",

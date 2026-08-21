@@ -19,6 +19,14 @@
       "instant": "Otimizado para viajar sozinho"
     }
   },
+  "whatIs": {
+    "heading": "O que é um planejador de viagens sozinho?",
+    "definition": "Um planejador de viagens sozinho monta um roteiro para uma pessoa, o que é um problema diferente de encolher um plano de grupo até sobrar um lugar.",
+    "distinguish": "Viajar sozinho muda o que é um bom dia. Você anda mais rápido e pode mudar de ideia ao meio-dia, mas também come sozinho, carrega a própria mochila e alguns lugares simplesmente se visitam melhor com luz do dia.",
+    "product": "O MonkeyTravel monta um roteiro dia a dia com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento, e tudo continua editável se você decidir ficar mais uma noite.",
+    "example": "Isso também significa que o plano precisa ser fácil de abandonar. Os melhores dias sozinho costumam começar como planejado e terminar num lugar aonde você não pretendia ir.",
+    "honest": "É uma ferramenta de planejamento, não um serviço de segurança. Consulte as orientações locais de qualquer lugar em que tiver dúvida e confie nelas antes do roteiro."
+  },
   "features": {
     "title": "Tudo o Que um Viajante Solo Precisa",
     "subtitle": "Planejamento com IA criado especialmente para viajantes independentes. Segurança, espontaneidade e conexões sociais já incluídas.",

@@ -19,6 +19,14 @@
       "instant": "Resultados na hora"
     }
   },
+  "whatIs": {
+    "heading": "O que é um planejador de viagens em família?",
+    "definition": "Um planejador de viagens em família monta um programa que funciona para todos ao mesmo tempo, incluindo quem precisa de soneca, banheiro ou uma pausa dos museus.",
+    "distinguish": "A restrição real é o ritmo, não os lugares. Um dia confortável sozinho fica inviável com uma criança de cinco anos: são menos paradas, mais folga e distâncias curtas, para ninguém desmoronar no caminho.",
+    "product": "O MonkeyTravel monta os dias no ritmo que você escolher, com lugares reais e o tempo de deslocamento entre eles, em três níveis de orçamento. O que não servir para a sua família pode ser trocado.",
+    "example": "Um museu de manhã, almoço ali perto e um parque à tarde é um dia real. Três museus do outro lado da cidade é um plano que lê bem e termina em choro.",
+    "honest": "Ele não conhece as suas crianças. Use o ritmo como ponto de partida e corte uma parada assim que o dia parecer apertado."
+  },
   "features": {
     "title": "Tudo o Que Sua Família Precisa Para a Viagem Perfeita",
     "subtitle": "De bebês a adolescentes, a MonkeyTravel cria roteiros que a família toda vai amar. Sem taxas escondidas, sem estresse.",

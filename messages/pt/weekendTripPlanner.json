@@ -19,6 +19,14 @@
       "instant": "Pronto em 15 min"
     }
   },
+  "whatIs": {
+    "heading": "O que é um planejador de viagens de fim de semana?",
+    "definition": "Um planejador de viagens de fim de semana monta um roteiro de dois ou três dias, em que o recurso escasso são as horas, não o dinheiro.",
+    "distinguish": "Numa viagem curta, uma decisão ruim custa muito mais. Uma parada mal colocada, uma travessia longa pela cidade, e você gastou boa parte da viagem chegando aos lugares em vez de aproveitá-los.",
+    "product": "O MonkeyTravel ordena os dias geograficamente e deixa explícito o tempo entre as paradas, para que um sábado não vire, sem você perceber, três horas de transporte. Lugares reais, preços atuais, três níveis de orçamento.",
+    "example": "Dois dias são cerca de oito horas úteis cada um, depois de descontar sono, refeições e o deslocamento. Planejar em cima desse número, e não de uma lista de desejos, é o trabalho inteiro.",
+    "honest": "Ele otimiza a rota, não os seus horários de trem. Se você chegar tarde na sexta, encurte o primeiro dia por conta própria antes de sair."
+  },
   "features": {
     "title": "Tudo o Que Você Precisa Para o Fim de Semana Perfeito",
     "subtitle": "Pare de desperdiçar seu precioso fim de semana planejando. Deixe a IA cuidar da logística para você focar na diversão.",

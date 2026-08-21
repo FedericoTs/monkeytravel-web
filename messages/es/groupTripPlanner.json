@@ -19,6 +19,14 @@
       "instant": "Sin límite de grupo"
     }
   },
+  "whatIs": {
+    "heading": "¿Qué es un planificador de viajes en grupo?",
+    "definition": "Un planificador de viajes en grupo hace dos cosas: crea el itinerario y da a todos una forma de ponerse de acuerdo sobre él.",
+    "distinguish": "Lo segundo es lo difícil. Los grupos casi nunca fallan al encontrar buenos sitios. Fallan al decidir: en un chat donde nadie es dueño del plan, la mitad de las propuestas se pierden y nada es definitivo hasta que alguien reserva.",
+    "product": "MonkeyTravel genera el plan y luego te da un enlace que el grupo puede abrir sin cuenta. Todos ven los mismos días, votan las actividades y proponen cambios en un solo sitio en vez de seis.",
+    "example": "Seis personas, un enlace y un recuento visible de quién quiere qué gana a cuatrocientos mensajes. El plan deja de vivir en la cabeza de una sola persona.",
+    "honest": "No puede decidir por vosotros. Lo que sí hace es volver el desacuerdo visible y pequeño, que suele bastar."
+  },
   "problem": {
     "title": "Los Viajes en Grupo No Deberían Ser Tan Difíciles",
     "subtitle": "El viaje en grupo promedio tarda 53 días en planificarse usando 28 sitios web. ¿Te suena?",

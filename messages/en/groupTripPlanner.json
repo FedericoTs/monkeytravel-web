@@ -19,6 +19,14 @@
       "instant": "Unlimited group size"
     }
   },
+  "whatIs": {
+    "heading": "What is a group trip planner?",
+    "definition": "A group trip planner does two jobs: it builds the itinerary, and it gives everyone a way to agree on it.",
+    "distinguish": "The second job is the hard one. Groups rarely fail to find good places. They fail to decide — in a chat thread where nobody owns the plan, half the suggestions scroll away, and nothing is ever final until someone books something.",
+    "product": "MonkeyTravel generates the plan, then gives you a link the group can open without an account. Everyone sees the same days, votes on activities and suggests changes in one place instead of six.",
+    "example": "Six people, one link and a visible tally of who wants what beats four hundred messages. The plan stops living in one person's head.",
+    "honest": "It cannot make the decision for you. What it can do is make the disagreement visible and small, which is usually enough."
+  },
   "problem": {
     "title": "Group Trips Shouldn't Be This Hard",
     "subtitle": "The average group trip takes 53 days to plan across 28 websites. Sound familiar?",

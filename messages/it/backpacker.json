@@ -21,6 +21,14 @@
       "fast": "Pronto in 30 secondi"
     }
   },
+  "whatIs": {
+    "heading": "Cos'è un pianificatore di viaggi zaino in spalla?",
+    "definition": "Un pianificatore di viaggi zaino in spalla costruisce un percorso attorno a ostelli, cibo economico e trasporto pubblico, invece di un viaggio più corto costruito su hotel e taxi.",
+    "distinguish": "La differenza non è solo il prezzo. I viaggi lunghi hanno problemi propri: dove incontrerai davvero altre persone, quali città meritano tre notti invece di una, e come continuare a spostarti senza passare un giorno sì e uno no in viaggio.",
+    "product": "MonkeyTravel pianifica giornate che partono dagli ostelli, con free walking tour, street food e mezzi pubblici, su tre livelli di budget, con luoghi reali e prezzi attuali.",
+    "example": "Sei settimane nel Sud-est asiatico sono un problema di pianificazione diverso da sei giorni a Roma, e un pianificatore pensato per il secondo rovina il primo senza dirtelo.",
+    "honest": "Non controlla la disponibilità degli ostelli e non prenota letti. In alta stagione i migliori si riempiono presto: considera l'alloggio un suggerimento e prenotalo tu."
+  },
   "stats": {
     "label": "Backpacker su MonkeyTravel — ultimi 30 giorni",
     "clicks": "ricerche di ostelli avviate",
@@ -81,14 +89,30 @@
     "daysLabel": "{days} giorni",
     "hostelZoneLabel": "Zona ostelli: {neighbourhood}",
     "items": {
-      "lisbon": { "neighbourhood": "Bairro Alto" },
-      "barcelona": { "neighbourhood": "El Born / El Raval" },
-      "berlin": { "neighbourhood": "Friedrichshain" },
-      "prague": { "neighbourhood": "Žižkov" },
-      "budapest": { "neighbourhood": "VII Distretto" },
-      "athens": { "neighbourhood": "Plaka / Monastiraki" },
-      "bangkok": { "neighbourhood": "Khao San / Sukhumvit" },
-      "tokyo": { "neighbourhood": "Asakusa / Shibuya" }
+      "lisbon": {
+        "neighbourhood": "Bairro Alto"
+      },
+      "barcelona": {
+        "neighbourhood": "El Born / El Raval"
+      },
+      "berlin": {
+        "neighbourhood": "Friedrichshain"
+      },
+      "prague": {
+        "neighbourhood": "Žižkov"
+      },
+      "budapest": {
+        "neighbourhood": "VII Distretto"
+      },
+      "athens": {
+        "neighbourhood": "Plaka / Monastiraki"
+      },
+      "bangkok": {
+        "neighbourhood": "Khao San / Sukhumvit"
+      },
+      "tokyo": {
+        "neighbourhood": "Asakusa / Shibuya"
+      }
     }
   },
   "trendingTrips": {

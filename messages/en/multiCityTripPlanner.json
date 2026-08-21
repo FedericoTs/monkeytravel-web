@@ -19,6 +19,14 @@
       "days": "Up to 21 days"
     }
   },
+  "whatIs": {
+    "heading": "What is a multi-city trip planner?",
+    "definition": "A multi-city trip planner splits one trip across several destinations and works out how long to stay in each, in what order, and how you get between them.",
+    "distinguish": "The extra difficulty is the joins. Days lost to travel are the ones people forget to count, and a route that looks tidy on a map can still mean a 6am flight that swallows a whole morning at both ends.",
+    "product": "MonkeyTravel plans each city day-by-day and keeps the transitions in view, so a three-city trip reads as one continuous schedule instead of three separate plans stapled together.",
+    "example": "Rome, Florence and Venice in ten days is not three separate trips. It is roughly seven usable days and three spent moving, and where you put the split matters.",
+    "honest": "It does not book transport or read live timetables. Confirm the connections before you commit to the shape of the trip."
+  },
   "stats": {
     "items": {
       "cities": {

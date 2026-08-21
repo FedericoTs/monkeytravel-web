@@ -19,6 +19,14 @@
       "instant": "Pronto em 30 segundos"
     }
   },
+  "whatIs": {
+    "heading": "O que é um gerador de roteiros com IA?",
+    "definition": "Um gerador de roteiros com IA recebe um destino e um número de dias e devolve um programa pronto: quais lugares, em que ordem, em qual dia — em vez de uma lista de opções para você organizar sozinho.",
+    "distinguish": "O difícil não é escolher bons lugares. É colocá-los em sequência: manter cada dia coerente no mapa, deixar tempo para comer e se deslocar, e não fazer você atravessar a cidade na hora errada.",
+    "product": "O MonkeyTravel monta o roteiro completo dia a dia em cerca de 30 segundos, com lugares reais e preços atuais em três níveis de orçamento. Cada bloco pode ser movido ou trocado depois.",
+    "example": "Um roteiro de três dias em Lisboa deveria manter Belém em um único bloco, em vez de espalhá-lo por duas manhãs. Esse tipo de ordenação é quase todo o trabalho do gerador.",
+    "honest": "Nenhum gerador acerta uma cidade de primeira. Trate o resultado como um bom primeiro rascunho para editar, não como um plano a seguir às cegas."
+  },
   "stats": {
     "generationTime": "Tempo de Geração",
     "destinations": "Destinos",
@@ -106,10 +114,6 @@
   "faq": {
     "title": "Perguntas Frequentes",
     "items": {
-      "whatIsIt": {
-        "question": "O que é um gerador de roteiros com IA?",
-        "answer": "Um gerador de roteiros com IA usa inteligência artificial para criar automaticamente planos de viagem completos dia a dia com base no seu destino, datas, orçamento e preferências. O gerador do MonkeyTravel vai além ao incluir dados reais de lugares, preços atuais, rotas inteligentes e várias opções de orçamento — não apenas uma lista genérica de sugestões."
-      },
       "howFast": {
         "question": "Com que rapidez ele gera um roteiro?",
         "answer": "O MonkeyTravel gera um roteiro completo dia a dia em menos de 30 segundos. Você recebe três níveis de orçamento (Econômico, Equilibrado, Premium) com lugares reais, preços e blocos de tempo otimizados — tudo pronto para personalizar ou exportar imediatamente."

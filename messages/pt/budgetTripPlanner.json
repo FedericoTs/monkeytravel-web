@@ -19,6 +19,14 @@
       "instant": "3 níveis de orçamento"
     }
   },
+  "whatIs": {
+    "heading": "O que é um planejador de viagens econômicas?",
+    "definition": "Um planejador de viagens econômicas monta o roteiro a partir do que você pode gastar, em vez de montar um primeiro e torcer para a conta fechar.",
+    "distinguish": "Isso só significa alguma coisa se o orçamento realmente mudar as escolhas: bairros mais baratos, mirantes gratuitos, mercados em vez de restaurantes, caminhar em vez de táxi. Um número somado no fim é um recibo, não um plano.",
+    "product": "O MonkeyTravel planeja em três níveis de orçamento e mostra preços atuais por atividade, para você ver para onde vai o dinheiro antes de se comprometer. Trocar de nível refaz o roteiro, não o corta.",
+    "example": "Na prática é a diferença entre um dia de 60 euros e um de 140 na mesma cidade, fazendo coisas parecidas. Muda o roteiro, não só o total.",
+    "honest": "Preços mudam, e os nossos são estimativas com base em dados reais dos lugares, não cotações ao vivo. Confira tudo o que for realmente reservar."
+  },
   "features": {
     "title": "Viagem Econômica, Sem Abrir Mão de Nada",
     "subtitle": "Todo roteiro inclui os custos reais para você saber exatamente quanto vai gastar antes de viajar.",
