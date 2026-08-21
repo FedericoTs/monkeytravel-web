@@ -74,6 +74,19 @@ test.describe("auth pages render @prod", () => {
 });
 
 test.describe("password reset @prod", () => {
+  // SHARED QUOTA WARNING. Supabase rate-limits auth emails per PROJECT, not
+  // per caller, and real signups draw on the same budget. Two of these firing
+  // within a couple of seconds is enough to get "Too many email requests" —
+  // which is exactly what happened when they ran in parallel, and it can block
+  // a real user's signup for minutes. Anything that sends mail runs serially
+  // and opt-in.
+  test.describe.configure({ mode: "serial", retries: 0 });
+
+  test.skip(
+    process.env.KEY_FLOWS_ALLOW_EMAIL !== "1",
+    "sends a real recovery email on a project-wide quota: set KEY_FLOWS_ALLOW_EMAIL=1"
+  );
+
   test("forgot-password accepts a submission without erroring", async ({ page }) => {
     await page.goto("/auth/forgot-password");
     await declineConsent(page);
@@ -90,6 +103,10 @@ test.describe("password reset @prod", () => {
     });
   });
 
+});
+
+test.describe("password reset landing @prod", () => {
+  // Sends no mail — safe to run any time, so it stays outside the quota gate.
   test("recovery redirect targets a CLIENT page, not a route handler", async ({
     page,
   }) => {
@@ -127,9 +144,35 @@ test.describe("password reset @prod", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("signup", () => {
+  // ---------------------------------------------------------------------
+  // OFF BY DEFAULT, AND IT SHOULD USUALLY STAY OFF.
+  //
+  // Two real costs, both measured rather than assumed:
+  //
+  // 1. BOUNCES. Completing this form sends a confirmation email to an
+  //    @test.local address, which is non-routable, so Resend records a HARD
+  //    BOUNCE every single run (email_log: template 'unknown', status
+  //    'bounced', source resend-webhook — one of those rows is this test).
+  //    Bounce rate drives sender reputation, and this domain's SPF/DMARC was
+  //    only just hardened. Do not run it in a loop.
+  //
+  // 2. A SHARED QUOTA. Supabase caps auth emails per PROJECT. Across 180
+  //    hours of history this project has never exceeded 4 in a single hour,
+  //    and two of these firing seconds apart was enough to trip "Too many
+  //    email requests" — which real users hitting signup or password reset
+  //    see too, for minutes.
+  //
+  // The username-collision behaviour this was written to cover is already
+  // proven more cheaply and more strictly in SQL: run the insert as
+  // `authenticated` inside a transaction with the trigger set to INVOKER and
+  // it raises unique_violation; set it to DEFINER (as 20260820206000 does) and
+  // it yields thisisnoki-2. That sends no mail and creates no account.
+  // ---------------------------------------------------------------------
+  test.describe.configure({ mode: "serial", retries: 0 });
+
   test.skip(
     !ALLOW_SIGNUP,
-    "creates a real account: set KEY_FLOWS_ALLOW_SIGNUP=1 (it cleans up after itself)"
+    "sends a bouncing email + burns the shared auth-email quota: set KEY_FLOWS_ALLOW_SIGNUP=1 only for a deliberate one-off"
   );
 
   test("a new account is created and gets a unique username", async ({ page }) => {
@@ -153,6 +196,12 @@ test.describe("signup", () => {
       timeout: 45_000,
     }).catch(async () => {
       const text = await page.locator("body").innerText();
+      if (/too many|rate limit|try again later/i.test(text)) {
+        throw new Error(
+          "HARNESS, not the app: Supabase's project-wide auth-email quota was " +
+            "exhausted. Space these runs out — real signups share this budget."
+        );
+      }
       expect(
         text,
         "signup neither navigated nor confirmed"
