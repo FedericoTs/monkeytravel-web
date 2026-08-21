@@ -2406,5 +2406,6 @@
     "likesTitle": "Me gusta",
     "savesTitle": "Guardados"
   },
-  "lockedActivity": "Plan fijo"
+  "lockedActivity": "Plan fijo",
+  "lastUpdated": "Actualizado el {date}"
 }

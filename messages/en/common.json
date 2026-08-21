@@ -2406,5 +2406,6 @@
     "likesTitle": "Likes",
     "savesTitle": "Saves"
   },
-  "lockedActivity": "Fixed plan"
+  "lockedActivity": "Fixed plan",
+  "lastUpdated": "Last updated {date}"
 }

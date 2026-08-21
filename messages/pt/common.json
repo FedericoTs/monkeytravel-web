@@ -2406,5 +2406,6 @@
     "likesTitle": "Curtidas",
     "savesTitle": "Salvos"
   },
-  "lockedActivity": "Plano fixo"
+  "lockedActivity": "Plano fixo",
+  "lastUpdated": "Atualizado em {date}"
 }

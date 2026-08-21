@@ -5,8 +5,10 @@ import { Link } from "@/lib/i18n/routing";
 import {
   generateFAQSchema,
   generateBreadcrumbSchema,
+  generateWebPageSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
+import LastUpdated from "@/components/seo/LastUpdated";
 import { getNonce } from "@/lib/security/nonce";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
@@ -95,6 +97,12 @@ async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
  */
 
 const BASE_URL = "https://monkeytravel.app";
+/**
+ * Content freshness signal. Bump ONLY when this page's copy actually
+ * changes — never automate it. A date that moves on every build tells Google
+ * the whole site churns and teaches it to discount lastmod everywhere.
+ */
+const CONTENT_UPDATED = '2026-05-29';
 const PAGE_PATH = "/backpacker";
 
 export async function generateMetadata({
@@ -245,6 +253,11 @@ export default async function BackpackerLandingPage({
         {...jsonLdScriptProps([
           generateFAQSchema(faqItems),
           generateBreadcrumbSchema(breadcrumbItems),
+          generateWebPageSchema({
+            name: breadcrumbItems[breadcrumbItems.length - 1].name,
+            url: breadcrumbItems[breadcrumbItems.length - 1].url,
+            dateModified: CONTENT_UPDATED,
+          }),
         ], nonce)}
       />
 
@@ -530,6 +543,9 @@ export default async function BackpackerLandingPage({
             </div>
           </div>
         </section>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
+          <LastUpdated date={CONTENT_UPDATED} />
+        </div>
       </main>
 
       <Footer />

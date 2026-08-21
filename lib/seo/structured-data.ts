@@ -686,3 +686,79 @@ export function jsonLdScriptProps(
     },
   };
 }
+
+// ============================================================================
+// WebPage Schema — freshness signals for landing pages
+// ============================================================================
+
+/**
+ * A `WebPage` node carrying date signals.
+ *
+ * WHY THIS EXISTS
+ *
+ * The landing pages emitted no date at all — no `datePublished`, no
+ * `dateModified`, no visible "last updated" (docs/GEO-ANALYSIS.md, finding 2).
+ * `generateArticleSchema` has these fields but only blog posts use it.
+ *
+ * With no date emitted, a page cannot signal freshness in EITHER direction:
+ * it can't claim to be current, and a stale page can't be told apart from a
+ * maintained one. That makes this a precondition for measuring any freshness
+ * effect, rather than a win by itself.
+ *
+ * `dateModified` MUST come from a hand-maintained per-page constant, never
+ * `new Date()`. A date that moves on every build tells Google the whole site
+ * churns constantly, which teaches it to discount the signal everywhere —
+ * strictly worse than emitting nothing.
+ */
+export interface WebPageSchemaInput {
+  name: string;
+  url: string;
+  /** ISO 8601 date (YYYY-MM-DD). A build-varying value is a bug — see above. */
+  dateModified: string;
+  datePublished?: string;
+  /**
+   * Optional. The page's <meta name="description"> already carries this, and
+   * repeating it here buys nothing while giving the two copies a chance to
+   * drift apart. Omitted by the landing pages on purpose.
+   */
+  description?: string;
+}
+
+export interface WebPageSchema {
+  "@context": "https://schema.org";
+  "@type": "WebPage";
+  name: string;
+  url: string;
+  dateModified: string;
+  datePublished?: string;
+  description?: string;
+  isPartOf: { "@type": "WebSite"; url: string; name: string };
+}
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+export function generateWebPageSchema(input: WebPageSchemaInput): WebPageSchema {
+  if (!ISO_DAY.test(input.dateModified)) {
+    // Loud rather than silent: a malformed date is invalid structured data,
+    // and Search Console reports it as a warning long after the deploy.
+    throw new Error(
+      `generateWebPageSchema: dateModified must be YYYY-MM-DD, got "${input.dateModified}"`
+    );
+  }
+  if (input.datePublished && !ISO_DAY.test(input.datePublished)) {
+    throw new Error(
+      `generateWebPageSchema: datePublished must be YYYY-MM-DD, got "${input.datePublished}"`
+    );
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: input.name,
+    url: input.url,
+    dateModified: input.dateModified,
+    ...(input.datePublished && { datePublished: input.datePublished }),
+    ...(input.description && { description: input.description }),
+    isPartOf: { "@type": "WebSite", url: SITE_URL, name: SITE_NAME },
+  };
+}

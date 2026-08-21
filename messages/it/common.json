@@ -2406,5 +2406,6 @@
     "likesTitle": "Mi piace",
     "savesTitle": "Salvati"
   },
-  "lockedActivity": "Impegno fisso"
+  "lockedActivity": "Impegno fisso",
+  "lastUpdated": "Aggiornato il {date}"
 }

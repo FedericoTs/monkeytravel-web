@@ -7,8 +7,10 @@ import { Link, routing } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
   generateBreadcrumbSchema,
+  generateWebPageSchema,
   jsonLdScriptProps,
 } from '@/lib/seo/structured-data';
+import LastUpdated from '@/components/seo/LastUpdated';
 import { getNonce } from '@/lib/security/nonce';
 import { setRequestLocale } from 'next-intl/server';
 import {
@@ -20,6 +22,12 @@ import {
 import type { Metadata } from 'next';
 
 const BASE_URL = 'https://monkeytravel.app';
+/**
+ * Content freshness signal. Bump ONLY when this page's copy actually
+ * changes — never automate it. A date that moves on every build tells Google
+ * the whole site churns and teaches it to discount lastmod everywhere.
+ */
+const CONTENT_UPDATED = '2026-08-18';
 
 /**
  * "<competitor> alternative" comparison pages.
@@ -280,6 +288,11 @@ export default async function ComparePage({
           [
             generateFAQSchema(faqItems),
             generateBreadcrumbSchema(breadcrumbItems),
+          generateWebPageSchema({
+            name: breadcrumbItems[breadcrumbItems.length - 1].name,
+            url: breadcrumbItems[breadcrumbItems.length - 1].url,
+            dateModified: CONTENT_UPDATED,
+          }),
           ],
           nonce
         )}
@@ -479,6 +492,9 @@ export default async function ComparePage({
             </Link>
           </div>
         </section>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
+          <LastUpdated date={CONTENT_UPDATED} />
+        </div>
       </main>
 
       <Footer />
