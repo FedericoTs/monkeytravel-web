@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef, useId, Suspense } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useId } from "react";
 import dynamic from "next/dynamic";
 import { useNow } from "@/lib/hooks/useNow";
 import { usePullToRefresh } from "@/lib/hooks/usePullToRefresh";
@@ -14,7 +14,6 @@ import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection from "@/components/blog/BlogTipsSection";
 import type { BlogFrontmatter } from "@/lib/blog/types";
-import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
@@ -841,10 +840,10 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
           Self-gates on localStorage; see FeedbackSurveyModal.tsx. */}
       <FeedbackSurveyModal eligible={trips.length > 0} />
 
-      {/* OAuth event tracking (handles auth_event query param) */}
-      <Suspense fallback={null}>
-        <AuthEventTracker />
-      </Suspense>
+      {/* AuthEventTracker used to be mounted here. It now lives in
+          app/[locale]/layout.tsx so it sees the auth_event param on every
+          landing page, not just this one. Mounting it in both places would
+          double-count signups. */}
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">

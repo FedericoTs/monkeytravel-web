@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import { ToastProvider } from "@/components/ui/Toast";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import { ProfileCompletionProvider } from "@/components/profile";
@@ -38,6 +40,20 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <AuthProvider>
+        {/*
+         * Reads ?auth_event=... from the OAuth callback and fires the
+         * signup/login analytics. It MUST live here, at the layout level,
+         * not on a single page: app/auth/callback/route.ts computes
+         * `next !== "/trips" ? next : "/trips/new"`, so a newly signed-up
+         * user is redirected to whatever page the flow started from and
+         * never to /trips — which is where this used to be mounted. The
+         * result was that 30 days produced 146 real signups and 4
+         * user_signed_up events. Suspense is required because the tracker
+         * calls useSearchParams().
+         */}
+        <Suspense fallback={null}>
+          <AuthEventTracker />
+        </Suspense>
         <ConsentWrapper>
           <ToastProvider>
             <ProfileCompletionProvider>
