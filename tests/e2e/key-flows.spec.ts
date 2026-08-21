@@ -357,18 +357,23 @@ test.describe("signed-in trip flows", () => {
     const anon = await browser.newContext();
     try {
       const api: APIRequestContext = anon.request;
+      // The field is vote_type, not vote. Sending the wrong name got a 400,
+      // which the old <500 assertion happily accepted — the test passed
+      // without ever casting a vote.
       const res = await api.post(`/api/shared/${token}/vote`, {
-        data: { activity_id: ACTIVITY_ID, vote: "up" },
+        data: { activity_id: ACTIVITY_ID, vote_type: "up", display_name: "E2E Anon" },
       });
       // Accept 200 (recorded) or a deliberate 4xx gate, but never a 5xx.
       expect(
         res.status(),
-        `anonymous vote crashed: ${(await res.text()).slice(0, 160)}`
-      ).toBeLessThan(500);
-      if (res.status() === 200) {
-        const p = payload(await res.json());
-        expect(p.activity_id ?? p.up ?? p.down, "vote response carried no tally").toBeDefined();
-      }
+        `anonymous vote rejected: ${(await res.text()).slice(0, 200)}`
+      ).toBe(200);
+      const p = payload(await res.json());
+      expect(p.activity_id, "vote response carried no activity_id").toBe(ACTIVITY_ID);
+      expect(
+        (p.up as number) + (p.down as number),
+        "vote was accepted but no tally came back"
+      ).toBeGreaterThan(0);
     } finally {
       await anon.close();
     }

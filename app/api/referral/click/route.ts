@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -48,8 +49,22 @@ export async function POST(request: NextRequest) {
     const hashSalt = process.env.IP_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-salt";
     const ipHash = createHash("sha256").update(ip + hashSalt).digest("hex").slice(0, 16);
 
-    // Record the click event
-    const { error: eventError } = await supabase
+    // Record the click event with the SERVICE client.
+    //
+    // This endpoint is called by ANONYMOUS visitors, and referral_events has
+    // no INSERT policy and no grant to anon — so this insert has always
+    // returned 42501 and the whole table holds 5 rows. Because the error is
+    // logged and swallowed (click tracking is best-effort) nothing ever
+    // surfaced; it just showed up as a steady drip of
+    // "[Referral Click] Error recording event: permission denied" in the
+    // runtime logs from real traffic.
+    //
+    // Writing server-side rather than granting anon INSERT keeps the table
+    // closed to the public: an anon grant would let anyone forge click events
+    // for any code. This mirrors the counter bump below, which already uses a
+    // SECURITY DEFINER RPC for exactly the same reason. The referral code was
+    // validated above, so the row is well-formed by construction.
+    const { error: eventError } = await createAdminClient()
       .from("referral_events")
       .insert({
         referral_code_id: referralCode.id,
