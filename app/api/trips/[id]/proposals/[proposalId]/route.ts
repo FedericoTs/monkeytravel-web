@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type {
   Activity,
@@ -80,11 +81,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
         comment,
         rank,
         voted_at,
-        updated_at,
-        user:user_id (
-          display_name,
-          avatar_url
-        )
+        updated_at
       `)
       .eq("proposal_id", proposalId)
       .order("voted_at", { ascending: true });
@@ -107,12 +104,19 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     collaborators?.forEach((c) => voterIds.add(c.user_id));
     const totalVoters = voterIds.size;
 
+    // Voter names come from public_profiles rather than an embed on users.
+    // The people who voted on a proposal are by definition not the caller, and
+    // public.users only exposes the caller's own row — an embed there would not
+    // error, it would return null for everyone and silently label the whole
+    // crew "Unknown".
+    const profileMap = await batchFetchUserProfiles(
+      supabase,
+      (votes || []).map((v) => v.user_id as string)
+    );
+
     // Transform votes
     const transformedVotes: ProposalVote[] = (votes || []).map((v) => {
-      const profile = v.user as unknown as {
-        display_name: string;
-        avatar_url: string | null;
-      } | null;
+      const profile = profileMap.get(v.user_id as string) ?? null;
 
       return {
         id: v.id,

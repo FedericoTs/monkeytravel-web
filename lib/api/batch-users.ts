@@ -9,6 +9,18 @@
  * - trips/[id]/votes
  * - referral/history
  * - trips/[id]/proposals
+ *
+ * READS public_profiles, NOT public.users.
+ *
+ * Every caller here looks up OTHER people — collaborators on a trip, referees
+ * in a referral list. That is exactly the access `public.users` is being locked
+ * down to prevent, so these reads go through the safe projection instead.
+ *
+ * `email` was previously in this function's default field list and in the
+ * returned shape. It was dead weight with a real cost: /api/trips/[id]/
+ * collaborators echoed it into its response, so every trip member's browser
+ * received the email address of every other member — while no UI ever read the
+ * field and the Collaborator type never declared it. It is gone from both.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -17,15 +29,15 @@ export interface UserProfile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
-  email: string | null;
 }
 
 /**
- * Batch fetch user profiles by IDs
+ * Batch fetch public user profiles by IDs.
  *
  * @param supabase - Supabase client instance
  * @param userIds - Set or array of user IDs to fetch
- * @param fields - Fields to select (default: id, display_name, avatar_url, email)
+ * @param fields - Columns to select. MUST exist on public_profiles; anything
+ *                 personal (email, preferences, …) is not available by design.
  * @returns Map of user ID to profile data for O(1) lookups
  *
  * @example
@@ -36,7 +48,7 @@ export interface UserProfile {
 export async function batchFetchUserProfiles(
   supabase: SupabaseClient,
   userIds: Set<string> | string[],
-  fields: string = "id, display_name, avatar_url, email"
+  fields: string = "id, display_name, avatar_url"
 ): Promise<Map<string, UserProfile>> {
   const profileMap = new Map<string, UserProfile>();
 
@@ -46,7 +58,7 @@ export async function batchFetchUserProfiles(
   }
 
   const { data: profiles, error } = await supabase
-    .from("users")
+    .from("public_profiles")
     .select(fields)
     .in("id", idsArray);
 
@@ -62,7 +74,6 @@ export async function batchFetchUserProfiles(
       id: profile.id,
       display_name: profile.display_name ?? null,
       avatar_url: profile.avatar_url ?? null,
-      email: profile.email ?? null,
     });
   }
 

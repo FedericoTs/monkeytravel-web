@@ -84,7 +84,6 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         joined_at: null, // Owner didn't "join"
         display_name: ownerProfile?.display_name || "Trip Owner",
         avatar_url: ownerProfile?.avatar_url || null,
-        email: ownerProfile?.email ?? undefined,
       };
     }
 
@@ -100,7 +99,6 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         joined_at: c.joined_at,
         display_name: profile?.display_name || "Unknown User",
         avatar_url: profile?.avatar_url || null,
-        email: profile?.email ?? undefined,
       };
     });
 

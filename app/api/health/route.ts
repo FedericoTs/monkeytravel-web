@@ -27,13 +27,27 @@ export async function GET() {
   // 1. Database connectivity check
   const dbStart = Date.now();
   try {
-    const { error } = await supabase
-      .from("users")
+    // Probes public_profiles, not users: this endpoint is unauthenticated, and
+    // public.users is restricted to the row owner. As anon that query returns
+    // zero rows WITHOUT an error, so it would report "ok" while reading
+    // nothing — a connectivity probe that cannot fail is worthless.
+    const { data: probe, error } = await supabase
+      .from("public_profiles")
       .select("id")
       .limit(1)
       .maybeSingle();
 
-    if (error) {
+    if (!error && !probe) {
+      // Reachable but returning nothing: a grant or policy regression looks
+      // exactly like this. Degraded, not down — the database is up.
+      checks.push({
+        name: "database",
+        status: "degraded",
+        latency_ms: Date.now() - dbStart,
+        message: "Reachable but returned no rows",
+      });
+      if (overallStatus === "healthy") overallStatus = "degraded";
+    } else if (error) {
       checks.push({
         name: "database",
         status: "down",

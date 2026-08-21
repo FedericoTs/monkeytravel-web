@@ -1,4 +1,5 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Google Cloud Monitoring API types
@@ -277,7 +278,10 @@ async function queryDailyMetrics(
  */
 export async function GET() {
   try {
-    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    const { errorResponse } = await getAuthenticatedAdmin();
+    // See admin/costs: admin-ness is application-level, so analytics reads use
+    // the service client to survive the users row policy.
+    const supabase = createAdminClient();
     if (errorResponse) return errorResponse;
 
     // Check if Google Cloud credentials are configured

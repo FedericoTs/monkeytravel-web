@@ -4,6 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote } from "@/types";
 import { enqueueNotification } from "@/lib/notifications/service";
+import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 
 /**
  * GET /api/trips/[id]/activities/[activityId]/vote
@@ -35,11 +36,7 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
         comment,
         vote_weight,
         voted_at,
-        updated_at,
-        users:user_id (
-          display_name,
-          avatar_url
-        )
+        updated_at
       `)
       .eq("trip_id", tripId)
       .eq("activity_id", activityId)
@@ -50,12 +47,17 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
       return errors.internal("Failed to fetch votes", "Activity Vote");
     }
 
+    // Names come from public_profiles, not an embed on users: a trip's voters
+    // are by definition other people, and `users` only exposes the caller's
+    // own row.
+    const profileMap = await batchFetchUserProfiles(
+      supabase,
+      (votes || []).map((v) => v.user_id as string)
+    );
+
     // Transform to include user info at top level
     const transformedVotes: ActivityVote[] = (votes || []).map((v) => {
-      const profile = v.users as unknown as {
-        display_name: string;
-        avatar_url: string | null;
-      } | null;
+      const profile = profileMap.get(v.user_id as string) ?? null;
       return {
         id: v.id,
         trip_id: v.trip_id,

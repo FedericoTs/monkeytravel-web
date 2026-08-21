@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (referralCode) {
     const { data: referrer } = await supabase
-      .from("users")
+      .from("public_profiles")
       .select("display_name")
       .eq("id", referralCode.user_id)
       .single();
@@ -69,7 +69,7 @@ export default async function ReferralLandingPage({ params }: PageProps) {
 
   // Get referrer info
   const { data: referrer } = await supabase
-    .from("users")
+    .from("public_profiles")
     .select("display_name, avatar_url")
     .eq("id", referralCode.user_id)
     .single();

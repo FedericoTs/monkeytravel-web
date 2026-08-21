@@ -1,4 +1,5 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { API_COSTS } from "@/lib/api-gateway/config";
 import { circuitBreakerManager } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -157,7 +158,12 @@ function calculatePercentile(values: number[], percentile: number): number {
 
 export async function GET() {
   try {
-    const { supabase, errorResponse } = await getAuthenticatedAdmin();
+    const { errorResponse } = await getAuthenticatedAdmin();
+    // Admin identity is an allowlist in lib/admin.ts, checked above — Postgres
+    // knows nothing about it. Once public.users is locked to id = auth.uid(),
+    // the cookie client returns only the admin's OWN row and this dashboard
+    // silently empties. Read with the service client, which bypasses RLS.
+    const supabase = createAdminClient();
     if (errorResponse) return errorResponse;
 
     const now = new Date();

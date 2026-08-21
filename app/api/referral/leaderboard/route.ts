@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { errors, apiSuccess } from '@/lib/api/response-wrapper';
 import { getAuthenticatedUser } from '@/lib/api/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { LEADERBOARD_SIZE, TIER_NAMES, TIER_EMOJIS, getTierForConversions } from '@/lib/bananas';
 import type {
   LeaderboardEntry,
@@ -41,8 +42,16 @@ function anonymizeDisplayName(
  */
 export async function GET(request: NextRequest) {
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
+    const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+
+    // The leaderboard is by definition a read of OTHER people's rows, which
+    // `users` no longer permits to `authenticated`. It cannot move to
+    // public_profiles either: the query embeds referral_codes / referral_tiers,
+    // and PostgREST resolves embeds through foreign keys, which a view has none
+    // of. So it reads with the service client — the 401 gate above is what
+    // keeps it from being public, exactly as before.
+    const supabase = createAdminClient();
 
     const { searchParams } = new URL(request.url);
     const period = (searchParams.get('period') || 'alltime') as LeaderboardPeriod;
