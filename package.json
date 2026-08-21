@@ -9,6 +9,7 @@
     "start": "next start",
     "covers:check": "node scripts/destination-covers.mjs --check",
     "covers:backfill": "node scripts/destination-covers.mjs",
+    "seo:indexnow": "tsx scripts/indexnow-submit.mts",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
