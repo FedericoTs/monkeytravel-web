@@ -113,7 +113,12 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       supabase,
       tripId,
       user.id,
-      "id, user_id, title, destination",
+      // NOT "destination" — public.trips has no such column; the destination
+      // lives in trip_meta->>'destination'. verifyTripAccess passes this
+      // straight to PostgREST and collapses ANY error into notFound, so the
+      // bad column made every invite creation return 404 "Trip not found".
+      // trip_invites last gained a row on 2026-01-04.
+      "id, user_id, title, trip_meta",
       ["editor"]
     );
     if (accessError) return accessError;
@@ -165,7 +170,9 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
           (user.user_metadata?.full_name as string | undefined) ||
           (user.email?.split("@")[0]) ||
           "A trip collaborator";
-        const tripData = trip as { title?: string; destination?: string } | undefined;
+        const tripData = trip as
+          | { title?: string; trip_meta?: { destination?: string } | null }
+          | undefined;
         const result = await dispatchEmail({
           recipientEmail: normalizedEmail,
           recipientUserId: null, // recipient may not exist yet — no opt-out check
@@ -178,7 +185,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
             props: {
               inviterName,
               tripTitle: tripData?.title || "",
-              tripDestination: tripData?.destination || "your trip",
+              tripDestination: tripData?.trip_meta?.destination || "your trip",
               role: role as "editor" | "voter" | "viewer",
               inviteUrl,
               message: message?.trim() || undefined,
