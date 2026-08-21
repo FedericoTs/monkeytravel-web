@@ -11,6 +11,16 @@ import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    // Before Sentry loads: Sentry pulls in @opentelemetry/instrumentation-http,
+    // which still calls the deprecated url.parse(). That single warning was the
+    // loudest line in production (201/24h across nearly every route) and buried
+    // real errors. Filtered narrowly — only when raised from inside
+    // @opentelemetry — so our own code would still surface it.
+    const { silenceOtelUrlParseDeprecation } = await import(
+      "./lib/observability/silence-otel-url-parse-deprecation"
+    );
+    silenceOtelUrlParseDeprecation();
+
     // Server-side Sentry initialization
     await import("./sentry.server.config");
   }
