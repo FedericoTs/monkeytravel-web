@@ -9,6 +9,7 @@
  *   npx tsx scripts/indexnow-submit.mts --dry-run          # show, send nothing
  *   npx tsx scripts/indexnow-submit.mts --since 7          # lastmod within 7 days
  *   npx tsx scripts/indexnow-submit.mts --url <a> --url <b>
+ *   npx tsx scripts/indexnow-submit.mts --from urls.txt        # one per line
  *   npx tsx scripts/indexnow-submit.mts                    # everything (rare)
  *
  * Prefer --since after a content deploy. Submitting the whole sitemap on every
@@ -17,6 +18,8 @@
  * Deliberately NOT called from the build or the content pipeline: submission
  * stays an explicit act.
  */
+
+import fs from "node:fs";
 
 // Dynamic import on purpose. This file is .mts (strict ESM) while the project
 // tsconfig emits lib/ as CommonJS, so a static named import fails at load with
@@ -42,6 +45,20 @@ function parseArgs(argv: string[]) {
 
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--url" && argv[i + 1]) urls.push(argv[++i]);
+    // --from <file>: one URL per line.
+    //
+    // Repeated --url does not scale. A 501-URL submission built that way
+    // exceeded the Windows command-line length limit and died with
+    // "La riga di comando e troppo lunga" — AFTER printing a plausible
+    // command echo, so it looked like it had run. A file keeps argv short
+    // no matter how many URLs there are.
+    if (argv[i] === "--from" && argv[i + 1]) {
+      const file = argv[++i];
+      for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
+        const t = line.trim();
+        if (t && !t.startsWith("#")) urls.push(t);
+      }
+    }
     if (argv[i] === "--since" && argv[i + 1]) {
       const n = Number(argv[++i]);
       if (!Number.isFinite(n) || n <= 0) {
