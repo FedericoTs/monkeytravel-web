@@ -212,7 +212,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Coste realista de 10 noches (2 personas, vuelos desde EE. UU. o Europa):** 9.500–14.000 $. Hotel boutique en Tokio 250–400 $/noche, machiya en Kioto 300–500 $/noche, ryokan con cena y desayuno 400–700 $/pareja, JR Pass 570 $/persona.
 
-**Mi opinión:** reserva primero el ryokan, luego construye el viaje a su alrededor. Los ryokans de flor de cerezo y otoño se agotan tres a cuatro meses antes. El yen sigue históricamente débil frente al dólar, que es la razón poco discutida por la que Japón es la mejor relación calidad-precio de luna de miel premium en 2026. Usa nuestro [planificador de viajes con IA gratuito](/es/free-ai-trip-planner) para esbozar una ruta de luna de miel por Japón.
+**Mi opinión:** reserva primero el ryokan, luego construye el viaje a su alrededor. Los ryokans de flor de cerezo y otoño se agotan tres a cuatro meses antes. El yen sigue históricamente débil frente al dólar, que es la razón poco discutida por la que Japón es la mejor relación calidad-precio de luna de miel premium en 2026. Usa nuestro [planificador de viajes con AI gratuito](/es/free-ai-trip-planner) para esbozar una ruta de luna de miel por Japón.
 
 ### Santa Lucía
 
@@ -409,7 +409,7 @@ Para la mayoría de parejas, sí. Alrededor del 40% de las reservas de luna de m
 
 ### ¿Cómo planificamos una luna de miel cuando nuestras agendas están completamente llenas?
 
-Usa planificación con IA. En serio. Herramientas como nuestro [planificador de viajes con IA](/es/blog/how-to-plan-a-trip-with-ai) comprimen lo que solían ser 15–20 horas de investigación (vuelos, hoteles, itinerarios diarios, reservas de restaurantes, transporte) en 60–90 minutos de conversación. El mejor caso de uso 2026 para planificadores con IA es exactamente la pareja sobrecargada: describes presupuesto, fechas, vibe y restricciones; la IA devuelve un plan secuenciado con costes realistas que luego refinas. La luna de miel es uno de los viajes con mayor leverage para planificar con IA porque las variables (dos viajeros, fechas fijas, optimización para romance y ritmo) son exactamente lo que la IA hace bien.
+Usa planificación con AI. En serio. Herramientas como nuestro [planificador de viajes con AI](/es/blog/how-to-plan-a-trip-with-ai) comprimen lo que solían ser 15–20 horas de investigación (vuelos, hoteles, itinerarios diarios, reservas de restaurantes, transporte) en 60–90 minutos de conversación. El mejor caso de uso 2026 para planificadores con AI es exactamente la pareja sobrecargada: describes presupuesto, fechas, vibe y restricciones; la AI devuelve un plan secuenciado con costes realistas que luego refinas. La luna de miel es uno de los viajes con mayor leverage para planificar con AI porque las variables (dos viajeros, fechas fijas, optimización para romance y ritmo) son exactamente lo que la AI hace bien.
 
 ### ¿Cuál es el paso de planificación de luna de miel más saltado?
 
@@ -417,7 +417,7 @@ Diseñar el Día 1 para que esté vacío. Casi nadie lo hace. Casi todos se arre
 
 ---
 
-*Planifica tu luna de miel 2026 con nuestro [planificador de viajes con IA gratuito](/es/free-ai-trip-planner) — introduce tu destino, fechas y nivel de presupuesto, y obtén un plan secuenciado día a día con costes realistas y recomendaciones de temporada de hombro.*
+*Planifica tu luna de miel 2026 con nuestro [planificador de viajes con AI gratuito](/es/free-ai-trip-planner) — introduce tu destino, fechas y nivel de presupuesto, y obtén un plan secuenciado día a día con costes realistas y recomendaciones de temporada de hombro.*
 
 *Fuentes:*
 

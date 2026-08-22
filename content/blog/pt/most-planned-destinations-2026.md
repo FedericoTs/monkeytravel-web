@@ -1,5 +1,5 @@
 ---
-title: "Os destinos mais planejados de 2026: o que revelam mais de 1.500 roteiros de viagem com IA"
+title: "Os destinos mais planejados de 2026: o que revelam mais de 1.500 roteiros de viagem com AI"
 slug: "most-planned-destinations-2026"
 description: "Analisamos 1.563 sessões reais de planejamento de viagem no MonkeyTravel entre maio e julho de 2026. Tóquio lidera, Taipei invade o top 10, uma em cada cinco viagens bate no teto de 14 dias e um terço das viagens novas encadeia várias cidades. Dados próprios de planejamento — não mais uma lista de tendências de busca."
 author: "Emanuela P."
@@ -12,16 +12,16 @@ imageAlt: "Mapa-múndi com linhas de rota conectando os dez destinos mais planej
 readingTime: 9
 seo:
   title: "Destinos mais planejados de 2026: dados de 1.500+ viagens"
-  description: "Tóquio em 1º, Taipei a surpresa, alta das viagens de duas semanas e 33% de viagens multicidade. O que 1.563 sessões reais de planejamento com IA revelam sobre viajar em 2026 — dados próprios, não tendências de busca."
+  description: "Tóquio em 1º, Taipei a surpresa, alta das viagens de duas semanas e 33% de viagens multicidade. O que 1.563 sessões reais de planejamento com AI revelam sobre viajar em 2026 — dados próprios, não tendências de busca."
   keywords: ["destinos mais planejados 2026", "melhores destinos 2026", "tendências de viagem 2026", "para onde todo mundo vai viajar em 2026", "viagem de duas semanas 2026", "planejar viagem multicidade"]
 schema: "Article"
 ---
 
-# Os destinos mais planejados de 2026: o que revelam mais de 1.500 roteiros de viagem com IA
+# Os destinos mais planejados de 2026: o que revelam mais de 1.500 roteiros de viagem com AI
 
 Toda lista de "melhores destinos" que você lê em janeiro é construída com os mesmos dois ingredientes: volume de busca e press releases de órgãos de turismo. Os dados de busca têm um problema estrutural: medem curiosidade, não compromisso. Pesquisar um lugar no Google custa três segundos. Montar um roteiro com datas, duração e os nomes dos quatro amigos que vão junto é um ato completamente diferente — e prevê a viagem real muito melhor.
 
-Nós desenvolvemos um planejador de viagens com IA, então conseguimos medir exatamente essa segunda coisa. Entre maio e julho de 2026, analisamos 1.563 sessões de planejamento de viagem no MonkeyTravel: uma janela de 45 dias de roteiros reais com datas reais. [Tóquio](/destinations/tokyo) terminar em primeiro não surpreendeu ninguém. Boa parte do resto, sim: [Taipei](/destinations/taipei) planejou-se mais que [Berlim](/destinations/berlin), uma em cada cinco viagens esbarrou de frente no nosso teto de planejamento de 14 dias e, uma semana depois do lançamento do planejamento multicidade, um terço de todas as viagens salvas já encadeava duas ou mais cidades.
+Nós desenvolvemos um planejador de viagens com AI, então conseguimos medir exatamente essa segunda coisa. Entre maio e julho de 2026, analisamos 1.563 sessões de planejamento de viagem no MonkeyTravel: uma janela de 45 dias de roteiros reais com datas reais. [Tóquio](/destinations/tokyo) terminar em primeiro não surpreendeu ninguém. Boa parte do resto, sim: [Taipei](/destinations/taipei) planejou-se mais que [Berlim](/destinations/berlin), uma em cada cinco viagens esbarrou de frente no nosso teto de planejamento de 14 dias e, uma semana depois do lançamento do planejamento multicidade, um terço de todas as viagens salvas já encadeava duas ou mais cidades.
 
 Aqui está o que os dados realmente dizem.
 

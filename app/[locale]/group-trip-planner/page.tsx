@@ -26,9 +26,9 @@ const PAGE_PATH = '/group-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens em Grupo com IA — Planeje, Vote, Decida',
+    title: 'Planejador de Viagens em Grupo com AI — Planeje, Vote, Decida',
     description:
-      'O único planejador de viagens com IA feito para grupos. Gere roteiros, convide amigos, votem nas atividades e decidam juntos — tudo em um só lugar. Grátis.',
+      'O único planejador de viagens com AI feito para grupos. Gere roteiros, convide amigos, votem nas atividades e decidam juntos — tudo em um só lugar. Grátis.',
   },
   en: {
     title: 'AI Group Trip Planner — Plan Together, Vote, Decide',

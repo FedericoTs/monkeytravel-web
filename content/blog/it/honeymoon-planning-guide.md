@@ -212,7 +212,7 @@ Qui le destinazioni si guadagnano la loro reputazione. Piscine a sfioro sulla sc
 
 **Costo realistico per 10 notti (2 persone, voli da USA o Europa):** 9.500–14.000 $. Boutique hotel a Tokyo 250–400 $/notte, machiya a Kyoto 300–500 $/notte, ryokan con cena e colazione 400–700 $/coppia, JR Pass 570 $/persona.
 
-**Il mio parere:** prenota prima il ryokan, poi costruisci il viaggio attorno. I ryokan in stagione di ciliegi in fiore o di foliage si esauriscono tre o quattro mesi prima. Lo yen è ancora storicamente debole sul dollaro, ed è il motivo poco discusso per cui il Giappone è il miglior rapporto qualità-prezzo per luna di miele premium nel 2026. Usa il nostro [pianificatore di viaggi con IA gratuito](/it/free-ai-trip-planner) per bozzare una rotta di luna di miele in Giappone.
+**Il mio parere:** prenota prima il ryokan, poi costruisci il viaggio attorno. I ryokan in stagione di ciliegi in fiore o di foliage si esauriscono tre o quattro mesi prima. Lo yen è ancora storicamente debole sul dollaro, ed è il motivo poco discusso per cui il Giappone è il miglior rapporto qualità-prezzo per luna di miele premium nel 2026. Usa il nostro [pianificatore di viaggi con AI gratuito](/it/free-ai-trip-planner) per bozzare una rotta di luna di miele in Giappone.
 
 ### Saint Lucia
 
@@ -409,7 +409,7 @@ Per la maggior parte delle coppie, sì. Circa il 40% delle prenotazioni di luna 
 
 ### Come pianifichiamo una luna di miele quando le nostre agende sono completamente piene?
 
-Usa la pianificazione con IA. Davvero. Strumenti come il nostro [pianificatore di viaggi con IA](/it/blog/how-to-plan-a-trip-with-ai) comprimono quelle che erano 15–20 ore di ricerca (voli, hotel, itinerari giornalieri, prenotazioni di ristoranti, trasporti) in 60–90 minuti di conversazione. Il miglior caso d'uso 2026 per i pianificatori IA è esattamente la coppia sovraccarica: descrivi budget, date, vibe e vincoli; l'IA restituisce un piano sequenziato con costi realistici che poi rifinisci. La luna di miele è uno dei viaggi a maggior leva da pianificare con l'IA perché le variabili (due viaggiatori, date fisse, ottimizzazione per romanticismo e ritmo) sono esattamente ciò che l'IA fa bene.
+Usa la pianificazione con AI. Davvero. Strumenti come il nostro [pianificatore di viaggi con AI](/it/blog/how-to-plan-a-trip-with-ai) comprimono quelle che erano 15–20 ore di ricerca (voli, hotel, itinerari giornalieri, prenotazioni di ristoranti, trasporti) in 60–90 minuti di conversazione. Il miglior caso d'uso 2026 per i pianificatori AI è esattamente la coppia sovraccarica: descrivi budget, date, vibe e vincoli; l'AI restituisce un piano sequenziato con costi realistici che poi rifinisci. La luna di miele è uno dei viaggi a maggior leva da pianificare con l'AI perché le variabili (due viaggiatori, date fisse, ottimizzazione per romanticismo e ritmo) sono esattamente ciò che l'AI fa bene.
 
 ### Qual è il passo di pianificazione della luna di miele più saltato?
 
@@ -417,7 +417,7 @@ Progettare il Giorno 1 perché sia vuoto. Quasi nessuno lo fa. Quasi tutti se ne
 
 ---
 
-*Pianifica la tua luna di miele 2026 con il nostro [pianificatore di viaggi con IA gratuito](/it/free-ai-trip-planner) — inserisci destinazione, date e fascia di budget, e ottieni un piano sequenziato giorno per giorno con costi realistici e suggerimenti per la mezza stagione.*
+*Pianifica la tua luna di miele 2026 con il nostro [pianificatore di viaggi con AI gratuito](/it/free-ai-trip-planner) — inserisci destinazione, date e fascia di budget, e ottieni un piano sequenziato giorno per giorno con costi realistici e suggerimenti per la mezza stagione.*
 
 *Fonti:*
 

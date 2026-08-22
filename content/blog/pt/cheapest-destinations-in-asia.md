@@ -373,11 +373,11 @@ Ubud é o destino mais caro desta lista, e ainda assim custa menos por dia do qu
 
 ---
 
-## Deixe a IA Planejar Sua Viagem pela Ásia em Qualquer Orçamento
+## Deixe a AI Planejar Sua Viagem pela Ásia em Qualquer Orçamento
 
 Quinze destinos, infinitos roteiros possíveis. Talvez você queira combinar Hanói e Luang Prabang em uma viagem terrestre de duas semanas — confira o nosso [guia do Vietnã para iniciantes](/blog/first-trip-to-vietnam-2026) para um roteiro completo de 10 dias. Talvez você esteja tentando descobrir se Bali ou Goa oferece mais praia por menos dinheiro. Talvez você tenha $1.000 e três semanas e queira saber exatamente até onde isso vai render.
 
-A IA da MonkeyTravel monta **roteiros personalizados pela Ásia em 30 segundos** — orçamentos diários reais, recomendações de restaurantes de verdade e rotas inteligentes para você não ficar voltando atrás entre os países.
+A AI da MonkeyTravel monta **roteiros personalizados pela Ásia em 30 segundos** — orçamentos diários reais, recomendações de restaurantes de verdade e rotas inteligentes para você não ficar voltando atrás entre os países.
 
 [Planejar Minha Viagem pela Ásia — Grátis](/budget-trip-planner)
 

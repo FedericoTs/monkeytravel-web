@@ -85,7 +85,7 @@ Os requisitos de visto dependem inteiramente da sua nacionalidade e do destino. 
 
 **O que fazer:** Consulte o site da embaixada de cada país que você planeja visitar. Se for necessária uma solicitação, comece agora.
 
-Ferramentas como o [planejador de viagens com IA da MonkeyTravel](https://monkeytravel.app) podem sinalizar os requisitos de visto e documentos para o seu destino específico durante a fase de planejamento, para que você não descubra um requisito tarde demais.
+Ferramentas como o [planejador de viagens com AI da MonkeyTravel](https://monkeytravel.app) podem sinalizar os requisitos de visto e documentos para o seu destino específico durante a fase de planejamento, para que você não descubra um requisito tarde demais.
 
 ### Agende as Vacinas de Viagem
 
@@ -257,7 +257,7 @@ Deixe uma cópia do seu roteiro de viagem completo com alguém de confiança em 
 - O número da sua apólice de seguro de viagem e a linha de emergência
 - O endereço e telefone da embaixada ou consulado mais próximo
 
-O planejador de viagens com IA da MonkeyTravel gera roteiros compartilháveis que incluem todas essas informações em um único documento organizado — útil se você quer evitar compilar tudo manualmente em uma planilha.
+O planejador de viagens com AI da MonkeyTravel gera roteiros compartilháveis que incluem todas essas informações em um único documento organizado — útil se você quer evitar compilar tudo manualmente em uma planilha.
 
 ### Prepare Seus Medicamentos com Receita
 
@@ -413,7 +413,7 @@ Se esta é a sua primeira viagem ao exterior, aqui estão as coisas que pegam as
 
 6. **Seu cartão de crédito pode ser recusado.** Mesmo com um aviso de viagem, alguns comerciantes menores no exterior têm problemas com cartões internacionais. Tenha sempre um cartão reserva e algum dinheiro local.
 
-7. **Você não precisa planejar cada minuto.** Algumas das melhores experiências de viagem são as não planejadas. Reserve um tempo de folga na sua agenda para perambular, se perder e descobrir coisas que você nem sabia que existiam. O planejador de viagens com IA da MonkeyTravel cria roteiros flexíveis com blocos de tempo livre exatamente por esse motivo — estruturados o suficiente para serem úteis, soltos o suficiente para parecer uma aventura.
+7. **Você não precisa planejar cada minuto.** Algumas das melhores experiências de viagem são as não planejadas. Reserve um tempo de folga na sua agenda para perambular, se perder e descobrir coisas que você nem sabia que existiam. O planejador de viagens com AI da MonkeyTravel cria roteiros flexíveis com blocos de tempo livre exatamente por esse motivo — estruturados o suficiente para serem úteis, soltos o suficiente para parecer uma aventura.
 
 ---
 
@@ -482,4 +482,4 @@ Mantenha a calma e siga estes passos: (1) Comunique a perda à polícia local e 
 
 ---
 
-*Planejando uma viagem internacional? A [MonkeyTravel](https://monkeytravel.app) ajuda você a montar um roteiro completo e personalizado com IA — incluindo lembretes específicos por destino sobre documentos, vistos e etapas de preparação. Comece a planejar sua viagem de graça.*
+*Planejando uma viagem internacional? A [MonkeyTravel](https://monkeytravel.app) ajuda você a montar um roteiro completo e personalizado com AI — incluindo lembretes específicos por destino sobre documentos, vistos e etapas de preparação. Comece a planejar sua viagem de graça.*

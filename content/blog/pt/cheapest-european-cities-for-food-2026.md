@@ -306,7 +306,7 @@ Comer pela Europa econômica exige um pouco de estrutura para evitar armadilhas 
 
 3. **Evite qualquer restaurante a até 50 metros de um ponto turístico importante.** Esta regra tem pouquíssimas exceções. Afaste-se dois quarteirões e os preços caem enquanto a qualidade melhora.
 
-4. **Use a IA da MonkeyTravel para roteiros com foco gastronômico.** Diga ao planejador de viagens com IA que você quer uma viagem voltada para comida com um orçamento diário específico, e ele montará um plano dia a dia com recomendações de restaurantes, visitas a mercados e experiências gastronômicas adaptadas ao seu orçamento e às suas preferências. Ele leva em conta os horários das refeições, as rotas a pé pelos bairros e os costumes gastronômicos locais que são difíceis de pesquisar por conta própria.
+4. **Use a AI da MonkeyTravel para roteiros com foco gastronômico.** Diga ao planejador de viagens com AI que você quer uma viagem voltada para comida com um orçamento diário específico, e ele montará um plano dia a dia com recomendações de restaurantes, visitas a mercados e experiências gastronômicas adaptadas ao seu orçamento e às suas preferências. Ele leva em conta os horários das refeições, as rotas a pé pelos bairros e os costumes gastronômicos locais que são difíceis de pesquisar por conta própria.
 
 ---
 
@@ -330,7 +330,7 @@ Tirana (US$ 1), Tbilisi (US$ 1) e Praga (US$ 1,50) têm as cervejas mais baratas
 
 ### A MonkeyTravel pode me ajudar a planejar uma viagem gastronômica?
 
-Sim. O planejador de viagens com IA da MonkeyTravel monta roteiros completos com foco gastronômico. Defina o destino, o orçamento e as preferências de comida, e ele gera um plano dia a dia com restaurantes, mercados, tours gastronômicos e pratos locais específicos para experimentar — com rotas a pé que os conectam de forma lógica.
+Sim. O planejador de viagens com AI da MonkeyTravel monta roteiros completos com foco gastronômico. Defina o destino, o orçamento e as preferências de comida, e ele gera um plano dia a dia com restaurantes, mercados, tours gastronômicos e pratos locais específicos para experimentar — com rotas a pé que os conectam de forma lógica.
 
 ---
 
@@ -338,6 +338,6 @@ Sim. O planejador de viagens com IA da MonkeyTravel monta roteiros completos com
 
 As 15 cidades desta lista provam que a melhor comida da Europa não está atrás de uma corda de veludo. Está em uma barraca de mercado em Tirana, em uma pizzaria em Nápoles, em um bar de leite em Cracóvia ou em uma taverna em Atenas.
 
-Escolha uma cidade. Defina o seu orçamento de comida. Deixe a IA da MonkeyTravel montar um roteiro gastronômico dia a dia com restaurantes, mercados e pratos específicos — tudo calibrado para o quanto você quer gastar.
+Escolha uma cidade. Defina o seu orçamento de comida. Deixe a AI da MonkeyTravel montar um roteiro gastronômico dia a dia com restaurantes, mercados e pratos específicos — tudo calibrado para o quanto você quer gastar.
 
 **[Planejar Minha Viagem Gastronômica Grátis →](/trip-planner)**

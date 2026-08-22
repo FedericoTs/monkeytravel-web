@@ -64,7 +64,7 @@ Mas tem o outro lado: o ditador da viagem está exausto. Planejar uma viagem em 
 
 ## Erro #4: Lotar Todos os Dias de Atividades
 
-O Instagram e os geradores de roteiros com IA criaram uma geração de cronogramas de viagem abarrotados de FOMO. Oito atrações antes do almoço. Quatro bairros numa tarde. Um tour gastronômico, um city tour a pé e um passeio de barco no pôr do sol — tudo numa terça-feira.
+O Instagram e os geradores de roteiros com AI criaram uma geração de cronogramas de viagem abarrotados de FOMO. Oito atrações antes do almoço. Quatro bairros numa tarde. Um tour gastronômico, um city tour a pé e um passeio de barco no pôr do sol — tudo numa terça-feira.
 
 Ninguém consegue manter esse ritmo por uma semana. No Dia 3, metade do grupo está no automático e a outra metade está secretamente furiosa porque não teve 20 minutos para sentar num café e simplesmente existir. Pesquisas do Global Wellness Institute mostram que "roteiros corridos" são um dos principais fatores de esgotamento pós-viagem, e os viajantes que reservam dias de descanso relatam uma satisfação significativamente maior.
 
@@ -120,9 +120,9 @@ Mas um grupo com líderes demais é pior. Duas personalidades fortes tentando le
 
 Se você leu todos os dez erros, há um padrão: a maioria dos problemas de viagem em grupo se resume a expectativas pouco claras, ferramentas de comunicação ruins e uma única pessoa carregando trabalho demais.
 
-O planejamento assistido por IA resolve um número surpreendente desses problemas. Em vez de começar de uma planilha em branco, o grupo parte de um roteiro pronto, adaptado ao destino, ao orçamento e às datas. Isso elimina por completo o problema das "200 mensagens, zero decisões" — você está reagindo a um plano, não construindo um do zero.
+O planejamento assistido por AI resolve um número surpreendente desses problemas. Em vez de começar de uma planilha em branco, o grupo parte de um roteiro pronto, adaptado ao destino, ao orçamento e às datas. Isso elimina por completo o problema das "200 mensagens, zero decisões" — você está reagindo a um plano, não construindo um do zero.
 
-O [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner) gera o roteiro base em segundos usando nosso [planejador de viagens com IA gratis](/free-ai-trip-planner), e então seu grupo vota em cada atividade, propõe alternativas e vê o detalhamento do orçamento de forma transparente. Uma única pessoa não precisa fazer toda a pesquisa. Todo mundo tem voz sem o caos de um grupo de WhatsApp. E como a IA já inclui tempo de folga e blocos flexíveis por padrão, você evita automaticamente a armadilha de lotar a agenda.
+O [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner) gera o roteiro base em segundos usando nosso [planejador de viagens com AI gratis](/free-ai-trip-planner), e então seu grupo vota em cada atividade, propõe alternativas e vê o detalhamento do orçamento de forma transparente. Uma única pessoa não precisa fazer toda a pesquisa. Todo mundo tem voz sem o caos de um grupo de WhatsApp. E como a AI já inclui tempo de folga e blocos flexíveis por padrão, você evita automaticamente a armadilha de lotar a agenda.
 
 As melhores viagens em grupo não são as que têm os roteiros mais impressionantes. São aquelas em que todos se sentiram ouvidos, ninguém se sentiu preso e o planejamento não demorou mais do que a própria viagem.
 

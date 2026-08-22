@@ -16,9 +16,9 @@ const BASE_URL = "https://monkeytravel.app";
 const META: Record<string, { title: string; description: string }> = {
   pt: {
     title:
-      "Gerador de Lista de Bagagem Grátis — Personalizada por IA",
+      "Gerador de Lista de Bagagem Grátis — Personalizada por AI",
     description:
-      "Receba uma lista de bagagem personalizada em 10 segundos. Nossa IA considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
+      "Receba uma lista de bagagem personalizada em 10 segundos. Nossa AI considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
   },
   en: {
     title:
@@ -34,9 +34,9 @@ const META: Record<string, { title: string; description: string }> = {
   },
   es: {
     title:
-      "Generador Gratis de Lista de Equipaje — Personalizada por IA",
+      "Generador Gratis de Lista de Equipaje — Personalizada por AI",
     description:
-      "Recibe una lista de equipaje personalizada en 10 segundos. Nuestra IA considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
+      "Recibe una lista de equipaje personalizada en 10 segundos. Nuestra AI considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
   },
 };
 

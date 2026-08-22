@@ -54,9 +54,9 @@
   },
   "wizard": {
     "back": "Atrás",
-    "unlockAiFeatures": "Desbloquea las funciones de IA",
+    "unlockAiFeatures": "Desbloquea las funciones de AI",
     "usageLimitReached": "Límite de uso alcanzado",
-    "usageLimitDefault": "Has usado tus generaciones de IA gratuitas.",
+    "usageLimitDefault": "Has usado tus generaciones de AI gratuitas.",
     "yourTripTo": "Tu viaje a",
     "draftRecovery": {
       "title": "Viaje sin guardar encontrado",
@@ -191,8 +191,8 @@
       "bookYourTravel": "Reserva tu viaje",
       "flights": "Vuelos",
       "hotels": "Hoteles",
-      "aiVerifiedTitle": "Itinerario generado por IA con datos verificados",
-      "aiVerifiedBody": "Este itinerario fue creado por IA y enriquecido con datos en tiempo real de Google Places. Haz clic en \"Más\" en cualquier actividad para ver fotos, valoraciones y niveles de precio verificados. Te recomendamos comprobar los horarios de apertura antes de tu viaje.",
+      "aiVerifiedTitle": "Itinerario generado por AI con datos verificados",
+      "aiVerifiedBody": "Este itinerario fue creado por AI y enriquecido con datos en tiempo real de Google Places. Haz clic en \"Más\" en cualquier actividad para ver fotos, valoraciones y niveles de precio verificados. Te recomendamos comprobar los horarios de apertura antes de tu viaje.",
       "notQuiteRight": "¿No es lo que buscabas?",
       "viewCards": "Tarjetas",
       "viewTimeline": "Cronología",
@@ -362,7 +362,7 @@
     "error": "Error al generar el itinerario. Por favor, intentalo de nuevo.",
     "errorTimeout": "La solicitud tardó demasiado. Esto puede pasar con viajes complejos — inténtalo de nuevo.",
     "errorNetwork": "Problema de conexión. Verifica tu internet e inténtalo de nuevo.",
-    "errorServerBusy": "Nuestra IA está tardando más de lo habitual. Inténtalo de nuevo en un momento — o prueba con un viaje más corto.",
+    "errorServerBusy": "Nuestra AI está tardando más de lo habitual. Inténtalo de nuevo en un momento — o prueba con un viaje más corto.",
     "retry": "Reintentar"
   },
   "result": {

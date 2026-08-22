@@ -1,15 +1,15 @@
 {
   "meta": {
-    "title": "Planejador de Viagens com IA Grátis — Sem Cartão, Sem Cadastro | MonkeyTravel",
-    "description": "Planeje sua viagem perfeita com IA em segundos. Receba roteiros personalizados dia a dia com lugares reais e preços atuais. 100% grátis, sem precisar de cartão de crédito."
+    "title": "Planejador de Viagens com AI Grátis — Sem Cartão, Sem Cadastro | MonkeyTravel",
+    "description": "Planeje sua viagem perfeita com AI em segundos. Receba roteiros personalizados dia a dia com lugares reais e preços atuais. 100% grátis, sem precisar de cartão de crédito."
   },
   "breadcrumbs": {
     "home": "Início",
-    "freeTripPlanner": "Planejador de Viagens com IA Grátis"
+    "freeTripPlanner": "Planejador de Viagens com AI Grátis"
   },
   "hero": {
     "badge": "100% Grátis — Sem Cartão de Crédito",
-    "title": "O Planejador de Viagens com IA Grátis Que Realmente Funciona",
+    "title": "O Planejador de Viagens com AI Grátis Que Realmente Funciona",
     "subtitle": "Escolha um destino e receba um roteiro personalizado dia a dia em menos de 60 segundos. Lugares reais, preços atuais, rotas inteligentes — totalmente grátis.",
     "cta": "Planejar Minha Viagem — Grátis",
     "secondaryCta": "Veja Como Funciona",
@@ -20,8 +20,8 @@
     }
   },
   "whatIs": {
-    "heading": "O que é um planejador de viagens com IA?",
-    "definition": "Um planejador de viagens com IA transforma um destino e algumas datas em um roteiro dia a dia: escolhe lugares específicos e os organiza em um trajeto que faz sentido percorrer a pé ou de carro.",
+    "heading": "O que é um planejador de viagens com AI?",
+    "definition": "Um planejador de viagens com AI transforma um destino e algumas datas em um roteiro dia a dia: escolhe lugares específicos e os organiza em um trajeto que faz sentido percorrer a pé ou de carro.",
     "vsChatbot": "É essa a diferença em relação a perguntar a um chatbot. Um chatbot dá sugestões que você ainda precisa pesquisar, organizar e colocar em ordem. Um planejador entrega o roteiro pronto: lugares com nome, agrupados por dia, com os deslocamentos já considerados.",
     "product": "O MonkeyTravel faz isso em cerca de 30 segundos, com três níveis de orçamento, usando lugares reais e preços atuais em vez de inventados. Funciona em inglês, espanhol, italiano e português, e não exige conta.",
     "honest": "Ele também erra às vezes: um lugar fecha, um preço muda. Por isso cada parada continua editável, e você lê o roteiro inteiro antes de se cadastrar em qualquer coisa.",
@@ -32,12 +32,12 @@
     "subtitle": "Sem taxas ocultas, sem barreiras de cartão de crédito. Todos os recursos disponíveis desde o primeiro dia.",
     "items": {
       "aiItineraries": {
-        "title": "Roteiros Gerados por IA",
+        "title": "Roteiros Gerados por AI",
         "description": "Receba planos personalizados dia a dia de acordo com seu destino, datas, orçamento e estilo de viagem. Três opções: Econômico, Equilibrado e Premium."
       },
       "realVenues": {
         "title": "Lugares e Preços Reais",
-        "description": "Cada restaurante, hotel e atração do seu roteiro é um lugar real, com preços e avaliações atuais — não alucinações de IA."
+        "description": "Cada restaurante, hotel e atração do seu roteiro é um lugar real, com preços e avaliações atuais — não alucinações de AI."
       },
       "smartRouting": {
         "title": "Rotas Inteligentes",
@@ -65,8 +65,8 @@
         "description": "Diga aonde você quer ir, suas datas de viagem, a faixa de orçamento e que tipo de viajante você é."
       },
       "step2": {
-        "title": "Receba Seu Roteiro com IA",
-        "description": "Nossa IA gera um roteiro completo dia a dia em menos de 60 segundos. Três níveis de orçamento para você comparar opções."
+        "title": "Receba Seu Roteiro com AI",
+        "description": "Nossa AI gera um roteiro completo dia a dia em menos de 60 segundos. Três níveis de orçamento para você comparar opções."
       },
       "step3": {
         "title": "Personalize e Vá",
@@ -117,16 +117,16 @@
         "answer": "Você pode começar a planejar na hora, sem conta. Criar uma conta gratuita permite salvar seus roteiros, convidar colaboradores e acessar suas viagens em qualquer dispositivo — mas é opcional."
       },
       "howAccurate": {
-        "question": "Quão precisos são os roteiros gerados por IA?",
-        "answer": "O MonkeyTravel usa dados reais de lugares, incluindo avaliações atuais, preços e horários de funcionamento. Diferente dos chatbots de IA genéricos, nossos roteiros indicam lugares reais que você pode visitar e reservar. Recomendamos conferir os detalhes perto da data da sua viagem."
+        "question": "Quão precisos são os roteiros gerados por AI?",
+        "answer": "O MonkeyTravel usa dados reais de lugares, incluindo avaliações atuais, preços e horários de funcionamento. Diferente dos chatbots de AI genéricos, nossos roteiros indicam lugares reais que você pode visitar e reservar. Recomendamos conferir os detalhes perto da data da sua viagem."
       },
       "languages": {
         "question": "Quais idiomas o MonkeyTravel oferece?",
-        "answer": "O MonkeyTravel está totalmente disponível em inglês, espanhol, italiano e português — incluindo o conteúdo dos roteiros gerados por IA, não apenas a interface. Em breve teremos mais idiomas."
+        "answer": "O MonkeyTravel está totalmente disponível em inglês, espanhol, italiano e português — incluindo o conteúdo dos roteiros gerados por AI, não apenas a interface. Em breve teremos mais idiomas."
       },
       "groupTrips": {
         "question": "Posso planejar uma viagem em grupo com o MonkeyTravel?",
-        "answer": "Com certeza. O MonkeyTravel inclui ferramentas de colaboração: convide amigos por link, vote nas atividades propostas e chegue a um consenso em grupo. É o único planejador de viagens com IA grátis com decisão em grupo integrada."
+        "answer": "Com certeza. O MonkeyTravel inclui ferramentas de colaboração: convide amigos por link, vote nas atividades propostas e chegue a um consenso em grupo. É o único planejador de viagens com AI grátis com decisão em grupo integrada."
       },
       "destinations": {
         "question": "Quais destinos o MonkeyTravel oferece?",
@@ -136,7 +136,7 @@
   },
   "cta": {
     "title": "Pronto Para Planejar Sua Próxima Viagem?",
-    "subtitle": "Junte-se a milhares de viajantes que planejam de forma mais inteligente com IA. Grátis para sempre, sem compromisso.",
+    "subtitle": "Junte-se a milhares de viajantes que planejam de forma mais inteligente com AI. Grátis para sempre, sem compromisso.",
     "button": "Comece a Planejar — É Grátis",
     "mobileNotify": "Receba um aviso quando o app para celular for lançado"
   }

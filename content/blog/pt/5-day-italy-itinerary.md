@@ -348,11 +348,11 @@ Aqui está um orçamento realista por pessoa:
 - No primeiro domingo de cada mês, os museus estatais italianos são **gratuitos** (Coliseu, Uffizi, Borghese e muitos outros)
 - Use um cartão **Revolut** ou **Wise** para evitar as taxas de transação internacional de 2-3% que a maioria dos bancos cobra
 
-## Deixe a IA Montar o Seu Roteiro Personalizado da Itália
+## Deixe a AI Montar o Seu Roteiro Personalizado da Itália
 
 Este guia te dá uma base sólida de 5 dias. Mas talvez você queira mais experiências gastronômicas e menos museus. Talvez esteja viajando com crianças que precisam de um ritmo diferente. Talvez tenha 7 dias em vez de 5 e queira incluir Nápoles direito.
 
-A IA da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 30 segundos — com restaurantes reais, horários de trem reais, preços de ingressos atualizados e rotas inteligentes para você não ficar ziguezagueando pelo país.
+A AI da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 30 segundos — com restaurantes reais, horários de trem reais, preços de ingressos atualizados e rotas inteligentes para você não ficar ziguezagueando pelo país.
 
 [Gerar Meu Roteiro da Itália — Grátis](https://monkeytravel.app)
 

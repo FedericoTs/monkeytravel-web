@@ -435,11 +435,11 @@ Orçamento realista para 5 dias, por pessoa:
 - Compre um leque dobrável de ฿200 em qualquer mercado — você vai usá-lo o tempo todo e é um souvenir prático
 - As entradas dos templos são baratas individualmente (฿50-300), mas vão se somando. Priorize Grande Palácio, Wat Pho e Wat Arun. Muitos templos de bairro são gratuitos.
 
-## Deixe a IA Montar Seu Roteiro Personalizado de Bangkok
+## Deixe a AI Montar Seu Roteiro Personalizado de Bangkok
 
 Este guia te dá uma estrutura sólida, mas cada viagem é diferente. Talvez você queira passar um dia inteiro em Chinatown. Talvez vá visitar durante o Songkran (festival de água do Ano-Novo tailandês, 13-15 de abril) e precise de uma estratégia completamente diferente. Talvez prefira acrescentar Kanchanaburi ou Hua Hin como passeio de um dia em vez de Ayutthaya.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Bangkok dia a dia** em 30 segundos — com restaurantes reais, preços atuais, conexões de BTS/MRT e rotas inteligentes para que você não fique parado no trânsito quando poderia estar comendo.
+A AI da MonkeyTravel cria um **roteiro personalizado de Bangkok dia a dia** em 30 segundos — com restaurantes reais, preços atuais, conexões de BTS/MRT e rotas inteligentes para que você não fique parado no trânsito quando poderia estar comendo.
 
 [Gerar Meu Roteiro de Bangkok — Grátis](https://monkeytravel.app)
 

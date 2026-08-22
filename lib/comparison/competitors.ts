@@ -103,7 +103,7 @@ const wanderlog: Competitor = {
         "Wanderlog è un ottimo pianificatore manuale, ma richiede ore e un account per condividere. MonkeyTravel genera l'itinerario completo in pochi minuti, gratis — condividi il link e fai votare il tuo gruppo, senza registrazione.",
     },
     pt: {
-      title: "Alternativa ao Wanderlog — Roteiros com IA, sem cadastro",
+      title: "Alternativa ao Wanderlog — Roteiros com AI, sem cadastro",
       description:
         "O Wanderlog é um ótimo planejador manual, mas leva horas e exige conta para compartilhar. O MonkeyTravel gera o roteiro completo em minutos, grátis — compartilhe o link e deixe seu grupo votar, sem cadastro.",
     },
@@ -205,7 +205,7 @@ const wanderlog: Competitor = {
         en: "What the AI can actually do",
         es: "Qué puede hacer la AI realmente",
         it: "Cosa sa fare davvero l'AI",
-        pt: "O que a IA realmente faz",
+        pt: "O que a AI realmente faz",
       }
     ),
     YES_NO(true, false, {
@@ -360,7 +360,7 @@ const wanderlog: Competitor = {
     pt: [
       "Você recebe um roteiro completo em minutos em vez de montá-lo ao longo de uma tarde.",
       "Nada de cadastro até você querer salvar a viagem.",
-      "A IA edita o plano por você — move um dia, troca um restaurante, adiciona uma parada — e pede confirmação antes de mudar qualquer coisa.",
+      "A AI edita o plano por você — move um dia, troca um restaurante, adiciona uma parada — e pede confirmação antes de mudar qualquer coisa.",
       "Seu grupo vota em atividades específicas sem ninguém criar conta.",
       "Você pode fixar compromissos inegociáveis — um casamento, um voo já reservado — e o plano é construído em volta.",
       "Otimização de rota, acesso offline e modo escuro são grátis.",

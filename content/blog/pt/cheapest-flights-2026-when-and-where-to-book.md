@@ -201,11 +201,11 @@ Para um detalhamento completo por destino, veja nossos guias sobre os [destinos 
 
 ---
 
-## Deixe a IA Montar o Seu Roteiro Econômico
+## Deixe a AI Montar o Seu Roteiro Econômico
 
 Encontrar o voo barato é o primeiro passo. Montar uma viagem inteira em torno de um orçamento apertado — hospedagem, transporte, comida, atividades — é onde a maioria das pessoas gasta 8 horas em planilhas e ainda assim esquece coisas.
 
-O [planejador de viagens econômicas com IA da MonkeyTravel](/budget-trip-planner) pega o seu destino, as suas datas e o seu orçamento e monta um roteiro completo: opções de hospedagem em diferentes faixas de preço, custos diários realistas, como se locomover sem pagar a mais e quais atividades valem o dinheiro. Ele cuida do planejamento para que você possa dedicar esse tempo à viagem em si.
+O [planejador de viagens econômicas com AI da MonkeyTravel](/budget-trip-planner) pega o seu destino, as suas datas e o seu orçamento e monta um roteiro completo: opções de hospedagem em diferentes faixas de preço, custos diários realistas, como se locomover sem pagar a mais e quais atividades valem o dinheiro. Ele cuida do planejamento para que você possa dedicar esse tempo à viagem em si.
 
 [Planejar Minha Viagem Econômica — Grátis](/budget-trip-planner)
 

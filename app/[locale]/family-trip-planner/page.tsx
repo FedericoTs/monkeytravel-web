@@ -27,9 +27,9 @@ const PAGE_PATH = '/family-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens em Família — Roteiros com IA Para Todas as Idades',
+    title: 'Planejador de Viagens em Família — Roteiros com AI Para Todas as Idades',
     description:
-      'Planeje as férias em família perfeitas com IA. Roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis.',
+      'Planeje as férias em família perfeitas com AI. Roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis.',
   },
   en: {
     title: 'Family Trip Planner — AI-Powered Itineraries for All Ages',

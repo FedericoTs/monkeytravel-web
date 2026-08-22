@@ -243,7 +243,7 @@ Lo que está superando expectativas: las experiencias hiper-locales. Cocinar con
 
 Los viajeros que impulsan este mercado no son solo apasionados de la comida. Son personas que se dieron cuenta de que el acceso a la gastronomía local es la forma más rápida de adentrarse en una cultura — y que aprendes más sobre un lugar en una visita de tres horas a un mercado que en una visita de día completo a un museo.
 
-Usa nuestro [planificador de viajes gratuito con IA](/free-ai-trip-planner) para construir un itinerario de foodcation en cualquiera de estos destinos — puede estructurar tus días en torno a mercados, horarios de comidas y experiencias culinarias.
+Usa nuestro [planificador de viajes gratuito con AI](/free-ai-trip-planner) para construir un itinerario de foodcation en cualquiera de estos destinos — puede estructurar tus días en torno a mercados, horarios de comidas y experiencias culinarias.
 
 ---
 

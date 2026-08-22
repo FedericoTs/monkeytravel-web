@@ -327,10 +327,10 @@ Mas três dias, bem aproveitados, te dão os destaques e te deixam querendo mais
 
 ---
 
-## Planeje Sua Viagem a Istambul com IA
+## Planeje Sua Viagem a Istambul com AI
 
 Montar um roteiro de Istambul do zero dá muito trabalho — há horários de oração para desviar, horários de balsa para conferir e um Grande Bazar que poderia consumir um dia inteiro.
 
-O **MonkeyTravel** pode montar seu roteiro personalizado de Istambul em segundos. Diga as suas datas, o seu ritmo, as suas preferências de comida e se você quer os clássicos turísticos ou os bairros escondidos. A IA cuida das rotas, dos horários e das contas do orçamento para que você possa focar em decidir qual kebab experimentar primeiro.
+O **MonkeyTravel** pode montar seu roteiro personalizado de Istambul em segundos. Diga as suas datas, o seu ritmo, as suas preferências de comida e se você quer os clássicos turísticos ou os bairros escondidos. A AI cuida das rotas, dos horários e das contas do orçamento para que você possa focar em decidir qual kebab experimentar primeiro.
 
 [Planeje sua viagem a Istambul com o MonkeyTravel](https://monkeytravel.app)

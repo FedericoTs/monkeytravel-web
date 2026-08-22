@@ -29,7 +29,7 @@ const META: Record<string, { title: string; description: string }> = {
   pt: {
     title: 'Planejador de Viagem Solo — Rotas Seguras, Roteiros Inteligentes, 100% Grátis',
     description:
-      'Planos de viagem solo com IA: dicas de segurança, restaurantes ideais para quem viaja sozinho e pontos de encontro. Roteiro personalizado em 30 segundos. Sem cadastro.',
+      'Planos de viagem solo com AI: dicas de segurança, restaurantes ideais para quem viaja sozinho e pontos de encontro. Roteiro personalizado em 30 segundos. Sem cadastro.',
   },
   en: {
     title: 'Solo Trip Planner — Safe Routes, Smart Itineraries, 100% Free',
@@ -40,13 +40,13 @@ const META: Record<string, { title: string; description: string }> = {
     title:
       'Planificador de Viajes en Solitario — Rutas Seguras, Itinerarios Inteligentes, 100% Gratis',
     description:
-      'Planes de viaje en solitario con IA con consejos de seguridad, restaurantes solo-friendly y puntos sociales. Itinerario personalizado en 30 segundos. Sin registro.',
+      'Planes de viaje en solitario con AI con consejos de seguridad, restaurantes solo-friendly y puntos sociales. Itinerario personalizado en 30 segundos. Sin registro.',
   },
   it: {
     title:
       'Pianificatore di Viaggi in Solitaria — Percorsi Sicuri, Itinerari Smart, 100% Gratis',
     description:
-      'Piani di viaggio in solitaria con IA con consigli di sicurezza, ristoranti solo-friendly e punti sociali. Itinerario personalizzato in 30 secondi. Senza registrazione.',
+      'Piani di viaggio in solitaria con AI con consigli di sicurezza, ristoranti solo-friendly e punti sociali. Itinerario personalizzato in 30 secondi. Senza registrazione.',
   },
 };
 

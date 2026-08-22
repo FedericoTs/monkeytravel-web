@@ -337,11 +337,11 @@ Você não precisa de uma câmera de $3.000 para fotografar a aurora. Veja o que
 
 ---
 
-## Deixe a IA Planejar Sua Viagem para a Aurora Boreal
+## Deixe a AI Planejar Sua Viagem para a Aurora Boreal
 
 Escolher entre 12 destinos, encontrar os meses certos, reservar pousadas de aurora que esgotam com um ano de antecedência e montar um roteiro diário em torno de um clima imprevisível — é muita coisa.
 
-A IA da MonkeyTravel monta um **roteiro personalizado de aurora boreal** em 30 segundos. Diga suas datas, orçamento e interesses, e receba um plano dia a dia com hotéis reais, preços de excursões de verdade e planos de reserva para noites nubladas.
+A AI da MonkeyTravel monta um **roteiro personalizado de aurora boreal** em 30 segundos. Diga suas datas, orçamento e interesses, e receba um plano dia a dia com hotéis reais, preços de excursões de verdade e planos de reserva para noites nubladas.
 
 [Planejar Minha Viagem para a Aurora Boreal — Grátis](/free-ai-trip-planner)
 

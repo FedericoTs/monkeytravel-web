@@ -298,11 +298,11 @@ A alta temporada do sol da meia-noite (de meados de junho a meados de julho) lot
 
 ---
 
-## Deixe a IA Planejar Sua Viagem ao Sol da Meia-Noite
+## Deixe a AI Planejar Sua Viagem ao Sol da Meia-Noite
 
 Planejar uma viagem ao sol da meia-noite significa equilibrar rotas de voo até destinos árticos remotos, disponibilidade de hospedagem em cidades pequenas, horários de atividades em torno das 24 horas de luz e o orçamento entre destinos caros. São muitas peças em movimento.
 
-A IA da MonkeyTravel monta um **roteiro personalizado do sol da meia-noite** em 30 segundos — cuidando da logística, das rotas e do orçamento para que você possa focar na experiência.
+A AI da MonkeyTravel monta um **roteiro personalizado do sol da meia-noite** em 30 segundos — cuidando da logística, das rotas e do orçamento para que você possa focar na experiência.
 
 [Planejar Minha Viagem ao Sol da Meia-Noite — Grátis](https://monkeytravel.app)
 

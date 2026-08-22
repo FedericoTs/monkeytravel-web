@@ -127,7 +127,7 @@
       },
       "needAccount": {
         "question": "Tutti devono avere un account?",
-        "answer": "No. Puoi pianificare un viaggio e condividere il link senza account, e i tuoi amici possono visualizzarlo e votare senza account. Creare un account gratuito è ciò che salva il viaggio tra i tuoi viaggi, ti permette di modificarlo e sblocca l'assistente IA — e se ti registri dopo aver condiviso, il viaggio che hai già creato ti segue."
+        "answer": "No. Puoi pianificare un viaggio e condividere il link senza account, e i tuoi amici possono visualizzarlo e votare senza account. Creare un account gratuito è ciò che salva il viaggio tra i tuoi viaggi, ti permette di modificarlo e sblocca l'assistente AI — e se ti registri dopo aver condiviso, il viaggio che hai già creato ti segue."
       },
       "votingWorks": {
         "question": "Come funziona il sistema di votazione?",

@@ -38,19 +38,19 @@ export const layoutCopy: Record<EmailLocale, LayoutCopy> = {
     manage: "Manage preferences",
   },
   es: {
-    tagline: "Planificación de viajes con IA",
+    tagline: "Planificación de viajes con AI",
     footerReason:
       "Recibes este correo porque tienes una cuenta activa en MonkeyTravel.",
     manage: "Gestionar preferencias",
   },
   it: {
-    tagline: "Pianificazione viaggi con IA",
+    tagline: "Pianificazione viaggi con AI",
     footerReason:
       "Ricevi questa email perché hai un account MonkeyTravel attivo.",
     manage: "Gestisci le preferenze",
   },
   pt: {
-    tagline: "Planejamento de viagens com IA",
+    tagline: "Planejamento de viagens com AI",
     footerReason:
       "Você está recebendo este e-mail porque tem uma conta ativa no MonkeyTravel.",
     manage: "Gerenciar preferências",
@@ -85,7 +85,7 @@ export const confirmSignupCopy: Record<EmailLocale, ConfirmSignupCopy> = {
     subject: "Confirma tu correo — MonkeyTravel",
     welcome: "¡Bienvenido a bordo! 🐵",
     welcomeNamed: (n) => `¡Bienvenido a bordo, ${n}! 🐵`,
-    lead: "Estás a un clic de la planificación de viajes con IA. Confirma tu correo para activar tu cuenta.",
+    lead: "Estás a un clic de la planificación de viajes con AI. Confirma tu correo para activar tu cuenta.",
     cta: "Confirmar mi correo",
     body: "Una vez dentro, solo elige un destino y crearemos un itinerario personalizado día a día: vuelos, alojamientos y actividades, todo en un solo lugar.",
     linkFallback:
@@ -97,7 +97,7 @@ export const confirmSignupCopy: Record<EmailLocale, ConfirmSignupCopy> = {
     subject: "Conferma la tua email — MonkeyTravel",
     welcome: "Benvenuto a bordo! 🐵",
     welcomeNamed: (n) => `Benvenuto a bordo, ${n}! 🐵`,
-    lead: "Sei a un passo dalla pianificazione viaggi con IA. Conferma la tua email per attivare l'account.",
+    lead: "Sei a un passo dalla pianificazione viaggi con AI. Conferma la tua email per attivare l'account.",
     cta: "Conferma la mia email",
     body: "Una volta dentro, scegli una destinazione e creeremo un itinerario personalizzato giorno per giorno: voli, alloggi e cose da fare, tutto in un unico posto.",
     linkFallback:
@@ -109,7 +109,7 @@ export const confirmSignupCopy: Record<EmailLocale, ConfirmSignupCopy> = {
     subject: "Confirme seu e-mail — MonkeyTravel",
     welcome: "Bem-vindo a bordo! 🐵",
     welcomeNamed: (n) => `Bem-vindo a bordo, ${n}! 🐵`,
-    lead: "Você está a um toque do planejamento de viagens com IA. Confirme seu e-mail para ativar sua conta.",
+    lead: "Você está a um toque do planejamento de viagens com AI. Confirme seu e-mail para ativar sua conta.",
     cta: "Confirmar meu e-mail",
     body: "Depois de entrar, é só escolher um destino e criaremos um roteiro personalizado dia a dia: voos, hospedagens e o que fazer, tudo em um só lugar.",
     linkFallback:
@@ -301,7 +301,7 @@ export const authActionCopy: Record<
     invite: {
       subject: "Estás invitado a MonkeyTravel",
       heading: "Te han invitado a MonkeyTravel 🐵",
-      lead: "Toca abajo para aceptar tu invitación y empezar a planificar viajes con IA.",
+      lead: "Toca abajo para aceptar tu invitación y empezar a planificar viajes con AI.",
       cta: "Aceptar invitación",
     },
   },
@@ -339,7 +339,7 @@ export const authActionCopy: Record<
     invite: {
       subject: "Sei invitato su MonkeyTravel",
       heading: "Sei stato invitato su MonkeyTravel 🐵",
-      lead: "Tocca qui sotto per accettare l'invito e iniziare a pianificare viaggi con IA.",
+      lead: "Tocca qui sotto per accettare l'invito e iniziare a pianificare viaggi con AI.",
       cta: "Accetta l'invito",
     },
   },
@@ -377,7 +377,7 @@ export const authActionCopy: Record<
     invite: {
       subject: "Você foi convidado para o MonkeyTravel",
       heading: "Você foi convidado para o MonkeyTravel 🐵",
-      lead: "Toque abaixo para aceitar o convite e começar a planejar viagens com IA.",
+      lead: "Toque abaixo para aceitar o convite e começar a planejar viagens com AI.",
       cta: "Aceitar convite",
     },
   },

@@ -33,9 +33,9 @@ export function generateStaticParams() {
 // title template ("%s | MonkeyTravel") appends the brand suffix.
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens Multidestino — Roteiros com IA',
+    title: 'Planejador de Viagens Multidestino — Roteiros com AI',
     description:
-      'Planeje Tóquio→Kyoto→Osaka em um único roteiro. Adicione paradas e noites — a IA divide os dias por cidade automaticamente. Grátis, até 5 cidades e 21 dias.',
+      'Planeje Tóquio→Kyoto→Osaka em um único roteiro. Adicione paradas e noites — a AI divide os dias por cidade automaticamente. Grátis, até 5 cidades e 21 dias.',
   },
   en: {
     title: 'Multi-City Trip Planner — AI Itineraries for 2+ Cities',

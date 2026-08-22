@@ -1,5 +1,5 @@
 ---
-title: 'Roteiro Sardenha 7 Dias: Costa Smeralda, Ogliastra e Sul com IA'
+title: 'Roteiro Sardenha 7 Dias: Costa Smeralda, Ogliastra e Sul com AI'
 slug: itinerario-sardegna-7-giorni
 description: >-
   Roteiro completo de 7 dias na Sardenha: de Cagliari à Costa Smeralda passando
@@ -32,7 +32,7 @@ seo:
 schema: Article
 ---
 
-# Roteiro Sardenha 7 Dias: Costa Smeralda, Ogliastra e Sul com IA
+# Roteiro Sardenha 7 Dias: Costa Smeralda, Ogliastra e Sul com AI
 
 A Sardenha não é uma ilha que se visita em um fim de semana. E, para ser honesto, nem mesmo em uma semana — mas sete dias são o mínimo para ir além dos cartões-postais e ver a Sardenha de verdade. Aquela das enseadas que só se alcança a pé, dos pastores que fazem queijo do mesmo jeito que faziam há 200 anos e das praias que rivalizam com o Caribe sem o voo de 10 horas.
 
@@ -283,7 +283,7 @@ Devolva o carro no aeroporto de Alghero-Fertilia (15 minutos do centro) e voe pa
 
 Sete dias são muita coisa para organizar. As variáveis mudam dependendo de quando você vai, com quem viaja e o que mais te interessa. Quer mais praias e menos cidades? Mais trilhas e menos direção? Viaja com crianças e precisa de trechos mais curtos?
 
-A MonkeyTravel gera um roteiro personalizado da Sardenha em segundos. Informe suas datas, orçamento e interesses — a IA monta um plano dia a dia otimizado para seus trajetos, com praias, restaurantes e atividades sob medida para você.
+A MonkeyTravel gera um roteiro personalizado da Sardenha em segundos. Informe suas datas, orçamento e interesses — a AI monta um plano dia a dia otimizado para seus trajetos, com praias, restaurantes e atividades sob medida para você.
 
 [Crie seu roteiro personalizado da Sardenha](/) — gratis, em 30 segundos.
 

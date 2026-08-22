@@ -1,5 +1,5 @@
 ---
-title: 'Roteiro Puglia 5 Dias: Bari, Salento e Trulli com IA'
+title: 'Roteiro Puglia 5 Dias: Bari, Salento e Trulli com AI'
 slug: itinerario-puglia-5-giorni
 description: >-
   Roteiro completo de 5 dias na Puglia: Bari, Polignano a Mare, Alberobello,
@@ -29,7 +29,7 @@ seo:
 schema: Article
 ---
 
-# Roteiro Puglia 5 Dias: Bari, Salento e Trulli com IA
+# Roteiro Puglia 5 Dias: Bari, Salento e Trulli com AI
 
 A Puglia é a região italiana que explodiu nos últimos anos. E com razão: combina a melhor comida da Itália (sim, melhor que a da Emília-Romanha — e estamos prontos para defender essa posição), praias dignas das Maldivas, vilarejos que parecem cenários de cinema e preços que não fazem você se sentir roubado.
 
@@ -248,7 +248,7 @@ Almoço final típico da Puglia em Gallipoli, Otranto ou pelo caminho. Depois si
 
 A Puglia tem tanta coisa que cinco dias exigem escolhas. Prefere mais mar e menos vilarejos? Quer adicionar Matera (tecnicamente na Basilicata, mas a uma hora de Bari)? Viaja com crianças e precisa de paradas diferentes?
 
-A MonkeyTravel gera um roteiro personalizado da Puglia em segundos. Informe suas datas, orçamento e interesses — a IA monta um plano dia a dia com restaurantes, praias e atividades feitos sob medida para você.
+A MonkeyTravel gera um roteiro personalizado da Puglia em segundos. Informe suas datas, orçamento e interesses — a AI monta um plano dia a dia com restaurantes, praias e atividades feitos sob medida para você.
 
 [Crie seu roteiro personalizado da Puglia](/) — grátis, em 30 segundos.
 

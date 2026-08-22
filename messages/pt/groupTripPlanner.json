@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagens em Grupo com IA — Planeje Junto, Vote, Decida | MonkeyTravel",
-    "description": "O único planejador de viagens com IA feito para grupos. Gere roteiros, convide amigos, vote nas atividades e chegue a um consenso — tudo em um só lugar. Grátis."
+    "title": "Planejador de Viagens em Grupo com AI — Planeje Junto, Vote, Decida | MonkeyTravel",
+    "description": "O único planejador de viagens com AI feito para grupos. Gere roteiros, convide amigos, vote nas atividades e chegue a um consenso — tudo em um só lugar. Grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -9,8 +9,8 @@
   },
   "hero": {
     "badge": "Feito para Grupos — Grátis para Todos",
-    "title": "O Planejador de Viagens em Grupo com IA Que Deixa Todo Mundo Feliz",
-    "subtitle": "Pare de se afogar nos grupos de mensagens. O MonkeyTravel gera roteiros com IA, deixa todo mundo votar nas atividades e cria consenso automaticamente. Planeje sua viagem em grupo em minutos, não em semanas.",
+    "title": "O Planejador de Viagens em Grupo com AI Que Deixa Todo Mundo Feliz",
+    "subtitle": "Pare de se afogar nos grupos de mensagens. O MonkeyTravel gera roteiros com AI, deixa todo mundo votar nas atividades e cria consenso automaticamente. Planeje sua viagem em grupo em minutos, não em semanas.",
     "cta": "Comece uma Viagem em Grupo — Grátis",
     "secondaryCta": "Veja Como a Votação Funciona",
     "trustSignals": {
@@ -46,12 +46,12 @@
     }
   },
   "features": {
-    "title": "Feito para Grupos, Movido a IA",
+    "title": "Feito para Grupos, Movido a AI",
     "subtitle": "Tudo o que você precisa para planejar uma viagem em grupo sem perder amigos.",
     "items": {
       "aiItineraries": {
-        "title": "Roteiros com IA para Grupos",
-        "description": "Nossa IA gera roteiros que levam em conta as preferências de todo mundo — não só as do organizador. Três faixas de orçamento para que grupos com bolsos diferentes encontrem um meio-termo."
+        "title": "Roteiros com AI para Grupos",
+        "description": "Nossa AI gera roteiros que levam em conta as preferências de todo mundo — não só as do organizador. Três faixas de orçamento para que grupos com bolsos diferentes encontrem um meio-termo."
       },
       "voting": {
         "title": "Vote nas Atividades",
@@ -84,7 +84,7 @@
       },
       "step2": {
         "title": "Gere e Proponha",
-        "description": "Deixe a IA gerar um roteiro e, então, deixe todo mundo propor mudanças e novas atividades. O grupo inteiro contribui."
+        "description": "Deixe a AI gerar um roteiro e, então, deixe todo mundo propor mudanças e novas atividades. O grupo inteiro contribui."
       },
       "step3": {
         "title": "Vote e Vá",
@@ -105,7 +105,7 @@
       },
       "family": {
         "title": "Encontros de Família",
-        "description": "Viagens com várias gerações são complexas. A IA cuida da logística para você focar no tempo de qualidade."
+        "description": "Viagens com várias gerações são complexas. A AI cuida da logística para você focar no tempo de qualidade."
       },
       "corporate": {
         "title": "Retiros de Equipe",
@@ -127,7 +127,7 @@
       },
       "needAccount": {
         "question": "Todo mundo precisa de uma conta?",
-        "answer": "Não. Você pode planejar uma viagem e compartilhar o link sem conta, e seus amigos podem ver e votar sem conta também. Criar uma conta grátis é o que salva a viagem nas suas viagens, permite editá-la e libera o assistente de IA — e se você se cadastrar depois de compartilhar, a viagem que já criou vai junto."
+        "answer": "Não. Você pode planejar uma viagem e compartilhar o link sem conta, e seus amigos podem ver e votar sem conta também. Criar uma conta grátis é o que salva a viagem nas suas viagens, permite editá-la e libera o assistente de AI — e se você se cadastrar depois de compartilhar, a viagem que já criou vai junto."
       },
       "votingWorks": {
         "question": "Como funciona o sistema de votação?",
@@ -149,7 +149,7 @@
   },
   "cta": {
     "title": "Sua Próxima Viagem em Grupo Começa Aqui",
-    "subtitle": "Pare de planejar em grupos de mensagens. Comece a planejar com uma IA que entende de grupos.",
+    "subtitle": "Pare de planejar em grupos de mensagens. Comece a planejar com uma AI que entende de grupos.",
     "button": "Planeje uma Viagem em Grupo — Grátis",
     "mobileNotify": "Receba um aviso quando o app para celular for lançado"
   }

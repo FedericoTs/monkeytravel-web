@@ -388,11 +388,11 @@ Aqui vai um orçamento realista para 5 dias, por pessoa:
 - Compre **ingressos da loteria da Broadway** pelos apps de cada espetáculo — Hamilton, Wicked e outros oferecem ingressos de $10-30 diariamente
 - **Balsas gratuitas:** O Staten Island Ferry e a rota East River do NYC Ferry ($4) oferecem vistas incríveis
 
-## Deixe a IA Montar Seu Roteiro Personalizado de Nova York
+## Deixe a AI Montar Seu Roteiro Personalizado de Nova York
 
 Este guia te dá uma base sólida, mas a viagem de cada um é diferente. Talvez você esteja viajando com crianças e precise trocar os clubes de jazz pelo Zoológico do Bronx. Talvez queira pular os museus por completo e comer por todo o Queens. Talvez você só tenha 3 dias.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Nova York dia a dia** em 30 segundos — com restaurantes reais, preços atualizados e rotas inteligentes de metrô para que você não desperdice metade da viagem embaixo da terra.
+A AI da MonkeyTravel cria um **roteiro personalizado de Nova York dia a dia** em 30 segundos — com restaurantes reais, preços atualizados e rotas inteligentes de metrô para que você não desperdice metade da viagem embaixo da terra.
 
 [Gerar Meu Roteiro de Nova York — Grátis](https://monkeytravel.app)
 

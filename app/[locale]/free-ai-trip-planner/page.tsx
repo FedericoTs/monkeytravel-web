@@ -27,7 +27,7 @@ const PAGE_PATH = '/free-ai-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens com IA Grátis — Sem Cadastro, Sem Cartão',
+    title: 'Planejador de Viagens com AI Grátis — Sem Cadastro, Sem Cartão',
     description:
       'Crie roteiros personalizados dia a dia com lugares reais e 3 níveis de orçamento em 30 segundos. Funciona em português, inglês, espanhol e italiano. Sem conta, nunca.',
   },

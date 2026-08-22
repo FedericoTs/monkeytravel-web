@@ -1,18 +1,18 @@
 {
   "meta": {
-    "titleIndex": "Principais Destinos de Viagem & Roteiros com IA",
-    "descriptionIndex": "Explore nossos destinos de viagem selecionados. Receba roteiros dia a dia gerados por IA para Paris, Roma, Tóquio e mais de 20 cidades pelo mundo.",
-    "titleDetail": "Guia de Viagem de {city} & Roteiro com IA",
-    "descriptionDetail": "Planeje sua viagem a {city} com IA. Receba um roteiro personalizado dia a dia com restaurantes, atrações e lugares escondidos em {city}, {country}."
+    "titleIndex": "Principais Destinos de Viagem & Roteiros com AI",
+    "descriptionIndex": "Explore nossos destinos de viagem selecionados. Receba roteiros dia a dia gerados por AI para Paris, Roma, Tóquio e mais de 20 cidades pelo mundo.",
+    "titleDetail": "Guia de Viagem de {city} & Roteiro com AI",
+    "descriptionDetail": "Planeje sua viagem a {city} com AI. Receba um roteiro personalizado dia a dia com restaurantes, atrações e lugares escondidos em {city}, {country}."
   },
   "index": {
     "title": "Explore Destinos",
-    "subtitle": "Escolha uma cidade e receba um roteiro personalizado com IA em 30 segundos",
+    "subtitle": "Escolha uma cidade e receba um roteiro personalizado com AI em 30 segundos",
     "heroLine1": "Encontre sua próxima",
     "heroLine2Accent": "cidade favorita",
-    "heroSubtitle": "Cidades selecionadas a dedo em todos os continentes. <b>Escolha uma e um roteiro com IA fica pronto em 30 segundos</b> — grátis, sem cadastro, totalmente editável.",
+    "heroSubtitle": "Cidades selecionadas a dedo em todos os continentes. <b>Escolha uma e um roteiro com AI fica pronto em 30 segundos</b> — grátis, sem cadastro, totalmente editável.",
     "trustCurated": "Cidades selecionadas a dedo",
-    "trustAi": "Roteiros com IA em 30s",
+    "trustAi": "Roteiros com AI em 30s",
     "trustFree": "100% grátis",
     "allDestinations": "Todos os Destinos",
     "filterByRegion": "Filtrar por região",
@@ -55,8 +55,8 @@
     "heading": "Destinos {tag}",
     "subtitle": "{count, plural, =1 {1 destino} other {# destinos}} que combinam com este estilo de viagem.",
     "allDestinations": "Todos os destinos compatíveis",
-    "metaTitle": "Destinos {tag} — roteiros planejados com IA",
-    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viagens {tag}. Receba um roteiro dia a dia criado por IA em 30 segundos — grátis.",
+    "metaTitle": "Destinos {tag} — roteiros planejados com AI",
+    "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viagens {tag}. Receba um roteiro dia a dia criado por AI em 30 segundos — grátis.",
     "topPicks": "Por onde começar",
     "faqHeading": "Bom saber",
     "content": {
@@ -173,7 +173,7 @@
   "sections": {
     "whyVisit": "Por Que Visitar {city}",
     "sampleDay": "Um Dia de Exemplo em {city}",
-    "sampleDayNote": "Este é um dia de exemplo. A IA da MonkeyTravel cria um roteiro completo de vários dias personalizado para o seu ritmo, orçamento e interesses.",
+    "sampleDayNote": "Este é um dia de exemplo. A AI da MonkeyTravel cria um roteiro completo de vários dias personalizado para o seu ritmo, orçamento e interesses.",
     "faq": "Perguntas Frequentes",
     "moreDestinations": "Mais Destinos para Explorar",
     "popularDestinations": "Destinos Populares",
@@ -184,7 +184,7 @@
   },
   "cta": {
     "generateItinerary": "Gerar Meu Roteiro de {city}",
-    "freeIn30Seconds": "Roteiro grátis com IA em 30 segundos",
+    "freeIn30Seconds": "Roteiro grátis com AI em 30 segundos",
     "viewAllDestinations": "Ver Todos os Destinos",
     "planTrip": "Planejar Viagem"
   },

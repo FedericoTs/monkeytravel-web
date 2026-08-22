@@ -469,9 +469,9 @@ Para os destinos mais baratos (Sófia, Tirana, Bucareste), reserve $420-770 para
 
 De janeiro a março (exceto feriados) e novembro oferecem os preços mais baixos para voos e hospedagem. Para um clima melhor com preços razoáveis, mire no fim de abril a meados de junho ou de setembro a meados de outubro.
 
-### Posso usar a IA da MonkeyTravel para planejar uma viagem econômica?
+### Posso usar a AI da MonkeyTravel para planejar uma viagem econômica?
 
-Com certeza. O planejador de viagens com IA da MonkeyTravel pode montar um roteiro completo, dia a dia, para qualquer um desses destinos, otimizado para o seu orçamento. Basta inserir um destino, definir seu orçamento diário e receber um plano personalizado com recomendações de restaurantes, atividades gratuitas e rotas de transporte — em segundos.
+Com certeza. O planejador de viagens com AI da MonkeyTravel pode montar um roteiro completo, dia a dia, para qualquer um desses destinos, otimizado para o seu orçamento. Basta inserir um destino, definir seu orçamento diário e receber um plano personalizado com recomendações de restaurantes, atividades gratuitas e rotas de transporte — em segundos.
 
 ---
 
@@ -479,6 +479,6 @@ Com certeza. O planejador de viagens com IA da MonkeyTravel pode montar um rotei
 
 A parte mais difícil de viajar barato pela Europa não é o dinheiro — é escolher para onde ir primeiro. Sófia por $30 por dia? O vinho do Porto e os pores do sol à beira-rio? Os banhos termais e ruin bars de Budapeste?
 
-Escolha um destino desta lista, defina suas datas e deixe a IA da MonkeyTravel montar seu roteiro dia a dia com recomendações reais e econômicas. Sem planilhas, sem horas de pesquisa — só um plano que realmente cabe no que você quer gastar.
+Escolha um destino desta lista, defina suas datas e deixe a AI da MonkeyTravel montar seu roteiro dia a dia com recomendações reais e econômicas. Sem planilhas, sem horas de pesquisa — só um plano que realmente cabe no que você quer gastar.
 
 **[Planejar Minha Viagem Econômica Grátis →](/budget-trip-planner)**

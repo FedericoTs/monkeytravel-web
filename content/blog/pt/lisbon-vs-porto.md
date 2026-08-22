@@ -326,9 +326,9 @@ Sim. Três dias é o ideal para o Porto — você consegue ver tudo num ritmo tr
 
 ---
 
-## Planeje Sua Viagem a Portugal com IA
+## Planeje Sua Viagem a Portugal com AI
 
-O planejador de viagens com IA da MonkeyTravel monta roteiros portugueses dia a dia — quer você escolha Lisboa, Porto ou as duas. Recomendações reais de restaurantes, rotas a pé otimizadas e reservas nas caves de vinho do Porto já integradas à sua programação.
+O planejador de viagens com AI da MonkeyTravel monta roteiros portugueses dia a dia — quer você escolha Lisboa, Porto ou as duas. Recomendações reais de restaurantes, rotas a pé otimizadas e reservas nas caves de vinho do Porto já integradas à sua programação.
 
 Informe suas datas e seu orçamento. Você terá um plano em minutos.
 

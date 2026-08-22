@@ -305,11 +305,11 @@ Se você já viu palácios suficientes, passe o Dia 3 no litoral. **Cascais** é
 
 ---
 
-## Deixe a IA Montar Seu Roteiro Personalizado de Lisboa
+## Deixe a AI Montar Seu Roteiro Personalizado de Lisboa
 
 Este guia cobre os destaques, mas cada viagem é diferente. Talvez você queira acrescentar um quarto dia para o Museu do Azulejo e o Parque das Nações. Talvez esteja viajando com crianças que precisam de pausas no parque. Talvez queira pular Sintra e passar dois dias em Alfama.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Lisboa dia a dia** em 30 segundos — com restaurantes reais, preços reais e rotas inteligentes para você não subir o mesmo morro duas vezes.
+A AI da MonkeyTravel cria um **roteiro personalizado de Lisboa dia a dia** em 30 segundos — com restaurantes reais, preços reais e rotas inteligentes para você não subir o mesmo morro duas vezes.
 
 [Gerar Meu Roteiro de Lisboa — Grátis](https://monkeytravel.app)
 

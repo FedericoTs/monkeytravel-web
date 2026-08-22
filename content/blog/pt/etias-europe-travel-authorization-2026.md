@@ -322,8 +322,8 @@ Se um dos seus passaportes for de um país da UE/Schengen, use esse passaporte p
 
 ## Planeje a Sua Viagem à Europa com as Ferramentas Certas
 
-O ETIAS acrescenta uma pequena etapa ao planejamento da sua viagem — mas o resto da sua viagem merece mais do que uma planilha do Google. O planejador de viagens com IA da MonkeyTravel monta roteiros europeus personalizados com preços em tempo real, rotas otimizadas entre as cidades e recomendações locais para cada destino do Schengen.
+O ETIAS acrescenta uma pequena etapa ao planejamento da sua viagem — mas o resto da sua viagem merece mais do que uma planilha do Google. O planejador de viagens com AI da MonkeyTravel monta roteiros europeus personalizados com preços em tempo real, rotas otimizadas entre as cidades e recomendações locais para cada destino do Schengen.
 
-Seja planejando uma semana em Paris, uma aventura por várias cidades cruzando o Schengen ou a sua primeira viagem à Europa após a chegada do ETIAS, a IA cuida da logística para que você possa focar na experiência.
+Seja planejando uma semana em Paris, uma aventura por várias cidades cruzando o Schengen ou a sua primeira viagem à Europa após a chegada do ETIAS, a AI cuida da logística para que você possa focar na experiência.
 
 **[Começar a Planejar Minha Viagem à Europa](/trips/new?destination=europe)**

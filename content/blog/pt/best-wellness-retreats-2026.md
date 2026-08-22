@@ -276,7 +276,7 @@ A prática funciona de forma simples: encontre um lugar escuro, deite, olhe para
 
 **5. Suporte de integração.** O que acontece quando você vai embora importa mais do que o que acontece no retiro. Programas que fornecem protocolos de acompanhamento — agendas de sono, diretrizes nutricionais, planos estruturados de reentrada — têm resultados mensuravelmente melhores. Os protocolos pós-programa do SHA estão entre os mais detalhados do setor.
 
-Use nosso [planejador de viagens com IA gratuito](/free-ai-trip-planner) para montar um roteiro de bem-estar personalizado que sequencia os destinos certos para a sua situação específica — combinando duração, orçamento e tipo de programa com aquilo de que você realmente precisa.
+Use nosso [planejador de viagens com AI gratuito](/free-ai-trip-planner) para montar um roteiro de bem-estar personalizado que sequencia os destinos certos para a sua situação específica — combinando duração, orçamento e tipo de programa com aquilo de que você realmente precisa.
 
 ---
 

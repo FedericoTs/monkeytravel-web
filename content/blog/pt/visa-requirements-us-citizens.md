@@ -324,7 +324,7 @@ Todos os viajantes de países isentos de visto que visitam o Espaço Schengen, i
 
 **Importante:** O ETIAS não substitui a regra de 90/180 dias. Você ainda não pode permanecer no Espaço Schengen por mais de 90 dias em qualquer janela de 180 dias.
 
-Ao planejar uma viagem pela Europa, o planejador de viagens com IA da MonkeyTravel pode ajudar você a organizar suas estadias em Schengen e garantir que você permaneça dentro do limite de 90 dias em vários países.
+Ao planejar uma viagem pela Europa, o planejador de viagens com AI da MonkeyTravel pode ajudar você a organizar suas estadias em Schengen e garantir que você permaneça dentro do limite de 90 dias em vários países.
 
 ---
 
@@ -377,7 +377,7 @@ Imprima suas aprovações de e-visto e confirmações de ETA. As cópias digitai
 
 ### 6. Acompanhe a Regra dos 90 Dias
 
-Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em todos os países Schengen. Uma semana na França, duas semanas na Itália e um mês na Espanha contam todos para o mesmo limite de 90 dias. Use uma calculadora Schengen ou deixe o planejador com IA da MonkeyTravel acompanhar seus dias automaticamente ao montar roteiros europeus por vários países.
+Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em todos os países Schengen. Uma semana na França, duas semanas na Itália e um mês na Espanha contam todos para o mesmo limite de 90 dias. Use uma calculadora Schengen ou deixe o planejador com AI da MonkeyTravel acompanhar seus dias automaticamente ao montar roteiros europeus por vários países.
 
 ---
 
@@ -411,6 +411,6 @@ Os requisitos de visto mudam com frequência — os países atualizam políticas
 
 A boa notícia é que a tendência é de viagens mais fáceis. Os e-vistos estão substituindo as solicitações em papel, os ETAs estão substituindo os vistos com carimbo no passaporte e os prazos de processamento continuam encurtando. O passaporte americano segue sendo um dos documentos de viagem mais poderosos do mundo.
 
-Quando estiver pronto para planejar sua próxima viagem, o planejador de viagens com IA da MonkeyTravel cuida da logística para que você possa focar na experiência. Informe o seu destino e receba um roteiro personalizado que leva em conta os requisitos de entrada, o melhor momento e dicas locais — tudo em segundos.
+Quando estiver pronto para planejar sua próxima viagem, o planejador de viagens com AI da MonkeyTravel cuida da logística para que você possa focar na experiência. Informe o seu destino e receba um roteiro personalizado que leva em conta os requisitos de entrada, o melhor momento e dicas locais — tudo em segundos.
 
 **Boa viagem, e não esqueça o passaporte.**

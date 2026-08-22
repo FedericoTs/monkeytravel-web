@@ -27,9 +27,9 @@ const PAGE_PATH = '/ai-itinerary-generator';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Gerador de Roteiros com IA — Planos de Viagem Dia a Dia',
+    title: 'Gerador de Roteiros com AI — Planos de Viagem Dia a Dia',
     description:
-      'Gere roteiros de viagem completos com IA em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro.',
+      'Gere roteiros de viagem completos com AI em 30 segundos. Planos dia a dia com lugares reais, preços atuais e blocos de tempo inteligentes. Grátis, sem cadastro.',
   },
   en: {
     title: 'AI Itinerary Generator — Smart Day-by-Day Travel Plans',

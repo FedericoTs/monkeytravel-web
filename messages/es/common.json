@@ -32,7 +32,7 @@
     "q5_social": "Redes sociales",
     "q5_friend": "Me lo contó alguien",
     "q5_article": "Un blog o artículo",
-    "q5_ai": "ChatGPT u otra IA",
+    "q5_ai": "ChatGPT u otra AI",
     "q5_other": "De otra forma",
     "q6Label": "Antes de un viaje, ¿te gustaría que te enviáramos cosas que vale la pena saber sobre tu destino?",
     "q6_yes": "Sí",
@@ -1042,15 +1042,15 @@
     "shareLink": "Enlace para Compartir",
     "shareVia": "Compartir vía",
     "savedHero": {
-      "aiTitle": "Itinerario generado por IA con datos verificados",
-      "aiDescription": "Este itinerario fue creado por IA y enriquecido con datos en tiempo real de Google Places. Las fotos, valoraciones y rangos de precio están verificados, pero recomendamos volver a comprobar los horarios de apertura y la disponibilidad antes del viaje. Haz clic en \"Más\" en cualquier actividad para ver detalles verificados y fotos.",
+      "aiTitle": "Itinerario generado por AI con datos verificados",
+      "aiDescription": "Este itinerario fue creado por AI y enriquecido con datos en tiempo real de Google Places. Las fotos, valoraciones y rangos de precio están verificados, pero recomendamos volver a comprobar los horarios de apertura y la disponibilidad antes del viaje. Haz clic en \"Más\" en cualquier actividad para ver detalles verificados y fotos.",
       "loveTitle": "¿Te gusta este itinerario?",
       "loveDescription": "Guárdalo en tu cuenta y hazlo tuyo. Edita horarios, cambia actividades, añade notas y compártelo con tus compañeros de viaje.",
       "saveButton": "Guardar en Mis Viajes",
       "saveSubtitle": "Guarda este itinerario y personalízalo para tus fechas",
       "planOwnButton": "✨ Planifica tu propio viaje a {destination} — gratis",
       "planOwnButtonGeneric": "✨ Planifica tu propio viaje — gratis",
-      "planOwnSubtitle": "Crea tu propio itinerario con IA desde cero"
+      "planOwnSubtitle": "Crea tu propio itinerario con AI desde cero"
     },
     "platforms": {
       "twitter": "Twitter",
@@ -1842,10 +1842,10 @@
       "linkClicks": "Clics en el enlace"
     },
     "share": {
-      "twitterText": "Llevo un tiempo planificando viajes con MonkeyTravel: la IA crea un itinerario día a día en unos 30 segundos, gratis. Únete:",
-      "whatsappText": "¡Hola! Estoy usando MonkeyTravel para planificar viajes: la IA crea un itinerario completo día a día en unos 30 segundos y es gratis. Pruébalo:",
+      "twitterText": "Llevo un tiempo planificando viajes con MonkeyTravel: la AI crea un itinerario día a día en unos 30 segundos, gratis. Únete:",
+      "whatsappText": "¡Hola! Estoy usando MonkeyTravel para planificar viajes: la AI crea un itinerario completo día a día en unos 30 segundos y es gratis. Pruébalo:",
       "emailSubject": "Te invito a MonkeyTravel",
-      "emailBody": "¡Hola!\n\nLlevo un tiempo usando MonkeyTravel para planificar viajes con IA y creo que te va a gustar.\n\nEscribe una ciudad y crea un itinerario completo día a día en unos 30 segundos: gratis, y no necesitas cuenta para probarlo.\n\n¡Buen viaje!"
+      "emailBody": "¡Hola!\n\nLlevo un tiempo usando MonkeyTravel para planificar viajes con AI y creo que te va a gustar.\n\nEscribe una ciudad y crea un itinerario completo día a día en unos 30 segundos: gratis, y no necesitas cuenta para probarlo.\n\n¡Buen viaje!"
     }
   },
   "dataExport": {
@@ -2145,7 +2145,7 @@
     "yourQuestion": "Preguntaste",
     "answer": "El concierge dice",
     "liveTripHint": "Hoy está dentro de las fechas de tu viaje — las respuestas se basan en las actividades de hoy.",
-    "errorQuota": "Límite diario de IA alcanzado. Inténtalo mañana.",
+    "errorQuota": "Límite diario de AI alcanzado. Inténtalo mañana.",
     "errorGeneric": "No pude responder ahora. Inténtalo de nuevo en un momento.",
     "hintEditable": "Pregunta lo que quieras — o pide un cambio y confírmalo antes de que toque tu plan.",
     "proposalApplied": "Cambio aplicado a tu viaje.",

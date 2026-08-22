@@ -7,7 +7,7 @@ description: >-
   Analisámos 1,1 milhões de pesquisas em que as nossas páginas apareceram ao
   longo de três meses, mais as viagens reais que as pessoas planearam com o
   MonkeyTravel. Quatro padrões definem a forma como se planeia em 2026: primeiro
-  a IA, primeiro o grátis, a ansiedade com o tempo e a convergência na viagem de
+  a AI, primeiro o grátis, a ansiedade com o tempo e a convergência na viagem de
   uma semana, cada vez mais multicidade.
 author: Riccardo P.
 publishedAt: '2026-07-27'
@@ -23,16 +23,16 @@ seo:
   title: 'Relatório de viagens 2026: 1,1 milhões de pesquisas analisadas'
   description: >-
     O que revelam 1,1 milhões de pesquisas de viagem e milhares de itinerários
-    reais sobre como se planeiam viagens em 2026: a subida do planeamento com IA
+    reais sobre como se planeiam viagens em 2026: a subida do planeamento com AI
     e grátis, a ansiedade com o tempo e o passaporte, e a viagem multicidade de
     uma semana.
   keywords:
     - tendências de viagem 2026
     - estatísticas de viagens 2026
-    - planeador de viagens com IA
+    - planeador de viagens com AI
     - como as pessoas planeiam viagens
     - relatório de dados de viagens 2026
-    - planeador de viagens com IA grátis
+    - planeador de viagens com AI grátis
 schema: Article
 ---
 
@@ -46,13 +46,13 @@ Este relatório assenta em duas coisas: **mais de 1,1 milhões de pesquisas em q
 
 Os números de pesquisa vêm das consultas para as quais o nosso conteúdo de viagens apareceu (via Google Search Console): uma janela para a procura, não um censo global, mas ampla e honesta. Os números sobre o formato das viagens vêm dos itinerários planeados no MonkeyTravel e são apresentados como proporções e rankings em vez de contagens brutas, porque o que se aguenta são os padrões de comportamento. Não fizemos nenhum inquérito e não estamos a vender nenhuma previsão. Isto é apenas o que os números dizem.
 
-## Padrão 1: planear começa pela IA — e tem de ser grátis
+## Padrão 1: planear começa pela AI — e tem de ser grátis
 
 O sinal mais alto de todos os dados é que "AI trip planner" deixou de ser uma pesquisa de curiosidade e passou a ser uma categoria. Centenas de variantes diferentes — *ai trip planner*, *best ai for travel planning*, *ai itinerary generator*, *which ai is best for trip planning* — aparecem ao longo do trimestre, e estão a crescer, não a desaparecer.
 
-Mas o detalhe mais interessante é a palavra que as pessoas lhes colam à frente. **O modificador dominante, com grande margem, é *free*.** Nos nossos dados, as pesquisas por *free ai trip planner* convertem em cliques a cerca de **5,9%** — mais do triplo da taxa do genérico *ai trip planner* (à volta de 1,7%). Os viajantes decidiram que planear uma viagem com IA é coisa que não devia custar dinheiro, e pesquisam em conformidade.
+Mas o detalhe mais interessante é a palavra que as pessoas lhes colam à frente. **O modificador dominante, com grande margem, é *free*.** Nos nossos dados, as pesquisas por *free ai trip planner* convertem em cliques a cerca de **5,9%** — mais do triplo da taxa do genérico *ai trip planner* (à volta de 1,7%). Os viajantes decidiram que planear uma viagem com AI é coisa que não devia custar dinheiro, e pesquisam em conformidade.
 
-**O que isto significa:** os produtos vencedores desta categoria não vão ser os que têm o paywall mais vistoso. Vão ser os que dão um plano a sério e monetizam noutro lado. Para perceber como estão as ferramentas atuais, mantemos atualizada uma [comparação honesta dos melhores planeadores de viagens com IA](/blog/best-ai-trip-planners-2026-compared).
+**O que isto significa:** os produtos vencedores desta categoria não vão ser os que têm o paywall mais vistoso. Vão ser os que dão um plano a sério e monetizam noutro lado. Para perceber como estão as ferramentas atuais, mantemos atualizada uma [comparação honesta dos melhores planeadores de viagens com AI](/blog/best-ai-trip-planners-2026-compared).
 
 ## Padrão 2: os viajantes têm duas ansiedades — o tempo e o acesso
 
@@ -87,7 +87,7 @@ A procura é também acentuadamente **sazonal e moldada pelo mês**. Pesquisas c
 
 ## O viajante de 2026, numa frase
 
-Começa a planear perguntando *quando* e *se dá* — está seco, consigo entrar —, recorre a uma ferramenta de IA que assume que será grátis e constrói uma viagem de cerca de uma semana, cada vez com mais paragens, para uma mistura de ícones e sítios idiossincráticos da cauda longa. É um viajante muito diferente do cliente de "reservar um pacote para uma praia" para quem a indústria foi construída.
+Começa a planear perguntando *quando* e *se dá* — está seco, consigo entrar —, recorre a uma ferramenta de AI que assume que será grátis e constrói uma viagem de cerca de uma semana, cada vez com mais paragens, para uma mistura de ícones e sítios idiossincráticos da cauda longa. É um viajante muito diferente do cliente de "reservar um pacote para uma praia" para quem a indústria foi construída.
 
 **Quer ver por si próprio?** [Planeie uma viagem com o MonkeyTravel](/trips/new) — grátis, em segundos, uma cidade ou várias — e vai sentir cada um destes padrões nos primeiros trinta segundos.
 
@@ -95,7 +95,7 @@ Começa a planear perguntando *quando* e *se dá* — está seco, consigo entrar
 
 ### Qual é a maior tendência de viagem em 2026?
 
-Duas, na verdade: o planeamento passou a começar pela IA (com "grátis" como expectativa dominante) e a decisão arranca agora pelo *quando* e pelo *se dá* — o tempo (monções ou estação seca) e as regras de vistos e passaportes — antes do destino. Nos nossos dados, esses blocos de ansiedade pesam mais do que quase tudo o resto, à exceção das próprias pesquisas por ferramentas.
+Duas, na verdade: o planeamento passou a começar pela AI (com "grátis" como expectativa dominante) e a decisão arranca agora pelo *quando* e pelo *se dá* — o tempo (monções ou estação seca) e as regras de vistos e passaportes — antes do destino. Nos nossos dados, esses blocos de ansiedade pesam mais do que quase tudo o resto, à exceção das próprias pesquisas por ferramentas.
 
 ### Quanto dura a viagem média em 2026?
 

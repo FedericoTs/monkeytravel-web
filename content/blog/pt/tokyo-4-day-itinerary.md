@@ -300,11 +300,11 @@ Aqui está um orçamento realista para 4 dias, por pessoa:
 - Vá aos **depachika** (praças de alimentação no subsolo das lojas de departamento) depois das 19h para comida preparada com desconto
 - Evite táxis. O metrô leva você a qualquer lugar por $1-2 a viagem.
 
-## Deixe a IA Montar Seu Roteiro Personalizado de Tóquio
+## Deixe a AI Montar Seu Roteiro Personalizado de Tóquio
 
 Este guia te dá uma base sólida, mas a viagem de cada um é diferente. Talvez você queira passar mais tempo em Akihabara. Talvez você esteja visitando na temporada de cerejeiras e precise de uma estratégia de parques diferente. Talvez você prefira um bate e volta a Nikko em vez de Kamakura.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 30 segundos — com restaurantes reais, preços reais, conexões de trem e roteirização inteligente para você não ficar voltando pela cidade.
+A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 30 segundos — com restaurantes reais, preços reais, conexões de trem e roteirização inteligente para você não ficar voltando pela cidade.
 
 [Gerar Meu Roteiro de Tóquio — Grátis](https://monkeytravel.app)
 

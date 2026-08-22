@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagens em Família — Roteiros com IA Para Todas as Idades | MonkeyTravel",
-    "description": "Planeje as férias em família perfeitas com IA. Tenha roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis."
+    "title": "Planejador de Viagens em Família — Roteiros com AI Para Todas as Idades | MonkeyTravel",
+    "description": "Planeje as férias em família perfeitas com AI. Tenha roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -9,7 +9,7 @@
   },
   "hero": {
     "badge": "Feito para Famílias — 100% Grátis",
-    "title": "O Planejador de Viagens em Família com IA Que Deixa Todo Mundo Feliz",
+    "title": "O Planejador de Viagens em Família com AI Que Deixa Todo Mundo Feliz",
     "subtitle": "Informe seu destino e os detalhes da sua família. Tenha um roteiro pensado para crianças e adequado à idade em menos de 60 segundos — com restaurantes para famílias, atividades seguras e horários equilibrados.",
     "cta": "Planejar Nossa Viagem em Família — Grátis",
     "secondaryCta": "Veja Como Funciona",
@@ -37,7 +37,7 @@
       },
       "ageAppropriate": {
         "title": "Sugestões Adequadas à Idade",
-        "description": "Viajar com bebês é diferente de viajar com adolescentes. Nossa IA adapta as atividades à idade dos seus filhos para que todos se divirtam."
+        "description": "Viajar com bebês é diferente de viajar com adolescentes. Nossa AI adapta as atividades à idade dos seus filhos para que todos se divirtam."
       },
       "familyBudget": {
         "title": "Gestão do Orçamento Familiar",
@@ -49,7 +49,7 @@
       },
       "familySchedule": {
         "title": "Horários Familiares Equilibrados",
-        "description": "Chega de dias sobrecarregados que terminam em choradeira. Nossa IA inclui pausas para descanso, horários de soneca e uma mistura de atividades ativas e relaxantes."
+        "description": "Chega de dias sobrecarregados que terminam em choradeira. Nossa AI inclui pausas para descanso, horários de soneca e uma mistura de atividades ativas e relaxantes."
       },
       "familyDining": {
         "title": "Restaurantes Para Crianças",
@@ -65,8 +65,8 @@
         "description": "Conte para a gente seu destino, as datas da viagem, as idades das crianças e o que sua família curte. Amantes de praia? Fãs de história? Apaixonados por parques temáticos? A gente cuida disso."
       },
       "step2": {
-        "title": "A IA Cria o Seu Roteiro Familiar",
-        "description": "Nossa IA gera um plano completo dia a dia com atividades para crianças, restaurantes para famílias e horários realistas — tudo em menos de 60 segundos."
+        "title": "A AI Cria o Seu Roteiro Familiar",
+        "description": "Nossa AI gera um plano completo dia a dia com atividades para crianças, restaurantes para famílias e horários realistas — tudo em menos de 60 segundos."
       },
       "step3": {
         "title": "Aproveitem a Viagem Juntos",
@@ -76,7 +76,7 @@
   },
   "comparison": {
     "title": "Por Que a MonkeyTravel vs. Planejar Manualmente?",
-    "subtitle": "Pare de passar noites pesquisando no Google \"o que fazer com crianças em...\" — deixe a IA fazer o trabalho pesado.",
+    "subtitle": "Pare de passar noites pesquisando no Google \"o que fazer com crianças em...\" — deixe a AI fazer o trabalho pesado.",
     "items": {
       "kidFriendly": {
         "label": "Lugares para crianças",
@@ -85,7 +85,7 @@
       },
       "scheduling": {
         "label": "Horários equilibrados",
-        "monkey": "A IA inclui pausas para descanso e sonecas",
+        "monkey": "A AI inclui pausas para descanso e sonecas",
         "manual": "Dias sobrecarregados que esgotam todo mundo"
       },
       "dining": {
@@ -110,7 +110,7 @@
     "items": {
       "whatAges": {
         "question": "Para quais idades o planejador de viagens em família funciona?",
-        "answer": "A MonkeyTravel atende famílias com crianças de todas as idades — de recém-nascidos e bebês a adolescentes. Basta informar a idade de cada criança e nossa IA vai adaptar as atividades de acordo, de passeios tranquilos com carrinho a atividades de aventura para adolescentes."
+        "answer": "A MonkeyTravel atende famílias com crianças de todas as idades — de recém-nascidos e bebês a adolescentes. Basta informar a idade de cada criança e nossa AI vai adaptar as atividades de acordo, de passeios tranquilos com carrinho a atividades de aventura para adolescentes."
       },
       "isFree": {
         "question": "O planejador de viagens em família é grátis?",
@@ -122,7 +122,7 @@
       },
       "specialNeeds": {
         "question": "Posso planejar para crianças com necessidades alimentares ou alergias?",
-        "answer": "Sim. Você pode especificar restrições alimentares e a IA vai priorizar restaurantes que atendem a alergias e dietas especiais. Recomendamos confirmar diretamente com os restaurantes antes da visita para ter as informações mais atualizadas."
+        "answer": "Sim. Você pode especificar restrições alimentares e a AI vai priorizar restaurantes que atendem a alergias e dietas especiais. Recomendamos confirmar diretamente com os restaurantes antes da visita para ter as informações mais atualizadas."
       },
       "multiFamily": {
         "question": "Posso planejar uma viagem com várias famílias?",
@@ -136,7 +136,7 @@
   },
   "cta": {
     "title": "Pronto Para Planejar a Aventura da Sua Família?",
-    "subtitle": "Junte-se a milhares de famílias que planejam férias sem estresse com IA. Grátis para sempre, sem compromisso.",
+    "subtitle": "Junte-se a milhares de famílias que planejam férias sem estresse com AI. Grátis para sempre, sem compromisso.",
     "button": "Planejar Nossa Viagem em Família — Grátis",
     "mobileNotify": "Receba um aviso quando o app para celular for lançado"
   }

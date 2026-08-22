@@ -63,7 +63,7 @@ Construímos o fluxo inteiro em torno de um princípio: **a barreira para partic
 1. **Uma pessoa gera o roteiro.** O Organizador (você) [monta o primeiro rascunho](/trips/new) — um plano completo dia a dia em cerca de um minuto. O rascunho é a pauta; sem ele, a votação não tem onde morder.
 2. **Compartilhe um único link.** A viagem ganha um link de compartilhamento que você pode jogar direto no grupo do WhatsApp — o único trabalho legítimo do chat.
 3. **Todo mundo vota, sem precisar de conta.** Essa é a parte que importa: os amigos que abrirem o link podem dar joinha para cima ou para baixo em cada atividade **sem se cadastrar em nada**. Sem instalar app, sem senha, sem "depois eu faço". O Fantasma não tem desculpa, e não precisa de nenhuma.
-4. **A viagem se remodela em torno dos votos.** As atividades amadas ficam ancoradas. As rejeitadas são exatamente as que devem ser trocadas — regenere aquele bloco ou peça uma alternativa à IA, e o roteiro converge para algo que ninguém planejou sozinho: o gosto real do grupo, tornado visível.
+4. **A viagem se remodela em torno dos votos.** As atividades amadas ficam ancoradas. As rejeitadas são exatamente as que devem ser trocadas — regenere aquele bloco ou peça uma alternativa à AI, e o roteiro converge para algo que ninguém planejou sozinho: o gosto real do grupo, tornado visível.
 
 O Organizador para de ser o gargalo e vira o que sempre deveria ter sido: a pessoa que dá o pontapé inicial, não a pessoa que absorve cada objeção.
 

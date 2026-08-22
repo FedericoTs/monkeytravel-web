@@ -122,11 +122,11 @@ Tres notas. Osaka sale un 10–15% más barata que Tokio o Kioto para la misma c
 4. **Comprar el JR Pass por inercia.** Desde octubre de 2023 pierde en esta ruta por ¥20,000–35,000 por persona. Haz las cuentas antes de gastar ¥50,000.
 5. **Tratar Osaka como un suburbio de Kioto.** Tienen horarios opuestos — Kioto es una ciudad de las 6:00, Osaka de las 23:00. Recórtala y la ruta pierde su única ciudad nocturna.
 
-## Móntala una vez y deja que la IA reparta los días
+## Móntala una vez y deja que la AI reparta los días
 
 La ruta está estandarizada; tu versión no. Las fechas del sakura se mueven, Universal Studios necesita un día entero o ninguno, y que Tokio reciba cuatro días o cinco depende de tus vuelos. Nuestro [planificador de viajes multiciudad](/multi-city-trip-planner) resuelve la parte en la que las hojas de cálculo fallan: qué día es el del tren, dónde encaja Nara sin arruinar una mañana de Kioto, cómo se reequilibra todo cuando 12 días se convierten en 14.
 
-**[Crea esta ruta y deja que la IA reparta los días](/trips/new?multi=1)** — pon Tokio, Kioto y Osaka, elige tus fechas y genera cada ciudad día a día en unos 30 segundos.
+**[Crea esta ruta y deja que la AI reparta los días](/trips/new?multi=1)** — pon Tokio, Kioto y Osaka, elige tus fechas y genera cada ciudad día a día en unos 30 segundos.
 
 ## FAQ: preguntas frecuentes
 

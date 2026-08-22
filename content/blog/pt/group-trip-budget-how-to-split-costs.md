@@ -110,7 +110,7 @@ Você não precisa de uma planilha. Existem vários apps feitos especificamente 
 - **Tricount** — Popular na Europa. Funciona offline (útil no exterior), suporta múltiplas moedas e não exige que todos criem uma conta.
 - **Settle Up** — Parecido com o Splitwise, com melhor tratamento de várias moedas e simplificação das dívidas do grupo.
 
-**Para o orçamento da viagem como um todo:** [O planejador de viagens com IA gratuito da MonkeyTravel](/free-ai-trip-planner) gera roteiros com três faixas de orçamento — Econômico, Equilibrado e Premium — com preços reais para cada atividade, restaurante e hotel. Todo mundo no grupo consegue ver exatamente quanto custa cada dia antes de se comprometer. Sem surpresas.
+**Para o orçamento da viagem como um todo:** [O planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) gera roteiros com três faixas de orçamento — Econômico, Equilibrado e Premium — com preços reais para cada atividade, restaurante e hotel. Todo mundo no grupo consegue ver exatamente quanto custa cada dia antes de se comprometer. Sem surpresas.
 
 **Para total transparência:** Uma planilha do Google compartilhada com três colunas (data, despesa, quem pagou) funciona bem se o seu grupo preferir algo manual. Atualizem todas as noites no jantar.
 
@@ -142,7 +142,7 @@ Mesmo com um sistema, as coisas podem sair dos trilhos. Veja como lidar com os t
 
 A Fodor's Travel recomenda tratar dessas conversas dentro da primeira semana após voltar para casa, antes que o brilho da viagem desbote e os detalhes financeiros fiquem nebulosos.
 
-## Deixe a IA cuidar das contas do orçamento
+## Deixe a AI cuidar das contas do orçamento
 
 Planejar uma viagem em grupo já é difícil o suficiente. Descobrir quanto cada dia realmente custa — entre cidades, moedas e níveis de atividade diferentes — não deveria exigir horas de pesquisa.
 
@@ -160,7 +160,7 @@ A abordagem mais justa depende da configuração dos quartos. Se cada um tem o s
 
 ### Qual é o melhor app para dividir despesas de viagem em grupo?
 
-O Splitwise é o mais usado e lida bem com viagens em várias moedas. Para o planejamento de orçamento da viagem, combine-o com a MonkeyTravel — a IA gera roteiros com preços reais em três faixas de orçamento para que todos concordem com os custos antes de a viagem começar. O Splitwise cuida do controle durante a viagem; a MonkeyTravel cuida do alinhamento antes da viagem. Juntos, cobrem o ciclo completo.
+O Splitwise é o mais usado e lida bem com viagens em várias moedas. Para o planejamento de orçamento da viagem, combine-o com a MonkeyTravel — a AI gera roteiros com preços reais em três faixas de orçamento para que todos concordem com os custos antes de a viagem começar. O Splitwise cuida do controle durante a viagem; a MonkeyTravel cuida do alinhamento antes da viagem. Juntos, cobrem o ciclo completo.
 
 ### Devo dividir os custos igualmente se alguém ganha mais?
 

@@ -337,7 +337,7 @@ O turismo de K-beauty de Seul vai muito além das máscaras faciais. A Coreia do
 - Confirme as qualificações do médico e se a clínica está registrada no Korean Health Insurance Review and Assessment Service
 - Facilitadores de turismo médico como a GL Med ou a Shin Medical podem organizar transporte, tradução e agendamentos
 
-Use o [planejador de viagens com IA gratuito da MonkeyTravel](/free-ai-trip-planner) para encaixar as consultas nas clínicas no seu roteiro sem agendamentos duplicados.
+Use o [planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) para encaixar as consultas nas clínicas no seu roteiro sem agendamentos duplicados.
 
 ---
 
@@ -364,11 +364,11 @@ Orçamento realista por pessoa para 5 dias, incluindo o bate-volta à DMZ:
 
 ---
 
-## Deixe a IA Planejar o Seu Roteiro Personalizado de Seul
+## Deixe a AI Planejar o Seu Roteiro Personalizado de Seul
 
 Este guia te dá um esqueleto. Mas a sua Seul pode ser bem diferente — talvez você queira acrescentar um bate-volta à Fortaleza Hwaseong de Suwon ou colocar a DMZ em outro dia, ou se aprofundar na experiência das clínicas de K-beauty, ou passar mais tempo na cena de bares de Hongdae.
 
-O [planejador de viagens com IA da MonkeyTravel](/free-ai-trip-planner) monta um roteiro personalizado de Seul em 30 segundos — com restaurantes reais, indicações de metrô de verdade e o timing das clínicas de K-beauty já considerado. É gratis e cuida da lógica de rotas que torna Seul fácil de navegar.
+O [planejador de viagens com AI da MonkeyTravel](/free-ai-trip-planner) monta um roteiro personalizado de Seul em 30 segundos — com restaurantes reais, indicações de metrô de verdade e o timing das clínicas de K-beauty já considerado. É gratis e cuida da lógica de rotas que torna Seul fácil de navegar.
 
 Também vale a leitura: [O que saber antes da sua primeira viagem ao Japão](/blog/first-trip-to-japan-what-you-need-to-know), [guia do destino Seul](/destinations/seoul) e [melhores destinos gastronômicos para 2026](/blog/best-food-destinations-2026).
 

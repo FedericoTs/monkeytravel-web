@@ -134,7 +134,7 @@ Vire o calendário ao contrário: é pleno inverno na Nova Zelândia, e Queensto
 
 ## Planeie a sua viagem de agosto em 30 segundos
 
-Escolha um dos doze destinos acima e o [planeador de viagens com IA gratuito da MonkeyTravel](/trips/new) constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso registo para experimentar.
+Escolha um dos doze destinos acima e o [planeador de viagens com AI gratuito da MonkeyTravel](/trips/new) constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso registo para experimentar.
 
 ## Perguntas frequentes (FAQ)
 

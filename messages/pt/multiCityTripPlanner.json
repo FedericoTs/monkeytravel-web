@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagens Multidestino — Roteiros com IA | MonkeyTravel",
-    "description": "Planeje viagens de até 5 cidades em um único roteiro. Adicione paradas e noites — a IA divide os dias por cidade automaticamente. Grátis, até 21 dias."
+    "title": "Planejador de Viagens Multidestino — Roteiros com AI | MonkeyTravel",
+    "description": "Planeje viagens de até 5 cidades em um único roteiro. Adicione paradas e noites — a AI divide os dias por cidade automaticamente. Grátis, até 21 dias."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Novidade — Viagens Multidestino, 100% Grátis",
     "title": "Planejador de Viagens Multidestino",
-    "subtitle": "Planeje Tóquio → Kyoto → Osaka ou Atenas → Santorini → Mykonos em um único roteiro. Adicione suas paradas e noites — a IA divide os dias por cidade automaticamente e junta tudo em um plano dia a dia.",
+    "subtitle": "Planeje Tóquio → Kyoto → Osaka ou Atenas → Santorini → Mykonos em um único roteiro. Adicione suas paradas e noites — a AI divide os dias por cidade automaticamente e junta tudo em um plano dia a dia.",
     "cta": "Planejar Minha Viagem Multidestino — Grátis",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -53,7 +53,7 @@
     "items": {
       "dayAllocation": {
         "title": "Dias Divididos por Cidade",
-        "description": "Diga quantas noites você quer em cada cidade e a IA planeja exatamente esses dias lá — 3 noites em Kyoto são três dias inteiros em Kyoto, sem chute."
+        "description": "Diga quantas noites você quer em cada cidade e a AI planeja exatamente esses dias lá — 3 noites em Kyoto são três dias inteiros em Kyoto, sem chute."
       },
       "journeyOverview": {
         "title": "Visão Geral do Trajeto",
@@ -77,7 +77,7 @@
         "description": "Liste suas cidades em ordem e defina as noites de cada uma — Roma 3, Florença 2, Veneza 2. Pronto em segundos."
       },
       "step2": {
-        "title": "A IA Planeja Cada Cidade em Paralelo",
+        "title": "A AI Planeja Cada Cidade em Paralelo",
         "description": "Cada cidade recebe seu próprio plano dia a dia, gerado ao mesmo tempo e costurado em um roteiro contínuo com os dias certos nos lugares certos."
       },
       "step3": {
@@ -118,8 +118,8 @@
     "title": "Perguntas Frequentes",
     "items": {
       "splitDays": {
-        "question": "Como a IA divide os dias entre as cidades?",
-        "answer": "Você define as noites por cidade ao montar o trajeto, e a IA aloca dias inteiros de acordo com isso. Cada cidade é gerada como um mini-roteiro próprio, e depois tudo é costurado em um plano contínuo dia a dia. Quer outro equilíbrio? Mude as noites e gere de novo."
+        "question": "Como a AI divide os dias entre as cidades?",
+        "answer": "Você define as noites por cidade ao montar o trajeto, e a AI aloca dias inteiros de acordo com isso. Cada cidade é gerada como um mini-roteiro próprio, e depois tudo é costurado em um plano contínuo dia a dia. Quer outro equilíbrio? Mude as noites e gere de novo."
       },
       "cityLimit": {
         "question": "Quantas cidades posso adicionar em uma viagem?",

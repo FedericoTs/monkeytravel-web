@@ -349,11 +349,11 @@ Aqui está um orçamento realista para 4 dias, por pessoa:
 - As ofertas de refeição de supermercado (Tesco, Sainsbury's, M&S) dão um sanduíche, um lanche e uma bebida por £3,50-5. Perfeito para um almoço rápido em um parque.
 - Caminhe pela South Bank em vez de pagar por um cruzeiro pelo rio. Você vê os mesmos pontos turísticos de graça.
 
-## Deixe a IA Montar o Seu Roteiro Personalizado de Londres
+## Deixe a AI Montar o Seu Roteiro Personalizado de Londres
 
 Este guia te dá uma base sólida, mas a viagem de cada pessoa é diferente. Talvez você queira passar mais tempo em mercados e menos em museus. Talvez você esteja viajando com crianças e precise de ajustes para a família. Talvez você tenha só 3 dias, ou queira acrescentar um bate-volta a Stonehenge ou Oxford.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Londres dia a dia** em 30 segundos — com restaurantes reais, preços reais, rotas de metrô e agendamento inteligente para que você não fique cruzando a cidade de um lado para o outro.
+A AI da MonkeyTravel cria um **roteiro personalizado de Londres dia a dia** em 30 segundos — com restaurantes reais, preços reais, rotas de metrô e agendamento inteligente para que você não fique cruzando a cidade de um lado para o outro.
 
 [Gerar Meu Roteiro de Londres — Grátis](https://monkeytravel.app)
 

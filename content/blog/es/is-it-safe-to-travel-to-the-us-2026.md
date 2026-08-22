@@ -89,6 +89,6 @@ Para un desglose completo, consulta nuestra **[Guia de Viaje para la Copa del Mu
 
 ## Planifica Tu Viaje
 
-Ya sea que decidas visitar EE.UU. o explorar destinos alternativos, la clave esta en la planificacion informada. El planificador de viajes con IA de MonkeyTravel crea itinerarios personalizados dia a dia para cualquier destino.
+Ya sea que decidas visitar EE.UU. o explorar destinos alternativos, la clave esta en la planificacion informada. El planificador de viajes con AI de MonkeyTravel crea itinerarios personalizados dia a dia para cualquier destino.
 
 **[Planifica Mi Viaje — Gratis](/trips/new)**

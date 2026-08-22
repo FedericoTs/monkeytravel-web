@@ -248,11 +248,11 @@ Aqui está uma estrutura para uma viagem de uma semana focada nas sakuras, passa
 | 6 | Osaka | Castelo de Osaka pela manhã, Kema Sakuranomiya, comida de rua à noite |
 | 7 | Osaka → Partida | Último hanami no Parque do Castelo de Osaka, rumo ao KIX |
 
-## Deixe a IA Planejar Sua Viagem para Ver as Cerejeiras no Japão
+## Deixe a AI Planejar Sua Viagem para Ver as Cerejeiras no Japão
 
 Acertar o timing de uma viagem para ver as cerejeiras significa equilibrar previsões de floração, horários de trens, horários de templos e disponibilidade de hotéis — tudo isso para uma janela que muda a cada ano. É muita coisa para coordenar sozinho.
 
-A IA da MonkeyTravel cria um **roteiro personalizado para a temporada das sakuras** em segundos — com rotas otimizadas para a floração, horários reais dos locais e organização inteligente para que você pegue as flores no auge sem perder dias com logística.
+A AI da MonkeyTravel cria um **roteiro personalizado para a temporada das sakuras** em segundos — com rotas otimizadas para a floração, horários reais dos locais e organização inteligente para que você pegue as flores no auge sem perder dias com logística.
 
 [Planejar Minha Viagem para Ver as Cerejeiras — Grátis](https://monkeytravel.app)
 

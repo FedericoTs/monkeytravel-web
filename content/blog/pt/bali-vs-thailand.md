@@ -398,9 +398,9 @@ A Tailândia tem o melhor mergulho — Koh Tao é um dos lugares mais baratos do
 
 ---
 
-## Planeje Sua Viagem ao Sudeste Asiático com IA
+## Planeje Sua Viagem ao Sudeste Asiático com AI
 
-Não consegue decidir entre Bali e Tailândia? Ou quer combinar as duas em um roteiro épico? O planejador de viagens com IA da MonkeyTravel monta roteiros personalizados, dia a dia, com base no seu orçamento, estilo de viagem e interesses — em segundos.
+Não consegue decidir entre Bali e Tailândia? Ou quer combinar as duas em um roteiro épico? O planejador de viagens com AI da MonkeyTravel monta roteiros personalizados, dia a dia, com base no seu orçamento, estilo de viagem e interesses — em segundos.
 
 **[Planejar Minha Viagem Grátis →](https://monkeytravel.app)**
 

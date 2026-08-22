@@ -332,7 +332,7 @@ Coolcation significa específicamente **temperaturas veraniegas de 15-25 °C en 
 
 Elegir destino es la decisión uno. La parte más difícil — barrios, ruta día a día, restaurantes que no son trampas turísticas, costes realistas — es lo que de verdad hace o rompe el viaje.
 
-[El planificador de viajes con IA gratuito de MonkeyTravel](/es/free-ai-trip-planner) construye ese itinerario en menos de un minuto. Mete cualquier destino de esta guía, tus fechas y tu presupuesto. Te dará alojamientos, actividades, recomendaciones de restaurantes y una estimación de coste diario adaptada a dónde te alojas. Sin hojas de cálculo, sin 47 pestañas del navegador.
+[El planificador de viajes con AI gratuito de MonkeyTravel](/es/free-ai-trip-planner) construye ese itinerario en menos de un minuto. Mete cualquier destino de esta guía, tus fechas y tu presupuesto. Te dará alojamientos, actividades, recomendaciones de restaurantes y una estimación de coste diario adaptada a dónde te alojas. Sin hojas de cálculo, sin 47 pestañas del navegador.
 
 [Planifica mi viaje de primavera o verano — gratis](/es/free-ai-trip-planner)
 

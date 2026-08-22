@@ -54,9 +54,9 @@
   },
   "wizard": {
     "back": "Voltar",
-    "unlockAiFeatures": "Desbloqueie os recursos de IA",
+    "unlockAiFeatures": "Desbloqueie os recursos de AI",
     "usageLimitReached": "Limite de uso atingido",
-    "usageLimitDefault": "Você usou suas gerações de IA gratuitas.",
+    "usageLimitDefault": "Você usou suas gerações de AI gratuitas.",
     "yourTripTo": "Sua viagem para",
     "draftRecovery": {
       "title": "Viagem não salva encontrada",
@@ -191,8 +191,8 @@
       "bookYourTravel": "Reserve sua viagem",
       "flights": "Voos",
       "hotels": "Hotéis",
-      "aiVerifiedTitle": "Roteiro gerado por IA com dados verificados",
-      "aiVerifiedBody": "Este roteiro foi criado por IA e enriquecido com dados em tempo real do Google Places. Clique em \"Mais\" em qualquer atividade para ver fotos, avaliações e níveis de preço verificados. Recomendamos verificar os horários de funcionamento antes da sua viagem.",
+      "aiVerifiedTitle": "Roteiro gerado por AI com dados verificados",
+      "aiVerifiedBody": "Este roteiro foi criado por AI e enriquecido com dados em tempo real do Google Places. Clique em \"Mais\" em qualquer atividade para ver fotos, avaliações e níveis de preço verificados. Recomendamos verificar os horários de funcionamento antes da sua viagem.",
       "notQuiteRight": "Não é bem isso?",
       "viewCards": "Cartões",
       "viewTimeline": "Linha do Tempo",
@@ -362,7 +362,7 @@
     "error": "Não foi possível gerar o roteiro. Tente novamente.",
     "errorTimeout": "A solicitação demorou demais. Isso pode acontecer com viagens complexas — tente novamente.",
     "errorNetwork": "Problema de conexão. Verifique sua internet e tente novamente.",
-    "errorServerBusy": "Nossa IA está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
+    "errorServerBusy": "Nossa AI está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
     "retry": "Tentar Novamente"
   },
   "result": {
@@ -415,7 +415,7 @@
     "moreInfo": "Mais Informações",
     "booking": "Reservar",
     "insiderTips": "Dicas de Quem Conhece",
-    "aiEstimate": "Estimativa da IA",
+    "aiEstimate": "Estimativa da AI",
     "googleVerified": "Verificado pelo Google",
     "venueTierEstimate": "Estimativa por categoria"
   },
@@ -450,15 +450,15 @@
     "undo": "Desfazer",
     "redo": "Refazer",
     "tripUpdated": "Sua viagem foi atualizada com sucesso.",
-    "aiGenerated": "Roteiro Gerado por IA com Dados Verificados",
-    "aiGeneratedDescription": "Este roteiro foi criado por IA e enriquecido com dados em tempo real do Google Places.",
+    "aiGenerated": "Roteiro Gerado por AI com Dados Verificados",
+    "aiGeneratedDescription": "Este roteiro foi criado por AI e enriquecido com dados em tempo real do Google Places.",
     "clickMoreInfo": "Clique em \"Mais\" em qualquer atividade para ver detalhes e fotos verificadas.",
     "editModeActive": "Modo de Edição Ativo",
     "editModeInstructions": "Arraste para reordenar, toque para editar ou use o menu para excluir atividades. Clique no botão verde de confirmação acima quando terminar.",
-    "aiAssistant": "Assistente de IA",
+    "aiAssistant": "Assistente de AI",
     "customizeTrip": "Personalize sua viagem",
-    "aiHelp": "Ajuda da IA",
-    "aiTripAssistant": "Assistente de Viagem com IA",
+    "aiHelp": "Ajuda da AI",
+    "aiTripAssistant": "Assistente de Viagem com AI",
     "suggestActivity": "+ Sugerir uma atividade para este dia",
     "proposalSubmitted": "Proposta enviada! Outros viajantes vão votar nela.",
     "crewVotesSummary": "🗳️ {count, plural, one {# voto} other {# votos}} do seu grupo",
@@ -471,11 +471,11 @@
   "editActivity": {
     "moveToDay": "Mover para o dia",
     "editActivity": "Editar atividade",
-    "regenerateWithAI": "Gerar novamente com IA",
+    "regenerateWithAI": "Gerar novamente com AI",
     "deleteActivity": "Excluir atividade",
     "deleteConfirmTitle": "Excluir Atividade?",
     "deleteConfirmMessage": "\"{name}\" será removida do seu roteiro.",
-    "regenerating": "Gerando atividade novamente com IA..."
+    "regenerating": "Gerando atividade novamente com AI..."
   },
   "addActivity": {
     "title": "Adicionar Atividade",
@@ -568,7 +568,7 @@
       "shareWithFriends": "Compartilhe com amigos"
     },
     "footer": {
-      "tagline": "Planejamento de viagens com IA, simples e rápido",
+      "tagline": "Planejamento de viagens com AI, simples e rápido",
       "createOwnTrip": "Crie Sua Própria Viagem"
     },
     "price": {

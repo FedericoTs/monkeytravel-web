@@ -127,7 +127,7 @@
       },
       "needAccount": {
         "question": "¿Todos necesitan una cuenta?",
-        "answer": "No. Puedes planificar un viaje y compartir el enlace sin cuenta, y tus amigos pueden verlo y votar sin cuenta también. Crear una cuenta gratuita es lo que guarda el viaje en tus viajes, te permite editarlo y desbloquea el asistente de IA — y si te registras después de compartir, el viaje que ya creaste se queda contigo."
+        "answer": "No. Puedes planificar un viaje y compartir el enlace sin cuenta, y tus amigos pueden verlo y votar sin cuenta también. Crear una cuenta gratuita es lo que guarda el viaje en tus viajes, te permite editarlo y desbloquea el asistente de AI — y si te registras después de compartir, el viaje que ya creaste se queda contigo."
       },
       "votingWorks": {
         "question": "¿Cómo funciona el sistema de votación?",

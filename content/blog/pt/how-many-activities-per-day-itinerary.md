@@ -65,7 +65,7 @@ A fatia gastronômica conta a mesma história por outro ângulo. As pessoas não
 
 **Adicione espaço livre de propósito.** A fatia de 14% de atividades gratuitas nos roteiros reais não é enchimento; é ritmo. Uma caminhada pelo bairro depois de uma manhã reservada e cronometrada é o que torna a manhã reservada agradável.
 
-**Escale pela duração da viagem, não pelo entusiasmo.** Numa [viagem de 6 dias](/blog/how-long-should-a-trip-be) — a duração mais comum nos nossos dados — dias de 4 blocos dão a você aproximadamente 24 experiências reais. É bastante. Os viajantes que planejam 40 acabam [pedindo à IA para desacelerar a viagem](/blog/ai-trip-planner-accuracy-2026).
+**Escale pela duração da viagem, não pelo entusiasmo.** Numa [viagem de 6 dias](/blog/how-long-should-a-trip-be) — a duração mais comum nos nossos dados — dias de 4 blocos dão a você aproximadamente 24 experiências reais. É bastante. Os viajantes que planejam 40 acabam [pedindo à AI para desacelerar a viagem](/blog/ai-trip-planner-accuracy-2026).
 
 Ou pule a aritmética: [gere um roteiro dia a dia](/trips/new) e você verá a estrutura de 4 blocos aplicada ao seu destino em cerca de um minuto — depois edite a gosto, que é a parte que os dados não podem fazer por você.
 

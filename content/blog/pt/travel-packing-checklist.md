@@ -321,7 +321,7 @@ Viajar só com a bagagem de mão é mais rápido (sem esteira de bagagem), mais 
 5. **Digitalize tudo.** Livros no Kindle, guias no celular, cartões de embarque no app da carteira. Papel pesa.
 6. **Envie pelo correio com antecedência, se preciso.** Para equipamentos específicos (esqui, mergulho), enviar para o hotel costuma ser mais barato do que as taxas de bagagem esportiva das companhias aéreas.
 
-**Dica MonkeyTravel:** Quando você planeja uma viagem com o [planejador de viagens com IA da MonkeyTravel](https://monkeytravel.app), ele gera sugestões de bagagem específicas para o destino com base na previsão do tempo para as suas datas exatas de viagem. Chega de adivinhar se vai precisar de capa de chuva em Lisboa em março.
+**Dica MonkeyTravel:** Quando você planeja uma viagem com o [planejador de viagens com AI da MonkeyTravel](https://monkeytravel.app), ele gera sugestões de bagagem específicas para o destino com base na previsão do tempo para as suas datas exatas de viagem. Chega de adivinhar se vai precisar de capa de chuva em Lisboa em março.
 
 ---
 
@@ -359,7 +359,7 @@ Comece a separar os itens de 3 a 5 dias antes da partida. Isso dá tempo de iden
 
 ### Como arrumo a mala para vários climas em uma só viagem?
 
-Vestir-se em camadas é a resposta. Um sistema de camada base, camada intermediária e casaco externo cobre temperaturas de 5 a 25 graus Celsius (40 a 77 graus Fahrenheit). Escolha cores neutras para que tudo combine. O [planejador com IA da MonkeyTravel](https://monkeytravel.app) é especialmente útil para viagens por várias cidades, porque ele puxa os dados meteorológicos de cada parada e ajusta as recomendações de bagagem de acordo.
+Vestir-se em camadas é a resposta. Um sistema de camada base, camada intermediária e casaco externo cobre temperaturas de 5 a 25 graus Celsius (40 a 77 graus Fahrenheit). Escolha cores neutras para que tudo combine. O [planejador com AI da MonkeyTravel](https://monkeytravel.app) é especialmente útil para viagens por várias cidades, porque ele puxa os dados meteorológicos de cada parada e ajusta as recomendações de bagagem de acordo.
 
 ### Vale a pena pagar pela bagagem despachada ou é melhor ir só com a de mão?
 
@@ -391,6 +391,6 @@ Use esta versão condensada como verificação final antes de fechar o zíper. C
 
 A melhor lista de bagagem é aquela que você realmente usa. Salve esta página nos favoritos e volte a ela toda vez que viajar. Com o tempo, você vai desenvolver a sua própria versão — acrescentando itens de que sempre precisa e tirando os que nunca toca.
 
-E se você quiser sugestões de bagagem personalizadas para o seu destino exato, datas e atividades, experimente a [MonkeyTravel](https://monkeytravel.app). O planejador de viagens com IA analisa dados meteorológicos em tempo real e condições locais para recomendar o que levar, para que nada importante fique para trás.
+E se você quiser sugestões de bagagem personalizadas para o seu destino exato, datas e atividades, experimente a [MonkeyTravel](https://monkeytravel.app). O planejador de viagens com AI analisa dados meteorológicos em tempo real e condições locais para recomendar o que levar, para que nada importante fique para trás.
 
 Agora pare de ler sobre como arrumar a mala e vá arrumá-la. Sua viagem está esperando.

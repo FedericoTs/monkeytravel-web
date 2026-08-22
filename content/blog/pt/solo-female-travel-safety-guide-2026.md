@@ -236,21 +236,21 @@ Estas valem independentemente do destino.
 - **Aprenda a palavra local para "não".** E use-a com firmeza quando necessário. Você não deve educação a ninguém às custas do seu conforto.
 - **Confie nos seus instintos.** Se uma situação parecer errada, vá embora. Você não precisa de um motivo lógico. Viajar sozinha aguça seus instintos — ouça-os.
 
-## Como os planejadores de viagem com IA ajudam mulheres que viajam sozinhas
+## Como os planejadores de viagem com AI ajudam mulheres que viajam sozinhas
 
-Planejar uma viagem solo significa que cada decisão recai sobre você. Os planejadores de viagem com IA reduzem essa carga de maneiras específicas.
+Planejar uma viagem solo significa que cada decisão recai sobre você. Os planejadores de viagem com AI reduzem essa carga de maneiras específicas.
 
 **Roteiros personalizados.** Ferramentas como o [MonkeyTravel](/free-ai-trip-planner) geram roteiros dia a dia que levam em conta o agrupamento geográfico, tempos de deslocamento realistas e restrições de orçamento. Em vez de passar horas pesquisando a melhor ordem para visitar as atrações, você recebe um plano lógico em segundos.
 
 **Rotas com consciência de segurança.** Planejadores dedicados podem levar em conta a facilidade de circular a pé, a disponibilidade de transporte público e a segurança do bairro ao montar os roteiros. A diferença entre um plano que te leva por áreas turísticas bem iluminadas e um que te manda por uma zona industrial deserta às 21h importa quando você viaja sozinha.
 
-**Transparência de orçamento.** Quando você administra um orçamento solo, sem ninguém com quem dividir os custos, conhecer as faixas reais de preço de atividades, refeições e transporte é essencial. Os planejadores com IA fornecem faixas de orçamento que ajudam você a decidir onde gastar mais e onde economizar.
+**Transparência de orçamento.** Quando você administra um orçamento solo, sem ninguém com quem dividir os custos, conhecer as faixas reais de preço de atividades, refeições e transporte é essencial. Os planejadores com AI fornecem faixas de orçamento que ajudam você a decidir onde gastar mais e onde economizar.
 
 **Comunidade e colaboração.** Se você for se encontrar com outros viajantes solo no meio da viagem, recursos de planejamento em grupo, como o sistema de votação do MonkeyTravel, permitem que vocês se coordenem sem mensagens infinitas no WhatsApp.
 
-**Informações em tempo real.** Planejadores de IA dedicados que se integram a dados ao vivo podem sinalizar fechamentos, mudanças de horário e alertas de segurança que afetam seus planos. Isso é especialmente valioso para viajantes solo que não têm um companheiro para ajudar a resolver problemas na hora.
+**Informações em tempo real.** Planejadores de AI dedicados que se integram a dados ao vivo podem sinalizar fechamentos, mudanças de horário e alertas de segurança que afetam seus planos. Isso é especialmente valioso para viajantes solo que não têm um companheiro para ajudar a resolver problemas na hora.
 
-Para saber mais sobre como as ferramentas de IA apoiam especificamente a viagem solo, leia nosso guia sobre [planejar uma viagem solo com IA](/blog/solo-travel-planning-with-ai).
+Para saber mais sobre como as ferramentas de AI apoiam especificamente a viagem solo, leia nosso guia sobre [planejar uma viagem solo com AI](/blog/solo-travel-planning-with-ai).
 
 ## Você está pronta
 

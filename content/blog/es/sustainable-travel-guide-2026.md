@@ -248,7 +248,7 @@ Las compensaciones verificadas de programas reputados (Gold Standard, Verra VCS)
 
 Bután, por diseño. La Tasa de Desarrollo Sostenible, los estrictos límites de visitantes, la protección constitucional de los bosques y el estado de carbono negativo hacen de él el único destino del mundo donde cada aspecto del modelo turístico está estructurado para producir resultados medioambientales netos positivos. La contrapartida es el coste diario y la flexibilidad limitada.
 
-### ¿Puede la IA ayudarme a planificar un viaje más sostenible?
+### ¿Puede la AI ayudarme a planificar un viaje más sostenible?
 
 Sí — específicamente para la agrupación de itinerarios y la optimización del transporte. [El planificador de viajes AI de MonkeyTravel](/free-ai-trip-planner) puede ayudarte a construir rutas que minimicen los traslados, identificar operadores certificados y estructurar un viaje que pase más tiempo en menos lugares. La planificación en sí es solo una parte — las elecciones que haces dentro de ese plan son tuyas.
 

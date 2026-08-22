@@ -37,7 +37,7 @@ export async function GET() {
   <channel>
     <title>MonkeyTravel Blog - Português</title>
     <link>${SITE_URL}/pt/blog</link>
-    <description>Dicas práticas de viagem, ferramentas de IA para viajantes e guias de destinos.</description>
+    <description>Dicas práticas de viagem, ferramentas de AI para viajantes e guias de destinos.</description>
     <language>pt-BR</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/pt/feed.xml" rel="self" type="application/rss+xml" />

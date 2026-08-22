@@ -45,7 +45,8 @@ MonkeyTravel is an **AI-powered travel planner** that creates personalized day-b
 
 ### Absolute Rules
 
-1. **"AI" is never translated.** Use "AI" in all locales (EN, ES, IT). Never write "IA" even in Spanish/Italian.
+1. **"AI" is never translated.** Use "AI" in **every** locale (EN, ES, IT, PT). Never write "IA" — not in Spanish, not in Italian, not in Portuguese.
+   Reaffirmed 2026-08-22. This rule originally named only EN/ES/IT because it predated the Portuguese locale, and pt was then written entirely in "IA" — 641 occurrences in blog posts alone, plus every pt page title. es/it had drifted too (39 and 15). All 1,000 occurrences were converted; the rule now has no locale carve-out, so there is nothing to re-litigate.
 2. **Author is always** `"MonkeyTravel Team"`.
 3. **No corporate speak.** No "leverage", "synergy", "utilize". Write like a smart friend who travels a lot.
 4. **No fluff paragraphs.** Every section must teach something or make a point. If a paragraph doesn't earn its place, cut it.
@@ -370,7 +371,7 @@ Run this checklist before publishing every post:
 - [ ] `tags` array has 5 relevant terms
 
 ### Translations
-- [ ] All 3 locale files created (EN, ES, IT)
+- [ ] All 4 locale files created (EN, ES, IT, PT)
 - [ ] `messages/{en,es,it}/blog.json` updated with title + description
 - [ ] All descriptions under 160 characters
 - [ ] "AI" used (never "IA") in all locales

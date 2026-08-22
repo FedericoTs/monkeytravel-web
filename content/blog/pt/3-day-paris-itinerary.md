@@ -193,11 +193,11 @@ Aqui está um orçamento realista para 3 dias, por pessoa:
 - No primeiro domingo de cada mês, muitos museus nacionais são **gratuitos** (Louvre, Orsay, Orangerie)
 - Encha sua garrafa de água nas **fontes Wallace** verdes espalhadas pela cidade — elas estão por toda parte e a água é excelente
 
-## Deixe a IA Montar Seu Roteiro Personalizado de Paris
+## Deixe a AI Montar Seu Roteiro Personalizado de Paris
 
 Este guia te dá uma base sólida, mas cada viagem é diferente. Talvez você queira mais experiências gastronômicas e menos museus. Talvez esteja viajando com crianças. Talvez tenha apenas 2 dias em vez de 3.
 
-A IA da MonkeyTravel cria um **roteiro personalizado de Paris dia a dia** em 30 segundos — com restaurantes reais, preços atuais e rotas inteligentes, para você não ficar ziguezagueando pela cidade.
+A AI da MonkeyTravel cria um **roteiro personalizado de Paris dia a dia** em 30 segundos — com restaurantes reais, preços atuais e rotas inteligentes, para você não ficar ziguezagueando pela cidade.
 
 [Gerar Meu Roteiro de Paris — Grátis](https://monkeytravel.app)
 

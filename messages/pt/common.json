@@ -32,7 +32,7 @@
     "q5_social": "Redes sociais",
     "q5_friend": "Alguém me indicou",
     "q5_article": "Um blog ou artigo",
-    "q5_ai": "ChatGPT ou outra IA",
+    "q5_ai": "ChatGPT ou outra AI",
     "q5_other": "De outra forma",
     "q6Label": "Antes de uma viagem, você gostaria que a gente enviasse coisas que vale a pena saber sobre o seu destino?",
     "q6_yes": "Sim",
@@ -147,7 +147,7 @@
     "share": "Compartilhar"
   },
   "footer": {
-    "description": "Planejamento de viagens com IA que cria roteiros personalizados dia a dia em minutos.",
+    "description": "Planejamento de viagens com AI que cria roteiros personalizados dia a dia em minutos.",
     "product": "Produto",
     "support": "Suporte",
     "legal": "Legal",
@@ -200,13 +200,13 @@
   "activity": {
     "booking": "Reserva",
     "free": "Grátis",
-    "aiEstimate": "Estimativa de IA",
+    "aiEstimate": "Estimativa de AI",
     "googleVerified": "Verificado pelo Google",
     "venueTierEstimate": "Estimativa por categoria",
     "insiderTips": "Dicas Locais",
     "loadingPhotos": "Carregando fotos...",
     "noPhotos": "Nenhuma foto disponível",
-    "regeneratingActivity": "Regenerando atividade com IA..."
+    "regeneratingActivity": "Regenerando atividade com AI..."
   },
   "xp": {
     "todaysProgress": "Progresso de Hoje",
@@ -316,7 +316,7 @@
     "warning": "Isso excluirá permanentemente sua conta e todos os dados associados, incluindo:",
     "items": {
       "trips": "Todas as suas viagens e roteiros",
-      "conversations": "Histórico de conversas com IA",
+      "conversations": "Histórico de conversas com AI",
       "preferences": "Preferências e configurações salvas",
       "checklists": "Listas de viagem e memórias"
     },
@@ -329,14 +329,14 @@
     "deleteError": "Falha ao excluir a conta. Tente novamente."
   },
   "earlyAccess": {
-    "title": "Recursos de IA",
+    "title": "Recursos de AI",
     "earlyAccess": "Acesso Antecipado",
-    "description": "Nosso planejamento de viagens com IA está atualmente disponível para os primeiros testadores. Estamos liberando o acesso em etapas para garantir a melhor experiência.",
+    "description": "Nosso planejamento de viagens com AI está atualmente disponível para os primeiros testadores. Estamos liberando o acesso em etapas para garantir a melhor experiência.",
     "haveCode": "Tem um código de testador?",
     "enterCode": "Insira o código",
     "unlock": "Desbloquear",
     "welcomeTitle": "Bem-vindo ao Acesso Antecipado!",
-    "welcomeMessage": "Agora você tem acesso a todos os recursos de IA.",
+    "welcomeMessage": "Agora você tem acesso a todos os recursos de AI.",
     "onListTitle": "Você está na lista!",
     "onListMessage": "Enviaremos um e-mail quando o acesso antecipado abrir.",
     "joinWaitlist": "Entrar na Lista de Espera",
@@ -347,7 +347,7 @@
     "benefitsTitle": "Benefícios do Acesso Antecipado",
     "benefits": {
       "saved": "Suas preferências são salvas",
-      "personalized": "Receba recomendações personalizadas de IA",
+      "personalized": "Receba recomendações personalizadas de AI",
       "proPlan": "14 dias de acesso Pro para os primeiros testadores"
     }
   },
@@ -433,11 +433,11 @@
     "upcoming": "Próximas",
     "pastAdventures": "Aventuras Passadas",
     "yourTrips": "Suas Viagens",
-    "manageItineraries": "Planeje e gerencie seus roteiros com IA",
+    "manageItineraries": "Planeje e gerencie seus roteiros com AI",
     "planNewTrip": "Planejar Nova Viagem",
     "planFirstTrip": "Planeje Sua Primeira Viagem",
     "noTripsYet": "Nenhuma viagem ainda",
-    "noTripsDescription": "Crie sua primeira viagem com IA e deixe o MonkeyTravel planejar o roteiro perfeito para você.",
+    "noTripsDescription": "Crie sua primeira viagem com AI e deixe o MonkeyTravel planejar o roteiro perfeito para você.",
     "noTripsFound": "Nenhuma viagem encontrada",
     "adjustFilters": "Tente ajustar sua busca ou filtros",
     "clearFilters": "Limpar todos os filtros",
@@ -848,7 +848,7 @@
     "estimatedTime": "Criando seu roteiro personalizado: isso costuma levar um ou dois minutos",
     "takingLonger": "Quase lá: um roteiro rico e personalizado vale alguns segundos a mais. Aguarde!",
     "funFacts": {
-      "analyzing": "A IA está analisando milhares de avaliações e classificações",
+      "analyzing": "A AI está analisando milhares de avaliações e classificações",
       "hiddenGems": "Encontrando joias escondidas que os locais adoram",
       "optimizingRoutes": "Otimizando rotas para economizar seu tempo",
       "checkingHours": "Verificando horários de funcionamento e disponibilidade sazonal",
@@ -1042,15 +1042,15 @@
     "shareLink": "Link de Compartilhamento",
     "shareVia": "Compartilhar via",
     "savedHero": {
-      "aiTitle": "Roteiro gerado por IA com dados verificados",
-      "aiDescription": "Este roteiro foi criado por IA e enriquecido com dados em tempo real do Google Places. Fotos, avaliações e faixas de preço são verificadas, mas recomendamos conferir novamente os horários de funcionamento e a disponibilidade antes da viagem. Clique em \"Mais\" em qualquer atividade para ver detalhes verificados e fotos.",
+      "aiTitle": "Roteiro gerado por AI com dados verificados",
+      "aiDescription": "Este roteiro foi criado por AI e enriquecido com dados em tempo real do Google Places. Fotos, avaliações e faixas de preço são verificadas, mas recomendamos conferir novamente os horários de funcionamento e a disponibilidade antes da viagem. Clique em \"Mais\" em qualquer atividade para ver detalhes verificados e fotos.",
       "loveTitle": "Gostou deste roteiro?",
       "loveDescription": "Salve-o na sua conta e torne-o seu. Edite horários, troque atividades, adicione notas e compartilhe com seus companheiros de viagem.",
       "saveButton": "Salvar em Minhas Viagens",
       "saveSubtitle": "Salve este roteiro e personalize-o para suas datas",
       "planOwnButton": "✨ Planeje sua própria viagem a {destination} — grátis",
       "planOwnButtonGeneric": "✨ Planeje sua própria viagem — grátis",
-      "planOwnSubtitle": "Crie seu próprio roteiro com IA do zero"
+      "planOwnSubtitle": "Crie seu próprio roteiro com AI do zero"
     },
     "platforms": {
       "twitter": "Twitter",
@@ -1539,7 +1539,7 @@
     "cards": {
       "addToTrip": "Adicionar à viagem",
       "viewDetails": "Ver detalhes",
-      "suggested": "Sugerido pela IA",
+      "suggested": "Sugerido pela AI",
       "new": "NOVO",
       "day": "Dia {number}",
       "activityTypes": {
@@ -1603,7 +1603,7 @@
   "beta": {
     "codeInput": {
       "title": "Tem um Código de Beta Tester?",
-      "subtitle": "Insira seu código para desbloquear recursos de IA ilimitados",
+      "subtitle": "Insira seu código para desbloquear recursos de AI ilimitados",
       "placeholder": "Insira seu código",
       "placeholderCompact": "Insira o código beta",
       "placeholderInline": "BETA-XXXX",
@@ -1617,11 +1617,11 @@
       "redeemFailed": "Falha ao resgatar o código",
       "genericError": "Algo deu errado. Tente novamente.",
       "successTitle": "Bem-vindo à beta!",
-      "successDescription": "Agora você tem acesso ilimitado a todos os recursos de IA.",
+      "successDescription": "Agora você tem acesso ilimitado a todos os recursos de AI.",
       "benefitsTitle": "Os beta testers recebem:",
       "benefits": {
-        "unlimitedGenerations": "Gerações de viagens com IA ilimitadas",
-        "unlimitedAssistant": "Regenerações e assistente de IA ilimitados",
+        "unlimitedGenerations": "Gerações de viagens com AI ilimitadas",
+        "unlimitedAssistant": "Regenerações e assistente de AI ilimitados",
         "prioritySupport": "Suporte prioritário",
         "earlyAccess": "Acesso antecipado a novos recursos"
       }
@@ -1794,7 +1794,7 @@
         "status": "Online • Pronto para planejar"
       },
       "messages": {
-        "greeting": "Oi! 👋 Sou seu assistente de viagens com IA. Para onde você gostaria de ir?",
+        "greeting": "Oi! 👋 Sou seu assistente de viagens com AI. Para onde você gostaria de ir?",
         "userRequest": "Quero visitar Barcelona por 5 dias!",
         "aiResponse": "Ótima escolha! 🇪🇸 Barcelona é incrível. Deixe-me fazer algumas perguntas para personalizar sua viagem...",
         "userSelection": "Cultura e História, por favor!"
@@ -1813,14 +1813,14 @@
       "header": {
         "dayTitle": "Dia 1 • Barcelona",
         "activitiesCount": "4 atividades planejadas",
-        "aiAssistant": "✨ Assistente de IA"
+        "aiAssistant": "✨ Assistente de AI"
       },
       "messages": {
         "userRequest": "Você pode adicionar um tour gastronômico depois do Park Güell?",
         "aiResponse": "Claro! 🍴 Vou adicionar o \"Tour Gastronômico de Barcelona\" às 12h30, logo após o Park Güell...",
         "success": "Pronto! Ajustei os horários para você."
       },
-      "inputPlaceholder": "Peça à IA para modificar seu plano..."
+      "inputPlaceholder": "Peça à AI para modificar seu plano..."
     }
   },
   "referral": {
@@ -1842,10 +1842,10 @@
       "linkClicks": "Cliques no link"
     },
     "share": {
-      "twitterText": "Ando planejando viagens com o MonkeyTravel: a IA monta um roteiro dia a dia em uns 30 segundos, de graça. Bora:",
-      "whatsappText": "Oi! Estou usando o MonkeyTravel para planejar viagens: a IA monta um roteiro completo dia a dia em uns 30 segundos e é de graça. Testa:",
+      "twitterText": "Ando planejando viagens com o MonkeyTravel: a AI monta um roteiro dia a dia em uns 30 segundos, de graça. Bora:",
+      "whatsappText": "Oi! Estou usando o MonkeyTravel para planejar viagens: a AI monta um roteiro completo dia a dia em uns 30 segundos e é de graça. Testa:",
       "emailSubject": "Você foi convidado para o MonkeyTravel",
-      "emailBody": "Oi!\n\nAndo usando o MonkeyTravel para planejar viagens com IA e acho que você vai gostar.\n\nDigite uma cidade e ele monta um roteiro completo dia a dia em uns 30 segundos: de graça, e você nem precisa de conta para testar.\n\nBoa viagem!"
+      "emailBody": "Oi!\n\nAndo usando o MonkeyTravel para planejar viagens com AI e acho que você vai gostar.\n\nDigite uma cidade e ele monta um roteiro completo dia a dia em uns 30 segundos: de graça, e você nem precisa de conta para testar.\n\nBoa viagem!"
     }
   },
   "dataExport": {
@@ -1923,7 +1923,7 @@
         "sensory": "Amigável aos Sentidos"
       },
       "activitySchedule": "Agenda de Atividades",
-      "activityScheduleHint": "Defina os horários preferidos para as atividades diárias - a IA vai planejar de acordo com sua rotina",
+      "activityScheduleHint": "Defina os horários preferidos para as atividades diárias - a AI vai planejar de acordo com sua rotina",
       "wakeUpTime": "Horário de acordar",
       "windDownTime": "Horário de encerrar",
       "activityScheduleNote": "A primeira atividade começará perto do seu horário de acordar, e a última terminará antes do horário de encerrar"
@@ -1933,14 +1933,14 @@
       "code": "Código: {code}",
       "activated": "Ativado em {date}",
       "benefits": {
-        "generations": "Gerações de IA",
+        "generations": "Gerações de AI",
         "regenerations": "Regenerações",
-        "assistant": "Assistente de IA",
+        "assistant": "Assistente de AI",
         "support": "Suporte Prioritário"
       },
       "unlimited": "Ilimitado",
       "activeBadge": "Ativo",
-      "enterCodeHint": "Insira um código de beta tester para desbloquear recursos de IA ilimitados e suporte prioritário.",
+      "enterCodeHint": "Insira um código de beta tester para desbloquear recursos de AI ilimitados e suporte prioritário.",
       "noCodeHint": "Não tem um código? Entre na nossa",
       "waitlist": "lista de espera beta",
       "toGetAccess": "para conseguir acesso prioritário."
@@ -2145,7 +2145,7 @@
     "yourQuestion": "Você perguntou",
     "answer": "O concierge diz",
     "liveTripHint": "Hoje está dentro do período da sua viagem — as respostas se baseiam nas atividades de hoje.",
-    "errorQuota": "Limite diário de IA atingido. Tente novamente amanhã.",
+    "errorQuota": "Limite diário de AI atingido. Tente novamente amanhã.",
     "errorGeneric": "Não foi possível responder agora. Tente novamente em instantes.",
     "hintEditable": "Pergunte qualquer coisa — ou peça uma mudança e confirme antes que ela toque no seu plano.",
     "proposalApplied": "Mudança aplicada à sua viagem.",

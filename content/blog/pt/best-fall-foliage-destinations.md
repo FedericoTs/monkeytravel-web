@@ -365,11 +365,11 @@ Você viajou para ver cores incríveis. Veja como não desperdiçar a foto:
 
 ---
 
-## Deixe a IA planejar sua viagem para ver a folhagem de outono
+## Deixe a AI planejar sua viagem para ver a folhagem de outono
 
 Acertar o timing da folhagem de outono é complicado. Você precisa do destino certo, da semana certa e de uma rota que conecte os melhores mirantes sem ter que voltar pelo mesmo caminho. São muitas variáveis.
 
-A IA da MonkeyTravel monta um **roteiro personalizado para ver a folhagem de outono** com base nas suas datas exatas de viagem — com rotas de carro, timing do pico de cores e hospedagem perto dos melhores mirantes.
+A AI da MonkeyTravel monta um **roteiro personalizado para ver a folhagem de outono** com base nas suas datas exatas de viagem — com rotas de carro, timing do pico de cores e hospedagem perto dos melhores mirantes.
 
 [Planejar minha viagem para ver a folhagem de outono — Grátis](https://monkeytravel.app)
 

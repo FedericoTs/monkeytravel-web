@@ -161,7 +161,7 @@ Mais de 50 países agora oferecem vistos dedicados para trabalhadores remotos, u
 
 **Opções econômicas** incluem Colômbia (renda mínima de $900-$1.200/mês), Equador ($1.300/mês), Maurício ($1.500/mês) e Brasil ($1.500/mês). A maioria das opções europeias exige de $2.000 a $3.500/mês de renda comprovada.
 
-O planejador de viagens com IA da MonkeyTravel pode ajudar você a explorar esses destinos para nômades digitais gerando roteiros detalhados que consideram espaços de coworking, hospedagem de longo prazo e experiências locais sob medida para estadias prolongadas.
+O planejador de viagens com AI da MonkeyTravel pode ajudar você a explorar esses destinos para nômades digitais gerando roteiros detalhados que consideram espaços de coworking, hospedagem de longo prazo e experiências locais sob medida para estadias prolongadas.
 
 ## Como verificar os requisitos de visto para o seu passaporte específico
 
@@ -185,7 +185,7 @@ Com tantas variáveis em jogo, verificar a sua situação específica antes de c
 - **Seguro viagem.** Certos países e regiões (incluindo o Espaço Schengen) exigem comprovante de seguro viagem como condição de entrada.
 - **Requisitos de vacinação.** Alguns países exigem comprovante de vacinação contra a febre amarela ou outras imunizações.
 
-O planejador de viagens com IA da MonkeyTravel sinaliza automaticamente os requisitos de visto e as considerações sobre documentos de viagem quando você monta o seu roteiro, ajudando você a evitar surpresas no aeroporto.
+O planejador de viagens com AI da MonkeyTravel sinaliza automaticamente os requisitos de visto e as considerações sobre documentos de viagem quando você monta o seu roteiro, ajudando você a evitar surpresas no aeroporto.
 
 ## 8 dicas para maximizar suas viagens sem visto
 
@@ -221,7 +221,7 @@ Quando a entrada sem visto não estiver disponível, verifique se o destino ofer
 
 ### 8. Monte roteiros flexíveis
 
-Use ferramentas como o [planejador de viagens com IA](/free-ai-trip-planner) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A IA considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
+Use ferramentas como o [planejador de viagens com AI](/free-ai-trip-planner) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A AI considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
 
 ## Perguntas frequentes
 
@@ -243,7 +243,7 @@ Cada vez mais, sim. As ETAs estão sendo introduzidas por países que antes não
 
 ### Como posso verificar se preciso de visto para um país específico?
 
-A fonte mais confiável é o IATA Travel Centre, que as próprias companhias aéreas usam para verificar a documentação dos passageiros. Você também pode usar o Passport Index (passportindex.org) para uma visão geral visual ou consultar o site oficial da embaixada do seu país de destino. Ao usar o planejador de viagens com IA da MonkeyTravel, o sistema alerta você automaticamente sobre os requisitos de visto e documentação para os destinos selecionados, reduzindo o risco de deixar passar algum requisito.
+A fonte mais confiável é o IATA Travel Centre, que as próprias companhias aéreas usam para verificar a documentação dos passageiros. Você também pode usar o Passport Index (passportindex.org) para uma visão geral visual ou consultar o site oficial da embaixada do seu país de destino. Ao usar o planejador de viagens com AI da MonkeyTravel, o sistema alerta você automaticamente sobre os requisitos de visto e documentação para os destinos selecionados, reduzindo o risco de deixar passar algum requisito.
 
 ## Conclusão
 

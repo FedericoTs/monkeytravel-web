@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagens Mochileiro — Roteiros com IA para Hostels e Viagens Econômicas",
-    "description": "Monte sua rota mochileira em 30 segundos. Hostels em vez de hotéis, free tours, comida de rua, transporte público e atividades sociais — uma IA que entende de verdade a viagem mochileira. 100% grátis, sem cadastro.",
+    "title": "Planejador de Viagens Mochileiro — Roteiros com AI para Hostels e Viagens Econômicas",
+    "description": "Monte sua rota mochileira em 30 segundos. Hostels em vez de hotéis, free tours, comida de rua, transporte público e atividades sociais — uma AI que entende de verdade a viagem mochileira. 100% grátis, sem cadastro.",
     "ogAlt": "MonkeyTravel — Planejador de Viagens Mochileiro"
   },
   "breadcrumbs": {
@@ -10,7 +10,7 @@
   },
   "hero": {
     "badge": "Modo Mochileiro já disponível",
-    "titleLead": "Um planejador de viagens com IA que entende de verdade",
+    "titleLead": "Um planejador de viagens com AI que entende de verdade",
     "titleHighlight": "a viagem mochileira",
     "subtitle": "Hostels antes de hotéis. Free tours a pé. Comida de rua. Transporte público. Atividades sociais onde quem viaja sozinho realmente conhece gente. Pronto em 30 segundos, grátis para sempre.",
     "ctaPrimary": "Planejar uma viagem mochileira",
@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Feito para como o mochileiro viaja de verdade",
-    "subtitle": "A maioria dos planejadores de viagem com IA cai no padrão de roteiros turísticos de gama média. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
+    "subtitle": "A maioria dos planejadores de viagem com AI cai no padrão de roteiros turísticos de gama média. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
     "items": {
       "hostels": {
         "title": "Hostels antes de hotéis",
@@ -62,7 +62,7 @@
       },
       "overland": {
         "title": "Rotas por terra entre várias cidades",
-        "body": "Para viagens de 5 dias ou mais, a IA considera dividir o trajeto entre 2 cidades com sugestões de transporte entre elas. Clássico mochileiro — uma viagem, várias paradas."
+        "body": "Para viagens de 5 dias ou mais, a AI considera dividir o trajeto entre 2 cidades com sugestões de transporte entre elas. Clássico mochileiro — uma viagem, várias paradas."
       }
     }
   },
@@ -75,7 +75,7 @@
       },
       "generate": {
         "title": "Gere em 30 segundos",
-        "body": "A IA monta um plano dia a dia otimizado para a viagem mochileira — bairros, transporte, comida, pontos de encontro."
+        "body": "A AI monta um plano dia a dia otimizado para a viagem mochileira — bairros, transporte, comida, pontos de encontro."
       },
       "book": {
         "title": "Reserve hostels com um toque",
@@ -85,7 +85,7 @@
   },
   "routes": {
     "title": "Experimente um destes destinos mochileiros clássicos",
-    "subtitle": "Um clique já preenche o assistente. A IA cuida do resto.",
+    "subtitle": "Um clique já preenche o assistente. A AI cuida do resto.",
     "daysLabel": "{days} dias",
     "hostelZoneLabel": "Zona de hostels: {neighbourhood}",
     "items": {
@@ -125,11 +125,11 @@
     "items": {
       "different": {
         "question": "O que torna diferente um roteiro de viagem mochileira?",
-        "answer": "A viagem mochileira otimiza coisas diferentes de umas férias típicas: hostels em vez de hotéis, free tours a pé no lugar de excursões guiadas, comida de rua em vez de restaurantes caros, transporte público e ônibus intermunicipais no lugar de táxis, e atividades sociais onde quem viaja sozinho pode conhecer outras pessoas. Nossa IA leva tudo isso em conta quando o Modo Mochileiro está ativado, então o roteiro final realmente parece uma viagem mochileira — não uma versão diluída de um plano de luxo."
+        "answer": "A viagem mochileira otimiza coisas diferentes de umas férias típicas: hostels em vez de hotéis, free tours a pé no lugar de excursões guiadas, comida de rua em vez de restaurantes caros, transporte público e ônibus intermunicipais no lugar de táxis, e atividades sociais onde quem viaja sozinho pode conhecer outras pessoas. Nossa AI leva tudo isso em conta quando o Modo Mochileiro está ativado, então o roteiro final realmente parece uma viagem mochileira — não uma versão diluída de um plano de luxo."
       },
       "free": {
         "question": "É realmente grátis? Onde está a pegadinha?",
-        "answer": "Sim, totalmente grátis. Não precisa de cadastro para gerar um plano — você só cria uma conta se quiser salvar a viagem e acessá-la depois de outro dispositivo. Não cobramos pela geração com IA, nem pelas recomendações, nem por nenhuma das funcionalidades."
+        "answer": "Sim, totalmente grátis. Não precisa de cadastro para gerar um plano — você só cria uma conta se quiser salvar a viagem e acessá-la depois de outro dispositivo. Não cobramos pela geração com AI, nem pelas recomendações, nem por nenhuma das funcionalidades."
       },
       "vsHostelworld": {
         "question": "Qual a diferença disso para o Hostelworld ou o Booking.com?",
@@ -137,11 +137,11 @@
       },
       "neighbourhoods": {
         "question": "Ele vai sugerir hostels em bons bairros?",
-        "answer": "Sim. A IA sabe quais bairros concentram hostels e são mais mochileiros em cada grande destino — Bairro Alto em Lisboa, El Born em Barcelona, Khao San em Bangkok, Friedrichshain em Berlim, e por aí vai. Ela também considera segurança, acesso ao transporte público e proximidade de pontos sociais como pub crawls e mercados noturnos."
+        "answer": "Sim. A AI sabe quais bairros concentram hostels e são mais mochileiros em cada grande destino — Bairro Alto em Lisboa, El Born em Barcelona, Khao San em Bangkok, Friedrichshain em Berlim, e por aí vai. Ela também considera segurança, acesso ao transporte público e proximidade de pontos sociais como pub crawls e mercados noturnos."
       },
       "multiCity": {
         "question": "Posso fazer uma rota por várias cidades / por terra?",
-        "answer": "Com certeza. Para viagens de 5 dias ou mais, a IA avalia se dividir o trajeto entre 2 (ou mais) cidades daria uma experiência melhor e sugere opções por terra (FlixBus, BlaBlaCar, trens intermunicipais) quando fazem sentido."
+        "answer": "Com certeza. Para viagens de 5 dias ou mais, a AI avalia se dividir o trajeto entre 2 (ou mais) cidades daria uma experiência melhor e sugere opções por terra (FlixBus, BlaBlaCar, trens intermunicipais) quando fazem sentido."
       },
       "comfort": {
         "question": "E se eu quiser um plano um pouco mais confortável?",

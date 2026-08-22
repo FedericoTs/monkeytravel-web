@@ -27,9 +27,9 @@ const PAGE_PATH = '/weekend-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Fim de Semana — Escapadas de 2-3 Dias com IA',
+    title: 'Planejador de Fim de Semana — Escapadas de 2-3 Dias com AI',
     description:
-      'Planeje a escapada de fim de semana perfeita em 15 minutos com IA. Roteiros de 2-3 dias com joias locais, preços reais e horários inteligentes. 100% grátis.',
+      'Planeje a escapada de fim de semana perfeita em 15 minutos com AI. Roteiros de 2-3 dias com joias locais, preços reais e horários inteligentes. 100% grátis.',
   },
   en: {
     title: 'Weekend Trip Planner — AI-Powered 2-3 Day Getaways',

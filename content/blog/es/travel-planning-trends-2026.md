@@ -7,7 +7,7 @@ description: >-
   Analizamos 1,1 millones de búsquedas en las que aparecieron nuestras páginas
   durante tres meses, más los viajes reales que la gente planificó con
   MonkeyTravel. Cuatro patrones definen cómo se planifica en 2026: primero la
-  IA, primero gratis, con ansiedad por el clima y convergiendo en el viaje de
+  AI, primero gratis, con ansiedad por el clima y convergiendo en el viaje de
   una semana, cada vez más multiciudad.
 author: Riccardo P.
 publishedAt: '2026-07-27'
@@ -24,15 +24,15 @@ seo:
   description: >-
     Qué revelan 1,1 millones de búsquedas de viajes y miles de itinerarios
     reales sobre cómo se planifican los viajes en 2026: el auge de planificar
-    con IA y gratis, la ansiedad por el clima y el pasaporte, y el viaje
+    con AI y gratis, la ansiedad por el clima y el pasaporte, y el viaje
     multiciudad de una semana.
   keywords:
     - tendencias de viaje 2026
     - estadísticas de viajes 2026
-    - planificar viajes con IA
+    - planificar viajes con AI
     - cómo planifica la gente sus viajes
     - informe de datos de viajes 2026
-    - planificador de viajes con IA gratis
+    - planificador de viajes con AI gratis
 schema: Article
 ---
 
@@ -46,13 +46,13 @@ Este informe se apoya en dos cosas: **más de 1,1 millones de búsquedas en las 
 
 Las cifras de búsqueda salen de las consultas por las que apareció nuestro contenido de viajes (vía Google Search Console): una ventana a la demanda, no un censo global, pero amplia y honesta. Las cifras sobre la forma del viaje salen de los itinerarios planificados en MonkeyTravel y se publican como proporciones y rankings en lugar de recuentos brutos, porque lo que aguanta son los patrones de comportamiento. No hemos hecho ninguna encuesta y no vendemos ninguna previsión. Esto es simplemente lo que dicen los números.
 
-## Patrón 1: planificar empieza por la IA — y tiene que salir gratis
+## Patrón 1: planificar empieza por la AI — y tiene que salir gratis
 
 La señal más ruidosa de todos los datos es que "AI trip planner" ha dejado de ser una búsqueda curiosa para convertirse en una categoría. Cientos de variantes distintas — *ai trip planner*, *best ai for travel planning*, *ai itinerary generator*, *which ai is best for trip planning* — aparecen a lo largo del trimestre, y van a más, no a menos.
 
-Pero el detalle interesante es el calificativo que la gente les añade. **El modificador dominante, y por mucho, es *free*.** En nuestros datos, las búsquedas de *free ai trip planner* se convierten en clic en torno al **5,9%**, más del triple que el genérico *ai trip planner* (alrededor del 1,7%). Los viajeros han decidido que planificar un viaje con IA es algo que no debería costar dinero, y buscan en consecuencia.
+Pero el detalle interesante es el calificativo que la gente les añade. **El modificador dominante, y por mucho, es *free*.** En nuestros datos, las búsquedas de *free ai trip planner* se convierten en clic en torno al **5,9%**, más del triple que el genérico *ai trip planner* (alrededor del 1,7%). Los viajeros han decidido que planificar un viaje con AI es algo que no debería costar dinero, y buscan en consecuencia.
 
-**Qué significa:** los productos que ganen en esta categoría no serán los del muro de pago más vistoso. Serán los que regalen un plan de verdad y moneticen en otro sitio. Para ver cómo están hoy las herramientas, mantenemos actualizada una [comparativa honesta de los mejores planificadores de viajes con IA](/blog/best-ai-trip-planners-2026-compared).
+**Qué significa:** los productos que ganen en esta categoría no serán los del muro de pago más vistoso. Serán los que regalen un plan de verdad y moneticen en otro sitio. Para ver cómo están hoy las herramientas, mantenemos actualizada una [comparativa honesta de los mejores planificadores de viajes con AI](/blog/best-ai-trip-planners-2026-compared).
 
 ## Patrón 2: al viajero le preocupan dos cosas — el clima y el acceso
 
@@ -87,7 +87,7 @@ La demanda también es marcadamente **estacional y con forma de mes**. Búsqueda
 
 ## El viajero de 2026, en una frase
 
-Empieza a planificar preguntándose *cuándo* y *si se puede* — si estará seco, si le dejarán entrar —, echa mano de una herramienta de IA que da por hecho que será gratis y construye un viaje de aproximadamente una semana, cada vez con más paradas, hacia una mezcla de iconos y sitios raros de la cola larga. Es un viajero muy distinto del cliente de "reservar un paquete a una playa" para el que se construyó la industria.
+Empieza a planificar preguntándose *cuándo* y *si se puede* — si estará seco, si le dejarán entrar —, echa mano de una herramienta de AI que da por hecho que será gratis y construye un viaje de aproximadamente una semana, cada vez con más paradas, hacia una mezcla de iconos y sitios raros de la cola larga. Es un viajero muy distinto del cliente de "reservar un paquete a una playa" para el que se construyó la industria.
 
 **¿Quieres verlo por ti mismo?** [Planifica un viaje con MonkeyTravel](/trips/new) — gratis, en segundos, de una ciudad o de varias — y notarás todos estos patrones en los primeros treinta segundos.
 
@@ -95,7 +95,7 @@ Empieza a planificar preguntándose *cuándo* y *si se puede* — si estará sec
 
 ### ¿Cuál es la mayor tendencia de viaje en 2026?
 
-Dos, en realidad: planificar ha pasado a empezar por la IA (con "gratis" como expectativa dominante) y la decisión arranca ahora por el *cuándo* y el *si se puede* — clima (monzón o estación seca) y normas de visado y pasaporte — antes que por el destino. En nuestros datos, esos bloques de ansiedad pesan más que casi todo lo demás, salvo las propias búsquedas de herramientas.
+Dos, en realidad: planificar ha pasado a empezar por la AI (con "gratis" como expectativa dominante) y la decisión arranca ahora por el *cuándo* y el *si se puede* — clima (monzón o estación seca) y normas de visado y pasaporte — antes que por el destino. En nuestros datos, esos bloques de ansiedad pesan más que casi todo lo demás, salvo las propias búsquedas de herramientas.
 
 ### ¿Cuánto dura el viaje medio en 2026?
 

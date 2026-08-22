@@ -321,9 +321,9 @@ Menos do que você imagina. As duas cidades estão acostumadas a turistas intern
 
 ---
 
-## Planeje Sua Viagem pela Ásia com IA
+## Planeje Sua Viagem pela Ásia com AI
 
-Ainda em dúvida entre ramen e churrasco coreano? O planejador de viagens com IA da MonkeyTravel monta roteiros personalizados para as duas cidades — com recomendações reais de restaurantes, orientações de transporte e reservas de atividades otimizadas para o seu orçamento e os seus interesses.
+Ainda em dúvida entre ramen e churrasco coreano? O planejador de viagens com AI da MonkeyTravel monta roteiros personalizados para as duas cidades — com recomendações reais de restaurantes, orientações de transporte e reservas de atividades otimizadas para o seu orçamento e os seus interesses.
 
 Diga as suas datas, o seu orçamento e se você se importa mais com comida, vida noturna ou templos. Você vai ter um roteiro dia a dia em minutos.
 

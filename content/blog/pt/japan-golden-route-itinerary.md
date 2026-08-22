@@ -122,11 +122,11 @@ Primeira vez no país? O [guia da primeira viagem ao Japão](/blog/first-trip-to
 4. **Comprar o JR Pass no reflexo.** Desde outubro de 2023 ele perde nessa rota por ¥20,000–35,000 por pessoa. Faça a conta antes de gastar ¥50,000.
 5. **Tratar Osaka como subúrbio de Kyoto.** Elas têm horários opostos — Kyoto é uma cidade das 6h, Osaka das 23h. Encurte Osaka e a rota perde sua única cidade noturna.
 
-## Monte a rota uma vez e deixe a IA dividir os dias
+## Monte a rota uma vez e deixe a AI dividir os dias
 
 A rota é padronizada; a sua versão dela não é. As datas do sakura mudam, o Universal Studios precisa de um dia inteiro ou de nenhum, e se Tóquio ganha quatro dias ou cinco depende dos seus voos. Nosso [planejador de viagens multicidade](/multi-city-trip-planner) resolve a parte em que a planilha falha: qual dia é o dia do trem, onde Nara encaixa sem estragar uma manhã de Kyoto, como tudo se reequilibra quando 12 dias viram 14.
 
-**[Monte esta rota e deixe a IA dividir os dias](/trips/new?multi=1)** — defina Tóquio, Kyoto e Osaka, escolha as datas, e ele rascunha cada cidade dia a dia em uns 30 segundos.
+**[Monte esta rota e deixe a AI dividir os dias](/trips/new?multi=1)** — defina Tóquio, Kyoto e Osaka, escolha as datas, e ele rascunha cada cidade dia a dia em uns 30 segundos.
 
 ## Perguntas frequentes (FAQ)
 

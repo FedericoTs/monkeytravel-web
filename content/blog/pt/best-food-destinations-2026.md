@@ -244,7 +244,7 @@ O que está se destacando especificamente: as experiências hiperlocais. Cozinha
 
 Os viajantes que movem esse mercado não são apenas obcecados por comida. São pessoas que perceberam que o acesso à comida é o caminho mais rápido para dentro de uma cultura — e que se aprende mais sobre um lugar em uma visita de três horas a um mercado do que em um dia inteiro de tour por museu.
 
-Use nosso [planejador de viagens com IA gratuito](/free-ai-trip-planner) para montar um roteiro de foodcation em torno de qualquer um desses destinos — ele consegue estruturar seus dias com base nos mercados, nos horários das refeições e nas experiências de cozinha.
+Use nosso [planejador de viagens com AI gratuito](/free-ai-trip-planner) para montar um roteiro de foodcation em torno de qualquer um desses destinos — ele consegue estruturar seus dias com base nos mercados, nos horários das refeições e nas experiências de cozinha.
 
 ---
 

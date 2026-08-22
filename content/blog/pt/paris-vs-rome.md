@@ -390,9 +390,9 @@ Você se vira com inglês nas áreas turísticas das duas cidades. Em Paris, apr
 
 ---
 
-## Planeje Sua Viagem de 2026 com IA
+## Planeje Sua Viagem de 2026 com AI
 
-Ainda indeciso? O planejador de viagens com IA da MonkeyTravel pode montar um roteiro personalizado para qualquer uma das cidades em minutos — com preços reais, rotas inteligentes e recomendações locais sob medida para seus interesses e orçamento.
+Ainda indeciso? O planejador de viagens com AI da MonkeyTravel pode montar um roteiro personalizado para qualquer uma das cidades em minutos — com preços reais, rotas inteligentes e recomendações locais sob medida para seus interesses e orçamento.
 
 Quer você escolha o croissant ou o cornetto, vamos garantir que você não desperdice um único dia.
 

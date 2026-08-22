@@ -206,7 +206,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Custo realista de 10 noites (2 pessoas, voos dos EUA ou da Europa):** US$ 9.500–14.000. Hotel boutique em Tóquio US$ 250–400/noite, machiya em Quioto US$ 300–500/noite, ryokan com jantar e café da manhã US$ 400–700/casal, JR Pass US$ 570/pessoa.
 
-**Minha opinião:** reserve primeiro o ryokan, depois construa a viagem em torno dele. Os ryokans de flor de cerejeira e de outono esgotam três a quatro meses antes. O iene continua historicamente fraco frente ao dólar, que é o motivo pouco discutido pelo qual o Japão é o melhor custo-benefício de lua de mel premium em 2026. Use nosso [planejador de viagens com IA gratis](/free-ai-trip-planner) para esboçar uma rota de lua de mel pelo Japão.
+**Minha opinião:** reserve primeiro o ryokan, depois construa a viagem em torno dele. Os ryokans de flor de cerejeira e de outono esgotam três a quatro meses antes. O iene continua historicamente fraco frente ao dólar, que é o motivo pouco discutido pelo qual o Japão é o melhor custo-benefício de lua de mel premium em 2026. Use nosso [planejador de viagens com AI gratis](/free-ai-trip-planner) para esboçar uma rota de lua de mel pelo Japão.
 
 ### Santa Lúcia
 
@@ -403,7 +403,7 @@ Para a maioria dos casais, sim. Cerca de 40% das reservas de lua de mel de 2026 
 
 ### Como planejamos uma lua de mel quando nossas agendas estão completamente lotadas?
 
-Use planejamento com IA. Sério. Ferramentas como o nosso [planejador de viagens com IA](/blog/how-to-plan-a-trip-with-ai) comprimem o que antes eram 15–20 horas de pesquisa (voos, hotéis, roteiros diários, reservas de restaurantes, transporte) em 60–90 minutos de conversa. O melhor caso de uso de 2026 para planejadores com IA é exatamente o casal com a agenda cheia: você descreve orçamento, datas, clima e restrições; a IA devolve um plano sequenciado com custos realistas que você então refina. A lua de mel é uma das viagens com maior alavancagem para planejar com IA porque as variáveis (dois viajantes, datas fixas, otimização para romance e ritmo) são exatamente aquilo em que a IA é boa.
+Use planejamento com AI. Sério. Ferramentas como o nosso [planejador de viagens com AI](/blog/how-to-plan-a-trip-with-ai) comprimem o que antes eram 15–20 horas de pesquisa (voos, hotéis, roteiros diários, reservas de restaurantes, transporte) em 60–90 minutos de conversa. O melhor caso de uso de 2026 para planejadores com AI é exatamente o casal com a agenda cheia: você descreve orçamento, datas, clima e restrições; a AI devolve um plano sequenciado com custos realistas que você então refina. A lua de mel é uma das viagens com maior alavancagem para planejar com AI porque as variáveis (dois viajantes, datas fixas, otimização para romance e ritmo) são exatamente aquilo em que a AI é boa.
 
 ### Qual é a etapa de planejamento de lua de mel mais pulada?
 
@@ -411,7 +411,7 @@ Projetar o Dia 1 para ser vazio. Quase ninguém faz isso. Quase todo mundo se ar
 
 ---
 
-*Planeje sua lua de mel 2026 com o nosso [planejador de viagens com IA gratis](/free-ai-trip-planner) — insira seu destino, datas e faixa de orçamento, e receba um plano sequenciado dia a dia com custos realistas e recomendações de temporada intermediária.*
+*Planeje sua lua de mel 2026 com o nosso [planejador de viagens com AI gratis](/free-ai-trip-planner) — insira seu destino, datas e faixa de orçamento, e receba um plano sequenciado dia a dia com custos realistas e recomendações de temporada intermediária.*
 
 *Fontes:*
 

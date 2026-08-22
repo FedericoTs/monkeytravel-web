@@ -1,5 +1,5 @@
 ---
-title: 'Avaliação do Wonderplan 2026: testamos o planejador de viagens com IA grátis (+ alternativas)'
+title: 'Avaliação do Wonderplan 2026: testamos o planejador de viagens com AI grátis (+ alternativas)'
 slug: wonderplan-review-2026
 description: >-
   Uma avaliação honesta do Wonderplan em 2026 — realmente grátis, bom para
@@ -12,12 +12,12 @@ updatedAt: '2026-07-27'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/how-to-plan-a-trip-with-ai.jpg
-imageAlt: Planejamento de viagem com IA exibido em telas de laptop e celular
+imageAlt: Planejamento de viagem com AI exibido em telas de laptop e celular
 readingTime: 8
 seo:
-  title: 'Avaliação do Wonderplan 2026: testamos o planejador de viagens com IA grátis'
+  title: 'Avaliação do Wonderplan 2026: testamos o planejador de viagens com AI grátis'
   description: >-
-    O Wonderplan é bom? Testamos o planejador de viagens com IA grátis em 2026.
+    O Wonderplan é bom? Testamos o planejador de viagens com AI grátis em 2026.
     Veja o que ele faz bem, onde parece um gerador de modelos e as melhores
     alternativas grátis, com personalização de verdade e planejamento em grupo.
   keywords:
@@ -30,9 +30,9 @@ seo:
 schema: Article
 ---
 
-# Avaliação do Wonderplan 2026: testamos o planejador de viagens com IA grátis (+ alternativas)
+# Avaliação do Wonderplan 2026: testamos o planejador de viagens com AI grátis (+ alternativas)
 
-O Wonderplan é um dos planejadores de viagens com IA realmente grátis em 2026 — sem paywall, interface de calendário limpa, exportação em PDF. Para uma viagem econômica rápida de destino único, ele resolve com pouquíssimo atrito. Mas qual é a qualidade do resultado de fato, e será que é a melhor opção grátis para você?
+O Wonderplan é um dos planejadores de viagens com AI realmente grátis em 2026 — sem paywall, interface de calendário limpa, exportação em PDF. Para uma viagem econômica rápida de destino único, ele resolve com pouquíssimo atrito. Mas qual é a qualidade do resultado de fato, e será que é a melhor opção grátis para você?
 
 Testamos o Wonderplan em viagens reais. Aqui vai a leitura honesta — no que ele é bom, onde parece raso e as alternativas grátis que vale a pena comparar antes de se decidir.
 

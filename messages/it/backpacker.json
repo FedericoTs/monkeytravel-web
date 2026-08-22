@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Pianificatore di Viaggi Zaino in Spalla — Itinerari IA per Ostelli e Viaggi Low Cost",
-    "description": "Crea il tuo itinerario zaino in spalla in 30 secondi. Ostelli al posto degli hotel, free tour, street food, mezzi pubblici e attività sociali — un'IA che capisce davvero come si viaggia con lo zaino. Gratis al 100%, senza registrazione.",
+    "title": "Pianificatore di Viaggi Zaino in Spalla — Itinerari AI per Ostelli e Viaggi Low Cost",
+    "description": "Crea il tuo itinerario zaino in spalla in 30 secondi. Ostelli al posto degli hotel, free tour, street food, mezzi pubblici e attività sociali — un'AI che capisce davvero come si viaggia con lo zaino. Gratis al 100%, senza registrazione.",
     "ogAlt": "MonkeyTravel — Pianificatore Viaggi Zaino in Spalla"
   },
   "breadcrumbs": {
@@ -10,7 +10,7 @@
   },
   "hero": {
     "badge": "Modalità Zaino in Spalla attiva",
-    "titleLead": "Un'IA che capisce davvero",
+    "titleLead": "Un'AI che capisce davvero",
     "titleHighlight": "i viaggi zaino in spalla",
     "subtitle": "Ostelli prima degli hotel. Free tour a piedi. Street food. Mezzi pubblici. Attività sociali per conoscere altre persone quando viaggi da solo. Pronto in 30 secondi, gratis per sempre.",
     "ctaPrimary": "Pianifica un viaggio zaino in spalla",
@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Costruito per come viaggia davvero chi parte con lo zaino",
-    "subtitle": "Quasi tutte le IA generano per default viaggi turistici di fascia media. Attivi la Modalità Zaino in Spalla e ogni dettaglio dell'itinerario cambia: alloggio, attività, cibo, trasporti e vita sociale.",
+    "subtitle": "Quasi tutte le AI generano per default viaggi turistici di fascia media. Attivi la Modalità Zaino in Spalla e ogni dettaglio dell'itinerario cambia: alloggio, attività, cibo, trasporti e vita sociale.",
     "items": {
       "hostels": {
         "title": "Ostelli al posto degli hotel",
@@ -62,7 +62,7 @@
       },
       "overland": {
         "title": "Itinerari multi-città via terra",
-        "body": "Per viaggi di 5 giorni o più, l'IA valuta se dividere il viaggio tra 2 città con collegamenti via terra. Un classico backpacker: un viaggio, più tappe."
+        "body": "Per viaggi di 5 giorni o più, l'AI valuta se dividere il viaggio tra 2 città con collegamenti via terra. Un classico backpacker: un viaggio, più tappe."
       }
     }
   },
@@ -75,7 +75,7 @@
       },
       "generate": {
         "title": "Genera in 30 secondi",
-        "body": "L'IA costruisce un piano giorno per giorno pensato per viaggiare zaino in spalla: quartieri, trasporti, cibo e luoghi sociali."
+        "body": "L'AI costruisce un piano giorno per giorno pensato per viaggiare zaino in spalla: quartieri, trasporti, cibo e luoghi sociali."
       },
       "book": {
         "title": "Prenota gli ostelli con un tap",
@@ -85,7 +85,7 @@
   },
   "routes": {
     "title": "Prova una di queste mete classiche da backpacker",
-    "subtitle": "Un clic precompila il wizard. Al resto pensa l'IA.",
+    "subtitle": "Un clic precompila il wizard. Al resto pensa l'AI.",
     "daysLabel": "{days} giorni",
     "hostelZoneLabel": "Zona ostelli: {neighbourhood}",
     "items": {
@@ -125,11 +125,11 @@
     "items": {
       "different": {
         "question": "Cosa rende diverso un itinerario zaino in spalla?",
-        "answer": "Viaggiare con lo zaino in spalla ottimizza cose diverse rispetto a una vacanza classica: ostelli invece di hotel, free tour al posto delle escursioni guidate, street food invece dei ristoranti gourmet, mezzi pubblici e bus tra città invece dei taxi, e attività sociali dove chi viaggia da solo può conoscere altre persone. La nostra IA tiene conto di tutto questo quando attivi la Modalità Zaino in Spalla, così l'itinerario finale sembra davvero un viaggio backpacker — non una versione annacquata di un piano di lusso."
+        "answer": "Viaggiare con lo zaino in spalla ottimizza cose diverse rispetto a una vacanza classica: ostelli invece di hotel, free tour al posto delle escursioni guidate, street food invece dei ristoranti gourmet, mezzi pubblici e bus tra città invece dei taxi, e attività sociali dove chi viaggia da solo può conoscere altre persone. La nostra AI tiene conto di tutto questo quando attivi la Modalità Zaino in Spalla, così l'itinerario finale sembra davvero un viaggio backpacker — non una versione annacquata di un piano di lusso."
       },
       "free": {
         "question": "È davvero gratis? Dov'è la fregatura?",
-        "answer": "Sì, completamente gratis. Non serve registrarsi per generare un piano: crei un account solo se vuoi salvare il viaggio e ritrovarlo da un altro dispositivo. Non facciamo pagare la generazione con IA, né i suggerimenti, né nessuna funzionalità."
+        "answer": "Sì, completamente gratis. Non serve registrarsi per generare un piano: crei un account solo se vuoi salvare il viaggio e ritrovarlo da un altro dispositivo. Non facciamo pagare la generazione con AI, né i suggerimenti, né nessuna funzionalità."
       },
       "vsHostelworld": {
         "question": "In cosa è diverso da Hostelworld o Booking.com?",
@@ -137,11 +137,11 @@
       },
       "neighbourhoods": {
         "question": "Mi consiglierà ostelli in quartieri buoni?",
-        "answer": "Sì. L'IA sa quali quartieri sono pieni di ostelli e più frequentati dai backpacker in ogni grande destinazione: Bairro Alto a Lisbona, El Born a Barcellona, Khao San a Bangkok, Friedrichshain a Berlino, e così via. Tiene anche conto della sicurezza, dell'accesso ai mezzi pubblici e della vicinanza a luoghi sociali come pub crawl e mercati notturni."
+        "answer": "Sì. L'AI sa quali quartieri sono pieni di ostelli e più frequentati dai backpacker in ogni grande destinazione: Bairro Alto a Lisbona, El Born a Barcellona, Khao San a Bangkok, Friedrichshain a Berlino, e così via. Tiene anche conto della sicurezza, dell'accesso ai mezzi pubblici e della vicinanza a luoghi sociali come pub crawl e mercati notturni."
       },
       "multiCity": {
         "question": "Posso fare un itinerario multi-città / via terra?",
-        "answer": "Assolutamente sì. Per viaggi di 5 giorni o più, l'IA valuta se dividere il viaggio tra 2 (o più) città offre un'esperienza migliore e suggerisce collegamenti via terra (FlixBus, BlaBlaCar, treni interurbani) quando hanno senso."
+        "answer": "Assolutamente sì. Per viaggi di 5 giorni o più, l'AI valuta se dividere il viaggio tra 2 (o più) città offre un'esperienza migliore e suggerisce collegamenti via terra (FlixBus, BlaBlaCar, treni interurbani) quando hanno senso."
       },
       "comfort": {
         "question": "E se voglio un piano un po' più comodo?",

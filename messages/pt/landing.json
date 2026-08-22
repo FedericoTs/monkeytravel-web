@@ -11,14 +11,20 @@
     "inputPlaceholder": "Para onde você quer ir?",
     "inputCta": "Planejar viagem",
     "starterLabel": "Populares:",
-    "starters": ["Tóquio", "Paris", "Bali", "Roma", "Nova York"],
+    "starters": [
+      "Tóquio",
+      "Paris",
+      "Bali",
+      "Roma",
+      "Nova York"
+    ],
     "trustSignals": {
       "free": "100% Grátis",
       "noCard": "Até 8 Amigos",
       "instant": "30 Segundos"
     },
     "floatingCards": {
-      "aiPowered": "Com IA",
+      "aiPowered": "Com AI",
       "thirtySeconds": "30 Segundos",
       "webApp": "Web App",
       "liveNow": "Disponível Já"
@@ -54,9 +60,9 @@
     }
   },
   "aiChatDemo": {
-    "badge": "Agente de Viagens com IA",
+    "badge": "Agente de Viagens com AI",
     "title": "Mude o que quiser com uma mensagem",
-    "subtitle": "Não gostou de algo? É só falar com a nossa IA. É como mandar mensagem para um amigo que conhece cada restaurante da cidade.",
+    "subtitle": "Não gostou de algo? É só falar com a nossa AI. É como mandar mensagem para um amigo que conhece cada restaurante da cidade.",
     "chat": {
       "user1": "Você pode trocar o museu do Dia 2 por algo mais ao ar livre?",
       "ai1": "Pronto! Substituí o Museo del Prado por um passeio guiado de bike pelo Parque do Retiro. Quer que eu ajuste o almoço por perto também?",
@@ -67,8 +73,8 @@
   },
   "solution": {
     "badge": "Diferente de Verdade",
-    "title": "Não é mais um truque de IA",
-    "subtitle": "A gente entende — você já viu o hype do \"planejador de viagens com IA\" antes. Aqui está o que torna este de verdade.",
+    "title": "Não é mais um truque de AI",
+    "subtitle": "A gente entende — você já viu o hype do \"planejador de viagens com AI\" antes. Aqui está o que torna este de verdade.",
     "features": {
       "personalized": {
         "title": "Realmente Personalizado",
@@ -90,7 +96,7 @@
       },
       "agent": {
         "title": "Uma Conversa de Verdade",
-        "description": "Peça à nossa IA para trocar, adicionar ou remover qualquer coisa — como mandar mensagem para um amigo local que conhece a cidade de verdade."
+        "description": "Peça à nossa AI para trocar, adicionar ou remover qualquer coisa — como mandar mensagem para um amigo local que conhece a cidade de verdade."
       },
       "dayByDay": {
         "title": "Detalhe Hora a Hora",
@@ -98,7 +104,7 @@
       },
       "customizable": {
         "title": "Sua Viagem, Suas Regras",
-        "description": "Arraste atividades, mude horários, adicione os seus próprios lugares. A IA te dá um ponto de partida, não um cronograma engessado."
+        "description": "Arraste atividades, mude horários, adicione os seus próprios lugares. A AI te dá um ponto de partida, não um cronograma engessado."
       },
       "collaborate": {
         "title": "Feito para Grupos",
@@ -150,7 +156,7 @@
       },
       "aiBuild": {
         "title": "Receba Seu Plano em 30s",
-        "description": "Nossa IA cria um roteiro completo dia a dia: restaurantes, atividades, rotas a pé — personalizado para o seu grupo."
+        "description": "Nossa AI cria um roteiro completo dia a dia: restaurantes, atividades, rotas a pé — personalizado para o seu grupo."
       },
       "customize": {
         "title": "Deixem do Jeito de Vocês",
@@ -180,7 +186,7 @@
     "items": {
       "paywall": {
         "title": "Sem Barreira de Pagamento",
-        "description": "O planejador com IA completo é grátis. Não um \"teste grátis\" — grátis de verdade."
+        "description": "O planejador com AI completo é grátis. Não um \"teste grátis\" — grátis de verdade."
       },
       "download": {
         "title": "Sem Baixar App",
@@ -205,20 +211,20 @@
     "title": "Perguntas Frequentes",
     "items": {
       "free": {
-        "question": "Este planejador de viagens com IA é mesmo grátis?",
-        "answer": "Sim, o MonkeyTravel é 100% grátis. Crie roteiros de viagem, personalize-os, exporte em PDF e compartilhe com amigos — tudo sem pagar nada. A colaboração em grupo também é grátis — convide até 8 amigos por viagem. Pretendemos adicionar recursos premium opcionais no futuro, mas o planejador de viagens com IA principal será sempre grátis."
+        "question": "Este planejador de viagens com AI é mesmo grátis?",
+        "answer": "Sim, o MonkeyTravel é 100% grátis. Crie roteiros de viagem, personalize-os, exporte em PDF e compartilhe com amigos — tudo sem pagar nada. A colaboração em grupo também é grátis — convide até 8 amigos por viagem. Pretendemos adicionar recursos premium opcionais no futuro, mas o planejador de viagens com AI principal será sempre grátis."
       },
       "noApp": {
         "question": "Preciso baixar um app?",
         "answer": "Não. O MonkeyTravel funciona inteiramente no seu navegador — celular, tablet ou computador. É só acessar monkeytravel.app e começar a planejar. Estamos desenvolvendo apps para iOS e Android para uma experiência ainda melhor, em breve."
       },
       "howAiWorks": {
-        "question": "Como funciona o gerador de roteiros com IA?",
-        "answer": "Diga para onde você vai, as suas datas de viagem, quem vai junto e o que você curte. Nossa IA cria um roteiro personalizado dia a dia em cerca de 30 segundos — adaptado às suas preferências, ao seu ritmo e aos seus interesses. Cada plano inclui restaurantes, atrações, horários e rotas a pé."
+        "question": "Como funciona o gerador de roteiros com AI?",
+        "answer": "Diga para onde você vai, as suas datas de viagem, quem vai junto e o que você curte. Nossa AI cria um roteiro personalizado dia a dia em cerca de 30 segundos — adaptado às suas preferências, ao seu ritmo e aos seus interesses. Cada plano inclui restaurantes, atrações, horários e rotas a pé."
       },
       "editItinerary": {
         "question": "Posso editar o roteiro?",
-        "answer": "Claro. Troque qualquer atividade, adicione os seus próprios lugares, ajuste os horários ou peça alternativas ao nosso assistente de IA. É um ponto de partida inteligente, não um cronograma engessado."
+        "answer": "Claro. Troque qualquer atividade, adicione os seus próprios lugares, ajuste os horários ou peça alternativas ao nosso assistente de AI. É um ponto de partida inteligente, não um cronograma engessado."
       },
       "destinations": {
         "question": "Quais destinos posso planejar?",

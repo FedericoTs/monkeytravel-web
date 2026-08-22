@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planificador de Viajes Mochileros — Itinerarios con IA para Hostels y Viajes Low Cost",
-    "description": "Arma tu ruta mochilera en 30 segundos. Hostels en lugar de hoteles, free tours, comida callejera, transporte público y planes sociales — una IA que entiende cómo viaja un mochilero. 100% gratis y sin registro.",
+    "title": "Planificador de Viajes Mochileros — Itinerarios con AI para Hostels y Viajes Low Cost",
+    "description": "Arma tu ruta mochilera en 30 segundos. Hostels en lugar de hoteles, free tours, comida callejera, transporte público y planes sociales — una AI que entiende cómo viaja un mochilero. 100% gratis y sin registro.",
     "ogAlt": "MonkeyTravel — Planificador de Viajes Mochileros"
   },
   "breadcrumbs": {
@@ -10,7 +10,7 @@
   },
   "hero": {
     "badge": "Modo Mochilero ya disponible",
-    "titleLead": "Una IA que entiende de verdad",
+    "titleLead": "Una AI que entiende de verdad",
     "titleHighlight": "los viajes mochileros",
     "subtitle": "Hostels antes que hoteles. Free tours a pie. Street food. Transporte público. Planes sociales para conocer gente cuando viajas solo. Listo en 30 segundos y gratis para siempre.",
     "ctaPrimary": "Planear ruta mochilera",
@@ -62,7 +62,7 @@
       },
       "overland": {
         "title": "Rutas por tierra entre varias ciudades",
-        "body": "Para viajes de 5 días o más, la IA se plantea repartir el viaje entre 2 ciudades con conexiones por tierra. Un clásico mochilero: un viaje, varias paradas."
+        "body": "Para viajes de 5 días o más, la AI se plantea repartir el viaje entre 2 ciudades con conexiones por tierra. Un clásico mochilero: un viaje, varias paradas."
       }
     }
   },
@@ -75,7 +75,7 @@
       },
       "generate": {
         "title": "Genera en 30 segundos",
-        "body": "La IA arma un plan día por día pensado para viajar como mochilero: barrios, transporte, comida y vida social."
+        "body": "La AI arma un plan día por día pensado para viajar como mochilero: barrios, transporte, comida y vida social."
       },
       "book": {
         "title": "Reserva hostels en un toque",
@@ -85,7 +85,7 @@
   },
   "routes": {
     "title": "Prueba con uno de estos destinos mochileros clásicos",
-    "subtitle": "Un clic precarga el asistente. La IA se encarga del resto.",
+    "subtitle": "Un clic precarga el asistente. La AI se encarga del resto.",
     "daysLabel": "{days} días",
     "hostelZoneLabel": "Zona de hostels: {neighbourhood}",
     "items": {
@@ -125,11 +125,11 @@
     "items": {
       "different": {
         "question": "¿Qué tiene de diferente un plan mochilero?",
-        "answer": "Viajar de mochilero optimiza cosas distintas a un viaje turístico clásico: hostels en lugar de hoteles, free tours en vez de excursiones guiadas, comida callejera antes que restaurantes caros, transporte público y buses interurbanos en lugar de taxis, y planes sociales donde alguien que viaja solo puede conocer gente. Nuestra IA tiene todo eso en cuenta cuando activas el Modo Mochilero, así que el itinerario final parece de verdad un viaje mochilero, no una versión descafeinada de un viaje de lujo."
+        "answer": "Viajar de mochilero optimiza cosas distintas a un viaje turístico clásico: hostels en lugar de hoteles, free tours en vez de excursiones guiadas, comida callejera antes que restaurantes caros, transporte público y buses interurbanos en lugar de taxis, y planes sociales donde alguien que viaja solo puede conocer gente. Nuestra AI tiene todo eso en cuenta cuando activas el Modo Mochilero, así que el itinerario final parece de verdad un viaje mochilero, no una versión descafeinada de un viaje de lujo."
       },
       "free": {
         "question": "¿Es realmente gratis? ¿Dónde está el truco?",
-        "answer": "Sí, totalmente gratis. No hace falta registrarse para generar un plan: solo creas una cuenta si quieres guardar el viaje y acceder a él desde otro dispositivo. No cobramos por la generación con IA, ni por las recomendaciones, ni por ninguna funcionalidad."
+        "answer": "Sí, totalmente gratis. No hace falta registrarse para generar un plan: solo creas una cuenta si quieres guardar el viaje y acceder a él desde otro dispositivo. No cobramos por la generación con AI, ni por las recomendaciones, ni por ninguna funcionalidad."
       },
       "vsHostelworld": {
         "question": "¿En qué se diferencia de Hostelworld o Booking.com?",
@@ -137,11 +137,11 @@
       },
       "neighbourhoods": {
         "question": "¿Recomendará hostels en buenos barrios?",
-        "answer": "Sí. La IA sabe qué barrios concentran hostels y son más mochileros en cada destino: Bairro Alto en Lisboa, El Born en Barcelona, Khao San en Bangkok, Friedrichshain en Berlín, etc. También tiene en cuenta la seguridad, el acceso al transporte público y la cercanía a planes sociales como pub crawls o mercados nocturnos."
+        "answer": "Sí. La AI sabe qué barrios concentran hostels y son más mochileros en cada destino: Bairro Alto en Lisboa, El Born en Barcelona, Khao San en Bangkok, Friedrichshain en Berlín, etc. También tiene en cuenta la seguridad, el acceso al transporte público y la cercanía a planes sociales como pub crawls o mercados nocturnos."
       },
       "multiCity": {
         "question": "¿Puedo hacer una ruta por varias ciudades?",
-        "answer": "Por supuesto. Para viajes de 5 días o más, la IA evalúa si te conviene repartir el viaje entre 2 o más ciudades y sugiere opciones por tierra (FlixBus, BlaBlaCar, trenes interurbanos) cuando tienen sentido."
+        "answer": "Por supuesto. Para viajes de 5 días o más, la AI evalúa si te conviene repartir el viaje entre 2 o más ciudades y sugiere opciones por tierra (FlixBus, BlaBlaCar, trenes interurbanos) cuando tienen sentido."
       },
       "comfort": {
         "question": "¿Y si quiero un plan un poco más cómodo?",

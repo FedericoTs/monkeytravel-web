@@ -22,8 +22,8 @@ const BASE_URL = 'https://monkeytravel.app';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens com IA Grátis | Roteiros Dia a Dia em Minutos',
-    description: 'Planeje a viagem perfeita com roteiros dia a dia gerados por IA. Receba planos de viagem personalizados em minutos — grátis, sem cartão de crédito.',
+    title: 'Planejador de Viagens com AI Grátis | Roteiros Dia a Dia em Minutos',
+    description: 'Planeje a viagem perfeita com roteiros dia a dia gerados por AI. Receba planos de viagem personalizados em minutos — grátis, sem cartão de crédito.',
   },
   en: {
     title: 'Free AI Trip Planner | Day-by-Day Itineraries in Minutes',
@@ -942,7 +942,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {locale === "it"
                     ? "Lista personalizzata con AI in base a clima, attività e durata del viaggio."
                     : locale === "es"
-                      ? "Lista personalizada con IA según clima, actividades y duración del viaje."
+                      ? "Lista personalizada con AI según clima, actividades y duración del viaje."
                       : "AI-personalized by destination weather, activities, and trip length."}
                 </p>
                 <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)]">

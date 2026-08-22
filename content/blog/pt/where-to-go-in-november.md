@@ -134,7 +134,7 @@ Mude de hemisfério. Novembro é primavera tardia na Nova Zelândia — voltam o
 
 ## Planeie a sua viagem de novembro em 30 segundos
 
-Escolha um dos doze destinos acima e o planeador de viagens com IA gratuito da MonkeyTravel constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. [Planeie a sua viagem de novembro](/trips/new) sem precisar de registo para experimentar.
+Escolha um dos doze destinos acima e o planeador de viagens com AI gratuito da MonkeyTravel constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. [Planeie a sua viagem de novembro](/trips/new) sem precisar de registo para experimentar.
 
 ## Perguntas frequentes (FAQ)
 

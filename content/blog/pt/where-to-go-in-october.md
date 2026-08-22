@@ -134,7 +134,7 @@ Por confuso que pareça, a Oktoberfest decorre quase toda em setembro, mas os se
 
 ## Planeie a sua viagem de outubro em 30 segundos
 
-Escolha um dos doze destinos acima e o [planeador de viagens com IA gratuito da MonkeyTravel](/free-ai-trip-planner) constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso registo para experimentar. Quando quiser: [planeie a sua viagem de outubro](/trips/new).
+Escolha um dos doze destinos acima e o [planeador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso registo para experimentar. Quando quiser: [planeie a sua viagem de outubro](/trips/new).
 
 ## Perguntas frequentes (FAQ)
 

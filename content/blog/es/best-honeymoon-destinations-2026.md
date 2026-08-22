@@ -309,7 +309,7 @@ Elegir la estación correcta para el destino que has elegido. Santorini en mayo 
 
 ---
 
-*Planifica tu luna de miel de 2026 con nuestro [planificador de viajes con IA gratuito](/free-ai-trip-planner): pon el destino, las fechas y el nivel de presupuesto y recibe un plan día a día, secuenciado, con costes realistas y recomendaciones de temporada media.*
+*Planifica tu luna de miel de 2026 con nuestro [planificador de viajes con AI gratuito](/free-ai-trip-planner): pon el destino, las fechas y el nivel de presupuesto y recibe un plan día a día, secuenciado, con costes realistas y recomendaciones de temporada media.*
 
 *Fuentes:*
 

@@ -127,7 +127,7 @@ O que você realmente precisa é de um único lugar onde:
 - Alguém possa propor alternativas sem descarrilar o plano
 - As mudanças fiquem visíveis para todos instantaneamente
 
-É exatamente por isso que criamos o [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner). A [IA gera um roteiro inicial](/free-ai-trip-planner) com base no destino, orçamento e interesses do seu grupo. Depois, cada pessoa do grupo pode:
+É exatamente por isso que criamos o [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner). A [AI gera um roteiro inicial](/free-ai-trip-planner) com base no destino, orçamento e interesses do seu grupo. Depois, cada pessoa do grupo pode:
 
 - **Votar** nas atividades com um sistema de 4 níveis (Amei / Flexível / Tenho dúvidas / Passo)
 - **Propor** alternativas para qualquer horário

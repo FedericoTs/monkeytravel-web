@@ -213,11 +213,11 @@ Os preços dos safáris variam enormemente. Veja o que esperar por pessoa para u
 
 ---
 
-## Deixe a IA Planejar o Seu Safári de Migração
+## Deixe a AI Planejar o Seu Safári de Migração
 
 Planejar um safári da Grande Migração envolve dezenas de decisões — qual mês, qual região, quais acampamentos, qual lado da fronteira, orçamento, logística, voos de conexão. É muita coisa.
 
-A IA da MonkeyTravel cria um **roteiro de safári de migração personalizado** com base nas suas datas de viagem, orçamento e interesses — com recomendações de acampamentos reais, preços atuais e roteiro dia a dia para que você não perca um único dia.
+A AI da MonkeyTravel cria um **roteiro de safári de migração personalizado** com base nas suas datas de viagem, orçamento e interesses — com recomendações de acampamentos reais, preços atuais e roteiro dia a dia para que você não perca um único dia.
 
 [Planejar Meu Safári — Grátis](https://monkeytravel.app)
 

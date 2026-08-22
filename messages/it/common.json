@@ -32,7 +32,7 @@
     "q5_social": "Social media",
     "q5_friend": "Me ne ha parlato qualcuno",
     "q5_article": "Un blog o un articolo",
-    "q5_ai": "ChatGPT o un'altra IA",
+    "q5_ai": "ChatGPT o un'altra AI",
     "q5_other": "In altro modo",
     "q6Label": "Prima di un viaggio, vorresti che ti mandassimo cose che vale la pena sapere sulla tua destinazione?",
     "q6_yes": "Sì",
@@ -1842,10 +1842,10 @@
       "linkClicks": "Clic sul link"
     },
     "share": {
-      "twitterText": "Sto pianificando i viaggi con MonkeyTravel: l'IA crea un itinerario giorno per giorno in circa 30 secondi, gratis. Unisciti:",
-      "whatsappText": "Ehi! Sto usando MonkeyTravel per pianificare viaggi: l'IA crea un itinerario completo giorno per giorno in circa 30 secondi ed è gratis. Provalo:",
+      "twitterText": "Sto pianificando i viaggi con MonkeyTravel: l'AI crea un itinerario giorno per giorno in circa 30 secondi, gratis. Unisciti:",
+      "whatsappText": "Ehi! Sto usando MonkeyTravel per pianificare viaggi: l'AI crea un itinerario completo giorno per giorno in circa 30 secondi ed è gratis. Provalo:",
       "emailSubject": "Ti invito su MonkeyTravel",
-      "emailBody": "Ehi!\n\nSto usando MonkeyTravel per pianificare viaggi con l'IA e penso che ti piacerà.\n\nScrivi una città e crea un itinerario completo giorno per giorno in circa 30 secondi: gratis, e non serve un account per provarlo.\n\nBuon viaggio!"
+      "emailBody": "Ehi!\n\nSto usando MonkeyTravel per pianificare viaggi con l'AI e penso che ti piacerà.\n\nScrivi una città e crea un itinerario completo giorno per giorno in circa 30 secondi: gratis, e non serve un account per provarlo.\n\nBuon viaggio!"
     }
   },
   "dataExport": {

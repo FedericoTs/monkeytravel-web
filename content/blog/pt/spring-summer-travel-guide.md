@@ -326,7 +326,7 @@ Coolcation significa especificamente **temperaturas de verão de 15-25 °C em de
 
 Escolher o destino é a decisão número um. A parte mais difícil — bairros, trajeto dia a dia, restaurantes que não são armadilhas para turistas, custos realistas — é o que de fato faz ou destrói a viagem.
 
-[O planejador de viagens com IA gratuito da MonkeyTravel](/free-ai-trip-planner) monta esse roteiro em menos de um minuto. Coloque qualquer destino deste guia, suas datas e o seu orçamento. Você vai receber hospedagens, atividades, recomendações de restaurantes e uma estimativa de custo diário ajustada ao lugar onde você está se hospedando. Sem planilhas, sem 47 abas no navegador.
+[O planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) monta esse roteiro em menos de um minuto. Coloque qualquer destino deste guia, suas datas e o seu orçamento. Você vai receber hospedagens, atividades, recomendações de restaurantes e uma estimativa de custo diário ajustada ao lugar onde você está se hospedando. Sem planilhas, sem 47 abas no navegador.
 
 [Planejar minha viagem de primavera ou verão — grátis](/free-ai-trip-planner)
 

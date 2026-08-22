@@ -66,20 +66,20 @@
     "participants": "{count} participantes"
   },
   "benefits": {
-    "title": "Seus Limites de Geração com IA",
-    "currentLimit": "{count} gerações de viagens com IA por mês",
+    "title": "Seus Limites de Geração com AI",
+    "currentLimit": "{count} gerações de viagens com AI por mês",
     "bonusActive": "+{bonus} de bônus do nível {tier}!",
     "inviteToUnlock": "Convide mais {count} amigos para desbloquear +{bonus} gerações extras!",
     "tierBenefits": "Benefícios de Indicação",
     "unlocked": "Desbloqueado",
-    "explorer": "Explorer (3 indic.): +2 gerações com IA/mês",
-    "ambassador": "Ambassador (6 indic.): +5 gerações com IA/mês, suporte prioritário",
-    "champion": "Champion (10 indic.): +12 gerações com IA/mês, regenerações ilimitadas"
+    "explorer": "Explorer (3 indic.): +2 gerações com AI/mês",
+    "ambassador": "Ambassador (6 indic.): +5 gerações com AI/mês, suporte prioritário",
+    "champion": "Champion (10 indic.): +12 gerações com AI/mês, regenerações ilimitadas"
   },
   "banner": {
-    "title": "Desbloqueie Mais Viagens com IA",
+    "title": "Desbloqueie Mais Viagens com AI",
     "progress": "{current}/{target} indicações para {tier}",
-    "benefit": "+{bonus} gerações com IA/mês",
+    "benefit": "+{bonus} gerações com AI/mês",
     "cta": "Convidar Amigos",
     "maxTier": "Você desbloqueou todos os níveis!"
   }

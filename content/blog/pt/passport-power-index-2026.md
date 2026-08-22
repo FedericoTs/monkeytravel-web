@@ -217,7 +217,7 @@ Quer saber exatamente onde o seu passaporte está? Estas são as ferramentas mai
 
 4. **O site do ministério das relações exteriores do seu país** — Sempre a fonte mais oficial para as exigências do seu passaporte específico em um determinado destino.
 
-**Dica de especialista:** Ao usar o planejador de viagens com IA da MonkeyTravel, o sistema leva em conta as exigências comuns de visto para os destinos escolhidos, ajudando você a identificar quais paradas podem precisar de documentação antecipada antes de fechar o seu roteiro.
+**Dica de especialista:** Ao usar o planejador de viagens com AI da MonkeyTravel, o sistema leva em conta as exigências comuns de visto para os destinos escolhidos, ajudando você a identificar quais paradas podem precisar de documentação antecipada antes de fechar o seu roteiro.
 
 ---
 
@@ -245,7 +245,7 @@ Algumas combinações de passaporte e destino estão, na prática, bloqueadas. T
 
 Os custos de visto somam rápido. Um viajante que visita 10 países pode gastar US$ 0 em taxas de visto com um passaporte de Singapura e US$ 500-US$ 1.000 com um passaporte de ranking mais baixo. Os prazos de processamento também forçam horizontes de planejamento mais longos, deixando inacessíveis as ofertas de viagem de última hora.
 
-**É exatamente aqui que ferramentas como a MonkeyTravel entram em cena.** Quando você está planejando uma viagem por vários países, o planejador de viagens com IA da MonkeyTravel ajuda a montar um roteiro que leva em conta a logística e as realidades práticas — para que você gaste seu tempo explorando, e não pesquisando papelada.
+**É exatamente aqui que ferramentas como a MonkeyTravel entram em cena.** Quando você está planejando uma viagem por vários países, o planejador de viagens com AI da MonkeyTravel ajuda a montar um roteiro que leva em conta a logística e as realidades práticas — para que você gaste seu tempo explorando, e não pesquisando papelada.
 
 ---
 
@@ -311,7 +311,7 @@ Programas como o Global Entry (EUA), o NEXUS (EUA-Canadá) e o Registered Travel
 
 Com um passaporte de ranking mais baixo, viajar de forma espontânea é mais difícil. Dê a si mesmo 2-3 meses para o processamento dos vistos e tenha sempre a sua documentação pronta: extratos bancários, cartas do empregador, reservas de hotel e seguro de viagem.
 
-**Independentemente da posição do seu passaporte, o planejador de viagens com IA da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com IA gratis](/free-ai-trip-planner) para montar o seu próximo roteiro sem visto.
+**Independentemente da posição do seu passaporte, o planejador de viagens com AI da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com AI gratis](/free-ai-trip-planner) para montar o seu próximo roteiro sem visto.
 
 ---
 

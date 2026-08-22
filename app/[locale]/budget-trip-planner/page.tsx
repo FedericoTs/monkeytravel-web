@@ -29,7 +29,7 @@ const META: Record<string, { title: string; description: string }> = {
   pt: {
     title: 'Planejador de Viagens Econômicas — Viaje Mais, Gaste Menos',
     description:
-      'Planeje viagens acessíveis com IA. Roteiros com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens econômicas e atividades gratuitas. 100% grátis.',
+      'Planeje viagens acessíveis com AI. Roteiros com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens econômicas e atividades gratuitas. 100% grátis.',
   },
   en: {
     title: 'Budget Trip Planner — Travel More, Spend Less',

@@ -156,9 +156,9 @@ Até os menos aventureiros não vão ficar entediados: fontes termais perto do A
 
 O destino é a parte fácil. A parte difícil é coordenar voos, dividir custos, montar um plano dia a dia que funcione para todos e manter o grupo alinhado sem 400 mensagens de WhatsApp.
 
-É exatamente para isso que existe o [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner). Nosso [planejador de viagens com IA](/free-ai-trip-planner) deixa todo mundo no grupo adicionar suas preferências — orçamento, interesses, itens imperdíveis — e gera um roteiro colaborativo que equilibra o que cada um quer. Sem planilhas, sem uma única pessoa fazendo todo o trabalho.
+É exatamente para isso que existe o [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner). Nosso [planejador de viagens com AI](/free-ai-trip-planner) deixa todo mundo no grupo adicionar suas preferências — orçamento, interesses, itens imperdíveis — e gera um roteiro colaborativo que equilibra o que cada um quer. Sem planilhas, sem uma única pessoa fazendo todo o trabalho.
 
-Escolha um destino desta lista, jogue na MonkeyTravel, convide seu grupo e deixe a IA cuidar da parte de coordenação que ninguém curte.
+Escolha um destino desta lista, jogue na MonkeyTravel, convide seu grupo e deixe a AI cuidar da parte de coordenação que ninguém curte.
 
 [Planejar uma Viagem em Grupo — Grátis](/group-trip-planner)
 

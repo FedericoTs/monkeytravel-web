@@ -255,7 +255,7 @@ O trem Reunification Express, que percorre todo o trajeto Hanói-HCMC, é cênic
 
 ## Planeje sua Viagem ao Vietnã sem a Planilha
 
-Uma rota de Hanói ao Mekong tem muitas peças móveis: prazo do e-visa, janelas de reserva de cruzeiro, combinações de voos domésticos e descobrir qual cruzeiro de Ha Long vale o dinheiro. Nosso [planejador de viagens com IA grátis](/free-ai-trip-planner) monta o roteiro completo em torno das suas datas e do seu orçamento — com opções reais, preços reais e roteamento que realmente faz sentido. Se o seu foco é manter os custos baixos, o [planejador de viagem econômica](/budget-trip-planner) mostra o que é possível em cada faixa de preço.
+Uma rota de Hanói ao Mekong tem muitas peças móveis: prazo do e-visa, janelas de reserva de cruzeiro, combinações de voos domésticos e descobrir qual cruzeiro de Ha Long vale o dinheiro. Nosso [planejador de viagens com AI grátis](/free-ai-trip-planner) monta o roteiro completo em torno das suas datas e do seu orçamento — com opções reais, preços reais e roteamento que realmente faz sentido. Se o seu foco é manter os custos baixos, o [planejador de viagem econômica](/budget-trip-planner) mostra o que é possível em cada faixa de preço.
 
 Diga a ele que você quer 10 dias no Vietnã. Receba um plano pronto em menos de um minuto.
 

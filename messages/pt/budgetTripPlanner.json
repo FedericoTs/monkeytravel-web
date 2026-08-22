@@ -1,16 +1,16 @@
 {
   "meta": {
     "title": "Planejador de Viagens Econômicas — Viaje Mais, Gaste Menos | MonkeyTravel",
-    "description": "Planeje viagens econômicas com IA. Tenha roteiros personalizados com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens em conta e atividades gratuitas. Ferramenta 100% grátis."
+    "description": "Planeje viagens econômicas com AI. Tenha roteiros personalizados com preços reais em 3 níveis de orçamento. Encontre voos baratos, hospedagens em conta e atividades gratuitas. Ferramenta 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
     "budgetTripPlanner": "Planejador de Viagens Econômicas"
   },
   "hero": {
-    "badge": "Viagens Econômicas Inteligentes — Com IA",
+    "badge": "Viagens Econômicas Inteligentes — Com AI",
     "title": "O Planejador de Viagens Econômicas Que Economiza Dinheiro de Verdade",
-    "subtitle": "Defina seu orçamento diário e nossa IA encontra os melhores destinos, voos, hospedagens e atividades que cabem no bolso. Preços reais, economia real — a partir de US$ 30/dia.",
+    "subtitle": "Defina seu orçamento diário e nossa AI encontra os melhores destinos, voos, hospedagens e atividades que cabem no bolso. Preços reais, economia real — a partir de US$ 30/dia.",
     "cta": "Planejar Minha Viagem Econômica",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -45,7 +45,7 @@
       },
       "cheapFlights": {
         "title": "Dicas de Voos em Conta",
-        "description": "A IA sugere os melhores horários para voar e aeroportos mais baratos. Economize centenas sendo flexível com as datas da viagem."
+        "description": "A AI sugere os melhores horários para voar e aeroportos mais baratos. Economize centenas sendo flexível com as datas da viagem."
       },
       "affordableStays": {
         "title": "Hospedagens em Conta",
@@ -65,8 +65,8 @@
         "description": "Conte para a gente seu destino, as datas da viagem e o orçamento diário. Está em dúvida? A gente mostra o que dá para fazer em cada faixa de preço."
       },
       "step2": {
-        "title": "A IA Encontra as Melhores Ofertas",
-        "description": "Nossa IA monta um roteiro completo otimizado para o seu orçamento — hotéis reais, restaurantes reais, preços reais. Três níveis para comparar."
+        "title": "A AI Encontra as Melhores Ofertas",
+        "description": "Nossa AI monta um roteiro completo otimizado para o seu orçamento — hotéis reais, restaurantes reais, preços reais. Três níveis para comparar."
       },
       "step3": {
         "title": "Viaje Gastando Menos",

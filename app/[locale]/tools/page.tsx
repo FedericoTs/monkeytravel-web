@@ -11,7 +11,7 @@ const META: Record<string, { title: string; description: string }> = {
   pt: {
     title: "Ferramentas de Viagem Grátis — Lista de Bagagem, Verificador de Visto e Mais",
     description:
-      "Ferramentas de viagem gratuitas que economizam horas de planejamento. Lista de bagagem personalizada com IA, requisitos de visto e mais. Sem cadastro.",
+      "Ferramentas de viagem gratuitas que economizam horas de planejamento. Lista de bagagem personalizada com AI, requisitos de visto e mais. Sem cadastro.",
   },
   en: {
     title: "Free Travel Tools — Packing List, Visa Checker & More",
@@ -28,7 +28,7 @@ const META: Record<string, { title: string; description: string }> = {
     title:
       "Herramientas de Viaje Gratis — Lista de Equipaje, Verificador de Visa y Más",
     description:
-      "Herramientas gratuitas que te ahorran horas de planificación. Lista de equipaje con IA, requisitos de visa y más. Sin registro.",
+      "Herramientas gratuitas que te ahorran horas de planificación. Lista de equipaje con AI, requisitos de visa y más. Sin registro.",
   },
 };
 
@@ -86,7 +86,7 @@ export default async function ToolsLandingPage({
         locale === "it"
           ? "Lista personalizzata con AI in base a destinazione, clima e attività."
           : locale === "es"
-            ? "Lista personalizada con IA según destino, clima y actividades."
+            ? "Lista personalizada con AI según destino, clima y actividades."
             : "AI-personalized list based on destination, weather, and activities.",
       live: true,
     },

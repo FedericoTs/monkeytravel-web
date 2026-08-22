@@ -351,7 +351,7 @@ Se o atual ambiente de viagem dos EUA o deixa em dúvida, vários destinos ofere
 
 Quer você decida visitar os Estados Unidos ou explorar destinos alternativos, a chave é o planejamento informado. Conheça os requisitos de entrada, entenda seus direitos, prepare seus documentos e tenha um plano B.
 
-O planejador de viagens com IA da MonkeyTravel cria **roteiros personalizados dia a dia** para qualquer destino — com custos diários reais, recomendações locais e logística inteligente. Quer você esteja planejando uma road trip pelos EUA, uma escapada pela Europa ou uma aventura pela Ásia, o planejador cuida da pesquisa para que você possa focar na experiência.
+O planejador de viagens com AI da MonkeyTravel cria **roteiros personalizados dia a dia** para qualquer destino — com custos diários reais, recomendações locais e logística inteligente. Quer você esteja planejando uma road trip pelos EUA, uma escapada pela Europa ou uma aventura pela Ásia, o planejador cuida da pesquisa para que você possa focar na experiência.
 
 **[Planejar Minha Viagem — Grátis](/trips/new)**
 

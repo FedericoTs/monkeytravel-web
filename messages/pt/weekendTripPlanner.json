@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Planejador de Viagens de Fim de Semana — Escapadas de 2-3 Dias com IA | MonkeyTravel",
-    "description": "Planeje a escapada de fim de semana perfeita em 15 minutos com IA. Tenha roteiros personalizados de 2-3 dias com joias locais, preços reais e organização inteligente. 100% grátis."
+    "title": "Planejador de Viagens de Fim de Semana — Escapadas de 2-3 Dias com AI | MonkeyTravel",
+    "description": "Planeje a escapada de fim de semana perfeita em 15 minutos com AI. Tenha roteiros personalizados de 2-3 dias com joias locais, preços reais e organização inteligente. 100% grátis."
   },
   "breadcrumbs": {
     "home": "Início",
@@ -9,7 +9,7 @@
   },
   "hero": {
     "badge": "Planeje uma Viagem de Fim de Semana em 15 Minutos",
-    "title": "Sua Escapada de Fim de Semana Perfeita, Planejada por IA",
+    "title": "Sua Escapada de Fim de Semana Perfeita, Planejada por AI",
     "subtitle": "Escolha um destino e receba um roteiro completo de 2-3 dias em minutos. Joias locais escondidas, opções econômicas e organização inteligente conforme o clima — tudo grátis.",
     "cta": "Planejar Minha Viagem de Fim de Semana",
     "secondaryCta": "Veja Como Funciona",
@@ -29,7 +29,7 @@
   },
   "features": {
     "title": "Tudo o Que Você Precisa Para o Fim de Semana Perfeito",
-    "subtitle": "Pare de desperdiçar seu precioso fim de semana planejando. Deixe a IA cuidar da logística para você focar na diversão.",
+    "subtitle": "Pare de desperdiçar seu precioso fim de semana planejando. Deixe a AI cuidar da logística para você focar na diversão.",
     "items": {
       "quickPlanning": {
         "title": "Planejamento em 15 Minutos",
@@ -41,7 +41,7 @@
       },
       "localGems": {
         "title": "Joias Locais Escondidas",
-        "description": "Descubra os lugares que os moradores amam, não só armadilhas para turistas. Nossa IA encontra os melhores cafés, mirantes e bairros que os guias deixam passar."
+        "description": "Descubra os lugares que os moradores amam, não só armadilhas para turistas. Nossa AI encontra os melhores cafés, mirantes e bairros que os guias deixam passar."
       },
       "budgetFriendly": {
         "title": "Opções Econômicas",
@@ -49,7 +49,7 @@
       },
       "weatherSmart": {
         "title": "Organização Inteligente Conforme o Clima",
-        "description": "Atividades ao ar livre em dias de sol, museus quando chove. Nossa IA leva em conta a previsão do tempo para que seu fim de semana não seja estragado por mau tempo."
+        "description": "Atividades ao ar livre em dias de sol, museus quando chove. Nossa AI leva em conta a previsão do tempo para que seu fim de semana não seja estragado por mau tempo."
       },
       "lastMinute": {
         "title": "Pronto de Última Hora",
@@ -65,8 +65,8 @@
         "description": "Escolha uma cidade, conte suas datas e seu orçamento. Seja uma escapada pertinho ou um voo rápido — a gente cuida de tudo."
       },
       "step2": {
-        "title": "A IA Planeja Sua Viagem de 2-3 Dias",
-        "description": "Nossa IA monta um roteiro de fim de semana dia a dia com lugares reais, trajetos a pé e horários inteligentes para você aproveitar cada hora ao máximo."
+        "title": "A AI Planeja Sua Viagem de 2-3 Dias",
+        "description": "Nossa AI monta um roteiro de fim de semana dia a dia com lugares reais, trajetos a pé e horários inteligentes para você aproveitar cada hora ao máximo."
       },
       "step3": {
         "title": "Faça as Malas e Vá",
@@ -76,7 +76,7 @@
   },
   "comparison": {
     "title": "MonkeyTravel vs. Planejamento Manual de Fim de Semana",
-    "subtitle": "Pare de passar as noites de semana pesquisando. Deixe a IA fazer o trabalho pesado.",
+    "subtitle": "Pare de passar as noites de semana pesquisando. Deixe a AI fazer o trabalho pesado.",
     "items": {
       "planningTime": {
         "label": "Tempo de planejamento",
@@ -110,7 +110,7 @@
     "items": {
       "howQuick": {
         "question": "Em quanto tempo consigo planejar uma viagem de fim de semana?",
-        "answer": "Você pode ter um roteiro completo de fim de semana em cerca de 15 minutos. Basta informar seu destino, suas datas e seu orçamento — nossa IA cuida do resto. Perfeito para aquelas decisões espontâneas de sexta-feira à tarde."
+        "answer": "Você pode ter um roteiro completo de fim de semana em cerca de 15 minutos. Basta informar seu destino, suas datas e seu orçamento — nossa AI cuida do resto. Perfeito para aquelas decisões espontâneas de sexta-feira à tarde."
       },
       "nearbyTrips": {
         "question": "O MonkeyTravel pode sugerir destinos próximos para o fim de semana?",
@@ -118,7 +118,7 @@
       },
       "tripLength": {
         "question": "Funciona só para fins de semana de 2 dias?",
-        "answer": "De jeito nenhum. O MonkeyTravel funciona muito bem para fins de semana clássicos de 2 dias, feriados prolongados de 3 dias e até escapadas estendidas de 4 dias. A IA adapta o roteiro para encaixar nas suas datas exatas."
+        "answer": "De jeito nenhum. O MonkeyTravel funciona muito bem para fins de semana clássicos de 2 dias, feriados prolongados de 3 dias e até escapadas estendidas de 4 dias. A AI adapta o roteiro para encaixar nas suas datas exatas."
       },
       "budgetWeekend": {
         "question": "Como planejo uma viagem de fim de semana gastando pouco?",

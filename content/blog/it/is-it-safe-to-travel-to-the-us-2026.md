@@ -91,6 +91,6 @@ Per un'analisi completa, consulta la nostra **[Guida di Viaggio per la Coppa del
 
 ## Pianifica il Tuo Viaggio
 
-Che tu decida di visitare gli USA o esplorare destinazioni alternative, la chiave e la pianificazione informata. Il pianificatore di viaggi con IA di MonkeyTravel crea itinerari personalizzati giorno per giorno per qualsiasi destinazione.
+Che tu decida di visitare gli USA o esplorare destinazioni alternative, la chiave e la pianificazione informata. Il pianificatore di viaggi con AI di MonkeyTravel crea itinerari personalizzati giorno per giorno per qualsiasi destinazione.
 
 **[Pianifica il Mio Viaggio — Gratis](/trips/new)**

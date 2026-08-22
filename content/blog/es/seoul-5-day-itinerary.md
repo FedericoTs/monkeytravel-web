@@ -329,7 +329,7 @@ Presupuesto realista por persona para 5 días, incluyendo la excursión a la DMZ
 
 ---
 
-## Deja que la IA Planifique tu Itinerario Personalizado de Seúl
+## Deja que la AI Planifique tu Itinerario Personalizado de Seúl
 
 Esta guía te da un marco. Pero tu Seúl puede ser muy diferente — quizás quieras añadir una excursión a la Fortaleza Hwaseong de Suwon, o profundizar en la experiencia de las clínicas K-beauty, o pasar más tiempo en los bares de Hongdae.
 

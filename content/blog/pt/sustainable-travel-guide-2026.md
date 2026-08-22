@@ -68,7 +68,7 @@ O modelo turístico aqui é construído em torno da biodiversidade: 5% de todas 
 
 **Por que é sustentável:** Infraestrutura de conservação respaldada pelo governo, alto percentual de energia renovável, sistema de certificação estabelecido (CST — Certificado de Sustentabilidade Turística) para hotéis e operadoras de turismo.
 
-**Dica de quem conhece:** A Península de Osa é menos visitada do que Arenal ou Manuel Antonio, mas tem maior biodiversidade e encontros mais autênticos com a fauna. Planeje com [nosso planejador de viagens com IA grátis](/free-ai-trip-planner) para encontrar o lodge certo de acordo com a sua época — a estação seca vai de dezembro a abril. A Costa Rica também é uma das melhores escolhas do nosso guia de [para onde ir em junho](/blog/where-to-go-in-june).
+**Dica de quem conhece:** A Península de Osa é menos visitada do que Arenal ou Manuel Antonio, mas tem maior biodiversidade e encontros mais autênticos com a fauna. Planeje com [nosso planejador de viagens com AI grátis](/free-ai-trip-planner) para encontrar o lodge certo de acordo com a sua época — a estação seca vai de dezembro a abril. A Costa Rica também é uma das melhores escolhas do nosso guia de [para onde ir em junho](/blog/where-to-go-in-june).
 
 ---
 
@@ -226,7 +226,7 @@ Os destinos desta lista — particularmente Butão, Ruanda, Nova Zelândia, Quê
 
 **Coma local, coma da estação.** Na maioria dos destinos desta lista, a economia alimentar local já é mais sustentável do que as alternativas importadas. E geralmente é melhor. Isso não é um sacrifício.
 
-Use [nosso planejador de viagens com IA grátis](/free-ai-trip-planner) para montar roteiros que agrupam atividades geograficamente, minimizam o transporte no destino e priorizam operadoras com certificações verificadas.
+Use [nosso planejador de viagens com AI grátis](/free-ai-trip-planner) para montar roteiros que agrupam atividades geograficamente, minimizam o transporte no destino e priorizam operadoras com certificações verificadas.
 
 ---
 
@@ -248,9 +248,9 @@ Compensações verificadas de programas reputados (Gold Standard, Verra VCS) fin
 
 O Butão, por design. A Taxa de Desenvolvimento Sustentável, os limites rigorosos de visitantes, a proteção constitucional das florestas e o status de carbono negativo fazem dele o único destino do mundo onde cada aspecto do modelo turístico é estruturado para produzir resultados ambientais líquidos positivos. A contrapartida é o custo diário e a flexibilidade limitada.
 
-### A IA pode me ajudar a planejar uma viagem mais sustentável?
+### A AI pode me ajudar a planejar uma viagem mais sustentável?
 
-Sim — especificamente para o agrupamento de roteiros e a otimização do transporte. [O planejador de viagens com IA da MonkeyTravel](/free-ai-trip-planner) pode ajudar você a montar rotas que minimizam as conexões, identificar operadoras certificadas e estruturar uma viagem que passa mais tempo em menos lugares. O planejamento em si é só uma parte — as escolhas que você faz dentro desse plano são suas.
+Sim — especificamente para o agrupamento de roteiros e a otimização do transporte. [O planejador de viagens com AI da MonkeyTravel](/free-ai-trip-planner) pode ajudar você a montar rotas que minimizam as conexões, identificar operadoras certificadas e estruturar uma viagem que passa mais tempo em menos lugares. O planejamento em si é só uma parte — as escolhas que você faz dentro desse plano são suas.
 
 ---
 

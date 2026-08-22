@@ -190,11 +190,11 @@ Não precisa ser a madrinha de honra. Pode ser quem for mais organizada ou mais 
 
 A função de todas as outras: responder às enquetes em até 48 horas, pagar a sua parte em dia e aparecer pronta para comemorar.
 
-## O Atalho com IA para Planejar a Despedida de Solteira
+## O Atalho com AI para Planejar a Despedida de Solteira
 
-É aqui que tudo isso fica mais fácil. Em vez de passar horas pesquisando restaurantes e atividades para um destino que talvez você nunca tenha visitado, deixe a IA fazer o trabalho pesado.
+É aqui que tudo isso fica mais fácil. Em vez de passar horas pesquisando restaurantes e atividades para um destino que talvez você nunca tenha visitado, deixe a AI fazer o trabalho pesado.
 
-O [planejador de viagens com IA gratuito da MonkeyTravel](/free-ai-trip-planner) gera um roteiro de despedida de solteira dia a dia em cerca de 30 segundos. Diga o destino, o tamanho do grupo, o orçamento e o clima — ele monta um plano com restaurantes, atividades e blocos de horário específicos. Compartilhe um único link com o grupo pelo nosso [planejador de viagem em grupo](/group-trip-planner). Todo mundo pode ver o plano, votar nas atividades e sugerir mudanças sem se afogar em mensagens.
+O [planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) gera um roteiro de despedida de solteira dia a dia em cerca de 30 segundos. Diga o destino, o tamanho do grupo, o orçamento e o clima — ele monta um plano com restaurantes, atividades e blocos de horário específicos. Compartilhe um único link com o grupo pelo nosso [planejador de viagem em grupo](/group-trip-planner). Todo mundo pode ver o plano, votar nas atividades e sugerir mudanças sem se afogar em mensagens.
 
 Sem planilha. Sem 47 abas no navegador. Sem "todo mundo viu a minha mensagem?".
 

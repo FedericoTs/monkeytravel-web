@@ -201,7 +201,7 @@ Para un desglose completo por destino, consulta nuestras guías sobre [destinos 
 
 ---
 
-## Deja que la IA Construya tu Itinerario Económico
+## Deja que la AI Construya tu Itinerario Económico
 
 Encontrar el vuelo barato es el primer paso. Construir un viaje completo ajustado a un presupuesto ajustado — alojamiento, transporte, comida, actividades — es donde la mayoría de la gente invierte 8 horas en hojas de cálculo y aun así se olvida cosas.
 
