@@ -42,6 +42,12 @@ import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
 // single-city funnel stays byte-for-byte unchanged until we flip the flag on.
 const MULTI_CITY_ENABLED = process.env.NEXT_PUBLIC_MULTI_CITY_ENABLED === "true";
 
+// Mirrors the server-side cap in validateTripParams (lib/gemini.ts). Over the
+// limit the API 400s with "Requirements text too long" and the wizard surfaces
+// only a generic error — on 2026-08-23 a session burned 7 generate attempts in
+// 3 minutes against this wall and left with nothing.
+const REQUIREMENTS_MAX = 500;
+
 // Post-generation + modal UI is gated by user action / state — split it
 // out of the initial wizard chunk so the form paints faster (P10).
 //
@@ -4177,7 +4183,12 @@ export default function NewTripPage({
                 onImportUndated={(items) =>
                   setRequirements((prev) => {
                     const addition = items.join(". ");
-                    return prev.trim() ? `${prev.trim()}. ${addition}` : addition;
+                    const merged = prev.trim() ? `${prev.trim()}. ${addition}` : addition;
+                    // validateTripParams rejects >500 chars with a bare 400.
+                    // A big paste used to blow the cap silently — the textarea
+                    // lives in a collapsed section, so the user never saw the
+                    // overflow and just watched generate fail on repeat.
+                    return merged.slice(0, REQUIREMENTS_MAX);
                   })
                 }
               />
@@ -4357,11 +4368,17 @@ export default function NewTripPage({
                     </label>
                     <textarea
                       value={requirements}
-                      onChange={(e) => setRequirements(e.target.value)}
+                      onChange={(e) => setRequirements(e.target.value.slice(0, REQUIREMENTS_MAX))}
                       placeholder={t("requirements.placeholder")}
                       rows={2}
+                      maxLength={REQUIREMENTS_MAX}
                       className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none text-sm"
                     />
+                    {requirements.length > REQUIREMENTS_MAX - 100 && (
+                      <p className="mt-1 text-xs text-slate-400 text-right">
+                        {requirements.length}/{REQUIREMENTS_MAX}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
