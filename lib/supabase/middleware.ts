@@ -12,7 +12,7 @@ import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 // NOTHING in the codebase ever SET that cookie — so 100% of inserts had
 // session_id=null. GSC + Supabase analytics couldn't count unique sessions.
 // Now generates a UUID on first visit and the caller persists it as a cookie.
-function trackPageView(request: NextRequest, userId?: string): string | null {
+export function trackPageView(request: NextRequest, userId?: string): string | null {
   // Skip tracking for API routes, static assets, and admin pages
   const path = request.nextUrl.pathname;
   if (

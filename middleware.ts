@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession, trackPageView } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
 import { buildCspHeader, shouldEnforceCsp } from "@/lib/security/csp";
 import { generateNonce } from "@/lib/security/nonce";
@@ -316,6 +316,31 @@ export async function middleware(request: NextRequest) {
     strippedPath.startsWith('/ai-itinerary-generator');
 
   if (isPublicOnly) {
+    // **2026-08-23 fix**: this early return exists to skip the Supabase
+    // session round-trip on pages that never need auth state — but
+    // trackPageView() lives inside updateSession(), so returning here also
+    // skipped page-view tracking entirely. Result: `page_views` has NEVER
+    // recorded a single hit on `/`, `/blog/*`, `/destinations/*`,
+    // `/templates/*` or any of the *-trip-planner landing pages — i.e. every
+    // acquisition surface on the site. Verified: 0 rows matching '%blog%'
+    // across 10 weeks and 360k+ tracked views, while /about/authors/* (not in
+    // this list) tracked fine. That blackout is why the daily SEO pass reports
+    // no organic blog landings.
+    //
+    // trackPageView takes userId as OPTIONAL and does not touch Supabase auth,
+    // so calling it here restores tracking WITHOUT giving back the perf win
+    // this branch was added for. Views land with user_id=null; these are
+    // public pages, so anonymous attribution is the honest value anyway.
+    const publicSessionId = trackPageView(request);
+    if (publicSessionId && !request.cookies.get("mt_session_id")) {
+      intlResponse.cookies.set("mt_session_id", publicSessionId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+    }
     return attachSecurityHeaders(intlResponse);
   }
 
