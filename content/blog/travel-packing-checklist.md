@@ -6,14 +6,14 @@ description: >-
   for beach, city, hiking, business, and cold weather trips. Copy, print, pack.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-24'
 category: Travel Tips
 tags: ["travel checklist", "trip planning"]
 image: /images/blog/travel-packing-checklist.jpg
 imageAlt: >-
   Open suitcase on a bed with neatly organized clothes, packing cubes, and
   travel essentials laid out beside it
-readingTime: 10
+readingTime: 17
 seo:
   title: 'Travel Packing Checklist 2026: The Complete List You''ll Actually Use'
   description: >-
@@ -387,6 +387,23 @@ Use this condensed version as a final check before you zip up. Copy it, print it
 
 ---
 
+## One thing to check before you trust any baggage table
+
+Including this one.
+
+Airline carry-on and checked limits change more often than published guides update, and low-cost carriers in particular adjust size rules and fees at short notice. The dimensions above are the standards as published, but the number that matters is the one on your specific airline's site for your specific fare class on the day you fly.
+
+Two things that catch people out regardless of carrier:
+
+- **Fare class changes the allowance.** Basic economy on several US carriers no longer includes a full-size carry-on, only a personal item. The airline is the same; the ticket is not.
+- **Automated sizing gates are now common.** "It fit last time" stopped being a strategy when gate agents were replaced by scanners. Measure with wheels and handles extended, because those count.
+
+## Packing for wet season is a different list
+
+If your trip lands in monsoon season anywhere in Asia, the standard list is not enough. Quick-dry fabrics stop being a nice-to-have, a dry bag for electronics becomes essential, and the shoes you pack matter more than anything else on the list.
+
+Our guide to [monsoon season: where to go and where to avoid](/blog/monsoon-season-where-to-go-and-avoid) covers which regions are genuinely risky versus merely wet, and what changes about travelling in them.
+
 ## Pack Smarter, Travel Better
 
 The best packing list is one you actually use. Bookmark this page and come back to it every time you travel. Over time, you will develop your own version — adding items you always need and removing ones you never touch.
@@ -394,3 +411,10 @@ The best packing list is one you actually use. Bookmark this page and come back 
 And if you want packing suggestions tailored to your exact destination, dates, and activities, try [MonkeyTravel](https://monkeytravel.app). The AI trip planner analyzes real-time weather data and local conditions to recommend what to bring so nothing important gets left behind.
 
 Now stop reading about packing and go pack. Your trip is waiting.
+
+## Related reading
+
+- [Monsoon season: where to go and where to avoid](/blog/monsoon-season-where-to-go-and-avoid) — wet-season packing and which regions to route around
+- [Where to go in November](/blog/where-to-go-in-november) — post-monsoon Southeast Asia, and what the weather actually asks you to pack
+- [How to plan a multi-city trip](/blog/how-to-plan-a-multi-city-trip) — multi-city is the trip where packing light stops being advice and becomes structural
+- [International travel checklist](/blog/international-travel-checklist) — documents, visas and the pre-departure admin this list does not cover
