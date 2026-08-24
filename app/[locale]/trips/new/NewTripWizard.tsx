@@ -1612,6 +1612,20 @@ export default function NewTripPage({
     return Array.from(interestSet);
   }
 
+  // The 21-day ceiling only holds when the request ACTUALLY fans out per city.
+  // /api/ai/generate keys its cap off `legs.length > 1` (isMultiCity), so a
+  // multi-city route with a single filled row is validated as a SINGLE-city
+  // trip and a 21-day span 400s with "Maximum trip duration is 14 days".
+  // Observed 2026-08-24: one filled row / 21 nights -> 4 doomed generate calls
+  // in 23s (the error banner's Retry button re-fires the same request). Keep
+  // this predicate in lockstep with app/api/ai/generate/route.ts.
+  const multiCityLegCount =
+    MULTI_CITY_ENABLED && multiCityMode
+      ? cityRows.filter((r) => r.city.trim() && r.nights > 0).length
+      : 0;
+  const effectiveMaxTripDays =
+    multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+
   const canProceed = () => {
     switch (step) {
       case 1: {
@@ -1627,9 +1641,7 @@ export default function NewTripPage({
           return false;
         }
         const span = tripSpanDaysInclusive(startDate, endDate);
-        const capDays =
-          MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
-        return span >= 2 && span <= capDays;
+        return span >= 2 && span <= effectiveMaxTripDays;
       }
       case 2:
         // Step 2: At least one vibe required, preferences have sensible defaults
@@ -1666,6 +1678,18 @@ export default function NewTripPage({
   };
 
   const handleGenerate = async () => {
+    // Date guard. canProceed() only validates the span on step 1, but the span
+    // can outlive the mode that allowed it: handleSessionTrayRestore forces
+    // multiCityMode off (see its comment) and a route can drop to one filled
+    // row after step 1. Both leave a 21-day span heading for a single-city
+    // request the server rejects. Block it here - before the telemetry - so a
+    // doomed attempt costs no round-trip and records no phantom "generating".
+    const plannedSpan = tripSpanDaysInclusive(startDate, endDate);
+    if (plannedSpan > effectiveMaxTripDays) {
+      setError(t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays }));
+      setStep(1);
+      return;
+    }
     // Save Sprint T1: count every generation attempt of this browser session
     // (mt_gen_count). handleGenerate is the single choke point for ALL
     // generations — classic wizard, decision arm, regenerate, post-auth
@@ -4128,7 +4152,7 @@ export default function NewTripPage({
                     setFlexibleDates(false);
                     setEndDate(d);
                   }}
-                  maxDays={MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS}
+                  maxDays={effectiveMaxTripDays}
                   minDate={new Date().toISOString().split("T")[0]}
                   // A11y (task #193): dates required to advance the wizard.
                   ariaRequired
@@ -4398,11 +4422,8 @@ export default function NewTripPage({
                 ? t("wizard.step1.hintNeedDestination")
                 : !DESTINATION_ALLOWLIST.test(destination)
                 ? t("wizard.step1.destinationInvalidChars")
-                : tripSpanDaysInclusive(startDate, endDate) >
-                  (MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS)
-                ? t("wizard.datePicker.maxDaysLimit", {
-                    days: MULTI_CITY_ENABLED && multiCityMode ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS,
-                  })
+                : tripSpanDaysInclusive(startDate, endDate) > effectiveMaxTripDays
+                ? t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays })
                 : t("wizard.step1.hintNeedDates")}
             </p>
           )}
