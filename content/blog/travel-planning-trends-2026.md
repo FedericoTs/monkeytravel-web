@@ -69,7 +69,7 @@ Here's where the real itineraries are more honest than any survey. Among trips p
 | Extended (8–14 nights) | ~27% |
 | The average trip | **~6 nights** |
 
-Half of all trips fall into that 4-to-7-night "long week" — the classic paid-vacation shape. But the quietly important number is this: roughly **1 in 12 trips now spans more than one city**. The single-destination holiday is no longer the default assumption; people are stitching Athens to Santorini, Tokyo to Kyoto, Dubai to Italy in one go. Multi-city planning used to be a power-user behavior. In 2026 it's mainstream, and it's the hardest thing to do by hand — which is exactly why people reach for a tool.
+Half of all trips fall into that 4-to-7-night "long week" — the classic paid-vacation shape. But the quietly important number is this: roughly **1 in 12 trips now spans more than one city**. The single-destination holiday is no longer the default assumption; people are stitching Athens to Santorini, Tokyo to Kyoto, Dubai to Italy in one go. Multi-city planning used to be a power-user behavior. In 2026 it's mainstream, and it's the hardest thing to do by hand — which is exactly why people reach for a tool. If you're planning one, our guide to [how to plan a multi-city trip](/blog/how-to-plan-a-multi-city-trip) covers route order, open-jaw flights and the transit days most itineraries forget to budget.
 
 **What it means:** the trip is getting more complex faster than the tools most people default to (a notes app, a spreadsheet, a chat thread). The gap between "how ambitious the trip is" and "how people plan it" is the opportunity.
 

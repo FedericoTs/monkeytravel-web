@@ -8,7 +8,7 @@ description: >-
 author: Riccardo P.
 publishedAt: '2026-04-15'
 updatedAt: '2026-04-15'
-category: Travel Tips
+category: AI Travel
 tags: ["pianificatore di viaggio ai", "confronto", "tecnologia di viaggio"]
 image: /images/blog/chatgpt-vs-ai-trip-planners.jpg
 imageAlt: >-

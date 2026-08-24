@@ -57,7 +57,7 @@ Second, Mindtrip's free tier is genuinely free in the sense that matters, but as
 
 ## Where Wanderlog wins
 
-**Multi-stop logistics.** If your trip is Rome, then Florence, then Venice, Wanderlog is the strongest of the two by a distance. The route optimiser visibly shows you when you are backtracking, which is the mistake that quietly eats a day of a two-week trip.
+**Multi-stop logistics.** If your trip is Rome, then Florence, then Venice, Wanderlog is the strongest of the two by a distance. The route optimiser visibly shows you when you are backtracking, which is the mistake that quietly eats a day of a two-week trip. If that is the trip you are planning, our guide to [planning a multi-city trip](/blog/how-to-plan-a-multi-city-trip) covers the sequencing decisions no tool makes for you.
 
 **Collaboration.** Shared trips work properly. Several people can add places, and the map updates for everyone. If you are the person in the group chat who ends up owning the plan, this is the feature you want.
 

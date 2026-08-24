@@ -129,7 +129,7 @@ For a broader look at how these tools are reshaping the industry, read our piece
 
 **Strengths:** If you know how to prompt it well, ChatGPT can produce detailed travel research faster than any manual search. It's particularly good for nuanced questions — "best neighborhood to stay in Lisbon if I have young kids and want good restaurant access" — where Google returns generic listicles. For the planning and ideation phase, it's hard to beat.
 
-**Weaknesses:** No real-time pricing. No maps. No dedicated travel UI. And like all general LLMs, the hallucination risk is real — it can confidently recommend places that have since closed, misjudge walking distances, or surface outdated visa information. Always verify specifics against official sources. For a deep dive on this, see our piece on [AI Trip Planner vs Travel Agent](/blog/ai-trip-planner-vs-travel-agent).
+**Weaknesses:** No real-time pricing. No maps. No dedicated travel UI. And like all general LLMs, the hallucination risk is real — it can confidently recommend places that have since closed, misjudge walking distances, or surface outdated visa information. Always verify specifics against official sources. We go deeper on this in [ChatGPT vs AI Trip Planners](/blog/chatgpt-vs-ai-trip-planners), and on how to check any generated plan before you travel in [Can You Trust an AI Travel Itinerary?](/blog/can-you-trust-ai-travel-itinerary). See also [AI Trip Planner vs Travel Agent](/blog/ai-trip-planner-vs-travel-agent).
 
 **Best for:** The research and ideation phase of planning, not the final itinerary. Works best as a complement to a dedicated tool, not a replacement.
 
@@ -164,6 +164,17 @@ For a broader look at how these tools are reshaping the industry, read our piece
 **You live on your phone:** iPlan.ai. Optimized for mobile in a way others aren't.
 
 No single tool does everything well. The best approach in 2026 is still layered: ChatGPT or Gemini for initial research, a dedicated tool like MonkeyTravel or Mindtrip for itinerary structure, and your OTA of choice for actual bookings.
+
+## Go deeper on any of these
+
+If you want the head-to-head rather than the full field:
+
+- [Wanderlog vs Mindtrip](/blog/wanderlog-vs-mindtrip-2026) — the two strongest free options, and why they are not actually competitors
+- [Mindtrip alternatives](/blog/mindtrip-alternative-2026) — six options if the login wall is what put you off
+- [AI trip planners without signup](/blog/ai-trip-planners-without-signup-2026) — which tools show you an itinerary before asking for an account
+- [ChatGPT vs AI trip planners](/blog/chatgpt-vs-ai-trip-planners) — when the general assistant is enough and when it is not
+- [Can you trust an AI travel itinerary?](/blog/can-you-trust-ai-travel-itinerary) — the checks to run on any generated plan before you travel
+- [How to plan a multi-city trip](/blog/how-to-plan-a-multi-city-trip) — route order, open-jaw flights and the days you lose in transit
 
 ---
 
