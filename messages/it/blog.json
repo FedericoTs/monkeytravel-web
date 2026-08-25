@@ -426,6 +426,66 @@
     "wanderlog-vs-mindtrip-2026": {
       "title": "Wanderlog vs Mindtrip 2026",
       "description": "Wanderlog organizza viaggi già studiati; Mindtrip li genera e poi chiede il login. Prezzi, punti di forza e il vuoto che entrambi lasciano."
+    },
+    "ai-trip-planner-accuracy-2026": {
+      "title": "Quanto è preciso un pianificatore di viaggio AI?",
+      "description": "Due itinerari generati su tre non ricevono nemmeno una correzione. Gli altri una mediana di due. Dati reali 2026 su dove l'AI ci prende davvero."
+    },
+    "group-travel-statistics-2026": {
+      "title": "Viaggi di gruppo 2026: il 69% si pianifica insieme",
+      "description": "Da 1.651 piani reali: il 69% pianifica con altre persone, ma quasi nessuno strumento lo presuppone. Perché i viaggi di gruppo muoiono nella chat."
+    },
+    "how-long-should-a-trip-be": {
+      "title": "Quanto deve durare un viaggio? I dati dicono 6 giorni",
+      "description": "Abbiamo guardato 1.651 piani di viaggio reali. La mediana è 6 giorni e il 46% sta tra 4 e 7, ma la durata giusta dipende da una domanda che si salta."
+    },
+    "how-many-activities-per-day-itinerary": {
+      "title": "Quante attività al giorno? La risposta è 4",
+      "description": "Abbiamo sezionato 9.201 attività su 359 itinerari reali. Quattro al giorno, un terzo cibo, circa due ore l'una. L'anatomia di una giornata che regge."
+    },
+    "layla-ai-review-2026": {
+      "title": "Layla AI 2026: prezzi, funzioni e verdetto",
+      "description": "Cosa ti dà davvero il livello gratuito di Layla, cosa sblocca il premium da 49 $/anno, cosa verificare prima di pagare e le migliori alternative gratis."
+    },
+    "mindtrip-review-2026": {
+      "title": "Mindtrip 2026: funzioni, prezzi e verdetto",
+      "description": "Mindtrip è gratis perché guadagna sulle prenotazioni. Cosa fa benissimo il pianificatore da 11M di punti, dove cede e le migliori alternative."
+    },
+    "plan-group-trip-by-voting": {
+      "title": "Pianificare un viaggio di gruppo votando",
+      "description": "La chat di gruppo è dove muoiono i viaggi. Condividi un itinerario, fai votare ogni tappa senza account, e guarda il piano convergere da solo."
+    },
+    "q3-2026-travel-planning-report": {
+      "title": "Report Q3 2026: 1.651 viaggi reali",
+      "description": "Tokyo resta #1 con più margine, la mediana del viaggio è esattamente 6 giorni e 7 viaggiatori su 10 pianificano in compagnia. Dati aggregati."
+    },
+    "travel-moods-2026": {
+      "title": "Gli stati d'animo del viaggio nel 2026",
+      "description": "Su 261 viaggi reali la cultura batte tutto e il cibo la segue da vicino, mentre il relax, la cosa che tutti dicono di volere, arriva ultimo."
+    },
+    "travel-planning-trends-2026": {
+      "title": "Report viaggi 2026: 1,1 milioni di ricerche",
+      "description": "Abbiamo analizzato 1,1 milioni di ricerche in cui siamo comparsi in tre mesi. Quattro schemi definiscono come si pianifica nel 2026, a partire dall'AI."
+    },
+    "wanderlog-alternative-2026": {
+      "title": "Alternativa a Wanderlog 2026: la migliore gratis",
+      "description": "Wanderlog va bene se vuoi costruire a mano e pagare 39,99 $/anno per l'AI. Analisi onesta del prezzo Pro e la migliore alternativa gratuita."
+    },
+    "where-to-go-in-september": {
+      "title": "Dove andare a settembre 2026: 12 destinazioni",
+      "description": "Settembre è il mese col miglior rapporto qualità-prezzo che quasi nessuno prenota: niente folla e Mediterraneo ancora caldo. Dodici destinazioni."
+    },
+    "where-to-go-in-october": {
+      "title": "Dove andare a ottobre 2026: 12 destinazioni",
+      "description": "Foliage al culmine, deserti che si raffreddano, Mediterraneo tiepido e vuoto, monsoni in ritirata. Dodici destinazioni in piena bassa stagione."
+    },
+    "where-to-go-in-november": {
+      "title": "Dove andare a novembre 2026: 12 destinazioni",
+      "description": "Novembre è il mese che l'industria del viaggio dimentica, ed è esattamente per questo che funziona. Dodici destinazioni dove la bassa stagione è tutto."
+    },
+    "where-to-go-in-december": {
+      "title": "Dove andare a dicembre 2026: 12 destinazioni",
+      "description": "Dicembre sono due mesi con un nome solo: Europa natalizia e sci, oppure estate australe. Dodici mete che evitano il sovrapprezzo delle feste."
     }
   }
 }
