@@ -38,7 +38,7 @@ export default function HeroDoodleBackground({
       <picture>
         <source media="(max-width: 767.98px)" srcSet={`${HERO}/base-mobile.webp`} />
         <img
-          src={`${HERO}/base-desktop.webp`}
+          src={`${HERO}/base-desktop.webp`} width={1525} height={1031}
           alt=""
           className={styles.base}
           draggable={false}
@@ -48,27 +48,27 @@ export default function HeroDoodleBackground({
 
       {/* sun: rays rotate around the disc, the smiley stays upright */}
       <div className={`${styles.sprite} ${styles.sunGroup}`}>
-        <img src={`${HERO}/sun-rays.webp`} alt="" className={styles.sunRays} draggable={false} loading="lazy" />
-        <img src={`${HERO}/sun-disc.webp`} alt="" className={styles.sunDisc} draggable={false} loading="lazy" />
+        <img src={`${HERO}/sun-rays.webp`} width={164} height={164} alt="" className={styles.sunRays} draggable={false} loading="lazy" />
+        <img src={`${HERO}/sun-disc.webp`} width={100} height={100} alt="" className={styles.sunDisc} draggable={false} loading="lazy" />
       </div>
 
       {/* clouds */}
-      <img src={`${HERO}/cloud-2.webp`} alt="" className={`${styles.sprite} ${styles.cloud2}`} draggable={false} loading="lazy" />
-      <img src={`${HERO}/cloud-3.webp`} alt="" className={`${styles.sprite} ${styles.cloud3}`} draggable={false} loading="lazy" />
+      <img src={`${HERO}/cloud-2.webp`} width={67} height={39} alt="" className={`${styles.sprite} ${styles.cloud2}`} draggable={false} loading="lazy" />
+      <img src={`${HERO}/cloud-3.webp`} width={158} height={80} alt="" className={`${styles.sprite} ${styles.cloud3}`} draggable={false} loading="lazy" />
 
       {/* plane + dashed travel path stay glued together inside one group */}
       <div className={`${styles.sprite} ${styles.planeGroup}`}>
-        <img src={`${HERO}/trail.webp`} alt="" className={styles.trail} draggable={false} loading="lazy" />
-        <img src={`${HERO}/plane.webp`} alt="" className={styles.plane} draggable={false} loading="lazy" />
+        <img src={`${HERO}/trail.webp`} width={252} height={141} alt="" className={styles.trail} draggable={false} loading="lazy" />
+        <img src={`${HERO}/plane.webp`} width={164} height={88} alt="" className={styles.plane} draggable={false} loading="lazy" />
       </div>
 
       {/* cloud-1, the balloon, the teal dot and sparkle-4 exist in the source
           art but not in the composition — the module stylesheet says why. */}
 
       {/* sparkles twinkle on staggered delays */}
-      <img src={`${HERO}/sparkle-1.webp`} alt="" className={`${styles.sprite} ${styles.sp1}`} draggable={false} loading="lazy" />
-      <img src={`${HERO}/sparkle-2.webp`} alt="" className={`${styles.sprite} ${styles.sp2}`} draggable={false} loading="lazy" />
-      <img src={`${HERO}/sparkle-3.webp`} alt="" className={`${styles.sprite} ${styles.sp3}`} draggable={false} loading="lazy" />
+      <img src={`${HERO}/sparkle-1.webp`} width={38} height={40} alt="" className={`${styles.sprite} ${styles.sp1}`} draggable={false} loading="lazy" />
+      <img src={`${HERO}/sparkle-2.webp`} width={31} height={33} alt="" className={`${styles.sprite} ${styles.sp2}`} draggable={false} loading="lazy" />
+      <img src={`${HERO}/sparkle-3.webp`} width={25} height={26} alt="" className={`${styles.sprite} ${styles.sp3}`} draggable={false} loading="lazy" />
 
       {/* mascot: desktop only (hidden <768px via CSS), AVIF with WebP fallback */}
       <picture>
@@ -78,7 +78,7 @@ export default function HeroDoodleBackground({
           sizes="300px"
         />
         <img
-          src={`${HERO}/mascot-480.webp`}
+          src={`${HERO}/mascot-480.webp`} width={480} height={997}
           srcSet={`${HERO}/mascot-480.webp 480w, ${HERO}/mascot-645.webp 645w`}
           sizes="300px"
           alt=""
