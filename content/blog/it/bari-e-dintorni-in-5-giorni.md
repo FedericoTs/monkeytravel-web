@@ -95,7 +95,7 @@ Vuoi i trulli al posto di una di queste? Sostituisci il giorno 2 o il giorno 5 c
 
 Se il Salento ti interessa davvero — Otranto, Gallipoli, le marine, Leuca — la base unica a Bari non regge, e i numeri qui sopra dicono perché.
 
-In quel caso serve l'itinerario lineare: si scende, si dorme almeno una notte a sud e si esce dall'aeroporto di Brindisi invece che da Bari. L'abbiamo scritto qui: **[Itinerario Puglia 5 giorni: Bari, Salento e trulli](/blog/itinerario-puglia-5-giorni)**.
+In quel caso serve l'itinerario lineare: si scende, si dorme almeno una notte a sud e si esce dall'aeroporto di Brindisi invece che da Bari. L'abbiamo scritto qui: **[Itinerario Puglia 5 giorni: Bari, Salento e trulli](/blog/itinerario-puglia-5-giorni)**. E se il Salento è tutto il viaggio e non gli ultimi due giorni, ne ha cinque suoi: **[Itinerario Salento 5 giorni](/blog/itinerario-salento-5-giorni)**.
 
 Due viaggi diversi con lo stesso volo di andata. Questa pagina serve a farti scegliere prima di prenotare l'hotel, non dopo.
 

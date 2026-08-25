@@ -95,7 +95,7 @@ Una forma que funciona, todo en tren, durmiendo siempre en Bari:
 
 Si el Salento es lo que de verdad te interesa — Otranto, Gallipoli, las marinas, Leuca — la base única en Bari no aguanta, y los números de arriba explican por qué.
 
-Ese viaje pide el itinerario lineal: bajar, dormir al menos una noche allí y salir por el aeropuerto de Brindisi en vez del de Bari. Lo escribimos aquí: **[Itinerario Apulia 5 días: Bari, Salento y trulli](/blog/itinerario-puglia-5-giorni)**.
+Ese viaje pide el itinerario lineal: bajar, dormir al menos una noche allí y salir por el aeropuerto de Brindisi en vez del de Bari. Lo escribimos aquí: **[Itinerario Apulia 5 días: Bari, Salento y trulli](/blog/itinerario-puglia-5-giorni)**. Y si el Salento es todo el viaje y no los dos últimos días, tiene cinco propios: **[Salento en 5 días](/blog/itinerario-salento-5-giorni)**.
 
 Dos viajes distintos con el mismo vuelo de ida. Esta página existe para que elijas antes de reservar el hotel, no después.
 

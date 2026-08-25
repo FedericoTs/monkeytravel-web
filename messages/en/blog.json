@@ -498,6 +498,10 @@
     "bari-e-dintorni-in-5-giorni": {
       "title": "Bari in 5 Days: What You Can Actually Reach",
       "description": "Bari is not in Salento. Real train times from Bari Centrale for five day trips — and why Otranto and Gallipoli are not among them."
+    },
+    "itinerario-salento-5-giorni": {
+      "title": "Salento in 5 Days: Pick Your Coast Each Morning",
+      "description": "Salento has two coasts forty minutes apart. Five days based in Lecce, and the local rule for picking the calm one each morning."
     }
   }
 }

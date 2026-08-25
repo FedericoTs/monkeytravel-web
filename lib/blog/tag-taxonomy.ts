@@ -172,6 +172,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "greek-island-hopping-itinerary":        { c: ["itinerary", "europe", "week-long-trip", "multi-city-trip"] },
   "istanbul-3-day-itinerary":              { c: ["itinerary", "city-guide", "weekend-trip"], d: ["istanbul"] },
   "bari-e-dintorni-in-5-giorni":          { c: ["itinerary", "italy", "europe", "trip-planning"] },
+  "itinerario-salento-5-giorni":          { c: ["itinerary", "italy", "europe", "summer-travel"] },
   "itinerario-puglia-5-giorni":            { c: ["itinerary", "italy", "europe", "week-long-trip"] },
   "itinerario-sardegna-7-giorni":          { c: ["itinerary", "italy", "europe", "week-long-trip"] },
   "japan-golden-route-itinerary":          { c: ["itinerary", "japan", "asia", "multi-city-trip", "week-long-trip"] },

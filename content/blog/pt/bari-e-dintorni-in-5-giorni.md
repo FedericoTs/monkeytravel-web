@@ -95,7 +95,7 @@ Quer trulli no lugar de um deles? Troque o dia 2 ou o dia 5 por Alberobello — 
 
 Se o Salento é o que você quer de verdade — Otranto, Gallipoli, as marinas, Leuca — a base única em Bari não se sustenta, e os números acima dizem por quê.
 
-Essa viagem pede o roteiro linear: descer, dormir pelo menos uma noite lá e sair pelo aeroporto de Brindisi em vez do de Bari. Escrevemos esse aqui: **[Roteiro Puglia 5 dias: Bari, Salento e trulli](/blog/itinerario-puglia-5-giorni)**.
+Essa viagem pede o roteiro linear: descer, dormir pelo menos uma noite lá e sair pelo aeroporto de Brindisi em vez do de Bari. Escrevemos esse aqui: **[Roteiro Puglia 5 dias: Bari, Salento e trulli](/blog/itinerario-puglia-5-giorni)**. E se o Salento for a viagem inteira e não os dois últimos dias, ele tem cinco próprios: **[Salento em 5 dias](/blog/itinerario-salento-5-giorni)**.
 
 Duas viagens diferentes com o mesmo voo de ida. Esta página existe para você escolher antes de reservar o hotel, não depois.
 

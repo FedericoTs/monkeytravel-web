@@ -36,7 +36,7 @@ Five days is the right format for a first visit. Enough to cover Puglia's three 
 
 This itinerary is designed for those renting a car. Distances are short (Puglia is long and narrow), but public transport doesn't cover the small towns and beaches.
 
-If you would rather not change hotel every night — or not drive at all — there is a second shape for the same flight: stay put in Bari and go out by train. We wrote that one separately: **[Bari in 5 days: what you can actually reach](/blog/bari-e-dintorni-in-5-giorni)**.
+If you would rather not change hotel every night — or not drive at all — there is a second shape for the same flight: stay put in Bari and go out by train. We wrote that one separately: **[Bari in 5 days: what you can actually reach](/blog/bari-e-dintorni-in-5-giorni)**. And if Salento alone is the trip, it has its own five days: **[Salento in 5 days: pick your coast each morning](/blog/itinerario-salento-5-giorni)**.
 
 ## Before You Go: The Practical Stuff
 

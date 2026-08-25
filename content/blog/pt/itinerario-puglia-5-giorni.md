@@ -37,7 +37,7 @@ Cinco dias é o formato ideal para uma primeira visita. Suficiente para cobrir a
 
 Este roteiro foi pensado para quem aluga carro. As distâncias são curtas (a Puglia é longa e estreita), mas o transporte público não cobre os vilarejos pequenos nem as praias.
 
-Se você prefere não trocar de hotel toda noite — ou não dirigir — existe um segundo formato para o mesmo voo: base fixa em Bari e passeios de trem. Escrevemos esse à parte: **[Bari e arredores em 5 dias: até onde dá para chegar](/blog/bari-e-dintorni-in-5-giorni)**.
+Se você prefere não trocar de hotel toda noite — ou não dirigir — existe um segundo formato para o mesmo voo: base fixa em Bari e passeios de trem. Escrevemos esse à parte: **[Bari e arredores em 5 dias: até onde dá para chegar](/blog/bari-e-dintorni-in-5-giorni)**. E se a viagem for só o Salento, ele tem cinco dias próprios: **[Salento em 5 dias: escolha a costa a cada manhã](/blog/itinerario-salento-5-giorni)**.
 
 ## Antes de Ir: O Lado Prático
 
