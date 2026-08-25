@@ -78,8 +78,9 @@ const BLOCKED_BOT_PATTERNS = [
   /FacebookBot/i,
   /Meta-ExternalAgent/i,
   // Google-Extended was removed 2026-08-21 — see the note above.
-  // Applebot-Extended stays: same shape of tradeoff, not yet decided.
-  /Applebot-Extended/i,
+  // Applebot-Extended removed 2026-08-25: it gates Apple Intelligence
+  // grounding, so blocking it cost retrieval surface, not just training. Same
+  // call as Google-Extended. Plain Applebot (Siri/Spotlight) was never blocked.
   /Diffbot/i,
   /SemrushBot/i,
   /AhrefsBot/i,

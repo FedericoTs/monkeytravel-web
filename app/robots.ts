@@ -87,8 +87,16 @@ const ALLOW_PATHS = [
 // DECISION 2026-08-21: Google-Extended is now ALLOWED — grounding in the
 // Gemini consumer app was judged worth more than the training opt-out, the
 // same call already made for GPTBot and ClaudeBot. AI Overviews were never
-// affected either way. Applebot-Extended stays blocked: same shape of
-// decision, not yet made — not an oversight.
+// affected either way.
+// DECISION 2026-08-25: Applebot-Extended is now ALLOWED too — the decision
+// flagged above as "not yet made" is made. It gates Apple Intelligence
+// grounding, so blocking it is a retrieval decision and not a pure training
+// opt-out, which is exactly the reasoning already applied to GPTBot, ClaudeBot
+// and Google-Extended. Note the cost is real and accepted: this also permits
+// training use. Applebot (plain, the Siri/Spotlight search crawler) was never
+// blocked. anthropic-ai stays blocked — it is a legacy training-only agent and
+// ClaudeBot already covers Claude retrieval, which is what drives our
+// claude.ai referrals.
 // The full tradeoff lives in middleware.ts above BLOCKED_BOT_PATTERNS;
 // keep both notes in sync. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
 const BLOCKED_AI_AGENTS = [
@@ -96,7 +104,6 @@ const BLOCKED_AI_AGENTS = [
   "CCBot",
   "Bytespider",
   "Amazonbot",
-  "Applebot-Extended",
   "SemrushBot",
   "AhrefsBot",
 ];
