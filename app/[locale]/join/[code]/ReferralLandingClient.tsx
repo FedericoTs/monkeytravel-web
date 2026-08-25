@@ -216,7 +216,7 @@ export default function ReferralLandingClient({
               </div>
               <h3 className="font-semibold text-slate-900 mb-2">AI-Powered</h3>
               <p className="text-sm text-slate-600">
-                Get personalized itineraries in under 30 seconds
+                Get personalized itineraries in about 30 seconds
               </p>
             </div>
             <div className="text-center p-6">

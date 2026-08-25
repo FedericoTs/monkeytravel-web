@@ -247,5 +247,17 @@
   },
   "testimonials": {
     "title": "What travelers are saying"
+  },
+  "freeTools": {
+    "eyebrow": "Free Tools",
+    "heading": "Free tools that save you hours",
+    "sub": "Free utilities that do the boring research before you go. No signup.",
+    "packingTitle": "Packing List Generator",
+    "packingBlurb": "AI-personalized by destination weather, activities, and trip length.",
+    "tryIt": "Try it",
+    "visaTitle": "Visa Requirements Checker",
+    "visaBlurb": "Find out in seconds whether you need a visa for your next trip.",
+    "comingSoon": "Coming soon",
+    "allTools": "All tools"
   }
 }

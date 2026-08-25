@@ -125,7 +125,7 @@ export function generateSoftwareApplicationSchema(): SoftwareApplicationSchema {
     name: SITE_NAME,
     applicationCategory: "TravelApplication",
     operatingSystem: "Web Browser, iOS (coming soon), Android (coming soon)",
-    description: "AI-powered travel planning app that creates personalized day-by-day itineraries with restaurants, attractions, and activities in under 30 seconds",
+    description: "AI-powered travel planning app that creates personalized day-by-day itineraries with restaurants, attractions, and activities in about 30 seconds",
     url: SITE_URL,
     offers: {
       "@type": "Offer",

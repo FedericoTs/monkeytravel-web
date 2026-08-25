@@ -907,21 +907,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
               <span className="inline-block text-xs font-bold tracking-widest uppercase text-[var(--primary)] mb-3">
-                {locale === "it" ? "Strumenti Gratuiti" : locale === "es" ? "Herramientas Gratis" : "Free Tools"}
+                {t('freeTools.eyebrow')}
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-                {locale === "it"
-                  ? "Pianifica meglio in 10 secondi"
-                  : locale === "es"
-                    ? "Planifica mejor en 10 segundos"
-                    : "Plan smarter in 10 seconds"}
+                {t('freeTools.heading')}
               </h2>
               <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                {locale === "it"
-                  ? "Strumenti gratuiti che ti fanno risparmiare ore prima della partenza. Senza registrazione."
-                  : locale === "es"
-                    ? "Herramientas gratuitas que te ahorran horas antes de viajar. Sin registro."
-                    : "Free utilities that save you hours before you go. No signup."}
+                {t('freeTools.sub')}
               </p>
             </div>
 
@@ -932,21 +924,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               >
                 <div className="text-4xl mb-3">🧳</div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1.5">
-                  {locale === "it"
-                    ? "Generatore Lista Bagaglio"
-                    : locale === "es"
-                      ? "Generador de Lista de Equipaje"
-                      : "Packing List Generator"}
+                  {t('freeTools.packingTitle')}
                 </h3>
                 <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                  {locale === "it"
-                    ? "Lista personalizzata con AI in base a clima, attività e durata del viaggio."
-                    : locale === "es"
-                      ? "Lista personalizada con AI según clima, actividades y duración del viaje."
-                      : "AI-personalized by destination weather, activities, and trip length."}
+                  {t('freeTools.packingBlurb')}
                 </p>
                 <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
-                  {locale === "it" ? "Provalo" : locale === "es" ? "Pruébalo" : "Try it"}
+                  {t('freeTools.tryIt')}
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -959,21 +943,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               >
                 <div className="text-4xl mb-3">🛂</div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1.5">
-                  {locale === "it"
-                    ? "Verifica Requisiti Visto"
-                    : locale === "es"
-                      ? "Verificador de Visa"
-                      : "Visa Requirements Checker"}
+                  {t('freeTools.visaTitle')}
                 </h3>
                 <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                  {locale === "it"
-                    ? "Scopri in pochi secondi se ti serve un visto per il tuo prossimo viaggio."
-                    : locale === "es"
-                      ? "Descubre en segundos si necesitas visa para tu próximo viaje."
-                      : "Find out in seconds whether you need a visa for your next trip."}
+                  {t('freeTools.visaBlurb')}
                 </p>
                 <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 bg-amber-100 text-amber-900 rounded-full">
-                  {locale === "it" ? "In arrivo" : locale === "es" ? "Próximamente" : "Coming soon"}
+                  {t('freeTools.comingSoon')}
                 </span>
               </Link>
             </div>
@@ -983,11 +959,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 href="/tools"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
               >
-                {locale === "it"
-                  ? "Tutti gli strumenti"
-                  : locale === "es"
-                    ? "Todas las herramientas"
-                    : "All tools"}
+                {t('freeTools.allTools')}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

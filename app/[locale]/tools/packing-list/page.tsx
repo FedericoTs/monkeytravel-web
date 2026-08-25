@@ -18,25 +18,25 @@ const META: Record<string, { title: string; description: string }> = {
     title:
       "Gerador de Lista de Bagagem com AI",
     description:
-      "Receba uma lista de bagagem personalizada em 10 segundos. Nossa AI considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
+      "Receba uma lista de bagagem personalizada em segundos. Nossa AI considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
   },
   en: {
     title:
       "Free AI Packing List Generator",
     description:
-      "Get a personalized packing list in 10 seconds. Our AI factors in destination weather, local outlets, and your planned activities. No signup, free forever.",
+      "Get a packing list personalized to your trip. Our AI factors in destination weather, local outlets, and your planned activities. No signup, free forever.",
   },
   it: {
     title:
       "Generatore di Liste Bagaglio con AI",
     description:
-      "Ricevi una lista bagaglio personalizzata in 10 secondi. La nostra AI considera clima, prese elettriche e le tue attività. Gratis, senza registrazione.",
+      "Ricevi una lista bagaglio personalizzata per il tuo viaggio. La nostra AI considera clima, prese elettriche e le tue attività. Gratis, senza registrazione.",
   },
   es: {
     title:
       "Generador de Lista de Equipaje con AI",
     description:
-      "Recibe una lista de equipaje personalizada en 10 segundos. Nuestra AI considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
+      "Recibe una lista de equipaje personalizada para tu viaje. Nuestra AI considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
   },
 };
 

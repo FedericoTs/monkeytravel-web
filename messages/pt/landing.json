@@ -247,5 +247,17 @@
   },
   "testimonials": {
     "title": "O que os viajantes estão dizendo"
+  },
+  "freeTools": {
+    "eyebrow": "Ferramentas Gratuitas",
+    "heading": "Ferramentas gratuitas que economizam horas",
+    "sub": "Utilitários gratuitos que fazem a pesquisa chata antes de você viajar. Sem cadastro.",
+    "packingTitle": "Gerador de Lista de Bagagem",
+    "packingBlurb": "Personalizada com IA pelo clima do destino, atividades e duração da viagem.",
+    "tryIt": "Experimente",
+    "visaTitle": "Verificador de Requisitos de Visto",
+    "visaBlurb": "Descubra em segundos se você precisa de visto para a próxima viagem.",
+    "comingSoon": "Em breve",
+    "allTools": "Todas as ferramentas"
   }
 }

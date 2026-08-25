@@ -10,7 +10,7 @@
   "hero": {
     "badge": "Com AI — Gera Roteiros em 30 Segundos",
     "title": "O Gerador de Roteiros com AI Que Planeja Como um Profissional",
-    "subtitle": "Digite um destino e receba um roteiro completo dia a dia com lugares reais, preços atuais e blocos de tempo otimizados — tudo gerado por AI em menos de 30 segundos.",
+    "subtitle": "Digite um destino e receba um roteiro completo dia a dia com lugares reais, preços atuais e blocos de tempo otimizados — tudo gerado por AI em cerca de 30 segundos.",
     "cta": "Gerar Meu Roteiro",
     "secondaryCta": "Veja Como Funciona",
     "trustSignals": {
@@ -72,7 +72,7 @@
       },
       "step2": {
         "title": "A AI Gera o Seu Roteiro",
-        "description": "Nosso motor de AI monta um plano completo dia a dia em menos de 30 segundos — com lugares reais, blocos de tempo e três níveis de orçamento para comparar."
+        "description": "Nosso motor de AI monta um plano completo dia a dia em cerca de 30 segundos — com lugares reais, blocos de tempo e três níveis de orçamento para comparar."
       },
       "step3": {
         "title": "Personalize e Exporte",
@@ -116,7 +116,7 @@
     "items": {
       "howFast": {
         "question": "Com que rapidez ele gera um roteiro?",
-        "answer": "O MonkeyTravel gera um roteiro completo dia a dia em menos de 30 segundos. Você recebe três níveis de orçamento (Econômico, Equilibrado, Premium) com lugares reais, preços e blocos de tempo otimizados — tudo pronto para personalizar ou exportar imediatamente."
+        "answer": "O MonkeyTravel gera um roteiro completo dia a dia em cerca de 30 segundos. Você recebe três níveis de orçamento (Econômico, Equilibrado, Premium) com lugares reais, preços e blocos de tempo otimizados — tudo pronto para personalizar ou exportar imediatamente."
       },
       "howAccurate": {
         "question": "Quão precisos são os roteiros gerados?",
