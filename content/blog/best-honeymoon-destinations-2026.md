@@ -11,8 +11,13 @@ image: "/images/blog/best-honeymoon-destinations-2026.jpg"
 imageAlt: "Couple in matching white linen on a cliffside terrace overlooking the Mediterranean at sunset"
 readingTime: 16
 seo:
-  title: "Best Honeymoon Destinations 2026: 12 Spots Ranked & Reviewed"
-  description: "The 12 best honeymoon destinations for 2026 — from $4,500 Bali to $25k Maldives. Real prices, best months to visit, the one anchor activity that earns each spot, and the honest 'skip this if' filter that most honeymoon lists skip."
+  # 2026-08-25: description was over ~160 chars and truncating in the SERP.
+
+  title: 'Best Honeymoon Destinations 2026: 12 Spots Ranked & Reviewed'
+  description: >-
+    The 12 best honeymoon destinations for 2026, from $4,500 Bali to $25k
+    Maldives — real prices, the best month for each, and an honest 'skip
+    this if' filter.
   keywords: ["best honeymoon destinations 2026", "honeymoon destinations 2026", "top honeymoon spots 2026", "romantic vacation 2026", "honeymoon ideas 2026", "best places for honeymoon", "luxury honeymoon destinations"]
 schema: "Article"
 ---

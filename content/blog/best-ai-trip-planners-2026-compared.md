@@ -14,15 +14,23 @@ image: /images/blog/best-ai-trip-planners-2026-compared.jpg
 imageAlt: Side-by-side comparison of AI trip planning tools on laptop and phone screens
 readingTime: 10
 seo:
+  # 2026-08-25 snippet rewrite. Ranks top-5 on the 'best AI for X'
+  # family (7,263 impr in top-5, 1.87% CTR vs ~8-11% expected at pos 2-4;
+  # gap ~532 clicks/90d). Dominant query phrasing is 'best ai FOR travel
+  # planning', not 'best ai trip planners' — title now leads with it and
+  # still contains 'trip planner'. Description names competitors (wonderplan
+  # surged 81->1,015 impr in 28d) and previews the differentiated claim.
+  # MEASURE: CTR on 'best ai for travel planning' (was 2.13% at pos 4.3).
+
   # GSC 2026-05: 24,038 impr, pos 6.09, CTR 0.15% — title 78 chars + brand
   # suffix. Top query "best ai trip planners 2026" pos 6.15 with 216 impr — we
   # ALMOST rank well. Rewritten 2026-05-30 to lead with exact-match keyword and
   # add a SERP-magnetic number.
-  title: 'Best AI Trip Planners 2026: 7 Tools Tested + Ranked'
+  title: 'Best AI for Travel Planning 2026: 7 Trip Planners Tested'
   description: >-
-    We tested Mindtrip, Layla, Wonderplan, Gemini, ChatGPT, iPlan.ai, and
-    MonkeyTravel. Which AI trip planner actually plans good trips? Honest
-    reviews.
+    We tested Mindtrip, Layla, Wonderplan, Gemini, ChatGPT and iPlan.ai on
+    real trips. Which give you a day you can actually walk, and which just
+    hand you a list.
   keywords:
     - best ai trip planner 2026
     - ai travel planner comparison

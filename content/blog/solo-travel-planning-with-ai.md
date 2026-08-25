@@ -1,5 +1,5 @@
 ---
-title: 'How to Plan a Solo Trip with AI: The Complete 2026 Guide'
+title: 'Where to Travel Solo in 2026 (and How to Plan It With AI)'
 slug: solo-travel-planning-with-ai
 description: >-
   Solo travel is at an all-time high in 2026. Learn how AI trip planners
@@ -14,10 +14,16 @@ image: /images/blog/solo-travel-ai.jpg
 imageAlt: Solo traveler with backpack looking at a scenic mountain vista at golden hour
 readingTime: 7
 seo:
-  title: 'Solo Travel Planning with AI: Complete 2026 Guide | MonkeyTravel'
+  # 2026-08-25 snippet rewrite. Ranks position 1.0 for 'where to travel
+  # solo' (526 impr) and 'where to travel alone' (484) with ZERO clicks:
+  # the query asks WHERE, the old title promised HOW to plan. The post
+  # does contain '5 Best Destinations for Solo Travelers', so leading
+  # with the destinations is accurate, not bait.
+
+  title: 'Where to Travel Solo in 2026: 5 Best Destinations'
   description: >-
-    Solo travel puts every decision on you. Learn how AI trip planners make
-    solo travel easier — from safety to itineraries optimized for one.
+    Lisbon, Tokyo, Medellin, Taipei, Edinburgh — why each one works alone,
+    plus how AI handles the safety research and itineraries built for one.
   keywords:
     - solo travel planning
     - how to plan a solo trip
@@ -27,7 +33,7 @@ seo:
 schema: Article
 ---
 
-# How to Plan a Solo Trip with AI: The Complete 2026 Guide
+# Where to Travel Solo in 2026 (and How to Plan It With AI)
 
 Here's the thing about solo travel: the trip itself is usually incredible. The planning? That's the part that makes people give up before they even book a flight.
 

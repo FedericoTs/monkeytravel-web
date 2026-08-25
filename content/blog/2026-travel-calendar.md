@@ -11,8 +11,13 @@ image: "/images/blog/trending-destinations-may-2026.jpg"
 imageAlt: "Calendar showing destinations across all 12 months of 2026 with seasonal markers"
 readingTime: 22
 seo:
-  title: "2026 Travel Calendar: Where to Go Every Month | MonkeyTravel"
-  description: "The complete month-by-month travel guide for 2026. Real weather data, crowd patterns, seasonal events, and budget ranges for the best destinations to visit each month — from Tokyo cherry blossoms in April to Norway's midnight sun in June."
+  # 2026-08-25: description was over ~160 chars and truncating in the SERP.
+
+  title: '2026 Travel Calendar: Where to Go Every Month'
+  description: >-
+    A month-by-month guide to where to go in 2026: real weather, crowd
+    patterns, seasonal events and budget ranges for the best destination
+    each month.
   keywords: ["2026 travel calendar", "where to travel each month", "monthly travel guide 2026", "best destinations by month", "when to visit", "seasonal travel 2026"]
 schema: "Article"
 ---

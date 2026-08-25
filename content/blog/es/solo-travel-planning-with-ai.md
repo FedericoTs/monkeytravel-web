@@ -1,5 +1,5 @@
 ---
-title: 'Cómo planificar un viaje en solitario con AI: La guía completa 2026'
+title: 'Adónde viajar solo en 2026 (y cómo planificarlo con AI)'
 slug: solo-travel-planning-with-ai
 description: >-
   Los viajes en solitario están en su punto más alto en 2026. Descubre cómo los
@@ -16,11 +16,17 @@ imageAlt: >-
   al atardecer
 readingTime: 7
 seo:
-  title: 'Viajes en solitario con AI: Guía completa 2026 | MonkeyTravel'
+  # 2026-08-25 snippet rewrite. Ranks position 1.0 for 'where to travel
+  # solo' (526 impr) and 'where to travel alone' (484) with ZERO clicks:
+  # the query asks WHERE, the old title promised HOW to plan. The post
+  # does contain '5 Best Destinations for Solo Travelers', so leading
+  # with the destinations is accurate, not bait.
+
+  title: 'Adónde viajar solo en 2026: los 5 mejores destinos'
   description: >-
-    Viajar solo pone cada decisión en tus manos. Descubre cómo los
-    planificadores de viaje con AI se encargan del trabajo previo, de la
-    seguridad a itinerarios pensados para uno.
+    Lisboa, Tokio, Medellín, Taipéi y Edimburgo: por qué funcionan en
+    solitario, y cómo la AI resuelve la investigación de seguridad y los
+    itinerarios para uno.
   keywords:
     - planificar viaje en solitario
     - cómo planificar un viaje solo
@@ -30,7 +36,7 @@ seo:
 schema: Article
 ---
 
-# Cómo planificar un viaje en solitario con AI: La guía completa 2026
+# Adónde viajar solo en 2026 (y cómo planificarlo con AI)
 
 Esto es lo que pasa con los viajes en solitario: el viaje en sí suele ser increíble. ¿La planificación? Esa es la parte que hace que la gente se rinda antes de reservar un vuelo.
 

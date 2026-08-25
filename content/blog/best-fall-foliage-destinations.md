@@ -18,13 +18,14 @@ imageAlt: >-
   bridge
 readingTime: 8
 seo:
-  title: >-
-    Best Fall Foliage Destinations 2026: 12 Places to See Autumn Leaves |
-    MonkeyTravel
+  # 2026-08-25: title was 82 chars and truncating. NOTE: /blog/2026-travel-calendar
+  # outranks THIS page for 'best places to see fall foliage' (pos 1.0 vs 8.9) and
+  # both get 0 clicks — likely AI Overview capture, not a title problem.
+
+  title: 'Best Fall Foliage Destinations 2026: 12 Places + Peak Dates'
   description: >-
-    Discover the 12 best fall foliage destinations for 2026. Peak dates, driving
-    routes, train itineraries, photography tips, and budget comparisons for
-    every destination.
+    The 12 best places to see autumn leaves in 2026 — peak colour dates,
+    driving routes, train itineraries and what each one costs.
   keywords:
     - best fall foliage destinations
     - autumn leaves travel
