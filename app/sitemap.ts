@@ -15,10 +15,24 @@ const defaultLocale = "en";
 // to today just to provoke a recrawl: an INACCURATE lastmod is worse than a
 // stale one — Google learns to ignore the signal entirely. Bump only when the
 // content actually changes.
-const LASTMOD_HOMEPAGE = "2026-04-30";
-const LASTMOD_LANDING = "2026-04-15";
-const LASTMOD_DESTINATIONS = "2026-04-15";
-const LASTMOD_LEGAL = "2025-12-01";
+//
+// That principle is right, but until 2026-08-25 the VALUES had rotted, which
+// broke it in the opposite direction: the homepage declared 2026-04-30 while
+// 26 commits had touched homepage-rendered files since (hero refresh, the CLS
+// fix, the "30 seconds" copy change). Two consequences, the second worse than
+// the first:
+//   1. Google was told our best-converting page had not changed in four months.
+//   2. `scripts/indexnow-submit.mts --since N` FILTERS ON LASTMOD, so the
+//      homepage and every landing page were silently excluded from every
+//      IndexNow submission we ran.
+// `sitemap-lastmod.vitest.ts` now fails the suite when any constant below
+// falls behind the newest commit touching the files it covers, so the rot
+// cannot recur silently. Update the constant AND the path list together when
+// content moves.
+const LASTMOD_HOMEPAGE = "2026-08-25";
+const LASTMOD_LANDING = "2026-08-25";
+const LASTMOD_DESTINATIONS = "2026-08-25";
+const LASTMOD_LEGAL = "2026-05-25";
 
 // The pt locale shipped 2026-06-09 (commit 988c1f6 — 29 destinations + 65 blog
 // posts). pt pages must NEVER carry an en/es/it date that PRE-DATES the pt
@@ -246,7 +260,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const dates = getPostDates(slug);
       blogPages.push({
         url: `${baseUrl}${prefix}/blog/${slug}`,
-        lastModified: dates?.updatedAt ?? LASTMOD_HOMEPAGE,
+        // ptAware here too: frontmatter `updatedAt` belongs to the POST, not to
+        // the pt translation of it. 39 /pt/blog/ URLs were declaring dates from
+        // Feb-May 2026 — before the pt locale existed — which is the same
+        // pre-creation-date bug ptAware was written for, arriving by a
+        // different route because blog posts carry their own dates. Posts
+        // translated after the pt launch keep their real, later date.
+        lastModified: ptAware(locale, dates?.updatedAt ?? LASTMOD_HOMEPAGE),
         changeFrequency: "monthly",
         priority: PRIORITY_BLOG_DETAIL,
       });
