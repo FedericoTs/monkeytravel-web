@@ -1,17 +1,23 @@
 {
   "hero": {
-    "badge": "Plan solo \u2014 or with up to 8 friends",
+    "badge": "Plan solo — or with up to 8 friends",
     "titleLine1": "Free AI Trip Planner",
     "titleHighlight": "Day-by-Day in 30 Seconds",
     "subtitleStart": "Drop a destination and get a",
     "subtitleHighlight": "personalized day-by-day itinerary",
-    "subtitleEnd": "with real places, opening hours and budgets \u2014 no account, no card.",
-    "cta": "Plan My Trip \u2014 Free",
+    "subtitleEnd": "with real places, opening hours and budgets — no account, no card.",
+    "cta": "Plan My Trip — Free",
     "signIn": "Sign In",
     "inputPlaceholder": "Where do you want to go?",
     "inputCta": "Plan my trip",
     "starterLabel": "Popular:",
-    "starters": ["Tokyo", "Paris", "Bali", "Rome", "New York"],
+    "starters": [
+      "Tokyo",
+      "Paris",
+      "Bali",
+      "Rome",
+      "New York"
+    ],
     "trustSignals": {
       "free": "100% Free",
       "noCard": "No Account Needed",
@@ -31,7 +37,7 @@
     "friendsPerTrip": "Friends per trip"
   },
   "problem": {
-    "title": "Group trips fall apart before they start",
+    "title": "Planning a trip still takes 47 browser tabs",
     "subtitle": "Sound familiar? You're not alone.",
     "points": {
       "tabs": "47 browser tabs open, trying to piece together blogs, reviews, and maps",
@@ -40,16 +46,16 @@
     },
     "cards": {
       "research": {
-        "title": "The Endless Group Chat",
-        "description": "\"Where should we eat?\" \"What about Tuesday?\" — 200 messages later, nothing's decided."
+        "title": "The Research Spiral",
+        "description": "Blogs, reviews, maps, a dozen \"best of\" lists — and still no day you can actually walk."
       },
       "analysis": {
-        "title": "One Person Does Everything",
+        "title": "One Person Does All the Planning",
         "description": "Somehow it's always you. Researching, booking, organizing — while everyone else just shows up."
       },
       "copyPaste": {
-        "title": "Nobody Can Agree",
-        "description": "She wants museums, he wants beaches, they want food tours. Everyone's frustrated."
+        "title": "Itineraries That Do Not Fit",
+        "description": "Copied \"Top 10\" plans that ignore your budget, your pace, and how long things really take."
       }
     }
   },
@@ -67,7 +73,7 @@
   },
   "solution": {
     "badge": "Built Different",
-    "title": "Not another AI gimmick",
+    "title": "An AI trip planner that actually plans",
     "subtitle": "We get it — you've seen the \"AI travel planner\" hype before. Here's what makes this one real.",
     "features": {
       "personalized": {

@@ -1,17 +1,23 @@
 {
   "hero": {
-    "badge": "Viaja solo \u2014 o con hasta 8 amigos",
+    "badge": "Viaja solo — o con hasta 8 amigos",
     "titleLine1": "Planificador de Viajes con AI Gratis",
-    "titleHighlight": "D\u00eda a D\u00eda en 30 Segundos",
+    "titleHighlight": "Día a Día en 30 Segundos",
     "subtitleStart": "Elige un destino y obtén un",
     "subtitleHighlight": "itinerario personalizado día a día",
-    "subtitleEnd": "con lugares reales, horarios y presupuestos \u2014 sin cuenta y sin tarjeta.",
-    "cta": "Planificar mi Viaje \u2014 Gratis",
+    "subtitleEnd": "con lugares reales, horarios y presupuestos — sin cuenta y sin tarjeta.",
+    "cta": "Planificar mi Viaje — Gratis",
     "signIn": "Iniciar Sesión",
     "inputPlaceholder": "¿A dónde quieres ir?",
     "inputCta": "Planear mi viaje",
     "starterLabel": "Populares:",
-    "starters": ["Tokio", "París", "Bali", "Roma", "Nueva York"],
+    "starters": [
+      "Tokio",
+      "París",
+      "Bali",
+      "Roma",
+      "Nueva York"
+    ],
     "trustSignals": {
       "free": "100% Gratis",
       "noCard": "Sin Cuenta",
@@ -31,7 +37,7 @@
     "friendsPerTrip": "Amigos por viaje"
   },
   "problem": {
-    "title": "Los viajes en grupo se caen antes de empezar",
+    "title": "Planificar un viaje sigue costando 47 pestañas",
     "subtitle": "¿Te suena? No estás solo.",
     "points": {
       "tabs": "47 pestañas abiertas, tratando de unir blogs, reseñas y mapas",
@@ -40,16 +46,16 @@
     },
     "cards": {
       "research": {
-        "title": "El Chat Grupal Interminable",
-        "description": "\"¿Dónde comemos?\" \"¿Y el martes?\" — 200 mensajes después, nada decidido."
+        "title": "La espiral de búsqueda",
+        "description": "Blogs, reseñas, mapas y mil listas de \"lo mejor de\" — y sigues sin un día que puedas caminar de verdad."
       },
       "analysis": {
-        "title": "Una Persona Hace Todo",
+        "title": "Una persona planifica todo",
         "description": "Siempre te toca a ti. Investigar, reservar, organizar — mientras los demás solo aparecen."
       },
       "copyPaste": {
-        "title": "Nadie Se Pone de Acuerdo",
-        "description": "Ella quiere museos, él quiere playa, ellos quieren tours gastronómicos. Todos frustrados."
+        "title": "Itinerarios que no encajan",
+        "description": "Planes \"Top 10\" copiados que ignoran tu presupuesto, tu ritmo y lo que de verdad tardan las cosas."
       }
     }
   },
@@ -67,7 +73,7 @@
   },
   "solution": {
     "badge": "Diferente de Verdad",
-    "title": "No es otro truco de AI",
+    "title": "Un planificador de viajes con AI que sí planifica",
     "subtitle": "Lo sabemos — ya has visto el hype de \"planificador de viajes con AI\". Esto es lo que hace que este sea real.",
     "features": {
       "personalized": {

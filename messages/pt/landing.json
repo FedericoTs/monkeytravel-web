@@ -1,12 +1,12 @@
 {
   "hero": {
     "badge": "Viaje sozinho — ou com até 8 amigos",
-    "titleLine1": "Planejador de Viagens com AI Gr\u00e1tis",
+    "titleLine1": "Planejador de Viagens com AI Grátis",
     "titleHighlight": "Dia a Dia em 30 Segundos",
     "subtitleStart": "Escolha um destino e receba um",
     "subtitleHighlight": "roteiro personalizado dia a dia",
-    "subtitleEnd": "com lugares reais, hor\u00e1rios e or\u00e7amentos \u2014 sem conta e sem cart\u00e3o.",
-    "cta": "Planejar Minha Viagem \u2014 Gr\u00e1tis",
+    "subtitleEnd": "com lugares reais, horários e orçamentos — sem conta e sem cartão.",
+    "cta": "Planejar Minha Viagem — Grátis",
     "signIn": "Entrar",
     "inputPlaceholder": "Para onde você quer ir?",
     "inputCta": "Planejar viagem",
@@ -37,7 +37,7 @@
     "friendsPerTrip": "Amigos por viagem"
   },
   "problem": {
-    "title": "As viagens em grupo desandam antes mesmo de começar",
+    "title": "Planejar uma viagem ainda leva 47 abas abertas",
     "subtitle": "Soa familiar? Você não está sozinho.",
     "points": {
       "tabs": "47 abas abertas no navegador, tentando juntar blogs, avaliações e mapas",
@@ -46,16 +46,16 @@
     },
     "cards": {
       "research": {
-        "title": "O Grupo no Chat Sem Fim",
-        "description": "\"Onde a gente come?\" \"E na terça?\" — 200 mensagens depois, nada foi decidido."
+        "title": "A espiral de pesquisa",
+        "description": "Blogs, avaliações, mapas e mil listas de \"melhores\" — e ainda nenhum dia que dê para caminhar de verdade."
       },
       "analysis": {
-        "title": "Uma Pessoa Faz Tudo",
+        "title": "Uma pessoa planeja tudo",
         "description": "No fim das contas, sempre sobra para você. Pesquisar, reservar, organizar — enquanto os outros só aparecem."
       },
       "copyPaste": {
-        "title": "Ninguém Concorda",
-        "description": "Ela quer museus, ele quer praia, eles querem tours gastronômicos. Todo mundo frustrado."
+        "title": "Roteiros que não encaixam",
+        "description": "Planos \"Top 10\" copiados que ignoram seu orçamento, seu ritmo e quanto as coisas realmente demoram."
       }
     }
   },
@@ -73,7 +73,7 @@
   },
   "solution": {
     "badge": "Diferente de Verdade",
-    "title": "Não é mais um truque de AI",
+    "title": "Um planejador de viagens com AI que realmente planeja",
     "subtitle": "A gente entende — você já viu o hype do \"planejador de viagens com AI\" antes. Aqui está o que torna este de verdade.",
     "features": {
       "personalized": {

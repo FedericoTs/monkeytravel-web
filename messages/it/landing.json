@@ -1,17 +1,23 @@
 {
   "hero": {
-    "badge": "Viaggia da solo \u2014 o con fino a 8 amici",
+    "badge": "Viaggia da solo — o con fino a 8 amici",
     "titleLine1": "Pianificatore di Viaggi AI Gratuito",
     "titleHighlight": "Giorno per Giorno in 30 Secondi",
     "subtitleStart": "Scegli una destinazione e ottieni un",
     "subtitleHighlight": "itinerario personalizzato giorno per giorno",
-    "subtitleEnd": "con luoghi reali, orari e budget \u2014 senza account e senza carta.",
-    "cta": "Pianifica il Viaggio \u2014 Gratis",
+    "subtitleEnd": "con luoghi reali, orari e budget — senza account e senza carta.",
+    "cta": "Pianifica il Viaggio — Gratis",
     "signIn": "Accedi",
     "inputPlaceholder": "Dove vuoi andare?",
     "inputCta": "Pianifica il viaggio",
     "starterLabel": "Popolari:",
-    "starters": ["Tokyo", "Parigi", "Bali", "Roma", "New York"],
+    "starters": [
+      "Tokyo",
+      "Parigi",
+      "Bali",
+      "Roma",
+      "New York"
+    ],
     "trustSignals": {
       "free": "100% Gratis",
       "noCard": "Nessun Account",
@@ -31,7 +37,7 @@
     "friendsPerTrip": "Amici per viaggio"
   },
   "problem": {
-    "title": "I viaggi di gruppo si sfaldano prima di iniziare",
+    "title": "Pianificare un viaggio richiede ancora 47 schede",
     "subtitle": "Ti suona familiare? Non sei solo.",
     "points": {
       "tabs": "47 schede aperte, cercando di mettere insieme blog, recensioni e mappe",
@@ -40,16 +46,16 @@
     },
     "cards": {
       "research": {
-        "title": "La Chat di Gruppo Infinita",
-        "description": "\"Dove mangiamo?\" \"E martedì?\" — 200 messaggi dopo, niente è deciso."
+        "title": "La spirale delle ricerche",
+        "description": "Blog, recensioni, mappe e mille classifiche \"i migliori\" — e ancora nessuna giornata davvero percorribile."
       },
       "analysis": {
-        "title": "Una Persona Fa Tutto",
+        "title": "Una persona pianifica tutto",
         "description": "In qualche modo tocca sempre a te. Cercare, prenotare, organizzare — mentre gli altri si presentano e basta."
       },
       "copyPaste": {
-        "title": "Nessuno Riesce a Mettersi d'Accordo",
-        "description": "Lei vuole musei, lui vuole spiagge, loro vogliono tour gastronomici. Tutti frustrati."
+        "title": "Itinerari che non ti calzano",
+        "description": "Piani \"Top 10\" copiati che ignorano il tuo budget, il tuo ritmo e quanto tempo serve davvero."
       }
     }
   },
@@ -67,7 +73,7 @@
   },
   "solution": {
     "badge": "Davvero Diverso",
-    "title": "Non è l'ennesimo trucco AI",
+    "title": "Un pianificatore di viaggi AI che pianifica davvero",
     "subtitle": "Lo sappiamo — hai già visto l'hype del \"pianificatore di viaggi con AI\". Ecco cosa rende questo diverso.",
     "features": {
       "personalized": {
