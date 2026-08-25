@@ -18,6 +18,7 @@ import {
   passportSlug,
 } from "@/lib/visa/passport-pages";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
+import PassportMap from "@/components/passport/PassportMap";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -143,6 +144,19 @@ export default async function PassportPage({ params }: PageProps) {
               strong: (c) => <strong className="font-semibold text-slate-900">{c}</strong>,
             })}
           </p>
+
+          <PassportMap
+            statusByIso2={summary.statusByIso2}
+            homeIso2={summary.code}
+            title={t("mapTitle", { country: summary.name })}
+            caption={t("mapCaption", { country: summary.name })}
+            labels={Object.fromEntries(
+              Object.entries(LABEL_KEYS).map(([status, key]) => [
+                status,
+                t(`status.${key}.label`),
+              ]),
+            )}
+          />
 
           <PassportStatusChart
             counts={summary.counts}
