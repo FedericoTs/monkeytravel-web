@@ -7,7 +7,7 @@ description: >-
   viaggi.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-24'
 category: Travel Tips
 tags: ["documenti di viaggio", "dati di viaggio"]
 image: /images/blog/passport-power-index-2026.jpg
@@ -37,7 +37,7 @@ schema: Article
 
 Non tutti i passaporti sono uguali. Il documento che hai nel cassetto o nella borsa da viaggio determina non solo dove puoi volare, ma con quanta facilita puoi arrivarci — se passi rapidamente attraverso un e-gate, ritiri un visto all'arrivo, o passi settimane a navigare una domanda consolare prima ancora di prenotare un hotel.
 
-Il Passport Power Index 2026, basato principalmente sull'Henley Passport Index (compilato con dati dell'Associazione Internazionale del Trasporto Aereo), rivela un mondo in cui il divario tra i cittadini piu e meno mobili non e mai stato cosi ampio. Un titolare di passaporto di Singapore puo visitare 195 destinazioni senza visto preventivo. Un titolare di passaporto afghano puo visitarne solo 27. Quel divario di 168 destinazioni e il piu grande nei 20 anni di storia dell'indice.
+Il Passport Power Index 2026, basato principalmente sull'Henley Passport Index (compilato con dati dell'Associazione Internazionale del Trasporto Aereo), rivela un mondo in cui il divario tra i cittadini piu e meno mobili non e mai stato cosi ampio. Secondo l'aggiornamento di luglio 2026, un titolare di passaporto di Singapore puo visitare 192 destinazioni senza visto preventivo. Un titolare di passaporto afghano puo visitarne solo 23. Quel divario di 169 destinazioni e il piu grande nei 20 anni di storia dell'indice.
 
 Questa guida analizza i ranking completi del 2026, esamina cosa determina il potere del passaporto e — cosa piu importante — spiega cosa significa per la pianificazione del tuo prossimo viaggio.
 
@@ -58,32 +58,30 @@ Entrambi dipingono lo stesso quadro generale: i passaporti di democrazie stabili
 
 ## I 10 Passaporti Piu Potenti nel 2026
 
-Ecco i passaporti meglio classificati dell'Henley Passport Index 2026, insieme al numero di destinazioni a cui i loro titolari possono accedere senza visto o con visto all'arrivo:
+Ecco i passaporti meglio classificati dell'edizione di luglio 2026 dell'Henley Passport Index, insieme al numero di destinazioni a cui i loro titolari possono accedere senza visto o con visto all'arrivo:
 
 | Posizione | Paese/Paesi | Destinazioni Senza Visto |
 |-----------|-------------|--------------------------|
-| 1 | **Singapore** | 195 |
-| 2 | **Giappone, Corea del Sud** | 188 |
-| 3 | **Danimarca, Lussemburgo, Spagna, Svezia, Svizzera** | 186 |
-| 4 | **Austria, Belgio, Finlandia, Francia, Germania, Grecia, Irlanda, Italia, Paesi Bassi, Norvegia** | 185 |
-| 5 | **Ungheria, Portogallo, Slovacchia, Slovenia, Emirati Arabi Uniti** | 184 |
-| 6 | **Croazia, Repubblica Ceca, Estonia, Malta, Nuova Zelanda, Polonia** | 183 |
-| 7 | **Australia, Lettonia, Liechtenstein, Regno Unito** | 182 |
-| 8 | **Canada, Islanda, Lituania** | 181 |
-| 9 | **Malesia** | 180 |
-| 10 | **Stati Uniti** | 179 |
+| 1 | **Singapore** | 192 |
+| 2 | **Giappone, Corea del Sud, Emirati Arabi Uniti** | 188 |
+| 3 | **Svezia** | 187 |
+| 4 | **Belgio, Danimarca, Finlandia, Francia, Germania, Irlanda, Italia, Lussemburgo, Paesi Bassi, Norvegia, Spagna** | 186 |
+| 5-9 | **Il resto del blocco europeo piu il Regno Unito (6o), Australia, Nuova Zelanda e Canada** | 181-185 |
+| 10 | **Stati Uniti** | 180 |
+
+La composizione del blocco 5-9 cambia a ogni edizione; la [tabella live di Henley](https://www.henleyglobal.com/passport-index/ranking) ha il dettaglio posizione per posizione.
 
 ### Punti Chiave dal Top 10
 
-**Singapore continua il suo regno.** Per il terzo anno consecutivo, il passaporto di Singapore e il piu potente al mondo. Il suo punteggio di 195 destinazioni significa che i singaporiani possono visitare circa l'86% del mondo senza visto preventivo — un livello di liberta sorprendente.
+**Singapore continua il suo regno.** Edizione dopo edizione, il passaporto di Singapore resta il piu potente al mondo. Il suo punteggio di 192 destinazioni significa che i singaporiani possono visitare circa l'85% del mondo senza visto preventivo — e l'aggiornamento di luglio 2026 lo lascia quattro destinazioni davanti ai rivali piu vicini.
 
-**L'Asia domina le prime due posizioni.** Singapore, Giappone e Corea del Sud che occupano le prime due posizioni rafforzano la posizione dell'Asia al vertice della mobilita globale. Giappone e Corea del Sud sono stati performer costanti per oltre un decennio, beneficiando di ampi accordi bilaterali.
+**L'Asia domina ancora il vertice — e il Golfo l'ha raggiunta.** Singapore, Giappone e Corea del Sud nelle prime due posizioni rafforzano la posizione dell'Asia al vertice della mobilita globale, e gli EAU ora condividono quel secondo posto con loro. Giappone e Corea del Sud sono stati performer costanti per oltre un decennio, beneficiando di ampi accordi bilaterali.
 
 **L'Europa riempie le posizioni intermedie.** Un notevole numero di 30 paesi europei appare nelle prime 10 posizioni. L'appartenenza all'UE, l'Area Schengen e decenni di accordi reciproci garantiscono ai cittadini europei un accesso straordinariamente ampio.
 
-**L'ascesa storica degli EAU.** La storia piu drammatica nella storia del potere dei passaporti appartiene agli Emirati Arabi Uniti. Classificati al 62o posto nel 2006, gli EAU ora si trovano al 5o posto con 184 destinazioni — un'aggiunta di 149 destinazioni senza visto in 20 anni. Questa trasformazione e stata guidata da un impegno diplomatico strategico e accordi reciproci di esenzione dal visto con UE, Russia, Cina, Israele, Messico, Sudafrica e molti altri.
+**L'ascesa storica degli EAU.** La storia piu drammatica nella storia del potere dei passaporti appartiene agli Emirati Arabi Uniti. Classificati al 62o posto nel 2006, gli EAU ora condividono il 2o posto con 188 destinazioni — piu di 150 destinazioni senza visto aggiunte in 20 anni. Questa trasformazione e stata guidata da un impegno diplomatico strategico e accordi reciproci di esenzione dal visto con UE, Russia, Cina, Israele, Messico, Sudafrica e molti altri.
 
-**Gli USA tornano nella Top 10.** Dopo essere brevemente usciti dalla top 10 per la prima volta alla fine del 2025, gli Stati Uniti sono risaliti al 10o posto con 179 destinazioni. Tuttavia, questo maschera un declino a lungo termine: gli USA condividevano il 1o posto con il Regno Unito nel 2014.
+**Gli USA restano aggrappati alla Top 10.** Gli Stati Uniti tengono il 10o posto con 180 destinazioni — la stessa posizione del loro peggior ranking di sempre. La stabilita maschera un declino a lungo termine: gli USA condividevano il 1o posto con il Regno Unito nel 2014 e da due decenni scivolano lungo la classifica.
 
 ---
 
@@ -91,18 +89,14 @@ Ecco i passaporti meglio classificati dell'Henley Passport Index 2026, insieme a
 
 All'altro estremo dello spettro, i titolari di passaporti di questi paesi affrontano barriere significative per i viaggi internazionali:
 
-| Posizione (Dal Basso) | Paese | Destinazioni Senza Visto |
-|------------------------|-------|--------------------------|
-| 1 (Ultimo) | **Afghanistan** | 27 |
-| 2 | **Siria** | 29 |
-| 3 | **Iraq** | 31 |
-| 4 | **Pakistan** | 34 |
-| 5 | **Yemen** | 35 |
-| 6 | **Somalia** | 36 |
-| 7 | **Territorio Palestinese** | 40 |
-| 8 | **Libia** | 40 |
-| 9 | **Corea del Nord** | 42 |
-| 10 | **Sudan** | 46 |
+| Posizione | Paesi | Destinazioni Senza Visto |
+|-----------|-------|--------------------------|
+| Ultimo posto | **Afghanistan** | 23 |
+| Vicino al fondo | **Siria, Iraq** | Meno di 30 |
+| Ultimi cinque | **Pakistan, Yemen, Somalia** | Circa 30-36 |
+| Ultimi dieci | **Territorio Palestinese, Libia, Corea del Nord, Sudan** | Circa 40-46 |
+
+Il 23 dell'Afghanistan viene dall'edizione di luglio 2026; le fasce raggruppate riflettono edizioni precedenti del 2026, dato che i conteggi esatti nel gruppo di fondo variano di una o due destinazioni tra un aggiornamento e l'altro.
 
 ### Cosa Colloca i Passaporti in Fondo alla Classifica?
 
@@ -113,7 +107,7 @@ I fattori sono coerenti tra gli ultimi 10:
 - **Debole capacita istituzionale** — La capacita di negoziare accordi di visto reciproci richiede ministeri degli esteri funzionanti e una governance stabile.
 - **Preoccupazioni per la sicurezza** — I paesi percepiti come a maggior rischio per la sicurezza affrontano requisiti di visto piu rigidi imposti dai paesi di destinazione.
 
-Il divario di 168 destinazioni tra Singapore (195) e Afghanistan (27) e il piu ampio nella storia dell'indice. Nel 2006, il divario tra il passaporto statunitense, allora al primo posto, e l'Afghanistan era di 118 destinazioni. Il divario e cresciuto di 50 destinazioni in due decenni.
+Il divario di 169 destinazioni tra Singapore (192) e Afghanistan (23) e il piu ampio nella storia dell'indice. Nel 2006, il divario tra il passaporto statunitense, allora al primo posto, e l'Afghanistan era di 118 destinazioni. Il divario e cresciuto di circa 50 destinazioni in due decenni.
 
 ---
 
@@ -123,23 +117,23 @@ Il divario di 168 destinazioni tra Singapore (195) e Afghanistan (27) e il piu a
 
 L'Europa domina l'indice 2026 come nessun'altra regione. Trenta paesi europei appaiono nelle prime 10 posizioni, e i cittadini dell'UE beneficiano della libera circolazione all'interno del blocco oltre a estesi accordi sui visti in tutto il mondo.
 
-- **Piu forti:** Danimarca, Lussemburgo, Spagna, Svezia, Svizzera (186 destinazioni, posizione 3)
+- **Piu forti:** La Svezia da sola in posizione 3 (187 destinazioni), con un blocco di undici paesi — Belgio, Danimarca, Finlandia, Francia, Germania, Irlanda, Italia, Lussemburgo, Paesi Bassi, Norvegia e Spagna — una destinazione dietro a quota 186
 - **Ascese notevoli:** L'Albania e salita di 36 posizioni in 20 anni fino alla posizione 43. L'Ucraina e salita di 34 posizioni alla 30a, e la Serbia ha guadagnato 30 posizioni alla 34a — tutto riflesso di accordi di associazione con l'UE e progresso diplomatico.
-- **Declino occidentale:** Il Regno Unito (182, posizione 7) e gli USA (179, posizione 10) hanno entrambi registrato le loro perdite annuali piu ripide di accesso senza visto nel 2026, perdendo rispettivamente sette e otto destinazioni.
+- **Declino occidentale:** Il Regno Unito (posizione 6) e gli USA (180, posizione 10) hanno passato il 2026 ben al di sotto dei loro massimi storici — entrambi occupavano il 1o posto nel 2014.
 
 ### Asia-Pacifico
 
 L'Asia reclama il primo posto e due delle prime tre posizioni.
 
-- **Piu forti:** Singapore (195, posizione 1), Giappone e Corea del Sud (188, posizione 2)
-- **Fascia media forte:** Malesia (180, posizione 9), Nuova Zelanda (183, posizione 6), Australia (182, posizione 7)
-- **Notevole:** L'India e salita alla 75a posizione nell'Henley Index nel 2026, con accesso a 56 destinazioni senza visto — salendo da posizioni piu basse negli anni precedenti, anche se con un leggero calo nell'accesso totale rispetto al 2025.
+- **Piu forti:** Singapore (192, posizione 1), Giappone e Corea del Sud (188, posizione 2 condivisa)
+- **Fascia media forte:** Malesia, Nuova Zelanda e Australia si collocano dentro o appena fuori la top 10, poco sopra quota 180
+- **Notevole:** L'India occupa l'80a posizione nell'edizione di luglio 2026 dell'Henley Index, con accesso a 55 destinazioni senza visto — una risalita in termini di posizione rispetto agli anni precedenti, anche se l'accesso totale e rimasto sostanzialmente piatto.
 
 ### Americhe
 
 Le Americhe presentano un quadro diviso tra forti passaporti nordamericani e quelli latinoamericani piu variabili.
 
-- **Piu forti nelle Americhe:** Canada (181, posizione 8), Stati Uniti (179, posizione 10)
+- **Piu forti nelle Americhe:** Canada (poco sopra quota 180, appena fuori dalla fascia alta), Stati Uniti (180, posizione 10)
 - **Piu forte in America Latina:** Cile (175, posizione 13 globale) — l'unico paese latinoamericano nel Programma di Esenzione dal Visto degli USA
 - **Performer latinoamericani forti:** Argentina e Brasile (169 ciascuno, posizione 16), Messico (157, posizione 21), Uruguay (156, posizione 22), Costa Rica e Panama (148, posizione 26)
 - **Declino degli USA:** Cadere dal 1o posto nel 2014 al 10o nel 2026 rappresenta un notevole indebolimento a lungo termine, guidato da cambiamenti negli accordi bilaterali e l'inasprimento degli accordi reciproci.
@@ -148,11 +142,11 @@ Le Americhe presentano un quadro diviso tra forti passaporti nordamericani e que
 
 La regione mostra i contrasti piu drammatici.
 
-- **Piu forte:** EAU (184, posizione 5) — il leader globale in termini di performance degli ultimi due decenni
+- **Piu forte:** EAU (188, posizione 2 condivisa) — il leader globale in termini di performance degli ultimi due decenni
 - **Fascia media:** Israele, Kuwait, Qatar e Bahrein mantengono un accesso moderato
 - **Piu deboli:** Iraq (31), Siria (29), Yemen (35) e Territorio Palestinese (40) sono tra i passaporti meno potenti al mondo
 
-La trasformazione degli EAU dalla posizione 62 alla 5 in 20 anni e la storia di potere del passaporto piu notevole della storia, con l'aggiunta di 149 destinazioni attraverso un impegno diplomatico aggressivo.
+La trasformazione degli EAU dalla posizione 62 alla 2 condivisa in 20 anni e la storia di potere del passaporto piu notevole della storia, con l'aggiunta di oltre 150 destinazioni attraverso un impegno diplomatico aggressivo.
 
 ### Africa
 
@@ -190,6 +184,8 @@ Il ranking del tuo passaporto ha conseguenze reali e pratiche su come pianifichi
 
 Se possiedi un passaporto della top 10, la maggior parte del mondo e disponibile a breve preavviso. Weekend a Tokyo? Prenota un volo. Un mese in Europa? Nessuna burocrazia. Questa spontaneita e un privilegio che il potere del passaporto abilita direttamente.
 
+Detto altrimenti: quel conteggio di destinazioni senza visto e un menu. Scegline una e [genera un itinerario giorno per giorno](/trips/new) — posti reali, budget, orari — in circa trenta secondi, senza creare un account. La parte della mappa libera da burocrazia e esattamente quella in cui pianificare dovrebbe essere cosi facile.
+
 ### Visto all'Arrivo: Pianificazione Minima
 
 Molte destinazioni offrono visti all'arrivo per passaporti che non si qualificano per l'ingresso senza visto. Questo generalmente comporta compilare un modulo e pagare una tassa in aeroporto (tipicamente $20-$50). Puoi essere ancora relativamente spontaneo, ma porta foto per il passaporto e la tassa corretta in contanti.
@@ -206,7 +202,7 @@ Alcune combinazioni passaporto-destinazione sono effettivamente bloccate. I tito
 
 I costi dei visti si accumulano rapidamente. Un viaggiatore che visita 10 paesi potrebbe spendere $0 in tasse per visti con un passaporto di Singapore e $500-$1.000 con uno di ranking inferiore. I tempi di elaborazione forzano anche orizzonti di pianificazione piu lunghi, rendendo inaccessibili le offerte di viaggio last minute.
 
-**E qui che strumenti come MonkeyTravel diventano preziosi.** Quando pianifichi un viaggio in piu paesi, il pianificatore di viaggio con AI di MonkeyTravel ti aiuta a tracciare un itinerario che tiene conto della logistica e delle realta pratiche — cosi dedichi il tuo tempo a esplorare, non a ricercare documentazione burocratica.
+**E qui che uno strumento di pianificazione si guadagna il suo posto.** Il [pianificatore di viaggio AI gratuito di MonkeyTravel](/free-ai-trip-planner) non presenta domande di visto al posto tuo — niente lo fa — ma una volta che sai quali destinazioni ti apre il passaporto, trasforma quella che scegli in un itinerario giorno per giorno con posti e budget reali. La burocrazia resta a te; la pianificazione no.
 
 ---
 
@@ -216,11 +212,11 @@ La pandemia ha alterato fondamentalmente la mobilita globale, e i suoi effetti c
 
 ### Il Divario di Mobilita si Allarga
 
-Il divario tra i passaporti piu forti e piu deboli del mondo e cresciuto da 153 destinazioni nel 2020 a 168 nel 2026. I paesi che erano gia in fondo hanno visto il loro accesso ulteriormente limitato man mano che le nazioni implementavano nuovi requisiti di ingresso legati alla salute che non sono mai stati completamente revocati.
+Il divario tra i passaporti piu forti e piu deboli del mondo e cresciuto da 153 destinazioni nel 2020 a 169 nel 2026. I paesi che erano gia in fondo hanno visto il loro accesso ulteriormente limitato man mano che le nazioni implementavano nuovi requisiti di ingresso legati alla salute che non sono mai stati completamente revocati.
 
 ### I Passaporti Occidentali Sono in Declino
 
-USA e Regno Unito — che condividevano il 1o posto nel 2014 — ora sono rispettivamente al 10o e 7o posto. Entrambi hanno perso piu destinazioni senza visto nel 2025-2026 che in qualsiasi anno precedente. I fattori includono:
+USA e Regno Unito — che condividevano il 1o posto nel 2014 — ora sono rispettivamente al 10o e 6o posto. Entrambi hanno perso piu destinazioni senza visto nel 2025-2026 che in qualsiasi anno precedente. I fattori includono:
 
 - Accordi di reciprocita inaspriti (paesi che rimuovono l'accesso senza visto per i cittadini USA/UK quando i propri cittadini affrontano requisiti di visto negli USA/UK)
 - Nuovi sistemi di ingresso come l'ETIAS dell'UE (Sistema Europeo di Informazione e Autorizzazione ai Viaggi), che aggiunge uno strato di preautorizzazione anche per i viaggiatori esenti da visto
@@ -236,7 +232,7 @@ Le ETA — autorizzazioni pre-viaggio simili all'ESTA degli USA — si stanno es
 
 ### I Passaporti Asiatici Continuano la Loro Ascesa
 
-Il dominio di Singapore, Giappone e Corea del Sud in cima ai ranking riflette una tendenza piu ampia: i passaporti asiatici hanno guadagnato potere costantemente mentre quelli occidentali si sono stabilizzati o sono in declino. La Malesia alla posizione 9 e un altro esempio, superando molte nazioni europee fuori dall'UE.
+Il dominio di Singapore, Giappone e Corea del Sud in cima ai ranking riflette una tendenza piu ampia: i passaporti asiatici hanno guadagnato potere costantemente mentre quelli occidentali si sono stabilizzati o sono in declino. La Malesia e un altro esempio, superando molte nazioni europee fuori dall'UE.
 
 ---
 
@@ -288,7 +284,7 @@ Non esattamente. Un ranking piu alto significa piu accesso senza visto o con vis
 
 ### 3. Il ranking del mio passaporto puo cambiare senza che io faccia nulla?
 
-Si. Il ranking del tuo passaporto cambia man mano che il tuo governo negozia (o perde) accordi bilaterali sui visti. Ad esempio, gli USA sono brevemente usciti dalla top 10 alla fine del 2025 perche diversi paesi hanno imposto nuovi requisiti di visto ai cittadini americani. Puoi anche ottenere accesso attraverso nuovi accordi — gli EAU hanno aggiunto 149 destinazioni in 20 anni.
+Si. Il ranking del tuo passaporto cambia man mano che il tuo governo negozia (o perde) accordi bilaterali sui visti. Ad esempio, gli USA sono brevemente usciti dalla top 10 alla fine del 2025 perche diversi paesi hanno imposto nuovi requisiti di visto ai cittadini americani. Puoi anche ottenere accesso attraverso nuovi accordi — gli EAU hanno aggiunto piu di 150 destinazioni in 20 anni.
 
 ### 4. Perche Giappone e Singapore si classificano costantemente cosi in alto?
 
@@ -302,12 +298,14 @@ Si. Gli e-Visa, i programmi di visto all'arrivo, i visti per nomadi digitali, i 
 
 ## Conclusione
 
-Il Passport Power Index 2026 rivela un mondo in cui la disuguaglianza di mobilita e ai massimi storici. Il divario di 168 destinazioni tra Singapore e Afghanistan rappresenta la divisione piu netta nella storia dell'indice, e le tendenze — declino occidentale, ascesa asiatica, la trasformazione diplomatica degli EAU — dimostrano che il potere del passaporto non e statico.
+Il Passport Power Index 2026 rivela un mondo in cui la disuguaglianza di mobilita e ai massimi storici. Il divario di 169 destinazioni tra Singapore e Afghanistan rappresenta la divisione piu netta nella storia dell'indice, e le tendenze — declino occidentale, ascesa asiatica, la trasformazione diplomatica degli EAU — dimostrano che il potere del passaporto non e statico.
 
-Per i viaggiatori, la conclusione pratica e chiara: conosci il potere del tuo passaporto, pianifica di conseguenza e sfrutta ogni strumento disponibile per semplificare il processo. Che il tuo passaporto apra 195 porte o 27, il mondo e ancora la fuori ad aspettarti.
+Per i viaggiatori, la conclusione pratica e chiara: conosci il potere del tuo passaporto, pianifica di conseguenza e sfrutta ogni strumento disponibile per semplificare il processo. Che il tuo passaporto apra 192 porte o 23, il mondo e ancora la fuori ad aspettarti.
 
-Capire dove si posiziona il tuo passaporto e il primo passo per pianificare in modo piu intelligente. Da li, si tratta di costruire l'itinerario giusto per l'accesso che hai — ed e esattamente a questo che servono i buoni strumenti di pianificazione dei viaggi.
+Capire dove si posiziona il tuo passaporto e il primo passo per pianificare in modo piu intelligente. Da li, si tratta di costruire l'itinerario giusto per l'accesso che hai. Parti dalla nostra guida alle [destinazioni senza visto per passaporto](/blog/visa-free-destinations-by-passport) per vedere le tue opzioni — e trasformane una in un viaggio vero:
+
+[Pianifica un Viaggio verso una Destinazione Senza Visto — Gratis](/free-ai-trip-planner)
 
 ---
 
-*Dati tratti dall'[Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) e dall'[Arton Capital Passport Index](https://www.passportindex.org/byRank.php), aggiornati a febbraio 2026. I ranking sono soggetti a modifiche man mano che le politiche sui visti vengono aggiornate durante l'anno.*
+*Dati tratti dall'[Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) e dall'[Arton Capital Passport Index](https://www.passportindex.org/byRank.php). I ranking principali riflettono l'edizione di luglio 2026 di Henley; dove i conteggi esatti della fascia media non erano confermati in quell'edizione, le cifre sono espresse come intervalli o riferite a edizioni precedenti del 2026. I ranking cambiano man mano che le politiche sui visti vengono aggiornate durante l'anno.*

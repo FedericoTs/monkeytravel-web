@@ -7,7 +7,7 @@ description: >-
   viajes.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-24'
 category: Travel Tips
 tags: ["documentos de viaje", "datos de viaje"]
 image: /images/blog/passport-power-index-2026.jpg
@@ -37,7 +37,7 @@ schema: Article
 
 No todos los pasaportes son iguales. El documento que tienes en tu cajón o bolsa de viaje determina no solo adónde puedes volar, sino con qué facilidad puedes llegar — si pasas rápidamente por una puerta electrónica, recoges una visa al llegar, o pasas semanas navegando una solicitud consular antes siquiera de reservar un hotel.
 
-El Passport Power Index 2026, basado principalmente en el Henley Passport Index (compilado con datos de la Asociación Internacional de Transporte Aéreo), revela un mundo donde la brecha entre los ciudadanos más y menos móviles nunca ha sido mayor. Un portador de pasaporte de Singapur puede visitar 195 destinos sin visa previa. Un portador de pasaporte afgano puede visitar solo 27. Esa brecha de 168 destinos es la mayor en los 20 años de historia del índice.
+El Passport Power Index 2026, basado principalmente en el Henley Passport Index (compilado con datos de la Asociación Internacional de Transporte Aéreo), revela un mundo donde la brecha entre los ciudadanos más y menos móviles nunca ha sido mayor. Según la actualización de julio de 2026, un portador de pasaporte de Singapur puede visitar 192 destinos sin visa previa. Un portador de pasaporte afgano puede visitar solo 23. Esa brecha de 169 destinos es la mayor en los 20 años de historia del índice.
 
 Esta guía desglosa los rankings completos de 2026, analiza qué impulsa el poder del pasaporte y — lo más importante — explica qué significa para la planificación de tu próximo viaje.
 
@@ -58,32 +58,30 @@ Ambos pintan el mismo panorama general: los pasaportes de democracias estables c
 
 ## Los 10 Pasaportes Más Poderosos en 2026
 
-Aquí están los pasaportes mejor clasificados del Henley Passport Index 2026, junto con el número de destinos a los que sus titulares pueden acceder sin visa o con visa al llegar:
+Aquí están los pasaportes mejor clasificados de la edición de julio de 2026 del Henley Passport Index, junto con el número de destinos a los que sus titulares pueden acceder sin visa o con visa al llegar:
 
 | Rango | País/Países | Destinos Sin Visa |
 |-------|-------------|-------------------|
-| 1 | **Singapur** | 195 |
-| 2 | **Japón, Corea del Sur** | 188 |
-| 3 | **Dinamarca, Luxemburgo, España, Suecia, Suiza** | 186 |
-| 4 | **Austria, Bélgica, Finlandia, Francia, Alemania, Grecia, Irlanda, Italia, Países Bajos, Noruega** | 185 |
-| 5 | **Hungría, Portugal, Eslovaquia, Eslovenia, Emiratos Árabes Unidos** | 184 |
-| 6 | **Croacia, República Checa, Estonia, Malta, Nueva Zelanda, Polonia** | 183 |
-| 7 | **Australia, Letonia, Liechtenstein, Reino Unido** | 182 |
-| 8 | **Canadá, Islandia, Lituania** | 181 |
-| 9 | **Malasia** | 180 |
-| 10 | **Estados Unidos** | 179 |
+| 1 | **Singapur** | 192 |
+| 2 | **Japón, Corea del Sur, Emiratos Árabes Unidos** | 188 |
+| 3 | **Suecia** | 187 |
+| 4 | **Bélgica, Dinamarca, Finlandia, Francia, Alemania, Irlanda, Italia, Luxemburgo, Países Bajos, Noruega, España** | 186 |
+| 5-9 | **El resto del bloque europeo más el Reino Unido (6o), Australia, Nueva Zelanda y Canadá** | 181-185 |
+| 10 | **Estados Unidos** | 180 |
+
+La composición del bloque 5-9 cambia con cada edición; la [tabla en vivo de Henley](https://www.henleyglobal.com/passport-index/ranking) tiene el detalle puesto por puesto.
 
 ### Conclusiones Clave del Top 10
 
-**Singapur continúa su reinado.** Por tercer año consecutivo, el pasaporte de Singapur es el más poderoso del mundo. Su puntuación de 195 destinos significa que los singapurenses pueden visitar aproximadamente el 86% del mundo sin visa previa — un nivel asombroso de libertad.
+**Singapur continúa su reinado.** Edición tras edición, el pasaporte de Singapur sigue siendo el más poderoso del mundo. Su puntuación de 192 destinos significa que los singapurenses pueden visitar aproximadamente el 85% del mundo sin visa previa — y la actualización de julio de 2026 lo deja cuatro destinos por delante de sus rivales más cercanos.
 
-**Asia domina los dos primeros puestos.** Singapur, Japón y Corea del Sur ocupando los dos primeros rangos refuerza la posición de Asia en la cima de la movilidad global. Japón y Corea del Sur han sido líderes consistentes durante más de una década, beneficiándose de amplios acuerdos bilaterales.
+**Asia sigue dominando la cima — y el Golfo se le ha unido.** Singapur, Japón y Corea del Sur en los dos primeros rangos refuerzan la posición de Asia en la cima de la movilidad global, y los EAU ahora comparten ese segundo puesto con ellos. Japón y Corea del Sur han sido líderes consistentes durante más de una década, beneficiándose de amplios acuerdos bilaterales.
 
 **Europa llena los rangos intermedios.** Un notable número de 30 países europeos aparecen en los 10 primeros rangos. La membresía en la UE, la Zona Schengen y décadas de acuerdos recíprocos otorgan a los ciudadanos europeos un acceso extraordinariamente amplio.
 
-**El ascenso histórico de los EAU.** La historia más dramática en la historia del poder de los pasaportes pertenece a los Emiratos Árabes Unidos. Clasificado en el puesto 62 en 2006, los EAU ahora se sitúan en el 5o lugar con 184 destinos — una adición de 149 destinos sin visa en 20 años. Esta transformación fue impulsada por un compromiso diplomático estratégico y acuerdos recíprocos de exención de visa con la UE, Rusia, China, Israel, México, Sudáfrica y docenas más.
+**El ascenso histórico de los EAU.** La historia más dramática en la historia del poder de los pasaportes pertenece a los Emiratos Árabes Unidos. Clasificado en el puesto 62 en 2006, los EAU ahora comparten el 2o lugar con 188 destinos — más de 150 destinos sin visa añadidos en 20 años. Esta transformación fue impulsada por un compromiso diplomático estratégico y acuerdos recíprocos de exención de visa con la UE, Rusia, China, Israel, México, Sudáfrica y docenas más.
 
-**EE.UU. regresa al Top 10.** Después de caer brevemente fuera del top 10 por primera vez a finales de 2025, Estados Unidos recuperó el 10o puesto con 179 destinos. Sin embargo, esto enmascara un declive a largo plazo: EE.UU. compartía el 1er lugar con el Reino Unido en 2014.
+**EE.UU. se aferra al Top 10.** Estados Unidos mantiene el 10o puesto con 180 destinos — la misma posición que su peor ranking histórico. La estabilidad enmascara un declive a largo plazo: EE.UU. compartía el 1er lugar con el Reino Unido en 2014 y lleva dos décadas bajando en la tabla.
 
 ---
 
@@ -91,18 +89,14 @@ Aquí están los pasaportes mejor clasificados del Henley Passport Index 2026, j
 
 En el otro extremo del espectro, los titulares de pasaportes de estos países enfrentan barreras significativas para el viaje internacional:
 
-| Rango (Inferior) | País | Destinos Sin Visa |
-|-------------------|------|-------------------|
-| 1 (Último) | **Afganistán** | 27 |
-| 2 | **Siria** | 29 |
-| 3 | **Irak** | 31 |
-| 4 | **Pakistán** | 34 |
-| 5 | **Yemen** | 35 |
-| 6 | **Somalia** | 36 |
-| 7 | **Territorio Palestino** | 40 |
-| 8 | **Libia** | 40 |
-| 9 | **Corea del Norte** | 42 |
-| 10 | **Sudán** | 46 |
+| Posición | Países | Destinos Sin Visa |
+|----------|--------|-------------------|
+| Último lugar | **Afganistán** | 23 |
+| Cerca del fondo | **Siria, Irak** | Menos de 30 |
+| Últimos cinco | **Pakistán, Yemen, Somalia** | Alrededor de 30-36 |
+| Últimos diez | **Territorio Palestino, Libia, Corea del Norte, Sudán** | Aproximadamente 40-46 |
+
+El 23 de Afganistán es de la edición de julio de 2026; los rangos agrupados reflejan ediciones anteriores de 2026, ya que los conteos exactos dentro del grupo inferior varían en uno o dos destinos entre actualizaciones.
 
 ### ¿Qué Coloca a los Pasaportes en el Fondo?
 
@@ -113,7 +107,7 @@ Los factores son consistentes en los 10 últimos:
 - **Débil capacidad institucional** — La capacidad de negociar acuerdos de visa recíprocos requiere ministerios de relaciones exteriores funcionales y gobernanza estable.
 - **Preocupaciones de seguridad** — Los países percibidos como de mayor riesgo de seguridad enfrentan requisitos de visa más estrictos impuestos por los países de destino.
 
-La brecha de 168 destinos entre Singapur (195) y Afganistán (27) es la más amplia en la historia del índice. En 2006, la brecha entre el entonces primer clasificado pasaporte estadounidense y Afganistán era de 118 destinos. La brecha ha crecido 50 destinos en dos décadas.
+La brecha de 169 destinos entre Singapur (192) y Afganistán (23) es la más amplia en la historia del índice. En 2006, la brecha entre el entonces primer clasificado pasaporte estadounidense y Afganistán era de 118 destinos. La brecha ha crecido unos 50 destinos en dos décadas.
 
 ---
 
@@ -123,23 +117,23 @@ La brecha de 168 destinos entre Singapur (195) y Afganistán (27) es la más amp
 
 Europa domina el índice 2026 como ninguna otra región. Treinta países europeos aparecen en los 10 primeros rangos, y los ciudadanos de la UE se benefician de la libre circulación dentro del bloque más extensos acuerdos de visa en todo el mundo.
 
-- **Más fuertes:** Dinamarca, Luxemburgo, España, Suecia, Suiza (186 destinos, rango 3)
+- **Más fuertes:** Suecia sola en el rango 3 (187 destinos), con un bloque de once países — Bélgica, Dinamarca, Finlandia, Francia, Alemania, Irlanda, Italia, Luxemburgo, Países Bajos, Noruega y España — un destino por detrás con 186
 - **Ascensos notables:** Albania subió 36 puestos en 20 años hasta el rango 43. Ucrania subió 34 puestos al 30, y Serbia ganó 30 puestos al 34 — todo reflejo de acuerdos de asociación con la UE y progreso diplomático.
-- **Declive occidental:** El Reino Unido (182, rango 7) y EE.UU. (179, rango 10) han registrado ambos sus mayores pérdidas anuales de acceso sin visa en 2026, perdiendo siete y ocho destinos respectivamente.
+- **Declive occidental:** El Reino Unido (rango 6) y EE.UU. (180, rango 10) han pasado 2026 muy por debajo de sus máximos históricos — ambos ocupaban el 1er puesto en 2014.
 
 ### Asia-Pacífico
 
 Asia reclama el primer puesto y dos de las tres primeras posiciones.
 
-- **Más fuertes:** Singapur (195, rango 1), Japón y Corea del Sur (188, rango 2)
-- **Nivel medio fuerte:** Malasia (180, rango 9), Nueva Zelanda (183, rango 6), Australia (182, rango 7)
-- **Notable:** India subió al puesto 75 en el Henley Index en 2026, con acceso a 56 destinos sin visa — subiendo desde posiciones más bajas en años anteriores, aunque con una ligera caída en el acceso total comparado con 2025.
+- **Más fuertes:** Singapur (192, rango 1), Japón y Corea del Sur (188, rango 2 compartido)
+- **Nivel medio fuerte:** Malasia, Nueva Zelanda y Australia se sitúan dentro o justo fuera del top 10, en torno a los 180 y pocos destinos
+- **Notable:** India ocupa el puesto 80 en la edición de julio de 2026 del Henley Index, con acceso a 55 destinos sin visa — una subida en términos de ranking respecto a años anteriores, aunque su acceso total se ha mantenido prácticamente plano.
 
 ### Américas
 
 Las Américas presentan una imagen dividida entre fuertes pasaportes norteamericanos y otros latinoamericanos más variables.
 
-- **Más fuertes en las Américas:** Canadá (181, rango 8), Estados Unidos (179, rango 10)
+- **Más fuertes en las Américas:** Canadá (en torno a 180 y pocos, justo fuera del nivel superior), Estados Unidos (180, rango 10)
 - **Más fuerte en América Latina:** Chile (175, rango 13 global) — el único país latinoamericano en el Programa de Exención de Visa de EE.UU.
 - **Destacados latinoamericanos:** Argentina y Brasil (169 cada uno, rango 16), México (157, rango 21), Uruguay (156, rango 22), Costa Rica y Panamá (148, rango 26)
 - **Declive de EE.UU.:** Caer del 1er puesto en 2014 al 10o en 2026 representa un notable debilitamiento a largo plazo, impulsado por cambios en acuerdos bilaterales y el endurecimiento de arreglos recíprocos.
@@ -148,11 +142,11 @@ Las Américas presentan una imagen dividida entre fuertes pasaportes norteameric
 
 La región muestra los contrastes más dramáticos.
 
-- **Más fuerte:** EAU (184, rango 5) — el destacado líder mundial en desempeño durante dos décadas
+- **Más fuerte:** EAU (188, rango 2 compartido) — el destacado líder mundial en desempeño durante dos décadas
 - **Nivel medio:** Israel, Kuwait, Qatar y Baréin mantienen acceso moderado
 - **Más débiles:** Irak (31), Siria (29), Yemen (35) y Territorio Palestino (40) están entre los pasaportes menos poderosos del mundo
 
-La transformación de los EAU del puesto 62 al 5 en 20 años es la historia de poder de pasaporte más notable de la historia, añadiendo 149 destinos a través de un compromiso diplomático agresivo.
+La transformación de los EAU del puesto 62 al 2 compartido en 20 años es la historia de poder de pasaporte más notable de la historia, añadiendo más de 150 destinos a través de un compromiso diplomático agresivo.
 
 ### África
 
@@ -190,6 +184,8 @@ El ranking de tu pasaporte tiene consecuencias reales y prácticas para cómo pl
 
 Si tienes un pasaporte del top 10, la mayor parte del mundo está disponible a corto plazo. ¿Viaje de fin de semana a Tokio? Reserva un vuelo. ¿Un mes en Europa? Sin papeleo. Esta espontaneidad es un privilegio que el poder del pasaporte habilita directamente.
 
+Dicho de otro modo: ese conteo de destinos sin visa es un menú. Elige uno y [genera un itinerario día a día](/trips/new) — lugares reales, presupuestos, horarios — en unos treinta segundos, sin crear cuenta. La parte del mapa libre de trámites es exactamente donde planificar debería ser así de fácil.
+
 ### Visa al Llegar: Planificación Mínima
 
 Muchos destinos ofrecen visas al llegar para pasaportes que no califican para entrada sin visa. Esto generalmente implica llenar un formulario y pagar una tarifa en el aeropuerto (típicamente $20-$50). Aún puedes ser relativamente espontáneo, pero lleva fotos de pasaporte y la tarifa correcta en efectivo.
@@ -206,7 +202,7 @@ Algunas combinaciones pasaporte-destino están efectivamente bloqueadas. Los tit
 
 Los costos de visa se acumulan rápidamente. Un viajero que visita 10 países podría gastar $0 en tarifas de visa con un pasaporte de Singapur y $500-$1.000 con uno de menor ranking. Los tiempos de procesamiento también fuerzan horizontes de planificación más largos, haciendo inaccesibles las ofertas de viaje de último minuto.
 
-**Aquí es exactamente donde herramientas como MonkeyTravel resultan útiles.** Cuando planificas un viaje a múltiples países, el planificador de viajes con AI de MonkeyTravel te ayuda a trazar un itinerario que tiene en cuenta la logística y las realidades prácticas — para que dediques tu tiempo a explorar, no a investigar trámites.
+**Aquí es donde una herramienta de planificación se gana su lugar.** El [planificador de viajes con AI gratuito de MonkeyTravel](/free-ai-trip-planner) no tramita visas por ti — nada lo hace —, pero una vez que sabes qué destinos te abre tu pasaporte, convierte el que elijas en un itinerario día a día con lugares y presupuestos reales. El papeleo es cosa tuya; la planificación no tiene por qué serlo.
 
 ---
 
@@ -216,11 +212,11 @@ La pandemia alteró fundamentalmente la movilidad global, y sus efectos posterio
 
 ### La Brecha de Movilidad se Amplía
 
-La brecha entre los pasaportes más fuertes y débiles del mundo creció de 153 destinos en 2020 a 168 en 2026. Los países que ya estaban en el fondo vieron su acceso aún más restringido a medida que las naciones implementaron nuevos requisitos de entrada relacionados con la salud que nunca se revirtieron completamente.
+La brecha entre los pasaportes más fuertes y débiles del mundo creció de 153 destinos en 2020 a 169 en 2026. Los países que ya estaban en el fondo vieron su acceso aún más restringido a medida que las naciones implementaron nuevos requisitos de entrada relacionados con la salud que nunca se revirtieron completamente.
 
 ### Los Pasaportes Occidentales Están en Declive
 
-EE.UU. y el Reino Unido — que compartían el 1er puesto en 2014 — ahora están en el 10o y 7o respectivamente. Ambos perdieron más destinos sin visa en 2025-2026 que en cualquier año anterior. Los factores incluyen:
+EE.UU. y el Reino Unido — que compartían el 1er puesto en 2014 — ahora están en el 10o y 6o respectivamente. Ambos perdieron más destinos sin visa en 2025-2026 que en cualquier año anterior. Los factores incluyen:
 
 - Arreglos de reciprocidad endurecidos (países que eliminan el acceso sin visa para ciudadanos de EE.UU./Reino Unido cuando sus propios ciudadanos enfrentan requisitos de visa en EE.UU./Reino Unido)
 - Nuevos sistemas de entrada como el ETIAS de la UE (Sistema Europeo de Información y Autorización de Viaje), que añade una capa de preautorización incluso para viajeros exentos de visa
@@ -236,7 +232,7 @@ Las ETA — autorizaciones previas al viaje similares al ESTA de EE.UU. — se e
 
 ### Los Pasaportes Asiáticos Continúan su Ascenso
 
-El dominio de Singapur, Japón y Corea del Sur en la cima de los rankings refleja una tendencia más amplia: los pasaportes asiáticos han ganado poder constantemente mientras que los occidentales se han estancado o declinado. Malasia en el rango 9 es otro ejemplo, superando a muchas naciones europeas fuera de la UE.
+El dominio de Singapur, Japón y Corea del Sur en la cima de los rankings refleja una tendencia más amplia: los pasaportes asiáticos han ganado poder constantemente mientras que los occidentales se han estancado o declinado. Malasia es otro ejemplo, superando a muchas naciones europeas fuera de la UE.
 
 ---
 
@@ -288,7 +284,7 @@ No exactamente. Un ranking más alto significa más acceso sin visa o con visa a
 
 ### 3. ¿Puede cambiar el ranking de mi pasaporte sin que yo haga nada?
 
-Sí. El ranking de tu pasaporte cambia a medida que tu gobierno negocia (o pierde) acuerdos bilaterales de visa. Por ejemplo, EE.UU. cayó brevemente fuera del top 10 a finales de 2025 debido a que varios países impusieron nuevos requisitos de visa a los ciudadanos estadounidenses. También puedes ganar acceso a través de nuevos acuerdos — los EAU añadieron 149 destinos en 20 años.
+Sí. El ranking de tu pasaporte cambia a medida que tu gobierno negocia (o pierde) acuerdos bilaterales de visa. Por ejemplo, EE.UU. cayó brevemente fuera del top 10 a finales de 2025 debido a que varios países impusieron nuevos requisitos de visa a los ciudadanos estadounidenses. También puedes ganar acceso a través de nuevos acuerdos — los EAU añadieron más de 150 destinos en 20 años.
 
 ### 4. ¿Por qué Japón y Singapur constantemente se clasifican tan alto?
 
@@ -302,12 +298,14 @@ Sí. Las e-Visas, los programas de visa al llegar, las visas para nómadas digit
 
 ## Conclusión
 
-El Passport Power Index 2026 revela un mundo donde la desigualdad de movilidad está en su punto más alto de la historia. La brecha de 168 destinos entre Singapur y Afganistán representa la división más pronunciada en la historia del índice, y las tendencias — declive occidental, ascenso asiático, la transformación diplomática de los EAU — demuestran que el poder del pasaporte no es estático.
+El Passport Power Index 2026 revela un mundo donde la desigualdad de movilidad está en su punto más alto de la historia. La brecha de 169 destinos entre Singapur y Afganistán representa la división más pronunciada en la historia del índice, y las tendencias — declive occidental, ascenso asiático, la transformación diplomática de los EAU — demuestran que el poder del pasaporte no es estático.
 
-Para los viajeros, la conclusión práctica es clara: conoce el poder de tu pasaporte, planifica en consecuencia y aprovecha cada herramienta disponible para simplificar el proceso. Ya sea que tu pasaporte abra 195 puertas o 27, el mundo sigue ahí afuera esperando.
+Para los viajeros, la conclusión práctica es clara: conoce el poder de tu pasaporte, planifica en consecuencia y aprovecha cada herramienta disponible para simplificar el proceso. Ya sea que tu pasaporte abra 192 puertas o 23, el mundo sigue ahí afuera esperando.
 
-Entender dónde se encuentra tu pasaporte es el primer paso para planificar de forma más inteligente. A partir de ahí, se trata de construir el itinerario correcto para el acceso que tienes — y eso es exactamente para lo que están diseñadas las buenas herramientas de planificación de viajes.
+Entender dónde se encuentra tu pasaporte es el primer paso para planificar de forma más inteligente. A partir de ahí, se trata de construir el itinerario correcto para el acceso que tienes. Empieza por nuestra guía de [destinos sin visa según tu pasaporte](/blog/visa-free-destinations-by-passport) para ver tus opciones — y convierte una de ellas en un viaje de verdad:
+
+[Planifica un Viaje a un Destino Sin Visa — Gratis](/free-ai-trip-planner)
 
 ---
 
-*Datos obtenidos del [Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) y [Arton Capital Passport Index](https://www.passportindex.org/byRank.php), actualizados a febrero de 2026. Los rankings están sujetos a cambios a medida que se actualizan las políticas de visa durante el año.*
+*Datos obtenidos del [Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) y [Arton Capital Passport Index](https://www.passportindex.org/byRank.php). Los rankings principales reflejan la edición de julio de 2026 de Henley; donde los conteos exactos de la zona media no estaban confirmados en esa edición, las cifras aparecen como rangos o corresponden a ediciones anteriores de 2026. Los rankings cambian a medida que se actualizan las políticas de visa durante el año.*

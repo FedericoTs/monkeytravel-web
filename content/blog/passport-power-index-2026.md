@@ -2,12 +2,12 @@
 title: 'Passport Power Index 2026: Where Does YOUR Country Rank? [Full Rankings]'
 slug: passport-power-index-2026
 description: >-
-  Find your country in the 2026 passport rankings. Henley & Arton data side by
-  side, visa-free counts, the 3 countries that jumped most, and why the US
-  slipped to 10th.
+  Find your country in the 2026 passport rankings, updated for the July index:
+  Singapore leads at 192, the UAE jumps to joint 2nd, the US holds 10th. Henley
+  and Arton data side by side, plus what your access means for planning.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-24'
 category: Travel Tips
 tags: ["travel documents", "travel data"]
 image: /images/blog/passport-power-index-2026.jpg
@@ -19,11 +19,15 @@ seo:
   # GSC 2026-05: 55,142 impr, pos 8.77, CTR 0.05% — title 86 chars (truncated
   # mid-question), brand suffix wasted real estate. Rewritten 2026-05-30 to lead
   # with "Passport Power Index 2026" (matches top query family — henley, arton).
+  # 2026-08-24: content refreshed to the July 2026 Henley release (Singapore
+  # 192, UAE joint 2nd, Afghanistan 23) + planner conversion bridge added.
+  # Title kept stable — the May rewrite moved CTR 0.05%->0.07% only; the sink
+  # is SERP answer-capture, so the play is converting readers, not the title.
   title: 'Passport Power Index 2026: Full Rankings (Henley + Arton)'
   description: >-
-    2026 passport rankings — Henley and Arton Capital side by side. Find your
-    country, see visa-free counts, the 3 nations that jumped most, and why the
-    US slipped.
+    2026 passport rankings, updated for the July index — Singapore leads at
+    192, the UAE jumps to joint 2nd, the US holds 10th. Find your country and
+    see what your visa-free access really buys.
   keywords:
     - passport power index 2026
     - strongest passports 2026
@@ -40,7 +44,7 @@ schema: Article
 
 Not all passports are created equal. The document sitting in your drawer or travel bag determines not just where you can fly, but how easily you can get there — whether you breeze through an e-gate, pick up a visa on arrival, or spend weeks navigating a consulate application before you even book a hotel.
 
-The 2026 Passport Power Index, based primarily on the Henley Passport Index (compiled from International Air Transport Association data), reveals a world where the gap between the most and least mobile citizens has never been wider. A Singaporean passport holder can visit 195 destinations without a prior visa. An Afghan passport holder can visit just 27. That 168-destination gap is the largest in the index's 20-year history.
+The 2026 Passport Power Index, based primarily on the Henley Passport Index (compiled from International Air Transport Association data), reveals a world where the gap between the most and least mobile citizens has never been wider. As of the July 2026 update, a Singaporean passport holder can visit 192 destinations without a prior visa. An Afghan passport holder can visit just 23. That 169-destination gap is the largest in the index's 20-year history.
 
 This guide breaks down the full 2026 rankings, analyzes what drives passport power, and — most importantly — explains what it means for planning your next trip.
 
@@ -50,14 +54,16 @@ This guide breaks down the full 2026 rankings, analyzes what drives passport pow
 
 | Tier | Countries | Visa-Free Access |
 |------|-----------|-----------------|
-| **Elite (190+)** | Singapore | 195 destinations |
-| **Top Tier (185-189)** | Japan, South Korea, most of Western Europe | 185-188 destinations |
-| **Strong (180-184)** | UAE, Australia, UK, Canada, USA | 179-184 destinations |
+| **Elite (190+)** | Singapore | 192 destinations |
+| **Top Tier (185-189)** | Japan, South Korea, UAE, most of Western Europe | 186-188 destinations |
+| **Strong (180-185)** | Australia, UK, Canada, USA | 180-185 destinations |
 | **Good (150-179)** | Chile, Brazil, Argentina, Mexico | 148-175 destinations |
 | **Limited (100-149)** | South Africa, China, Turkey | 80-144 destinations |
-| **Restricted (Under 100)** | India, Pakistan, Afghanistan | 27-56 destinations |
+| **Restricted (Under 100)** | India, Pakistan, Afghanistan | 23-55 destinations |
 
-*Updated: February 2026. Based on Henley Passport Index data.*
+*Updated: August 2026, from the July 2026 Henley Passport Index release.*
+
+Wondering what those numbers translate to on a map? Our guide to [visa-free destinations by passport](/blog/visa-free-destinations-by-passport) breaks down where each tier can actually go, region by region.
 
 ---
 
@@ -82,12 +88,12 @@ The two indexes often produce different rankings. Here is why:
 |--------|----------------------|------------------------------|
 | **Data Source** | IATA travel data | Government and airline data |
 | **What Counts** | Visa-free + visa on arrival | Visa-free + VOA + ETAs + e-Visas |
-| **#1 Passport** | Singapore (195) | UAE (179 by their methodology) |
+| **#1 Passport** | Singapore (192) | UAE (179 by their methodology) |
 | **Update Frequency** | Quarterly reports | Real-time updates |
 | **ETA Treatment** | Not counted separately | Counted as accessible |
 | **Total Destinations** | 227 measured | 199 measured |
 
-**Why this matters:** The UAE ranks 1st on Arton's index but 5th on Henley's. Singapore tops Henley but sits lower on Arton's. The difference comes down to how each index counts ETAs and e-Visas. Henley is more conservative; Arton gives credit for any form of facilitated entry.
+**Why this matters:** The UAE ranks 1st on Arton's index but joint 2nd on Henley's — and the July 2026 Henley update closed most of that gap. Singapore tops Henley but sits lower on Arton's. The difference comes down to how each index counts ETAs and e-Visas. Henley is more conservative; Arton gives credit for any form of facilitated entry.
 
 **Bottom line:** Use Henley for the most widely cited comparison. Use Arton if you want to know your real-world access including electronic authorizations.
 
@@ -95,32 +101,30 @@ The two indexes often produce different rankings. Here is why:
 
 ## Top 10 Most Powerful Passports in 2026
 
-Here are the 2026 Henley Passport Index top-ranked passports, along with the number of destinations their holders can access visa-free or with visa-on-arrival:
+Here are the top-ranked passports from the July 2026 Henley Passport Index release, along with the number of destinations their holders can access visa-free or with visa-on-arrival:
 
 | Rank | Country/Countries | Visa-Free Destinations |
 |------|-------------------|----------------------|
-| 1 | **Singapore** | 195 |
-| 2 | **Japan, South Korea** | 188 |
-| 3 | **Denmark, Luxembourg, Spain, Sweden, Switzerland** | 186 |
-| 4 | **Austria, Belgium, Finland, France, Germany, Greece, Ireland, Italy, Netherlands, Norway** | 185 |
-| 5 | **Hungary, Portugal, Slovakia, Slovenia, United Arab Emirates** | 184 |
-| 6 | **Croatia, Czech Republic, Estonia, Malta, New Zealand, Poland** | 183 |
-| 7 | **Australia, Latvia, Liechtenstein, United Kingdom** | 182 |
-| 8 | **Canada, Iceland, Lithuania** | 181 |
-| 9 | **Malaysia** | 180 |
-| 10 | **United States** | 179 |
+| 1 | **Singapore** | 192 |
+| 2 | **Japan, South Korea, United Arab Emirates** | 188 |
+| 3 | **Sweden** | 187 |
+| 4 | **Belgium, Denmark, Finland, France, Germany, Ireland, Italy, Luxembourg, Netherlands, Norway, Spain** | 186 |
+| 5-9 | **The remaining European cluster plus the UK (6th), Australia, New Zealand and Canada** | 181-185 |
+| 10 | **United States** | 180 |
+
+Membership inside the 5-9 cluster shuffles with every release; the [live Henley table](https://www.henleyglobal.com/passport-index/ranking) has the current slot-by-slot detail.
 
 ### Key Takeaways From the Top 10
 
-**Singapore continues its reign.** For the third consecutive year, Singapore's passport is the world's most powerful. Its 195-destination score means Singaporeans can visit roughly 86% of the world without a prior visa — a staggering level of freedom.
+**Singapore continues its reign.** Release after release, Singapore's passport stays the world's most powerful. Its 192-destination score means Singaporeans can visit roughly 85% of the world without a prior visa — and the July 2026 update puts it a full four destinations clear of its closest rivals.
 
-**Asia dominates the top two spots.** Singapore, Japan, and South Korea occupying the first two ranks reinforces Asia's position at the summit of global mobility. Japan and South Korea have been consistent top performers for over a decade, benefiting from expansive bilateral agreements.
+**Asia still owns the summit — and the Gulf has joined it.** Singapore, Japan, and South Korea holding the first two ranks reinforces Asia's position at the top of global mobility, and the UAE now shares that second rank with them. Japan and South Korea have been consistent top performers for over a decade, benefiting from expansive bilateral agreements.
 
 **Europe fills the middle ranks.** A remarkable 30 European countries appear in the top 10 ranks. EU membership, the Schengen Zone, and decades of reciprocal agreements give European citizens extraordinarily broad access.
 
-**The UAE's historic rise.** The most dramatic story in passport power history belongs to the UAE. Ranked 62nd in 2006, the UAE now sits at 5th with 184 destinations — an addition of 149 visa-free destinations in 20 years. This transformation was driven by strategic diplomatic engagement, reciprocal visa-waiver agreements with the EU, Russia, China, Israel, Mexico, South Africa, and dozens more.
+**The UAE's historic rise.** The most dramatic story in passport power history belongs to the UAE. Ranked 62nd in 2006, the UAE now shares 2nd place with 188 destinations — more than 150 visa-free destinations added in 20 years. This transformation was driven by strategic diplomatic engagement, reciprocal visa-waiver agreements with the EU, Russia, China, Israel, Mexico, South Africa, and dozens more.
 
-**The U.S. returns to the Top 10.** After briefly dropping out of the top 10 for the first time in late 2025, the United States clawed back to 10th place with 179 destinations. However, this masks a long-term decline: the U.S. jointly held 1st place with the UK in 2014.
+**The U.S. clings to the Top 10.** The United States holds 10th place with 180 destinations — the same position as its lowest-ever ranking. The stability masks a long-term decline: the U.S. jointly held 1st place with the UK in 2014, and it has spent two decades sliding down the table since.
 
 ---
 
@@ -128,18 +132,14 @@ Here are the 2026 Henley Passport Index top-ranked passports, along with the num
 
 At the other end of the spectrum, passport holders from these countries face significant barriers to international travel:
 
-| Rank (Bottom) | Country | Visa-Free Destinations |
-|---------------|---------|----------------------|
-| 1 (Last) | **Afghanistan** | 27 |
-| 2 | **Syria** | 29 |
-| 3 | **Iraq** | 31 |
-| 4 | **Pakistan** | 34 |
-| 5 | **Yemen** | 35 |
-| 6 | **Somalia** | 36 |
-| 7 | **Palestinian Territory** | 40 |
-| 8 | **Libya** | 40 |
-| 9 | **North Korea** | 42 |
-| 10 | **Sudan** | 46 |
+| Position | Countries | Visa-Free Destinations |
+|----------|-----------|----------------------|
+| Last place | **Afghanistan** | 23 |
+| Near the bottom | **Syria, Iraq** | Under 30 |
+| Bottom five | **Pakistan, Yemen, Somalia** | Low-to-mid 30s |
+| Bottom ten | **Palestinian Territory, Libya, North Korea, Sudan** | Roughly 40-46 |
+
+Afghanistan's 23 is from the July 2026 release; the grouped ranges reflect earlier 2026 editions, since exact counts inside the bottom cluster shift by one or two destinations between updates.
 
 ### What Puts Passports at the Bottom?
 
@@ -150,7 +150,7 @@ The factors are consistent across the bottom 10:
 - **Weak institutional capacity** — The ability to negotiate reciprocal visa agreements requires functioning foreign ministries and stable governance.
 - **Security concerns** — Countries perceived as posing higher security risks face stricter visa requirements imposed by destination countries.
 
-The 168-destination gap between Singapore (195) and Afghanistan (27) is the widest in the index's history. In 2006, the gap between the then-top-ranking U.S. passport and Afghanistan was 118 destinations. The divide has grown by 50 destinations in two decades.
+The 169-destination gap between Singapore (192) and Afghanistan (23) is the widest in the index's history. In 2006, the gap between the then-top-ranking U.S. passport and Afghanistan was 118 destinations. The divide has grown by roughly 50 destinations in two decades.
 
 ---
 
@@ -160,23 +160,23 @@ The 168-destination gap between Singapore (195) and Afghanistan (27) is the wide
 
 Europe dominates the 2026 index like no other region. Thirty European countries appear in the top 10 ranks, and EU citizens benefit from free movement within the bloc plus extensive visa agreements worldwide.
 
-- **Strongest:** Denmark, Luxembourg, Spain, Sweden, Switzerland (186 destinations, rank 3)
+- **Strongest:** Sweden stands alone at rank 3 (187 destinations), with an eleven-country bloc — Belgium, Denmark, Finland, France, Germany, Ireland, Italy, Luxembourg, the Netherlands, Norway and Spain — one destination behind at 186
 - **Notable climbers:** Albania jumped 36 places over 20 years to rank 43rd. Ukraine climbed 34 places to 30th, and Serbia gained 30 places to 34th — all reflecting EU association agreements and diplomatic progress.
-- **Western decline:** The UK (182, rank 7) and the U.S. (179, rank 10) have both recorded their steepest annual losses in visa-free access in 2026, shedding seven and eight destinations respectively.
+- **Western decline:** The UK (rank 6) and the U.S. (180, rank 10) have both spent 2026 well below their historical peaks — both held 1st place as recently as 2014.
 
 ### Asia-Pacific
 
 Asia claims the top spot and two of the top three positions.
 
-- **Strongest:** Singapore (195, rank 1), Japan and South Korea (188, rank 2)
-- **Strong mid-tier:** Malaysia (180, rank 9), New Zealand (183, rank 6), Australia (182, rank 7)
-- **Notable:** India climbed to 75th on the Henley Index in 2026, with access to 56 visa-free destinations — up from lower positions in previous years, though still with a slight drop in total access compared to 2025.
+- **Strongest:** Singapore (192, rank 1), Japan and South Korea (188, joint rank 2)
+- **Strong mid-tier:** Malaysia, New Zealand and Australia all sit inside or just outside the top 10, in the low 180s
+- **Notable:** India sits 80th on the July 2026 Henley Index with access to 55 visa-free destinations — a climb in rank terms over recent years, even as its total access has stayed roughly flat.
 
 ### Americas
 
 The Americas present a split picture between strong North American passports and more variable Latin American ones.
 
-- **Strongest in the Americas:** Canada (181, rank 8), United States (179, rank 10)
+- **Strongest in the Americas:** Canada (low 180s, just outside the top tier), United States (180, rank 10)
 - **Strongest in Latin America:** Chile (175, rank 13 globally) — the only Latin American country in the U.S. Visa Waiver Program
 - **Strong Latin American performers:** Argentina and Brazil (169 each, rank 16), Mexico (157, rank 21), Uruguay (156, rank 22), Costa Rica and Panama (148, rank 26)
 - **U.S. decline:** Falling from 1st place in 2014 to 10th in 2026 represents a remarkable long-term weakening, driven by shifting bilateral agreements and tightening reciprocal arrangements.
@@ -185,11 +185,11 @@ The Americas present a split picture between strong North American passports and
 
 The region shows the most dramatic contrasts.
 
-- **Strongest:** UAE (184, rank 5) — the standout global performer over two decades
+- **Strongest:** UAE (188, joint rank 2) — the standout global performer over two decades
 - **Mid-tier:** Israel, Kuwait, Qatar, and Bahrain maintain moderate access
 - **Weakest:** Iraq (31), Syria (29), Yemen (35), and Palestinian Territory (40) are among the world's least powerful passports
 
-The UAE's transformation from 62nd to 5th over 20 years stands as the most remarkable passport power story in history, adding 149 destinations through aggressive diplomatic engagement.
+The UAE's transformation from 62nd to joint 2nd over 20 years stands as the most remarkable passport power story in history, adding more than 150 destinations through aggressive diplomatic engagement.
 
 ### Africa
 
@@ -227,6 +227,8 @@ Your passport ranking has real, practical consequences for how you plan and expe
 
 If you hold a top-10 passport, most of the world is available on short notice. Weekend trip to Tokyo? Book a flight. Month in Europe? No paperwork. This spontaneity is a privilege that passport power directly enables.
 
+Put differently: that visa-free count is a menu. Pick a destination from it and [generate a day-by-day itinerary](/trips/new) — real venues, budgets, opening hours — in about thirty seconds, without creating an account. The paperwork-free part of the map is exactly where planning should be this easy.
+
 ### Visa-on-Arrival: Minor Planning Required
 
 Many destinations offer visas on arrival for passports that don't qualify for visa-free entry. This usually means filling out a form and paying a fee at the airport (typically $20-$50). You can still be relatively spontaneous, but carry passport photos and the correct fee in cash.
@@ -243,7 +245,7 @@ Some passport-destination combinations are effectively blocked. Holders of certa
 
 Visa costs add up fast. A traveler visiting 10 countries might spend $0 in visa fees with a Singaporean passport and $500-$1,000 with a lower-ranked one. Processing times also force longer planning horizons, making last-minute travel deals inaccessible.
 
-**This is exactly where tools like MonkeyTravel come in.** When you're planning a multi-country trip, MonkeyTravel's AI trip planner helps you map out an itinerary that accounts for logistics and practical realities — so you spend your time exploring, not researching paperwork.
+**This is where a planning tool earns its keep.** [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) doesn't file visa applications for you — nothing does — but once you know which destinations your passport opens, it turns the one you pick into a day-by-day itinerary with real venues and budgets. The paperwork is your job; the planning doesn't have to be.
 
 ---
 
@@ -253,11 +255,11 @@ The pandemic fundamentally altered global mobility, and its aftereffects continu
 
 ### The Widening Mobility Gap
 
-The gap between the world's strongest and weakest passports grew from 153 destinations in 2020 to 168 in 2026. Countries that were already at the bottom saw their access further restricted as nations implemented new health-related entry requirements that were never fully rolled back.
+The gap between the world's strongest and weakest passports grew from 153 destinations in 2020 to 169 in 2026. Countries that were already at the bottom saw their access further restricted as nations implemented new health-related entry requirements that were never fully rolled back.
 
 ### Western Passports Are Declining
 
-The U.S. and UK — which jointly held 1st place in 2014 — are now at 10th and 7th respectively. Both lost more visa-free destinations in 2025-2026 than in any previous year. Factors include:
+The U.S. and UK — which jointly held 1st place in 2014 — are now at 10th and 6th respectively. Both lost more visa-free destinations in 2025-2026 than in any previous year. Factors include:
 
 - Tightened reciprocity arrangements (countries removing visa-free access for U.S./UK citizens when their own citizens face U.S./UK visa requirements)
 - New entry systems like the EU's ETIAS (European Travel Information and Authorisation System), which adds a layer of pre-authorization even for visa-exempt travelers
@@ -273,7 +275,7 @@ ETAs — required pre-travel authorizations similar to the U.S. ESTA — are exp
 
 ### Asian Passports Continue to Rise
 
-The dominance of Singapore, Japan, and South Korea at the top of the rankings reflects a broader trend: Asian passports have steadily gained power while Western ones have plateaued or declined. Malaysia at rank 9 is another example, outranking many European nations outside the EU.
+The dominance of Singapore, Japan, and South Korea at the top of the rankings reflects a broader trend: Asian passports have steadily gained power while Western ones have plateaued or declined. Malaysia is another example, outranking many European nations outside the EU.
 
 ---
 
@@ -325,7 +327,7 @@ Not exactly. A higher rank means more visa-free or visa-on-arrival access, but e
 
 ### 3. Can my passport ranking change without me doing anything?
 
-Yes. Your passport's rank changes as your government negotiates (or loses) bilateral visa agreements. For example, the U.S. dropped out of the top 10 briefly in late 2025 due to several countries imposing new visa requirements on American citizens. You can also gain access through new agreements — the UAE added 149 destinations over 20 years.
+Yes. Your passport's rank changes as your government negotiates (or loses) bilateral visa agreements. For example, the U.S. dropped out of the top 10 briefly in late 2025 due to several countries imposing new visa requirements on American citizens. You can also gain access through new agreements — the UAE added more than 150 destinations over 20 years.
 
 ### 4. Why do Japan and Singapore consistently rank so high?
 
@@ -339,12 +341,14 @@ Yes. E-Visas, visa-on-arrival programs, digital nomad visas, transit visas, and 
 
 ## The Bottom Line
 
-The 2026 Passport Power Index reveals a world where mobility inequality is at an all-time high. The 168-destination gap between Singapore and Afghanistan represents the starkest divide in the index's history, and the trends — Western decline, Asian ascendance, the UAE's diplomatic transformation — show that passport power is not static.
+The 2026 Passport Power Index reveals a world where mobility inequality is at an all-time high. The 169-destination gap between Singapore and Afghanistan represents the starkest divide in the index's history, and the trends — Western decline, Asian ascendance, the UAE's diplomatic transformation — show that passport power is not static.
 
-For travelers, the practical takeaway is clear: know your passport's power, plan accordingly, and take advantage of every tool available to simplify the process. Whether your passport opens 195 doors or 27, the world is still out there waiting.
+For travelers, the practical takeaway is clear: know your passport's power, plan accordingly, and take advantage of every tool available to simplify the process. Whether your passport opens 192 doors or 23, the world is still out there waiting.
 
-Understanding where your passport stands is the first step in planning smarter. From there, it is about building the right itinerary for the access you have — and that is exactly what good travel planning tools are designed to do.
+Understanding where your passport stands is the first step in planning smarter. From there, it is about building the right itinerary for the access you have. Start with our breakdown of [visa-free destinations by passport](/blog/visa-free-destinations-by-passport) to see your options — then turn one of them into an actual trip:
+
+[Plan a Trip to a Visa-Free Destination — Free](/free-ai-trip-planner)
 
 ---
 
-*Data sourced from the [Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) and [Arton Capital Passport Index](https://www.passportindex.org/byRank.php), current as of February 2026. Rankings are subject to change as visa policies are updated throughout the year.*
+*Data sourced from the [Henley Passport Index](https://www.henleyglobal.com/passport-index/ranking) and [Arton Capital Passport Index](https://www.passportindex.org/byRank.php). Headline rankings reflect the July 2026 Henley release; where exact mid-table counts were not confirmed in that release, figures are labeled as ranges or carry the earlier 2026 edition. Rankings shift as visa policies change through the year.*
