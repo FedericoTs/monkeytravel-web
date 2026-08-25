@@ -338,7 +338,7 @@ MonkeyTravel's AI creates a **personalized day-by-day Bali itinerary** in 30 sec
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Bali Trip Free](/trips/new?destination=bali)**
+**[Plan My Bali Trip Free](/trips/new?destination=bali&days=7)**
 
 ## FAQ
 

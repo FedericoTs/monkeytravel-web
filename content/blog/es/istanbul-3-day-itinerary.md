@@ -278,7 +278,7 @@ Para tu última noche, a lo grande:
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Estambul gratis](/trips/new?destination=istanbul)**
+**[Planificar mi viaje a Estambul gratis](/trips/new?destination=istanbul&days=3)**
 
 ## Consejos Prácticos y Preguntas Frecuentes
 

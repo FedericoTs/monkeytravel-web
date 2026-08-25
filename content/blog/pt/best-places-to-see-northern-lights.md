@@ -343,7 +343,7 @@ Escolher entre 12 destinos, encontrar os meses certos, reservar pousadas de auro
 
 A AI da MonkeyTravel monta um **roteiro personalizado de aurora boreal** em 30 segundos. Diga suas datas, orçamento e interesses, e receba um plano dia a dia com hotéis reais, preços de excursões de verdade e planos de reserva para noites nubladas.
 
-[Planejar Minha Viagem para a Aurora Boreal — Grátis](/trips/new)
+[Planejar Minha Viagem para a Aurora Boreal — Grátis](/trips/new?vibes=nature)
 
 ---
 

@@ -132,7 +132,7 @@ The route is standardized; your version of it is not. Sakura dates move, Univers
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Japan Trip Free](/trips/new?destination=tokyo)**
+**[Plan My Japan Trip Free](/trips/new?destination=tokyo&multi=1)**
 
 ## Frequently Asked Questions
 

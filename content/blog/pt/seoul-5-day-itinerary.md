@@ -337,7 +337,7 @@ O turismo de K-beauty de Seul vai muito além das máscaras faciais. A Coreia do
 - Confirme as qualificações do médico e se a clínica está registrada no Korean Health Insurance Review and Assessment Service
 - Facilitadores de turismo médico como a GL Med ou a Shin Medical podem organizar transporte, tradução e agendamentos
 
-Use o [planejador de viagens com AI gratuito da MonkeyTravel](/trips/new?destination=seoul) para encaixar as consultas nas clínicas no seu roteiro sem agendamentos duplicados.
+Use o [planejador de viagens com AI gratuito da MonkeyTravel](/trips/new?destination=seoul&days=5) para encaixar as consultas nas clínicas no seu roteiro sem agendamentos duplicados.
 
 ---
 
@@ -368,7 +368,7 @@ Orçamento realista por pessoa para 5 dias, incluindo o bate-volta à DMZ:
 
 Este guia te dá um esqueleto. Mas a sua Seul pode ser bem diferente — talvez você queira acrescentar um bate-volta à Fortaleza Hwaseong de Suwon ou colocar a DMZ em outro dia, ou se aprofundar na experiência das clínicas de K-beauty, ou passar mais tempo na cena de bares de Hongdae.
 
-O [planejador de viagens com AI da MonkeyTravel](/trips/new?destination=seoul) monta um roteiro personalizado de Seul em 30 segundos — com restaurantes reais, indicações de metrô de verdade e o timing das clínicas de K-beauty já considerado. É gratis e cuida da lógica de rotas que torna Seul fácil de navegar.
+O [planejador de viagens com AI da MonkeyTravel](/trips/new?destination=seoul&days=5) monta um roteiro personalizado de Seul em 30 segundos — com restaurantes reais, indicações de metrô de verdade e o timing das clínicas de K-beauty já considerado. É gratis e cuida da lógica de rotas que torna Seul fácil de navegar.
 
 Também vale a leitura: [O que saber antes da sua primeira viagem ao Japão](/blog/first-trip-to-japan-what-you-need-to-know), [guia do destino Seul](/destinations/seoul) e [melhores destinos gastronômicos para 2026](/blog/best-food-destinations-2026).
 
@@ -378,7 +378,7 @@ Também vale a leitura: [O que saber antes da sua primeira viagem ao Japão](/bl
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Seul grátis](/trips/new?destination=seoul)**
+**[Planejar minha viagem para Seul grátis](/trips/new?destination=seoul&days=5)**
 
 ## Perguntas Frequentes
 

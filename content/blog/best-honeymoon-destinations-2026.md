@@ -314,7 +314,7 @@ Picking the right season for the destination you've chosen. Santorini in May and
 
 ---
 
-*Plan your 2026 honeymoon with our [free AI trip planner](/trips/new) — drop in your destination, dates, and budget tier, and get a sequenced day-by-day plan with realistic costs and shoulder-season recommendations.*
+*Plan your 2026 honeymoon with our [free AI trip planner](/trips/new?vibes=romantic) — drop in your destination, dates, and budget tier, and get a sequenced day-by-day plan with realistic costs and shoulder-season recommendations.*
 
 *Sources:*
 

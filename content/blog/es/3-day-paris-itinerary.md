@@ -199,7 +199,7 @@ La AI de MonkeyTravel crea un **itinerario personalizado de París día a día**
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a París gratis](/trips/new?destination=paris)**
+**[Planificar mi viaje a París gratis](/trips/new?destination=paris&days=3)**
 
 ## FAQ
 

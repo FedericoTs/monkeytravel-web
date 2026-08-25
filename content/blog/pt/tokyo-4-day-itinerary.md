@@ -314,7 +314,7 @@ A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 3
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Tóquio grátis](/trips/new?destination=tokyo)**
+**[Planejar minha viagem para Tóquio grátis](/trips/new?destination=tokyo&days=4)**
 
 *Vai combinar Tóquio com Seul? Nosso [roteiro de 5 dias em Seul](/blog/seoul-5-day-itinerary) continua de onde este para.*
 

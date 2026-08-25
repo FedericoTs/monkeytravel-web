@@ -74,7 +74,7 @@ La pianificazione dei viaggi brevi deve essere veloce, efficiente e precisa. Ed 
 
 ## Come l'AI pianifica un weekend in 15 minuti
 
-Ecco passo dopo passo cosa succede quando usi un pianificatore AI per weekend come [MonkeyTravel](/trips/new) per creare un itinerario di 3 giorni.
+Ecco passo dopo passo cosa succede quando usi un pianificatore AI per weekend come [MonkeyTravel](/trips/new?days=3) per creare un itinerario di 3 giorni.
 
 ### Passo 1: Inserisci destinazione e date (1 minuto)
 
@@ -187,7 +187,7 @@ Mattina alla High Line, il parco sopraelevato. Brunch — non e negoziabile a Ne
 
 ---
 
-Vuoi creare la tua versione di uno di questi itinerari? [Inizia a pianificare il tuo viaggio](/trips/new) — inserisci la destinazione e lascia che l'AI faccia il resto.
+Vuoi creare la tua versione di uno di questi itinerari? [Inizia a pianificare il tuo viaggio](/trips/new?days=3) — inserisci la destinazione e lascia che l'AI faccia il resto.
 
 ## Consigli per sfruttare al massimo un viaggio di 3 giorni
 
@@ -211,7 +211,7 @@ Paga il sovrapprezzo per una posizione centrale. Il tuo tempo vale piu della dif
 
 ### 4. Lascia che l'AI ottimizzi il percorso tra le attivita
 
-Qui e dove i pianificatori AI superano davvero la pianificazione umana. Un AI come [MonkeyTravel](/trips/new) raggruppa le tue attivita geograficamente e le sequenzia per minimizzare camminate e tempi di spostamento. In un viaggio di 3 giorni, questo puo farti risparmiare 1-2 ore in totale — che sono una fetta significativa di una vacanza breve.
+Qui e dove i pianificatori AI superano davvero la pianificazione umana. Un AI come [MonkeyTravel](/trips/new?days=3) raggruppa le tue attivita geograficamente e le sequenzia per minimizzare camminate e tempi di spostamento. In un viaggio di 3 giorni, questo puo farti risparmiare 1-2 ore in totale — che sono una fetta significativa di una vacanza breve.
 
 ### 5. Stabilisci una cosa irrinunciabile per ogni giorno
 
@@ -225,7 +225,7 @@ Non ti serve un bagaglio da stiva per 3 giorni. Un trolley da cabina e uno zaine
 
 E non servono 10 ore per pianificare 3 giorni. Un pianificatore di viaggio AI costruisce la struttura. Tu aggiungi il tuo gusto. Il risultato e un weekend fuori porta che sembra curato — perche lo e — senza il lavoro che "curato" di solito implica.
 
-Il prossimo weekend lungo sul tuo calendario e piu vicino di quanto pensi. [Pianificalo in 15 minuti](/trips/new) e inizia a fare il bagaglio leggero.
+Il prossimo weekend lungo sul tuo calendario e piu vicino di quanto pensi. [Pianificalo in 15 minuti](/trips/new?days=3) e inizia a fare il bagaglio leggero.
 
 ---
 

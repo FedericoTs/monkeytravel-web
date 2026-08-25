@@ -281,7 +281,7 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Barcellona giorno pe
 
 **Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
 
-**[Pianifica il mio viaggio a Barcellona gratis](/trips/new?destination=barcelona)**
+**[Pianifica il mio viaggio a Barcellona gratis](/trips/new?destination=barcelona&days=3)**
 
 ## FAQ
 

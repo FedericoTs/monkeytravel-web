@@ -243,7 +243,7 @@ Cosa sta sovraperformando: le esperienze iper-locali. Cucinare con le famiglie, 
 
 I viaggiatori che trainano questo mercato non sono solo appassionati di cibo. Sono persone che hanno capito che l'accesso al cibo locale è il modo più rapido per entrare in una cultura — e che impari di più su un posto in tre ore di visita a un mercato che in una giornata intera di museo.
 
-Usa il nostro [pianificatore di viaggi gratuito con AI](/trips/new) per costruire un itinerario di foodcation in una qualsiasi di queste destinazioni — può strutturare le tue giornate intorno a mercati, orari dei pasti ed esperienze culinarie.
+Usa il nostro [pianificatore di viaggi gratuito con AI](/trips/new?vibes=foodie) per costruire un itinerario di foodcation in una qualsiasi di queste destinazioni — può strutturare le tue giornate intorno a mercati, orari dei pasti ed esperienze culinarie.
 
 ---
 

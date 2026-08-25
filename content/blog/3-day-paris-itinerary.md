@@ -206,7 +206,7 @@ MonkeyTravel's AI creates a **personalized day-by-day Paris itinerary** in 30 se
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Paris Trip Free](/trips/new?destination=paris)**
+**[Plan My Paris Trip Free](/trips/new?destination=paris&days=3)**
 
 ## FAQ
 

@@ -73,7 +73,7 @@ La planificación de viajes cortos necesita ser rápida, eficiente y precisa. Ah
 
 ## Cómo AI planifica un viaje de fin de semana en 15 minutos
 
-Aquí tienes el paso a paso de lo que realmente sucede cuando usas un planificador de escapadas de fin de semana con AI como [MonkeyTravel](/trips/new) para crear un itinerario de 3 días.
+Aquí tienes el paso a paso de lo que realmente sucede cuando usas un planificador de escapadas de fin de semana con AI como [MonkeyTravel](/trips/new?days=3) para crear un itinerario de 3 días.
 
 ### Paso 1: Introduce tu destino y fechas (1 minuto)
 
@@ -186,7 +186,7 @@ Mañana en el High Line, el parque elevado. Brunch — esto es innegociable en N
 
 ---
 
-¿Quieres crear tu propia versión de cualquiera de estos itinerarios? [Empieza a planificar tu viaje](/trips/new) — solo introduce el destino y deja que AI se encargue del resto.
+¿Quieres crear tu propia versión de cualquiera de estos itinerarios? [Empieza a planificar tu viaje](/trips/new?days=3) — solo introduce el destino y deja que AI se encargue del resto.
 
 ## Consejos para aprovechar al máximo un viaje de 3 días
 
@@ -210,7 +210,7 @@ Paga el extra por una ubicación céntrica. Tu tiempo vale más que la diferenci
 
 ### 4. Deja que AI optimice la ruta entre actividades
 
-Aquí es donde los planificadores con AI superan genuinamente a la planificación humana. Un AI como [MonkeyTravel](/trips/new) agrupa tus actividades geográficamente y las secuencia para minimizar el tiempo caminando y en transporte. En un viaje de 3 días, esto puede ahorrarte 1-2 horas en total — lo cual es una parte significativa de unas vacaciones cortas.
+Aquí es donde los planificadores con AI superan genuinamente a la planificación humana. Un AI como [MonkeyTravel](/trips/new?days=3) agrupa tus actividades geográficamente y las secuencia para minimizar el tiempo caminando y en transporte. En un viaje de 3 días, esto puede ahorrarte 1-2 horas en total — lo cual es una parte significativa de unas vacaciones cortas.
 
 ### 5. Ten un imprescindible por día
 
@@ -224,7 +224,7 @@ No necesitas facturar maleta para 3 días. Una maleta de cabina y una mochila de
 
 Y no necesitas 10 horas para planificar 3 días. Un planificador de viajes con AI construye el marco. Tú añades tu toque personal. El resultado es una escapada de fin de semana que se siente curada — porque lo está — sin el trabajo que "curada" normalmente implica.
 
-El próximo fin de semana largo en tu calendario está más cerca de lo que crees. [Planifícalo en 15 minutos](/trips/new) y empieza a hacer la maleta ligera.
+El próximo fin de semana largo en tu calendario está más cerca de lo que crees. [Planifícalo en 15 minutos](/trips/new?days=3) y empieza a hacer la maleta ligera.
 
 ---
 

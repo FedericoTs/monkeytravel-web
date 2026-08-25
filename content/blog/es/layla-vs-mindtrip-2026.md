@@ -8,7 +8,7 @@ author: Riccardo P.
 publishedAt: '2026-08-25'
 updatedAt: '2026-08-25'
 category: AI Travel
-tags: ["layla", "mindtrip", "comparativa", "planificador de viajes ai"]
+tags: ["planificador de viajes con ai", "reseña", "comparación", "tecnología de viajes"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
 imageAlt: Dos planificadores de viaje con AI comparados en un portátil y un móvil
 readingTime: 7

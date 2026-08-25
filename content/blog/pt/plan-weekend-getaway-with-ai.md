@@ -75,7 +75,7 @@ O planejamento de viagens curtas precisa ser rápido, eficiente e enxuto. É aí
 
 ## Como a AI Planeja uma Viagem de Fim de Semana em 15 Minutos
 
-Veja o passo a passo do que realmente acontece quando você usa um planejador de escapadas de fim de semana com AI como o [MonkeyTravel](/trips/new) para montar um roteiro de 3 dias.
+Veja o passo a passo do que realmente acontece quando você usa um planejador de escapadas de fim de semana com AI como o [MonkeyTravel](/trips/new?days=3) para montar um roteiro de 3 dias.
 
 ### Passo 1: Informe Seu Destino e Datas (1 minuto)
 
@@ -188,7 +188,7 @@ Manhã no parque suspenso High Line. Brunch — isso é inegociável em Nova Yor
 
 ---
 
-Quer montar a sua própria versão de qualquer um destes roteiros? [Comece a planejar sua viagem](/trips/new) — é só informar o destino e deixar a AI cuidar do resto.
+Quer montar a sua própria versão de qualquer um destes roteiros? [Comece a planejar sua viagem](/trips/new?days=3) — é só informar o destino e deixar a AI cuidar do resto.
 
 ## Dicas para Aproveitar ao Máximo uma Viagem de 3 Dias
 
@@ -212,7 +212,7 @@ Pague mais por uma localização central. Seu tempo vale mais do que a diferenç
 
 ### 4. Deixe a AI Otimizar o Trajeto Entre as Atividades
 
-É aqui que os planejadores de AI realmente superam o planejamento humano. Uma AI como o [MonkeyTravel](/trips/new) agrupa suas atividades geograficamente e as sequencia para minimizar o tempo de caminhada e deslocamento. Numa viagem de 3 dias, isso pode economizar de 1 a 2 horas no total — o que é uma fatia significativa de uma viagem curta.
+É aqui que os planejadores de AI realmente superam o planejamento humano. Uma AI como o [MonkeyTravel](/trips/new?days=3) agrupa suas atividades geograficamente e as sequencia para minimizar o tempo de caminhada e deslocamento. Numa viagem de 3 dias, isso pode economizar de 1 a 2 horas no total — o que é uma fatia significativa de uma viagem curta.
 
 ### 5. Tenha Um Item Inegociável por Dia
 
@@ -226,7 +226,7 @@ Você não precisa de uma mala despachada para 3 dias. Uma bagagem de mão e uma
 
 E você não precisa de 10 horas para planejar 3 dias. Um planejador de viagens com AI monta a estrutura. Você acrescenta o seu gosto. O resultado é uma escapada de fim de semana que parece curada — porque é — sem o trabalho que "curada" geralmente implica.
 
-O próximo feriado prolongado da sua agenda está mais perto do que você pensa. [Planeje-o em 15 minutos](/trips/new) e comece a fazer as malas leves.
+O próximo feriado prolongado da sua agenda está mais perto do que você pensa. [Planeje-o em 15 minutos](/trips/new?days=3) e comece a fazer as malas leves.
 
 ---
 

@@ -126,7 +126,7 @@ Suma las piezas móviles: €150–260 por persona cubren todo el transporte ent
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Grecia gratis](/trips/new?destination=santorini)**
+**[Planificar mi viaje a Grecia gratis](/trips/new?destination=santorini&multi=1)**
 
 ## Preguntas frecuentes (FAQ)
 

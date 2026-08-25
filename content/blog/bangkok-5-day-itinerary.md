@@ -447,7 +447,7 @@ MonkeyTravel's AI creates a **personalized day-by-day Bangkok itinerary** in 30 
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Bangkok Trip Free](/trips/new?destination=bangkok)**
+**[Plan My Bangkok Trip Free](/trips/new?destination=bangkok&days=5)**
 
 ## FAQ
 

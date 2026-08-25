@@ -400,7 +400,7 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Nueva York día a d�
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Nueva York gratis](/trips/new?destination=new-york)**
+**[Planificar mi viaje a Nueva York gratis](/trips/new?destination=new-york&days=5)**
 
 ## FAQ
 

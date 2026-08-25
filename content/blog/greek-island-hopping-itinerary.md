@@ -126,7 +126,7 @@ For how this window compares with the rest of the year, see the [2026 travel cal
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Greece Trip Free](/trips/new?destination=santorini)**
+**[Plan My Greece Trip Free](/trips/new?destination=santorini&multi=1)**
 
 ## Frequently Asked Questions
 

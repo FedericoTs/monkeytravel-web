@@ -280,7 +280,7 @@ Para sua última noite, capriche:
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Istambul grátis](/trips/new?destination=istanbul)**
+**[Planejar minha viagem para Istambul grátis](/trips/new?destination=istanbul&days=3)**
 
 ## Dicas Práticas e Perguntas Frequentes
 

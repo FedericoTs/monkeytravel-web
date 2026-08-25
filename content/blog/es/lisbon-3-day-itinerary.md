@@ -317,7 +317,7 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Lisboa día a día**
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Lisboa gratis](/trips/new?destination=lisbon)**
+**[Planificar mi viaje a Lisboa gratis](/trips/new?destination=lisbon&days=3)**
 
 ## Preguntas Frecuentes
 

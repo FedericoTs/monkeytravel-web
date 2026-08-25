@@ -282,7 +282,7 @@ A AI da MonkeyTravel cria um **roteiro personalizado dia a dia de Barcelona** em
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Barcelona grátis](/trips/new?destination=barcelona)**
+**[Planejar minha viagem para Barcelona grátis](/trips/new?destination=barcelona&days=3)**
 
 ## Perguntas Frequentes
 

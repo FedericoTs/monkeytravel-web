@@ -401,7 +401,7 @@ MonkeyTravel's AI creates a **personalized day-by-day New York itinerary** in 30
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My New York Trip Free](/trips/new?destination=new-york)**
+**[Plan My New York Trip Free](/trips/new?destination=new-york&days=5)**
 
 ## FAQ
 

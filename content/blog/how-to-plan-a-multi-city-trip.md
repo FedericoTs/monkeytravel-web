@@ -9,7 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-24'
 updatedAt: '2026-08-24'
 category: Trip Planning
-tags: ["multi-city", "trip planning", "itinerary", "route planning"]
+tags: ["multi-city trip", "itinerary", "trip planning"]
 image: /images/blog/most-planned-destinations-2026.jpg
 imageAlt: Map showing a multi-city travel route with connecting flights between three destinations
 readingTime: 8

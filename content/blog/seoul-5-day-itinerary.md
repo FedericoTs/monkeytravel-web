@@ -336,7 +336,7 @@ Seoul's K-beauty tourism goes well beyond sheet masks. South Korea is one of the
 - Confirm the physician's qualifications and that the clinic is registered with the Korean Health Insurance Review and Assessment Service
 - Medical tourism facilitators like GL Med or Shin Medical can arrange transport, translation, and appointments
 
-Use [MonkeyTravel's free AI trip planner](/trips/new?destination=seoul) to work clinic appointments into your itinerary without double-booking.
+Use [MonkeyTravel's free AI trip planner](/trips/new?destination=seoul&days=5) to work clinic appointments into your itinerary without double-booking.
 
 ---
 
@@ -367,7 +367,7 @@ Realistic per-person budget for 5 days, including the DMZ day trip:
 
 This guide gives you a framework. But your Seoul might look very different — maybe you want to add a day trip to Suwon Hwaseong Fortress or the DMZ on a different day, or go deeper into the K-beauty clinic experience, or spend more time in Hongdae's bar scene.
 
-[MonkeyTravel's AI trip planner](/trips/new?destination=seoul) builds a personalized Seoul itinerary in 30 seconds — with real restaurants, actual subway directions, and K-beauty clinic timing factored in. It's free, and it handles the routing logic that makes Seoul easy to navigate.
+[MonkeyTravel's AI trip planner](/trips/new?destination=seoul&days=5) builds a personalized Seoul itinerary in 30 seconds — with real restaurants, actual subway directions, and K-beauty clinic timing factored in. It's free, and it handles the routing logic that makes Seoul easy to navigate.
 
 Also worth reading: [What to know before your first trip to Japan](/blog/first-trip-to-japan-what-you-need-to-know), [Seoul destination guide](/destinations/seoul), and [best food destinations for 2026](/blog/best-food-destinations-2026).
 
@@ -377,7 +377,7 @@ Also worth reading: [What to know before your first trip to Japan](/blog/first-t
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Seoul Trip Free](/trips/new?destination=seoul)**
+**[Plan My Seoul Trip Free](/trips/new?destination=seoul&days=5)**
 
 ## FAQ
 

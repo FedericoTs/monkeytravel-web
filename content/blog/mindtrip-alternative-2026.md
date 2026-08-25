@@ -9,7 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-24'
 updatedAt: '2026-08-24'
 category: AI Travel
-tags: ["mindtrip", "alternatives", "ai trip planner", "comparison"]
+tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
 imageAlt: Traveller comparing AI trip planning tools on a phone before signing up
 readingTime: 6

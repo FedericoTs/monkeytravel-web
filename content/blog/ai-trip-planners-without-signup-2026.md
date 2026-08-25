@@ -9,7 +9,7 @@ author: Emanuela P.
 publishedAt: '2026-08-24'
 updatedAt: '2026-08-24'
 category: AI Travel
-tags: ["no signup", "free ai trip planner", "comparison", "privacy"]
+tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/plan-trip-with-ai.jpg
 imageAlt: Phone showing a generated travel itinerary with no login screen
 readingTime: 6

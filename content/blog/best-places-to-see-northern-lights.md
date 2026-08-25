@@ -342,7 +342,7 @@ Choosing between 12 destinations, finding the right months, booking aurora lodge
 
 MonkeyTravel's AI builds a **personalized northern lights itinerary** in 30 seconds. Tell it your dates, budget, and interests, and get a day-by-day plan with real hotels, actual excursion prices, and backup plans for cloudy nights.
 
-[Plan My Northern Lights Trip — Free](/trips/new)
+[Plan My Northern Lights Trip — Free](/trips/new?vibes=nature)
 
 ---
 

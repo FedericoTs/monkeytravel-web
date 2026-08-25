@@ -313,7 +313,7 @@ MonkeyTravel's AI creates a **personalized day-by-day Tokyo itinerary** in 30 se
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Tokyo Trip Free](/trips/new?destination=tokyo)**
+**[Plan My Tokyo Trip Free](/trips/new?destination=tokyo&days=4)**
 
 *Pairing Tokyo with Seoul? Our [5-day Seoul itinerary](/blog/seoul-5-day-itinerary) picks up where this one leaves off.*
 

@@ -241,7 +241,7 @@ What is specifically outperforming: hyper-local experiences. Cooking with famili
 
 The travelers driving this market are not just food obsessives. They are people who realized that food access is the fastest way into a culture — and that you learn more about a place in a three-hour market visit than in a full-day museum tour.
 
-Use our [free AI trip planner](/trips/new) to build a foodcation itinerary around any of these destinations — it can structure your days around markets, meal timing, and cooking experiences.
+Use our [free AI trip planner](/trips/new?vibes=foodie) to build a foodcation itinerary around any of these destinations — it can structure your days around markets, meal timing, and cooking experiences.
 
 ---
 

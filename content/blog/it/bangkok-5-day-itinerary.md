@@ -448,7 +448,7 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Bangkok giorno per g
 
 **Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
 
-**[Pianifica il mio viaggio a Bangkok gratis](/trips/new?destination=bangkok)**
+**[Pianifica il mio viaggio a Bangkok gratis](/trips/new?destination=bangkok&days=5)**
 
 ## FAQ
 

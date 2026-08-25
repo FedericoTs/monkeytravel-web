@@ -24,6 +24,7 @@ import Footer from "@/components/Footer";
 import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
 import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
+import { tripsNewHrefForPost } from "@/lib/blog/trip-prefill";
 import { landingPagesForPost } from "@/lib/blog/landing-page-links";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
 import ContentTracker from "@/components/analytics/ContentTracker";
@@ -231,9 +232,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const relatedLandingPages = landingPagesForPost(slug, 3);
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags, locale);
-  const tripsNewHref = primaryDestination
-    ? `/trips/new?destination=${primaryDestination.slug}`
-    : "/trips/new";
+  // The CTA now carries the whole trip the article describes, not just the
+  // city: length, budget tier and vibe, derived from the post's own slug and
+  // taxonomy concepts. A post that describes no trip still yields a bare
+  // /trips/new — see lib/blog/trip-prefill.ts for why nothing is guessed.
+  const tripsNewHref = tripsNewHrefForPost(slug, primaryDestination?.slug ?? null);
   const { prev: prevPost, next: nextPost } = getPrevNextPosts(slug, locale);
   const toc = extractToc(html);
 

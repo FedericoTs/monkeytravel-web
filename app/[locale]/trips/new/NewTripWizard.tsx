@@ -20,6 +20,17 @@ export interface PrefilledDestination {
   latitude: number;
   longitude: number;
 }
+
+/**
+ * The rest of the trip a blog CTA carried in (`?days=`, `?budget=`,
+ * `?vibes=`), already validated server-side in ./page.tsx. Fields are null /
+ * empty when the deeplink said nothing about them, which is the common case.
+ */
+export interface PrefilledTripShape {
+  days: number | null;
+  budget: "budget" | "balanced" | "premium" | null;
+  vibes: string[];
+}
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
@@ -391,6 +402,13 @@ interface NewTripWizardProps {
    */
   prefilledDestination: PrefilledDestination | null;
   /**
+   * Trip length / budget / vibes carried in from a blog CTA, so a reader who
+   * just finished "3-day Paris itinerary" doesn't have to retype the trip the
+   * article described. Derived and validated upstream — see
+   * lib/blog/trip-prefill.ts and the parser in ./page.tsx.
+   */
+  prefilledTripShape?: PrefilledTripShape;
+  /**
    * Whether the /explore publish surface is reachable. Resolved server-side
    * from EXPLORE_UGC_ENABLED and passed down.
    *
@@ -409,6 +427,7 @@ interface NewTripWizardProps {
 
 export default function NewTripPage({
   prefilledDestination,
+  prefilledTripShape,
   exploreUgcEnabled,
 }: NewTripWizardProps) {
   const router = useRouter();
@@ -824,6 +843,19 @@ export default function NewTripPage({
   useEffect(() => {
     if (MULTI_CITY_ENABLED && searchParams?.get("multi") === "1") {
       setMultiCityMode(true);
+      // Seed the first leg with the deeplinked city. Without this, a link like
+      // ?destination=rome&multi=1 (the "5-day Italy itinerary" CTA) LOSES the
+      // city: the mirror effect below rewrites `destination` from the route
+      // rows, which are empty on arrival, so Rome is blanked a tick after it
+      // was filled in. The article's city is leg one of the route, so putting
+      // it there keeps it and is what the post actually describes.
+      if (prefilledDestination) {
+        setCityRows((rows) =>
+          rows[0]?.city
+            ? rows
+            : [{ ...rows[0], city: prefilledDestination.name }, ...rows.slice(1)],
+        );
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -875,6 +907,55 @@ export default function NewTripPage({
     if (trimmed) {
       setDestination(trimmed.charAt(0).toUpperCase() + trimmed.slice(1));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA.
+  //
+  // WHY: a reader arriving from "3-day Paris itinerary" was landing on a
+  // wizard that knew the city and nothing else, and had to retype the trip the
+  // article had just described. The params are derived from what the post
+  // itself declares (lib/blog/trip-prefill.ts) and validated in page.tsx, so by
+  // the time they get here they are already known-good or absent.
+  //
+  // Runs once on mount and only on a truly untouched wizard. Draft recovery
+  // runs later and overwrites this on purpose — a trip the reader actually
+  // started outranks a query string they never typed.
+  useEffect(() => {
+    if (!prefilledTripShape) return;
+    if (destinationFieldRef.current) return;
+    const { days, budget, vibes } = prefilledTripShape;
+    if (!days && !budget && vibes.length === 0) return;
+
+    if (budget) setBudgetTier(budget);
+    if (vibes.length > 0) setSelectedVibes(vibes as TripVibe[]);
+
+    // Dates: the wizard gates step 1 on a real start+end, and `days` alone
+    // can't produce one. Resolve it exactly the way the "I'm flexible" button
+    // does — start ~3 weeks out, span the article's length — and set the same
+    // flexibleDates flag, so the UI openly shows the dates are a placeholder
+    // rather than something the reader chose.
+    //
+    // Never in multi-city mode: there the end date is recomputed from the sum
+    // of per-city nights, so a span set here would be overwritten anyway, and a
+    // long single-city span heading into a one-city route is the documented way
+    // to earn a 400 from the generate call.
+    const isMultiDeeplink = MULTI_CITY_ENABLED && searchParams?.get("multi") === "1";
+    if (days && !isMultiDeeplink) {
+      const today = new Date().toISOString().split("T")[0];
+      const start = addDaysISO(today, 21);
+      setStartDate(start);
+      setEndDate(addDaysISO(start, days - 1));
+      setFlexibleDates(true);
+    }
+
+    posthog.capture("wizard_prefilled_from_article", {
+      prefilled_days: days ?? null,
+      prefilled_budget: budget ?? null,
+      prefilled_vibes: vibes,
+      has_destination: Boolean(prefilledDestination || searchParams?.get("destination")),
+      multi_city: Boolean(isMultiDeeplink),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

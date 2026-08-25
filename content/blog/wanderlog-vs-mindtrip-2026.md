@@ -9,7 +9,7 @@ author: Riccardo P.
 publishedAt: '2026-08-24'
 updatedAt: '2026-08-24'
 category: AI Travel
-tags: ["wanderlog", "mindtrip", "comparison", "ai trip planner"]
+tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
 imageAlt: Two trip planning apps compared side by side on a laptop and a phone
 readingTime: 7

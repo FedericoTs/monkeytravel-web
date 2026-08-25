@@ -73,7 +73,7 @@ Short trip planning needs to be fast, efficient, and tight. That's where AI shin
 
 ## How AI Plans a Weekend Trip in 15 Minutes
 
-Here's the step-by-step of what actually happens when you use an AI weekend getaway planner like [MonkeyTravel](/trips/new) to build a 3-day itinerary.
+Here's the step-by-step of what actually happens when you use an AI weekend getaway planner like [MonkeyTravel](/trips/new?days=3) to build a 3-day itinerary.
 
 ### Step 1: Drop Your Destination and Dates (1 minute)
 
@@ -186,7 +186,7 @@ Morning at the High Line elevated park. Brunch — this is non-negotiable in New
 
 ---
 
-Want to build your own version of any of these itineraries? [Start planning your trip](/trips/new) — just drop the destination and let AI handle the rest.
+Want to build your own version of any of these itineraries? [Start planning your trip](/trips/new?days=3) — just drop the destination and let AI handle the rest.
 
 ## Tips for Maximizing a 3-Day Trip
 
@@ -210,7 +210,7 @@ Pay the premium for a central location. Your time is worth more than the $30/nig
 
 ### 4. Let AI Optimize the Route Between Activities
 
-This is where AI planners genuinely outperform human planning. An AI like [MonkeyTravel](/trips/new) clusters your activities geographically and sequences them to minimize walking and transit time. On a 3-day trip, this can save you 1-2 hours total — which is a meaningful chunk of a short vacation.
+This is where AI planners genuinely outperform human planning. An AI like [MonkeyTravel](/trips/new?days=3) clusters your activities geographically and sequences them to minimize walking and transit time. On a 3-day trip, this can save you 1-2 hours total — which is a meaningful chunk of a short vacation.
 
 ### 5. Have One Non-Negotiable Per Day
 
@@ -224,7 +224,7 @@ You don't need a checked bag for 3 days. A carry-on and a daypack. That's it. Yo
 
 And you don't need 10 hours to plan 3 days. An AI trip planner builds the framework. You add your taste. The result is a weekend getaway that feels curated — because it is — without the work that "curated" usually implies.
 
-The next long weekend on your calendar is closer than you think. [Plan it in 15 minutes](/trips/new) and start packing light.
+The next long weekend on your calendar is closer than you think. [Plan it in 15 minutes](/trips/new?days=3) and start packing light.
 
 ---
 

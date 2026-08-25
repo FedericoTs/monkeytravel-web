@@ -132,7 +132,7 @@ La rotta è standardizzata; la tua versione no. Le date dei sakura si spostano, 
 
 **Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
 
-**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo)**
+**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo&multi=1)**
 
 ## Domande frequenti (FAQ)
 

@@ -278,7 +278,7 @@ For your last evening, go big:
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Istanbul Trip Free](/trips/new?destination=istanbul)**
+**[Plan My Istanbul Trip Free](/trips/new?destination=istanbul&days=3)**
 
 ## Practical Tips & FAQ
 

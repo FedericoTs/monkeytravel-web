@@ -313,7 +313,7 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Tokyo giorno per gio
 
 **Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
 
-**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo)**
+**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo&days=4)**
 
 *Abbini Tokyo a Seul? Il nostro [itinerario di 5 giorni a Seul](/blog/seoul-5-day-itinerary) riprende da dove finisce questo.*
 

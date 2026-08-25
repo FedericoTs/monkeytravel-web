@@ -126,7 +126,7 @@ Some as partes móveis: €150–260 por pessoa cobrem todo o transporte entre i
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Grécia grátis](/trips/new?destination=santorini)**
+**[Planejar minha viagem para Grécia grátis](/trips/new?destination=santorini&multi=1)**
 
 ## Perguntas frequentes (FAQ)
 

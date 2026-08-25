@@ -303,7 +303,7 @@ El turismo K-beauty en Seúl va mucho más allá de las mascarillas de tela. Cor
 - Pregunta específicamente por el tiempo de inactividad — algunos tratamientos dejan enrojecimiento durante 3-5 días
 - Los facilitadores de turismo médico como GL Med o Shin Medical pueden gestionar el transporte, la traducción y las citas
 
-Usa el [planificador de viajes gratuito de MonkeyTravel](/trips/new?destination=seoul) para integrar las citas en la clínica en tu itinerario sin solapamientos.
+Usa el [planificador de viajes gratuito de MonkeyTravel](/trips/new?destination=seoul&days=5) para integrar las citas en la clínica en tu itinerario sin solapamientos.
 
 ---
 
@@ -333,7 +333,7 @@ Presupuesto realista por persona para 5 días, incluyendo la excursión a la DMZ
 
 Esta guía te da un marco. Pero tu Seúl puede ser muy diferente — quizás quieras añadir una excursión a la Fortaleza Hwaseong de Suwon, o profundizar en la experiencia de las clínicas K-beauty, o pasar más tiempo en los bares de Hongdae.
 
-El [planificador de viajes con AI de MonkeyTravel](/trips/new?destination=seoul) construye un itinerario personalizado para Seúl en 30 segundos — con restaurantes reales, indicaciones de metro y los tiempos de las clínicas K-beauty integrados. Es gratuito.
+El [planificador de viajes con AI de MonkeyTravel](/trips/new?destination=seoul&days=5) construye un itinerario personalizado para Seúl en 30 segundos — con restaurantes reales, indicaciones de metro y los tiempos de las clínicas K-beauty integrados. Es gratuito.
 
 Lecturas recomendadas: [Lo que debes saber antes de tu primer viaje a Japón](/blog/first-trip-to-japan-what-you-need-to-know), [guía de destino Seúl](/destinations/seoul) y [mejores destinos gastronómicos de 2026](/blog/best-food-destinations-2026).
 
@@ -343,7 +343,7 @@ Lecturas recomendadas: [Lo que debes saber antes de tu primer viaje a Japón](/b
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Seúl gratis](/trips/new?destination=seoul)**
+**[Planificar mi viaje a Seúl gratis](/trips/new?destination=seoul&days=5)**
 
 ## Preguntas Frecuentes
 

@@ -362,7 +362,7 @@ MonkeyTravel's AI creates a **personalized day-by-day London itinerary** in 30 s
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My London Trip Free](/trips/new?destination=london)**
+**[Plan My London Trip Free](/trips/new?destination=london&days=4)**
 
 ## FAQ
 

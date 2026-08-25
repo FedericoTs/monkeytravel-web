@@ -143,6 +143,10 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "q3-2026-travel-planning-report":        { c: ["travel-data", "trip-planning", "group-travel"] },
   "travel-planning-trends-2026":           { c: ["travel-data", "trip-planning", "ai-trip-planner"] },
   "wanderlog-alternative-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "ai-trip-planners-without-signup-2026":  { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "layla-vs-mindtrip-2026":                { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "mindtrip-alternative-2026":             { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "wanderlog-vs-mindtrip-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "wonderplan-review-2026":                { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
 
   // --- Budget Travel ---
@@ -221,6 +225,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "how-many-activities-per-day-itinerary": { c: ["itinerary", "travel-data", "trip-planning"] },
   "how-to-plan-a-bachelorette-trip":       { c: ["group-travel", "trip-planning"] },
   "how-to-plan-a-group-trip":              { c: ["group-travel", "trip-planning"] },
+  "how-to-plan-a-multi-city-trip":         { c: ["multi-city-trip", "itinerary", "trip-planning"] },
   "most-planned-destinations-2026":        { c: ["travel-data", "best-destinations", "multi-city-trip"] },
   "plan-group-trip-by-voting":             { c: ["group-travel", "itinerary", "trip-planning"] },
   "sustainable-travel-guide-2026":         { c: ["sustainable-travel", "trip-planning", "best-destinations"] },

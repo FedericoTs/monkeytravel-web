@@ -362,7 +362,7 @@ A AI da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 3
 
 **Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
 
-**[Planejar minha viagem para Itália grátis](/trips/new?destination=rome)**
+**[Planejar minha viagem para Itália grátis](/trips/new?destination=rome&multi=1)**
 
 *Ainda decidindo entre cidades? Comparamos as duas em [Paris vs Roma](/blog/paris-vs-rome).*
 

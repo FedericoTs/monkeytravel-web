@@ -361,7 +361,7 @@ MonkeyTravel's AI creates a **personalized day-by-day Italy itinerary** in 30 se
 
 **This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
 
-**[Plan My Italy Trip Free](/trips/new?destination=rome)**
+**[Plan My Italy Trip Free](/trips/new?destination=rome&multi=1)**
 
 *Still deciding between cities? We compared them directly in [Paris vs Rome](/blog/paris-vs-rome).*
 

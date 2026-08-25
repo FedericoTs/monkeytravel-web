@@ -339,7 +339,7 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Bali día a día** e
 
 **Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
 
-**[Planificar mi viaje a Bali gratis](/trips/new?destination=bali)**
+**[Planificar mi viaje a Bali gratis](/trips/new?destination=bali&days=7)**
 
 ## FAQ
 
