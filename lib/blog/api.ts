@@ -57,7 +57,7 @@ function parseAdmonitions(markdown: string): string {
   });
 }
 
-async function markdownToHtml(markdown: string): Promise<string> {
+async function markdownToHtml(markdown: string, locale: string): Promise<string> {
   const preprocessed = parseAdmonitions(stripLeadingH1(markdown));
   // sanitize: true enables GitHub-style HTML sanitization, stripping
   // dangerous tags (<script>, event handlers) while allowing safe HTML
@@ -65,7 +65,63 @@ async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(html, { sanitize: true })
     .process(preprocessed);
-  return styleDestinationLinks(addHeadingIds(result.toString()));
+  return styleDestinationLinks(
+    localizeInternalLinks(addHeadingIds(result.toString()), locale)
+  );
+}
+
+/**
+ * Locales, duplicated from lib/i18n/routing.ts rather than imported.
+ *
+ * routing.ts calls createNavigation(), which pulls next-intl's React
+ * navigation into whatever imports it — and this module is imported by
+ * scripts/render-marketing-email.mts and scripts/send-test-emails.mts, which
+ * run under tsx outside Next. A four-string constant is cheaper than breaking
+ * those, and blog-api-locales.vitest.ts fails if the two ever drift.
+ */
+const LOCALES = ["en", "es", "it", "pt"] as const;
+const DEFAULT_LOCALE = "en";
+const ALREADY_PREFIXED = new RegExp(`^/(${LOCALES.join("|")})(/|$)`);
+
+/**
+ * Locale-prefix root-relative links inside rendered post HTML.
+ *
+ * THE BUG THIS FIXES
+ * remark-html emits hrefs exactly as written in the markdown, and nothing
+ * downstream localizes them. Component-rendered links go through next-intl's
+ * Link and come out as /es/blog/x; in-body markdown links came out as /blog/x
+ * on the Spanish page. Measured on one /es article: 11 correct component links
+ * against 10 unprefixed markdown ones.
+ *
+ * WHY IT MATTERS MORE THAN A REDIRECT HOP
+ * A reader might get bounced to the right locale by middleware and the cookie.
+ * A crawler does not: it reads /es/blog/x and finds its body links pointing at
+ * the EN article, so the es/it/pt internal link graph effectively does not
+ * exist and every in-body link hands authority back to English. Those same
+ * locale pages are the ones sitting "crawled, not indexed" for lack of it.
+ *
+ * Affected before this change: 310 links in es, 310 in it, 447 in pt.
+ * (pt more, because es and it had some links hand-prefixed already — which is
+ * why this skips anything that already starts with a locale segment rather
+ * than prefixing blindly.)
+ *
+ * Only root-relative hrefs are touched. Every root-relative target in the blog
+ * is an app route (/blog, /trips, /destinations, /tools, the planner pages, and
+ * "/"), so there is nothing asset-like to mis-prefix; external, anchor,
+ * mailto and protocol-relative hrefs are all left alone.
+ */
+function localizeInternalLinks(rendered: string, locale: string): string {
+  if (locale === DEFAULT_LOCALE) return rendered;
+  if (!(LOCALES as readonly string[]).includes(locale)) return rendered;
+
+  return rendered.replace(/href="(\/[^"]*)"/g, (match, href: string) => {
+    // Protocol-relative (//host/path) is external despite the leading slash.
+    if (href.startsWith("//")) return match;
+    // Idempotent: leave links that already carry a locale segment.
+    if (ALREADY_PREFIXED.test(href)) return match;
+    // "/" must become "/es", not "/es/".
+    return `href="/${locale}${href === "/" ? "" : href}"`;
+  });
 }
 
 /**
@@ -293,7 +349,7 @@ export async function getPostBySlug(slug: string, locale = "en"): Promise<BlogPo
   const parsed = parseFrontmatter(slug, locale);
   if (!parsed) return null;
 
-  const postHtml = await markdownToHtml(parsed.content);
+  const postHtml = await markdownToHtml(parsed.content, locale);
   return {
     frontmatter: parsed.frontmatter,
     content: parsed.content,
