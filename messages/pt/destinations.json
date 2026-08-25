@@ -55,7 +55,7 @@
     "heading": "Destinos {tag}",
     "subtitle": "{count, plural, =1 {1 destino} other {# destinos}} que combinam com este estilo de viagem.",
     "allDestinations": "Todos os destinos compatíveis",
-    "metaTitle": "Destinos {tag} — roteiros planejados com AI",
+    "metaTitle": "Destinos {tag} — Roteiros com IA Grátis",
     "metaDescription": "{count, plural, =1 {1 destino} other {# destinos}} para viagens {tag}. Receba um roteiro dia a dia criado por AI em 30 segundos — grátis.",
     "topPicks": "Por onde começar",
     "faqHeading": "Bom saber",

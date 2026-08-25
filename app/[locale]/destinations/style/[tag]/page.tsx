@@ -57,7 +57,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
-    title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template. The tag
+    // is interpolated, so the longest label ("Off the Beaten Path", 19 chars)
+    // pushed every one of these titles past the ~60 Google renders once the
+    // 15-character suffix was added. Dropping it puts the whole headline —
+    // including the tag, which is the only part carrying search intent —
+    // back inside the budget.
+    title: { absolute: title },
     description,
     alternates: { canonical: languages[locale], languages },
     openGraph: {

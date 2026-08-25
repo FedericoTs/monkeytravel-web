@@ -55,7 +55,7 @@
     "heading": "{tag} destinations",
     "subtitle": "{count, plural, =1 {1 destination} other {# destinations}} that match this travel style.",
     "allDestinations": "All matching destinations",
-    "metaTitle": "{tag} destinations — AI-planned itineraries",
+    "metaTitle": "{tag} Destinations — Free AI Itineraries",
     "metaDescription": "{count, plural, =1 {1 destination} other {# destinations}} for {tag} travel. Get an AI-built day-by-day itinerary in 30 seconds — free.",
     "topPicks": "Where to start",
     "faqHeading": "Good to know",

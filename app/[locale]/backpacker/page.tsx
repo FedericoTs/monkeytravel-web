@@ -116,7 +116,12 @@ export async function generateMetadata({
   const title = t("meta.title");
   const description = t("meta.description");
   return {
-    title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template
+    // (app/layout.tsx). The suffix costs 15 of the ~60 characters Google
+    // renders, and this page was shipping an 89-character title — the longest
+    // on the site. Nobody searches the brand at DR 10, so those 15 characters
+    // buy nothing here and cost the end of the headline.
+    title: { absolute: title },
     description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

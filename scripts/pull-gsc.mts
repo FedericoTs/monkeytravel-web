@@ -22,17 +22,40 @@ import { google } from "googleapis";
 
 const PROJECT_ROOT = join(import.meta.dirname, "..");
 
-// Discover the service-account JSON automatically — any file matching the
-// gitignored patterns. Avoids hardcoding the key filename.
-const KEY_FILENAME = readdirSync(PROJECT_ROOT).find(
-  (f) =>
-    f.startsWith("gen-lang-client-") && f.endsWith(".json") && !f.includes("package"),
-);
-if (!KEY_FILENAME) {
-  console.error("✗ No service-account JSON found in project root (looking for gen-lang-client-*.json).");
+/**
+ * Locate the service-account JSON, preferring a path OUTSIDE the repo.
+ *
+ * The key used to have to sit in the project root, which meant a credential
+ * living inside a git working tree and protected only by a .gitignore line.
+ * The shared location below keeps it out of the repo entirely, so there is
+ * nothing to accidentally stage.
+ *
+ * Order: explicit env var, then the shared config dir, then the old
+ * project-root discovery so existing checkouts keep working.
+ */
+function findKeyPath(): string | null {
+  const fromEnv = process.env.GSC_SERVICE_ACCOUNT_KEY;
+  if (fromEnv && existsSync(fromEnv)) return fromEnv;
+
+  const home = process.env.HOME ?? process.env.USERPROFILE ?? "";
+  const shared = join(home, ".config", "claude-seo", "gsc-service-account.json");
+  if (home && existsSync(shared)) return shared;
+
+  const inRoot = readdirSync(PROJECT_ROOT).find(
+    (f) =>
+      f.startsWith("gen-lang-client-") && f.endsWith(".json") && !f.includes("package"),
+  );
+  return inRoot ? join(PROJECT_ROOT, inRoot) : null;
+}
+
+const KEY_PATH = findKeyPath();
+if (!KEY_PATH) {
+  console.error("✗ No service-account JSON found. Looked at, in order:");
+  console.error("    $GSC_SERVICE_ACCOUNT_KEY");
+  console.error("    ~/.config/claude-seo/gsc-service-account.json");
+  console.error("    <project root>/gen-lang-client-*.json");
   process.exit(1);
 }
-const KEY_PATH = join(PROJECT_ROOT, KEY_FILENAME);
 
 // Both property formats — Search Console may have either or both.
 const SITE_CANDIDATES = [
@@ -47,7 +70,7 @@ const ROW_LIMIT = 5000; // GSC max per request
 // Auth
 // ----------------------------------------------------------------------------
 
-console.log(`→ Using service account JSON: ${KEY_FILENAME}`);
+console.log(`→ Using service account JSON: ${KEY_PATH}`);
 const keyJson = JSON.parse(readFileSync(KEY_PATH, "utf-8"));
 console.log(`→ client_email: ${keyJson.client_email}`);
 console.log(`→ project_id: ${keyJson.project_id}\n`);
