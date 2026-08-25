@@ -2022,7 +2022,7 @@ export default function TripDetailClient({
               onClick={() => setShowMap(!showMap)}
               className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
                 showMap
-                  ? "bg-[var(--primary)] text-white"
+                  ? "bg-[var(--primary-ink)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
               title={showMap ? t('detail.hideMap') : t('detail.showMap')}
@@ -2369,7 +2369,7 @@ export default function TripDetailClient({
               <button
                 type="button"
                 onClick={openCrewShareModal}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90 transition-colors"
               >
                 {t('detail.crewVotesShare')}
               </button>
@@ -2404,7 +2404,7 @@ export default function TripDetailClient({
                 <button
                   type="button"
                   onClick={openCrewShareModal}
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90 transition-colors"
                 >
                   {t('detail.crewCtaButton')}
                 </button>
@@ -2445,7 +2445,7 @@ export default function TripDetailClient({
                                     bg-white/70 backdrop-blur-sm rounded-2xl pointer-events-auto"
                          aria-live="polite">
                       <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow border border-slate-200">
-                        <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary)]" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-[var(--primary-ink)]" />
                         <span className="text-sm font-medium text-slate-700">
                           {t("detail.regeneratingDay", { number: day.day_number })}
                         </span>
@@ -2479,7 +2479,7 @@ export default function TripDetailClient({
                           onClick={() => handleDayRegenerate(day.day_number)}
                           disabled={regeneratingDayNumber !== null}
                           className="flex items-center justify-center w-8 h-8 rounded-lg
-                                     text-slate-500 hover:text-[var(--primary)] hover:bg-slate-100
+                                     text-slate-500 hover:text-[var(--primary-ink)] hover:bg-slate-100
                                      disabled:opacity-50 disabled:cursor-not-allowed
                                      transition-colors"
                           title={`Regenerate Day ${day.day_number} — replace all activities with a fresh AI suggestion`}
@@ -2732,7 +2732,7 @@ export default function TripDetailClient({
                             <div key={idx}>
                               <div className="relative">
                                 {/* Timeline dot */}
-                                <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+                                <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary-ink)] border-4 border-white shadow" />
 
                                 <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                                   <div className="flex items-start justify-between gap-4">

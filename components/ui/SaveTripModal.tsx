@@ -310,7 +310,7 @@ export default function SaveTripModal({
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-[var(--primary)]" />
+                  <Calendar className="w-5 h-5 text-[var(--primary-ink)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-900">
@@ -367,7 +367,7 @@ export default function SaveTripModal({
               <button
                 onClick={handleSave}
                 disabled={!startDate || isSaving}
-                className="w-full px-6 py-4 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25"
+                className="w-full px-6 py-4 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25"
               >
                 {isSaving ? (
                   <>
@@ -398,7 +398,7 @@ export default function SaveTripModal({
                         : `/shared/${shareToken}`;
                       router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
                     }}
-                    className="text-[var(--primary)] hover:underline font-medium"
+                    className="text-[var(--primary-ink)] hover:underline font-medium"
                   >
                     {t("logIn")}
                   </button>

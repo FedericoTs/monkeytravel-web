@@ -159,7 +159,7 @@ export default function ExploreFilters() {
               onClick={() => toggle("budget", opt.value)}
               className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
                 isActive
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                  ? "bg-[var(--primary-ink)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-300 hover:border-[var(--primary)]"
               }`}
               aria-pressed={isActive}
@@ -185,7 +185,7 @@ export default function ExploreFilters() {
               onClick={() => setDurationBand(opt.min, opt.max)}
               className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
                 isActive
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                  ? "bg-[var(--primary-ink)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-300 hover:border-[var(--primary)]"
               }`}
               aria-pressed={isActive}
@@ -209,7 +209,7 @@ export default function ExploreFilters() {
               onClick={() => toggle("tags", tag)}
               className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
                 isActive
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                  ? "bg-[var(--primary-ink)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-300 hover:border-[var(--primary)]"
               }`}
               aria-pressed={isActive}

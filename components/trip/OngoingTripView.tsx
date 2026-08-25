@@ -274,7 +274,7 @@ export default function OngoingTripView({
               <div className="font-semibold text-slate-900">
                 {todayDate && formatDate(todayDate)}
               </div>
-              {todayTheme && <div className="text-sm text-[var(--primary)]">{todayTheme}</div>}
+              {todayTheme && <div className="text-sm text-[var(--primary-ink)]">{todayTheme}</div>}
             </div>
           ) : (
             <div

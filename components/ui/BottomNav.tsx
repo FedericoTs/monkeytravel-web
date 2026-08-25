@@ -76,7 +76,7 @@ export default function BottomNav() {
                   href={item.href}
                   className="flex flex-col items-center gap-1 px-4 py-2"
                 >
-                  <div className="w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center -mt-6 shadow-lg shadow-[var(--primary)]/30">
+                  <div className="w-12 h-12 bg-[var(--primary-ink)] rounded-full flex items-center justify-center -mt-6 shadow-lg shadow-[var(--primary)]/30">
                     {item.icon}
                   </div>
                   <span className="text-xs text-slate-500">{t(item.labelKey)}</span>
@@ -89,7 +89,7 @@ export default function BottomNav() {
                 key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center gap-1 px-4 py-2 ${
-                  active ? "text-[var(--primary)]" : "text-slate-500"
+                  active ? "text-[var(--primary-ink)]" : "text-slate-500"
                 }`}
               >
                 {item.icon}

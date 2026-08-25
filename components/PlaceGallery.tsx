@@ -258,7 +258,7 @@ export default function PlaceGallery({
                 href={placeData.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-[var(--primary)] hover:underline"
+                className="text-xs text-[var(--primary-ink)] hover:underline"
               >
                 {t("website")}
               </a>

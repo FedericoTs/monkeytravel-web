@@ -81,7 +81,7 @@ export default function LanguageSwitcher({
             onClick={() => handleLanguageChange(loc)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               locale === loc
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary-ink)] text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
@@ -119,7 +119,7 @@ export default function LanguageSwitcher({
               onClick={() => handleLanguageChange(loc)}
               className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors ${
                 locale === loc
-                  ? "bg-[var(--primary)]/5 text-[var(--primary)]"
+                  ? "bg-[var(--primary)]/5 text-[var(--primary-ink)]"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >

@@ -158,7 +158,7 @@ export default function VisaCheckerForm({
       <button
         type="submit"
         disabled={!canSubmit}
-        className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-3 text-base font-semibold text-white shadow-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--primary-ink)] px-4 py-3 text-base font-semibold text-white shadow-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         {isPending ? t("loadingResult") : t("checkButton")}
       </button>

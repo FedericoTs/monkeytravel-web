@@ -81,7 +81,7 @@ export default function ValuePropositionBanner({
                 key={idx}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full text-xs font-medium text-slate-600 whitespace-nowrap flex-shrink-0"
               >
-                <span className="text-[var(--primary)]">{feature.icon}</span>
+                <span className="text-[var(--primary-ink)]">{feature.icon}</span>
                 <span>{feature.title}</span>
               </div>
             ))}
@@ -160,7 +160,7 @@ export default function ValuePropositionBanner({
                 key={idx}
                 className="bg-white/60 backdrop-blur-sm rounded-xl p-3 text-center border border-white/80"
               >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 flex items-center justify-center mx-auto mb-2 text-[var(--primary)]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 flex items-center justify-center mx-auto mb-2 text-[var(--primary-ink)]">
                   {feature.icon}
                 </div>
                 <div className="text-sm font-medium text-slate-900">{feature.title}</div>

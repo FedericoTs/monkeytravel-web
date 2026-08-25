@@ -58,7 +58,7 @@ export default function HeroTripInput({
         />
         <button
           type="submit"
-          className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary)]/90"
+          className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary-ink)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary-ink)]/90"
         >
           <span>{cta}</span>
           <svg
@@ -89,7 +89,7 @@ export default function HeroTripInput({
               // inline-flex rather than more py- so the target holds if the
               // font or line-height changes. px-4 keeps the pill proportion
               // sane now that it is 44px tall.
-              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 bg-white px-4 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 bg-white px-4 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
             >
               {dest}
             </button>

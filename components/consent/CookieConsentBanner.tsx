@@ -56,7 +56,7 @@ export function CookieConsentBanner() {
             {/* Icon — desktop only */}
             <div className="hidden md:flex w-12 h-12 rounded-xl bg-[var(--primary)]/10 items-center justify-center flex-shrink-0">
               <svg
-                className="w-6 h-6 text-[var(--primary)]"
+                className="w-6 h-6 text-[var(--primary-ink)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -79,7 +79,7 @@ export function CookieConsentBanner() {
                 {t("banner.description")}{" "}
                 <button
                   onClick={openSettings}
-                  className="text-[var(--primary)] hover:underline font-medium"
+                  className="text-[var(--primary-ink)] hover:underline font-medium"
                 >
                   {t("banner.learnMore")}
                 </button>
@@ -97,13 +97,13 @@ export function CookieConsentBanner() {
             </button>
             <button
               onClick={openSettings}
-              className="hidden sm:flex flex-1 px-5 py-3 rounded-xl font-semibold text-[var(--primary)] border-2 border-[var(--primary)]/20 hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/5 transition-colors text-sm items-center justify-center"
+              className="hidden sm:flex flex-1 px-5 py-3 rounded-xl font-semibold text-[var(--primary-ink)] border-2 border-[var(--primary)]/20 hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/5 transition-colors text-sm items-center justify-center"
             >
               {t("banner.customize")}
             </button>
             <button
               onClick={acceptAll}
-              className="flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-colors text-xs sm:text-sm shadow-lg shadow-[var(--primary)]/25"
+              className="flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-dark)] transition-colors text-xs sm:text-sm shadow-lg shadow-[var(--primary)]/25"
             >
               {t("banner.acceptAll")}
             </button>
@@ -114,7 +114,7 @@ export function CookieConsentBanner() {
             {t("banner.privacyNote")}{" "}
             <a
               href="/privacy"
-              className="text-[var(--primary)] hover:underline"
+              className="text-[var(--primary-ink)] hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >

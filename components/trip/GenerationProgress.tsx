@@ -83,7 +83,7 @@ const ESCALATION_THRESHOLD_MS = 45000;
 // Animated icons for each phase
 function PhaseIcon({ phase, isActive }: { phase: string; isActive: boolean }) {
   const baseClass = `w-6 h-6 transition-all duration-500 ${
-    isActive ? "text-[var(--primary)] scale-110" : "text-slate-300"
+    isActive ? "text-[var(--primary-ink)] scale-110" : "text-slate-300"
   }`;
 
   switch (phase) {
@@ -350,8 +350,8 @@ export default function GenerationProgress({
           {/* Animated destination badge */}
           <div className="flex justify-center mb-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-full border border-[var(--primary)]/20">
-              <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-[var(--primary)]">
+              <span className="w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-[var(--primary-ink)]">
                 {destination}
               </span>
             </div>
@@ -379,7 +379,7 @@ export default function GenerationProgress({
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
                   ${idx < currentPhaseIndex
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary-ink)] text-white"
                     : idx === currentPhaseIndex
                       ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)] ring-offset-2"
                       : "bg-slate-100 text-slate-300"
@@ -409,7 +409,7 @@ export default function GenerationProgress({
             </h2>
             <p className="text-slate-600">
               {t(`phases.${currentPhase.phase.descriptionKey}`)}{" "}
-              <span className="font-semibold text-[var(--primary)]">{destination}</span>
+              <span className="font-semibold text-[var(--primary-ink)]">{destination}</span>
             </p>
           </div>
 
@@ -423,7 +423,7 @@ export default function GenerationProgress({
             <span className="text-slate-500">
               {t("elapsed", { seconds: formatTime(elapsedTime) })}
             </span>
-            <span className="font-semibold text-[var(--primary)]">
+            <span className="font-semibold text-[var(--primary-ink)]">
               {Math.round(progress)}%
             </span>
           </div>

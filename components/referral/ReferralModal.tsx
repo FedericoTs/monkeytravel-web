@@ -153,7 +153,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
                   onClick={fetchReferralCode}
-                  className="text-[var(--primary)] hover:underline font-medium"
+                  className="text-[var(--primary-ink)] hover:underline font-medium"
                 >
                   {t("tryAgain")}
                 </button>
@@ -208,7 +208,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
                         copied
                           ? "bg-emerald-100 text-emerald-700"
-                          : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                          : "bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90"
                       }`}
                     >
                       {copied ? (

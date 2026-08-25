@@ -289,7 +289,7 @@ export default function ProductTour({ isOpen, onClose }: ProductTourProps) {
                 priority
                 className="w-9 h-9 object-contain drop-shadow-lg"
               />
-              <span className="text-[var(--primary)] text-lg font-bold tracking-tight hidden sm:inline">
+              <span className="text-[var(--primary-ink)] text-lg font-bold tracking-tight hidden sm:inline">
                 MonkeyTravel
               </span>
             </div>

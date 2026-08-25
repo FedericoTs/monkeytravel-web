@@ -235,7 +235,7 @@ export default async function SavedPage({
             <p className="text-slate-600 mb-6">{t("empty.body")}</p>
             <Link
               href="/explore"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
             >
               {t("browseTrips")}
             </Link>

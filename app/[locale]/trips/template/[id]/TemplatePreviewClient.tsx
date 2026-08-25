@@ -281,7 +281,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
               onClick={() => setShowMap(!showMap)}
               className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
                 showMap
-                  ? "bg-[var(--primary)] text-white"
+                  ? "bg-[var(--primary-ink)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
               title={showMap ? t('hideMap') : t('showMap')}
@@ -413,7 +413,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                             <div key={activity.id || idx}>
                               <div className="relative">
                                 {/* Timeline dot */}
-                                <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+                                <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary-ink)] border-4 border-white shadow" />
 
                                 <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                                   <div className="flex items-start justify-between gap-4">
@@ -543,7 +543,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                 {/* CTA Button */}
                 <button
                   onClick={() => setShowSaveModal(true)}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-base bg-white text-[var(--primary)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98] transition-all min-w-[180px]"
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-base bg-white text-[var(--primary-ink)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98] transition-all min-w-[180px]"
                 >
                   <Copy className="w-5 h-5" />
                   <span>{t('saveToMyTrips')}</span>
@@ -592,7 +592,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             </p>
             <Link
               href="/trips/new"
-              className="text-sm text-[var(--primary)] hover:underline font-medium"
+              className="text-sm text-[var(--primary-ink)] hover:underline font-medium"
             >
               {t('footer.createOwnTrip')}
             </Link>

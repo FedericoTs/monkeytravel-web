@@ -127,18 +127,18 @@ export default async function DestinationStylePage({ params }: PageProps) {
         <section className="py-14 sm:py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
-              <Link href="/" className="hover:text-[var(--primary)] transition-colors">
+              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
-              <Link href="/destinations" className="hover:text-[var(--primary)] transition-colors">
+              <Link href="/destinations" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.destinations")}
               </Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium">{tagLabel}</span>
             </nav>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary)] mb-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
               {t("style.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">

@@ -183,7 +183,7 @@ export default function XPProgressBar({
                 key={animatedXp}
                 initial={{ scale: 1 }}
                 animate={showXpAnimation ? { scale: [1, 1.2, 1] } : {}}
-                className="font-medium text-[var(--primary)]"
+                className="font-medium text-[var(--primary-ink)]"
               >
                 {animatedXp.toLocaleString()} XP
               </motion.span>

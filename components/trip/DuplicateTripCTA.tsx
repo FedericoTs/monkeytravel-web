@@ -220,7 +220,7 @@ export default function DuplicateTripCTA({
                   transition-all duration-200 min-w-[180px]
                   ${isDuplicating
                     ? "bg-white/20 text-white cursor-wait"
-                    : "bg-white text-[var(--primary)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98]"
+                    : "bg-white text-[var(--primary-ink)] hover:bg-white/90 hover:shadow-lg active:scale-[0.98]"
                   }
                 `}
               >

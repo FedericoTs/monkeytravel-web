@@ -47,7 +47,7 @@ export default async function AdminPage() {
                 </span>
               </a>
               <span className="text-slate-300">|</span>
-              <span className="text-[var(--primary)] font-medium">Admin</span>
+              <span className="text-[var(--primary-ink)] font-medium">Admin</span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-slate-600">
@@ -55,7 +55,7 @@ export default async function AdminPage() {
               </span>
               <a
                 href="/admin/feedback"
-                className="text-sm text-slate-600 hover:text-[var(--primary)] transition flex items-center gap-1"
+                className="text-sm text-slate-600 hover:text-[var(--primary-ink)] transition flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -64,7 +64,7 @@ export default async function AdminPage() {
               </a>
               <a
                 href="/admin/translations"
-                className="text-sm text-slate-600 hover:text-[var(--primary)] transition flex items-center gap-1"
+                className="text-sm text-slate-600 hover:text-[var(--primary-ink)] transition flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -73,7 +73,7 @@ export default async function AdminPage() {
               </a>
               <a
                 href="/trips"
-                className="text-sm text-[var(--primary)] hover:underline"
+                className="text-sm text-[var(--primary-ink)] hover:underline"
               >
                 Back to App
               </a>

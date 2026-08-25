@@ -112,7 +112,7 @@ export function CollaboratorRow({
               className={cn(
                 "px-2.5 py-1.5 text-sm font-medium rounded-lg border transition-colors",
                 showRoleDropdown
-                  ? "border-[var(--primary)] bg-blue-50 text-[var(--primary)]"
+                  ? "border-[var(--primary)] bg-blue-50 text-[var(--primary-ink)]"
                   : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
               )}
             >
@@ -164,7 +164,7 @@ export function CollaboratorRow({
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
                           isSelected
-                            ? "bg-blue-50 text-[var(--primary)]"
+                            ? "bg-blue-50 text-[var(--primary-ink)]"
                             : "text-gray-700 hover:bg-gray-50"
                         )}
                       >

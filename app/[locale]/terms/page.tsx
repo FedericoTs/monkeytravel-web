@@ -74,7 +74,7 @@ export default async function TermsOfService({
           <div className="mb-8">
             <Link
               href="/"
-              className="text-[var(--primary)] hover:text-[var(--primary-light)] inline-flex items-center gap-2 mb-4"
+              className="text-[var(--primary-ink)] hover:text-[var(--primary-light)] inline-flex items-center gap-2 mb-4"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -226,8 +226,8 @@ export default async function TermsOfService({
                 If you have any questions about these Terms, please contact us:
               </p>
               <ul className="text-[var(--foreground-muted)] space-y-2">
-                <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a></li>
-                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary)] hover:underline">monkeytravel.app</a></li>
+                <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a></li>
+                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</a></li>
               </ul>
             </section>
           </div>

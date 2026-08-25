@@ -299,7 +299,7 @@ export default function DecisionIntake({ locale, onPick, generateError }: Decisi
                 type="button"
                 onClick={submitPrompt}
                 disabled={prompt.trim().length < 3}
-                className="w-full sm:w-auto bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
+                className="w-full sm:w-auto bg-[var(--primary-ink)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 active:bg-[var(--primary-ink)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
               >
                 {phase === "error" ? t("generation.retry") : t("decision.propose")}
               </button>

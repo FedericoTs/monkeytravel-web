@@ -273,7 +273,7 @@ export default function OnboardingPage() {
             height={40}
             className="rounded-lg"
           />
-          <span className="font-bold text-xl text-[var(--primary)]">MonkeyTravel</span>
+          <span className="font-bold text-xl text-[var(--primary-ink)]">MonkeyTravel</span>
         </Link>
         <button
           onClick={handleSkip}
@@ -308,7 +308,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                i + 1 <= step ? "bg-[var(--primary)]" : "bg-slate-200"
+                i + 1 <= step ? "bg-[var(--primary-ink)]" : "bg-slate-200"
               }`}
             />
           ))}
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
           <button
             onClick={step === TOTAL_STEPS ? () => handleFinish(false) : handleNext}
             disabled={loading}
-            className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-semibold hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 bg-[var(--primary-ink)] text-white py-3 rounded-xl font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -362,7 +362,7 @@ export default function OnboardingPage() {
           <div className="max-w-md mx-auto text-center mt-4">
             <p className="text-sm text-slate-500">
               Already have an account?{" "}
-              <Link href="/auth/login" className="text-[var(--primary)] font-medium hover:underline">
+              <Link href="/auth/login" className="text-[var(--primary-ink)] font-medium hover:underline">
                 Sign in
               </Link>
             </p>

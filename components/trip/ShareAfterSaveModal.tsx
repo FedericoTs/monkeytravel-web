@@ -459,7 +459,7 @@ export default function ShareAfterSaveModal({
                     className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
                   >
                     <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
-                      <benefit.icon className="w-4 h-4 text-[var(--primary)]" />
+                      <benefit.icon className="w-4 h-4 text-[var(--primary-ink)]" />
                     </div>
                     <div>
                       <p className="font-medium text-slate-900 text-sm">
@@ -491,7 +491,7 @@ export default function ShareAfterSaveModal({
                       />
                       <button
                         onClick={handleCopy}
-                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--primary)]/90 transition-colors"
+                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary-ink)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--primary-ink)]/90 transition-colors"
                       >
                         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         {copied ? ts("afterSave.copied") : ts("afterSave.copy")}
@@ -513,7 +513,7 @@ export default function ShareAfterSaveModal({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleInvite}
                     disabled={isMinting}
-                    className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-70"
+                    className="w-full py-3.5 px-4 bg-[var(--primary-ink)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-70"
                   >
                     <Users className="w-5 h-5" />
                     {isMinting ? ts("afterSave.creatingLink") : ts(`intent.${intentKey}.cta`)}
@@ -545,11 +545,11 @@ export default function ShareAfterSaveModal({
                       type="checkbox"
                       checked={publishChecked}
                       onChange={(e) => setPublishChecked(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--primary-ink)] focus:ring-[var(--primary)]"
                     />
                     <span className="min-w-0">
                       <span className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
-                        <Globe className="w-4 h-4 text-[var(--primary)]" aria-hidden="true" />
+                        <Globe className="w-4 h-4 text-[var(--primary-ink)]" aria-hidden="true" />
                         {ts("afterSave.publishOptIn")}
                       </span>
                       <span className="block text-xs text-slate-500 mt-0.5">
@@ -569,7 +569,7 @@ export default function ShareAfterSaveModal({
                 {shareUrl && (
                   <button
                     onClick={onInvite}
-                    className="w-full py-2 px-4 text-sm font-medium text-[var(--primary)] hover:underline"
+                    className="w-full py-2 px-4 text-sm font-medium text-[var(--primary-ink)] hover:underline"
                   >
                     {ts("afterSave.manageCollaborators")}
                   </button>

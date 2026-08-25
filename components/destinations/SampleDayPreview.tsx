@@ -46,7 +46,7 @@ export default function SampleDayPreview({
               <div key={index} className="flex gap-4 sm:gap-6">
                 {/* Time + dot */}
                 <div className="flex flex-col items-center shrink-0">
-                  <span className="text-sm font-mono font-medium text-[var(--primary)] w-[50px] text-right">
+                  <span className="text-sm font-mono font-medium text-[var(--primary-ink)] w-[50px] text-right">
                     {activity.time}
                   </span>
                   <div className="hidden sm:block w-3 h-3 rounded-full bg-[var(--accent)] border-2 border-white shadow-sm mt-1 relative z-10" />

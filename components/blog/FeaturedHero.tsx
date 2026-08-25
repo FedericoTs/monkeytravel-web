@@ -53,18 +53,18 @@ export default function FeaturedHero({
         </div>
 
         <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)] mb-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-3">
             {category}
             <span className="mx-2 text-slate-300">·</span>
             <span className="text-slate-500">{minuteReadLabel}</span>
           </p>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight tracking-tight group-hover:text-[var(--primary)] transition-colors">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight tracking-tight group-hover:text-[var(--primary-ink)] transition-colors">
             {title}
           </h2>
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6 line-clamp-3">
             {description}
           </p>
-          <span className="inline-flex items-center gap-1.5 text-[var(--primary)] font-semibold text-sm group-hover:gap-2.5 transition-all">
+          <span className="inline-flex items-center gap-1.5 text-[var(--primary-ink)] font-semibold text-sm group-hover:gap-2.5 transition-all">
             {readMoreLabel}
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

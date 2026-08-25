@@ -198,7 +198,7 @@ export default function AddActivityButton({
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className={`group flex items-center gap-2 w-full py-3 px-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all ${className}`}
+        className={`group flex items-center gap-2 w-full py-3 px-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-[var(--primary)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-all ${className}`}
       >
         <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
         <span className="font-medium">{t("title")}</span>
@@ -300,7 +300,7 @@ export default function AddActivityButton({
             <button
               type="submit"
               disabled={!customActivity.name.trim()}
-              className="flex-1 py-2 px-4 text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 py-2 px-4 text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 rounded-lg transition-colors disabled:opacity-50"
             >
               {t("add")}
             </button>
@@ -333,7 +333,7 @@ export default function AddActivityButton({
                 onClick={() => handleCategorySelect(cat.type)}
                 className={`px-3 py-1.5 text-sm rounded-full transition-colors flex items-center gap-1.5 ${
                   selectedCategory === cat.type
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary-ink)] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -394,7 +394,7 @@ export default function AddActivityButton({
                         </p>
                       )}
                     </div>
-                    <Plus className="w-5 h-5 text-slate-300 group-hover:text-[var(--primary)] transition-colors flex-shrink-0" />
+                    <Plus className="w-5 h-5 text-slate-300 group-hover:text-[var(--primary-ink)] transition-colors flex-shrink-0" />
                   </div>
                 </button>
               ))
@@ -403,7 +403,7 @@ export default function AddActivityButton({
                 <p>{t("noResults", { query: searchQuery })}</p>
                 <button
                   onClick={() => setShowCustomForm(true)}
-                  className="mt-2 text-[var(--primary)] hover:underline text-sm"
+                  className="mt-2 text-[var(--primary-ink)] hover:underline text-sm"
                 >
                   {t("addManually")}
                 </button>
@@ -418,7 +418,7 @@ export default function AddActivityButton({
           {/* Add Custom Link */}
           <button
             onClick={() => setShowCustomForm(true)}
-            className="w-full text-center py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
+            className="w-full text-center py-2 text-sm text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
           >
             + {t("addCustom")}
           </button>

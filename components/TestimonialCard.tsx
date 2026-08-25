@@ -46,7 +46,7 @@ export default function TestimonialCard({
           {avatar ? (
             <Image src={avatar} alt={author} width={48} height={48} className="object-cover" />
           ) : (
-            <span className="text-[var(--primary)] font-bold text-lg">
+            <span className="text-[var(--primary-ink)] font-bold text-lg">
               {author.charAt(0)}
             </span>
           )}

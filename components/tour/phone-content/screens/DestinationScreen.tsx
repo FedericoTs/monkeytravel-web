@@ -64,7 +64,7 @@ export default function DestinationScreen() {
           </svg>
           <span>Back</span>
         </div>
-        <div className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+        <div className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary-ink)]">
           Shared Trip
         </div>
       </motion.div>
@@ -201,7 +201,7 @@ export default function DestinationScreen() {
             variants={mapPinVariants}
             custom={0}
           >
-            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[6px] font-bold shadow-lg">
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-[var(--primary-ink)] text-white flex items-center justify-center text-[6px] font-bold shadow-lg">
               1
             </div>
           </motion.div>
@@ -245,7 +245,7 @@ export default function DestinationScreen() {
                 key={day}
                 className={`w-4 h-4 rounded-full flex items-center justify-center text-[6px] font-medium ${
                   day === 1
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary-ink)] text-white"
                     : day === 2
                     ? "bg-[var(--secondary)] text-white"
                     : "bg-[var(--accent)] text-gray-900"
@@ -267,12 +267,12 @@ export default function DestinationScreen() {
           <span className="text-[10px]">🏠</span>
           <span className="text-[6px]">Home</span>
         </div>
-        <div className="flex flex-col items-center gap-0.5 text-[var(--primary)]">
+        <div className="flex flex-col items-center gap-0.5 text-[var(--primary-ink)]">
           <span className="text-[10px]">📋</span>
           <span className="text-[6px]">My Trips</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-[10px]">
+          <div className="w-6 h-6 rounded-full bg-[var(--primary-ink)] flex items-center justify-center text-white text-[10px]">
             +
           </div>
         </div>

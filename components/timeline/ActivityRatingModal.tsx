@@ -136,7 +136,7 @@ export default function ActivityRatingModal({
                 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
                 text-sm font-medium transition-colors
                 ${selectedTags.includes(tag.id)
-                  ? "bg-[var(--primary)] text-white"
+                  ? "bg-[var(--primary-ink)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }
               `}
@@ -179,7 +179,7 @@ export default function ActivityRatingModal({
             transition-all
             ${rating === 0
               ? "bg-slate-300 cursor-not-allowed"
-              : "bg-[var(--primary)] hover:bg-[var(--primary)]/90 active:scale-[0.98]"
+              : "bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 active:scale-[0.98]"
             }
           `}
         >

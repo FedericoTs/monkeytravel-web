@@ -85,7 +85,7 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
                     key={i}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i === step
-                        ? "w-6 bg-[var(--primary)]"
+                        ? "w-6 bg-[var(--primary-ink)]"
                         : i < step
                           ? "w-1.5 bg-[var(--primary)]/40"
                           : "w-1.5 bg-gray-200"
@@ -135,8 +135,8 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
                 )}
                 <button
                   onClick={handleNext}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-[var(--primary)]
-                             rounded-xl hover:bg-[var(--primary)]/90 transition-colors"
+                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-[var(--primary-ink)]
+                             rounded-xl hover:bg-[var(--primary-ink)]/90 transition-colors"
                 >
                   {isLast ? t("getStarted") : t("next")}
                 </button>

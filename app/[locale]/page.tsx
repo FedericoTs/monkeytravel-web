@@ -194,7 +194,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     starters={t.raw('hero.starters') as string[]}
                   />
                   <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center lg:text-left">
-                    <Link href="/auth/login" className="font-medium text-[var(--primary)] hover:underline hero-signin">
+                    <Link href="/auth/login" className="font-medium text-[var(--primary-ink)] hover:underline hero-signin">
                       {t('hero.signIn')}
                     </Link>
                   </p>
@@ -237,7 +237,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {/* Floating feature cards */}
                   <div className="absolute -left-4 top-20 glass-card rounded-2xl p-4 shadow-lg hidden lg:flex items-center gap-3 animate-float" style={{ animationDelay: '0.5s' }}>
                     <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[var(--primary-dark)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-5 h-5 text-[var(--primary-ink)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
@@ -283,22 +283,22 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">30s</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">30s</div>
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.ideaToItinerary')}</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">180+</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">180+</div>
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.destinationsReady')}</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">100%</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">100%</div>
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.personalizedToYou')}</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">8</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">8</div>
                 <div className="text-sm text-[var(--foreground-muted)]">{t('stats.friendsPerTrip')}</div>
               </div>
             </div>
@@ -385,7 +385,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="max-w-2xl mx-auto">
               {/* User message 1 */}
               <div className="flex justify-end mb-4">
-                <div className="bg-[var(--primary)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
+                <div className="bg-[var(--primary-ink)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
                   {t('aiChatDemo.chat.user1')}
                 </div>
               </div>
@@ -397,7 +397,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               {/* User message 2 */}
               <div className="flex justify-end mb-4">
-                <div className="bg-[var(--primary)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
+                <div className="bg-[var(--primary-ink)] text-white px-5 py-3 rounded-2xl rounded-br-md max-w-md text-sm sm:text-base">
                   {t('aiChatDemo.chat.user2')}
                 </div>
               </div>
@@ -413,7 +413,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--primary-ink)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg cursor-pointer"
               >
                 {t('aiChatDemo.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -432,7 +432,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--foreground)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
                 </svg>
@@ -474,7 +474,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   ),
-                  color: 'bg-[var(--primary)]/10 text-[var(--primary)]',
+                  color: 'bg-[var(--primary)]/10 text-[var(--primary-ink)]',
                 },
                 {
                   key: 'customizable',
@@ -502,7 +502,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   ),
-                  color: 'bg-[var(--primary)]/10 text-[var(--primary)]',
+                  color: 'bg-[var(--primary)]/10 text-[var(--primary-ink)]',
                 },
               ] as const).map((feature, index) => (
                 <div
@@ -531,16 +531,16 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <section className="py-20 bg-gradient-to-b from-[var(--primary-light)]/15 to-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary-ink)] text-sm font-semibold mb-4">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary-ink)] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary-ink)]"></span>
                 </span>
                 {t('collaboration.badge')}
               </div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
                 {t('collaboration.title')}{" "}
-                <span className="text-[var(--primary)]">
+                <span className="text-[var(--primary-ink)]">
                   {t('collaboration.titleHighlight')}
                 </span>
               </h2>
@@ -582,7 +582,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--primary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary-ink)] text-white rounded-xl font-bold text-lg hover:bg-[var(--primary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
               >
                 {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -602,7 +602,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <section id="how-it-works" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary-ink)] text-sm font-semibold mb-6">
                 {t('howItWorks.badge')}
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
@@ -654,10 +654,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <div className="relative inline-flex items-center justify-center w-24 h-24 mb-8">
                     <div className="absolute inset-0 bg-[var(--accent)]/10 rounded-3xl rotate-6" />
                     <div className="absolute inset-0 bg-white rounded-3xl shadow-lg border border-gray-100" />
-                    <div className="relative text-[var(--primary)]">
+                    <div className="relative text-[var(--primary-ink)]">
                       {item.icon}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent)] text-[var(--primary-dark)] font-bold text-sm flex items-center justify-center shadow-lg">
+                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-bold text-sm flex items-center justify-center shadow-lg">
                       {item.step}
                     </div>
                   </div>
@@ -673,7 +673,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <TourTrigger
                 variant="custom"
                 skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-dark)] transition-colors shadow-lg cursor-pointer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary-ink)] text-white font-bold rounded-xl hover:bg-[var(--primary-dark)] transition-colors shadow-lg cursor-pointer"
               >
                 {t('howItWorks.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -807,7 +807,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
               {/* Content */}
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--foreground)] text-sm font-semibold mb-6">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondary)] opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--secondary)]"></span>
@@ -840,7 +840,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <TourTrigger
                   variant="custom"
                   skipToAuthIfCompleted={true}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 cursor-pointer"
                 >
                   {t('appPreview.cta')}
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -886,7 +886,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="text-center mt-10">
               <Link
                 href="/destinations"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
               >
                 {tDest('cta.viewAllDestinations')}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -906,7 +906,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <span className="inline-block text-xs font-bold tracking-widest uppercase text-[var(--primary)] mb-3">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-[var(--primary-ink)] mb-3">
                 {t('freeTools.eyebrow')}
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
@@ -929,7 +929,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <p className="text-sm text-[var(--foreground-muted)] mb-3">
                   {t('freeTools.packingBlurb')}
                 </p>
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary-ink)]">
                   {t('freeTools.tryIt')}
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -957,7 +957,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="text-center mt-8">
               <Link
                 href="/tools"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] font-semibold hover:bg-[var(--primary)]/10 transition-colors"
               >
                 {t('freeTools.allTools')}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -974,7 +974,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <section id="support" className="py-24 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary-ink)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -995,7 +995,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     <span className="font-semibold text-[var(--foreground)] pr-4">{faq.question}</span>
                     <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                       <svg
-                        className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"
+                        className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-ink)] group-open:rotate-180 transition-all"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -1019,7 +1019,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary-ink)] text-white font-medium hover:opacity-90 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1060,7 +1060,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <p className="text-lg sm:text-xl text-white/70 mb-4 max-w-2xl mx-auto leading-relaxed">
                   {t('cta.subtitle')}
                 </p>
-                <p className="text-base text-white/50 mb-10 max-w-2xl mx-auto">
+                <p className="text-base text-white/55 mb-10 max-w-2xl mx-auto">
                   {t('cta.referral')}
                 </p>
 
@@ -1069,7 +1069,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <TourTrigger
                     variant="custom"
                     skipToAuthIfCompleted={true}
-                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>{t('cta.button')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1086,7 +1086,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
                 {/* Newsletter signup (secondary) */}
                 <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
-                  <p className="text-sm text-white/50 mb-4">
+                  <p className="text-sm text-white/55 mb-4">
                     {t('cta.mobileNotify')}
                   </p>
                   <EmailSubscribe variant="dark" source="cta" />

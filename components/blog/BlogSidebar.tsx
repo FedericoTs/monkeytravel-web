@@ -52,7 +52,7 @@ export default function BlogSidebar({
                 <li key={h2.id}>
                   <a
                     href={`#${h2.id}`}
-                    className="block -ml-px pl-4 border-l-2 border-transparent text-slate-600 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-colors leading-snug"
+                    className="block -ml-px pl-4 border-l-2 border-transparent text-slate-600 hover:text-[var(--primary-ink)] hover:border-[var(--primary)] transition-colors leading-snug"
                   >
                     {h2.text}
                   </a>
@@ -62,7 +62,7 @@ export default function BlogSidebar({
                         <li key={h3.id}>
                           <a
                             href={`#${h3.id}`}
-                            className="block -ml-px pl-3 border-l-2 border-transparent text-xs text-slate-500 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-colors leading-snug"
+                            className="block -ml-px pl-3 border-l-2 border-transparent text-xs text-slate-500 hover:text-[var(--primary-ink)] hover:border-[var(--primary)] transition-colors leading-snug"
                           >
                             {h3.text}
                           </a>

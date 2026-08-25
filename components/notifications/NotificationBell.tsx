@@ -167,7 +167,7 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+        className="relative p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
         aria-label={unread > 0 ? t("unreadLabel", { count: unread }) : t("bellLabel")}
         aria-haspopup="true"
         aria-expanded={open}
@@ -202,7 +202,7 @@ export default function NotificationBell() {
             {unread > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-xs font-medium text-[var(--primary)] hover:underline"
+                className="text-xs font-medium text-[var(--primary-ink)] hover:underline"
               >
                 {t("markAllRead")}
               </button>
@@ -237,7 +237,7 @@ export default function NotificationBell() {
           <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
             <Link
               href="/profile/notifications"
-              className="block text-center text-xs font-medium text-[var(--primary)] hover:underline"
+              className="block text-center text-xs font-medium text-[var(--primary-ink)] hover:underline"
               onClick={() => setOpen(false)}
             >
               {t("viewAllSettings")}
@@ -271,7 +271,7 @@ function NotificationItem({
     >
       <div className="flex items-start gap-2">
         {unread && (
-          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--primary)] shrink-0" />
+          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--primary-ink)] shrink-0" />
         )}
         <div className={`flex-1 min-w-0 ${unread ? "" : "pl-4"}`}>
           <p className={`text-sm ${unread ? "font-medium text-slate-900" : "text-slate-700"}`}>

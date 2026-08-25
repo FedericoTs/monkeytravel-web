@@ -112,7 +112,7 @@ function ActivityCard({
         <button className="px-1.5 py-0.5 rounded-lg bg-gray-100 text-[7px] text-gray-600 flex items-center gap-0.5">
           <span>🔍</span> Verify
         </button>
-        <button className="px-1.5 py-0.5 rounded-lg bg-[var(--primary)]/10 text-[7px] text-[var(--primary)] flex items-center gap-0.5">
+        <button className="px-1.5 py-0.5 rounded-lg bg-[var(--primary)]/10 text-[7px] text-[var(--primary-ink)] flex items-center gap-0.5">
           <span>🌐</span> Website
         </button>
       </div>
@@ -180,7 +180,7 @@ export default function ItineraryScreen() {
             key={tab}
             className={`px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-medium ${
               index === 1
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary-ink)] text-white"
                 : "text-gray-500 hover:bg-gray-100"
             }`}
             whileTap={{ scale: 0.95 }}
@@ -192,7 +192,7 @@ export default function ItineraryScreen() {
 
       {/* Day header */}
       <motion.div variants={itemVariants} className="flex items-center gap-2 px-3 py-2">
-        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] md:text-[12px] font-bold">
+        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[var(--primary-ink)] text-white flex items-center justify-center text-[10px] md:text-[12px] font-bold">
           1
         </div>
         <div>
@@ -256,12 +256,12 @@ export default function ItineraryScreen() {
           <span className="text-[10px]">🏠</span>
           <span className="text-[6px]">Home</span>
         </div>
-        <div className="flex flex-col items-center gap-0.5 text-[var(--primary)]">
+        <div className="flex flex-col items-center gap-0.5 text-[var(--primary-ink)]">
           <span className="text-[10px]">📋</span>
           <span className="text-[6px]">My Trips</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-[10px]">
+          <div className="w-6 h-6 rounded-full bg-[var(--primary-ink)] flex items-center justify-center text-white text-[10px]">
             +
           </div>
         </div>

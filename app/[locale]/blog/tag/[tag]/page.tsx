@@ -170,18 +170,18 @@ export default async function BlogTagPage({ params }: PageProps) {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-6">
-              <Link href="/" className="hover:text-[var(--primary)] transition-colors">
+              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span>/</span>
-              <Link href="/blog" className="hover:text-[var(--primary)] transition-colors">
+              <Link href="/blog" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.blog")}
               </Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium">{display}</span>
             </nav>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary)] mb-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
               {t("tag.eyebrow")}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
@@ -227,7 +227,7 @@ export default async function BlogTagPage({ params }: PageProps) {
                 </h2>
                 <Link
                   href={plannerLink.path}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-white font-semibold hover:bg-[var(--primary)]/90 transition-colors min-h-[44px]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary-ink)] px-6 py-3 text-white font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors min-h-[44px]"
                 >
                   {t(`detail.relatedToolsLabels.${plannerLink.labelKey}`)}
                 </Link>

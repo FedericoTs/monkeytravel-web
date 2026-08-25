@@ -79,7 +79,7 @@ export default function CostCommandCenter() {
       <div className="min-h-[400px] bg-white rounded-2xl border border-[var(--primary)]/10 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-[var(--primary-ink)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -88,7 +88,7 @@ export default function CostCommandCenter() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="px-6 py-3 bg-[var(--primary-ink)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
             {loading ? (
               <>
@@ -285,8 +285,8 @@ function MetricCard({
     primary: {
       bg: "bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5",
       border: "border-[var(--primary)]/20",
-      text: "text-[var(--primary)]",
-      icon: "bg-[var(--primary)]/20 text-[var(--primary)]",
+      text: "text-[var(--primary-ink)]",
+      icon: "bg-[var(--primary)]/20 text-[var(--primary-ink)]",
     },
     secondary: {
       bg: "bg-gradient-to-br from-[var(--secondary)]/10 to-[var(--secondary)]/5",
@@ -671,7 +671,7 @@ function ApiBreakdownTable({ apis }: { apis: EnhancedCostAnalytics["byApi"] }) {
               <span className="text-sm font-medium text-[var(--foreground)] truncate">
                 {api.displayName}
               </span>
-              <span className="text-[var(--primary)] font-bold text-sm">
+              <span className="text-[var(--primary-ink)] font-bold text-sm">
                 ${api.totalCost.toFixed(3)}
               </span>
             </div>
@@ -718,7 +718,7 @@ function TopEndpointsTable({ endpoints }: { endpoints: EnhancedCostAnalytics["to
           key={endpoint.endpoint}
           className="flex items-center gap-3 p-2 hover:bg-[var(--background-warm)] rounded-xl transition"
         >
-          <span className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-xs font-medium text-[var(--primary)]">
+          <span className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-xs font-medium text-[var(--primary-ink)]">
             {i + 1}
           </span>
           <div className="flex-1 min-w-0">

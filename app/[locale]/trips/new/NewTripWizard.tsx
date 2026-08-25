@@ -3172,7 +3172,7 @@ export default function NewTripPage({
                   aria-pressed={showMap}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     showMap
-                      ? "bg-[var(--primary)] text-white"
+                      ? "bg-[var(--primary-ink)] text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -3352,7 +3352,7 @@ export default function NewTripPage({
                           id={activityDomId}
                           className="relative scroll-mt-24"
                         >
-                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary-ink)] border-4 border-white shadow" />
                           <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
@@ -3714,7 +3714,7 @@ export default function NewTripPage({
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i + 1 <= step ? "bg-[var(--primary)] w-8" : "bg-slate-200 w-4"
+                  i + 1 <= step ? "bg-[var(--primary-ink)] w-8" : "bg-slate-200 w-4"
                 }`}
               />
             ))}
@@ -3732,7 +3732,7 @@ export default function NewTripPage({
           <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-[var(--primary-ink)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
@@ -3744,7 +3744,7 @@ export default function NewTripPage({
                 <div className="flex items-center gap-3 mt-3">
                   <Link
                     href="/trips"
-                    className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+                    className="px-4 py-2 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors"
                   >
                     {t("wizard.returningUser.goToMyTrips")}
                   </Link>
@@ -3943,7 +3943,7 @@ export default function NewTripPage({
                       // clearer "this is picked" affordance.
                       className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         isSelected
-                          ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                          ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                           : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                       aria-pressed={isSelected}
@@ -4057,7 +4057,7 @@ export default function NewTripPage({
                   aria-label={t("wizard.multiCity.toggleAria")}
                   onClick={() => setMultiCityMode((m) => !m)}
                   className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
-                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
+                    multiCityMode ? "bg-[var(--primary-ink)]" : "bg-slate-300"
                   }`}
                 >
                   <span
@@ -4163,7 +4163,7 @@ export default function NewTripPage({
                           });
                         }}
                         className="px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-slate-200 text-sm text-slate-700
-                                   hover:border-[var(--primary)] hover:text-[var(--primary)]
+                                   hover:border-[var(--primary)] hover:text-[var(--primary-ink)]
                                    active:bg-[var(--primary)]/10
                                    hover:bg-[var(--primary)]/5 transition-all duration-200
                                    flex items-center gap-1.5 min-h-[40px]"
@@ -4249,7 +4249,7 @@ export default function NewTripPage({
               {!(MULTI_CITY_ENABLED && multiCityMode) && (
                 <div className="mt-2">
                   {flexibleDates ? (
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)]">
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary-ink)]">
                       <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -4260,7 +4260,7 @@ export default function NewTripPage({
                       <button
                         type="button"
                         onClick={handleFlexibleDates}
-                        className="text-xs font-medium text-[var(--primary)] underline-offset-2 hover:underline"
+                        className="text-xs font-medium text-[var(--primary-ink)] underline-offset-2 hover:underline"
                       >
                         {t("wizard.step1.flexibleDatesCta")}
                       </button>
@@ -4347,14 +4347,14 @@ export default function NewTripPage({
                   {mustDos.map((item) => (
                     <span
                       key={item}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-medium text-[var(--primary)]"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-medium text-[var(--primary-ink)]"
                     >
                       {item}
                       <button
                         type="button"
                         onClick={() => setMustDos((prev) => prev.filter((m) => m !== item))}
                         aria-label={t("wizard.step2.mustDos.remove", { item })}
-                        className="text-[var(--primary)]/60 hover:text-[var(--primary)] min-h-[24px] min-w-[24px]"
+                        className="text-[var(--primary-ink)]/60 hover:text-[var(--primary-ink)] min-h-[24px] min-w-[24px]"
                       >
                         ×
                       </button>
@@ -4593,7 +4593,7 @@ export default function NewTripPage({
                 setStep(step + 1);
               }}
               disabled={!canProceed()}
-              className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
+              className="bg-[var(--primary-ink)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 active:bg-[var(--primary-ink)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
             >
               {t("wizard.step1.continue")} →
             </button>

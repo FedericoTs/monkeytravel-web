@@ -114,7 +114,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             </button>
             <Link
               href="/trips"
-              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary-ink)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
             >
               {t('navigation.myTrips')}
             </Link>
@@ -124,7 +124,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 saves. Sits next to My Trips as the natural sibling. */}
             <Link
               href="/saved"
-              className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
               title={t('navigation.saved')}
             >
               {t('navigation.saved')}
@@ -133,7 +133,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             <NotificationBell />
             <Link
               href="/profile"
-              className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
               title={t('navigation.profile')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,14 +145,14 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
           <>
             <Link
               href="/auth/login"
-              className="px-4 py-2 rounded-full text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+              className="px-4 py-2 rounded-full text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
             >
               {t('navigation.signIn')}
             </Link>
             <TourTrigger
               variant="custom"
               skipToAuthIfCompleted={true}
-              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary-ink)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
             >
               {t('buttons.getStarted')}
             </TourTrigger>
@@ -185,7 +185,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-3 rounded-xl font-medium text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                  className="px-4 py-3 rounded-xl font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
@@ -217,7 +217,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                   </button>
                   <Link
                     href="/trips"
-                    className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
+                    className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('navigation.myTrips')}
@@ -250,7 +250,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                 <>
                   <Link
                     href="/auth/login"
-                    className="px-4 py-3 rounded-xl font-medium text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                    className="px-4 py-3 rounded-xl font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('navigation.signIn')}
@@ -259,7 +259,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                     <TourTrigger
                       variant="custom"
                       skipToAuthIfCompleted={true}
-                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
+                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-medium w-full"
                     >
                       {t('buttons.getStarted')}
                     </TourTrigger>

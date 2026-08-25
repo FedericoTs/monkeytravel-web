@@ -17,11 +17,11 @@ interface ButtonProps {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-[var(--primary)] text-white hover:bg-[var(--primary-light)] shadow-lg shadow-[var(--primary)]/20',
-  secondary: 'bg-[var(--primary-dark)] text-white hover:bg-[var(--primary)] shadow-lg',
-  accent: 'bg-[var(--accent)] text-[var(--primary-dark)] hover:bg-[var(--accent-light)] shadow-lg shadow-[var(--accent)]/30',
-  outline: 'border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
-  ghost: 'text-[var(--primary)] hover:bg-[var(--primary)]/10',
+  primary: 'bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-light)] shadow-lg shadow-[var(--primary)]/20',
+  secondary: 'bg-[var(--primary-dark)] text-white hover:bg-[var(--primary-ink)] shadow-lg',
+  accent: 'bg-[var(--accent)] text-[var(--foreground)] hover:bg-[var(--accent-light)] shadow-lg shadow-[var(--accent)]/30',
+  outline: 'border-2 border-[var(--primary)] text-[var(--primary-ink)] hover:bg-[var(--primary-ink)] hover:text-white',
+  ghost: 'text-[var(--primary-ink)] hover:bg-[var(--primary)]/10',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

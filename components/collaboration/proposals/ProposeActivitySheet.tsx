@@ -341,7 +341,7 @@ export function ProposeActivitySheet({
                   onClick={() => handleCategorySelect(cat.type)}
                   className={`px-3 py-1.5 text-sm rounded-full transition-colors flex items-center gap-1.5 ${
                     selectedCategory === cat.type
-                      ? "bg-[var(--primary)] text-white"
+                      ? "bg-[var(--primary-ink)] text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -409,7 +409,7 @@ export function ProposeActivitySheet({
                   <p>{t("noResults", { query: searchQuery })}</p>
                   <button
                     onClick={() => setStep('custom')}
-                    className="mt-2 text-[var(--primary)] hover:underline text-sm"
+                    className="mt-2 text-[var(--primary-ink)] hover:underline text-sm"
                   >
                     {t("createCustom")}
                   </button>
@@ -424,7 +424,7 @@ export function ProposeActivitySheet({
             {/* Add Custom Link */}
             <button
               onClick={() => setStep('custom')}
-              className="w-full text-center py-2 text-sm text-[var(--primary)]
+              className="w-full text-center py-2 text-sm text-[var(--primary-ink)]
                          hover:bg-[var(--primary)]/5 rounded-lg transition-colors"
             >
               + {t("createCustom")}
@@ -500,8 +500,8 @@ export function ProposeActivitySheet({
             <button
               onClick={handleCustomNext}
               disabled={!customActivity.name.trim()}
-              className="w-full py-2.5 px-4 text-white bg-[var(--primary)]
-                         hover:bg-[var(--primary)]/90 rounded-lg transition-colors
+              className="w-full py-2.5 px-4 text-white bg-[var(--primary-ink)]
+                         hover:bg-[var(--primary-ink)]/90 rounded-lg transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {t("continue")}
@@ -570,8 +570,8 @@ export function ProposeActivitySheet({
             <button
               onClick={handleSubmitProposal}
               disabled={isSubmitting}
-              className="w-full py-3 px-4 text-white bg-[var(--primary)]
-                         hover:bg-[var(--primary)]/90 rounded-lg transition-colors
+              className="w-full py-3 px-4 text-white bg-[var(--primary-ink)]
+                         hover:bg-[var(--primary-ink)]/90 rounded-lg transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed font-medium
                          flex items-center justify-center gap-2"
             >

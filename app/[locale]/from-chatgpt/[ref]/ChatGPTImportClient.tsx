@@ -111,11 +111,11 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
               height={32}
               className="rounded-lg"
             />
-            <span className="font-semibold text-[var(--primary)]">
+            <span className="font-semibold text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
-          <span className="text-xs bg-[var(--accent)]/20 text-[var(--primary)] px-2 py-1 rounded-full font-medium">
+          <span className="text-xs bg-[var(--accent)]/20 text-[var(--foreground)] px-2 py-1 rounded-full font-medium">
             From ChatGPT
           </span>
         </div>
@@ -152,14 +152,14 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
         {/* Stats */}
         <div className="flex justify-center gap-6 mb-8">
           <div className="text-center">
-            <div className="text-2xl font-bold text-[var(--primary)]">
+            <div className="text-2xl font-bold text-[var(--primary-ink)]">
               {itinerary.days}
             </div>
             <div className="text-sm text-gray-500">Days</div>
           </div>
           <div className="w-px bg-gray-200" />
           <div className="text-center">
-            <div className="text-2xl font-bold text-[var(--primary)]">
+            <div className="text-2xl font-bold text-[var(--primary-ink)]">
               {totalActivities}
             </div>
             <div className="text-sm text-gray-500">Activities</div>
@@ -168,7 +168,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
             <>
               <div className="w-px bg-gray-200" />
               <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--primary)] capitalize">
+                <div className="text-2xl font-bold text-[var(--primary-ink)] capitalize">
                   {itinerary.travel_style}
                 </div>
                 <div className="text-sm text-gray-500">Style</div>
@@ -189,7 +189,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                 onClick={() => setExpandedDay(day.day)}
                 className={`flex-shrink-0 px-4 py-3 text-sm font-medium transition-colors ${
                   expandedDay === day.day
-                    ? "bg-white text-[var(--primary)] border-b-2 border-[var(--primary)]"
+                    ? "bg-white text-[var(--primary-ink)] border-b-2 border-[var(--primary)]"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -205,7 +205,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
               className={expandedDay === day.day ? "block" : "hidden"}
             >
               <div className="p-4 border-b border-gray-100 bg-[var(--primary)]/5">
-                <h3 className="font-semibold text-[var(--primary)]">
+                <h3 className="font-semibold text-[var(--primary-ink)]">
                   {day.theme}
                 </h3>
               </div>
@@ -269,7 +269,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
           <button
             onClick={handleImport}
             disabled={isImporting}
-            className="inline-flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--primary)] font-semibold px-8 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--foreground)] font-semibold px-8 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isImporting ? (
               <>
@@ -324,7 +324,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
           <div className="bg-white rounded-xl p-4 border border-gray-100">
             <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center mb-3">
               <svg
-                className="w-5 h-5 text-[var(--primary)]"
+                className="w-5 h-5 text-[var(--primary-ink)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -347,7 +347,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
           <div className="bg-white rounded-xl p-4 border border-gray-100">
             <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center mb-3">
               <svg
-                className="w-5 h-5 text-[var(--primary)]"
+                className="w-5 h-5 text-[var(--primary-ink)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -369,7 +369,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
           <div className="bg-white rounded-xl p-4 border border-gray-100">
             <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center mb-3">
               <svg
-                className="w-5 h-5 text-[var(--primary)]"
+                className="w-5 h-5 text-[var(--primary-ink)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -395,7 +395,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
         <p>
           Powered by{" "}
-          <Link href="/" className="text-[var(--primary)] hover:underline">
+          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
             MonkeyTravel
           </Link>{" "}
           AI

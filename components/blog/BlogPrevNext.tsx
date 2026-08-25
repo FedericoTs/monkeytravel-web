@@ -31,13 +31,13 @@ export default function BlogPrevNext({
           href={`/blog/${prev.slug}`}
           className="group flex flex-col gap-1.5 p-5 rounded-2xl border border-slate-200/80 bg-white hover:border-[var(--accent)]/40 hover:shadow-md transition-all"
         >
-          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-[var(--primary)] transition-colors">
+          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-[var(--primary-ink)] transition-colors">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {prevLabel}
           </span>
-          <h3 className="text-base font-semibold text-slate-900 group-hover:text-[var(--primary)] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-base font-semibold text-slate-900 group-hover:text-[var(--primary-ink)] transition-colors leading-snug line-clamp-2">
             {prevTitle}
           </h3>
         </Link>
@@ -50,13 +50,13 @@ export default function BlogPrevNext({
           href={`/blog/${next.slug}`}
           className="group flex flex-col items-end gap-1.5 p-5 rounded-2xl border border-slate-200/80 bg-white hover:border-[var(--accent)]/40 hover:shadow-md transition-all text-right"
         >
-          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-[var(--primary)] transition-colors">
+          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-[var(--primary-ink)] transition-colors">
             {nextLabel}
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </span>
-          <h3 className="text-base font-semibold text-slate-900 group-hover:text-[var(--primary)] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-base font-semibold text-slate-900 group-hover:text-[var(--primary-ink)] transition-colors leading-snug line-clamp-2">
             {nextTitle}
           </h3>
         </Link>

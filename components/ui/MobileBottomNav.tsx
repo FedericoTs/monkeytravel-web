@@ -44,7 +44,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("home") ? "text-[var(--primary)]" : "text-slate-500"
+              isActive("home") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
             aria-label={t("home")}
             aria-current={isActive("home") ? "page" : undefined}
@@ -59,7 +59,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/trips"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("trips") || isActive("trip-detail") ? "text-[var(--primary)]" : "text-slate-500"
+              isActive("trips") || isActive("trip-detail") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
             aria-label={t("myTrips")}
             aria-current={isActive("trips") || isActive("trip-detail") ? "page" : undefined}
@@ -75,7 +75,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/trips/new"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("new") ? "text-[var(--primary)]" : "text-slate-500"
+              isActive("new") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
             aria-label={t("new")}
             aria-current={isActive("new") ? "page" : undefined}
@@ -83,7 +83,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center -mt-4 shadow-lg ${
               isActive("new")
                 ? "bg-[var(--primary-dark)] shadow-[var(--primary)]/40"
-                : "bg-[var(--primary)] shadow-[var(--primary)]/30"
+                : "bg-[var(--primary-ink)] shadow-[var(--primary)]/30"
             }`}>
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -99,7 +99,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/explore"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("explore") ? "text-[var(--primary)]" : "text-slate-500"
+              isActive("explore") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
             aria-label={t("explore")}
             aria-current={isActive("explore") ? "page" : undefined}
@@ -115,7 +115,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
           <Link
             href="/profile"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
-              isActive("profile") ? "text-[var(--primary)]" : "text-slate-500"
+              isActive("profile") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
             aria-label={t("profile")}
             aria-current={isActive("profile") ? "page" : undefined}

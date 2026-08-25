@@ -76,9 +76,9 @@ export default async function AdminFeedbackPage() {
                 <span className="font-semibold text-lg text-[var(--foreground)]">MonkeyTravel</span>
               </a>
               <span className="text-slate-300">|</span>
-              <span className="text-[var(--primary)] font-medium">Feedback</span>
+              <span className="text-[var(--primary-ink)] font-medium">Feedback</span>
             </div>
-            <a href="/admin" className="text-sm text-[var(--primary)] hover:underline">
+            <a href="/admin" className="text-sm text-[var(--primary-ink)] hover:underline">
               Back to Dashboard
             </a>
           </div>
@@ -106,7 +106,7 @@ export default async function AdminFeedbackPage() {
             <ul className="space-y-2">
               {leads.map((l) => (
                 <li key={l.id} className="text-sm">
-                  <a href={`mailto:${l.contact_email}`} className="font-medium text-[var(--primary)] hover:underline">
+                  <a href={`mailto:${l.contact_email}`} className="font-medium text-[var(--primary-ink)] hover:underline">
                     {l.contact_email}
                   </a>
                   {l.uses_for && <span className="text-slate-600"> — &ldquo;{l.uses_for}&rdquo;</span>}
@@ -164,7 +164,7 @@ export default async function AdminFeedbackPage() {
                       </td>
                       <td className="px-3 py-2">
                         {r.open_to_chat && r.contact_email ? (
-                          <a href={`mailto:${r.contact_email}`} className="text-[var(--primary)] hover:underline">
+                          <a href={`mailto:${r.contact_email}`} className="text-[var(--primary-ink)] hover:underline">
                             {r.contact_email}
                           </a>
                         ) : (

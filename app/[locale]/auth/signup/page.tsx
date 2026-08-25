@@ -349,7 +349,7 @@ function SignupForm() {
               height={40}
               className="rounded-lg"
             />
-            <span className="font-bold text-xl text-[var(--primary)]">
+            <span className="font-bold text-xl text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
@@ -385,7 +385,7 @@ function SignupForm() {
               <div className="flex flex-col items-center gap-3">
                 <Link
                   href="/auth/login"
-                  className="text-[var(--primary)] font-medium hover:underline"
+                  className="text-[var(--primary-ink)] font-medium hover:underline"
                 >
                   {t("backToLogin")}
                 </Link>
@@ -420,7 +420,7 @@ function SignupForm() {
             height={40}
             className="rounded-lg"
           />
-          <span className="font-bold text-xl text-[var(--primary)]">
+          <span className="font-bold text-xl text-[var(--primary-ink)]">
             MonkeyTravel
           </span>
         </Link>
@@ -673,7 +673,7 @@ function SignupForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -721,7 +721,7 @@ function SignupForm() {
                 {t("hasAccount")}{" "}
                 <Link
                   href="/auth/login"
-                  className="text-[var(--primary)] font-medium hover:underline"
+                  className="text-[var(--primary-ink)] font-medium hover:underline"
                 >
                   {t("signInLink")}
                 </Link>

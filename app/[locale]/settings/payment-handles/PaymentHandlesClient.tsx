@@ -221,7 +221,7 @@ export default function PaymentHandlesClient() {
                 type="button"
                 onClick={() => void save()}
                 disabled={saving || hasAnyError}
-                className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 disabled:opacity-50 transition-colors"
               >
                 {saving ? t("saving") : t("save")}
               </button>

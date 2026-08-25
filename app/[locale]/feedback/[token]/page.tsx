@@ -49,7 +49,7 @@ export default async function FeedbackTokenPage({ params }: PageProps) {
           <p className="text-slate-600 mb-8">{t("linkExpiredBody")}</p>
           <a
             href={locale === "en" ? "/" : `/${locale}`}
-            className="inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-3 bg-[var(--primary-ink)] text-white rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors"
           >
             {t("openApp")}
           </a>

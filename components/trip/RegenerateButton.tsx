@@ -56,7 +56,7 @@ export default function RegenerateButton({
         className={`
           w-10 h-10 rounded-full flex items-center justify-center
           bg-white border border-slate-200 text-slate-600
-          hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 hover:text-[var(--primary)]
+          hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 hover:text-[var(--primary-ink)]
           disabled:opacity-50 disabled:cursor-not-allowed
           transition-all duration-200
           ${className}
@@ -77,7 +77,7 @@ export default function RegenerateButton({
           inline-flex items-center gap-2 px-4 py-2
           bg-white border border-slate-200 text-slate-700 text-sm font-medium
           rounded-lg
-          hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 hover:text-[var(--primary)]
+          hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 hover:text-[var(--primary-ink)]
           disabled:opacity-50 disabled:cursor-not-allowed
           transition-all duration-200
           ${className}
@@ -113,8 +113,8 @@ export default function RegenerateButton({
       <div className="relative flex items-center gap-2.5">
         <div className={`
           w-8 h-8 rounded-lg flex items-center justify-center
-          bg-[var(--primary)]/10 text-[var(--primary)]
-          group-hover:bg-[var(--primary)] group-hover:text-white
+          bg-[var(--primary)]/10 text-[var(--primary-ink)]
+          group-hover:bg-[var(--primary-ink)] group-hover:text-white
           transition-colors duration-200
         `}>
           <RefreshIcon />
@@ -122,7 +122,7 @@ export default function RegenerateButton({
 
         <div className="text-left">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-slate-900 group-hover:text-[var(--primary)] transition-colors">
+            <span className="text-sm font-semibold text-slate-900 group-hover:text-[var(--primary-ink)] transition-colors">
               {isRegenerating ? t("generating") : t("tryDifferent")}
             </span>
             {!isRegenerating && (

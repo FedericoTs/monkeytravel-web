@@ -430,7 +430,7 @@ export default function TripMap({
     <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
       {isGeocoding && (
         <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-slate-600 shadow-md">
-          <span className="inline-block w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse mr-2" />
+          <span className="inline-block w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-pulse mr-2" />
           {t("loadingLocations")}
         </div>
       )}
@@ -631,7 +631,7 @@ export default function TripMap({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[var(--primary)] hover:underline"
+                  className="text-xs text-[var(--primary-ink)] hover:underline"
                 >
                   {t("openInMaps")}
                 </a>
@@ -641,7 +641,7 @@ export default function TripMap({
                       onActivityClick(selectedActivity, selectedActivity.dayNumber);
                       setSelectedActivity(null);
                     }}
-                    className="text-xs text-[var(--primary)] hover:underline"
+                    className="text-xs text-[var(--primary-ink)] hover:underline"
                   >
                     {t("viewDetails")}
                   </button>

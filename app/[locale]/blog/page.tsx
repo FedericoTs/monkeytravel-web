@@ -170,7 +170,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-              <Link href="/" className="hover:text-[var(--primary)] transition-colors">
+              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
               <span className="text-slate-300">/</span>
@@ -186,7 +186,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
                   {t("index.subtitle")}
                 </p>
               </div>
-              <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary)]">
+              <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)]">
                 {allFrontmatter.length}{" "}
                 <span className="text-slate-400 font-normal normal-case tracking-normal">
                   {t("index.articleCount")}

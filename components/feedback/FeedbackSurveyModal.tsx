@@ -151,14 +151,14 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
       {done ? (
         <div className="flex flex-col items-center text-center py-4">
           <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mb-4">
-            <MessageSquareHeart className="w-8 h-8 text-[var(--primary)]" aria-hidden="true" />
+            <MessageSquareHeart className="w-8 h-8 text-[var(--primary-ink)]" aria-hidden="true" />
           </div>
           <h3 className="text-lg font-bold text-slate-900 mb-1">{t("thanksTitle")}</h3>
           <p className="text-sm text-slate-600 mb-6 max-w-xs">{t("thanksBody")}</p>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="w-full bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors"
+            className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors"
           >
             {t("close")}
           </button>
@@ -226,7 +226,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
                   aria-checked={wouldBook === v}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
                     wouldBook === v
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                       : "border-slate-300 text-slate-600 hover:border-slate-400"
                   }`}
                 >
@@ -248,7 +248,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
                   aria-checked={pretrip === v}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
                     pretrip === v
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                       : "border-slate-300 text-slate-600 hover:border-slate-400"
                   }`}
                 >
@@ -270,7 +270,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
                   aria-checked={mobileApp === v}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
                     mobileApp === v
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                       : "border-slate-300 text-slate-600 hover:border-slate-400"
                   }`}
                 >
@@ -285,7 +285,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
               type="checkbox"
               checked={openToChat}
               onChange={(e) => setOpenToChat(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--primary-ink)] focus:ring-[var(--primary)]"
             />
             <span className="text-sm text-slate-700">{t("chatLabel")}</span>
           </label>
@@ -330,7 +330,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !hasContent}
-              className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? t("sending") : t("send")}
             </button>

@@ -15,7 +15,7 @@ export default function NotFound() {
               height={32}
               className="rounded-lg"
             />
-            <span className="font-semibold text-[var(--primary)]">
+            <span className="font-semibold text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
@@ -44,7 +44,7 @@ export default function NotFound() {
           <div className="space-y-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25"
             >
               <svg
                 className="w-5 h-5"
@@ -66,7 +66,7 @@ export default function NotFound() {
               Or{" "}
               <Link
                 href="/trips/new"
-                className="text-[var(--primary)] hover:underline font-medium"
+                className="text-[var(--primary-ink)] hover:underline font-medium"
               >
                 plan a new trip
               </Link>
@@ -79,7 +79,7 @@ export default function NotFound() {
       <footer className="border-t border-slate-100 py-6 text-center text-sm text-slate-500">
         <p>
           Powered by{" "}
-          <Link href="/" className="text-[var(--primary)] hover:underline">
+          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
             MonkeyTravel
           </Link>{" "}
           AI

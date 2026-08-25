@@ -178,11 +178,11 @@ export default function TranslationsClient() {
               {/* Day-4 a11y fix: promoted to h1 so screen readers have a
                   landmark and the route has a heading hierarchy. Styled
                   the same as before. */}
-              <h1 className="text-[var(--primary)] font-medium text-base m-0">
+              <h1 className="text-[var(--primary-ink)] font-medium text-base m-0">
                 Translations
               </h1>
             </div>
-            <Link href="/admin" className="text-sm text-[var(--primary)] hover:underline">
+            <Link href="/admin" className="text-sm text-[var(--primary-ink)] hover:underline">
               Back to Admin
             </Link>
           </div>
@@ -212,7 +212,7 @@ export default function TranslationsClient() {
                   onClick={() => setSelectedLang(lang.code)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedLang === lang.code
-                      ? "bg-[var(--primary)] text-white"
+                      ? "bg-[var(--primary-ink)] text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -302,7 +302,7 @@ export default function TranslationsClient() {
                                     <button
                                       onClick={() => handleSave(key, editValue)}
                                       disabled={saving}
-                                      className="px-3 py-1.5 bg-[var(--primary)] text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                                      className="px-3 py-1.5 bg-[var(--primary-ink)] text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                                     >
                                       {saving ? "..." : "Save"}
                                     </button>

@@ -91,7 +91,7 @@ function AccordionSection({ title, subtitle, icon, isOpen, onToggle, children, b
           <div className="font-medium text-slate-900 flex items-center gap-2">
             {title}
             {badge && (
-              <span className="text-xs px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full">
+              <span className="text-xs px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary-ink)] rounded-full">
                 {badge}
               </span>
             )}
@@ -175,7 +175,7 @@ export default function PersonalizationStep({
       <div>
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
-            <Sparkles className="w-5 h-5 text-[var(--primary)]" />
+            <Sparkles className="w-5 h-5 text-[var(--primary-ink)]" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900">{t("title")}</h1>
         </div>
@@ -228,7 +228,7 @@ export default function PersonalizationStep({
                 >
                   <div
                     className={`w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-2 ${
-                      isSelected ? "bg-[var(--primary)] text-white" : "bg-slate-100 text-slate-500"
+                      isSelected ? "bg-[var(--primary-ink)] text-white" : "bg-slate-100 text-slate-500"
                     }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,7 +278,7 @@ export default function PersonalizationStep({
                       : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                   }`}
                 >
-                  {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary-ink)]" />}
                   {t(`dietary.${diet.labelKey}`)}
                 </button>
               );
@@ -322,7 +322,7 @@ export default function PersonalizationStep({
                       : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                   }`}
                 >
-                  {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-[var(--primary-ink)]" />}
                   {t(`accessibility.${option.labelKey}`)}
                 </button>
               );

@@ -33,7 +33,7 @@ export default function TypingIndicator({
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-2 h-2 bg-[var(--primary)] rounded-full"
+                className="w-2 h-2 bg-[var(--primary-ink)] rounded-full"
                 variants={dotVariants}
                 initial="initial"
                 animate="animate"

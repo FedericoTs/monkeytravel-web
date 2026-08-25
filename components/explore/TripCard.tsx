@@ -108,7 +108,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
       {/* Body */}
       <div className={isCompact ? "p-3" : "p-5"}>
         <h3
-          className={`font-semibold text-slate-900 mb-1 group-hover:text-[var(--primary)] transition-colors line-clamp-1 ${
+          className={`font-semibold text-slate-900 mb-1 group-hover:text-[var(--primary-ink)] transition-colors line-clamp-1 ${
             isCompact ? "text-base" : "text-lg"
           }`}
         >
@@ -128,7 +128,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             {authorUsername ? (
               <Link
                 href={`/creator/${authorUsername}`}
-                className="relative z-10 font-medium text-slate-700 hover:text-[var(--primary)] hover:underline"
+                className="relative z-10 font-medium text-slate-700 hover:text-[var(--primary-ink)] hover:underline"
               >
                 {trip.author.displayName}
               </Link>
@@ -176,7 +176,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             {trip.forkCount}
           </span>
           {!isCompact && (
-            <span className="ml-auto text-[var(--primary)] font-medium group-hover:underline">
+            <span className="ml-auto text-[var(--primary-ink)] font-medium group-hover:underline">
               {t("viewAction")}
             </span>
           )}

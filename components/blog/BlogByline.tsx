@@ -49,7 +49,7 @@ export default function BlogByline({
               render initials over the brand-gradient circle instead of a broken
               <img>. When a real /images/authors/{slug}.jpg is added, swap this
               back to <Image src={author.photoUrl} .../>. */}
-          <span className="flex items-center justify-center w-full h-full text-sm font-semibold text-[var(--primary)]">
+          <span className="flex items-center justify-center w-full h-full text-sm font-semibold text-[var(--primary-ink)]">
             {author.name
               .split(/\s+/)
               .map((p) => p[0])
@@ -62,7 +62,7 @@ export default function BlogByline({
           <p className="text-sm">
             <Link
               href={author.bioUrl}
-              className="font-semibold text-slate-900 hover:text-[var(--primary)] transition-colors"
+              className="font-semibold text-slate-900 hover:text-[var(--primary-ink)] transition-colors"
             >
               {author.name}
             </Link>
@@ -75,7 +75,7 @@ export default function BlogByline({
             {updatedDate && updatedLabel && (
               <>
                 <span className="mx-1.5 text-slate-300">·</span>
-                <span className="text-[var(--primary)] font-medium">{updatedLabel}</span>
+                <span className="text-[var(--primary-ink)] font-medium">{updatedLabel}</span>
               </>
             )}
           </p>
@@ -105,7 +105,7 @@ export default function BlogByline({
           {updatedDate && updatedLabel && (
             <>
               <span className="mx-1.5 text-slate-300">·</span>
-              <span className="text-[var(--primary)] font-medium">{updatedLabel}</span>
+              <span className="text-[var(--primary-ink)] font-medium">{updatedLabel}</span>
             </>
           )}
         </p>

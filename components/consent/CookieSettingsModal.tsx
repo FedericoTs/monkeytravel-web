@@ -46,7 +46,7 @@ export function CookieSettingsModal() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
               <svg
-                className="w-5 h-5 text-[var(--primary)]"
+                className="w-5 h-5 text-[var(--primary-ink)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -122,7 +122,7 @@ export function CookieSettingsModal() {
             {t("settings.moreInfo")}{" "}
             <a
               href="/privacy"
-              className="text-[var(--primary)] hover:underline"
+              className="text-[var(--primary-ink)] hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -141,13 +141,13 @@ export function CookieSettingsModal() {
           </button>
           <button
             onClick={handleSaveSettings}
-            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-[var(--primary)] border-2 border-[var(--primary)]/30 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors text-sm"
+            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-[var(--primary-ink)] border-2 border-[var(--primary)]/30 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors text-sm"
           >
             {t("settings.saveSettings")}
           </button>
           <button
             onClick={acceptAll}
-            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-colors text-sm"
+            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-dark)] transition-colors text-sm"
           >
             {t("settings.acceptAll")}
           </button>
@@ -222,7 +222,7 @@ function ConsentCategoryToggle({
           disabled={isRequired}
           onClick={() => onToggle(!isEnabled)}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-            isEnabled ? "bg-[var(--primary)]" : "bg-slate-300"
+            isEnabled ? "bg-[var(--primary-ink)]" : "bg-slate-300"
           }`}
         >
           <span

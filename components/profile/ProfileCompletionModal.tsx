@@ -191,7 +191,7 @@ export default function ProfileCompletionModal({
         {/* Header Icon */}
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--secondary)]/20 flex items-center justify-center">
           <svg
-            className="w-8 h-8 text-[var(--primary)]"
+            className="w-8 h-8 text-[var(--primary-ink)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -289,8 +289,8 @@ export default function ProfileCompletionModal({
                     disabled={saving || (!isSelected && languages.length >= 5)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                       isSelected
-                        ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                        : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-600"
+                        ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white"
+                        : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)] disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-600"
                     }`}
                   >
                     {lang}
@@ -327,7 +327,7 @@ export default function ProfileCompletionModal({
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="w-full px-4 py-3 rounded-xl font-medium bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-4 py-3 rounded-xl font-medium bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {saving ? (
               <>

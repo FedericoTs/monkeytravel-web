@@ -235,7 +235,7 @@ export default function PublishTripModal({
             <button
               onClick={() => submit(anchorsToConfirm.length > 0)}
               disabled={busy}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--primary)] text-white font-semibold hover:opacity-95 transition-all shadow-sm disabled:opacity-60"
+              className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--primary-ink)] text-white font-semibold hover:opacity-95 transition-all shadow-sm disabled:opacity-60"
             >
               {busy
                 ? t("publishing")

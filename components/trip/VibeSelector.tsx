@@ -91,7 +91,7 @@ function VibeSelectorInner({
       {/* Selection Counter */}
       <div className="flex justify-end">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-slate-600">
-          <span className={selectedVibes.length > 0 ? "text-[var(--primary)]" : ""}>
+          <span className={selectedVibes.length > 0 ? "text-[var(--primary-ink)]" : ""}>
             {selectedVibes.length}
           </span>
           <span>/</span>

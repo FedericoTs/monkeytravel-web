@@ -77,8 +77,8 @@ export default function DestinationSectionNav({ sections }: DestinationSectionNa
                 onClick={(e) => handleClick(e, id)}
                 className={`shrink-0 inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   active
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-slate-600 hover:text-[var(--primary)] hover:bg-[var(--primary)]/5"
+                    ? "bg-[var(--primary-ink)] text-white"
+                    : "text-slate-600 hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5"
                 }`}
               >
                 {label}

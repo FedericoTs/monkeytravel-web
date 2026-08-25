@@ -35,14 +35,14 @@ export default function BlogCard({
           loading="lazy"
         />
         {/* Category badge */}
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary)] text-white text-xs font-medium">
+        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary-ink)] text-white text-xs font-medium">
           {category}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-5">
-        <h3 className="text-lg font-bold text-[var(--foreground)] mb-2 group-hover:text-[var(--primary)] transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-[var(--foreground)] mb-2 group-hover:text-[var(--primary-ink)] transition-colors line-clamp-2">
           {title}
         </h3>
 
@@ -53,7 +53,7 @@ export default function BlogCard({
         {/* Meta row */}
         <div className="flex items-center justify-between text-sm text-[var(--foreground-muted)]">
           <span>{minuteReadLabel}</span>
-          <span className="text-[var(--primary)] font-semibold group-hover:underline">
+          <span className="text-[var(--primary-ink)] font-semibold group-hover:underline">
             {readMoreLabel} &rarr;
           </span>
         </div>

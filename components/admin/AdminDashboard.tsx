@@ -107,7 +107,7 @@ function DashboardHeader({
   // old layout hid APIs+Prompts on small screens). Desktop: same row,
   // no scroll needed.
   const tabs: { id: TabId; label: string; color: string; icon: ReactNode }[] = [
-    { id: "analytics", label: "Analytics", color: "text-[var(--primary)]", icon: <BarsIcon /> },
+    { id: "analytics", label: "Analytics", color: "text-[var(--primary-ink)]", icon: <BarsIcon /> },
     { id: "growth", label: "Growth", color: "text-emerald-600", icon: <UpRightIcon /> },
     { id: "costs", label: "Costs", color: "text-red-600", icon: <CoinIcon /> },
     { id: "apis", label: "APIs", color: "text-green-600", icon: <CodeIcon /> },
@@ -324,7 +324,7 @@ function Ux10xBaselineCard() {
         <button
           onClick={load}
           disabled={loading}
-          className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--primary)] hover:opacity-90 text-white rounded-lg text-sm transition disabled:opacity-50"
+          className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--primary-ink)] hover:opacity-90 text-white rounded-lg text-sm transition disabled:opacity-50"
         >
           <RefreshIcon spinning={loading} />
           {data ? "Refresh" : "Load"}
@@ -362,7 +362,7 @@ function Ux10xBaselineCard() {
                 <div className="flex items-baseline gap-2">
                   <span
                     className={`text-4xl font-bold ${
-                      crews > 0 ? "text-[var(--primary)]" : "text-slate-300"
+                      crews > 0 ? "text-[var(--primary-ink)]" : "text-slate-300"
                     }`}
                   >
                     {crews}
@@ -488,7 +488,7 @@ function MetricCard({
   color: "primary" | "secondary" | "accent" | "navy";
 }) {
   const colorClasses = {
-    primary: "bg-[var(--primary)]/10 text-[var(--primary)]",
+    primary: "bg-[var(--primary)]/10 text-[var(--primary-ink)]",
     secondary: "bg-[var(--secondary)]/10 text-[var(--secondary)]",
     accent: "bg-[var(--accent)]/20 text-amber-600",
     navy: "bg-slate-100 text-slate-600",
@@ -593,7 +593,7 @@ function ActivationCard({
           label="2+ trips"
           value={activation.multiTripUsers}
           sub={`${activation.multiTripPct}% of activated`}
-          color="bg-[var(--primary)]/5 border-[var(--primary)]/20 text-[var(--primary)]"
+          color="bg-[var(--primary)]/5 border-[var(--primary)]/20 text-[var(--primary-ink)]"
           highlight={activation.multiTripPct}
         />
       </div>
@@ -671,7 +671,7 @@ function MicroStat({
   const toneClasses = {
     neutral: "text-slate-700",
     emerald: "text-emerald-600",
-    primary: "text-[var(--primary)]",
+    primary: "text-[var(--primary-ink)]",
     amber: "text-amber-600",
   };
   return (
@@ -811,7 +811,7 @@ function CostStat({
     neutral: "from-slate-50 to-slate-100/50 border-slate-100",
   };
   const textClasses = {
-    primary: "text-[var(--primary)]",
+    primary: "text-[var(--primary-ink)]",
     emerald: "text-emerald-600",
     neutral: "text-slate-700",
   };
@@ -910,7 +910,7 @@ function VisitorAnalyticsCard({ geo }: { geo: AdminStats["geo"] }) {
                 onClick={() => setTab(t)}
                 className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                   tab === t
-                    ? "bg-white text-[var(--primary)] shadow-sm"
+                    ? "bg-white text-[var(--primary-ink)] shadow-sm"
                     : "text-slate-500"
                 }`}
               >
@@ -1273,7 +1273,7 @@ function EmptyState({ onLoad }: { onLoad: () => void }) {
     <div className="min-h-[300px] sm:min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center p-6">
       <div className="text-center">
         <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-          <BarsIcon className="w-8 h-8 text-[var(--primary)]" />
+          <BarsIcon className="w-8 h-8 text-[var(--primary-ink)]" />
         </div>
         <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Analytics Data</h3>
         <p className="text-slate-500 mb-6 max-w-xs text-sm">
@@ -1281,7 +1281,7 @@ function EmptyState({ onLoad }: { onLoad: () => void }) {
         </p>
         <button
           onClick={onLoad}
-          className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:opacity-90 transition font-medium"
+          className="px-6 py-3 bg-[var(--primary-ink)] text-white rounded-xl hover:opacity-90 transition font-medium"
         >
           Load Analytics
         </button>

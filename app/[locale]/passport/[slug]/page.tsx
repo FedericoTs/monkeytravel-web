@@ -212,7 +212,7 @@ export default async function PassportPage({ params }: PageProps) {
             <p className="mt-2 text-slate-700">{t("cta.body")}</p>
             <Link
               href="/trips/new"
-              className="mt-5 inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white hover:opacity-90 transition"
+              className="mt-5 inline-flex items-center justify-center rounded-xl bg-[var(--primary-ink)] px-6 py-3 font-semibold text-white hover:opacity-90 transition"
             >
               {t("cta.button")}
             </Link>
@@ -225,7 +225,7 @@ export default async function PassportPage({ params }: PageProps) {
             <h2 className="font-semibold text-slate-800">{t("sources.heading")}</h2>
             <p className="mt-2 max-w-3xl">{t("sources.body")}</p>
             <p className="mt-2">
-              <Link href="/tools/visa-checker" className="text-[var(--primary)] underline">
+              <Link href="/tools/visa-checker" className="text-[var(--primary-ink)] underline">
                 {t("sources.checkerLink")}
               </Link>
             </p>
@@ -243,7 +243,7 @@ export default async function PassportPage({ params }: PageProps) {
                   <li key={c}>
                     <Link
                       href={`/passport/${passportSlug(c)}`}
-                      className="text-[var(--primary)] hover:underline"
+                      className="text-[var(--primary-ink)] hover:underline"
                     >
                       <span aria-hidden="true">{other.flag}</span> {other.name}
                     </Link>

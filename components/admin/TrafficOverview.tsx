@@ -233,7 +233,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
         <div className="p-6 pt-4">
           <div className="flex items-center gap-4 mb-3">
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 bg-[var(--primary)] rounded-full" />
+              <span className="w-3 h-0.5 bg-[var(--primary-ink)] rounded-full" />
               <span className="text-xs text-slate-500">Page Views</span>
             </div>
             <div className="flex items-center gap-1.5">

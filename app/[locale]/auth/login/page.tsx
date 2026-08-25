@@ -185,7 +185,7 @@ function LoginForm() {
             height={40}
             className="rounded-lg"
           />
-          <span className="font-bold text-xl text-[var(--primary)]">
+          <span className="font-bold text-xl text-[var(--primary-ink)]">
             MonkeyTravel
           </span>
         </Link>
@@ -209,7 +209,7 @@ function LoginForm() {
                   <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
                 )}
                 {error?.message?.includes("incorrect") && (
-                  <Link href="/auth/forgot-password" className="text-sm text-[var(--primary)] font-medium hover:underline mt-2 inline-block">
+                  <Link href="/auth/forgot-password" className="text-sm text-[var(--primary-ink)] font-medium hover:underline mt-2 inline-block">
                     {t("forgotPasswordLink")}
                   </Link>
                 )}
@@ -375,7 +375,7 @@ function LoginForm() {
                   </label>
                   <Link
                     href="/auth/forgot-password"
-                    className="text-sm text-[var(--primary)] hover:underline"
+                    className="text-sm text-[var(--primary-ink)] hover:underline"
                   >
                     {t("forgotPassword")}
                   </Link>
@@ -403,7 +403,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -440,7 +440,7 @@ function LoginForm() {
                 {t("noAccount")}{" "}
                 <Link
                   href="/auth/signup"
-                  className="text-[var(--primary)] font-medium hover:underline"
+                  className="text-[var(--primary-ink)] font-medium hover:underline"
                 >
                   {t("signUpLink")}
                 </Link>

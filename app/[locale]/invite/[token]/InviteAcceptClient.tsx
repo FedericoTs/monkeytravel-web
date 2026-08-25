@@ -346,7 +346,7 @@ export default function InviteAcceptClient({
           {/* Auth Actions */}
           {isCheckingAuth ? (
             <div className="flex items-center justify-center py-8">
-              <svg className="w-8 h-8 animate-spin text-[var(--primary)]" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 animate-spin text-[var(--primary-ink)]" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -357,7 +357,7 @@ export default function InviteAcceptClient({
               <button
                 onClick={handleAcceptInvite}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[var(--primary-ink)] text-white rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
@@ -397,7 +397,7 @@ export default function InviteAcceptClient({
               </p>
               <button
                 onClick={() => setMagicLinkSent(false)}
-                className="text-sm text-[var(--primary)] hover:underline"
+                className="text-sm text-[var(--primary-ink)] hover:underline"
               >
                 {t("useDifferentEmail")}
               </button>
@@ -465,7 +465,7 @@ export default function InviteAcceptClient({
               {/* Already have account */}
               <p className="text-center text-sm text-slate-500 pt-2">
                 {t("alreadyHaveAccount")}{" "}
-                <Link href="/auth/login" className="text-[var(--primary)] hover:underline font-medium">
+                <Link href="/auth/login" className="text-[var(--primary-ink)] hover:underline font-medium">
                   {t("signIn")}
                 </Link>
               </p>

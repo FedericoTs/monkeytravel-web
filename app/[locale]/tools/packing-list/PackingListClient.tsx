@@ -291,7 +291,7 @@ export default function PackingListClient({ locale }: Props) {
                     onClick={() => setTravelStyle(opt.value)}
                     className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-xs font-medium transition-all ${
                       selected
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
@@ -317,7 +317,7 @@ export default function PackingListClient({ locale }: Props) {
                     onClick={() => toggleActivity(a)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                       selected
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
@@ -332,7 +332,7 @@ export default function PackingListClient({ locale }: Props) {
             type="button"
             onClick={handleGenerate}
             disabled={!canSubmit}
-            className="w-full bg-[var(--primary)] text-white py-3.5 rounded-xl font-semibold text-base hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-[var(--primary-ink)] text-white py-3.5 rounded-xl font-semibold text-base hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -387,7 +387,7 @@ export default function PackingListClient({ locale }: Props) {
               <button
                 type="button"
                 onClick={handleShare}
-                className="text-sm text-[var(--primary)] hover:underline"
+                className="text-sm text-[var(--primary-ink)] hover:underline"
               >
                 {t("shareCta")}
               </button>
@@ -457,7 +457,7 @@ export default function PackingListClient({ locale }: Props) {
                               return next;
                             });
                           }}
-                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/30"
+                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--primary-ink)] focus:ring-[var(--primary)]/30"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -540,7 +540,7 @@ export default function PackingListClient({ locale }: Props) {
                 <button
                   type="submit"
                   disabled={emailSending || !email.trim()}
-                  className="bg-[var(--primary)] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                  className="bg-[var(--primary-ink)] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
                 >
                   {emailSending ? "..." : t("emailSubmit")}
                 </button>

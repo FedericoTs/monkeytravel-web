@@ -108,7 +108,7 @@ export default function BlogContentClient({ html, tocLabel = "Table of Contents"
             <li key={item.id} className={item.level === 3 ? "pl-4" : ""}>
               <a
                 href={`#${item.id}`}
-                className={`block py-1.5 text-sm hover:text-[var(--primary)] transition-colors ${
+                className={`block py-1.5 text-sm hover:text-[var(--primary-ink)] transition-colors ${
                   item.level === 2
                     ? "text-slate-700 font-medium"
                     : "text-slate-500"

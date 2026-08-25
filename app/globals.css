@@ -12,6 +12,28 @@
   --primary-deeper: #D94444;
   --primary-vivid: #FF5252;
 
+  /* The text-safe end of the coral ramp.
+     #FF6B6B is a 2.68:1 contrast against our cream background and 2.78:1 under
+     white — it fails WCAG AA for normal text (4.5:1) AND for large text (3:1),
+     so the coral cannot legibly carry text at ANY size, and cannot be a button
+     fill behind a white label. None of the shades above reach 4.5 either;
+     --primary-deeper gets closest at 4.17:1.
+
+     --primary-ink is the same HUE as the brand coral (0deg, identical) taken
+     dark enough to clear AA in both directions at once:
+        on cream #FFFAF5 .... 4.94:1
+        on white  #FFFFFF .... 5.27:1
+        on pink tint #FFF0F0 . 4.76:1  <- the tightest surface
+        white on it .......... 5.27:1
+     so one token serves both "coral text on a light surface" and "coral fill
+     under a white label".
+
+     USE --primary-ink whenever the token is carrying or backing TEXT.
+     KEEP --primary for decoration that is not text: gradients, borders, focus
+     rings, glows, illustration. Those answer to the 3:1 non-text rule or to
+     nothing at all, and keeping them bright is what preserves the brand. */
+  --primary-ink: #C93232;
+
   /* Secondary - Ocean Teal */
   --secondary: #00B4A6;
   --secondary-light: #B2F5EA;
@@ -566,7 +588,7 @@ h1, h2, h3 {
   height: 3rem;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: var(--primary-dark);
+  color: var(--foreground);
   font-weight: 700;
   box-shadow: var(--shadow-accent);
 }
@@ -985,14 +1007,14 @@ h1, h2, h3 {
   margin-bottom: 1.75rem;
 }
 
-.blog-prose a {
-  color: var(--primary);
+.blog-prose a:not([class*="bg-"]) {
+  color: var(--primary-ink);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.blog-prose a:hover {
-  color: var(--primary-dark);
+.blog-prose a:not([class*="bg-"]):hover {
+  color: var(--primary-ink);
 }
 
 .blog-prose strong {
@@ -1101,7 +1123,7 @@ h1, h2, h3 {
 }
 
 .blog-prose td strong {
-  color: var(--primary);
+  color: var(--primary-ink);
 }
 
 .blog-prose img {
@@ -1200,7 +1222,7 @@ h1, h2, h3 {
   position: relative;
   font-weight: 600;
   text-decoration: none;
-  color: var(--primary-dark);
+  color: var(--primary-ink);
   background-image: linear-gradient(transparent 65%, color-mix(in srgb, var(--accent) 35%, transparent) 65%);
   padding: 0 0.15em;
   transition: background-image 0.2s, color 0.2s;
@@ -1215,7 +1237,7 @@ h1, h2, h3 {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .blog-prose a.dest-chip:hover {
-  color: var(--primary);
+  color: var(--primary-ink);
   background-image: linear-gradient(transparent 0%, color-mix(in srgb, var(--accent) 55%, transparent) 0%);
 }
 .blog-prose a.dest-chip:hover::after {
@@ -1328,7 +1350,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 [data-brand="doodle"] .gradient-text-blue {
   background: none;
   -webkit-text-fill-color: currentColor;
-  color: var(--primary-dark);
+  color: var(--primary-ink);
 }
 
 /* Sign In sat directly under the CTA in full primary coral, reading as a second
@@ -1736,7 +1758,7 @@ nav[data-monkey-nav].monkey-nav-scrolled {
    panel: the alert blocks and info panels share the fills exactly
    (`rounded-2xl border border-amber-200 bg-amber-50 p-5`) but are fluid-width,
    and the wizard's selected option arm (`rounded-xl border-2
-   bg-[var(--primary)]/10 text-[var(--primary)]`) is fluid too — so neither is
+   bg-[var(--primary)]/10 text-[var(--primary-ink)]`) is fluid too — so neither is
    reachable, and neither needs a hook to stay unreachable.
 
    INVISIBILITY TEST: adds a border and nothing else, on an element whose only

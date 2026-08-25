@@ -101,7 +101,7 @@ export function CollaboratorAvatars({
           className={cn(
             sizeClass,
             collaborators.length > 0 ? overlapClass : "",
-            "rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[var(--primary)] group-hover:bg-blue-50 transition-colors"
+            "rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[var(--primary-ink)] group-hover:bg-blue-50 transition-colors"
           )}
           style={{ zIndex: 0 }}
         >
@@ -131,7 +131,7 @@ export function CollaboratorAvatarsInline({
       <button
         onClick={onClick}
         className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-[var(--primary)] transition-colors text-sm font-medium",
+          "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-[var(--primary-ink)] transition-colors text-sm font-medium",
           className
         )}
       >

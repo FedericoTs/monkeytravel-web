@@ -221,7 +221,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
                 onClick={() => setViewMode("cumulative")}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                   viewMode === "cumulative"
-                    ? "bg-white text-[var(--primary)] shadow-sm"
+                    ? "bg-white text-[var(--primary-ink)] shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -231,7 +231,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
                 onClick={() => setViewMode("daily")}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                   viewMode === "daily"
-                    ? "bg-white text-[var(--primary)] shadow-sm"
+                    ? "bg-white text-[var(--primary-ink)] shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -247,7 +247,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
                   onClick={() => setTimeRange(range)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                     timeRange === range
-                      ? "bg-[var(--primary)] text-white shadow-sm"
+                      ? "bg-[var(--primary-ink)] text-white shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >

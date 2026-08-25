@@ -83,7 +83,7 @@ export function UnsubscribeConfirmButton({
           Changed your mind? You can fine-tune your preferences in{" "}
           <Link
             href="/profile/notifications"
-            className="text-[var(--primary)] underline"
+            className="text-[var(--primary-ink)] underline"
           >
             notification settings
           </Link>
@@ -106,7 +106,7 @@ export function UnsubscribeConfirmButton({
         type="button"
         onClick={handleClick}
         disabled={state.kind === "loading"}
-        className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {state.kind === "loading" ? "Unsubscribing…" : "Confirm unsubscribe"}
       </button>
@@ -117,7 +117,7 @@ export function UnsubscribeConfirmButton({
         Or go straight to{" "}
         <Link
           href="/profile/notifications"
-          className="text-[var(--primary)] underline"
+          className="text-[var(--primary-ink)] underline"
         >
           notification settings
         </Link>{" "}

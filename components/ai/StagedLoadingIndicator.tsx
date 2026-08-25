@@ -61,7 +61,7 @@ export default function StagedLoadingIndicator({
                 className={`
                   w-7 h-7 rounded-full flex items-center justify-center
                   ${isCompleted ? "bg-emerald-500" : ""}
-                  ${isCurrent ? "bg-[var(--primary)]" : ""}
+                  ${isCurrent ? "bg-[var(--primary-ink)]" : ""}
                   ${isPending ? "bg-slate-200" : ""}
                 `}
                 initial={{ scale: 0.8 }}
@@ -127,7 +127,7 @@ export default function StagedLoadingIndicator({
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            <svg className="w-3 h-3 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 text-[var(--primary-ink)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={currentConfig.icon} />
             </svg>
           </motion.div>

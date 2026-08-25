@@ -91,7 +91,7 @@ function ProfileSection({
         className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 flex items-center justify-center text-[var(--primary)]">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 flex items-center justify-center text-[var(--primary-ink)]">
             {icon}
           </div>
           <span className="font-semibold text-[var(--foreground)]">{title}</span>
@@ -135,7 +135,7 @@ function Toggle({
   return (
     <label className="flex items-start gap-4 py-3 cursor-pointer group">
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+        <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary-ink)] transition-colors">
           {label}
         </div>
         {description && (
@@ -148,7 +148,7 @@ function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 ${
-          checked ? "bg-[var(--primary)]" : "bg-slate-200"
+          checked ? "bg-[var(--primary-ink)]" : "bg-slate-200"
         }`}
       >
         <span
@@ -496,7 +496,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link
             href="/trips"
-            className="flex items-center gap-2 text-slate-600 hover:text-[var(--primary)] transition-colors"
+            className="flex items-center gap-2 text-slate-600 hover:text-[var(--primary-ink)] transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -686,8 +686,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                            : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                            ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white"
+                            : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
                         }`}
                       >
                         {lang}
@@ -732,8 +732,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                            : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                            ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white"
+                            : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
                         }`}
                       >
                         {t(`profile.travelPrefs.styles.${styleKey}`)}
@@ -979,7 +979,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   />
                   <p className="text-xs text-slate-500">
                     {t("profile.betaSection.noCodeHint")}{" "}
-                    <Link href="/welcome" className="text-[var(--primary)] hover:underline">
+                    <Link href="/welcome" className="text-[var(--primary-ink)] hover:underline">
                       {t("profile.betaSection.waitlist")}
                     </Link>{" "}
                     {t("profile.betaSection.toGetAccess")}
@@ -1007,7 +1007,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                 className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[var(--primary-ink)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   <div className="text-left">
@@ -1018,7 +1018,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   </div>
                 </div>
                 {isExporting ? (
-                  <svg className="w-5 h-5 text-[var(--primary)] animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[var(--primary-ink)] animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -1071,11 +1071,11 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
         <div className="text-center py-6 text-sm text-slate-400">
           <p>{t("profile.appInfo.version")}</p>
           <div className="flex items-center justify-center gap-4 mt-2">
-            <Link href="/privacy" className="hover:text-[var(--primary)] transition-colors">
+            <Link href="/privacy" className="hover:text-[var(--primary-ink)] transition-colors">
               {t("profile.appInfo.privacyPolicy")}
             </Link>
             <span>•</span>
-            <Link href="/terms" className="hover:text-[var(--primary)] transition-colors">
+            <Link href="/terms" className="hover:text-[var(--primary-ink)] transition-colors">
               {t("profile.appInfo.termsOfService")}
             </Link>
           </div>
@@ -1161,7 +1161,7 @@ function StatItem({
   return (
     <div className="text-center">
       <div className="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-        <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-[var(--primary-ink)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {icons[icon]}
         </svg>
       </div>

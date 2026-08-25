@@ -183,7 +183,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
               </>
             )}
           </span>
-          <span className="text-[var(--primary)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
+          <span className="text-[var(--primary-ink)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
             {t("explore")}
             <ChevronRight className="w-4 h-4" />
           </span>
@@ -437,7 +437,7 @@ export default function CuratedEscapesClient() {
             disabled={!canScrollLeft}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
               canScrollLeft
-                ? "border-slate-300 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 text-slate-600 hover:text-[var(--primary)]"
+                ? "border-slate-300 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 text-slate-600 hover:text-[var(--primary-ink)]"
                 : "border-slate-200 text-slate-300 cursor-not-allowed"
             }`}
           >
@@ -448,7 +448,7 @@ export default function CuratedEscapesClient() {
             disabled={!canScrollRight}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
               canScrollRight
-                ? "border-slate-300 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 text-slate-600 hover:text-[var(--primary)]"
+                ? "border-slate-300 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 text-slate-600 hover:text-[var(--primary-ink)]"
                 : "border-slate-200 text-slate-300 cursor-not-allowed"
             }`}
           >

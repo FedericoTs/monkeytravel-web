@@ -112,7 +112,7 @@ export default function LiveJourneyHeader({
                   ${day.is_completed
                     ? "bg-emerald-500"
                     : day.is_current
-                      ? "bg-[var(--primary)] ring-2 ring-[var(--primary)]/30"
+                      ? "bg-[var(--primary-ink)] ring-2 ring-[var(--primary)]/30"
                       : "bg-slate-200"
                   }
                 `}
@@ -179,7 +179,7 @@ export default function LiveJourneyHeader({
                 </span>
                 <span className="text-sm text-slate-500">{nextActivity.start_time}</span>
                 {timeUntilNext && (
-                  <span className="text-xs text-[var(--primary)] font-medium">
+                  <span className="text-xs text-[var(--primary-ink)] font-medium">
                     {timeUntilNext}
                   </span>
                 )}

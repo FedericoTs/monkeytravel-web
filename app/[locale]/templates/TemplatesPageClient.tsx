@@ -144,7 +144,7 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
         {/* Top badges - always visible */}
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--accent)] text-[var(--primary-dark)] shadow-lg">
+            <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--accent)] text-[var(--foreground)] shadow-lg">
               ⭐ Featured
             </span>
             <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 shadow-sm flex items-center gap-1.5">
@@ -178,7 +178,7 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
 
             {/* CTA */}
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[var(--primary)] font-semibold rounded-xl text-sm group-hover:bg-[var(--accent)] group-hover:text-[var(--primary-dark)] transition-colors shadow-lg">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[var(--primary-ink)] font-semibold rounded-xl text-sm group-hover:bg-[var(--accent)] group-hover:text-[var(--foreground)] transition-colors shadow-lg">
                 Explore Itinerary
                 <ChevronRight className="w-4 h-4" />
               </span>
@@ -308,7 +308,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
                 </>
               )}
             </span>
-            <span className="text-[var(--primary)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
+            <span className="text-[var(--primary-ink)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
               Explore
               <ChevronRight className="w-4 h-4" />
             </span>
@@ -336,7 +336,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       </p>
       <button
         onClick={onClear}
-        className="px-5 py-2.5 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm"
+        className="px-5 py-2.5 bg-[var(--primary-ink)] text-white font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors text-sm"
       >
         Clear filters
       </button>
@@ -511,7 +511,7 @@ export default function TemplatesPageClient() {
             <div className="w-5 sm:w-auto">
               <Link
                 href="/trips/new"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors"
               >
                 <Plane className="w-4 h-4" />
                 Create Trip
@@ -551,7 +551,7 @@ export default function TemplatesPageClient() {
               onClick={openFilterSheet}
               className={`lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                 activeFilterCount > 0
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                  ? "bg-[var(--primary-ink)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
               }`}
             >
@@ -573,7 +573,7 @@ export default function TemplatesPageClient() {
                   onClick={() => setSelectedMood(mood.id)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     selectedMood === mood.id
-                      ? "bg-[var(--primary)] text-white shadow-md"
+                      ? "bg-[var(--primary-ink)] text-white shadow-md"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -707,7 +707,7 @@ export default function TemplatesPageClient() {
               </div>
               <Link
                 href="/trips/new"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[var(--primary)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:text-[var(--primary-dark)] transition-all shadow-lg"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[var(--primary-ink)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all shadow-lg"
               >
                 <Sparkles className="w-5 h-5" />
                 Create Custom Trip
@@ -743,7 +743,7 @@ export default function TemplatesPageClient() {
                   onClick={() => setTempMood(mood.id)}
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     tempMood === mood.id
-                      ? "bg-[var(--primary)] text-white shadow-md"
+                      ? "bg-[var(--primary-ink)] text-white shadow-md"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
                   }`}
                 >
@@ -817,7 +817,7 @@ export default function TemplatesPageClient() {
             </button>
             <button
               onClick={applyFilters}
-              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 transition-colors shadow-lg"
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 transition-colors shadow-lg"
             >
               Show Results
             </button>

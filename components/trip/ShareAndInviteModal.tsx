@@ -378,16 +378,16 @@ export default function ShareAndInviteModal({
       >
         <div className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center relative",
-          activeTab === "invite" ? "bg-[var(--primary)]" : "bg-blue-100"
+          activeTab === "invite" ? "bg-[var(--primary-ink)]" : "bg-blue-100"
         )}>
-          <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary)]")} />
+          <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary-ink)]")} />
           {hasCollaborators && (
             <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-amber-400 text-amber-900 rounded-full flex items-center justify-center">
               {collaborators.length - 1}
             </span>
           )}
         </div>
-        <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--primary)]" : "text-slate-600")}>
+        <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--primary-ink)]" : "text-slate-600")}>
           {ts("invite.inviteToCollaborate")}
         </span>
         <span className="text-xs text-slate-400">{ts("invite.editVoteSuggest")}</span>
@@ -418,7 +418,7 @@ export default function ShareAndInviteModal({
                     <button
                       onClick={onEnableSharing}
                       disabled={isLoading}
-                      className="px-6 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                      className="px-6 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
                     >
                       {isLoading ? ts("invite.enabling") : ts("invite.enableSharingButton")}
                     </button>
@@ -445,7 +445,7 @@ export default function ShareAndInviteModal({
                             "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                             copied
                               ? "bg-green-100 text-green-700"
-                              : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                              : "bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90"
                           )}
                         >
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -561,7 +561,7 @@ export default function ShareAndInviteModal({
               <div className="space-y-6">
                 {/* Context hint */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                  <UserPlus className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
+                  <UserPlus className="w-4 h-4 text-[var(--primary-ink)] flex-shrink-0" />
                   <p className="text-xs text-blue-700">
                     <span className="font-medium">{ts("invite.collaborateLabel")}:</span> {ts("invite.collaborateHint")}
                   </p>
@@ -633,7 +633,7 @@ export default function ShareAndInviteModal({
                   <button
                     onClick={handleGenerateInvite}
                     disabled={isGeneratingInvite}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary-ink)] text-white rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
                   >
                     {isGeneratingInvite ? (
                       <>
@@ -839,7 +839,7 @@ export default function ShareAndInviteModal({
           <div className="border-b border-slate-200">
             <div className="flex items-center gap-4 px-6 pt-6 pb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                <Share2 className="w-6 h-6 text-[var(--primary)]" />
+                <Share2 className="w-6 h-6 text-[var(--primary-ink)]" />
               </div>
               <div className="flex-1">
                 <h3 id="share-and-invite-title" className="text-lg font-semibold text-slate-900">{ts("titleWithInvite")}</h3>

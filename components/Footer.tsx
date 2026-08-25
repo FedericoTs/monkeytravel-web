@@ -92,7 +92,7 @@ export default async function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[var(--accent)] hover:border-[var(--accent)] hover:text-[var(--primary-dark)] transition-all"
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[var(--accent)] hover:border-[var(--accent)] hover:text-[var(--foreground)] transition-all"
                   aria-label={social.label}
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@ export default async function Footer() {
                     className="text-white/65 hover:text-[var(--accent)] transition-colors text-sm"
                   >
                     {dest.name[locale]}
-                    <span className="text-white/40 ml-1.5">{dest.country[locale]}</span>
+                    <span className="text-white/55 ml-1.5">{dest.country[locale]}</span>
                   </Link>
                 </li>
               ))}

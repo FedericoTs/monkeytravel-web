@@ -51,7 +51,7 @@ export default async function Navbar() {
               height={36}
               className="w-9 h-9 object-contain"
             />
-            <span className="text-lg font-bold text-[var(--primary)]">MonkeyTravel</span>
+            <span className="text-lg font-bold text-[var(--primary-ink)]">MonkeyTravel</span>
           </Link>
 
           {/* Desktop Navigation — server-rendered for SEO */}
@@ -60,7 +60,7 @@ export default async function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                className="px-4 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
               >
                 {link.label}
               </Link>

@@ -273,7 +273,7 @@ export default async function FamilyTripPlannerPage({
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
                 href="/trips/new"
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
               >
                 <span>{t('hero.cta')}</span>
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -282,7 +282,7 @@ export default async function FamilyTripPlannerPage({
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary-ink)] transition-all"
               >
                 {t('hero.secondaryCta')}
               </a>
@@ -336,22 +336,22 @@ export default async function FamilyTripPlannerPage({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">30s</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">30s</div>
                 <div className="text-sm text-[var(--foreground-muted)]">Plan Time</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">180+</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">180+</div>
                 <div className="text-sm text-[var(--foreground-muted)]">Destinations</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">100%</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">100%</div>
                 <div className="text-sm text-[var(--foreground-muted)]">Free</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-gray-200" />
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">All Ages</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">All Ages</div>
                 <div className="text-sm text-[var(--foreground-muted)]">Kid-Friendly</div>
               </div>
             </div>
@@ -366,7 +366,7 @@ export default async function FamilyTripPlannerPage({
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--primary-dark)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--foreground)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
                 </svg>
@@ -407,7 +407,7 @@ export default async function FamilyTripPlannerPage({
         <section id="how-it-works" className="py-24 bg-[var(--background-alt)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
                 {t('howItWorks.title')}
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
@@ -427,10 +427,10 @@ export default async function FamilyTripPlannerPage({
                   <div className="relative inline-flex items-center justify-center w-24 h-24 mb-8">
                     <div className="absolute inset-0 bg-[var(--accent)]/10 rounded-3xl rotate-6" />
                     <div className="absolute inset-0 bg-white rounded-3xl shadow-lg border border-gray-100" />
-                    <div className="relative text-[var(--primary)]">
+                    <div className="relative text-[var(--primary-ink)]">
                       {item.icon}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent)] text-[var(--primary-dark)] font-bold text-sm flex items-center justify-center shadow-lg">
+                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-bold text-sm flex items-center justify-center shadow-lg">
                       {index + 1}
                     </div>
                   </div>
@@ -465,7 +465,7 @@ export default async function FamilyTripPlannerPage({
               {/* Header */}
               <div className="grid grid-cols-3 border-b border-gray-200 bg-[var(--background-alt)] text-sm font-semibold">
                 <div className="p-4 text-[var(--foreground-muted)]" />
-                <div className="border-l border-gray-200 p-4 text-center text-[var(--primary)]">
+                <div className="border-l border-gray-200 p-4 text-center text-[var(--primary-ink)]">
                   MonkeyTravel
                 </div>
                 <div className="border-l border-gray-200 p-4 text-center text-[var(--foreground-muted)]">
@@ -506,7 +506,7 @@ export default async function FamilyTripPlannerPage({
         <section className="py-24 bg-[var(--background-alt)]">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary)] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -529,7 +529,7 @@ export default async function FamilyTripPlannerPage({
                     </h3>
                     <div className="w-8 h-8 rounded-full bg-[var(--background-alt)] flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                       <svg
-                        className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"
+                        className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-ink)] group-open:rotate-180 transition-all"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -591,7 +591,7 @@ export default async function FamilyTripPlannerPage({
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                   <Link
                     href="/trips/new"
-                    className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all"
+                    className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all"
                   >
                     <span>{t('cta.button')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -602,7 +602,7 @@ export default async function FamilyTripPlannerPage({
 
                 {/* Newsletter signup */}
                 <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
-                  <p className="text-sm text-white/50 mb-4">
+                  <p className="text-sm text-white/55 mb-4">
                     {t('cta.mobileNotify')}
                   </p>
                   <EmailSubscribe variant="dark" source="family-trip-planner-cta" />

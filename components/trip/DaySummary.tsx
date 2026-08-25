@@ -98,7 +98,7 @@ export function DaySummary({
     >
       {/* Icon and label */}
       <div className="flex items-center gap-1.5">
-        <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+        <TrendingUp className="w-4 h-4 text-[var(--primary-ink)]" />
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
           {t("daySummary.title", { day: dayNumber })}
         </span>
@@ -142,7 +142,7 @@ export function DaySummary({
 
           {/* Total travel time */}
           <div className="flex items-center gap-1.5 text-sm">
-            <Clock className="w-4 h-4 text-[var(--primary)]" />
+            <Clock className="w-4 h-4 text-[var(--primary-ink)]" />
             <span className="font-semibold text-slate-700">~{stats.durationText}</span>
           </div>
 

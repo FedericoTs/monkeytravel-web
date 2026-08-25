@@ -133,7 +133,7 @@ export default function BetaCodeInput({
           <button
             onClick={handleRedeem}
             disabled={loading || !code.trim()}
-            className="px-5 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2.5 bg-[var(--primary-ink)] text-white font-semibold rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -174,7 +174,7 @@ export default function BetaCodeInput({
           <button
             onClick={handleRedeem}
             disabled={loading || !code.trim()}
-            className="px-6 py-3 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -259,7 +259,7 @@ export default function BetaCodeInput({
           <button
             onClick={handleRedeem}
             disabled={loading || !code.trim()}
-            className="px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+            className="px-6 py-3 bg-[var(--primary-ink)] text-white font-semibold rounded-xl hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
           >
             {loading ? (
               <>

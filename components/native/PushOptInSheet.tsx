@@ -158,7 +158,7 @@ export default function PushOptInSheet() {
         {/* Icon — bell with a small dot indicating notifications.
             Lucide icon is already in the bundle from other surfaces. */}
         <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mb-4">
-          <Bell className="w-8 h-8 text-[var(--primary)]" aria-hidden="true" />
+          <Bell className="w-8 h-8 text-[var(--primary-ink)]" aria-hidden="true" />
         </div>
 
         <h2 className="text-lg font-bold text-slate-900 mb-2">{t("title")}</h2>
@@ -169,7 +169,7 @@ export default function PushOptInSheet() {
             type="button"
             onClick={handleAllow}
             disabled={submitting}
-            className="w-full bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+            className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
           >
             {submitting ? t("allowing") : t("allow")}
           </button>

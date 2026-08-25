@@ -40,7 +40,7 @@ export function RoleSelector({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isSelected
-                  ? "bg-[var(--primary)] text-white shadow-sm"
+                  ? "bg-[var(--primary-ink)] text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
@@ -91,7 +91,7 @@ export function RoleSelector({
                 <span className="font-semibold text-gray-900">{t(`${role}.label`)}</span>
                 {isSelected && (
                   <svg
-                    className="w-5 h-5 text-[var(--primary)] ml-auto"
+                    className="w-5 h-5 text-[var(--primary-ink)] ml-auto"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >

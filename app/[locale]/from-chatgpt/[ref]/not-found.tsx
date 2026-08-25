@@ -20,7 +20,7 @@ export default function NotFound() {
               height={32}
               className="rounded-lg"
             />
-            <span className="font-semibold text-[var(--primary)]">
+            <span className="font-semibold text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
@@ -58,7 +58,7 @@ export default function NotFound() {
           <div className="space-y-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full"
             >
               <svg
                 className="w-5 h-5"
@@ -78,7 +78,7 @@ export default function NotFound() {
 
             <p className="text-sm text-gray-500">
               Or go back to{" "}
-              <Link href="/" className="text-[var(--primary)] hover:underline">
+              <Link href="/" className="text-[var(--primary-ink)] hover:underline">
                 ChatGPT
               </Link>{" "}
               and generate a new itinerary.
@@ -91,7 +91,7 @@ export default function NotFound() {
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
         <p>
           Powered by{" "}
-          <Link href="/" className="text-[var(--primary)] hover:underline">
+          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
             MonkeyTravel
           </Link>{" "}
           AI

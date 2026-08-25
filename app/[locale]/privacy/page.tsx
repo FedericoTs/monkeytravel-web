@@ -78,7 +78,7 @@ export default async function PrivacyPolicy({
           <div className="mb-8">
             <Link
               href="/"
-              className="text-[var(--primary)] hover:text-[var(--primary-light)] inline-flex items-center gap-2 mb-4"
+              className="text-[var(--primary-ink)] hover:text-[var(--primary-light)] inline-flex items-center gap-2 mb-4"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -170,22 +170,22 @@ export default async function PrivacyPolicy({
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.1 Core Services</h3>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
-                <li><strong>Google (Gemini AI):</strong> For generating personalized travel itineraries. <a href="https://policies.google.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-                <li><strong>Supabase:</strong> For authentication and data storage (hosted in the EU). <a href="https://supabase.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-                <li><strong>Vercel:</strong> For hosting and content delivery. <a href="https://vercel.com/legal/privacy-policy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Google (Gemini AI):</strong> For generating personalized travel itineraries. <a href="https://policies.google.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Supabase:</strong> For authentication and data storage (hosted in the EU). <a href="https://supabase.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Vercel:</strong> For hosting and content delivery. <a href="https://vercel.com/legal/privacy-policy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.2 Analytics and Error Tracking</h3>
               <p className="text-[var(--foreground-muted)] mb-2">These services require your consent (except essential error tracking):</p>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
-                <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. <a href="https://posthog.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-                <li><strong>Google Analytics 4:</strong> Website analytics and user behavior tracking. <a href="https://policies.google.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-                <li><strong>Sentry:</strong> Error tracking and performance monitoring. May include session replay if you consent. <a href="https://sentry.io/privacy/" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>PostHog:</strong> Analytics, feature flags, and A/B testing. May include session replay if you consent. <a href="https://posthog.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Google Analytics 4:</strong> Website analytics and user behavior tracking. <a href="https://policies.google.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Sentry:</strong> Error tracking and performance monitoring. May include session replay if you consent. <a href="https://sentry.io/privacy/" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
 
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">6.3 Affiliate Partners</h3>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2">
-                <li><strong>Travelpayouts:</strong> Travel affiliate program for flight and hotel recommendations. <a href="https://www.travelpayouts.com/privacy" className="text-[var(--primary)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                <li><strong>Travelpayouts:</strong> Travel affiliate program for flight and hotel recommendations. <a href="https://www.travelpayouts.com/privacy" className="text-[var(--primary-ink)] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
               </ul>
             </section>
 
@@ -202,7 +202,7 @@ export default async function PrivacyPolicy({
                 <li><strong>Error Logs:</strong> Retained for 90 days for debugging purposes</li>
               </ul>
               <p className="text-[var(--foreground-muted)]">
-                You may request deletion of your account and associated data at any time through your profile settings or by contacting us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>.
+                You may request deletion of your account and associated data at any time through your profile settings or by contacting us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>.
               </p>
             </section>
 
@@ -219,7 +219,7 @@ export default async function PrivacyPolicy({
                 <li><strong>Withdraw Consent (Art. 7):</strong> Withdraw consent at any time via cookie settings</li>
               </ul>
               <p className="text-[var(--foreground-muted)] mt-4">
-                To exercise these rights, use the "Export My Data" button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>. We will respond within 30 days.
+                To exercise these rights, use the "Export My Data" button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>. We will respond within 30 days.
               </p>
             </section>
 
@@ -233,7 +233,7 @@ export default async function PrivacyPolicy({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">10. Children's Privacy</h2>
               <p className="text-[var(--foreground-muted)]">
-                Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a>, and we will delete such information.
+                Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>, and we will delete such information.
               </p>
             </section>
 
@@ -257,8 +257,8 @@ export default async function PrivacyPolicy({
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <ul className="text-[var(--foreground-muted)] space-y-2">
-                <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary)] hover:underline">{contactEmail}</a></li>
-                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary)] hover:underline">monkeytravel.app</a></li>
+                <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a></li>
+                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</a></li>
               </ul>
             </section>
           </div>

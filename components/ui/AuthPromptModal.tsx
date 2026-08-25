@@ -283,7 +283,7 @@ export default function AuthPromptModal({
                 setEmail("");
                 setError(null);
               }}
-              className="text-sm text-[var(--primary)] hover:underline"
+              className="text-sm text-[var(--primary-ink)] hover:underline"
             >
               {t("magicLink.useDifferent")}
             </button>

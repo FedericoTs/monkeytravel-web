@@ -93,26 +93,26 @@ export default function TourTrigger({
       bg-white/90 backdrop-blur-sm
       text-[var(--foreground)] font-semibold
       border border-gray-200
-      hover:border-[var(--primary)] hover:text-[var(--primary)]
+      hover:border-[var(--primary)] hover:text-[var(--primary-ink)]
       transition-all shadow-sm
       cursor-pointer
     `,
     link: `
       inline-flex items-center gap-2
       text-[var(--foreground-muted)]
-      hover:text-[var(--primary)]
+      hover:text-[var(--primary-ink)]
       transition-colors cursor-pointer
     `,
     text: `
       inline-flex items-center gap-1.5
       text-sm text-[var(--foreground-muted)]
-      hover:text-[var(--primary)]
+      hover:text-[var(--primary-ink)]
       underline underline-offset-2
       transition-colors cursor-pointer
     `,
     "primary-cta": `
       group relative px-8 py-4
-      bg-[var(--accent)] text-[var(--primary-dark)]
+      bg-[var(--accent)] text-[var(--foreground)]
       font-bold rounded-xl
       hover:bg-[var(--accent-light)]
       transition-all
@@ -136,7 +136,7 @@ export default function TourTrigger({
             Hidden while the tour is disabled — there's nothing new to see. */}
         {TOUR_ENABLED && isReady && hasSeenTour === false && variant === "button" && (
           <span
-            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
+            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary-ink)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
             style={{ transform: "scale(0)" }}
           >
             {t("newBadge")}

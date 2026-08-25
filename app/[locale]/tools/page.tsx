@@ -177,7 +177,7 @@ export default async function ToolsLandingPage({
                 </h2>
                 <p className="text-slate-600 text-sm mb-4">{tool.description}</p>
                 {tool.live ? (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary-ink)]">
                     {locale === "it" ? "Provalo →" : locale === "es" ? "Pruébalo →" : "Try it →"}
                   </span>
                 ) : (

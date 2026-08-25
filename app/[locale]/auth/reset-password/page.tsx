@@ -138,7 +138,7 @@ function ResetPasswordForm() {
               height={40}
               className="rounded-lg"
             />
-            <span className="font-bold text-xl text-[var(--primary)]">
+            <span className="font-bold text-xl text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
@@ -171,7 +171,7 @@ function ResetPasswordForm() {
               <div className="space-y-3">
                 <Link
                   href="/auth/forgot-password"
-                  className="block w-full px-4 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+                  className="block w-full px-4 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors text-center"
                 >
                   {t("requestNewLink")}
                 </Link>
@@ -202,7 +202,7 @@ function ResetPasswordForm() {
               height={40}
               className="rounded-lg"
             />
-            <span className="font-bold text-xl text-[var(--primary)]">
+            <span className="font-bold text-xl text-[var(--primary-ink)]">
               MonkeyTravel
             </span>
           </Link>
@@ -252,7 +252,7 @@ function ResetPasswordForm() {
             height={40}
             className="rounded-lg"
           />
-          <span className="font-bold text-xl text-[var(--primary)]">
+          <span className="font-bold text-xl text-[var(--primary-ink)]">
             MonkeyTravel
           </span>
         </Link>
@@ -321,7 +321,7 @@ function ResetPasswordForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

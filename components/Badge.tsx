@@ -10,9 +10,9 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20',
-  accent: 'bg-[var(--accent)]/20 text-[var(--primary-dark)] border-[var(--accent)]',
-  'accent-dark': 'bg-[var(--accent)] text-[var(--primary-dark)] border-[var(--accent)]',
+  default: 'bg-[var(--primary)]/10 text-[var(--primary-ink)] border-[var(--primary)]/20',
+  accent: 'bg-[var(--accent)]/20 text-[var(--primary-ink)] border-[var(--accent)]',
+  'accent-dark': 'bg-[var(--accent)] text-[var(--foreground)] border-[var(--accent)]',
   success: 'bg-green-50 text-green-700 border-green-200',
   outline: 'bg-white text-[var(--foreground-muted)] border-gray-200',
 };

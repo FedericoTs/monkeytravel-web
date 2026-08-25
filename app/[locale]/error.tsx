@@ -68,13 +68,13 @@ export default function LocaleError({ error, reset }: ErrorProps) {
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
-            className="px-5 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
+            className="px-5 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
           >
             Try again
           </button>
           <Link
             href="/"
-            className="px-5 py-2.5 bg-white text-[var(--primary)] border border-slate-200 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
+            className="px-5 py-2.5 bg-white text-[var(--primary-ink)] border border-slate-200 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
           >
             Go home
           </Link>

@@ -205,7 +205,7 @@ function TemplateCard({ template, t }: TemplateCardProps) {
               </>
             )}
           </span>
-          <span className="text-[var(--primary)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
+          <span className="text-[var(--primary-ink)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
             {t("explore")}
             <ChevronRight className="w-4 h-4" />
           </span>

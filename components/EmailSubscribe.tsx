@@ -73,7 +73,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
             <button
               type="submit"
               disabled={status === 'loading' || status === 'success'}
-              className="px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {status === 'loading' ? (
                 <>
@@ -119,7 +119,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('placeholder')}
-                className="w-full px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
+                className="w-full px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
                 disabled={status === 'loading' || status === 'success'}
                 suppressHydrationWarning
               />
@@ -127,7 +127,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
             <button
               type="submit"
               disabled={status === 'loading' || status === 'success'}
-              className="px-8 py-4 bg-[var(--accent)] text-[var(--primary-dark)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {status === 'loading' ? (
                 <>
@@ -169,14 +169,14 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder={t('placeholder')}
-        className="flex-1 md:w-80 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        className="flex-1 md:w-80 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         disabled={status === 'loading' || status === 'success'}
         suppressHydrationWarning
       />
       <button
         type="submit"
         disabled={status === 'loading' || status === 'success'}
-        className="px-6 py-3 bg-[var(--accent)] text-[var(--primary-dark)] font-semibold rounded-xl hover:bg-[var(--accent-light)] transition-colors disabled:opacity-70"
+        className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] font-semibold rounded-xl hover:bg-[var(--accent-light)] transition-colors disabled:opacity-70"
       >
         {status === 'loading' ? t('joining') : status === 'success' ? t('joined') : t('subscribe')}
       </button>

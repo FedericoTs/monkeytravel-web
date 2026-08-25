@@ -62,7 +62,7 @@ export function PullToRefreshIndicator({
         {isRefreshing ? (
           // Spinner while the callback runs.
           <svg
-            className="w-5 h-5 animate-spin text-[var(--primary)]"
+            className="w-5 h-5 animate-spin text-[var(--primary-ink)]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

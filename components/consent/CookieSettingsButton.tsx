@@ -21,7 +21,7 @@ export function CookieSettingsButton({ className = "" }: CookieSettingsButtonPro
   return (
     <button
       onClick={openSettings}
-      className={`text-white/50 hover:text-[var(--accent)] transition-colors text-sm ${className}`}
+      className={`text-white/55 hover:text-[var(--accent)] transition-colors text-sm ${className}`}
     >
       {t("footer.cookieSettings")}
     </button>

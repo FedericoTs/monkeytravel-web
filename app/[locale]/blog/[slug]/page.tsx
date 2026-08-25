@@ -329,14 +329,14 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 >
                   {t("breadcrumbs.home")}
                 </Link>
-                <span className="text-white/40">/</span>
+                <span className="text-white/55">/</span>
                 <Link
                   href="/blog"
                   className="hover:text-white transition-colors"
                 >
                   {t("breadcrumbs.blog")}
                 </Link>
-                <span className="text-white/40">/</span>
+                <span className="text-white/55">/</span>
                 <span className="text-white/80 truncate max-w-[200px] sm:max-w-none">
                   {tOr(t, `posts.${slug}.title`, frontmatter.title)}
                 </span>
@@ -470,7 +470,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </div>
               <Link
                 href={tripsNewHref}
-                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold text-sm hover:bg-[var(--primary)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
+                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary-ink)] text-white font-semibold text-sm hover:bg-[var(--primary-ink)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
               >
                 {t("detail.inlineCtaButton")}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -482,7 +482,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         </section>
 
         {/* Bottom CTA */}
-        <section className="relative py-20 overflow-hidden bg-[var(--primary)]">
+        <section className="relative py-20 overflow-hidden bg-[var(--primary-ink)]">
           {/* Background decorations */}
           <div className="absolute inset-0 bg-grid-pattern opacity-40" />
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-[var(--accent)]/10 blur-3xl" />
@@ -499,7 +499,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
               {t("detail.planYourTrip")}
             </h2>
-            <p className="text-white/70 mb-10 max-w-xl mx-auto text-lg leading-relaxed">
+            <p className="text-white mb-10 max-w-xl mx-auto text-lg leading-relaxed">
               {t("detail.planYourTripDescription")}
             </p>
             <Link
@@ -526,7 +526,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   <Link
                     key={lp.path}
                     href={lp.path}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all hover:shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary-ink)] transition-all hover:shadow-sm"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -564,7 +564,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                       />
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+                      <h3 className="text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--primary-ink)] transition-colors">
                         {dest.name[loc]}
                       </h3>
                       <p className="text-sm text-[var(--foreground-muted)]">

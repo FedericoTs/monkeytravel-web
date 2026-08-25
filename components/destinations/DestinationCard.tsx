@@ -56,7 +56,7 @@ export default function DestinationCard({
           </span>
         </div>
 
-        <h3 className="text-xl font-bold text-[var(--foreground)] mb-2 group-hover:text-[var(--primary)] transition-colors">
+        <h3 className="text-xl font-bold text-[var(--foreground)] mb-2 group-hover:text-[var(--primary-ink)] transition-colors">
           {name[locale]}
         </h3>
 
@@ -65,7 +65,7 @@ export default function DestinationCard({
           {tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="px-2 py-0.5 text-xs rounded-full bg-[var(--primary)]/5 text-[var(--primary)] font-medium"
+              className="px-2 py-0.5 text-xs rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] font-medium"
             >
               {tagLabels[tag] ?? tag}
             </span>
@@ -75,7 +75,7 @@ export default function DestinationCard({
         {/* Stats row */}
         <div className="flex items-center justify-between text-sm text-[var(--foreground-muted)]">
           <span>{daysLabel}</span>
-          <span className="text-[var(--primary)] font-semibold group-hover:underline">
+          <span className="text-[var(--primary-ink)] font-semibold group-hover:underline">
             {planTripLabel} →
           </span>
         </div>

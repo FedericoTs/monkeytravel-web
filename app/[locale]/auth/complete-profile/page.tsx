@@ -147,9 +147,9 @@ export default function CompleteProfilePage() {
         {/* Progress dots */}
         {status === "loading" && (
           <div className="flex justify-center gap-1 mt-6">
-            <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-            <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-            <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
         )}
       </div>

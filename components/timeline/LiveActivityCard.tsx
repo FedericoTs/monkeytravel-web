@@ -343,7 +343,7 @@ export default function LiveActivityCard({
                 className={`
                   absolute left-1 top-1 bottom-1
                   w-12 rounded-full
-                  bg-[var(--primary)] shadow-lg
+                  bg-[var(--primary-ink)] shadow-lg
                   flex items-center justify-center
                   cursor-grab active:cursor-grabbing
                   touch-none
@@ -373,7 +373,7 @@ export default function LiveActivityCard({
                   flex items-center justify-center gap-2
                   flex-1 px-4 py-2.5 rounded-xl
                   bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20
-                  text-[var(--primary)] text-sm font-medium
+                  text-[var(--primary-ink)] text-sm font-medium
                   transition-colors
                 "
               >
@@ -393,7 +393,7 @@ export default function LiveActivityCard({
                   flex items-center justify-center gap-2
                   ${activity.official_website ? 'flex-1' : 'w-full'} px-4 py-2.5 rounded-xl
                   border border-slate-200 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5
-                  text-slate-700 hover:text-[var(--primary)] text-sm font-medium
+                  text-slate-700 hover:text-[var(--primary-ink)] text-sm font-medium
                   transition-colors
                 `}
               >

@@ -51,7 +51,7 @@ export default function MaintenancePage({
         <p className="text-slate-600 leading-relaxed mb-6">{displayMessage}</p>
 
         {/* Divider */}
-        <div className="w-16 h-1 bg-[var(--primary)] mx-auto mb-6 rounded-full" />
+        <div className="w-16 h-1 bg-[var(--primary-ink)] mx-auto mb-6 rounded-full" />
 
         {/* Status */}
         <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
@@ -66,7 +66,7 @@ export default function MaintenancePage({
           {t("questions")}{" "}
           <a
             href="mailto:support@monkeytravel.app"
-            className="text-[var(--primary)] hover:underline"
+            className="text-[var(--primary-ink)] hover:underline"
           >
             {t("contactSupport")}
           </a>

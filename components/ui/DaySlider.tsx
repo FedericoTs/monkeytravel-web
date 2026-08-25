@@ -111,7 +111,7 @@ export default function DaySlider({
             rounded-full
             ${
               selectedDay === null
-                ? "bg-white text-[var(--primary)] shadow-sm"
+                ? "bg-white text-[var(--primary-ink)] shadow-sm"
                 : "bg-transparent text-slate-500 hover:text-slate-700"
             }
           `}
@@ -140,7 +140,7 @@ export default function DaySlider({
                 rounded-full
                 ${
                   isSelected
-                    ? "bg-white text-[var(--primary)] shadow-sm"
+                    ? "bg-white text-[var(--primary-ink)] shadow-sm"
                     : "bg-transparent text-slate-500 hover:text-slate-700"
                 }
               `}
@@ -156,7 +156,7 @@ export default function DaySlider({
                     hidden lg:block
                     text-[9px] font-medium leading-tight mt-0.5
                     max-w-[70px] truncate
-                    ${isSelected ? "text-[var(--primary)]/70" : "text-slate-400"}
+                    ${isSelected ? "text-[var(--primary-ink)]/70" : "text-slate-400"}
                   `}
                 >
                   {day.theme}

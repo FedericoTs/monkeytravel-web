@@ -30,7 +30,7 @@ export default function DestinationFAQ({
                 </span>
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
                   <svg
-                    className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-dark)] group-open:rotate-180 transition-all"
+                    className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-ink)] group-open:rotate-180 transition-all"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

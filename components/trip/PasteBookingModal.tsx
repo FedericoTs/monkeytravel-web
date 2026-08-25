@@ -354,7 +354,7 @@ function PasteBookingModalInner({
               type="button"
               onClick={handleParse}
               disabled={isParsing || emailBody.trim().length === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary-ink)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {isParsing ? (
                 <>

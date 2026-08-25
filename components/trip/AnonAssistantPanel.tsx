@@ -174,7 +174,7 @@ export default function AnonAssistantPanel({
   return (
     <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary-ink)]">
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -201,7 +201,7 @@ export default function AnonAssistantPanel({
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-[var(--primary)] text-white"
+                      ? "bg-[var(--primary-ink)] text-white"
                       : "border border-slate-200 bg-white text-slate-700"
                   }`}
                 >
@@ -219,7 +219,7 @@ export default function AnonAssistantPanel({
                   <ul className="mt-2 space-y-1">
                     {m.edit.activities.map((a, j) => (
                       <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
-                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary)]" />
+                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary-ink)]" />
                         {a.name}
                       </li>
                     ))}
@@ -243,7 +243,7 @@ export default function AnonAssistantPanel({
                           }
                           setEditState(i, "applied");
                         }}
-                        className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
+                        className="rounded-lg bg-[var(--primary-ink)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
                       >
                         {t("assistant.apply")}
                       </button>
@@ -327,7 +327,7 @@ export default function AnonAssistantPanel({
                 ask(s.prompt);
               }}
               disabled={loading}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-50"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition-colors hover:border-[var(--primary)] hover:text-[var(--primary-ink)] disabled:opacity-50"
             >
               {s.label}
             </button>
@@ -355,7 +355,7 @@ export default function AnonAssistantPanel({
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="flex-shrink-0 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)] disabled:opacity-50"
+          className="flex-shrink-0 rounded-xl bg-[var(--primary-ink)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)] disabled:opacity-50"
         >
           {t("assistant.ask")}
         </button>

@@ -104,9 +104,9 @@ export default async function AuthorPage({ params }: PageProps) {
         <section className="py-16 bg-gradient-to-b from-[var(--primary)]/5 to-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] mb-8">
-              <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+              <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">Home</Link>
               <span>/</span>
-              <Link href="/blog" className="hover:text-[var(--primary)] transition-colors">Blog</Link>
+              <Link href="/blog" className="hover:text-[var(--primary-ink)] transition-colors">Blog</Link>
               <span>/</span>
               <span className="text-[var(--foreground)] font-medium">{author.name}</span>
             </nav>
@@ -118,7 +118,7 @@ export default async function AuthorPage({ params }: PageProps) {
                     render initials over the gradient circle instead of a broken
                     <img>. Swap back to <Image src={photoUrl} .../> when a real
                     /images/authors/{slug}.jpg exists. */}
-                <span className="flex items-center justify-center w-full h-full text-4xl font-bold text-[var(--primary)]">
+                <span className="flex items-center justify-center w-full h-full text-4xl font-bold text-[var(--primary-ink)]">
                   {author.name
                     .split(/\s+/)
                     .map((p) => p[0])
@@ -129,7 +129,7 @@ export default async function AuthorPage({ params }: PageProps) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary)] mb-2">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-2">
                   {author.title}
                 </p>
                 <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3 tracking-tight">

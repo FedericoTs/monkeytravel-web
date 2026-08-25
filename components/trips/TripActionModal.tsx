@@ -79,7 +79,7 @@ export default function TripActionModal({
       case "unarchive":
         return "bg-green-600 hover:bg-green-700";
       default:
-        return "bg-[var(--primary)] hover:bg-[var(--primary)]/90";
+        return "bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90";
     }
   };
 

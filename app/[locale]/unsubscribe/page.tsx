@@ -64,7 +64,7 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/profile/notifications"
-              className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90"
+              className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90"
             >
               Notification settings
             </Link>
@@ -80,7 +80,7 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/profile/notifications"
-              className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90"
+              className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90"
             >
               Open notification settings
             </Link>
