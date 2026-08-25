@@ -116,6 +116,20 @@ Recommended size: 1170 x 2532 pixels (iPhone 14 Pro)
 
 ## Design Patterns
 
+**Read `DESIGN.md` before any visual or UI decision.** It records the colour
+system, the type stack, the touch-target rule, and the reasoning behind them.
+Two things there are easy to get wrong and expensive to get wrong:
+
+- `--primary` (#FF6B6B) and `--secondary` (#00B4A6) are **decoration only** — they
+  fail WCAG AA as text at every size. Text and fills-under-white-labels use
+  `--primary-ink` / `--secondary-ink`.
+- That inverts on dark surfaces: on `--navy` the bright token passes and the ink
+  token fails. Never blanket-swap a colour token without checking for dark surfaces.
+
+Coral primary buttons are a **known, accepted** AA exception — see DESIGN.md before
+"fixing" them. Do not deviate from DESIGN.md without explicit approval; flag
+mismatches in QA.
+
 - All colors use CSS variables from globals.css
 - Components use Tailwind with `var(--color-name)` pattern
 - Animation classes: `animate-float`, `animate-pulse-glow`
