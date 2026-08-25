@@ -148,4 +148,4 @@ Yes, but test it first. Do a weekend trip — 2 to 3 days — before committing 
 
 ---
 
-*Sources: [Away Travel — Group Trip Survey 2024](https://www.awaytravel.com/), [CheapOAir — Top Causes of Travel Conflict](https://www.cheapoair.com/miles-away/group-travel-tips/), [Charles Schwab — Modern Wealth Survey](https://www.schwab.com/learn/story/modern-wealth-survey), [Global Wellness Institute — Travel and Wellness Trends](https://globalwellnessinstitute.org/), [Gamintraveler — Group Travel Planning Tips](https://www.gamintraveler.com/group-travel-tips/)*
+*Sources: [CheapOAir — Top Causes of Travel Conflict](https://www.cheapoair.com/miles-away/group-travel-tips/), [Gamintraveler — Group Travel Planning Tips](https://www.gamintraveler.com/group-travel-tips/)*

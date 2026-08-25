@@ -6,7 +6,7 @@ description: >-
   estrutura com flexibilidade para que ninguém se sinta preso ou perdido.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: Trip Planning
 tags: ["viagem em grupo", "roteiro", "planejamento de viagem"]
 image: /images/blog/group-trip-itinerary-template.jpg
@@ -33,7 +33,7 @@ Em algum lugar, neste exato momento, um grupo de amigos está implodindo por cau
 
 O melhor roteiro de viagem em grupo não é o mais detalhado. É o que oferece estrutura suficiente para evitar o caos e liberdade suficiente para evitar o motim. Planeje demais e você terá um grupo de adultos se sentindo como em uma excursão escolar. Planeje de menos e você passará 45 minutos toda manhã parado na cozinha do Airbnb perguntando "então... o que a gente quer fazer hoje?"
 
-Uma pesquisa da Skyscanner de 2023 descobriu que 49% dos viajantes dizem que a parte mais difícil das viagens em grupo é chegar a um acordo sobre as atividades. Não o orçamento, não as datas — as atividades. O roteiro é onde as viagens em grupo dão certo ou desandam.
+Pergunte a qualquer pessoa que já organizou uma viagem em grupo qual foi a parte mais difícil e raramente vai ouvir "os voos". É chegar a um acordo sobre o que fazer. As datas se resolvem em uma semana. O orçamento se resolve a contragosto. As atividades são rediscutidas até alguém desistir. O roteiro é onde as viagens em grupo dão certo ou desandam.
 
 Aqui está o modelo que resolve isso.
 
@@ -45,7 +45,7 @@ Antes do modelo, ajuda entender por que as abordagens de sempre não funcionam.
 
 Você conhece essa pessoa. Ela organizou a planilha por cores de acordo com o bairro. Há um intervalo de 15 minutos entre as atividades, um restaurante reserva para cada refeição e um plano de contingência caso chova. O roteiro é uma obra de arte.
 
-Também é sufocante. Um estudo da Booking.com descobriu que 72% dos viajantes dizem que a espontaneidade é essencial para umas boas férias. Quando cada minuto está programado, as pessoas se sentem presas. Ninguém quer pular a "parada do gelato às 14h45" e lidar com a decepção de quem organizou.
+Também é sufocante. A hora que ninguém planejou costuma ser a que as pessoas contam depois, e uma grade de blocos cronometrados não deixa espaço para ela. Quando cada minuto está programado, as pessoas se sentem presas. Ninguém quer pular a "parada do gelato às 14h45" e lidar com a decepção de quem organizou.
 
 ### O Problema de Quem Não Planeja Nada
 
@@ -77,7 +77,7 @@ Todo dia tem dois tipos de tempo:
 
 **As âncoras criam memórias compartilhadas.** O sentido de uma viagem em grupo é fazer coisas juntos. Sem âncoras, as pessoas se dispersam e você acaba com seis viagens solo que por acaso dividem um Airbnb.
 
-**O tempo de flutuação evita o esgotamento.** Uma pesquisa do Tripadvisor descobriu que 62% dos viajantes sentem que precisam de férias para se recuperar das férias. O tempo de flutuação é a válvula de escape. É assim que você evita isso.
+**O tempo de flutuação evita o esgotamento.** Todo mundo conhece a sensação de precisar de férias para se recuperar das férias, e superlotar o programa é o jeito garantido de chegar lá. O tempo de flutuação é a válvula de escape. É assim que você evita isso.
 
 **Diferentes estilos de viagem coexistem.** Quem acorda cedo e quer correr ao amanhecer pode fazer isso durante o tempo de flutuação. Quem é coruja e dorme até as 10h não perde nada. O extrovertido que quer fazer rolê pelos bares e o introvertido que quer ler na varanda — ambos conseguem o que precisam — e ambos chegam às atividades âncora recarregados.
 
@@ -225,8 +225,8 @@ Duas a três atividades planejadas por dia, no máximo. Isso inclui as refeiçõ
 
 ### Você deve planejar todas as refeições em uma viagem em grupo?
 
-Planeje o jantar — é a refeição mais difícil de decidir de forma espontânea, especialmente com um grupo grande e pouco conhecimento local. Uma pesquisa do Tripadvisor de 2024 descobriu que as decisões sobre restaurantes são a principal fonte de desentendimentos em viagens em grupo. Deixe o café da manhã e o almoço flexíveis. As pessoas comem em ritmos diferentes, têm necessidades alimentares diferentes e às vezes só querem pegar algo rápido e continuar explorando.
+Planeje o jantar — é a refeição mais difícil de decidir de forma espontânea, especialmente com um grupo grande e pouco conhecimento local. O jantar é onde a fricção do grupo se concentra: é a única refeição em que todos aparecem, é a mais cara e é a que precisa de reserva. Deixe o café da manhã e o almoço flexíveis. As pessoas comem em ritmos diferentes, têm necessidades alimentares diferentes e às vezes só querem pegar algo rápido e continuar explorando.
 
 ---
 
-*Fontes: [Skyscanner — Group Travel Survey 2023](https://www.skyscanner.com/tips-and-inspiration/group-travel-tips), [Booking.com — Travel Confidence Report](https://www.booking.com/articles/travel-predictions.html), [American Psychological Association — Decision Fatigue](https://www.apa.org/topics/stress/decision-fatigue), [Tripadvisor — Travel Trends 2024](https://www.tripadvisor.com/articles/travel-trends), [Kayak — Travel Hacker Report 2024](https://www.kayak.com/travel-hacker), [Cornell Hospitality Quarterly](https://journals.sagepub.com/home/cqx)*
+*Fontes: [American Psychological Association — Decision Fatigue](https://www.apa.org/topics/stress/decision-fatigue), [Cornell Hospitality Quarterly](https://journals.sagepub.com/home/cqx)*

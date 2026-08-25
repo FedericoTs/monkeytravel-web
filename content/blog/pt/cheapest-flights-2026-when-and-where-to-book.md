@@ -241,6 +241,5 @@ Sim, mas com ressalvas importantes. Você precisa viajar só com bagagem de mão
 - [Google Flights — Ferramenta de análise de preços](https://www.google.com/flights)
 - [Hopper — Pesquisa de previsão de preços de voos](https://www.hopper.com/company/research)
 - [Scott's Cheap Flights / Going — Análise de ofertas](https://www.going.com/)
-- [Skyscanner — Relatório dos dias mais baratos para voar 2026](https://www.skyscanner.com/)
 - [OAG — Estatísticas de rotas aéreas 2026](https://www.oag.com/)
 - [Skiplagged — Hidden City Ticketing](https://skiplagged.com/)

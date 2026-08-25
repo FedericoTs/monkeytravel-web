@@ -7,7 +7,7 @@ description: >-
   comuns que você deve ficar de olho.
 author: Riccardo P.
 publishedAt: '2026-02-19'
-updatedAt: '2026-02-19'
+updatedAt: '2026-08-24'
 category: "AI Travel"
 tags: ["planejador de viagens com ia", "tecnologia de viagens", "planejamento de viagem", "roteiro"]
 image: /images/blog/trust-ai-itinerary.jpg
@@ -49,7 +49,7 @@ Primeiro, vamos dar o devido crédito. Os planejadores de viagens com AI melhora
 
 **Velocidade.** Um roteiro completo, estruturado e dia a dia em 30 segundos, em vez de dias de pesquisa ou da espera pela proposta de um agente. Para a fase do "[como é que eu começo a planejar essa viagem?](/blog/how-to-plan-a-trip-with-ai)", a AI elimina por completo o problema da página em branco.
 
-Os planejadores de viagens com AI dedicados — aqueles que consultam o Google Places e dados de locais verificados, e não só geram texto — agora acertam cerca de 85 a 90% das vezes nas recomendações de restaurantes e atividades. Isso é genuinamente útil. Mas e aqueles 10 a 15% restantes? Eles podem arruinar um dia da sua viagem se você não tomar cuidado.
+Os planejadores de viagens com AI dedicados — aqueles que consultam o Google Places e dados de locais verificados, e não só geram texto — acertam os detalhes dos locais com muito mais frequência do que um chatbot genérico respondendo de memória. Isso é genuinamente útil. Mas "com muito mais frequência" não é "sempre", e os erros não se distribuem por igual: eles se concentram justamente no que arruína um dia, o restaurante que fechou em março, o museu que mudou para o horário de inverno.
 
 ## Onde os planejadores de viagens com AI ainda têm dificuldade
 
@@ -69,7 +69,11 @@ Essa é a limitação mais alarmante da AI, e é mais comum do que você imagina
 
 A AI pode recomendar com toda a confiança uma "Trattoria del Ponte" em Florença com uma descrição detalhada, uma nota e uma faixa de preço. O problema? Ela não existe. A AI combinou padrões de restaurantes italianos reais para inventar um que soa convincente. Isso acontece com menos frequência nos planejadores de viagens dedicados que verificam contra bancos de dados de locais reais, mas ainda acontece de vez em quando com estabelecimentos menos conhecidos.
 
-Uma análise de 2025 sobre conteúdo de viagem gerado por AI constatou que os chatbots genéricos alucinavam locais cerca de 15 a 20% das vezes. Os planejadores de viagens com AI dedicados que cruzam dados com o Google Places reduziram isso para aproximadamente 3 a 5%. Melhor, mas não zero.
+Não vamos te dar uma taxa de alucinação, porque não existe nenhum número publicado confiável específico para viagens. Os números que circulam costumam ser a estimativa de alguém, repetida até soar oficial. Desconfie de qualquer percentual preciso que você ler aqui — inclusive de um que teria sido conveniente para nós.
+
+O que de fato foi estudado a sério é o efeito que as alucinações têm sobre você. Rejón-Guardia, Molinillo e Anaya-Sánchez, no *Journal of Consumer Behaviour* de 2026, conduziram dois experimentos — com 1.004 e 241 participantes — com pessoas planejando uma viagem a Barcelona usando o ChatGPT. Um único erro visível reduziu de forma significativa a precisão atribuída ao roteiro inteiro, e daí veio a cascata: menos preciso pareceu menos útil, menos útil pareceu menos confiável, e menos confiável significou parar de seguir o plano.
+
+Esse é o custo real. Não o erro em si, mas o fato de um restaurante errado fazer você duvidar das outras vinte entradas que não tem como conferir.
 
 ### Falta de contexto cultural
 
@@ -232,7 +236,7 @@ Receba o seu primeiro rascunho em 30 segundos. Dedique 20 minutos para verificar
 
 ### Qual é a precisão dos planejadores de viagens com AI em 2026?
 
-Os planejadores de viagens com AI dedicados que usam dados de locais em tempo real (Google Places, avaliações verificadas) têm uma precisão de cerca de 85 a 90% nas recomendações de locais. Os chatbots genéricos como o ChatGPT são menos confiáveis, com taxas de alucinação em torno de 15 a 20% para nomes e detalhes específicos de locais. Sempre passe por um checklist de verificação rápido antes da sua viagem.
+Os planejadores que checam os dados dos locais em tempo real (Google Places, avaliações verificadas) são bem mais confiáveis do que um chatbot genérico respondendo de memória: o local existe nos dados ou não existe. Taxas de precisão publicadas específicas para viagens são escassas, então desconfie de qualquer número preciso que você ler. Sempre passe por um checklist de verificação rápido antes da sua viagem.
 
 ### Qual é o erro mais comum que os roteiros de AI cometem?
 
@@ -253,3 +257,7 @@ Comece pela existência dos locais (verificação no Google Maps) e pelos horár
 ---
 
 *O checklist de 7 pontos deste artigo foi desenvolvido a partir do feedback real de usuários em milhares de roteiros gerados por AI. Se você encontrou outras coisas que vale a pena verificar, adoraríamos saber.*
+
+## Fontes
+
+- [Rejón-Guardia, Molinillo e Anaya-Sánchez — AI Hallucinations in Tourism, *Journal of Consumer Behaviour* 25(2), 923–938 (2026)](https://onlinelibrary.wiley.com/doi/full/10.1002/cb.70105) — dois experimentos (n = 1.004 e n = 241) sobre como erros num roteiro afetam a precisão percebida, a utilidade e a confiança

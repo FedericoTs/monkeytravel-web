@@ -7,7 +7,7 @@ description: >-
   for.
 author: Riccardo P.
 publishedAt: '2026-02-19'
-updatedAt: '2026-02-19'
+updatedAt: '2026-08-24'
 category: AI Travel
 tags: ["ai trip planner", "travel technology", "trip planning", "itinerary"]
 image: /images/blog/trust-ai-itinerary.jpg
@@ -47,7 +47,7 @@ First, credit where it's due. AI trip planners have improved dramatically in the
 
 **Speed.** A complete, structured, day-by-day itinerary in 30 seconds versus days of research or waiting for an agent's proposal. For the "[how do I even start planning this trip?](/blog/how-to-plan-a-trip-with-ai)" phase, AI eliminates the blank-page problem entirely.
 
-Dedicated AI trip planners — the kind that pull from Google Places and verified venue data, not just generate text — are now accurate about 85-90% of the time for restaurant and activity recommendations. That's genuinely useful. But that remaining 10-15%? It can ruin a day of your trip if you're not careful.
+Dedicated AI trip planners — the kind that pull from Google Places and verified venue data, not just generate text — get venue details right far more often than a general chatbot working from memory alone. That's genuinely useful. But "far more often" is not "always," and the misses aren't evenly distributed. They cluster on exactly the things that ruin a day: the restaurant that closed in March, the museum that moved to winter hours.
 
 ## Where AI Trip Planners Still Struggle
 
@@ -67,7 +67,11 @@ This is the most alarming AI limitation, and it's more common than you'd think �
 
 AI can confidently recommend a "Trattoria del Ponte" in Florence with a detailed description, a rating, and a price range. The problem? It doesn't exist. The AI combined patterns from real Italian restaurants to fabricate a convincing-sounding one. This happens less frequently with dedicated travel planners that verify against real venue databases, but it still happens occasionally with lesser-known establishments.
 
-A 2025 analysis of AI-generated travel content found that general chatbots hallucinated venues about 15-20% of the time. Dedicated AI trip planners that cross-reference Google Places data brought that down to roughly 3-5%. Better, but not zero.
+We're not going to give you a hallucination rate, because no reliable published figure exists for travel specifically. The numbers that circulate tend to be somebody's estimate, repeated until it sounds official. Treat any precise-sounding percentage here with suspicion — including one we'd have been tempted to give you.
+
+What *has* been studied properly is what hallucinations do to you. Rejón-Guardia, Molinillo and Anaya-Sánchez, writing in the *Journal of Consumer Behaviour* in 2026, ran two experiments — 1,004 and 241 participants — on people planning a Barcelona trip with ChatGPT. One visible error significantly reduced how accurate people judged the entire itinerary, and it cascaded from there: less accurate felt less useful, less useful felt less trustworthy, and less trustworthy meant they stopped following the plan at all.
+
+That's the real cost. Not the error itself — the fact that one wrong restaurant makes you doubt the other twenty entries you have no way to check.
 
 ### Missing Cultural Context
 
@@ -230,7 +234,7 @@ Get your first draft in 30 seconds. Spend 20 minutes verifying. Then go enjoy yo
 
 ### How accurate are AI trip planners in 2026?
 
-Dedicated AI trip planners that use real-time venue data (Google Places, verified reviews) are roughly 85-90% accurate for venue recommendations. General chatbots like ChatGPT are less reliable, with hallucination rates around 15-20% for specific venue names and details. Always run through a quick verification checklist before your trip.
+Planners that check venue details against live data (Google Places, verified reviews) are meaningfully more reliable than a general chatbot answering from memory — the venue either exists in the data or it doesn't. Published accuracy rates for travel specifically are thin on the ground, so treat any precise figure you read with suspicion. Always run through a quick verification checklist before your trip.
 
 ### What's the most common mistake AI itineraries make?
 
@@ -250,4 +254,8 @@ Start with venue existence (Google Maps check) and opening hours. These are the 
 
 ---
 
-*The 7-point checklist in this article was developed from real user feedback across thousands of AI-generated itineraries. If you've found additional things worth verifying, we'd love to hear about them.*
+*The 7-point checklist in this article was developed from real user feedback across hundreds of AI-generated itineraries. If you've found additional things worth verifying, we'd love to hear about them.*
+
+## Sources
+
+- [Rejón-Guardia, Molinillo & Anaya-Sánchez — AI Hallucinations in Tourism, *Journal of Consumer Behaviour* 25(2), 923–938 (2026)](https://onlinelibrary.wiley.com/doi/full/10.1002/cb.70105) — two experiments (n = 1,004 and n = 241) on how itinerary errors affect perceived accuracy, usefulness and trust

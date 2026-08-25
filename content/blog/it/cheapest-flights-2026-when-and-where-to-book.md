@@ -240,6 +240,5 @@ Si, ma con importanti avvertenze. Devi viaggiare solo con bagaglio a mano (i bag
 - [Google Flights — Strumento di analisi dei prezzi](https://www.google.com/flights)
 - [Hopper — Ricerca sulla previsione dei prezzi dei voli](https://www.hopper.com/company/research)
 - [Scott's Cheap Flights / Going — Analisi delle offerte](https://www.going.com/)
-- [Skyscanner — Report sui giorni piu economici per volare 2026](https://www.skyscanner.com/)
 - [OAG — Statistiche sulle rotte aeree 2026](https://www.oag.com/)
 - [Skiplagged — Hidden City Ticketing](https://skiplagged.com/)

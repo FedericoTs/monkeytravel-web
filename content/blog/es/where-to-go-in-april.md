@@ -302,4 +302,3 @@ Japón en la ventana del sakura (28 de marzo-7 de abril): sí, ya mismo; los vue
 - [Visit Petra — Información para visitantes](https://visitpetra.jo/)
 - [World Weather Online — Datos climáticos históricos](https://www.worldweatheronline.com/)
 - [Numbeo — Base de datos de coste de vida](https://www.numbeo.com/cost-of-living/)
-- [Skyscanner — Tendencias de precios de vuelos en abril de 2026](https://www.skyscanner.com/)

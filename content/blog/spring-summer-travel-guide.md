@@ -4,7 +4,7 @@ slug: "spring-summer-travel-guide"
 description: "Where to go from March through August 2026 — sorted by what you actually want: peak warmth, cool-weather alternatives, shoulder-season value, or specific events. One guide replacing three seasonal listicles."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: '2026-08-24'
 category: "Seasonal Travel"
 tags: ["seasonal", "spring travel", "summer travel", "shoulder season", "best destinations"]
 image: "/images/blog/best-summer-destinations-2026.jpg"
@@ -130,7 +130,7 @@ For a full week structure see [Tokyo 4-day itinerary](/blog/tokyo-4-day-itinerar
 
 ## 🏔 If you want to escape the heat: Coolcation picks
 
-This is where the math has shifted hardest. Three years ago, the coolcation was a quiet alternative. Now flight searches to Scandinavia for summer 2026 are up 35% year-over-year on Skyscanner data. The Faroe Islands have a visitor booking system. Iceland's tourism grew 22% last summer.
+This is where the math has shifted hardest. Three years ago, the coolcation was a quiet alternative. Now the coolcation is simply the mainstream option, and the numbers back it. The Faroe Islands run a visitor booking system. Iceland took just under 2.3 million foreign overnight visitors in 2025, with August setting an all-time monthly record, and overnight stays in registered accommodation up 9.1% on 2024.
 
 The temperature gap is the headline. While the Mediterranean averages 30-33°C in July and August (with regular spikes to 42-45°C), the destinations below sit between 10°C and 25°C. That's a 15-20°C gap. A full day of hiking instead of a pool-shaped sweat session.
 

@@ -193,5 +193,4 @@ Accordatevi su un sistema prima di partire. Una persona prenota le spese condivi
 - [Budget Your Trip — Average Daily Travel Costs](https://www.budgetyourtrip.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)
 - [Skift Research — Group Travel Trends](https://research.skift.com/)
-- [Hostelworld — Group Accommodation Trends 2025](https://www.hostelworld.com/)
 - [Rome2Rio — Transport Cost Estimates](https://www.rome2rio.com/)

@@ -52,7 +52,7 @@ There are three categories of AI travel tools, and they work very differently:
 
 **What they're good at:** Generating ideas quickly. If you have no idea where to go and want inspiration based on vague criteria ("somewhere warm in Europe, under $100/day, good food"), chatbots are a solid starting point.
 
-**Where they fail:** They hallucinate. A 2025 study found that general AI chatbots recommended restaurants that had closed, invented attractions that don't exist, and provided inaccurate transit directions about 15-20% of the time. They don't verify anything against real-world data. They sound confident about fictional restaurants.
+**Where they fail:** They hallucinate. General chatbots recommend restaurants that closed last year, invent attractions outright, and give transit directions that were true for a different city. There's no trustworthy published figure for how often — be sceptical of any precise rate you see quoted, here or anywhere. But the mechanism isn't mysterious: they don't verify anything against real-world data. They sound exactly as confident about a fictional restaurant as a real one.
 
 They also can't create structured, bookable itineraries. You get a paragraph of suggestions, not a day-by-day plan with times, prices, and walking routes.
 
@@ -142,11 +142,11 @@ Drop a destination and see what your AI travel buddy comes up with.
 
 ### Is AI trip planning reliable in 2026?
 
-Dedicated AI trip planners that use real-time venue data (Google Places, verified reviews) are about 90% accurate. General chatbots like ChatGPT are less reliable for specifics — about 80-85% accuracy. Always verify opening hours and recent closures before your trip.
+Planners that check against real-time venue data (Google Places, verified reviews) are meaningfully more reliable for specifics than a general chatbot answering from memory. We won't quote you an accuracy percentage: no trustworthy published figure exists for travel, and the ones in circulation are guesses that hardened into facts through repetition. Always verify opening hours and recent closures before your trip.
 
 ### Will AI replace travel agents?
 
-Not entirely. AI handles 80% of standard trip planning faster and cheaper. Travel agents remain valuable for complex luxury trips, multi-visa journeys, honeymoons requiring flawless execution, and destinations with limited online information. The future is likely a hybrid approach.
+Not entirely. AI handles most of the standard, repeatable work faster and cheaper. Travel agents remain valuable for complex luxury trips, multi-visa journeys, honeymoons requiring flawless execution, and destinations with limited online information. The future is likely a hybrid approach.
 
 ### What's the best free AI trip planner?
 

@@ -4,7 +4,7 @@ slug: "spring-summer-travel-guide"
 description: "Dove andare da marzo ad agosto 2026 — ordinato per ciò che vuoi davvero: massimo caldo, alternative fresche, valore di mezza stagione o eventi specifici. Una guida che sostituisce tre listini stagionali."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: '2026-08-24'
 category: "Seasonal Travel"
 tags: ["stagionale", "viaggi di primavera", "viaggi estivi", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/spring-summer-travel-guide.jpg"
@@ -137,7 +137,7 @@ Per una struttura settimanale completa vedi l'[itinerario di Tokyo di 4 giorni](
 
 ## 🏔 Se vuoi fuggire dal caldo: scelte di coolcation
 
-Qui i numeri si sono spostati più forte. Tre anni fa, la coolcation era l'alternativa silenziosa. Ora le ricerche di voli verso la Scandinavia per l'estate 2026 sono salite del 35% anno su anno secondo i dati Skyscanner. Le Isole Faroe hanno un sistema di prenotazione per i visitatori. Il turismo in Islanda è cresciuto del 22% l'estate scorsa.
+Qui i numeri si sono spostati più forte. Tre anni fa, la coolcation era l'alternativa silenziosa. Ora è semplicemente l'opzione mainstream, e i dati lo confermano. Le Isole Faroe hanno un sistema di prenotazione per i visitatori. L'Islanda ha accolto poco meno di 2,3 milioni di visitatori stranieri con pernottamento nel 2025, con agosto a segnare un record mensile storico, e i pernottamenti in strutture registrate sono saliti del 9,1% sul 2024.
 
 Il divario di temperatura è il titolone. Mentre il Mediterraneo media 30-33 °C a luglio e agosto (con picchi regolari a 42-45 °C), le destinazioni qui sotto stanno tra 10 e 25 °C. Sono 15-20 °C di differenza. Una giornata intera di trekking invece di una seduta di sudore a forma di piscina.
 

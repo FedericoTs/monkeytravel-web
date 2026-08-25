@@ -51,7 +51,7 @@ Existem três categorias de ferramentas de viagem com AI, e elas funcionam de ma
 
 **Em que são bons:** Gerar ideias rapidamente. Se você não faz a menor ideia de para onde ir e quer inspiração com base em critérios vagos ("algum lugar quente na Europa, menos de $100/dia, boa comida"), os chatbots são um bom ponto de partida.
 
-**Onde falham:** Eles alucinam. Um estudo de 2025 descobriu que os chatbots de AI gerais recomendavam restaurantes que já tinham fechado, inventavam atrações que não existem e davam orientações de transporte imprecisas em cerca de 15 a 20% das vezes. Eles não verificam nada contra dados do mundo real. Soam confiantes ao falar de restaurantes fictícios.
+**Onde falham:** Eles alucinam. Os chatbots genéricos recomendam restaurantes que fecharam no ano passado, inventam atrações do nada e dão orientações de transporte que valiam para outra cidade. Não existe um número publicado confiável sobre com que frequência isso acontece — desconfie de qualquer percentual preciso que você vir citado, aqui ou em qualquer lugar. Mas o mecanismo não é misterioso: eles não verificam nada contra dados do mundo real. Soam exatamente tão confiantes falando de um restaurante fictício quanto de um real.
 
 Eles também não conseguem criar roteiros estruturados e prontos para reserva. Você recebe um parágrafo de sugestões, não um plano dia a dia com horários, preços e rotas a pé.
 
@@ -141,11 +141,11 @@ Digite um destino e veja o que o seu parceiro de viagem com AI vai sugerir.
 
 ### O planejamento de viagens com AI é confiável em 2026?
 
-Os planejadores de viagem com AI dedicados que usam dados de locais em tempo real (Google Places, avaliações verificadas) têm cerca de 90% de precisão. Chatbots gerais como o ChatGPT são menos confiáveis para detalhes específicos — algo em torno de 80 a 85% de precisão. Sempre verifique os horários de funcionamento e fechamentos recentes antes da sua viagem.
+Os planejadores que checam dados de locais em tempo real (Google Places, avaliações verificadas) são bem mais confiáveis nos detalhes do que um chatbot genérico respondendo de memória. Não vamos te dar um percentual de precisão: não existe número publicado confiável para viagens, e os que circulam são estimativas que viraram fatos de tanto serem repetidas. Sempre verifique os horários de funcionamento e fechamentos recentes antes da sua viagem.
 
 ### A AI vai substituir os agentes de viagem?
 
-Não totalmente. A AI dá conta de 80% do planejamento de viagens padrão de forma mais rápida e barata. Os agentes de viagem continuam valiosos para viagens de luxo complexas, roteiros com vários vistos, luas de mel que exigem uma execução impecável e destinos com pouca informação on-line. O futuro provavelmente será uma abordagem híbrida.
+Não totalmente. A AI dá conta da maior parte do trabalho padrão e repetitivo de forma mais rápida e barata. Os agentes de viagem continuam valiosos para viagens de luxo complexas, roteiros com vários vistos, luas de mel que exigem uma execução impecável e destinos com pouca informação on-line. O futuro provavelmente será uma abordagem híbrida.
 
 ### Qual é o melhor planejador de viagens com AI gratis?
 

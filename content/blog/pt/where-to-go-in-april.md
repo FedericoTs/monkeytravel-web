@@ -303,4 +303,3 @@ Japão na janela da sakura (28 de março a 7 de abril): sim, imediatamente — v
 - [Visit Petra — Informações ao Visitante](https://visitpetra.jo/)
 - [World Weather Online — Dados Climáticos Históricos](https://www.worldweatheronline.com/)
 - [Numbeo — Banco de Dados de Custo de Vida](https://www.numbeo.com/cost-of-living/)
-- [Skyscanner — Tendências de Preços de Voos em Abril 2026](https://www.skyscanner.com/)

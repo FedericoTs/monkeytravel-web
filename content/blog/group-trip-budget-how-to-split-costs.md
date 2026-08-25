@@ -84,7 +84,7 @@ There's no single right answer here. The best system depends on your group's siz
 
 **How it works:** People pay a percentage based on what they can afford. If one person earns twice what another earns, they pay a bigger share of shared costs. Not double — but more.
 
-**How to have this conversation without it being awful:** Don't ask people to reveal their salaries. Instead, frame it as budget tiers. "How about we do three levels: standard, comfortable, and generous? Pick the one that feels right for you, and we'll split proportionally." A 2024 survey by Go Overseas found that 46% of group travelers now practice what researchers call "radical transparency" about finances before a trip — meaning almost half of travelers are already having some version of this conversation.
+**How to have this conversation without it being awful:** Don't ask people to reveal their salaries. Instead, frame it as budget tiers. "How about we do three levels: standard, comfortable, and generous? Pick the one that feels right for you, and we'll split proportionally." Framing it as tiers rather than salaries is the whole trick: nobody has to disclose anything, and everyone still lands somewhere honest.
 
 **Example:** On a trip for three people, shared expenses total $3,000. Person A picks the "generous" tier and pays $1,200 (40%). Persons B and C split the remaining $1,800 at $900 each (30%). Nobody needs to justify their income. Nobody feels taken advantage of.
 
@@ -160,7 +160,7 @@ Splitwise is the most widely used and handles multi-currency trips well. For bud
 
 ### Should you split costs equally if someone earns more?
 
-There's no universal rule. In some friend groups, equal splits feel fair because everyone agreed to the trip at the stated budget. In others, proportional splitting is the norm, especially if the higher earner pushed for more expensive options. The key is to have the conversation before booking. Ask directly: "Are we comfortable splitting everything equally, or does a proportional approach feel better for anyone?" Most people are relieved someone asked. According to Go Overseas research, groups that discuss finances before departure report significantly higher trip satisfaction than those that wing it.
+There's no universal rule. In some friend groups, equal splits feel fair because everyone agreed to the trip at the stated budget. In others, proportional splitting is the norm, especially if the higher earner pushed for more expensive options. The key is to have the conversation before booking. Ask directly: "Are we comfortable splitting everything equally, or does a proportional approach feel better for anyone?" Most people are relieved someone asked — the conversation is far less awkward than the resentment it prevents.
 
 ### How do you handle someone who doesn't pay their share after the trip?
 
@@ -168,4 +168,4 @@ Start with a direct, private message two weeks after you return. Be specific: "H
 
 ---
 
-*Sources: [Charles Schwab Modern Wealth Survey 2024](https://www.schwab.com/learn/story/modern-wealth-survey), [Go Overseas — Group Travel Finance Survey](https://www.gooverseas.com/), [Fodor's Travel — How to Split Costs on Group Trips](https://www.fodors.com/), [CNBC — How to Travel With Friends Without Ruining the Friendship](https://www.cnbc.com/select/how-to-split-costs-on-a-trip-with-friends/), [Splitwise Blog — Travel Expense Reports](https://blog.splitwise.com/)*
+*Sources: [Splitwise Blog](https://blog.splitwise.com/)*

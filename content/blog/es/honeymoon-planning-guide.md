@@ -422,9 +422,7 @@ Diseñar el Día 1 para que esté vacío. Casi nadie lo hace. Casi todos se arre
 *Fuentes:*
 
 - [The Knot — Real Weddings Study 2025](https://www.theknot.com/content/honeymoon-statistics)
-- [Booking.com — Honeymoon Travel Report 2026](https://www.booking.com/articles/)
 - [Condé Nast Traveler — Honeymoon Trends 2026](https://www.cntraveler.com/)
-- [Skyscanner — Honeymoon Flight Trends 2026](https://www.skyscanner.com/)
 - [Budget Your Trip — Average Daily Costs by Destination](https://www.budgetyourtrip.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)
 - [World Weather Online — Historical Climate Data](https://www.worldweatheronline.com/)

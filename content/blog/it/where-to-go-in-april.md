@@ -302,4 +302,3 @@ Giappone nella finestra del sakura (28 marzo-7 aprile): sì, subito; voli e hote
 - [Visit Petra — Informazioni per i visitatori](https://visitpetra.jo/)
 - [World Weather Online — Dati climatici storici](https://www.worldweatheronline.com/)
 - [Numbeo — Database del costo della vita](https://www.numbeo.com/cost-of-living/)
-- [Skyscanner — Andamento dei prezzi dei voli ad aprile 2026](https://www.skyscanner.com/)
