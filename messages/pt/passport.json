@@ -1,0 +1,47 @@
+{
+  "breadcrumb": "Passaportes",
+  "h1": "Para onde você pode ir com um passaporte {country}?",
+  "lede": "Um passaporte {country} abre <strong>{count} de {total} destinos</strong> sem nenhuma burocracia antes de voar: sem visto ou com visto na chegada. Todo o resto está abaixo, agrupado pelo que realmente exige de você.",
+  "days": "{days} dias",
+  "others": "Outros passaportes",
+  "status": {
+    "visaFree": {
+      "label": "Sem visto",
+      "blurb": "Você chega com o passaporte. Alguns ainda pedem cartão de entrada ou registro turístico, mas nada que se solicite antes."
+    },
+    "visaOnArrival": {
+      "label": "Visto na chegada",
+      "blurb": "Emitido na fronteira quando você desembarca. Normalmente uma taxa e uma fila, às vezes uma foto, mas nenhuma solicitação antes da viagem."
+    },
+    "eta": {
+      "label": "Autorização eletrônica de viagem",
+      "blurb": "Uma eTA não é um visto, mas você precisa solicitar e ser aprovado ANTES de embarcar. É a categoria em que mais gente se perde."
+    },
+    "eVisa": {
+      "label": "Visto eletrônico",
+      "blurb": "Solicitado online antes da viagem. Mais rápido que um visto consular, mas ainda é um pedido com prazo de análise: deixe folga."
+    },
+    "visaRequired": {
+      "label": "Visto obrigatório",
+      "blurb": "Um visto completo, normalmente por consulado ou centro de vistos. Conte semanas, não dias."
+    },
+    "noAdmission": {
+      "label": "Entrada não permitida",
+      "blurb": "No momento não é possível entrar com este passaporte."
+    }
+  },
+  "cta": {
+    "heading": "Agora escolha um e planeje",
+    "body": "Você já sabe para onde pode ir. A próxima pergunta é o que fazer ao chegar: um plano dia a dia completo, grátis e sem conta.",
+    "button": "Planejar uma viagem grátis"
+  },
+  "sources": {
+    "heading": "De onde vêm estes dados e o que eles não são",
+    "body": "Construído a partir do conjunto de dados aberto passport-index, atualizado todas as noites. É um apoio ao planejamento, não uma orientação jurídica: as regras de visto mudam sem aviso e a exigência que se aplica a você pode depender da rota, do motivo da viagem e do tempo de permanência. Confirme com a autoridade do destino antes de reservar.",
+    "checkerLink": "Consultar um passaporte e destino específicos"
+  },
+  "meta": {
+    "title": "Passaporte {country}: {count} destinos sem visto",
+    "description": "Um passaporte {country} entra sem visto em {free} destinos e {count} no total não exigem nada antes de voar. Mais cada país com eTA ou visto."
+  }
+}

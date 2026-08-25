@@ -1,0 +1,47 @@
+{
+  "breadcrumb": "Pasaportes",
+  "h1": "¿Adónde puedes ir con un pasaporte de {country}?",
+  "lede": "Un pasaporte de {country} te abre <strong>{count} de {total} destinos</strong> sin ningún trámite antes de volar: sin visado o con visado a la llegada. Todo lo demás está abajo, agrupado por lo que realmente te exige.",
+  "days": "{days} días",
+  "others": "Otros pasaportes",
+  "status": {
+    "visaFree": {
+      "label": "Sin visado",
+      "blurb": "Te presentas con el pasaporte. Algunos piden una tarjeta de entrada o un registro turístico, pero nada que solicites por adelantado."
+    },
+    "visaOnArrival": {
+      "label": "Visado a la llegada",
+      "blurb": "Se emite en la frontera al aterrizar. Normalmente una tasa y una cola, a veces una foto, pero ninguna solicitud previa al viaje."
+    },
+    "eta": {
+      "label": "Autorización electrónica de viaje",
+      "blurb": "Una eTA no es un visado, pero tienes que solicitarla y que te la aprueben ANTES de embarcar. Es la categoría que más gente pasa por alto."
+    },
+    "eVisa": {
+      "label": "Visado electrónico",
+      "blurb": "Se solicita online antes del viaje. Más rápido que un visado consular, pero sigue siendo una solicitud con plazos: deja margen."
+    },
+    "visaRequired": {
+      "label": "Visado obligatorio",
+      "blurb": "Un visado completo, normalmente por consulado o centro de visados. Cuenta semanas, no días."
+    },
+    "noAdmission": {
+      "label": "Entrada no permitida",
+      "blurb": "Actualmente no es posible entrar con este pasaporte."
+    }
+  },
+  "cta": {
+    "heading": "Ahora elige uno y planifícalo",
+    "body": "Ya sabes adónde puedes ir. La siguiente pregunta es qué hacer al llegar: un plan día a día completo, gratis y sin cuenta.",
+    "button": "Planificar un viaje gratis"
+  },
+  "sources": {
+    "heading": "De dónde sale esto y qué no es",
+    "body": "Construido con el conjunto de datos abierto passport-index, actualizado cada noche. Es una ayuda para planificar, no asesoramiento legal: las normas de visado cambian sin aviso y el requisito que se te aplica puede depender de tu ruta, del motivo del viaje y de cuánto te quedes. Confirma con la autoridad del destino antes de reservar.",
+    "checkerLink": "Consultar un pasaporte y un destino concretos"
+  },
+  "meta": {
+    "title": "Pasaporte de {country}: {count} destinos sin visado",
+    "description": "Un pasaporte de {country} entra sin visado en {free} destinos y {count} en total no piden nada antes de volar. Más cada país con eTA o visado."
+  }
+}

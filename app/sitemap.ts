@@ -4,6 +4,7 @@ import { getAllSlugs as getBlogSlugs, getPostDates, hasLocaleTranslation } from 
 import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/lib/blog/tags";
 import { getAllAuthors } from "@/lib/blog/authors";
 import { competitorSlugs } from "@/lib/comparison/competitors";
+import { allPassportSlugs } from "@/lib/visa/passport-pages";
 
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
@@ -131,6 +132,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // sitemap. Monthly cadence: claims are re-verified, not rewritten.
   const comparePaths = competitorSlugs().map((slug) => `/compare/${slug}`);
 
+  // **2026-08-25**: per-passport "where can I actually go" pages. Derived from
+  // the shortlist in lib/visa/passport-pages.ts so adding a passport never
+  // means editing the sitemap. That list is 20 passports chosen from measured
+  // Search Console audience, NOT all 199 — see that file for why.
+  //
+  // Weekly, not monthly: the underlying matrix is refreshed nightly from
+  // upstream, so the content genuinely can change between crawls.
+  const passportPaths = allPassportSlugs().map((slug) => `/passport/${slug}`);
+
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;
     for (const path of seoLandingPaths) {
@@ -154,6 +164,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${baseUrl}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'monthly',
+        priority: PRIORITY_LANDING,
+      });
+    }
+    for (const path of passportPaths) {
+      landingPages.push({
+        url: `${baseUrl}${prefix}${path}`,
+        lastModified: ptAware(locale, LASTMOD_LANDING),
+        changeFrequency: 'weekly',
         priority: PRIORITY_LANDING,
       });
     }

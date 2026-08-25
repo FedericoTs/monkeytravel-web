@@ -1,0 +1,47 @@
+{
+  "breadcrumb": "Passaporti",
+  "h1": "Dove puoi andare con un passaporto {country}?",
+  "lede": "Un passaporto {country} ti apre <strong>{count} destinazioni su {total}</strong> senza alcuna pratica prima di partire: senza visto o con visto all'arrivo. Tutto il resto è qui sotto, raggruppato per quello che ti chiede davvero.",
+  "days": "{days} giorni",
+  "others": "Altri passaporti",
+  "status": {
+    "visaFree": {
+      "label": "Senza visto",
+      "blurb": "Ti presenti con il passaporto. Alcuni chiedono comunque una carta d'ingresso o una registrazione turistica, ma nulla da richiedere in anticipo."
+    },
+    "visaOnArrival": {
+      "label": "Visto all'arrivo",
+      "blurb": "Rilasciato alla frontiera quando atterri. Di solito una tassa e una fila, a volte una foto, ma nessuna domanda prima del viaggio."
+    },
+    "eta": {
+      "label": "Autorizzazione di viaggio elettronica",
+      "blurb": "Una eTA non è un visto, ma devi richiederla ed essere approvato PRIMA di imbarcarti. È la categoria in cui si cade più spesso."
+    },
+    "eVisa": {
+      "label": "Visto elettronico",
+      "blurb": "Si richiede online prima del viaggio. Più veloce di un visto consolare, ma resta una domanda con tempi di lavorazione: lascia margine."
+    },
+    "visaRequired": {
+      "label": "Visto obbligatorio",
+      "blurb": "Un visto vero e proprio, di solito tramite consolato o centro visti. Conta settimane, non giorni."
+    },
+    "noAdmission": {
+      "label": "Ingresso non consentito",
+      "blurb": "Al momento non è possibile entrare con questo passaporto."
+    }
+  },
+  "cta": {
+    "heading": "Ora scegline una e pianificala",
+    "body": "Sai dove puoi andare. La domanda successiva è cosa fare una volta arrivato: un piano giorno per giorno completo, gratis e senza account.",
+    "button": "Pianifica un viaggio gratis"
+  },
+  "sources": {
+    "heading": "Da dove arrivano questi dati e cosa non sono",
+    "body": "Costruito sul dataset aperto passport-index, aggiornato ogni notte. È un aiuto alla pianificazione, non una consulenza legale: le regole sui visti cambiano senza preavviso e il requisito che ti riguarda può dipendere dal percorso, dal motivo del viaggio e da quanto ti fermi. Verifica con l'autorità del paese di destinazione prima di prenotare.",
+    "checkerLink": "Verifica una coppia passaporto-destinazione specifica"
+  },
+  "meta": {
+    "title": "Passaporto {country}: {count} destinazioni senza visto",
+    "description": "Un passaporto {country} entra senza visto in {free} destinazioni e {count} in totale non chiedono nulla prima di partire. Più ogni paese con eTA o visto."
+  }
+}

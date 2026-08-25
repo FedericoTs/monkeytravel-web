@@ -1,0 +1,47 @@
+{
+  "breadcrumb": "Passports",
+  "h1": "Where can you go with a {country} passport?",
+  "lede": "A {country} passport gets you into <strong>{count} of {total} destinations</strong> with no paperwork before you fly — visa-free or a visa issued on arrival. Everything else is below, grouped by what it actually asks of you.",
+  "days": "{days} days",
+  "others": "Other passports",
+  "status": {
+    "visaFree": {
+      "label": "Visa free",
+      "blurb": "Turn up with your passport. Some of these still ask for an arrival card or a tourist registration, but nothing you apply for in advance."
+    },
+    "visaOnArrival": {
+      "label": "Visa on arrival",
+      "blurb": "Issued at the border when you land. Usually a fee and a queue, occasionally a photo — but no application before you travel."
+    },
+    "eta": {
+      "label": "Electronic travel authorisation",
+      "blurb": "An eTA is not a visa, but you do have to apply and be approved BEFORE you board. This is the category people most often get caught out by."
+    },
+    "eVisa": {
+      "label": "e-Visa",
+      "blurb": "Applied for online ahead of the trip. Faster than a consulate visa, but still an application with a processing time — leave room for it."
+    },
+    "visaRequired": {
+      "label": "Visa required",
+      "blurb": "A full visa, usually through a consulate or visa centre. Plan weeks, not days."
+    },
+    "noAdmission": {
+      "label": "Entry not permitted",
+      "blurb": "Entry is not currently possible on this passport."
+    }
+  },
+  "cta": {
+    "heading": "Now pick one and plan it",
+    "body": "You know where you can go. The next question is what to do when you get there — a full day-by-day plan, free, no account.",
+    "button": "Plan a trip free"
+  },
+  "sources": {
+    "heading": "Where this comes from, and what it is not",
+    "body": "Built from the open passport-index dataset, refreshed nightly. This is a planning aid, not legal advice: visa rules change without notice, and the requirement that applies to you can depend on your route, your purpose of travel and how long you stay. Confirm with the destination's own authority before you book.",
+    "checkerLink": "Check a specific passport and destination pair"
+  },
+  "meta": {
+    "title": "{country} Passport: {count} Visa-Free Destinations",
+    "description": "A {country} passport is visa-free for {free} destinations, and {count} in total need nothing before you fly. Plus every eTA, e-visa and visa country."
+  }
+}
