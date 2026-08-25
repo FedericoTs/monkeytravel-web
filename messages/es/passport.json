@@ -45,5 +45,5 @@
     "description": "Un pasaporte de {country} entra sin visado en {free} destinos y {count} en total no piden nada antes de volar. Más cada país con eTA o visado."
   },
   "mapTitle": "Adónde llega un pasaporte de {country}",
-  "mapCaption": "Coloreado según lo que cada país exige a un pasaporte de {country}. Los microestados y las islas pequeñas —Singapur, Malta, Maldivas y otros 29— son demasiado pequeños para dibujarse a esta escala; están todos en las listas de abajo."
+  "mapCaption": "Coloreado según lo que cada país exige a un pasaporte de {country}. Tuvalu y Kosovo no se dibujan —no tienen polígono en la geometría de origen— pero ambos están en las listas de abajo."
 }

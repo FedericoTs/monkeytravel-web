@@ -45,5 +45,5 @@
     "description": "Um passaporte {country} entra sem visto em {free} destinos e {count} no total não exigem nada antes de voar. Mais cada país com eTA ou visto."
   },
   "mapTitle": "Até onde vai um passaporte {country}",
-  "mapCaption": "Colorido pelo que cada país exige de um passaporte {country}. Microestados e ilhas pequenas — Singapura, Malta, Maldivas e outros 29 — são pequenos demais para desenhar nesta escala; estão todos nas listas abaixo."
+  "mapCaption": "Colorido pelo que cada país exige de um passaporte {country}. Tuvalu e Kosovo não são desenhados — não têm polígono na geometria de origem — mas ambos aparecem nas listas abaixo."
 }

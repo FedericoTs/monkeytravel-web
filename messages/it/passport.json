@@ -45,5 +45,5 @@
     "description": "Un passaporto {country} entra senza visto in {free} destinazioni e {count} in totale non chiedono nulla prima di partire. Più ogni paese con eTA o visto."
   },
   "mapTitle": "Dove arriva un passaporto {country}",
-  "mapCaption": "Colorato in base a ciò che ogni paese chiede a un passaporto {country}. I microstati e le piccole isole — Singapore, Malta, Maldive e altri 29 — sono troppo piccoli per essere disegnati a questa scala: sono tutti negli elenchi qui sotto."
+  "mapCaption": "Colorato in base a ciò che ogni paese chiede a un passaporto {country}. Tuvalu e Kosovo non sono disegnati — non hanno un poligono nella geometria di origine — ma sono entrambi negli elenchi qui sotto."
 }

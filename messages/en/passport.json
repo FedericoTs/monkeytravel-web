@@ -45,5 +45,5 @@
     "description": "A {country} passport is visa-free for {free} destinations, and {count} in total need nothing before you fly. Plus every eTA, e-visa and visa country."
   },
   "mapTitle": "Where a {country} passport can go",
-  "mapCaption": "Coloured by what each country asks of a {country} passport. Micro-states and small islands — Singapore, Malta, the Maldives and 29 others — are too small to draw at this scale; they are all in the lists below."
+  "mapCaption": "Coloured by what each country asks of a {country} passport. Tuvalu and Kosovo are not drawn — they have no polygon in the source geometry — but both appear in the lists below."
 }

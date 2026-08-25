@@ -13,16 +13,19 @@ import type { VisaStatus } from "@/lib/visa/types";
  * It is rendered inline rather than fetched as a static asset on purpose. A
  * client-fetched map pops in after paint, and this site is already failing
  * Core Web Vitals on CLS (homepage p75 0.57); adding another late-arriving
- * block would make that worse. Inline costs ~37KB gzipped and the fixed
- * viewBox plus aspect-ratio box means the space is reserved before first paint.
+ * block would make that worse. Inline costs ~88KB gzipped at 50m, and the
+ * fixed viewBox plus aspect-ratio box reserves the space before first paint.
  *
  * COVERAGE — STATED, NOT HIDDEN
- * The 110m Natural Earth geometry has no polygon for 32 of the 199 destinations
- * in the visa matrix: micro-states and small island nations, including real
- * destinations like Singapore, Malta, Maldives, Mauritius, Seychelles and Hong
- * Kong. They are too small to draw at this scale. Every one of them appears in
- * the grouped lists below the map, and the caption says so — a map that
- * silently omits a sixth of the answer would be worse than no map.
+ * Built from 50m Natural Earth geometry, which covers 197 of the 199
+ * destinations in the visa matrix. Only Tuvalu and Kosovo are undrawn: Kosovo
+ * has no official ISO alpha-2 code at all, and Tuvalu has no polygon carrying
+ * one in the source. Both still appear in the grouped lists below, and the
+ * caption names them.
+ *
+ * The earlier 110m build was missing 32 destinations — Singapore, Malta, the
+ * Maldives, Mauritius, Seychelles, Hong Kong and 26 more — which is why the
+ * resolution was raised.
  */
 
 interface Props {

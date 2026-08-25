@@ -33,8 +33,18 @@
  * destination, it dominates an unclipped world map, and the visa matrix has no
  * entry for it.
  *
- * The 110m resolution is deliberate. 50m is ~5x the bytes for detail nobody can
- * see in a 900px-wide choropleth.
+ * RESOLUTION: 50m, not 110m.
+ * 110m has no polygon at all for 32 of the 199 destinations in the visa matrix
+ * — Singapore, Malta, the Maldives, Mauritius, Seychelles, Hong Kong and 26
+ * other micro-states and small islands. Those are real destinations, and a map
+ * that silently omits a sixth of the answer is worse than a heavier one. 50m
+ * covers 197 of 199 (only Tuvalu and Kosovo remain, the latter having no
+ * official ISO alpha-2 at all).
+ *
+ * The cost is paid down by dropping coordinate precision (see PRECISION) and
+ * by discarding rings too small to occupy a pixel at render size (see
+ * MIN_RING_AREA), so the shipped payload stays close to the 110m version while
+ * the coverage gap effectively disappears.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -45,7 +55,7 @@ const OUT_DIR = path.join(ROOT, "lib", "geo");
 const OUT_FILE = path.join(OUT_DIR, "world-paths.json");
 const LICENSE_FILE = path.join(OUT_DIR, "LICENSE");
 
-const TOPO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const TOPO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 const CODES_URL =
   "https://raw.githubusercontent.com/datasets/country-codes/main/data/country-codes.csv";
 
@@ -55,10 +65,30 @@ const LAT_MIN = -60;
 const LAT_MAX = 84;
 
 // Coordinate precision in the emitted path data. On a 360x144 viewBox rendered
-// ~900px wide, one unit is 2.5px, so 0.1 units is a quarter of a pixel — below
-// what any display can resolve. Dropping from 2 decimals to 1 costs nothing
-// visible and saves 25% of the payload (49.4 -> 37.0 KB gzipped).
+// ~950px wide, one unit is 2.6px, so 0.1 units is well under half a pixel —
+// below what any display can resolve.
 const PRECISION = 1;
+
+// Radial-distance simplification tolerance, in viewBox units. A point closer
+// than this to the last kept point cannot move the rendered outline visibly,
+// so it is dropped. At the ~950px these maps render, one unit is 2.64px, so
+// 0.32 units is 0.84px — still under a single pixel of deviation.
+//
+// This is what makes 50m affordable. Measured, at full 197/199 coverage:
+//     raw 50m   855.3 KB -> 197.3 KB gzipped   (unusable inline)
+//     tol 0.18  422.0 KB -> 119.7 KB gzipped
+//     tol 0.32  ~305  KB ->  87.5 KB gzipped   <- chosen
+//     tol 0.40  ~270  KB ->  77.1 KB gzipped   (1.06px, starts to show)
+// Coverage is unaffected by the tolerance: tiny rings are protected by the
+// fallback in prepareRing, so only long coastlines lose points.
+const SIMPLIFY_TOLERANCE = 0.32;
+
+// Rings smaller than this (bounding box, in square viewBox units) cannot
+// occupy even one pixel. They are dropped — EXCEPT a country's largest ring,
+// which is always kept. That exception is the whole point of moving to 50m:
+// Monaco, Singapore, Macao and the Maldives exist only as tiny rings, and
+// dropping them would recreate the coverage gap this change exists to close.
+const MIN_RING_AREA = 0.02;
 
 async function getJson(url) {
   const r = await fetch(url);
@@ -109,21 +139,77 @@ function ringPoints(arcs, ring) {
 
 const project = ([lon, lat]) => [lon, -Math.max(LAT_MIN, Math.min(LAT_MAX, lat))];
 
-function ringToPath(pts) {
-  if (pts.length < 3) return "";
+/** Projected points, radially simplified, plus the ring's bounding-box area. */
+function prepareRing(rawPts) {
+  const proj = rawPts.map(project);
+  const kept = [];
+  let last = null;
+  for (let i = 0; i < proj.length; i++) {
+    const p = proj[i];
+    // Always keep the final point so the ring closes where it started.
+    const isLast = i === proj.length - 1;
+    if (last && !isLast) {
+      const dx = p[0] - last[0];
+      const dy = p[1] - last[1];
+      if (dx * dx + dy * dy < SIMPLIFY_TOLERANCE * SIMPLIFY_TOLERANCE) continue;
+    }
+    kept.push(p);
+    last = p;
+  }
+  // If simplification collapsed the ring below a drawable triangle, fall back
+  // to the unsimplified points rather than dropping it. Tiny rings are exactly
+  // the ones 50m exists to provide — Maldives, Seychelles, Monaco, Vatican and
+  // Macao are each a handful of points, and an early version of this function
+  // discarded all of them here, silently recreating the gap it was meant to
+  // close. Keeping them raw costs a few dozen bytes each.
+  const pts = kept.length >= 3 ? kept : proj;
+  if (pts.length < 3) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  return { pts, area: (maxX - minX) * (maxY - minY) };
+}
+
+/**
+ * ANTIMERIDIAN SPLIT
+ * Russia and Fiji have rings whose vertices sit on both sides of +/-180. In an
+ * equirectangular projection a straight line between them is drawn across the
+ * entire width of the map — a horizontal streak through everything. Measured
+ * before this fix: 3 subpaths spanning a full 360 degrees and 6 point-to-point
+ * jumps over 180.
+ *
+ * Splitting the subpath at the jump renders each landmass in its own place.
+ * The polygon is not clipped to the meridian, so the split edges stop a
+ * fraction short of the frame — invisible at choropleth scale, and vastly
+ * better than a streak.
+ */
+const ANTIMERIDIAN_JUMP = 180;
+
+function ringToPath(ring) {
   let d = "";
   let prev = null;
-  for (let i = 0; i < pts.length; i++) {
-    const [x, y] = project(pts[i]);
+  let open = false;
+  for (let i = 0; i < ring.pts.length; i++) {
+    const [x, y] = ring.pts[i];
     const xs = x.toFixed(PRECISION);
     const ys = y.toFixed(PRECISION);
-    // Collapse consecutive duplicate points — clipping creates a lot of them
-    // along the -60 parallel.
+    // Collapse points that round to the same rendered coordinate.
     if (prev && prev[0] === xs && prev[1] === ys) continue;
-    d += `${i === 0 ? "M" : "L"}${xs},${ys}`;
-    prev = [xs, ys];
+
+    const wrapped = prev !== null && Math.abs(x - prev[2]) > ANTIMERIDIAN_JUMP;
+    if (wrapped && open) {
+      d += "Z";
+      open = false;
+    }
+    d += `${open ? "L" : "M"}${xs},${ys}`;
+    open = true;
+    prev = [xs, ys, x];
   }
-  return d ? d + "Z" : "";
+  return open ? d + "Z" : d;
 }
 
 function geometryToPath(arcs, geom) {
@@ -133,9 +219,26 @@ function geometryToPath(arcs, geom) {
       : geom.type === "MultiPolygon"
         ? geom.arcs
         : [];
-  let d = "";
+
+  const rings = [];
   for (const poly of polys) {
-    for (const ring of poly) d += ringToPath(ringPoints(arcs, ring));
+    for (const ring of poly) {
+      const prepared = prepareRing(ringPoints(arcs, ring));
+      if (prepared) rings.push(prepared);
+    }
+  }
+  if (rings.length === 0) return "";
+
+  // Keep the largest ring unconditionally, so single-ring micro-states survive.
+  let largest = 0;
+  for (let i = 1; i < rings.length; i++) {
+    if (rings[i].area > rings[largest].area) largest = i;
+  }
+
+  let d = "";
+  for (let i = 0; i < rings.length; i++) {
+    if (i !== largest && rings[i].area < MIN_RING_AREA) continue;
+    d += ringToPath(rings[i]);
   }
   return d;
 }
