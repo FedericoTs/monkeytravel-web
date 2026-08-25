@@ -82,7 +82,14 @@ export default function HeroTripInput({
               key={dest}
               type="button"
               onClick={() => go(dest)}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              // These rendered at 61x30 / 55x30 / 48x30 — under the 44px touch
+              // target both iOS (44pt) and Android (48dp) ask for, on the first
+              // control most mobile visitors meet. Width already cleared 44px
+              // (smallest was "Bali" at 48); only height was short. min-h plus
+              // inline-flex rather than more py- so the target holds if the
+              // font or line-height changes. px-4 keeps the pill proportion
+              // sane now that it is 44px tall.
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 bg-white px-4 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
             >
               {dest}
             </button>
