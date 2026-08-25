@@ -1298,11 +1298,36 @@ export default function NewTripPage({
     tripIntent,
   };
 
+  // One id per wizard MOUNT, written into every trip this mount inserts.
+  //
+  // This is the fact forensics could not recover. Both Dubrovnik rows on
+  // 2026-08-25 came from the auto arm (proved via trip_meta.destination), so
+  // savedTripIdRef was null on the second insert — but nothing in the row said
+  // whether that was a remount (reload/second tab, where null is correct) or
+  // the ref being lost inside one mount (a real bug). Same mount id on both
+  // rows means the latter.
+  //
+  // useRef, not useState: it must never trigger a render, and it must survive
+  // every re-render of this very large component without changing.
+  const wizardMountIdRef = useRef<string | null>(null);
+  if (wizardMountIdRef.current === null && typeof window !== "undefined") {
+    wizardMountIdRef.current =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        // Older Safari has crypto but not randomUUID. A collision here costs a
+        // slightly ambiguous diagnostic, nothing user-facing, so a cheap
+        // fallback beats pulling in a dependency.
+        : `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
-    return persistInsertTrip(supabase, input, user.id);
+    return persistInsertTrip(supabase, input, user.id, {
+      arm: "auto",
+      mountId: wizardMountIdRef.current,
+    });
   }, []);
 
   const autoUpdateTrip = useCallback(async (tripId: string, input: PersistInput) => {
@@ -2292,6 +2317,15 @@ export default function NewTripPage({
 
       // Build trip metadata from generated itinerary (preserves AI-generated data)
       const tripMeta = {
+        // Provenance - the same two keys the auto arm writes via SaveOrigin,
+        // so a duplicate pair states which arm produced each row and whether
+        // they came from the same wizard mount. Deliberately no longer
+        // inferred from trip_meta.destination's absence here: that only ever
+        // worked because this object happens to lack that key.
+        save_arm: "manual" as const,
+        ...(wizardMountIdRef.current
+          ? { wizard_mount_id: wizardMountIdRef.current }
+          : {}),
         weather_note: generatedItinerary.destination.weather_note,
         highlights: generatedItinerary.trip_summary.highlights,
         booking_links: generatedItinerary.booking_links,

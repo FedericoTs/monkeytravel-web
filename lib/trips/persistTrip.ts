@@ -72,6 +72,27 @@ export interface TripFormState {
   tripIntent?: "solo" | "group" | "unspecified";
 }
 
+/**
+ * Which code path created a trip row, and which wizard mount it came from.
+ *
+ * Written into trip_meta so a duplicate pair is self-diagnosing instead of
+ * needing forensics. Until now the arm was INFERRED from whether
+ * trip_meta.destination happened to be present (the auto arm writes it, the
+ * manual arm does not) — that worked, but it is an accident of two unrelated
+ * objects rather than a fact either arm states, and it silently breaks the
+ * moment someone adds `destination` to the manual arm's metadata.
+ *
+ * `mountId` is the piece that could not be inferred at all: it distinguishes
+ * "two inserts from ONE wizard mount" (the auto-save ref was cleared — a code
+ * bug) from "two inserts from DIFFERENT mounts" (reload or second tab, where
+ * the ref legitimately starts null).
+ */
+export interface SaveOrigin {
+  arm: "auto" | "manual";
+  /** Stable for the life of one wizard mount. */
+  mountId?: string | null;
+}
+
 export interface PersistInput {
   itinerary: GeneratedItinerary;
   formState: TripFormState;
@@ -113,9 +134,18 @@ export function computeDurationDays(formState: TripFormState): number {
 // joinCities) as part of the P4 regex fix — the local copy had an unescaped
 // \s that ate trailing "s" characters ("Paris, Rome & Milan" → "Pari").
 
-function buildTripRow(input: PersistInput, userId: string, coverImageUrl: string | null) {
+function buildTripRow(
+  input: PersistInput,
+  userId: string,
+  coverImageUrl: string | null,
+  origin?: SaveOrigin,
+) {
   const { itinerary, formState } = input;
   const tripMeta = {
+    // Provenance. See SaveOrigin — cheap to write, and it is what turns the
+    // next duplicate-trip report into a query instead of an investigation.
+    ...(origin ? { save_arm: origin.arm } : {}),
+    ...(origin?.mountId ? { wizard_mount_id: origin.mountId } : {}),
     // Canonical user-specified destination. getTripDestination() prefers this
     // over title-stripping (which breaks on non-English / renamed / multi-city
     // titles). It was previously NEVER written here — a latent bug, despite the
@@ -217,9 +247,10 @@ export async function insertTrip(
   supabase: SupabaseClient,
   input: PersistInput,
   userId: string,
+  origin?: SaveOrigin,
 ): Promise<SaveResult> {
   const fallback = pickFallbackCoverImage(input.itinerary);
-  const row = buildTripRow(input, userId, fallback);
+  const row = buildTripRow(input, userId, fallback, origin);
 
   // Atomic server-side dedupe. The previous check-then-insert here (added
   // 2026-06-01 after paul.harrington@hostelworld.com landed 2 identical
