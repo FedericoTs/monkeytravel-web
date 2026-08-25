@@ -290,6 +290,8 @@ Esse é o funil. Se você conseguir responder a essas seis, vai sair com um dest
 
 ---
 
+*No litoral italiano as faixas de tarifa pesam mais que o mês — [veja como funcionam baixa, média e alta](/blog/alta-e-bassa-stagione-2026).*
+
 ## Perguntas frequentes
 
 ### Quando começa a meia-estação na Europa em 2026?

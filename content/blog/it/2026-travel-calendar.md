@@ -529,6 +529,8 @@ Un'ultima cosa. Se stai scegliendo tra due mesi perché puoi andare solo in uno,
 
 ---
 
+*Pianifichi sul prezzo e non sul meteo? [Le date di alta e bassa stagione](/blog/alta-e-bassa-stagione-2026) spiegano perché i confini cadono sempre di sabato.*
+
 ## Domande frequenti
 
 ### Qual è il mese più economico per viaggiare internazionalmente nel 2026?

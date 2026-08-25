@@ -296,6 +296,8 @@ Questo è l'imbuto. Se riesci a rispondere a queste sei, ne esci con una destina
 
 ---
 
+*Al mare le fasce di listino contano più del mese — [ecco come funzionano bassa, media e alta stagione](/blog/alta-e-bassa-stagione-2026).*
+
 ## Domande frequenti
 
 ### Quando inizia la mezza stagione in Europa nel 2026?

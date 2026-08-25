@@ -523,6 +523,8 @@ Mais uma coisa. Se você está escolhendo entre dois meses porque só pode ir em
 
 ---
 
+*Planeja pelo preço e não pelo clima? [As datas de alta e baixa temporada na Itália](/blog/alta-e-bassa-stagione-2026) explicam por que as fronteiras caem sempre no sábado.*
+
 ## Perguntas frequentes
 
 ### Qual é o mês mais barato para viajar internacionalmente em 2026?

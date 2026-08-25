@@ -289,6 +289,8 @@ That's the funnel. If you can answer those six, you'll exit with a destination y
 
 ---
 
+*On the Italian coast the rate bands matter more than the month — [here is how low, mid and high season actually work](/blog/alta-e-bassa-stagione-2026).*
+
 ## FAQ
 
 ### When does shoulder season start in Europe in 2026?

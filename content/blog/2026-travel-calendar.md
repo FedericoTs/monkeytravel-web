@@ -527,6 +527,8 @@ One more thing. If you're choosing between two months because you can only go in
 
 ---
 
+*Planning around price rather than weather? [Italy's low and high season dates](/blog/alta-e-bassa-stagione-2026) explains why the boundaries always land on a Saturday.*
+
 ## FAQ
 
 ### What's the cheapest month to travel internationally in 2026?

@@ -296,6 +296,8 @@ Ese es el embudo. Si puedes responder esas seis, saldrás con un destino que rea
 
 ---
 
+*En la costa italiana las franjas de tarifa pesan más que el mes — [así funcionan la baja, la media y la alta](/blog/alta-e-bassa-stagione-2026).*
+
 ## Preguntas frecuentes
 
 ### ¿Cuándo empieza la temporada media en Europa en 2026?

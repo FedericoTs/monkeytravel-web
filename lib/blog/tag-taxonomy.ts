@@ -186,6 +186,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
 
   // --- Seasonal Travel ---
   "2026-travel-calendar":                  { c: ["seasonal", "monthly-guide", "trip-planning"] },
+  "alta-e-bassa-stagione-2026":            { c: ["seasonal", "monthly-guide", "italy", "europe", "trip-planning"] },
   "best-fall-foliage-destinations":        { c: ["seasonal", "autumn-travel", "nature-travel", "best-destinations"] },
   "best-places-to-see-northern-lights":    { c: ["seasonal", "winter-travel", "nature-travel", "best-destinations", "europe"] },
   "great-migration-africa-when-and-where": { c: ["seasonal", "nature-travel", "best-destinations"] },
