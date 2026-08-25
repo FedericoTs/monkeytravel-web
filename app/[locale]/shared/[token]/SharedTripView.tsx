@@ -48,7 +48,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">Loading map...</span>
+      <span className="text-slate-500">Loading map...</span>
     </div>
   ),
 });

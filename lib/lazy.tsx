@@ -45,7 +45,7 @@ export function MapLoadingSkeleton({ className = "" }: { className?: string }) {
         <div className="text-center">
           <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center mx-auto mb-3 shadow-sm">
             <svg
-              className="w-6 h-6 text-slate-400 animate-pulse"
+              className="w-6 h-6 text-slate-500 animate-pulse"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

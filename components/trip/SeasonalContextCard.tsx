@@ -316,7 +316,7 @@ export default function SeasonalContextCard({
                 <div className="text-xs text-slate-500 mt-0.5">
                   {formatTemperatureRange(seasonalContext.avgTemp.min, seasonalContext.avgTemp.max, preferences.temperatureUnit)}
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">
+                <div className="text-xs text-slate-500 mt-0.5">
                   {/* Localize the fallback weather sentence. The seasonal lib
                       returns English text keyed off (season, hemisphere); we
                       reconstruct the same key here. Temperature ranges are
@@ -411,7 +411,7 @@ export default function SeasonalContextCard({
                 );
               })}
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 italic">
+            <p className="text-[10px] text-slate-500 mt-2 italic">
               {t("vibesHint")}
             </p>
           </div>

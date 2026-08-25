@@ -265,7 +265,7 @@ export default function AnonAssistantPanel({
                     <>
                       <p
                         className={`mt-2 text-sm font-medium ${
-                          m.editState === "applied" ? "text-emerald-600" : "text-slate-400"
+                          m.editState === "applied" ? "text-emerald-600" : "text-slate-500"
                         }`}
                       >
                         {m.editState === "applied"
@@ -305,7 +305,7 @@ export default function AnonAssistantPanel({
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-400">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500">
                 {t("assistant.thinking")}
               </div>
             </div>

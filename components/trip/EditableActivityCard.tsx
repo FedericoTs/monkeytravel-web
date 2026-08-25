@@ -251,7 +251,7 @@ function EditableActivityCard({
                     disabled={dayNum - 1 === currentDayIndex}
                     className={`w-full px-3 py-1.5 text-sm text-left ${
                       dayNum - 1 === currentDayIndex
-                        ? "text-slate-400 cursor-not-allowed bg-slate-50"
+                        ? "text-slate-500 cursor-not-allowed bg-slate-50"
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
@@ -445,7 +445,7 @@ function EditableActivityCard({
                     onChange={(e) => setEditValues({ ...editValues, start_time: e.target.value })}
                     className="text-sm border border-slate-200 rounded px-2 py-1 w-24"
                   />
-                  <span className="text-slate-400">·</span>
+                  <span className="text-slate-500">·</span>
                   <input
                     type="number"
                     value={editValues.duration_minutes}
@@ -459,7 +459,7 @@ function EditableActivityCard({
               ) : (
                 <>
                   <span className="font-medium text-slate-900">{activity.start_time}</span>
-                  <span className="text-slate-400">·</span>
+                  <span className="text-slate-500">·</span>
                   <span className="text-slate-500">{t('activity.duration', { duration: activity.duration_minutes })}</span>
                 </>
               )}
@@ -548,7 +548,7 @@ function EditableActivityCard({
                       return (
                         <>
                           <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                            <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
+                            <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
                             {displayPrice}
                           </div>
                           <div className="text-[10px] text-blue-600 hidden sm:flex items-center gap-1 justify-end" title={`Based on ${verifiedPrice.priceLevelLabel} venue tier`}>
@@ -564,14 +564,14 @@ function EditableActivityCard({
                     // Fallback to AI estimate
                     <>
                       <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                        <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
+                        <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
                         {activity.estimated_cost?.amount == null
                           ? t('activity.aiEstimate')
                           : activity.estimated_cost.amount === 0
                           ? t('activity.free')
                           : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
                       </div>
-                      <div className="text-[10px] text-slate-400 hidden sm:block">{t('activity.aiEstimate')}</div>
+                      <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
                     </>
                   )}
                 </div>

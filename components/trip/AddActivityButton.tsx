@@ -311,7 +311,7 @@ export default function AddActivityButton({
         <div className="p-4 space-y-4">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               ref={inputRef}
               type="text"
@@ -321,7 +321,7 @@ export default function AddActivityButton({
               className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
             />
             {isSearching && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 animate-spin" />
             )}
           </div>
 
@@ -361,7 +361,7 @@ export default function AddActivityButton({
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-5 h-5 text-slate-400" />
+                        <MapPin className="w-5 h-5 text-slate-500" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -409,7 +409,7 @@ export default function AddActivityButton({
                 </button>
               </div>
             ) : !isSearching && results.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 text-sm">
+              <div className="text-center py-6 text-slate-500 text-sm">
                 {t("searchOrSelect")}
               </div>
             ) : null}

@@ -129,7 +129,7 @@ export default function UndoToast({
                 {actionConfig.label}
               </p>
               {undoState.action.activityName && (
-                <p className="text-xs text-slate-400 truncate">
+                <p className="text-xs text-slate-500 truncate">
                   {undoState.action.activityName}
                   {undoState.action.dayNumber && ` • ${t("day", { number: undoState.action.dayNumber })}`}
                 </p>
@@ -173,7 +173,7 @@ export default function UndoToast({
               {/* Dismiss button */}
               <button
                 onClick={handleDismiss}
-                className="p-1.5 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                className="p-1.5 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-white/10"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

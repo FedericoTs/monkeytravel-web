@@ -78,7 +78,7 @@ export default function DownloadIcsButton({
         <Download className="w-5 h-5 sm:w-4 sm:h-4" aria-hidden="true" />
         <span className="hidden sm:inline">{t("calendar.downloadIcs")}</span>
       </a>
-      <span className="hidden sm:block text-[10px] text-slate-400 mt-1 text-center leading-tight">
+      <span className="hidden sm:block text-[10px] text-slate-500 mt-1 text-center leading-tight">
         {t("calendar.downloadIcsSubtitle")}
       </span>
     </div>

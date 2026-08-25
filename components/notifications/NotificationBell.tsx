@@ -211,13 +211,13 @@ export default function NotificationBell() {
 
           <div className="overflow-y-auto max-h-[60vh]">
             {loading ? (
-              <div className="px-4 py-8 text-center text-sm text-slate-400">
+              <div className="px-4 py-8 text-center text-sm text-slate-500">
                 {t("loading")}
               </div>
             ) : items.length === 0 ? (
               <div className="px-4 py-8 text-center">
                 <p className="text-sm text-slate-600">{t("allCaughtUp")}</p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   {t("emptyHint")}
                 </p>
               </div>
@@ -277,7 +277,7 @@ function NotificationItem({
           <p className={`text-sm ${unread ? "font-medium text-slate-900" : "text-slate-700"}`}>
             {message}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">{timeAgo}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{timeAgo}</p>
         </div>
       </div>
     </div>

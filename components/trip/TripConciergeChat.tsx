@@ -464,7 +464,7 @@ function TripConciergeChatInner({
               placeholder={t("placeholder")}
               rows={3}
               disabled={loading}
-              className="w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 focus:outline-none disabled:opacity-60 disabled:bg-slate-50 resize-none"
+              className="w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 focus:outline-none disabled:opacity-60 disabled:bg-slate-50 resize-none"
             />
             <div className="mt-1 flex items-center justify-between gap-2">
               <p className="text-xs text-slate-500">

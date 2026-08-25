@@ -250,7 +250,7 @@ function HotelCard({
         {/* Rating and reviews */}
         <div className="flex items-center gap-2">
           <StarRating rating={hotel.rating} />
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500">
             ({t("reviewCount", { count: hotel.reviewCount })})
           </span>
         </div>
@@ -610,7 +610,7 @@ export default function HotelRecommendations({
           <span>
             {startDate} - {endDate}
           </span>
-          <span className="text-slate-400">
+          <span className="text-slate-500">
             ({nights} {nights === 1 ? t("night") : t("nights")})
           </span>
         </div>
@@ -720,7 +720,7 @@ export default function HotelRecommendations({
         <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-slate-400"
+              className="w-8 h-8 text-slate-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -744,7 +744,7 @@ export default function HotelRecommendations({
 
       {/* Disclaimer */}
       {hotels.length > 0 && (
-        <p className="mt-4 text-xs text-slate-400 text-center">
+        <p className="mt-4 text-xs text-slate-500 text-center">
           {t("disclaimer")}
         </p>
       )}

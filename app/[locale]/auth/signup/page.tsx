@@ -595,7 +595,7 @@ function SignupForm() {
                   htmlFor="displayName"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  {t("nameLabel")} <span className="text-slate-400 font-normal">{t("nameOptional")}</span>
+                  {t("nameLabel")} <span className="text-slate-500 font-normal">{t("nameOptional")}</span>
                 </label>
                 <input
                   id="displayName"

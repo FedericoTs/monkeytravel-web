@@ -147,7 +147,7 @@ export default function StagedLoadingIndicator({
 
       {/* Subtle percentage */}
       <div className="flex justify-end mt-1">
-        <span className="text-[10px] text-slate-400">{Math.round(progress)}%</span>
+        <span className="text-[10px] text-slate-500">{Math.round(progress)}%</span>
       </div>
     </div>
   );

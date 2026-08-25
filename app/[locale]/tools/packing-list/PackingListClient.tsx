@@ -464,7 +464,7 @@ export default function PackingListClient({ locale }: Props) {
                             <span
                               className={`text-sm font-medium ${
                                 isChecked
-                                  ? "line-through text-slate-400"
+                                  ? "line-through text-slate-500"
                                   : "text-slate-900"
                               }`}
                             >
@@ -499,7 +499,7 @@ export default function PackingListClient({ locale }: Props) {
                           {item.note && (
                             <p
                               className={`text-xs mt-0.5 ${
-                                isChecked ? "text-slate-400" : "text-slate-500"
+                                isChecked ? "text-slate-500" : "text-slate-500"
                               }`}
                             >
                               {item.note}

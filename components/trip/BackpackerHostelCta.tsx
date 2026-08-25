@@ -144,7 +144,7 @@ export default function BackpackerHostelCta({
         </span>
       </PartnerButton>
       {isAffiliate && (
-        <p className="text-[10px] text-slate-400 mt-1.5 px-1">
+        <p className="text-[10px] text-slate-500 mt-1.5 px-1">
           {t("affiliateDisclosure")}
         </p>
       )}

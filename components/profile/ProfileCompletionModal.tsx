@@ -315,7 +315,7 @@ export default function ProfileCompletionModal({
                 maxLength={200}
                 disabled={saving}
               />
-              <span className="absolute bottom-2 right-3 text-xs text-slate-400">
+              <span className="absolute bottom-2 right-3 text-xs text-slate-500">
                 {bio.length}/200
               </span>
             </div>

@@ -190,14 +190,14 @@ function TemplateCard({ template, t }: TemplateCardProps) {
             );
           })}
           {template.moodTags.length > 2 && (
-            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-400">
+            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-500">
               +{template.moodTags.length - 2}
             </span>
           )}
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+          <span className="text-xs text-slate-500 flex items-center gap-1.5">
             {template.copyCount > 0 && (
               <>
                 <Users className="w-4 h-4" />

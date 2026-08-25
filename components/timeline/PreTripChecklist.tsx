@@ -110,7 +110,7 @@ export default function PreTripChecklist({
         </div>
         <motion.svg
           animate={{ rotate: isExpanded ? 180 : 0 }}
-          className="w-5 h-5 text-slate-400"
+          className="w-5 h-5 text-slate-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -130,7 +130,7 @@ export default function PreTripChecklist({
           >
             <div className="px-4 pb-4 space-y-4">
               {items.length === 0 ? (
-                <p className="text-center text-slate-400 py-4">
+                <p className="text-center text-slate-500 py-4">
                   {t("emptyState")}
                 </p>
               ) : (
@@ -279,7 +279,7 @@ function ChecklistRow({
 
       <span className={`
         flex-1 text-sm
-        ${item.is_checked ? "text-slate-400 line-through" : "text-slate-700"}
+        ${item.is_checked ? "text-slate-500 line-through" : "text-slate-700"}
       `}>
         {item.text}
       </span>
@@ -298,7 +298,7 @@ function ChecklistRow({
         <button
           onClick={onDelete}
           className="
-            p-1 rounded text-slate-400 hover:text-red-500
+            p-1 rounded text-slate-500 hover:text-red-500
             opacity-0 group-hover:opacity-100 transition-opacity
           "
         >

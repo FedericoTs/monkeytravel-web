@@ -201,7 +201,7 @@ export default function PromptEditor() {
             Available Prompts
           </h3>
           {prompts.length === 0 ? (
-            <p className="text-slate-400 text-sm">No prompts found</p>
+            <p className="text-slate-500 text-sm">No prompts found</p>
           ) : (
             <div className="space-y-2">
               {prompts.map((prompt) => (
@@ -227,7 +227,7 @@ export default function PromptEditor() {
                   <p className="text-xs text-slate-500 line-clamp-2">
                     {prompt.description || "No description"}
                   </p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
                     <span>v{prompt.version}</span>
                     <span>~{prompt.token_estimate || estimateTokens(prompt.prompt_text)} tokens</span>
                     <span className="capitalize">{prompt.category}</span>
@@ -304,7 +304,7 @@ export default function PromptEditor() {
 
               {/* Version History Info */}
               <div className="mt-6 pt-4 border-t border-slate-100">
-                <div className="flex items-center gap-4 text-xs text-slate-400">
+                <div className="flex items-center gap-4 text-xs text-slate-500">
                   <span>Version {selectedPrompt.version}</span>
                   <span>Last updated: {new Date(selectedPrompt.updated_at).toLocaleString()}</span>
                   {selectedPrompt.updated_by && (
@@ -319,7 +319,7 @@ export default function PromptEditor() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <p className="text-slate-500">Select a prompt to edit</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-slate-500 mt-1">
                 Changes are applied immediately after saving
               </p>
             </div>

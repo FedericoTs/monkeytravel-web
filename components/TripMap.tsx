@@ -421,7 +421,7 @@ export default function TripMap({
   if (!isLoaded) {
     return (
       <div className={`bg-slate-100 rounded-xl flex items-center justify-center animate-pulse ${className}`}>
-        <div className="text-slate-400">{t("loading")}</div>
+        <div className="text-slate-500">{t("loading")}</div>
       </div>
     );
   }

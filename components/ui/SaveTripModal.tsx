@@ -269,7 +269,7 @@ export default function SaveTripModal({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors z-10"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -339,7 +339,7 @@ export default function SaveTripModal({
                         {formatDate(startLocal)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-400">
+                    <div className="flex items-center gap-2 text-slate-500">
                       <div className="w-8 h-px bg-slate-300" />
                       <span className="text-xs">{t("days", { count: durationDays })}</span>
                       <div className="w-8 h-px bg-slate-300" />

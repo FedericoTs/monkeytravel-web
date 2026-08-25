@@ -416,7 +416,7 @@ export default function AIAssistant({
                           style={{ animationDelay: "0.2s" }}
                         />
                       </div>
-                      <span className="text-xs text-slate-400">{t('thinking')}</span>
+                      <span className="text-xs text-slate-500">{t('thinking')}</span>
                     </div>
                   </div>
                 </div>
@@ -497,7 +497,7 @@ export default function AIAssistant({
           </div>
 
           {/* Hint text */}
-          <p className="text-[10px] text-slate-400 mt-2 text-center">
+          <p className="text-[10px] text-slate-500 mt-2 text-center">
             {t('hintText')}
           </p>
         </form>

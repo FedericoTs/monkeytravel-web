@@ -114,7 +114,7 @@ export default function ActivityRatingModal({
             size="lg"
           />
         </div>
-        <p className="text-sm text-slate-400 mt-2">
+        <p className="text-sm text-slate-500 mt-2">
           {rating === 0 && t('tapToRate')}
           {rating === 1 && t('notGreat')}
           {rating === 2 && t('couldBeBetter')}
@@ -162,7 +162,7 @@ export default function ActivityRatingModal({
           className="
             w-full px-4 py-3 rounded-xl
             border border-slate-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20
-            text-slate-900 placeholder:text-slate-400
+            text-slate-900 placeholder:text-slate-500
             resize-none transition-colors
           "
           rows={3}
@@ -253,7 +253,7 @@ export default function ActivityRatingModal({
                 {/* Close button */}
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-600 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

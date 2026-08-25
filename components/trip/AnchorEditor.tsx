@@ -277,7 +277,7 @@ export default function AnchorEditor({
               type="button"
               onClick={() => setExpanded(false)}
               aria-label={t("wizard.anchors.collapse")}
-              className="rounded p-1 text-slate-400 hover:text-slate-600"
+              className="rounded p-1 text-slate-500 hover:text-slate-600"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -392,7 +392,7 @@ export default function AnchorEditor({
                     type="button"
                     onClick={() => removeAnchor(a.id)}
                     aria-label={t("wizard.anchors.remove")}
-                    className="rounded p-0.5 text-slate-400 hover:text-red-500"
+                    className="rounded p-0.5 text-slate-500 hover:text-red-500"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -488,7 +488,7 @@ export default function AnchorEditor({
               </div>
 
               {draft.type !== "lodging" && draft.slot === "all_day" && (
-                <p className="text-[11px] text-slate-400">{t("wizard.anchors.allDayHint")}</p>
+                <p className="text-[11px] text-slate-500">{t("wizard.anchors.allDayHint")}</p>
               )}
 
               <button
@@ -501,7 +501,7 @@ export default function AnchorEditor({
               </button>
             </div>
           ) : (
-            <p className="mt-3 text-[11px] text-slate-400">
+            <p className="mt-3 text-[11px] text-slate-500">
               {t("wizard.anchors.limit", { max: MAX_ANCHORS })}
             </p>
           )}

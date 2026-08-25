@@ -113,7 +113,7 @@ export function DaySummary({
             <span className="font-semibold text-slate-700">
               {t("daySummary.planned", { time: feasibility.plannedText })}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               {t("daySummary.ofBudget", { time: feasibility.budgetText })}
             </span>
           </div>
@@ -156,7 +156,7 @@ export function DaySummary({
                   <Footprints className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="font-medium text-emerald-700">{stats.walks}x</span>
                 </div>
-                <span className="text-slate-400">{stats.walkingDistanceText}</span>
+                <span className="text-slate-500">{stats.walkingDistanceText}</span>
               </div>
             )}
             {stats.drives > 0 && (
@@ -165,7 +165,7 @@ export function DaySummary({
                   <Car className="w-3.5 h-3.5 text-blue-600" />
                   <span className="font-medium text-blue-700">{stats.drives}x</span>
                 </div>
-                <span className="text-slate-400">{stats.drivingDistanceText}</span>
+                <span className="text-slate-500">{stats.drivingDistanceText}</span>
               </div>
             )}
             {stats.transits > 0 && (

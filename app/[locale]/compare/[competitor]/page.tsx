@@ -206,7 +206,7 @@ function Tick({ on, label }: { on: boolean; label: string }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 font-medium ${
-        on ? 'text-emerald-700' : 'text-slate-400'
+        on ? 'text-emerald-700' : 'text-slate-500'
       }`}
     >
       <svg

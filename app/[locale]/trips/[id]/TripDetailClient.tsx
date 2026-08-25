@@ -105,7 +105,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400"></span>
+      <span className="text-slate-500"></span>
     </div>
   ),
 });
@@ -2243,7 +2243,7 @@ export default function TripDetailClient({
             is directly editable and saves itself. This is the whole point of
             the moat: making the (previously hidden) manual editor discoverable. */}
         {ambientEdit && displayItinerary.length > 0 && (
-          <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-400">
+          <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-500">
             <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
@@ -2391,7 +2391,7 @@ export default function TripDetailClient({
                 onClick={dismissCrewCta}
                 aria-label={t('detail.crewCtaDismiss')}
                 title={t('detail.crewCtaDismiss')}
-                className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute top-3 right-3 text-slate-500 hover:text-slate-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2909,7 +2909,7 @@ export default function TripDetailClient({
                 )}
               </div>
               {/* Right: Keyboard hint */}
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
                 <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘Z</kbd>
                 <span>undo</span>
                 <span className="mx-1">•</span>

@@ -292,7 +292,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
               );
             })}
             {template.moodTags.length > 2 && (
-              <span className="flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-400">
+              <span className="flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-500">
                 +{template.moodTags.length - 2}
               </span>
             )}
@@ -300,7 +300,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
 
           {/* CTA - larger touch target */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 flex items-center gap-1.5">
               {template.copyCount > 0 && (
                 <>
                   <Users className="w-4 h-4" />
@@ -328,7 +328,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       className="text-center py-16 px-4"
     >
       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-        <Compass className="w-8 h-8 text-slate-400" />
+        <Compass className="w-8 h-8 text-slate-500" />
       </div>
       <h3 className="text-lg font-bold text-slate-900 mb-2">No itineraries found</h3>
       <p className="text-slate-500 mb-6 text-sm max-w-sm mx-auto">
@@ -522,7 +522,7 @@ export default function TemplatesPageClient() {
           {/* Search bar with filter button */}
           <div className="py-3 flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search destinations..."
@@ -676,7 +676,7 @@ export default function TemplatesPageClient() {
                   </>
                 )}
               </p>
-              <div className="flex items-center gap-1 text-xs text-slate-400">
+              <div className="flex items-center gap-1 text-xs text-slate-500">
                 <Globe className="w-3.5 h-3.5" />
                 Hand-picked by experts
               </div>

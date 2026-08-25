@@ -92,7 +92,7 @@ export default function BlogContentClient({ html, tocLabel = "Table of Contents"
           {tocLabel}
         </span>
         <svg
-          className={`w-5 h-5 text-slate-400 transition-transform ${tocOpen ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-slate-500 transition-transform ${tocOpen ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

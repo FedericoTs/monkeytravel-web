@@ -309,7 +309,7 @@ export default function DateRangePicker({
         {WEEKDAYS.map((day, i) => (
           <div
             key={`wd-${i}`}
-            className="h-8 flex items-center justify-center text-xs font-medium text-slate-400"
+            className="h-8 flex items-center justify-center text-xs font-medium text-slate-500"
           >
             {day}
           </div>
@@ -444,7 +444,7 @@ export default function DateRangePicker({
           transition-all duration-300
           ${hasRange
             ? "bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white shadow-md"
-            : "bg-slate-100 text-slate-400"
+            : "bg-slate-100 text-slate-500"
           }
         `}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,7 +452,7 @@ export default function DateRangePicker({
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <div className={`font-semibold truncate ${hasRange ? "text-slate-900" : "text-slate-400"}`}>
+          <div className={`font-semibold truncate ${hasRange ? "text-slate-900" : "text-slate-500"}`}>
             {hasRange
               ? `${formatDisplayDate(startDate, locale, emptyDateLabel)} – ${formatDisplayDate(endDate, locale, emptyDateLabel)}`
               : t("addDates")}
@@ -463,7 +463,7 @@ export default function DateRangePicker({
             {t("dayCount", { count: tripDuration })}
           </span>
         ) : (
-          <svg className="w-5 h-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         )}
@@ -498,7 +498,7 @@ export default function DateRangePicker({
 
       {/* Nudge toward the one-tap path while keeping exact dates discoverable. */}
       {!hasRange && (
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs text-slate-500">
           {t("quickHint")}
         </p>
       )}

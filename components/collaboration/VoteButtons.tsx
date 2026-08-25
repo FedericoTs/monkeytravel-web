@@ -168,7 +168,7 @@ export default function VoteButtons({
                   ${
                     comment.trim()
                       ? `${VOTE_INFO[pendingVote].bgColor} ${VOTE_INFO[pendingVote].color} hover:opacity-90`
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                      : "bg-slate-100 text-slate-500 cursor-not-allowed"
                   }
                 `}
               >

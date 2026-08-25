@@ -44,7 +44,7 @@ export default function BlogSidebar({
       <div className="sticky top-24 flex flex-col gap-6">
         {tree.length > 0 && (
           <nav aria-label={tocLabel} className="text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
               {tocLabel}
             </p>
             <ul className="space-y-2.5 border-l border-slate-200">

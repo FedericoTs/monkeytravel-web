@@ -303,7 +303,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
             </label>
           )}
 
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed">
             {t("disclosurePrefix")}{" "}
             <Link href="/privacy" className="underline hover:text-slate-600">
               {t("privacyPolicy")}

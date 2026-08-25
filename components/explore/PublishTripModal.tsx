@@ -166,7 +166,7 @@ export default function PublishTripModal({
               htmlFor="author-display-name"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              {t("authorNameLabel")} <span className="text-slate-400">{t("optional")}</span>
+              {t("authorNameLabel")} <span className="text-slate-500">{t("optional")}</span>
             </label>
             <input
               id="author-display-name"
@@ -187,7 +187,7 @@ export default function PublishTripModal({
               htmlFor="author-note"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              {t("noteLabel")} <span className="text-slate-400">{t("optional")}</span>
+              {t("noteLabel")} <span className="text-slate-500">{t("optional")}</span>
             </label>
             <textarea
               id="author-note"

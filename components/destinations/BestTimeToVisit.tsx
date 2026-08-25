@@ -38,10 +38,15 @@ function getMonthStatus(
   return "off";
 }
 
+// Dark labels on every chip, not white. White on emerald-500 is 2.47:1 and
+// slate-500 on slate-200 is 3.86:1 — both fail AA. Keeping the FILLS is what
+// preserves the green/amber/grey semantic, so the label moves instead:
+// slate-900 is 7.21:1 on emerald, 10.35:1 on amber, 14.46:1 on slate-200.
+// `good` already worked this way; the other two now match it.
 const statusColors = {
-  best: "bg-emerald-500 text-white",
+  best: "bg-emerald-500 text-slate-900",
   good: "bg-amber-400 text-slate-900",
-  off: "bg-slate-200 text-slate-500",
+  off: "bg-slate-200 text-slate-900",
 };
 
 const crowdLabels: Record<number, string> = {
@@ -103,7 +108,7 @@ export default function BestTimeToVisit({
                     <div className="text-lg font-bold leading-none">
                       {mc.high}°
                     </div>
-                    <div className="text-[10px] opacity-70">{mc.low}°</div>
+                    <div className="text-[10px] opacity-80">{mc.low}°</div>
                     <div className="mt-1 flex justify-center">
                       <span
                         className={`w-2 h-2 rounded-full ${crowdDots[mc.crowd]}`}

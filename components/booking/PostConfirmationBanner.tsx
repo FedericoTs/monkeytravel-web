@@ -56,7 +56,7 @@ export default function PostConfirmationBanner({
       {/* Dismiss button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-3 right-3 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-white/50"
+        className="absolute top-3 right-3 p-1 text-slate-500 hover:text-slate-600 rounded-full hover:bg-white/50"
         aria-label={t("dismiss")}
       >
         <X className="w-4 h-4" />

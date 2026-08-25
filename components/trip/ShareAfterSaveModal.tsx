@@ -586,7 +586,7 @@ export default function ShareAfterSaveModal({
               </div>
 
               {/* Social proof hint */}
-              <p className="text-center text-xs text-slate-400 mt-4">
+              <p className="text-center text-xs text-slate-500 mt-4">
                 {ts("afterSave.collaboratorStats")}
               </p>
             </div>

@@ -219,8 +219,8 @@ export default function PreviewChangeCard({
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-slate-800 truncate">{change.activity.name}</div>
               <div className="mt-0.5 flex items-center gap-2 text-xs">
-                <span className="text-slate-400 line-through">{formatDuration(change.oldDuration)}</span>
-                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-slate-500 line-through">{formatDuration(change.oldDuration)}</span>
+                <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
                 <span className="font-semibold text-emerald-600">{formatDuration(change.newDuration)}</span>
@@ -241,7 +241,7 @@ export default function PreviewChangeCard({
                   {i + 1}
                 </span>
                 {a.time && (
-                  <span className="text-xs font-mono text-slate-400 flex-shrink-0">{a.time}</span>
+                  <span className="text-xs font-mono text-slate-500 flex-shrink-0">{a.time}</span>
                 )}
                 <span className="text-sm text-slate-700 truncate">{a.name}</span>
               </li>
@@ -263,7 +263,7 @@ export default function PreviewChangeCard({
                   className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
                 >
                   {a.start_time && (
-                    <span className="text-xs font-mono text-slate-400 flex-shrink-0">{a.start_time}</span>
+                    <span className="text-xs font-mono text-slate-500 flex-shrink-0">{a.start_time}</span>
                   )}
                   <span className="text-sm text-slate-700 truncate">{a.name}</span>
                 </li>
@@ -291,7 +291,7 @@ export default function PreviewChangeCard({
                 <span className="text-sm text-slate-700 truncate flex-1">
                   {d.theme || t("modifying")}
                 </span>
-                <span className="text-xs text-slate-400 flex-shrink-0">
+                <span className="text-xs text-slate-500 flex-shrink-0">
                   {t("activitiesCount", { count: d.activities.length })}
                 </span>
               </div>
@@ -398,7 +398,7 @@ export default function PreviewChangeCard({
         </div>
 
         {/* Helper text */}
-        <p className="text-[10px] text-slate-400 text-center mt-2">{t("helperText")}</p>
+        <p className="text-[10px] text-slate-500 text-center mt-2">{t("helperText")}</p>
       </div>
     </motion.div>
   );

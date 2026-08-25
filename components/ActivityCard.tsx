@@ -281,7 +281,7 @@ function ActivityCard({
                 )}
               </div>
               <span className="font-medium text-slate-900">{activity.start_time}</span>
-              <span className="text-slate-400">·</span>
+              <span className="text-slate-500">·</span>
               <span className="text-slate-500">{t('time.minutes', { count: activity.duration_minutes })}</span>
             </div>
 
@@ -376,7 +376,7 @@ function ActivityCard({
                     return (
                       <>
                         <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                          <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
+                          <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
                           {displayPrice}
                         </div>
                         <div className="text-[10px] text-blue-600 hidden sm:flex items-center gap-1 justify-end" title={`Based on ${verifiedPrice.priceLevelLabel} venue tier`}>
@@ -392,13 +392,13 @@ function ActivityCard({
                   // Fallback to AI estimate with currency conversion
                   <>
                     <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                      <span className="text-slate-400 font-normal text-xs sm:text-sm">~</span>
+                      <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
                       {formatPriceWithConversion(
                         activity.estimated_cost.amount,
                         activity.estimated_cost.currency || currency
                       )}
                     </div>
-                    <div className="text-[10px] text-slate-400 hidden sm:block">{t('activity.aiEstimate')}</div>
+                    <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
                   </>
                 ) : null}
               </div>

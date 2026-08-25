@@ -254,7 +254,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   <p className="text-2xl font-bold text-slate-700 mt-1">
                     ${metrics.costSummary.grossCost.toFixed(2)}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">Before free tier</p>
+                  <p className="text-xs text-slate-500 mt-1">Before free tier</p>
                 </div>
 
                 {/* Free Tier Value */}
@@ -263,7 +263,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   <p className="text-2xl font-bold text-green-600 mt-1">
                     -${metrics.costSummary.freeCredit.toFixed(2)}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">Per-API free caps</p>
+                  <p className="text-xs text-slate-500 mt-1">Per-API free caps</p>
                 </div>
 
                 {/* Net Cost */}
@@ -274,7 +274,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   }`}>
                     ${metrics.costSummary.netCost.toFixed(2)}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">After free tier</p>
+                  <p className="text-xs text-slate-500 mt-1">After free tier</p>
                 </div>
 
                 {/* Status */}
@@ -329,7 +329,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
             </h3>
 
             {metrics.requestCounts.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No API usage data found</p>
+              <p className="text-sm text-slate-500 text-center py-4">No API usage data found</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -442,7 +442,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   );
                 })}
               </div>
-              <div className="flex justify-between text-xs text-slate-400 mt-2">
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
                 <span>{metrics.dailyUsage[0]?.date}</span>
                 <span>Today</span>
               </div>
@@ -505,12 +505,12 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                   />
                 </svg>
                 {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-slate-400">
+                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-slate-500">
                   <span>${Math.max(...billing.cumulativeCosts.map(c => c.cumulativeTotal)).toFixed(0)}</span>
                   <span>$0</span>
                 </div>
               </div>
-              <div className="flex justify-between text-xs text-slate-400 mt-2">
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
                 <span>{billing.cumulativeCosts[0]?.date}</span>
                 <span>Today</span>
               </div>
@@ -521,7 +521,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Cost by Service</h3>
             {billing.byService.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No billing data</p>
+              <p className="text-sm text-slate-500 text-center py-4">No billing data</p>
             ) : (
               <div className="space-y-3">
                 {billing.byService.map((service) => (
@@ -531,7 +531,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                       <div className="text-sm font-semibold text-slate-900">
                         ${service.totalCost.toFixed(2)}
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-slate-500">
                         ${service.last7DaysCost.toFixed(2)} last 7d
                       </div>
                     </div>
@@ -561,7 +561,7 @@ GOOGLE_CLOUD_BILLING_TABLE=gcp_billing_export_v1_XXXXXX`}
                           <div className="font-medium text-slate-700 truncate max-w-[200px]" title={sku.description}>
                             {sku.description}
                           </div>
-                          <div className="text-xs text-slate-400">{sku.service}</div>
+                          <div className="text-xs text-slate-500">{sku.service}</div>
                         </td>
                         <td className="py-2 text-right text-slate-600">
                           {sku.usage.toLocaleString()} {sku.unit}

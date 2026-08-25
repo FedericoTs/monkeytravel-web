@@ -254,7 +254,7 @@ export default function TranslationsClient() {
                     <span className="text-sm text-slate-500">{keys.length} keys</span>
                   </div>
                   <svg
-                    className={`w-5 h-5 text-slate-400 transition-transform ${
+                    className={`w-5 h-5 text-slate-500 transition-transform ${
                       expandedKeys.has(section) ? "rotate-180" : ""
                     }`}
                     fill="none"
@@ -281,7 +281,7 @@ export default function TranslationsClient() {
                             <div className="w-1/3 min-w-0">
                               <code className="text-sm text-slate-600 break-all">{shortKey}</code>
                               {selectedLang !== "en" && enValue != null && (
-                                <div className="mt-1 text-xs text-slate-400 italic">
+                                <div className="mt-1 text-xs text-slate-500 italic">
                                   EN: {String(enValue)}
                                 </div>
                               )}

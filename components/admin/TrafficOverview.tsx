@@ -390,7 +390,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
         {data.bySection.length > 0 && (
           <div className="p-6 border-r border-slate-100">
             <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
               Traffic by Section
@@ -427,7 +427,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
         {data.conversionFunnel.length > 0 && (
           <div className="p-6">
             <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
               </svg>
               Conversion Funnel

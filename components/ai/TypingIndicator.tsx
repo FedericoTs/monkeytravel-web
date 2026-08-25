@@ -48,7 +48,7 @@ export default function TypingIndicator({
           </div>
 
           {/* Text */}
-          <span className="text-xs text-slate-400">{text}</span>
+          <span className="text-xs text-slate-500">{text}</span>
         </div>
       </div>
     </div>

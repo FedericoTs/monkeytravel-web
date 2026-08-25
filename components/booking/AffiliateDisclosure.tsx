@@ -21,7 +21,7 @@ export default function AffiliateDisclosure({
 
   if (variant === "minimal") {
     return (
-      <span className={`text-xs text-slate-400 ${className}`}>
+      <span className={`text-xs text-slate-500 ${className}`}>
         {t("affiliateShort")}
       </span>
     );

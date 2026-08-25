@@ -168,14 +168,14 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
             );
           })}
           {template.moodTags.length > 2 && (
-            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-400">
+            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-500">
               +{template.moodTags.length - 2}
             </span>
           )}
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+          <span className="text-xs text-slate-500 flex items-center gap-1.5">
             {template.copyCount > 0 && (
               <>
                 <Users className="w-4 h-4" />
@@ -526,7 +526,7 @@ export default function CuratedEscapesClient() {
               />
             </div>
             <div className="flex justify-center mt-1.5">
-              <span className="text-[10px] text-slate-400 font-medium tabular-nums">
+              <span className="text-[10px] text-slate-500 font-medium tabular-nums">
                 {activeIndex + 1} / {templates.length + 1}
               </span>
             </div>

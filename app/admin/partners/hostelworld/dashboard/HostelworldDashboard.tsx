@@ -164,7 +164,7 @@ export default function HostelworldDashboard() {
               <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">
                 {stats ? (tile.value ?? 0).toLocaleString("en-US") : "—"}
               </p>
-              <p className="mt-1 text-xs text-slate-400">{tile.hint}</p>
+              <p className="mt-1 text-xs text-slate-500">{tile.hint}</p>
             </div>
           ))}
         </div>
@@ -204,7 +204,7 @@ export default function HostelworldDashboard() {
               </text>
             </svg>
           ) : loading ? (
-            <div className="h-[200px] flex items-center justify-center text-slate-400 text-sm">Loading chart…</div>
+            <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">Loading chart…</div>
           ) : (
             <p className="text-sm text-slate-500">No data yet.</p>
           )}
@@ -258,7 +258,7 @@ export default function HostelworldDashboard() {
                     </div>
                   );
                 })}
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   Hostelworld&apos;s mobile inventory is their growth narrative — this is the slide they want.
                 </p>
               </div>

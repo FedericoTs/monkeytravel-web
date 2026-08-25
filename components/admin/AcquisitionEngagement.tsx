@@ -79,7 +79,7 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
         </div>
 
         {externalSources.length === 0 ? (
-          <div className="text-center py-8 text-slate-400 text-sm">No referrer data</div>
+          <div className="text-center py-8 text-slate-500 text-sm">No referrer data</div>
         ) : (
           <div className="space-y-3">
             {externalSources.map((source) => {
@@ -164,7 +164,7 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
               style={{ width: `${Math.min(engagement.stickinessPct, 100)}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">20%+ is excellent for consumer apps</p>
+          <p className="text-[10px] text-slate-500 mt-1">20%+ is excellent for consumer apps</p>
         </div>
 
         {/* Time to First Trip */}
@@ -176,7 +176,7 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
             Time to First Trip
           </h3>
           {ttt.usersCount === 0 ? (
-            <p className="text-sm text-slate-400">No trip data yet</p>
+            <p className="text-sm text-slate-500">No trip data yet</p>
           ) : (
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-3">
@@ -204,7 +204,7 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
                 <span className="text-slate-300 mx-1">|</span>
                 <span className="font-medium text-slate-600">{ttt.within7d}</span> within 7d
                 <span className="text-slate-300 mx-1">|</span>
-                <span className="text-slate-400">{ttt.usersCount} total</span>
+                <span className="text-slate-500">{ttt.usersCount} total</span>
               </div>
             </div>
           )}

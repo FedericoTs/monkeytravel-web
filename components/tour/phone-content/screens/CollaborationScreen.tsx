@@ -59,7 +59,7 @@ export default function CollaborationScreen() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.7 }}
-            className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-300"
+            className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border-2 border-dashed border-slate-300"
           >
             <span className="text-xs">+</span>
           </motion.button>
@@ -133,7 +133,7 @@ export default function CollaborationScreen() {
                 transition={{ delay: 0.8 }}
                 className="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100"
               >
-                <span className="text-[9px] text-slate-400 mr-1">Votes:</span>
+                <span className="text-[9px] text-slate-500 mr-1">Votes:</span>
                 {collaborators
                   .filter((c) => c.vote)
                   .map((c) => (
@@ -144,7 +144,7 @@ export default function CollaborationScreen() {
                       {c.avatar}
                     </div>
                   ))}
-                <span className="text-[9px] text-slate-400">waiting for Emma...</span>
+                <span className="text-[9px] text-slate-500">waiting for Emma...</span>
               </motion.div>
             )}
           </motion.div>

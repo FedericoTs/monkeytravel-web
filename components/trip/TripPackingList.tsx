@@ -292,7 +292,7 @@ export default function TripPackingList({ items, className = "" }: TripPackingLi
                       </div>
                       <span
                         className={`text-sm transition-all ${
-                          isChecked ? "text-slate-400 line-through" : "text-slate-700"
+                          isChecked ? "text-slate-500 line-through" : "text-slate-700"
                         }`}
                       >
                         {item}

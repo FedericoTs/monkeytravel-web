@@ -82,10 +82,10 @@ function RetentionMetrics({
 
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-bold text-[var(--foreground)]">{metric.value}%</span>
-              <span className="text-sm text-slate-400">vs {metric.benchmark}% benchmark</span>
+              <span className="text-sm text-slate-500">vs {metric.benchmark}% benchmark</span>
             </div>
 
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-slate-500 mt-2">
               {metric.description} (n={metric.sample})
             </p>
           </div>
@@ -170,7 +170,7 @@ function AARRRFunnel({ funnel }: { funnel: GrowthStats["funnel"] }) {
                 </div>
               </div>
 
-              <p className="text-xs text-slate-400 ml-28 mt-1">{stage.description}</p>
+              <p className="text-xs text-slate-500 ml-28 mt-1">{stage.description}</p>
             </div>
           );
         })}
@@ -405,12 +405,12 @@ function ReferralAnalytics({
               </div>
             ))}
           </div>
-          <p className="text-xs text-slate-400 mt-3">
+          <p className="text-xs text-slate-500 mt-3">
             These are your word-of-mouth engine. Reach out, reward them, ask what made them share.
           </p>
         </div>
       ) : (
-        <div className="text-center py-6 text-slate-400 border-t border-slate-100">
+        <div className="text-center py-6 text-slate-500 border-t border-slate-100">
           <p className="text-sm">No sharing or invites yet</p>
           <p className="text-xs mt-1">The playbook below has levers to kick-start the loop.</p>
         </div>
@@ -538,7 +538,7 @@ function Collapsible({
           )}
         </div>
         <svg
-          className="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180"
+          className="w-5 h-5 text-slate-500 transition-transform group-open:rotate-180"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -629,7 +629,7 @@ function CollaborationAnalytics({ collaboration }: { collaboration: GrowthStats[
           </div>
         </>
       ) : (
-        <p className="text-sm text-slate-400 text-center py-4">
+        <p className="text-sm text-slate-500 text-center py-4">
           No activity proposals yet — the propose/vote feature hasn&apos;t been used.
         </p>
       )}
@@ -689,7 +689,7 @@ function BananasEconomy({ bananas }: { bananas: GrowthStats["bananasEconomy"] })
                 </div>
               ))
           ) : (
-            <p className="text-xs text-slate-400">No earnings yet</p>
+            <p className="text-xs text-slate-500">No earnings yet</p>
           )}
         </div>
 
@@ -776,7 +776,7 @@ function AhaMomentTable({
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-semibold text-[var(--foreground)]">Aha Moment Analysis</h3>
-        <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+        <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
           {meta.retentionMethod === "activity_proxy" ? "Activity-based D7 lift" : "D7 retention lift"}
         </span>
       </div>
@@ -786,7 +786,7 @@ function AhaMomentTable({
       </p>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-4">
+        <p className="text-sm text-slate-500 text-center py-4">
           Not enough activity yet to measure retention lift.
         </p>
       ) : (
@@ -912,7 +912,7 @@ export default function GrowthDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500">
           {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : ""}
         </span>
         <button

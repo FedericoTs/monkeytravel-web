@@ -156,7 +156,7 @@ export default function DaySlider({
                     hidden lg:block
                     text-[9px] font-medium leading-tight mt-0.5
                     max-w-[70px] truncate
-                    ${isSelected ? "text-[var(--primary-ink)]/70" : "text-slate-400"}
+                    ${isSelected ? "text-[var(--primary-ink)]/70" : "text-slate-500"}
                   `}
                 >
                   {day.theme}

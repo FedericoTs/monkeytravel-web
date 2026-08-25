@@ -76,7 +76,7 @@ export default function TierBadge({
         )}
       </div>
       {showName && (
-        <span className={`text-xs font-medium ${unlocked ? "text-slate-700" : "text-slate-400"}`}>
+        <span className={`text-xs font-medium ${unlocked ? "text-slate-700" : "text-slate-500"}`}>
           {tierName}
         </span>
       )}

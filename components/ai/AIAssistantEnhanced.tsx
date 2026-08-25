@@ -874,7 +874,7 @@ ${t("notAppliedBody")}`,
                         );
                       }
                       return (
-                        <div className="text-[11px] text-slate-400 px-2.5 w-fit">
+                        <div className="text-[11px] text-slate-500 px-2.5 w-fit">
                           {t("actionBadge.noChanges")}
                         </div>
                       );
@@ -992,7 +992,7 @@ ${t("notAppliedBody")}`,
           </div>
 
           {/* Hint text */}
-          <p className="text-[10px] text-slate-400 mt-2 text-center">
+          <p className="text-[10px] text-slate-500 mt-2 text-center">
             {t("hint")}
           </p>
         </form>

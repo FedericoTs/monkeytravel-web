@@ -227,7 +227,7 @@ export default function AccessCodesManager() {
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               Updated {lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -316,7 +316,7 @@ export default function AccessCodesManager() {
                             {copiedCode === code.code ? (
                               <Check className="w-3.5 h-3.5 text-green-600" />
                             ) : (
-                              <Copy className="w-3.5 h-3.5 text-slate-400" />
+                              <Copy className="w-3.5 h-3.5 text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -326,7 +326,7 @@ export default function AccessCodesManager() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className="flex items-center justify-center gap-1">
-                          <Users className="w-3.5 h-3.5 text-slate-400" />
+                          <Users className="w-3.5 h-3.5 text-slate-500" />
                           {code.current_uses}/{formatLimit(code.max_uses)}
                         </span>
                       </td>
@@ -347,7 +347,7 @@ export default function AccessCodesManager() {
                       </td>
                       <td className="py-3 px-4 text-center text-slate-600">
                         <span className="flex items-center justify-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <Calendar className="w-3.5 h-3.5 text-slate-500" />
                           {formatDate(code.expires_at)}
                         </span>
                       </td>
@@ -374,7 +374,7 @@ export default function AccessCodesManager() {
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => handleDeleteCode(code.id)}
-                          className="p-1.5 hover:bg-red-100 rounded transition text-slate-400 hover:text-red-600"
+                          className="p-1.5 hover:bg-red-100 rounded transition text-slate-500 hover:text-red-600"
                           title="Delete code"
                         >
                           <Trash2 className="w-4 h-4" />

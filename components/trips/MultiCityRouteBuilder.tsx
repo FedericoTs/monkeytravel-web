@@ -80,7 +80,7 @@ export function MultiCityRouteBuilder({
                 type="button"
                 onClick={() => removeRow(i)}
                 aria-label={t("wizard.multiCity.removeCityAria", { number: i + 1 })}
-                className="flex-none rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="flex-none rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               >
                 ✕
               </button>

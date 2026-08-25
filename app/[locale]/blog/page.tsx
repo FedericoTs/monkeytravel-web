@@ -188,7 +188,7 @@ export default async function BlogIndexPage({ params }: PageProps) {
               </div>
               <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)]">
                 {allFrontmatter.length}{" "}
-                <span className="text-slate-400 font-normal normal-case tracking-normal">
+                <span className="text-slate-500 font-normal normal-case tracking-normal">
                   {t("index.articleCount")}
                 </span>
               </p>

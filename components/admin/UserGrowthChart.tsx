@@ -173,7 +173,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
           User Growth Trend
         </h2>
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-slate-500">
           <svg
             className="w-16 h-16 mx-auto mb-4 opacity-40"
             fill="none"
@@ -340,7 +340,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
             </g>
 
             {/* Y-axis labels */}
-            <g className="text-slate-400 text-xs">
+            <g className="text-slate-500 text-xs">
               {yAxisLabels.map((label, i) => {
                 const y = chartConfig.padding.top + chartConfig.chartHeight - (i / 4) * chartConfig.chartHeight;
                 return (
@@ -359,7 +359,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
             </g>
 
             {/* X-axis labels */}
-            <g className="text-slate-400 text-xs">
+            <g className="text-slate-500 text-xs">
               {xAxisLabels.map(({ date, index }) => {
                 const point = chartConfig.points[index];
                 if (!point) return null;

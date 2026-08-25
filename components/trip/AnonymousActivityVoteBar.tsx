@@ -128,14 +128,14 @@ export function AnonymousActivityVoteBar({
         </button>
 
         {myVote !== null && !showNamePrompt && (
-          <span className="text-[11px] text-slate-400 ml-1">{t("yourVote")}</span>
+          <span className="text-[11px] text-slate-500 ml-1">{t("yourVote")}</span>
         )}
       </div>
 
       {showNamePrompt && (
         <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
           <label htmlFor={`anon-name-${activityId}`} className="text-xs text-slate-600">
-            {t("nameQuestion")} <span className="text-slate-400">{t("nameHint")}</span>
+            {t("nameQuestion")} <span className="text-slate-500">{t("nameHint")}</span>
           </label>
           <input
             id={`anon-name-${activityId}`}

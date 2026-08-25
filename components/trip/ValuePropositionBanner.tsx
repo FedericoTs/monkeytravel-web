@@ -111,7 +111,7 @@ export default function ValuePropositionBanner({
             )}
           </button>
 
-          <p className="text-center text-xs text-slate-400 mt-2">
+          <p className="text-center text-xs text-slate-500 mt-2">
             Your trip will be saved to your account
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function ValuePropositionBanner({
       {/* Dismiss button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition-colors z-10"
+        className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-slate-500 hover:text-slate-600 hover:bg-white transition-colors z-10"
         aria-label="Dismiss"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

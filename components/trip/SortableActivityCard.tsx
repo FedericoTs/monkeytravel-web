@@ -111,7 +111,7 @@ function SortableActivityCard({
             rounded-l-xl border border-r-0
             ${isDragging
               ? "bg-[var(--primary)] border-[var(--primary)] text-white"
-              : "bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200 hover:from-slate-200 hover:to-slate-100 text-slate-400 hover:text-slate-600"
+              : "bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200 hover:from-slate-200 hover:to-slate-100 text-slate-500 hover:text-slate-600"
             }
           `}
           style={{
@@ -135,7 +135,7 @@ function SortableActivityCard({
           {/* Visual hint text - only on larger screens */}
           <span className={`
             hidden sm:block text-[10px] font-medium uppercase tracking-wider
-            ${isDragging ? "text-white/80" : "text-slate-400"}
+            ${isDragging ? "text-white/80" : "text-slate-500"}
           `}>
             {t("hint")}
           </span>

@@ -513,7 +513,7 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
           </span>
 
           {/* Arrow indicator on hover */}
-          <span className="text-slate-400 group-hover:text-[var(--primary-ink)] transition-colors group-hover:translate-x-1 transform duration-200">
+          <span className="text-slate-500 group-hover:text-[var(--primary-ink)] transition-colors group-hover:translate-x-1 transform duration-200">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -1019,7 +1019,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
               {/* Search */}
               <div className="relative flex-1">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1041,7 +1041,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1219,7 +1219,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
             ) : (
               <div className="text-center py-12 sm:py-16 px-4">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -1309,7 +1309,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
               <span className="font-medium">
                 {showArchived ? t('hideArchived') : t('showArchived')}
               </span>
-              <span className="text-sm text-slate-400">({archivedTrips.length})</span>
+              <span className="text-sm text-slate-500">({archivedTrips.length})</span>
             </button>
 
             {showArchived && (

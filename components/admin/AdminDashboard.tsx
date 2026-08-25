@@ -175,7 +175,7 @@ function AnalyticsTab({
     <div className="space-y-6 sm:space-y-8">
       {/* Refresh bar */}
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500">
           {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Not loaded yet"}
         </span>
         <button
@@ -333,12 +333,12 @@ function Ux10xBaselineCard() {
 
       <div className="p-4 sm:p-5">
         {!data && !error && !loading && (
-          <p className="text-sm text-slate-400 text-center py-4">
+          <p className="text-sm text-slate-500 text-center py-4">
             Click “Load” to compute the baseline (a couple of DB queries).
           </p>
         )}
         {loading && !data && (
-          <p className="text-sm text-slate-400 text-center py-4 animate-pulse">
+          <p className="text-sm text-slate-500 text-center py-4 animate-pulse">
             Computing baseline…
           </p>
         )}
@@ -356,7 +356,7 @@ function Ux10xBaselineCard() {
             {/* North Star headline */}
             <div className="flex items-end justify-between gap-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-slate-400 font-medium">
+                <div className="text-[11px] uppercase tracking-wide text-slate-500 font-medium">
                   Weekly Active Crews
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -367,10 +367,10 @@ function Ux10xBaselineCard() {
                   >
                     {crews}
                   </span>
-                  <span className="text-xs text-slate-400">/ target &gt;10</span>
+                  <span className="text-xs text-slate-500">/ target &gt;10</span>
                 </div>
               </div>
-              <div className="text-right text-[11px] text-slate-400 leading-tight">
+              <div className="text-right text-[11px] text-slate-500 leading-tight">
                 <div>baseline {data.frozenBaseline.weeklyActiveCrews}</div>
                 <div>{data.frozenBaseline.label}</div>
               </div>
@@ -407,7 +407,7 @@ function Ux10xBaselineCard() {
             {/* 21-day anonymous-starts sparkline */}
             <BaselineSparkline daily={data.daily} />
 
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[10px] text-slate-500">
               Updated {new Date(data.generatedAt).toLocaleString()}. Crews counts
               a second human voting or joining — passive share-visits excluded.
             </p>
@@ -429,14 +429,14 @@ function BaselineStat({
 }) {
   return (
     <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide text-slate-400 font-medium truncate">
+      <div className="text-[10px] uppercase tracking-wide text-slate-500 font-medium truncate">
         {label}
       </div>
       <div className="text-lg font-semibold text-[var(--foreground)] leading-tight">
         {value}
       </div>
       {baseline && (
-        <div className="text-[10px] text-slate-400">base {baseline}</div>
+        <div className="text-[10px] text-slate-500">base {baseline}</div>
       )}
     </div>
   );
@@ -449,10 +449,10 @@ function BaselineSparkline({ daily }: { daily: Ux10xBaseline["daily"] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] uppercase tracking-wide text-slate-400 font-medium">
+        <span className="text-[10px] uppercase tracking-wide text-slate-500 font-medium">
           Anon step-1 starts · last {rows.length}d
         </span>
-        <span className="text-[10px] text-slate-400">peak {max}</span>
+        <span className="text-[10px] text-slate-500">peak {max}</span>
       </div>
       <div className="flex items-end gap-0.5 h-14">
         {rows.map((r) => (
@@ -519,7 +519,7 @@ function MetricCard({
         {value.toLocaleString()}
       </div>
       <div className="text-xs sm:text-sm text-slate-500 mt-0.5">{title}</div>
-      <div className="text-[11px] sm:text-xs text-slate-400 mt-1">
+      <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
         +{weekValue.toLocaleString()} this week
       </div>
     </div>
@@ -821,7 +821,7 @@ function CostStat({
         {value}
       </div>
       <div className="text-[11px] text-slate-500 mt-0.5">{label}</div>
-      {sub && <div className="text-[10px] text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[10px] text-slate-500 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -841,7 +841,7 @@ function BreakdownList({
     <div className={className}>
       <h3 className="text-sm font-semibold text-slate-600 mb-3">{title}</h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-400">No data</p>
+        <p className="text-sm text-slate-500">No data</p>
       ) : (
         <div className="space-y-2.5">
           {rows.map((row) => (
@@ -879,7 +879,7 @@ function VisitorAnalyticsCard({ geo }: { geo: AdminStats["geo"] }) {
         <h2 className="text-base sm:text-lg font-semibold text-[var(--foreground)] mb-2">
           Visitor Analytics
         </h2>
-        <div className="text-center py-10 text-slate-400">
+        <div className="text-center py-10 text-slate-500">
           <p>No page view data yet</p>
           <p className="text-xs mt-1">Data appears once the site receives traffic</p>
         </div>
@@ -953,7 +953,7 @@ function GeoList({
   rows: { label: string; value: number; extra?: string }[];
 }) {
   if (rows.length === 0) {
-    return <p className="text-sm text-slate-400">No data</p>;
+    return <p className="text-sm text-slate-500">No data</p>;
   }
   return (
     <div className="space-y-2">
@@ -968,7 +968,7 @@ function GeoList({
             </span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {row.extra && <span className="text-xs text-slate-400">{row.extra}</span>}
+            {row.extra && <span className="text-xs text-slate-500">{row.extra}</span>}
             <span className="font-medium">{row.value.toLocaleString()}</span>
           </div>
         </div>
@@ -1001,7 +1001,7 @@ function TripsCard({
         </p>
         <div className="space-y-2.5">
           {Object.entries(trips.byStatus).length === 0 ? (
-            <p className="text-sm text-slate-400">No trips yet</p>
+            <p className="text-sm text-slate-500">No trips yet</p>
           ) : (
             Object.entries(trips.byStatus).map(([status, count]) => {
               const pct = (count / totalByStatus) * 100;
@@ -1040,7 +1040,7 @@ function TripsCard({
         </h2>
         <p className="text-[11px] text-slate-500 mb-4">From trip metadata</p>
         {topDestinations.length === 0 ? (
-          <p className="text-slate-400 text-sm">No trips yet</p>
+          <p className="text-slate-500 text-sm">No trips yet</p>
         ) : (
           <div className="space-y-2">
             {topDestinations.slice(0, 8).map((dest, i) => (
@@ -1204,7 +1204,7 @@ function CohortRetentionCard({
                             {retention}%
                           </div>
                         ) : (
-                          <div className="mx-auto w-10 sm:w-12 h-7 sm:h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-[10px] sm:text-xs">
+                          <div className="mx-auto w-10 sm:w-12 h-7 sm:h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] sm:text-xs">
                             -
                           </div>
                         )}
@@ -1217,7 +1217,7 @@ function CohortRetentionCard({
           </table>
         </div>
       ) : (
-        <div className="text-center py-10 text-slate-400">
+        <div className="text-center py-10 text-slate-500">
           <p>Not enough data for cohort analysis yet</p>
           <p className="text-xs mt-1">Matrix fills in as more users sign up</p>
         </div>
@@ -1241,7 +1241,7 @@ function RecentActivityCard({
         Recent Activity
       </h2>
       {activities.length === 0 ? (
-        <p className="text-sm text-slate-400">No activity yet</p>
+        <p className="text-sm text-slate-500">No activity yet</p>
       ) : (
         <div className="space-y-2.5">
           {activities.map((activity, i) => (
@@ -1253,7 +1253,7 @@ function RecentActivityCard({
               <span className="flex-1 text-slate-600 truncate" title={activity.description}>
                 {activity.description}
               </span>
-              <span className="text-[10px] sm:text-xs text-slate-400 flex-shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-500 flex-shrink-0">
                 {formatTimestamp(activity.timestamp)}
               </span>
             </div>

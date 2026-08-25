@@ -337,7 +337,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
             </p>
           </div>
           <svg
-            className="w-5 h-5 text-slate-400 group-hover:text-[var(--primary-ink)] group-hover:translate-x-0.5 transition-all"
+            className="w-5 h-5 text-slate-500 group-hover:text-[var(--primary-ink)] group-hover:translate-x-0.5 transition-all"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -364,7 +364,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="text-slate-400 hover:text-slate-600"
+          className="text-slate-500 hover:text-slate-600"
           aria-label={t("startAnywhereClose")}
         >
           ✕
@@ -407,7 +407,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
               <div className="flex items-center justify-center gap-2 text-sm text-slate-700">
                 <span>📸</span>
                 <span className="truncate max-w-[200px]">{imageFile.name}</span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   ({(imageFile.size / 1024).toFixed(0)} KB)
                 </span>
               </div>
@@ -427,7 +427,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
               if (f) setImageFile(f);
             }}
           />
-          <div className="text-center text-xs text-slate-400">— {t("startAnywhereOr")} —</div>
+          <div className="text-center text-xs text-slate-500">— {t("startAnywhereOr")} —</div>
           <input
             type="url"
             placeholder={t("startAnywhereImageUrlPlaceholder")}
@@ -458,7 +458,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
           (mode === "image" && !imageFile && !imageUrl.startsWith("http")) ||
           (mode === "url" && !websiteText.trim())
         }
-        className="mt-4 w-full rounded-xl bg-[var(--primary)] text-white font-semibold py-2.5 hover:bg-[var(--primary)]/90 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        className="mt-4 w-full rounded-xl bg-[var(--primary)] text-white font-semibold py-2.5 hover:bg-[var(--primary)]/90 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
         {loading ? (
           <>

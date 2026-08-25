@@ -155,7 +155,7 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
               <Link href="/" className="hover:text-[var(--primary-ink)] transition-colors">
                 {t("breadcrumbs.home")}
               </Link>
-              <span className="text-slate-400">/</span>
+              <span className="text-slate-500">/</span>
               <span className="text-slate-900 font-medium">{t("breadcrumbs.destinations")}</span>
             </nav>
 

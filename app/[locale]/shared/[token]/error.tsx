@@ -43,7 +43,7 @@ export default function SharedTripError({ error, reset }: ErrorProps) {
           </Link>
         </div>
         {error.digest && (
-          <p className="mt-6 text-xs text-slate-400">
+          <p className="mt-6 text-xs text-slate-500">
             Error ID: {error.digest}
           </p>
         )}

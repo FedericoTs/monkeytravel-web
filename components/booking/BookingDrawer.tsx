@@ -189,7 +189,7 @@ export default function BookingDrawer({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+              className="p-2 text-slate-500 hover:text-slate-600 rounded-full hover:bg-slate-100"
             >
               <X className="w-5 h-5" />
             </button>
@@ -197,7 +197,7 @@ export default function BookingDrawer({
 
           {/* Input */}
           <div className="relative mb-4">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
             <input
               type="text"
               value={originCity}
@@ -216,9 +216,9 @@ export default function BookingDrawer({
                     onClick={() => handleSelectCity(city)}
                     className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-2"
                   >
-                    <MapPin className="w-4 h-4 text-slate-400" />
+                    <MapPin className="w-4 h-4 text-slate-500" />
                     <span>{city}</span>
-                    <span className="text-sm text-slate-400 ml-auto">
+                    <span className="text-sm text-slate-500 ml-auto">
                       {CITY_IATA_CODES[city]}
                     </span>
                   </button>
@@ -231,7 +231,7 @@ export default function BookingDrawer({
           {recentOrigins.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-4 h-4 text-slate-400" />
+                <Clock className="w-4 h-4 text-slate-500" />
                 <span className="text-sm text-slate-500">{t("recent")}</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -243,7 +243,7 @@ export default function BookingDrawer({
                   >
                     {city}
                     {getCityIATA(city) && (
-                      <span className="text-slate-400 ml-1">
+                      <span className="text-slate-500 ml-1">
                         ({getCityIATA(city)})
                       </span>
                     )}
@@ -264,7 +264,7 @@ export default function BookingDrawer({
           </button>
 
           {/* Note */}
-          <p className="text-center text-xs text-slate-400 mt-4">
+          <p className="text-center text-xs text-slate-500 mt-4">
             {t("externalSiteNote")}
           </p>
         </div>

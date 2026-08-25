@@ -316,7 +316,7 @@ export default function LiveActivityCard({
                 className="absolute inset-0 flex items-center justify-center"
                 style={{ opacity: trackOpacity }}
               >
-                <span className="text-sm font-medium text-slate-400">
+                <span className="text-sm font-medium text-slate-500">
                   Slide to mark complete
                 </span>
               </motion.div>

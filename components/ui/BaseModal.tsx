@@ -265,7 +265,7 @@ export default function BaseModal({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors z-10"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors z-10"
               aria-label={t("closeModal")}
             >
               <X className="w-5 h-5" />

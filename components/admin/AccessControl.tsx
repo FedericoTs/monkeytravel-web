@@ -242,7 +242,7 @@ export default function AccessControl() {
               placeholder="We are currently performing scheduled maintenance to improve your experience. Please check back shortly."
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition resize-none"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               This message will be shown to users when maintenance mode is active
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function AccessControl() {
               placeholder="user1@example.com&#10;user2@example.com"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition resize-none font-mono text-sm"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               One email per line. These users can access the app even during maintenance (in addition to admins)
             </p>
           </div>

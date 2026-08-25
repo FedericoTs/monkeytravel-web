@@ -154,7 +154,7 @@ function ToastItem({
       <p className="flex-1 text-sm font-medium text-slate-800">{toast.message}</p>
       <button
         onClick={handleRemove}
-        className="text-slate-400 hover:text-slate-600 transition-colors"
+        className="text-slate-500 hover:text-slate-600 transition-colors"
         aria-label="Dismiss"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

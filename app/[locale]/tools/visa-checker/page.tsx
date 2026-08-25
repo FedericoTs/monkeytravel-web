@@ -238,7 +238,7 @@ export default async function VisaCheckerPage({
             <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
               <div className="flex items-center gap-3 text-2xl mb-3">
                 <span aria-hidden>{fromFlag}</span>
-                <span className="text-slate-400 text-base">→</span>
+                <span className="text-slate-500 text-base">→</span>
                 <span aria-hidden>{toFlag}</span>
               </div>
               <p className="text-sm text-slate-500 mb-2">
@@ -366,7 +366,7 @@ export default async function VisaCheckerPage({
             <p className="text-xs text-slate-500 border-t border-slate-200 pt-4 leading-relaxed">
               {t("disclaimer")}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               {t("datasetCredit", { date: refreshedDate })} ·{" "}
               {datasetSize.passports}×{datasetSize.destinations} ={" "}
               {datasetSize.pairs.toLocaleString(locale)} pairs

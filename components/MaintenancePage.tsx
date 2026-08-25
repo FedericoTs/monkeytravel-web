@@ -62,7 +62,7 @@ export default function MaintenancePage({
 
       {/* Footer */}
       <div className="mt-8 text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           {t("questions")}{" "}
           <a
             href="mailto:support@monkeytravel.app"

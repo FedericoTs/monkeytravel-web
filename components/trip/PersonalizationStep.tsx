@@ -99,9 +99,9 @@ function AccordionSection({ title, subtitle, icon, isOpen, onToggle, children, b
           <div className="text-sm text-slate-500">{subtitle}</div>
         </div>
         {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
+          <ChevronUp className="w-5 h-5 text-slate-500" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
+          <ChevronDown className="w-5 h-5 text-slate-500" />
         )}
       </button>
       {isOpen && (

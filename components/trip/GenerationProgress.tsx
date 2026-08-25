@@ -394,7 +394,7 @@ export default function GenerationProgress({
                   )}
                 </div>
                 <span className={`text-xs font-medium transition-colors ${
-                  idx <= currentPhaseIndex ? "text-slate-700" : "text-slate-400"
+                  idx <= currentPhaseIndex ? "text-slate-700" : "text-slate-500"
                 }`}>
                   {t(`phases.${phase.labelKey}`).split(" ")[0]}
                 </span>
@@ -444,7 +444,7 @@ export default function GenerationProgress({
             message once we cross the typical-generation threshold, so a
             60-130s gen never leaves the user staring at a stale/false time
             estimate. */}
-        <p className="text-center text-xs text-slate-400 mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           {elapsedTime > ESCALATION_THRESHOLD_MS
             ? t("takingLonger")
             : t("estimatedTime")}

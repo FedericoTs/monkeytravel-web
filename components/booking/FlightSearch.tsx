@@ -258,7 +258,7 @@ export default function FlightSearch({
                     <span className="text-xs text-slate-500 block">
                       {loc.address?.cityName}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {loc.address?.countryName}
                     </span>
                   </div>

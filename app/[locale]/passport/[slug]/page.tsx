@@ -177,7 +177,7 @@ export default async function PassportPage({ params }: PageProps) {
                 <section key={group.status}>
                   <h2 className="text-xl font-semibold text-slate-900">
                     {t(`status.${key}.label`)}{" "}
-                    <span className="text-slate-400 font-normal tabular-nums">
+                    <span className="text-slate-500 font-normal tabular-nums">
                       ({group.destinations.length})
                     </span>
                   </h2>

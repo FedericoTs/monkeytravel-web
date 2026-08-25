@@ -153,7 +153,7 @@ export default function SwipeableActivityCard({
           <h3
             className={`font-semibold truncate ${
               isCompleted || isSkipped
-                ? "text-slate-400 line-through decoration-2"
+                ? "text-slate-500 line-through decoration-2"
                 : "text-slate-900"
             }`}
           >
@@ -193,7 +193,7 @@ export default function SwipeableActivityCard({
           </span>
         ) : (
           <>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               +{Math.round(xpValue * streakMultiplier)} XP
             </span>
             <ChevronRight className="w-5 h-5 text-slate-300" />
@@ -230,7 +230,7 @@ export default function SwipeableActivityCard({
           </div>
 
           {/* Name with strikethrough */}
-          <span className="flex-1 text-sm text-slate-400 line-through decoration-1 truncate">
+          <span className="flex-1 text-sm text-slate-500 line-through decoration-1 truncate">
             {activity.name}
           </span>
 

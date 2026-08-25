@@ -39,7 +39,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400" />
+      <span className="text-slate-500" />
     </div>
   ),
 });
@@ -194,20 +194,20 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           <div className="flex flex-wrap items-center gap-4">
             {/* Duration */}
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-slate-400" />
+              <Clock className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700">{t('durationDays', { count: template.durationDays })}</span>
             </div>
 
             {/* Budget Tier */}
             <div className="flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-slate-400" />
+              <Wallet className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700">{budgetLabel}</span>
             </div>
 
             {/* Copy Count */}
             {template.copyCount > 0 && (
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-slate-400" />
+                <Users className="w-5 h-5 text-slate-500" />
                 <span className="font-medium text-slate-700">
                   {t('travelersUsed', { count: template.copyCount })}
                 </span>

@@ -144,9 +144,9 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
           </span>
         )}
         {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-slate-400 ml-auto" aria-hidden="true" />
+          <ChevronUp className="w-4 h-4 text-slate-500 ml-auto" aria-hidden="true" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400 ml-auto" aria-hidden="true" />
+          <ChevronDown className="w-4 h-4 text-slate-500 ml-auto" aria-hidden="true" />
         )}
       </button>
 

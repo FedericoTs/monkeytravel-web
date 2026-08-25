@@ -221,7 +221,7 @@ function MapLoadingFallback() {
   const t = useTranslations("trips");
   return (
     <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-400">{t("detail.loadingMap")}</span>
+      <span className="text-slate-500">{t("detail.loadingMap")}</span>
     </div>
   );
 }
@@ -3758,7 +3758,7 @@ export default function NewTripPage({
               </div>
               <button
                 onClick={() => setShowReturningUserBanner(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1 text-slate-500 hover:text-slate-600 transition-colors"
                 aria-label={t("wizard.returningUser.dismiss")}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4174,7 +4174,7 @@ export default function NewTripPage({
                     ))}
                   </div>
                   {plannedStat !== null && (
-                    <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400">
+                    <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500">
                       <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
                       {t("wizard.step1.planningStat", { count: plannedStat.toLocaleString(locale) })}
                     </p>
@@ -4339,7 +4339,7 @@ export default function NewTripPage({
             <div>
               <label htmlFor="must-do-input" className="block text-sm font-medium text-slate-700 mb-1">
                 {t("wizard.step2.mustDos.title")}{" "}
-                <span className="font-normal text-slate-400">{t("wizard.step2.mustDos.optional")}</span>
+                <span className="font-normal text-slate-500">{t("wizard.step2.mustDos.optional")}</span>
               </label>
               <p className="text-xs text-slate-500 mb-2">{t("wizard.step2.mustDos.hint")}</p>
               {mustDos.length > 0 && (
@@ -4411,7 +4411,7 @@ export default function NewTripPage({
                   </svg>
                   {t("wizard.step2.customize")}
                   {!showAdvancedPrefs && (
-                    <span className="text-xs text-slate-400 font-normal">(defaults: Balanced budget, Moderate pace)</span>
+                    <span className="text-xs text-slate-500 font-normal">(defaults: Balanced budget, Moderate pace)</span>
                   )}
                 </span>
                 <svg className={`w-5 h-5 transition-transform ${showAdvancedPrefs ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4469,7 +4469,7 @@ export default function NewTripPage({
                   {/* Special Requirements */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      {t("requirements.title")} <span className="font-normal text-slate-400">({t("requirements.hint").split(" - ")[0]})</span>
+                      {t("requirements.title")} <span className="font-normal text-slate-500">({t("requirements.hint").split(" - ")[0]})</span>
                     </label>
                     <textarea
                       value={requirements}
@@ -4480,7 +4480,7 @@ export default function NewTripPage({
                       className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors resize-none text-sm"
                     />
                     {requirements.length > REQUIREMENTS_MAX - 100 && (
-                      <p className="mt-1 text-xs text-slate-400 text-right">
+                      <p className="mt-1 text-xs text-slate-500 text-right">
                         {requirements.length}/{REQUIREMENTS_MAX}
                       </p>
                     )}

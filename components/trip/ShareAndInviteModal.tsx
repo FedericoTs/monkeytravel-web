@@ -365,7 +365,7 @@ export default function ShareAndInviteModal({
         <span className={cn("text-sm font-medium", activeTab === "share" ? "text-slate-900" : "text-slate-600")}>
           {ts("invite.viewOnlyLink")}
         </span>
-        <span className="text-xs text-slate-400">{ts("invite.anyoneCanView")}</span>
+        <span className="text-xs text-slate-500">{ts("invite.anyoneCanView")}</span>
       </button>
       <button
         onClick={() => setActiveTab("invite")}
@@ -390,7 +390,7 @@ export default function ShareAndInviteModal({
         <span className={cn("text-sm font-medium", activeTab === "invite" ? "text-[var(--primary-ink)]" : "text-slate-600")}>
           {ts("invite.inviteToCollaborate")}
         </span>
-        <span className="text-xs text-slate-400">{ts("invite.editVoteSuggest")}</span>
+        <span className="text-xs text-slate-500">{ts("invite.editVoteSuggest")}</span>
       </button>
     </div>
   );
@@ -587,7 +587,7 @@ export default function ShareAndInviteModal({
                       Send to (optional)
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         id="invite-email"
                         type="email"
@@ -621,7 +621,7 @@ export default function ShareAndInviteModal({
                         disabled={isGeneratingInvite}
                         className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors resize-none"
                       />
-                      <p className="text-xs text-slate-400 mt-1 text-right">
+                      <p className="text-xs text-slate-500 mt-1 text-right">
                         {emailMessage.length}/500
                       </p>
                     </div>
@@ -718,7 +718,7 @@ export default function ShareAndInviteModal({
                     </h4>
                     {isLoadingCollaborators ? (
                       <div className="flex items-center justify-center py-8">
-                        <svg className="w-6 h-6 animate-spin text-slate-400" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6 animate-spin text-slate-500" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
@@ -828,7 +828,7 @@ export default function ShareAndInviteModal({
             onClick={onClose}
             aria-label="Close share dialog"
             title="Close"
-            className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 transition-colors"
+            className="absolute top-4 right-4 z-10 text-slate-500 hover:text-slate-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
