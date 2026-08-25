@@ -47,7 +47,7 @@ Neither is a trick. They are two honest answers to "how does a free AI travel to
 
 | | Free tier | Paid |
 |---|---|---|
-| **Layla** | Trip overview only | **Basic $35.99/yr · Pro $49.99/yr · Premium $59.99/yr** — day-by-day plan and PDF export land around the $49–50 Premium mark |
+| **Layla** | Trip overview, map and a total price | **Premium, about $49/yr** — unlocks the day-by-day detail, PDF export, unlimited trips and live pricing |
 | **Mindtrip** | Full core itinerary | No consumer subscription; revenue comes from booking partners |
 
 Two things worth noticing.
@@ -115,7 +115,7 @@ Whichever you pick, run the same test on the output: take day one and trace the 
 ## Frequently asked questions
 
 **Is Layla free?**
-There is a free tier, but it gives you a trip overview rather than the day-by-day plan. The full itinerary and PDF export sit in the paid tiers — Basic $35.99/yr, Pro $49.99/yr, Premium $59.99/yr, with the day-by-day plan around the $49–50 mark.
+There is a free tier, and it gives you an overview, a map and a total price — but not the day-by-day plan. That, plus PDF export, unlimited trips and live pricing, sits behind Premium at about $49 a year. Layla exposes the day-by-day detail through a short trial so you can see it before paying.
 
 **Is Mindtrip really free?**
 Yes for the core itinerary — there is no consumer subscription. The company earns through affiliate relationships with booking partners, and in 2026 added in-app flight booking via Sabre and PayPal. You do need to create an account to use it.

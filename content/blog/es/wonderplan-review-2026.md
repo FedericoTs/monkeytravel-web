@@ -103,6 +103,8 @@ Si quieres un resultado que de verdad cambie con tu estilo de viaje, una funció
 
 **¿Quieres un plan gratis que esté de verdad hecho a tu medida?** [Prueba MonkeyTravel](/trips/new) — tres niveles de presupuesto reales, cuatro idiomas, sin registro.
 
+*¿Lo comparas con Layla, o con pagar a una persona? [Layla vs Wonderplan vs Lonely Planet](/blog/layla-vs-wonderplan-vs-lonely-planet) pone los tres uno al lado del otro.*
+
 ## Preguntas frecuentes (FAQ)
 
 ### ¿Es gratis Wonderplan?

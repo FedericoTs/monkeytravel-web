@@ -100,6 +100,8 @@ If you want output that actually changes with your travel style, a group voting 
 
 **Want a free plan that's actually tailored to you?** [Try MonkeyTravel](/trips/new) — three real budget tiers, four languages, no signup.
 
+*Weighing it against Layla, or against paying a human instead? [Layla vs Wonderplan vs Lonely Planet](/blog/layla-vs-wonderplan-vs-lonely-planet) puts all three side by side.*
+
 ## Frequently Asked Questions
 
 ### Is Wonderplan free?

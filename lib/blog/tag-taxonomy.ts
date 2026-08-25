@@ -145,6 +145,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "wanderlog-alternative-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "ai-trip-planners-without-signup-2026":  { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "layla-vs-mindtrip-2026":                { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "layla-vs-wonderplan-vs-lonely-planet": { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "mindtrip-alternative-2026":             { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "wanderlog-vs-mindtrip-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "wonderplan-review-2026":                { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },

@@ -47,7 +47,7 @@ Nessuno dei due bara. Sono due risposte oneste alla domanda «come sopravvive un
 
 | | Livello gratuito | A pagamento |
 |---|---|---|
-| **Layla** | Solo panoramica del viaggio | **Basic 35,99 $/anno · Pro 49,99 $/anno · Premium 59,99 $/anno** — il piano giorno per giorno e il PDF cadono intorno al Premium da 49-50 $ |
+| **Layla** | Panoramica, mappa e prezzo totale | **Premium, circa 49 $/anno** — sblocca il dettaglio giorno per giorno, l'export in PDF, viaggi illimitati e prezzi in tempo reale |
 | **Mindtrip** | Itinerario completo | Nessun abbonamento per il viaggiatore; i ricavi vengono dai partner di prenotazione |
 
 Due cose da notare.
@@ -115,7 +115,7 @@ Qualunque tu scelga, fai la stessa prova sul risultato: prendi il giorno uno e t
 ## Domande frequenti
 
 **Layla è gratis?**
-Esiste un livello gratuito, ma ti dà una panoramica del viaggio invece del piano giorno per giorno. L'itinerario completo e il PDF stanno nei livelli a pagamento — Basic 35,99 $/anno, Pro 49,99 $/anno, Premium 59,99 $/anno, con il piano giorno per giorno intorno ai 49-50 $.
+Esiste un livello gratuito, e ti dà una panoramica, una mappa e un prezzo totale, ma non il piano giorno per giorno. Quello, più l'export in PDF, i viaggi illimitati e i prezzi in tempo reale, sta nel Premium a circa 49 $ l'anno. Layla mostra il dettaglio giorno per giorno con una prova breve, così lo vedi prima di pagare.
 
 **Mindtrip è davvero gratis?**
 Sì per l'itinerario di base: non c'è abbonamento per il viaggiatore. L'azienda guadagna con accordi di affiliazione con i partner di prenotazione e nel 2026 ha aggiunto la prenotazione voli in-app tramite Sabre e PayPal. Devi però creare un account.
