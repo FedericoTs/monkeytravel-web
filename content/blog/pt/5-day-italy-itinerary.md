@@ -364,6 +364,8 @@ A AI da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 3
 
 **[Planejar minha viagem para Itália grátis](/trips/new?destination=rome)**
 
+*Ainda decidindo entre cidades? Comparamos as duas em [Paris vs Roma](/blog/paris-vs-rome).*
+
 ## Perguntas Frequentes
 
 ### 5 dias são suficientes para a Itália?

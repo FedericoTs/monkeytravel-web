@@ -284,6 +284,8 @@ Barcellona è una delle città più pedonali d'Europa. La griglia dell'Eixample 
 
 ---
 
+*Se vince Parigi, il nostro [itinerario di 3 giorni a Parigi](/blog/3-day-paris-itinerary) trasforma la decisione in un piano.*
+
 ## Domande Frequenti
 
 ### Posso visitare sia Parigi che Barcellona in un unico viaggio?

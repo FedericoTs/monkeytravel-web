@@ -129,6 +129,8 @@ I migliori viaggi di gruppo non sono quelli con gli itinerari più impressionant
 
 ---
 
+*Molti si evitano con una struttura condivisa — vedi il nostro [template per l'itinerario di gruppo](/blog/group-trip-itinerary-template).*
+
 ## FAQ
 
 ### Qual è l'errore più grande che si commette nei viaggi di gruppo?

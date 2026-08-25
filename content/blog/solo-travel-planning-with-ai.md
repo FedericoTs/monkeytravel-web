@@ -225,6 +225,8 @@ The freedom of traveling alone is unmatched. The planning shouldn't be the price
 
 ---
 
+*Travelling solo as a woman? Our [solo female travel safety guide](/blog/solo-female-travel-safety-guide-2026) covers the 15 safest destinations and how to vet the rest.*
+
 ## FAQ
 
 ### Is solo travel safe in 2026?

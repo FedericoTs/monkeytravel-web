@@ -393,6 +393,8 @@ For Schengen Zone travel, the 90/180-day clock is cumulative across all Schengen
 
 ---
 
+*Coming the other way? We looked at [whether it is safe to travel to the US in 2026](/blog/is-it-safe-to-travel-to-the-us-2026) from a visitor's side.*
+
 ## Frequently Asked Questions
 
 ### Do US citizens need a visa for Europe in 2026?

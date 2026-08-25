@@ -363,6 +363,8 @@ MonkeyTravel's AI creates a **personalized day-by-day Italy itinerary** in 30 se
 
 **[Plan My Italy Trip Free](/trips/new?destination=rome)**
 
+*Still deciding between cities? We compared them directly in [Paris vs Rome](/blog/paris-vs-rome).*
+
 ## FAQ
 
 ### Is 5 days enough for Italy?

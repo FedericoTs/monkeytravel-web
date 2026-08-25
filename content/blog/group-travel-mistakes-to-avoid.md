@@ -128,6 +128,8 @@ The best group trips aren't the ones with the most impressive itineraries. They'
 
 ---
 
+*Most of these are avoidable with a shared structure — see our [group trip itinerary template](/blog/group-trip-itinerary-template).*
+
 ## FAQ
 
 ### What's the biggest mistake people make on group trips?

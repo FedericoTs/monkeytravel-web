@@ -316,6 +316,8 @@ A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 3
 
 **[Planejar minha viagem para Tóquio grátis](/trips/new?destination=tokyo)**
 
+*Vai combinar Tóquio com Seul? Nosso [roteiro de 5 dias em Seul](/blog/seoul-5-day-itinerary) continua de onde este para.*
+
 ## Perguntas Frequentes
 
 ### 4 dias são suficientes para Tóquio?

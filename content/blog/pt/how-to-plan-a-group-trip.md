@@ -63,6 +63,8 @@ Antes que alguém escolha um restaurante ou discuta entre Airbnb e hotel, seu gr
 
 3. **Clima da viagem** — Esse aqui evita 90% das discussões depois. Vocês vão fazer: (a) aventura e dias cheios, (b) algo relaxado com bastante tempo livre, ou (c) uma mistura? Se metade do grupo quer fazer trilha ao amanhecer e a outra metade quer ficar na piscina até o meio-dia, vocês vão brigar por isso todos os dias a menos que resolvam isso antes.
 
+*Depois que o grupo definir as datas, nosso [modelo de roteiro para viagem em grupo](/blog/group-trip-itinerary-template) dá a estrutura dia a dia para preencher.*
+
 ## Passo 3: apresente escolhas, não perguntas abertas
 
 É aqui que a maioria das viagens em grupo morre. O organizador pergunta "Onde vamos jantar hoje à noite?" e o grupo implode.

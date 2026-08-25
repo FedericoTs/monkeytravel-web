@@ -329,6 +329,8 @@ Per i viaggi nella Zona Schengen, il conteggio dei 90/180 giorni e cumulativo in
 
 ---
 
+*Vai nella direzione opposta? Abbiamo analizzato [se è sicuro viaggiare negli USA nel 2026](/blog/is-it-safe-to-travel-to-the-us-2026) dal lato del visitatore.*
+
 ## Domande Frequenti
 
 ### I cittadini USA hanno bisogno del visto per l'Europa nel 2026?

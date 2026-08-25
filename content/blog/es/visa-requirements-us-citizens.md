@@ -332,6 +332,8 @@ Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos 
 
 ---
 
+*¿Vas en sentido contrario? Analizamos [si es seguro viajar a EE.UU. en 2026](/blog/is-it-safe-to-travel-to-the-us-2026) desde el lado del visitante.*
+
 ## Preguntas Frecuentes
 
 ### Los ciudadanos de EE.UU. necesitan visa para Europa en 2026?

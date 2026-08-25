@@ -225,6 +225,8 @@ La libertà di viaggiare da soli è impareggiabile. La pianificazione non dovreb
 
 ---
 
+*Viaggi da sola? La nostra [guida alla sicurezza per donne che viaggiano sole](/blog/solo-female-travel-safety-guide-2026) copre le 15 destinazioni più sicure.*
+
 ## FAQ
 
 ### Il viaggio in solitaria è sicuro nel 2026?

@@ -451,6 +451,8 @@ Não importa qual destino você escolha, estas estratégias se aplicam a todos:
 
 ---
 
+*Londres é a exceção no preço — se for mesmo assim, nosso [roteiro de 4 dias em Londres](/blog/london-4-day-itinerary) segura o custo.*
+
 ## Perguntas Frequentes
 
 ### Qual é o país mais barato da Europa para visitar em 2026?

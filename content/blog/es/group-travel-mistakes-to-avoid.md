@@ -129,6 +129,8 @@ Los mejores viajes en grupo no son los que tienen los itinerarios más impresion
 
 ---
 
+*La mayoría se evitan con una estructura compartida — mira nuestra [plantilla de itinerario para viajes en grupo](/blog/group-trip-itinerary-template).*
+
 ## FAQ
 
 ### ¿Cuál es el error más grande que comete la gente en viajes en grupo?

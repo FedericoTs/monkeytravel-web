@@ -450,6 +450,8 @@ No matter which destination you pick, these strategies apply across the board:
 
 ---
 
+*London is the outlier on price — if you go anyway, our [4-day London itinerary](/blog/london-4-day-itinerary) keeps the cost down.*
+
 ## FAQ
 
 ### What's the cheapest country in Europe to visit in 2026?

@@ -383,6 +383,8 @@ Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em 
 
 ---
 
+*Indo no sentido contrário? Analisamos [se é seguro viajar para os EUA em 2026](/blog/is-it-safe-to-travel-to-the-us-2026) do lado de quem visita.*
+
 ## Perguntas Frequentes
 
 ### Os cidadãos dos EUA precisam de visto para a Europa em 2026?

@@ -286,6 +286,8 @@ Barcelona é uma das cidades mais caminháveis da Europa. O traçado em grade do
 
 ---
 
+*Se Paris vencer, nosso [roteiro de 3 dias em Paris](/blog/3-day-paris-itinerary) transforma a decisão em um plano.*
+
 ## Perguntas Frequentes
 
 ### Posso visitar Paris e Barcelona na mesma viagem?

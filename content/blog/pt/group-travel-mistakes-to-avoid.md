@@ -130,6 +130,8 @@ As melhores viagens em grupo não são as que têm os roteiros mais impressionan
 
 ---
 
+*A maioria se evita com uma estrutura compartilhada — veja nosso [modelo de roteiro para viagem em grupo](/blog/group-trip-itinerary-template).*
+
 ## Perguntas Frequentes
 
 ### Qual é o maior erro que as pessoas cometem em viagens em grupo?

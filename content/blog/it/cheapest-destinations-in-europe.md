@@ -404,6 +404,8 @@ Indipendentemente dalla destinazione scelta, queste strategie funzionano ovunque
 
 ---
 
+*Londra è l'eccezione sui prezzi — se ci vai comunque, il nostro [itinerario di 4 giorni a Londra](/blog/london-4-day-itinerary) tiene bassi i costi.*
+
 ## Domande frequenti
 
 ### Qual e il paese piu economico d'Europa da visitare nel 2026?

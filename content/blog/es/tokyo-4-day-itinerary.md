@@ -315,6 +315,8 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Tokio día a día** 
 
 **[Planificar mi viaje a Tokio gratis](/trips/new?destination=tokyo)**
 
+*¿Combinas Tokio con Seúl? Nuestro [itinerario de 5 días en Seúl](/blog/seoul-5-day-itinerary) continúa donde termina este.*
+
 ## FAQ
 
 ### ¿Son suficientes 4 días para Tokio?

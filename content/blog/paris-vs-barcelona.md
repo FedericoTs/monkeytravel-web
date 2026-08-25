@@ -284,6 +284,8 @@ Barcelona is one of Europe's most walkable cities. The grid layout of the Eixamp
 
 ---
 
+*If Paris wins, our [3-day Paris itinerary](/blog/3-day-paris-itinerary) turns the decision into a plan.*
+
 ## FAQ
 
 ### Can I visit both Paris and Barcelona in one trip?

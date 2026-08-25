@@ -285,6 +285,8 @@ Barcelona es una de las ciudades más peatonales de Europa. La cuadrícula del E
 
 ---
 
+*Si gana París, nuestro [itinerario de 3 días en París](/blog/3-day-paris-itinerary) convierte la decisión en un plan.*
+
 ## Preguntas Frecuentes
 
 ### Puedo visitar París y Barcelona en un solo viaje?

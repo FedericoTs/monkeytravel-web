@@ -315,6 +315,8 @@ MonkeyTravel's AI creates a **personalized day-by-day Tokyo itinerary** in 30 se
 
 **[Plan My Tokyo Trip Free](/trips/new?destination=tokyo)**
 
+*Pairing Tokyo with Seoul? Our [5-day Seoul itinerary](/blog/seoul-5-day-itinerary) picks up where this one leaves off.*
+
 ## FAQ
 
 ### Is 4 days enough for Tokyo?

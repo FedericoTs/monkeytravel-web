@@ -228,6 +228,8 @@ La libertad de viajar solo no tiene comparación. La planificación no debería 
 
 ---
 
+*¿Viajas sola? Nuestra [guía de seguridad para mujeres que viajan solas](/blog/solo-female-travel-safety-guide-2026) cubre los 15 destinos más seguros.*
+
 ## FAQ
 
 ### ¿Es seguro viajar solo en 2026?

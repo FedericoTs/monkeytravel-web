@@ -315,6 +315,8 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Tokyo giorno per gio
 
 **[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo)**
 
+*Abbini Tokyo a Seul? Il nostro [itinerario di 5 giorni a Seul](/blog/seoul-5-day-itinerary) riprende da dove finisce questo.*
+
 ## FAQ
 
 ### Bastano 4 giorni per Tokyo?

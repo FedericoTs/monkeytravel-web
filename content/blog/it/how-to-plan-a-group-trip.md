@@ -61,6 +61,8 @@ Prima che qualcuno scelga un ristorante o discuta di Airbnb vs. hotel, il gruppo
 
 3. **Stile** — Questo previene il 90% delle discussioni future. Cosa vogliamo: (a) avventura e giornate piene, (b) relax con tanto tempo libero, o (c) un mix? Se metà del gruppo vuole fare escursioni all'alba e l'altra metà vuole stare in piscina fino a mezzogiorno, litigherete ogni singolo giorno se non ne parlate subito.
 
+*Quando il gruppo ha deciso le date, il nostro [template per l'itinerario di gruppo](/blog/group-trip-itinerary-template) ti dà la struttura giorno per giorno da riempire.*
+
 ## Passo 3: Presenta scelte, non domande aperte
 
 È qui che la maggior parte dei viaggi di gruppo muore. L'organizzatore chiede "Dove mangiamo stasera?" e la chat di gruppo esplode.
