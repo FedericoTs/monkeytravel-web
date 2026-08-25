@@ -7,7 +7,7 @@ description: >-
   itinerary in minutes.
 author: Riccardo P.
 publishedAt: '2026-02-19'
-updatedAt: '2026-02-19'
+updatedAt: '2026-08-24'
 category: AI Travel
 tags: ["ai trip planner", "trip planning", "first time travel"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -43,7 +43,9 @@ This guide walks you through every step. By the end, you'll have a complete, day
 
 ## Why AI Trip Planning Is Taking Over
 
-The numbers tell the story. Over 42% of travelers used AI tools for trip planning in 2025, and that number is climbing fast. Among Gen Z and Millennials, it's already above 60%.
+The numbers are less triumphant than the headlines suggest. Somewhere between a third and two fifths of US travelers now use AI somewhere in their trip planning — Allianz Partners put it at 37% in 2026, Phocuswright at close to 40% for 2025. That is a lot of people. It is not everyone.
+
+More telling is the direction of travel on trust: YouGov measured comfort with AI travel tools slipping from 32% to 30% between 2024 and 2025. Adoption and enthusiasm are not the same curve.
 
 The reason is simple: AI does the tedious work instantly.
 

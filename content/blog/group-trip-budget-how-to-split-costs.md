@@ -6,7 +6,7 @@ description: >-
   splitting expenses fairly — plus the tools that make it painless.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: Trip Planning
 tags: ["group travel", "budget travel", "trip planning"]
 image: /images/blog/group-trip-split-costs.jpg
@@ -28,7 +28,7 @@ schema: Article
 
 # How to Split Costs on a Group Trip Without Ruining Friendships
 
-Here's a stat that won't surprise anyone who's been on a group trip: 46% of travelers say money disagreements are the single biggest source of stress when traveling with friends. Not delayed flights. Not cramped Airbnbs. Not the person who snores. Money.
+Here's something that won't surprise anyone who has been on a group trip: money is the friction. Not delayed flights. Not cramped Airbnbs. Not the person who snores. Money — who paid, who owes, and who has quietly been covering more than their share since day two.
 
 But the real problem isn't money itself. It's unclear expectations. Nobody wants to be the one who brings up budgets, so nobody does — and then four days into a trip through Portugal, someone's silently fuming because they've been subsidizing someone else's wine habit at every dinner.
 
@@ -44,7 +44,7 @@ Before we talk solutions, let's be honest about why this is hard.
 
 **The shared-vs-individual line is blurry.** Who pays for the Uber that three of the five people took? What about the groceries one person mostly ate? These edge cases pile up, and without a system, they create friction.
 
-A 2024 Charles Schwab Modern Wealth Survey found that 71% of Americans feel awkward discussing money with friends. Combine that with daily group spending, and you've got a recipe for passive-aggressive Venmo requests.
+Most people find money awkward to raise with friends at the best of times, and a shared holiday turns that into a daily occurrence. Combine the two and you've got a recipe for passive-aggressive Venmo requests.
 
 ## The 5 Expense-Splitting Systems That Actually Work
 

@@ -314,9 +314,7 @@ Picking the right season for the destination you've chosen. Santorini in May and
 *Sources:*
 
 - [The Knot — Real Weddings Study 2025](https://www.theknot.com/content/honeymoon-statistics)
-- [Booking.com — Honeymoon Travel Report 2026](https://www.booking.com/articles/)
 - [Condé Nast Traveler — Honeymoon Trends 2026](https://www.cntraveler.com/)
-- [Skyscanner — Honeymoon Flight Trends 2026](https://www.skyscanner.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)
 - [World Weather Online — Historical Climate Data](https://www.worldweatheronline.com/)
 - [Maldives Marketing & PR Corporation — Resort Statistics](https://www.visitmaldives.com/)

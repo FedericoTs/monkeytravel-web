@@ -2,12 +2,13 @@
 title: 'How AI Is Actually Changing Travel Planning in 2026 (No Hype, Just Facts)'
 slug: how-ai-is-changing-travel-planning
 description: >-
-  42% of travelers used AI for trip planning in 2025. Here's what AI planners
+  Nearly 40% of travelers now use AI to plan trips, yet comfort with it is
+  falling. Here's what AI planners
   actually do well, where they still fail, and why the smartest travelers use
   them differently than you'd expect.
 author: Federico S.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: AI Travel
 tags: ["ai trip planner", "travel technology", "trip planning"]
 image: /images/blog/ai-travel-planning-2026.jpg
@@ -16,7 +17,8 @@ readingTime: 5
 seo:
   title: How AI Is Actually Changing Travel Planning in 2026 | MonkeyTravel
   description: >-
-    42% of travelers used AI tools in 2025. But what does AI trip planning
+    Nearly 40% of travelers used AI tools in 2025, but comfort is slipping.
+    What does AI trip planning
     actually look like? What it does well, where it fails, and how to use it
     smartly.
   keywords:
@@ -32,7 +34,11 @@ schema: Article
 
 Let's skip the "AI is revolutionizing everything!" introduction. You've read that article already. Probably twelve times.
 
-Here's what's actually happening: 42% of travelers used AI-powered tools for trip planning in 2025, up from roughly 15% in 2023. Over 60% of Gen Z and Millennials have tried AI for travel inspiration or itinerary building. That's not hype — that's a behavioral shift.
+Here's what's actually happening, and it's stranger than the headlines. Adoption is genuinely large: Allianz Partners put US travelers using AI to plan travel at 37% in 2026, and Phocuswright had it close to 40% for 2025. Call it somewhere between a third and two fifths, depending on whose survey you trust and how the question was worded.
+
+Now the part that doesn't make headlines. Comfort is moving the other way. YouGov found 30% of US travelers said they felt comfortable using AI-driven travel tools in 2025, down from 32% the year before. Among 18-24s it dropped from 47% to 34% in a single year. And 40% say they are not comfortable at all — a number that hasn't budged.
+
+So people are using it more and trusting it less. That gap is the actual story, and it explains most of what follows.
 
 But the way people use AI for travel is wildly different from what the headlines suggest. Nobody is saying "Hey ChatGPT, plan my entire honeymoon." The reality is more nuanced, more practical, and honestly more interesting.
 

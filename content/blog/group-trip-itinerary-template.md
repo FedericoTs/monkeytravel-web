@@ -6,7 +6,7 @@ description: >-
   with flexibility so nobody feels trapped or lost.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: Trip Planning
 tags: ["group travel", "itinerary", "trip planning"]
 image: /images/blog/group-trip-itinerary-template.jpg
@@ -32,7 +32,7 @@ Somewhere right now, a friend group is imploding over a Google Sheet. One person
 
 The best group trip itinerary isn't the most detailed one. It's the one that gives enough structure to avoid chaos and enough freedom to avoid mutiny. Over-plan and you'll have a group of adults feeling like they're on a school field trip. Under-plan and you'll spend 45 minutes every morning standing in the Airbnb kitchen asking "so... what do we want to do today?"
 
-A 2023 Skyscanner survey found that 49% of travelers say the hardest part of group trips is agreeing on activities. Not budget, not dates — activities. The itinerary is where group trips live or die.
+Ask anyone who has organised a group trip what the hardest part was and you will rarely hear "the flights." It is agreeing on what to actually do. Dates get settled in a week. Budget gets settled grudgingly. Activities get relitigated until somebody gives up. The itinerary is where group trips live or die.
 
 Here's the template that fixes it.
 
@@ -44,7 +44,7 @@ Before the template, it helps to understand why the usual approaches don't work.
 
 You know this person. They've color-coded the spreadsheet by neighborhood. There's a 15-minute buffer between activities, a backup restaurant for every meal, and a rain contingency plan. The itinerary is a work of art.
 
-It's also suffocating. A Booking.com study found that 72% of travelers say spontaneity is essential to a good vacation. When every moment is scheduled, people feel trapped. Nobody wants to skip the "2:45 PM gelato stop" and deal with the organizer's disappointment.
+It's also suffocating. The hour nobody planned is usually the one people describe afterwards, and a grid of timed blocks leaves no room for it. When every moment is scheduled, people feel trapped. Nobody wants to skip the "2:45 PM gelato stop" and deal with the organizer's disappointment.
 
 ### The No-Plan Problem
 
@@ -76,7 +76,7 @@ Every day has two types of time:
 
 **Anchors create shared memories.** The point of a group trip is doing things together. Without anchors, people drift apart and you end up with six solo trips that happen to share an Airbnb.
 
-**Float time prevents burnout.** A Tripadvisor survey found that 62% of travelers feel they need a vacation to recover from their vacation. Float time is the release valve. It's how you avoid that.
+**Float time prevents burnout.** Everyone knows the feeling of needing a holiday to recover from the holiday, and over-scheduling is the reliable way to produce it. Float time is the release valve. It's how you avoid that.
 
 **Different travel styles coexist.** The early riser who wants to run at dawn can do that during float time. The night owl who sleeps until 10 misses nothing. The extrovert who wants to bar-hop and the introvert who wants to read on the balcony both get what they need — and they both show up for the anchor activities recharged.
 
@@ -224,8 +224,8 @@ Two to three planned activities per day, maximum. That includes meals if they're
 
 ### Should you plan every meal on a group trip?
 
-Plan dinner — it's the hardest meal to agree on spontaneously, especially with a large group and limited local knowledge. A 2024 Tripadvisor survey found that restaurant decisions are the number one source of group trip disagreements. Leave breakfast and lunch flexible. People eat at different paces, have different dietary needs, and sometimes just want to grab something quick and keep exploring.
+Plan dinner — it's the hardest meal to agree on spontaneously, especially with a large group and limited local knowledge. Dinner is where group friction concentrates: it is the one meal everybody attends, it costs the most, and it is the one that needs a booking. Leave breakfast and lunch flexible. People eat at different paces, have different dietary needs, and sometimes just want to grab something quick and keep exploring.
 
 ---
 
-*Sources: [Skyscanner — Group Travel Survey 2023](https://www.skyscanner.com/tips-and-inspiration/group-travel-tips), [Booking.com — Travel Confidence Report](https://www.booking.com/articles/travel-predictions.html), [American Psychological Association — Decision Fatigue](https://www.apa.org/topics/stress/decision-fatigue), [Tripadvisor — Travel Trends 2024](https://www.tripadvisor.com/articles/travel-trends), [Kayak — Travel Hacker Report 2024](https://www.kayak.com/travel-hacker), [Cornell Hospitality Quarterly](https://journals.sagepub.com/home/cqx)*
+*Sources: [American Psychological Association — Decision Fatigue](https://www.apa.org/topics/stress/decision-fatigue), [Cornell Hospitality Quarterly](https://journals.sagepub.com/home/cqx)*

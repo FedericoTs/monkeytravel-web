@@ -2,12 +2,12 @@
 title: 'Como a AI Está Realmente Mudando o Planejamento de Viagens em 2026 (Sem Hype, Só Fatos)'
 slug: how-ai-is-changing-travel-planning
 description: >-
-  42% dos viajantes usaram AI para planejar viagens em 2025. Veja o que os
-  planejadores com AI realmente fazem bem, onde ainda falham e por que os
-  viajantes mais espertos os usam de um jeito diferente do que você imaginaria.
+  Quase 40% dos viajantes já usam AI para planejar viagens, mas o conforto com
+  ela está caindo. Veja o que os planejadores com AI fazem bem, onde ainda
+  falham e por que os viajantes mais espertos os usam de outro jeito.
 author: Federico S.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: "AI Travel"
 tags: ["planejador de viagens com ia", "tecnologia de viagens", "planejamento de viagem"]
 image: /images/blog/ai-travel-planning-2026.jpg
@@ -17,9 +17,9 @@ seo:
   # GSC — tradução pt-BR desta página
   title: Como a AI Está Realmente Mudando o Planejamento de Viagens em 2026 | MonkeyTravel
   description: >-
-    42% dos viajantes usaram ferramentas de AI em 2025. Mas como é, na prática, o
-    planejamento de viagens com AI? O que ela faz bem, onde falha e como usá-la
-    com inteligência.
+    Quase 40% dos viajantes usaram ferramentas de AI em 2025, mas o conforto
+    está caindo. Como é, na prática, planejar uma viagem com AI? O que
+    funciona, o que falha e como usar bem.
   keywords:
     - planejamento de viagens com ia
     - como a ia está mudando as viagens
@@ -33,7 +33,11 @@ schema: Article
 
 Vamos pular a introdução do tipo "a AI está revolucionando tudo!". Você já leu esse artigo. Provavelmente umas doze vezes.
 
-Veja o que está acontecendo de verdade: 42% dos viajantes usaram ferramentas com AI para planejar viagens em 2025, contra cerca de 15% em 2023. Mais de 60% da Geração Z e dos Millennials já testaram a AI para se inspirar em viagens ou montar roteiros. Isso não é hype — é uma mudança de comportamento.
+Veja o que está acontecendo de verdade, e é mais estranho do que os títulos sugerem. A adoção é realmente grande: a Allianz Partners apontou 37% dos viajantes americanos usando AI para planejar viagens em 2026, e a Phocuswright colocava perto de 40% para 2025. Digamos algo entre um terço e dois quintos, dependendo de qual pesquisa você acredita e de como a pergunta foi formulada.
+
+Agora a parte que não vira manchete. O conforto está indo na direção oposta. A YouGov descobriu que 30% dos viajantes americanos diziam se sentir confortáveis usando ferramentas de viagem com AI em 2025, contra 32% no ano anterior. Entre os de 18 a 24 anos, caiu de 47% para 34% em um único ano. E 40% dizem não se sentir nada confortáveis — um número que não se mexeu.
+
+Ou seja, as pessoas usam mais e confiam menos. Essa diferença é a história de verdade, e explica boa parte do que vem a seguir.
 
 Mas a forma como as pessoas usam a AI para viajar é muito diferente do que os títulos sugerem. Ninguém está dizendo "Ei ChatGPT, planeje toda a minha lua de mel." A realidade é mais sutil, mais prática e, sinceramente, mais interessante.
 

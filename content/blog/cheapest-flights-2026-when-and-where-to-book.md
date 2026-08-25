@@ -7,7 +7,7 @@ description: >-
   prices that most travelers never see.
 author: Emanuela P.
 publishedAt: '2026-03-25'
-updatedAt: '2026-03-25'
+updatedAt: '2026-08-24'
 category: Budget Travel
 tags: ["budget travel", "trip planning"]
 image: /images/blog/cheapest-flights-2026-when-and-where-to-book.jpg
@@ -237,6 +237,5 @@ Yes, but with important caveats. You must travel with carry-on only (checked bag
 - [Google Flights — Price Insight Tool](https://www.google.com/flights)
 - [Hopper — Flight Price Prediction Research](https://www.hopper.com/company/research)
 - [Scott's Cheap Flights / Going — Deal Analysis](https://www.going.com/)
-- [Skyscanner — Cheapest Days to Fly Report 2026](https://www.skyscanner.com/)
 - [OAG — Aviation Route Statistics 2026](https://www.oag.com/)
 - [Skiplagged — Hidden City Ticketing](https://skiplagged.com/)

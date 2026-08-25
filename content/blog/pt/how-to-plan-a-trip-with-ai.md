@@ -7,7 +7,7 @@ description: >-
   dia em minutos.
 author: Riccardo P.
 publishedAt: '2026-02-19'
-updatedAt: '2026-02-19'
+updatedAt: '2026-08-24'
 category: "AI Travel"
 tags: ["planejador de viagens com ia", "planejamento de viagem", "primeira viagem"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -45,7 +45,9 @@ Este guia acompanha você em cada etapa. No final, você terá um roteiro comple
 
 ## Por que o planejamento de viagem com AI está dominando
 
-Os números contam a história. Mais de 42% dos viajantes usaram ferramentas de AI para planejar viagens em 2025, e esse número está subindo rápido. Entre a Geração Z e os Millennials, já passa dos 60%.
+Os números são menos triunfais do que os títulos sugerem. Entre um terço e dois quintos dos viajantes americanos hoje usam AI em algum ponto do planejamento da viagem — a Allianz Partners apontou 37% em 2026, a Phocuswright perto de 40% para 2025. É muita gente. Não é todo mundo.
+
+Mais revelador é para onde a confiança está indo: a YouGov mediu o conforto com ferramentas de viagem com AI caindo de 32% para 30% entre 2024 e 2025. Adoção e entusiasmo não são a mesma curva.
 
 O motivo é simples: a AI faz o trabalho tedioso instantaneamente.
 

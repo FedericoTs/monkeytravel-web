@@ -6,7 +6,7 @@ description: >-
   group trips actually work, with real costs and planning tips.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-08-24'
 category: Destination Guides
 tags: ["group travel", "best destinations"]
 image: /images/blog/group-trip-destinations-2026.jpg
@@ -188,5 +188,4 @@ Agree on a system before you leave. One person books shared expenses (accommodat
 - [Budget Your Trip — Average Daily Travel Costs](https://www.budgetyourtrip.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)
 - [Skift Research — Group Travel Trends](https://research.skift.com/)
-- [Hostelworld — Group Accommodation Trends 2025](https://www.hostelworld.com/)
 - [Rome2Rio — Transport Cost Estimates](https://www.rome2rio.com/)

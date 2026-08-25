@@ -302,4 +302,3 @@ Sakura-window Japan (March 28-April 7): yes, immediately — flights and hotels 
 - [Visit Petra — Visitor Information](https://visitpetra.jo/)
 - [World Weather Online — Historical Climate Data](https://www.worldweatheronline.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)
-- [Skyscanner — April Flight Pricing Trends 2026](https://www.skyscanner.com/)
