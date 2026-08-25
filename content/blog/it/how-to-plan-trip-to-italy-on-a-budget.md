@@ -142,6 +142,8 @@ Di' alla nostra AI dove vuoi andare e il tuo budget. Costruirà un itinerario pe
 
 ---
 
+*Le isole allungano il budget in modo diverso — il nostro [itinerario di 7 giorni in Sardegna](/blog/itinerario-sardegna-7-giorni) va dalla Costa Smeralda al sud.*
+
 ## FAQ
 
 ### Quanto costa un viaggio di 10 giorni in Italia con un budget ridotto?

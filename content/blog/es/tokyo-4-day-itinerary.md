@@ -317,6 +317,8 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Tokio día a día** 
 
 *¿Combinas Tokio con Seúl? Nuestro [itinerario de 5 días en Seúl](/blog/seoul-5-day-itinerary) continúa donde termina este.*
 
+*¿Añades Kioto y Osaka? El [itinerario de la Ruta Dorada de Japón](/blog/japan-golden-route-itinerary) cubre el corredor completo en 10-14 días.*
+
 ## FAQ
 
 ### ¿Son suficientes 4 días para Tokio?

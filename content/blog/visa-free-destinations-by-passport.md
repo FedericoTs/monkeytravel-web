@@ -222,6 +222,8 @@ When visa-free entry is not available, check whether the destination offers an e
 
 Use tools like MonkeyTravel's [AI trip planner](/trips/new) to build itineraries that can be adjusted based on visa requirements. The AI considers travel documents and entry requirements as part of its planning, making it easier to pivot between destinations if visa issues arise.
 
+*Heading to Europe? [ETIAS has slipped to 2027](/blog/etias-europe-travel-authorization-2026) and now costs EUR 20, not the EUR 7 still quoted everywhere.*
+
 ## Frequently Asked Questions
 
 ### How many countries can a US passport visit visa-free?

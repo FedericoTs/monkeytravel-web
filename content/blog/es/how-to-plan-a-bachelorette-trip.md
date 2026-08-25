@@ -203,6 +203,8 @@ Sin hojas de cálculo. Sin 47 pestañas del navegador. Sin "¿todas han visto mi
 
 ---
 
+*¿Buscas algo de menor impacto? Nuestra [guía de viaje sostenible](/blog/sustainable-travel-guide-2026) cubre diez destinos que lo hacen bien.*
+
 ## Preguntas frecuentes
 
 ### ¿Cuánto cuesta una despedida de soltera por persona?

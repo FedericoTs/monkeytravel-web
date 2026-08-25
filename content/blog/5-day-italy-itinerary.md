@@ -365,6 +365,10 @@ MonkeyTravel's AI creates a **personalized day-by-day Italy itinerary** in 30 se
 
 *Still deciding between cities? We compared them directly in [Paris vs Rome](/blog/paris-vs-rome).*
 
+*Doing the same route on less? Our guide to [Italy on $100 a day](/blog/how-to-plan-trip-to-italy-on-a-budget) breaks the costs down city by city.*
+
+*Want the south instead of the classics? Our [5-day Puglia itinerary](/blog/itinerario-puglia-5-giorni) covers Bari, Salento and the trulli.*
+
 ## FAQ
 
 ### Is 5 days enough for Italy?

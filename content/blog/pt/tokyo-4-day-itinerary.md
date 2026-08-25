@@ -318,6 +318,8 @@ A AI da MonkeyTravel cria um **roteiro personalizado de Tóquio dia a dia** em 3
 
 *Vai combinar Tóquio com Seul? Nosso [roteiro de 5 dias em Seul](/blog/seoul-5-day-itinerary) continua de onde este para.*
 
+*Vai incluir Kyoto e Osaka? O [roteiro da Rota Dourada do Japão](/blog/japan-golden-route-itinerary) cobre o corredor inteiro em 10-14 dias.*
+
 ## Perguntas Frequentes
 
 ### 4 dias são suficientes para Tóquio?

@@ -226,6 +226,8 @@ Dopo aver osservato migliaia di persone pianificare viaggi con l'AI, ecco i patt
 
 **7. Non dimenticare i momenti intermedi.** L'AI pianifica le attività ma non la passeggiata tra l'una e l'altra. Alcune delle parti migliori di un viaggio accadono durante gli spostamenti — il mercato di strada che incroci andando al museo, il belvedere su cui inciampi tra una tappa e l'altra.
 
+*Se pianificare ti sfinisce invece di divertirti, abbiamo scritto sul [perché succede e cosa aiuta davvero](/blog/travel-planning-stress-how-ai-helps).*
+
 ## FAQ: domande frequenti sulla pianificazione dei viaggi con AI
 
 ### Quanto tempo ci vuole per pianificare un viaggio con l'AI?

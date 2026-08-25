@@ -136,6 +136,8 @@ If September has a festival to rival Edinburgh's August, it's this one: Oktoberf
 
 Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it. When you're ready, [plan your September trip](/trips/new) or start from our [free AI trip planner](/trips/new) and let it suggest the dates that dodge the crowds.
 
+*September is the Cyclades sweet spot — our [Greek island hopping itinerary](/blog/greek-island-hopping-itinerary) sequences Athens, Santorini and Mykonos without the classic mistakes.*
+
 ## Frequently Asked Questions (FAQ)
 
 ### Where is the best place to go in September 2026?

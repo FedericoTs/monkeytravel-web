@@ -142,6 +142,8 @@ Dile a nuestro [AI](/es/free-ai-trip-planner) adónde quieres ir y tu presupuest
 
 ---
 
+*Las islas estiran el presupuesto de otra forma — nuestro [itinerario de 7 días en Cerdeña](/blog/itinerario-sardegna-7-giorni) va de Costa Esmeralda al sur.*
+
 ## FAQ
 
 ### ¿Cuánto cuesta un viaje de 10 días a Italia con presupuesto ajustado?

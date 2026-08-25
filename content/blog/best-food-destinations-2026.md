@@ -245,6 +245,8 @@ Use our [free AI trip planner](/trips/new) to build a foodcation itinerary aroun
 
 ---
 
+*Eating well on less? Our list of [Europe's cheapest cities for food](/blog/cheapest-european-cities-for-food-2026) has the real per-meal prices.*
+
 ## FAQ
 
 **Which food destination is best for travelers on a tight budget?**

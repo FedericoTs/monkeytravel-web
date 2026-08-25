@@ -222,6 +222,8 @@ Cuando la entrada sin visa no este disponible, verifica si el destino ofrece una
 
 Usa herramientas como el [planificador de viajes AI](/es/free-ai-trip-planner) de MonkeyTravel para construir itinerarios que se puedan ajustar segun los requisitos de visa. El AI considera documentos de viaje y requisitos de entrada como parte de su planificacion, facilitando el cambio entre destinos si surgen problemas de visa.
 
+*¿Vas a Europa? [El ETIAS se ha retrasado a 2027](/blog/etias-europe-travel-authorization-2026) y costará 20 EUR, no los 7 EUR que aún se repiten.*
+
 ## Preguntas frecuentes
 
 ### Cuantos paises puede visitar un pasaporte estadounidense sin visa?

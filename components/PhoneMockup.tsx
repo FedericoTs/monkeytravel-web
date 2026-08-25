@@ -34,7 +34,7 @@ export default function PhoneMockup({
   className = '',
   scale = 'lg',
   priority = false,
-  alt = 'App screenshot',
+  alt = 'MonkeyTravel app showing a day-by-day trip itinerary',
 }: PhoneMockupProps) {
   return (
     <div className={`relative ${scaleStyles[scale]} ${className}`}>

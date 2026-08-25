@@ -136,6 +136,8 @@ Il Caribe messicano si scrolla di dosso i mesi umidi a dicembre: l'umidità cala
 
 Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi.
 
+*New York a dicembre è in molte liste — il nostro [itinerario di 5 giorni a New York](/blog/new-york-5-day-itinerary) lo trasforma in un piano vero.*
+
 ## Domande frequenti (FAQ)
 
 ### Qual è il posto migliore dove andare a dicembre 2026?

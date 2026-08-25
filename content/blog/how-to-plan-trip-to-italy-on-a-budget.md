@@ -142,6 +142,8 @@ Tell our AI where you want to go and your budget. It builds a personalized day-b
 
 ---
 
+*Islands stretch a budget differently — our [7-day Sardinia itinerary](/blog/itinerario-sardegna-7-giorni) runs Costa Smeralda to the south coast.*
+
 ## FAQ
 
 ### How much does a 10-day trip to Italy cost on a budget?

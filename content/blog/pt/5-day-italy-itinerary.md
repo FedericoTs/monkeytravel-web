@@ -366,6 +366,10 @@ A AI da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 3
 
 *Ainda decidindo entre cidades? Comparamos as duas em [Paris vs Roma](/blog/paris-vs-rome).*
 
+*O mesmo roteiro gastando menos? Nosso guia [Itália por US$ 100 por dia](/blog/how-to-plan-trip-to-italy-on-a-budget) detalha os custos cidade por cidade.*
+
+*Prefere o sul em vez dos clássicos? Nosso [roteiro de 5 dias na Puglia](/blog/itinerario-puglia-5-giorni) cobre Bari, Salento e os trulli.*
+
 ## Perguntas Frequentes
 
 ### 5 dias são suficientes para a Itália?

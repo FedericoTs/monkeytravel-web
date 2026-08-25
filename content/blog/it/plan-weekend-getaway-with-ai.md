@@ -229,6 +229,8 @@ Il prossimo weekend lungo sul tuo calendario e piu vicino di quanto pensi. [Pian
 
 ---
 
+*Non sai che tipo di pausa vuoi? Abbiamo guardato [cosa scelgono davvero i viaggiatori](/blog/travel-moods-2026) su migliaia di viaggi reali.*
+
 ## FAQ
 
 ### Con quanto anticipo dovrei pianificare un weekend fuori porta?

@@ -167,6 +167,8 @@ Scegli una destinazione da questa lista, inseriscila su MonkeyTravel, invita il 
 
 ---
 
+*Stai organizzando un addio al nubilato? Ha regole tutte sue — vedi [come organizzare un addio al nubilato](/blog/how-to-plan-a-bachelorette-trip).*
+
 ## Domande Frequenti
 
 ### Qual è la destinazione più economica per un viaggio di gruppo nel 2026?

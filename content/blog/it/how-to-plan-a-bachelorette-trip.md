@@ -203,6 +203,8 @@ Niente fogli di calcolo. Niente 47 schede del browser aperte. Niente "avete vist
 
 ---
 
+*Cerchi qualcosa a minor impatto? La nostra [guida al viaggio sostenibile](/blog/sustainable-travel-guide-2026) copre dieci destinazioni che lo fanno sul serio.*
+
 ## FAQ
 
 ### Quanto costa un addio al nubilato a persona?

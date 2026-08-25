@@ -178,6 +178,8 @@ Nenhuma ferramenta isolada faz tudo bem. A melhor abordagem em 2026 ainda é em 
 
 ---
 
+*Na dúvida só entre esses dois? Comparamos os dois em [Layla vs Mindtrip](/blog/layla-vs-mindtrip-2026).*
+
 ## Perguntas frequentes
 
 ### Qual é o melhor planejador de viagens com AI grátis em 2026?

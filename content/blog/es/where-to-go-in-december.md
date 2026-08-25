@@ -136,6 +136,8 @@ El Caribe mexicano se sacude sus meses húmedos en diciembre: baja la humedad, e
 
 Elige uno de los doce destinos de arriba y el [planificador de viajes con AI gratuito de MonkeyTravel](/trips/new) te montará un itinerario día a día — lugares reales, horarios de apertura, presupuestos — en más o menos medio minuto. No hace falta registrarse para probarlo.
 
+*Nueva York en diciembre está en muchas listas — nuestro [itinerario de 5 días en Nueva York](/blog/new-york-5-day-itinerary) lo convierte en un plan real.*
+
 ## Preguntas frecuentes (FAQ)
 
 ### ¿Cuál es el mejor destino para viajar en diciembre de 2026?

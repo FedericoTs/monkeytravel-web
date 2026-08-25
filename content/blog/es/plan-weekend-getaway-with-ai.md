@@ -228,6 +228,8 @@ El próximo fin de semana largo en tu calendario está más cerca de lo que cree
 
 ---
 
+*¿No sabes qué tipo de escapada quieres? Analizamos [lo que la gente elige de verdad](/blog/travel-moods-2026) en miles de viajes reales.*
+
 ## Preguntas frecuentes
 
 ### ¿Con cuánta antelación debería planificar una escapada de fin de semana?

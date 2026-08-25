@@ -317,6 +317,8 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Tokyo giorno per gio
 
 *Abbini Tokyo a Seul? Il nostro [itinerario di 5 giorni a Seul](/blog/seoul-5-day-itinerary) riprende da dove finisce questo.*
 
+*Aggiungi Kyoto e Osaka? L'[itinerario della Golden Route del Giappone](/blog/japan-golden-route-itinerary) copre l'intero corridoio in 10-14 giorni.*
+
 ## FAQ
 
 ### Bastano 4 giorni per Tokyo?

@@ -162,6 +162,8 @@ Pick a destination from this list, drop it into MonkeyTravel, invite your group,
 
 ---
 
+*Planning a hen weekend specifically? That has its own rules — see [how to plan a bachelorette trip](/blog/how-to-plan-a-bachelorette-trip).*
+
 ## Frequently Asked Questions
 
 ### What's the cheapest destination for a group trip in 2026?

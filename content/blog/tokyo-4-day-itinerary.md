@@ -317,6 +317,8 @@ MonkeyTravel's AI creates a **personalized day-by-day Tokyo itinerary** in 30 se
 
 *Pairing Tokyo with Seoul? Our [5-day Seoul itinerary](/blog/seoul-5-day-itinerary) picks up where this one leaves off.*
 
+*Adding Kyoto and Osaka? The [Japan Golden Route itinerary](/blog/japan-golden-route-itinerary) covers the full corridor in 10–14 days.*
+
 ## FAQ
 
 ### Is 4 days enough for Tokyo?

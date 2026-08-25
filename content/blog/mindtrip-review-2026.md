@@ -110,6 +110,8 @@ Choose an alternative like [MonkeyTravel](/trips/new) if you plan in Spanish, It
 
 **Want to try the group-friendly, multilingual alternative?** [Plan your trip with MonkeyTravel](/trips/new) — free, no signup, in four languages.
 
+*Weighing it against Layla specifically? That comparison is [here](/blog/layla-vs-mindtrip-2026).*
+
 ## Frequently Asked Questions
 
 ### Is Mindtrip really free?

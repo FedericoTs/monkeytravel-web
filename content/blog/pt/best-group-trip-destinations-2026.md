@@ -164,6 +164,8 @@ Escolha um destino desta lista, jogue na MonkeyTravel, convide seu grupo e deixe
 
 ---
 
+*Organizando uma despedida de solteira? Tem regras próprias — veja [como planejar uma despedida de solteira](/blog/how-to-plan-a-bachelorette-trip).*
+
 ## Perguntas Frequentes
 
 ### Qual é o destino mais barato para uma viagem em grupo em 2026?

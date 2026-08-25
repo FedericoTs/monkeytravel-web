@@ -136,6 +136,8 @@ Dale la vuelta al calendario: en Nueva Zelanda es pleno invierno y Queenstown, l
 
 Elige uno de los doce destinos de arriba y el [planificador de viajes con AI gratuito de MonkeyTravel](/trips/new) te montará un itinerario día a día — lugares reales, horarios de apertura, presupuestos — en más o menos medio minuto. No hace falta registrarse para probarlo.
 
+*¿Solo tienes un fin de semana? El mismo método sirve — [planifica una escapada en 15 minutos](/blog/plan-weekend-getaway-with-ai).*
+
 ## Preguntas frecuentes (FAQ)
 
 ### ¿Cuál es el mejor destino para viajar en agosto de 2026?

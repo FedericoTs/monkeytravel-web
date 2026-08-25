@@ -200,6 +200,8 @@ No spreadsheet. No 47 browser tabs. No "did everyone see my message?"
 
 ---
 
+*Planning something lower-impact? Our [sustainable travel guide](/blog/sustainable-travel-guide-2026) covers ten destinations doing it properly.*
+
 ## FAQ
 
 ### How much does a bachelorette trip cost per person?

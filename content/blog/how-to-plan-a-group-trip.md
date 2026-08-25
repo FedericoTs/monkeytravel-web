@@ -150,6 +150,8 @@ Use this as your timeline:
 
 *Once the group has agreed on dates, our [group trip itinerary template](/blog/group-trip-itinerary-template) gives you a day-by-day structure to fill in.*
 
+*If the sticking point is deciding rather than organising, try [planning the trip by voting](/blog/plan-group-trip-by-voting).*
+
 ## FAQ
 
 ### How far in advance should you plan a group trip?

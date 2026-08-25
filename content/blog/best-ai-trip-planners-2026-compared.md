@@ -188,6 +188,8 @@ If you want the head-to-head rather than the full field:
 
 ---
 
+*Deciding between just those two? We put them head to head in [Layla vs Mindtrip](/blog/layla-vs-mindtrip-2026).*
+
 ## Frequently Asked Questions
 
 ### What is the best free AI trip planner in 2026?

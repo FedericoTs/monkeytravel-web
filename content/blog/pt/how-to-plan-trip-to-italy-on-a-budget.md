@@ -143,6 +143,8 @@ Diga à nossa AI para onde você quer ir e qual é o seu orçamento. Ela monta u
 
 ---
 
+*As ilhas esticam o orçamento de outro jeito — nosso [roteiro de 7 dias na Sardenha](/blog/itinerario-sardegna-7-giorni) vai da Costa Smeralda ao sul.*
+
 ## Perguntas Frequentes
 
 ### Quanto custa uma viagem econômica de 10 dias à Itália?

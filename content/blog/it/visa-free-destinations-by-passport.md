@@ -222,6 +222,8 @@ Quando l'ingresso senza visto non e disponibile, verifica se la destinazione off
 
 Usa strumenti come il [pianificatore di viaggio AI](/it/free-ai-trip-planner) di MonkeyTravel per costruire itinerari che possano essere adattati in base ai requisiti di visto. L'AI considera i documenti di viaggio e i requisiti di ingresso come parte della sua pianificazione, rendendo piu facile cambiare destinazione se sorgono problemi di visto.
 
+*Vai in Europa? [L'ETIAS slitta al 2027](/blog/etias-europe-travel-authorization-2026) e costerà 20 EUR, non i 7 EUR ancora citati ovunque.*
+
 ## Domande frequenti
 
 ### Quanti Paesi puo visitare un passaporto americano senza visto?

@@ -112,6 +112,8 @@ Escolha uma alternativa como o [MonkeyTravel](/trips/new) se você planeja em es
 
 **Quer testar a alternativa multilíngue e ideal para grupos?** [Planeje sua viagem com o MonkeyTravel](/trips/new) — grátis, sem cadastro, em quatro idiomas.
 
+*Comparando especificamente com o Layla? Essa comparação está [aqui](/blog/layla-vs-mindtrip-2026).*
+
 ## Perguntas frequentes (FAQ)
 
 ### O Mindtrip é realmente grátis?

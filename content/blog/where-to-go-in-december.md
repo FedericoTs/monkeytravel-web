@@ -136,6 +136,8 @@ The Mexican Caribbean shakes off its wet months in December: humidity drops, the
 
 Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it.
 
+*New York in December is on a lot of lists — our [5-day New York itinerary](/blog/new-york-5-day-itinerary) turns it into an actual plan.*
+
 ## Frequently Asked Questions (FAQ)
 
 ### Where is the best place to go in December 2026?

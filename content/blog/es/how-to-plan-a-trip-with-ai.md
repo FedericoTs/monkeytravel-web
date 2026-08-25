@@ -226,6 +226,8 @@ Después de ver a miles de personas planificar viajes con AI, estos son los patr
 
 **7. No olvides los momentos intermedios.** El AI planifica actividades pero no el camino entre ellas. Algunas de las mejores partes de un viaje ocurren en el trayecto — el mercadillo que pasas de camino al museo, el mirador que encuentras por casualidad entre paradas.
 
+*Si planificar te agota en vez de divertirte, escribimos sobre [por qué se siente así y qué ayuda de verdad](/blog/travel-planning-stress-how-ai-helps).*
+
 ## FAQ: Preguntas frecuentes sobre planificación de viajes con AI
 
 ### ¿Cuánto tiempo lleva planificar un viaje con AI?

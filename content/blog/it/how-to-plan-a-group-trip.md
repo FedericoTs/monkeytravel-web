@@ -63,6 +63,8 @@ Prima che qualcuno scelga un ristorante o discuta di Airbnb vs. hotel, il gruppo
 
 *Quando il gruppo ha deciso le date, il nostro [template per l'itinerario di gruppo](/blog/group-trip-itinerary-template) ti dà la struttura giorno per giorno da riempire.*
 
+*Se il problema è decidere e non organizzare, prova a [pianificare il viaggio votando](/blog/plan-group-trip-by-voting).*
+
 ## Passo 3: Presenta scelte, non domande aperte
 
 È qui che la maggior parte dei viaggi di gruppo muore. L'organizzatore chiede "Dove mangiamo stasera?" e la chat di gruppo esplode.

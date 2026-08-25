@@ -248,6 +248,8 @@ Use nosso [planejador de viagens com AI gratuito](/trips/new) para montar um rot
 
 ---
 
+*Comer bem gastando menos? Nossa lista das [cidades europeias mais baratas para comer](/blog/cheapest-european-cities-for-food-2026) traz os preços reais por refeição.*
+
 ## Perguntas frequentes
 
 **Qual destino gastronômico é melhor para quem viaja com orçamento apertado?**

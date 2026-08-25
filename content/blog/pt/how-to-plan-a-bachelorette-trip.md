@@ -202,6 +202,8 @@ Sem planilha. Sem 47 abas no navegador. Sem "todo mundo viu a minha mensagem?".
 
 ---
 
+*Procurando algo de menor impacto? Nosso [guia de viagem sustentável](/blog/sustainable-travel-guide-2026) cobre dez destinos que fazem isso direito.*
+
 ## Perguntas Frequentes
 
 ### Quanto custa uma despedida de solteira por pessoa?

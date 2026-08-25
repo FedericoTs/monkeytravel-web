@@ -136,6 +136,8 @@ Se settembre ha un festival all'altezza dell'agosto di Edimburgo, è questo: l'O
 
 Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi. Quando sei pronto, [pianifica il tuo viaggio di settembre](/trips/new) oppure parti dal nostro [planner di viaggio AI gratuito](/trips/new) e lascia che ti suggerisca le date che schivano la folla.
 
+*Settembre è il momento giusto per le Cicladi — il nostro [itinerario tra le isole greche](/blog/greek-island-hopping-itinerary) mette in sequenza Atene, Santorini e Mykonos senza gli errori classici.*
+
 ## Domande frequenti (FAQ)
 
 ### Qual è il posto migliore dove andare a settembre 2026?

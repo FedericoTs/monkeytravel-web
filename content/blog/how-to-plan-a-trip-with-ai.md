@@ -225,6 +225,8 @@ After watching thousands of people plan trips with AI, here are the patterns tha
 
 **7. Don't forget the in-between moments.** AI plans activities but not the walk between them. Some of the best parts of a trip happen in transit — the street market you pass on the way to the museum, the viewpoint you stumble onto between stops.
 
+*If planning is the part that exhausts you rather than the part you enjoy, we wrote about [why it feels that way and what actually helps](/blog/travel-planning-stress-how-ai-helps).*
+
 ## FAQ: Common Questions About AI Trip Planning
 
 ### How long does it take to plan a trip with AI?

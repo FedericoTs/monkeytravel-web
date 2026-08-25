@@ -247,6 +247,8 @@ Usa il nostro [pianificatore di viaggi gratuito con AI](/trips/new) per costruir
 
 ---
 
+*Mangiare bene spendendo meno? La nostra lista delle [città europee più economiche per mangiare](/blog/cheapest-european-cities-for-food-2026) ha i prezzi reali a pasto.*
+
 ## Domande Frequenti
 
 **Qual è la migliore destinazione gastronomica per i viaggiatori con un budget limitato?**

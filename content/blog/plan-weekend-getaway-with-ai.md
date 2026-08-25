@@ -228,6 +228,8 @@ The next long weekend on your calendar is closer than you think. [Plan it in 15 
 
 ---
 
+*Not sure what kind of break you want? We looked at [what travellers actually pick](/blog/travel-moods-2026) across thousands of real trips.*
+
 ## FAQ
 
 ### How far in advance should I plan a weekend getaway?

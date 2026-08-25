@@ -363,6 +363,10 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato per l'Italia giorno per
 
 *Ancora indeciso tra città? Le abbiamo confrontate in [Parigi vs Roma](/blog/paris-vs-rome).*
 
+*Stesso itinerario spendendo meno? La nostra guida [Italia con 100 $ al giorno](/blog/how-to-plan-trip-to-italy-on-a-budget) scompone i costi città per città.*
+
+*Preferisci il sud ai classici? Il nostro [itinerario di 5 giorni in Puglia](/blog/itinerario-puglia-5-giorni) copre Bari, il Salento e i trulli.*
+
 ## FAQ
 
 ### Bastano 5 giorni per l'Italia?

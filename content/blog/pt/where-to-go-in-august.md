@@ -136,6 +136,8 @@ Vire o calendário ao contrário: é pleno inverno na Nova Zelândia, e Queensto
 
 Escolha um dos doze destinos acima e o [planeador de viagens com AI gratuito da MonkeyTravel](/trips/new) constrói-lhe um itinerário dia a dia — lugares reais, horários de abertura, orçamentos — em cerca de meio minuto. Não é preciso registo para experimentar.
 
+*Só tem um fim de semana? O mesmo método funciona — [planeje uma escapada em 15 minutos](/blog/plan-weekend-getaway-with-ai).*
+
 ## Perguntas frequentes (FAQ)
 
 ### Qual é o melhor lugar para ir em agosto de 2026?

@@ -230,6 +230,8 @@ O próximo feriado prolongado da sua agenda está mais perto do que você pensa.
 
 ---
 
+*Não sabe que tipo de pausa quer? Analisamos [o que os viajantes realmente escolhem](/blog/travel-moods-2026) em milhares de viagens reais.*
+
 ## Perguntas Frequentes
 
 ### Com quanta antecedência devo planejar uma escapada de fim de semana?

@@ -1,4 +1,16 @@
 import Navbar from "@/components/Navbar";
+
+/**
+ * Content freshness signal for the WebPage schema. Bump ONLY when this
+ * page's copy actually changes — never automate it.
+ */
+const CONTENT_UPDATED = '2026-08-24';
+import {
+  generateBreadcrumbSchema,
+  generateWebPageSchema,
+  jsonLdScriptProps,
+} from "@/lib/seo/structured-data";
+import { getNonce } from "@/lib/security/nonce";
 import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -112,8 +124,28 @@ export default async function ToolsLandingPage({
     },
   ];
 
+  // Visible breadcrumb nav already renders below (aria-label="Breadcrumb");
+  // this is the machine-readable twin. No FAQPage here on purpose — the page
+  // has no visible FAQ, and FAQ markup without matching content is a violation.
+  const schemaPrefix = locale === "en" ? "" : `/${locale}`;
+  const breadcrumbItems = [
+    { name: "MonkeyTravel", url: `https://monkeytravel.app${schemaPrefix}` },
+    { name: "Travel Tools", url: `https://monkeytravel.app${schemaPrefix}/tools` },
+  ];
+  const nonce = await getNonce();
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <script
+        {...jsonLdScriptProps([
+          generateBreadcrumbSchema(breadcrumbItems),
+          generateWebPageSchema({
+            name: breadcrumbItems[breadcrumbItems.length - 1].name,
+            url: breadcrumbItems[breadcrumbItems.length - 1].url,
+            dateModified: CONTENT_UPDATED,
+          }),
+        ], nonce)}
+      />
       <Navbar />
       <main className="flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 w-full">
         <nav className="text-sm text-slate-500 mb-6" aria-label="Breadcrumb">
