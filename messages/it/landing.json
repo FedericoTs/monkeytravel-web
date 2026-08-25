@@ -1,12 +1,12 @@
 {
   "hero": {
-    "badge": "Gratis per Te e il Tuo Gruppo",
-    "titleLine1": "Pianifica Viaggi con gli Amici",
-    "titleHighlight": "in 30 Secondi",
-    "subtitleStart": "Scegli una destinazione, invita il tuo gruppo e ottieni un",
+    "badge": "Viaggia da solo \u2014 o con fino a 8 amici",
+    "titleLine1": "Pianificatore di Viaggi AI Gratuito",
+    "titleHighlight": "Giorno per Giorno in 30 Secondi",
+    "subtitleStart": "Scegli una destinazione e ottieni un",
     "subtitleHighlight": "itinerario personalizzato giorno per giorno",
-    "subtitleEnd": "su cui tutti possono votare, modificare e personalizzare.",
-    "cta": "Pianifica un Viaggio Insieme",
+    "subtitleEnd": "con luoghi reali, orari e budget \u2014 senza account e senza carta.",
+    "cta": "Pianifica il Viaggio \u2014 Gratis",
     "signIn": "Accedi",
     "inputPlaceholder": "Dove vuoi andare?",
     "inputCta": "Pianifica il viaggio",
@@ -14,7 +14,7 @@
     "starters": ["Tokyo", "Parigi", "Bali", "Roma", "New York"],
     "trustSignals": {
       "free": "100% Gratis",
-      "noCard": "Fino a 8 Amici",
+      "noCard": "Nessun Account",
       "instant": "30 Secondi"
     },
     "floatingCards": {

@@ -1,12 +1,12 @@
 {
   "hero": {
-    "badge": "Grátis para Você e Sua Turma",
-    "titleLine1": "Planeje Viagens com Amigos",
-    "titleHighlight": "em 30 Segundos",
-    "subtitleStart": "Escolha um destino, convide sua turma e receba um",
+    "badge": "Viaje sozinho — ou com até 8 amigos",
+    "titleLine1": "Planejador de Viagens com AI Gr\u00e1tis",
+    "titleHighlight": "Dia a Dia em 30 Segundos",
+    "subtitleStart": "Escolha um destino e receba um",
     "subtitleHighlight": "roteiro personalizado dia a dia",
-    "subtitleEnd": "em que todos podem votar, editar e deixar do seu jeito.",
-    "cta": "Planeje uma Viagem Juntos",
+    "subtitleEnd": "com lugares reais, hor\u00e1rios e or\u00e7amentos \u2014 sem conta e sem cart\u00e3o.",
+    "cta": "Planejar Minha Viagem \u2014 Gr\u00e1tis",
     "signIn": "Entrar",
     "inputPlaceholder": "Para onde você quer ir?",
     "inputCta": "Planejar viagem",
@@ -20,7 +20,7 @@
     ],
     "trustSignals": {
       "free": "100% Grátis",
-      "noCard": "Até 8 Amigos",
+      "noCard": "Sem Conta",
       "instant": "30 Segundos"
     },
     "floatingCards": {

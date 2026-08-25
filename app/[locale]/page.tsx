@@ -26,7 +26,7 @@ const META: Record<string, { title: string; description: string }> = {
     description: 'Planeje a viagem perfeita com roteiros dia a dia gerados por AI. Receba planos de viagem personalizados em minutos — grátis, sem cartão de crédito.',
   },
   en: {
-    title: 'Free AI Trip Planner | Day-by-Day Itineraries in Minutes',
+    title: 'Free AI Trip Planner | Day-by-Day Itineraries in 30 Seconds',
     description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
   },
   es: {

@@ -1,12 +1,12 @@
 {
   "hero": {
-    "badge": "Free for You and Your Crew",
-    "titleLine1": "Plan Trips With Friends",
-    "titleHighlight": "in 30 Seconds",
-    "subtitleStart": "Drop a destination, invite your crew, and get a",
+    "badge": "Plan solo \u2014 or with up to 8 friends",
+    "titleLine1": "Free AI Trip Planner",
+    "titleHighlight": "Day-by-Day in 30 Seconds",
+    "subtitleStart": "Drop a destination and get a",
     "subtitleHighlight": "personalized day-by-day itinerary",
-    "subtitleEnd": "everyone can vote on, edit, and make their own.",
-    "cta": "Plan a Trip Together",
+    "subtitleEnd": "with real places, opening hours and budgets \u2014 no account, no card.",
+    "cta": "Plan My Trip \u2014 Free",
     "signIn": "Sign In",
     "inputPlaceholder": "Where do you want to go?",
     "inputCta": "Plan my trip",
@@ -14,7 +14,7 @@
     "starters": ["Tokyo", "Paris", "Bali", "Rome", "New York"],
     "trustSignals": {
       "free": "100% Free",
-      "noCard": "Up to 8 Friends",
+      "noCard": "No Account Needed",
       "instant": "30 Seconds"
     },
     "floatingCards": {
