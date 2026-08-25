@@ -34,9 +34,31 @@ export default function HeroDoodleBackground({
       className={layout === "centered" ? `${styles.root} ${styles.centered}` : styles.root}
       aria-hidden="true"
     >
-      {/* static scenery: browser downloads only the matching source */}
+      {/* static scenery: browser downloads only the matching source.
+
+          The `width`/`height` on <source> are load-bearing, not decoration.
+          The two artworks are art-directed crops with very different shapes —
+          desktop 1525x1031 (aspect 1.479, landscape), mobile 750x1624 (aspect
+          0.462, portrait) — and on mobile `.base` is `height: auto` anchored to
+          the bottom, so its height comes ENTIRELY from the intrinsic aspect
+          ratio.
+
+          Without dimensions on the <source>, the browser falls back to the
+          <img> attributes, reserves a LANDSCAPE box for a PORTRAIT image, and
+          then resizes it on load. Measured in a Lighthouse trace: one shift,
+          score 0.5135, the element growing 210px -> 704px with its bottom
+          pinned — which was the whole of the homepage's CLS failure (field p75
+          0.57, the only Core Web Vital not passing).
+
+          <source> takes width/height precisely so an art-directed picture can
+          declare its own aspect ratio. Keep these in step with the files. */}
       <picture>
-        <source media="(max-width: 767.98px)" srcSet={`${HERO}/base-mobile.webp`} />
+        <source
+          media="(max-width: 767.98px)"
+          srcSet={`${HERO}/base-mobile.webp`}
+          width={750}
+          height={1624}
+        />
         <img
           src={`${HERO}/base-desktop.webp`} width={1525} height={1031}
           alt=""
