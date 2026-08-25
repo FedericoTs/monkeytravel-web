@@ -198,6 +198,24 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Vendored world-map geometry (scripts/vendor-world-map.mjs). Fetched once
+      // by the passport pages and reused across all 80 of them, which is the
+      // whole reason it is a static asset rather than inlined.
+      //
+      // A day, with a week of stale-while-revalidate, rather than the
+      // `immutable` used for images: the filename is stable, so `immutable`
+      // would strand clients on an old map after a regeneration. A day already
+      // captures the case that matters — someone browsing several passports in
+      // one session downloads it once.
+      {
+        source: '/geo/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=604800',
+          },
+        ],
+      },
       // Cache font files
       {
         source: '/:path*.woff2',

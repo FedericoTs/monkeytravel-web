@@ -1,37 +1,48 @@
-import worldPaths from "@/lib/geo/world-paths.json";
+"use client";
+
+import { useEffect, useState } from "react";
 import type { VisaStatus } from "@/lib/visa/types";
 
 /**
  * World choropleth of what a passport gets you, coloured by visa status.
  *
- * SERVER COMPONENT, ZERO CLIENT JAVASCRIPT
- * The geometry is pre-projected SVG path data (lib/geo/world-paths.json,
- * vendored by scripts/vendor-world-map.mjs), so this is just <path d={...}/>.
- * No d3, no topojson-client, no runtime projection, and nothing fetched from a
- * CDN — which also means the CSP has nothing to block.
+ * WHY THE GEOMETRY IS FETCHED, NOT IMPORTED
+ * This started as a server component with the paths imported directly. That put
+ * the geometry in the HTML *and* again in Next's RSC flight payload — verified
+ * by counting a distinctive path fragment, which appeared exactly twice — so
+ * 87.5 KB of gzipped paths cost ~175 KB on the wire and took the passport page
+ * to 297.9 KB gzipped.
  *
- * It is rendered inline rather than fetched as a static asset on purpose. A
- * client-fetched map pops in after paint, and this site is already failing
- * Core Web Vitals on CLS (homepage p75 0.57); adding another late-arriving
- * block would make that worse. Inline costs ~88KB gzipped at 50m, and the
- * fixed viewBox plus aspect-ratio box reserves the space before first paint.
+ * Fetching /geo/world-paths.json instead means one cached copy shared across
+ * all 80 passport pages (20 passports x 4 locales), and the page HTML carries
+ * none of it. next.config.ts caches it for a day with a week of
+ * stale-while-revalidate, and middleware.ts excludes /geo from its matcher so
+ * the fetch does not trigger a Supabase session round-trip — the same mistake
+ * manifest.json cost 344 middleware invocations a day for.
+ *
+ * NO LAYOUT SHIFT DESPITE ARRIVING LATE
+ * The container is a fixed aspect-ratio box, so its height is known before the
+ * geometry lands. The map fades in inside an already-reserved frame; nothing
+ * below it moves. That matters here because the site is already failing Core
+ * Web Vitals on CLS (homepage p75 0.57) and this must not add to it.
+ *
+ * WHAT A READER LOSES IF THE FETCH FAILS
+ * Nothing that matters. The map is a visual summary; the authoritative answer
+ * is the grouped destination lists below it, which are server-rendered and
+ * always present. On failure the frame simply stays empty rather than showing
+ * an error the reader can do nothing about.
  *
  * COVERAGE — STATED, NOT HIDDEN
- * Built from 50m Natural Earth geometry, which covers 197 of the 199
- * destinations in the visa matrix. Only Tuvalu and Kosovo are undrawn: Kosovo
- * has no official ISO alpha-2 code at all, and Tuvalu has no polygon carrying
- * one in the source. Both still appear in the grouped lists below, and the
+ * Built from 50m Natural Earth geometry, covering 197 of the 199 destinations
+ * in the visa matrix. Only Tuvalu and Kosovo are undrawn; Kosovo has no
+ * official ISO alpha-2 code at all. Both appear in the lists below and the
  * caption names them.
- *
- * The earlier 110m build was missing 32 destinations — Singapore, Malta, the
- * Maldives, Mauritius, Seychelles, Hong Kong and 26 more — which is why the
- * resolution was raised.
  */
 
 interface Props {
-  /** iso2 -> status for one passport. ~4KB, built server-side. */
+  /** iso2 -> status for one passport. ~4KB, resolved server-side. */
   statusByIso2: Record<string, VisaStatus>;
-  /** The passport's own country, outlined rather than filled. */
+  /** The passport's own country, filled distinctly. */
   homeIso2: string;
   /** status -> localized label, for the accessible description. */
   labels: Record<string, string>;
@@ -58,7 +69,30 @@ const FILL: Record<string, string> = {
 /** Countries with no visa data at all — drawn, but visibly inert. */
 const NO_DATA = "#e2e8f0"; // slate-200
 
-const PATHS = worldPaths as Record<string, string>;
+const ASSET = "/geo/world-paths.json";
+
+/**
+ * Module-level cache. Several passport pages in one session, or a re-mount,
+ * must not each start their own request — the browser cache would usually
+ * cover it, but sharing the promise makes it certain.
+ */
+let cached: Promise<Record<string, string>> | null = null;
+
+function loadPaths(): Promise<Record<string, string>> {
+  if (!cached) {
+    cached = fetch(ASSET)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json();
+      })
+      .catch((e) => {
+        // Let a later mount retry rather than caching the failure forever.
+        cached = null;
+        throw e;
+      });
+  }
+  return cached;
+}
 
 export default function PassportMap({
   statusByIso2,
@@ -67,14 +101,27 @@ export default function PassportMap({
   caption,
   title,
 }: Props) {
-  const entries = Object.entries(PATHS);
+  const [paths, setPaths] = useState<Record<string, string> | null>(null);
 
-  // Counts for the accessible description, so a screen reader gets the same
-  // summary a sighted reader gets from the colours.
+  useEffect(() => {
+    let alive = true;
+    loadPaths()
+      .then((p) => {
+        if (alive) setPaths(p);
+      })
+      .catch(() => {
+        /* frame stays empty; the lists below carry the answer */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Described from the DATA, not from what happens to be drawable, so the
+  // accessible summary is complete even before the geometry arrives.
   const counts: Record<string, number> = {};
-  for (const [iso2] of entries) {
-    const s = statusByIso2[iso2];
-    if (s) counts[s] = (counts[s] ?? 0) + 1;
+  for (const status of Object.values(statusByIso2)) {
+    counts[status] = (counts[status] ?? 0) + 1;
   }
   const described = Object.entries(counts)
     .map(([s, n]) => `${labels[s] ?? s}: ${n}`)
@@ -82,36 +129,39 @@ export default function PassportMap({
 
   return (
     <figure className="mt-8">
-      {/* aspect-ratio reserves the box before the SVG paints — no layout shift. */}
+      {/* Fixed aspect-ratio: the height is known before the geometry lands, so
+          the late arrival cannot shift anything below it. */}
       <div
         className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
         style={{ aspectRatio: "360 / 144" }}
       >
-        <svg
-          viewBox="-180 -84 360 144"
-          className="h-full w-full"
-          role="img"
-          aria-label={`${title}. ${described}`}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {entries.map(([iso2, d]) => {
-            const status = statusByIso2[iso2];
-            const isHome = iso2 === homeIso2;
-            return (
-              <path
-                key={iso2}
-                d={d}
-                fill={isHome ? "#0f172a" : (status ? FILL[status] : NO_DATA) ?? NO_DATA}
-                stroke="#ffffff"
-                // Hairline in viewBox units: 0.15 of a degree keeps borders
-                // visible at every render width without thickening small nations
-                // into blobs.
-                strokeWidth={0.15}
-                vectorEffect="non-scaling-stroke"
-              />
-            );
-          })}
-        </svg>
+        {paths && (
+          <svg
+            viewBox="-180 -84 360 144"
+            className="h-full w-full"
+            role="img"
+            aria-label={`${title}. ${described}`}
+            preserveAspectRatio="xMidYMid meet"
+          >
+            {Object.entries(paths).map(([iso2, d]) => {
+              const status = statusByIso2[iso2];
+              return (
+                <path
+                  key={iso2}
+                  d={d}
+                  fill={
+                    iso2 === homeIso2
+                      ? "#0f172a"
+                      : (status ? FILL[status] : NO_DATA) ?? NO_DATA
+                  }
+                  stroke="#ffffff"
+                  strokeWidth={0.15}
+                  vectorEffect="non-scaling-stroke"
+                />
+              );
+            })}
+          </svg>
+        )}
       </div>
       <figcaption className="mt-2 text-xs text-slate-500">{caption}</figcaption>
     </figure>

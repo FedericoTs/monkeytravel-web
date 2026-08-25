@@ -365,6 +365,6 @@ export const config = {
     // round-trip) and sets cookies. 2026-07-21 production logs: 344
     // middleware invocations/day for manifest.json alone, all of them for a
     // file that could have come straight off the CDN.
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|images|screenshots|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|images|screenshots|geo|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

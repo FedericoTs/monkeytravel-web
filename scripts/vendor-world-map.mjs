@@ -6,7 +6,12 @@
  *   node scripts/vendor-world-map.mjs            # fetch, convert, write
  *   node scripts/vendor-world-map.mjs --check    # exit 1 if the output drifted
  *
- * Output: lib/geo/world-paths.json  — { "US": "M...Z", "FR": "M...Z", ... }
+ * Output: public/geo/world-paths.json — { "US": "M...Z", "FR": "M...Z", ... }
+ *
+ * It is served as a STATIC ASSET, not imported. Inlining it put the geometry in
+ * the HTML *and* again in Next's RSC flight payload — verified 2x by counting a
+ * path fragment — which took the passport page to 297.9 KB gzipped. Fetched
+ * once, it is cached across all 80 passport pages instead.
  *
  * WHY PRE-PROJECTED PATHS AND NOT A RUNTIME TOPOJSON
  * The passport pages need to colour ~198 countries by visa status. The obvious
@@ -51,9 +56,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT_DIR = path.join(ROOT, "lib", "geo");
+const OUT_DIR = path.join(ROOT, "public", "geo");
 const OUT_FILE = path.join(OUT_DIR, "world-paths.json");
-const LICENSE_FILE = path.join(OUT_DIR, "LICENSE");
+// The licence notice stays in lib/geo/ — it documents the vendored artefact
+// and has no business being publicly served alongside it.
+const LICENSE_FILE = path.join(ROOT, "lib", "geo", "LICENSE");
 
 const TOPO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 const CODES_URL =
