@@ -87,7 +87,11 @@ export async function generateMetadata({
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
-    title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template
+    // (app/layout.tsx). On an article the brand suffix buys nothing and costs
+    // 15 of the ~60 characters Google renders — 277 of 284 blog titles were
+    // truncating because nobody budgeted for it. Product pages keep the suffix.
+    title: { absolute: title },
     description,
     // Optional-chained: a post without an seo: frontmatter block must degrade
     // to no keywords, not 500 the route (2026-07-12: august post shipped
