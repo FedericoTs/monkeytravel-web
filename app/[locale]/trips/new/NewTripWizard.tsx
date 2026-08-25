@@ -201,6 +201,7 @@ import { FLAG_AUTO_SAVE_V1, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
 import DecisionIntake from "@/components/wizard/DecisionIntake";
 import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
+import { isSameDestination } from "@/lib/trips/sameDestination";
 import {
   insertTrip as persistInsertTrip,
   updateTrip as persistUpdateTrip,
@@ -1771,6 +1772,34 @@ export default function NewTripPage({
       setStep(1);
       return;
     }
+
+    // Re-generating the SAME destination updates the saved row instead of
+    // adding a second one.
+    //
+    // The Regenerate button already did this by calling autoSave.regenerate().
+    // Back-navigation did not: the user returned to step 1, changed the length
+    // or the dates, and generated again — a path that called neither
+    // regenerate() nor discard(), so the previous trip stayed saved and a
+    // second one appeared. Measured 2026-08-25: 31 pairs across 24 distinct
+    // users, mean gap ~11 minutes. The server-side dedupe cannot catch these —
+    // insert_trip_dedup locks on (user, lower(title), start_date) and the whole
+    // point of the edit is that one of those changed.
+    //
+    // Gated on the destination being UNCHANGED. If you go back and plan a
+    // different city, that is a different trip and must not overwrite the one
+    // already saved — updating there would turn this fix into data loss.
+    if (
+      autoSaveEnabled &&
+      autoSave.savedTripId &&
+      generatedItinerary &&
+      isSameDestination(generatedItinerary.destination?.name, destination)
+    ) {
+      // Awaits any in-flight save so the next persist sees savedTripIdRef set
+      // and takes the UPDATE branch, then clears the dedup ref so the incoming
+      // itinerary actually triggers that persist.
+      await autoSave.regenerate();
+    }
+
     // Save Sprint T1: count every generation attempt of this browser session
     // (mt_gen_count). handleGenerate is the single choke point for ALL
     // generations — classic wizard, decision arm, regenerate, post-auth
