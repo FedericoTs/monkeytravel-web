@@ -722,6 +722,90 @@ plus the `/shared/{uuid}` noindex check and sitemap hygiene. If you ship
 changes that affect SSR output, manually re-run the recipe before declaring
 done.
 
+## Content Sourcing Discipline (MANDATORY)
+
+Added 2026-08-24, after an audit found 72 of 88 EN posts carried percentage
+claims while only 2 cited anything, and 36 citations were dead or fabricated.
+
+### The rule
+
+**Every statistic in published content needs a source you have actually opened,
+or it does not ship.** Not a plausible-sounding source. Not a company homepage
+with a report title attached. A URL you fetched and read.
+
+Three failure modes, all of which we shipped:
+
+1. **Bare invented figures.** "42% of travelers used AI in 2025." Sounds
+   researched, wasn't. The real figures are 37% (Allianz Partners, 2026) and
+   close to 40% (Phocuswright, 2025).
+2. **Named-company attribution with nothing behind it.** "A 2023 Skyscanner
+   survey found that 49% of travelers say..." This is the worst kind: it puts
+   words in a real company's mouth, and one click disproves it.
+3. **Decorative citations.** A named report title pointing at a homepage —
+   `[Skyscanner — Cheapest Days to Fly Report 2026](https://www.skyscanner.com/)` —
+   or at a 404. Worse than no citation, because it *looks* like sourcing.
+
+### Before publishing any post containing a number
+
+- **Fetch every cited URL and check the status code.** 404s and bare-homepage
+  links get removed, not reworded.
+- **Confirm the page actually contains the claim.** A resolving URL is not
+  evidence. `booking.com/articles/travel-predictions.html` returns 200 and says
+  nothing about 72% of travelers valuing spontaneity.
+- **Open primary sources, never search summaries.** During this audit a summary
+  offered "24% of AI itineraries recommend a closed venue." The primary source
+  said 24% of *tourists use AI for trip planning* — a completely different
+  statistic. The summary had conflated two findings.
+- **If you cannot verify a figure, remove the precision and keep the point.**
+  An argument that only works with an invented number was never a good argument.
+  Never swap one unverified number for another.
+- **Prefer our own data.** `how-many-activities-per-day-itinerary`,
+  `group-travel-statistics-2026`, `travel-moods-2026` and
+  `ai-trip-planner-accuracy-2026` are the model: a `*Data:` footer carrying
+  sample size, date range and a privacy statement. Competitors cannot copy it,
+  and it is the most citable shape for AI Overviews.
+- **First-party numbers go stale too.** Recompute before re-dating. Our
+  free-activity share moved 13.8% → 23.8% between analyses.
+
+### Dates
+
+`updatedAt` moves only when the content actually changed. Fixing a defect —
+removing a dead citation, correcting a typo — is not a content update.
+
+This is **not** because date manipulation is a Google spam policy. It is not:
+the official spam policy list contains no date or freshness policy. It is
+because Google detects whether content really changed, so a fake bump is inert,
+and because claiming a freshness you don't have is dishonest to readers. Do not
+avoid *legitimate* date bumps out of misplaced fear.
+
+### What is NOT a problem — do not "fix" these
+
+- **Ordinary travel-guide ranges.** "Riad prices crater 40-60% versus spring",
+  "65-75% aurora visibility". Genre estimates, not claims about the world.
+- **Repeating structure.** The `where-to-go-in-*` family shares a template and
+  is fine: 0 of 15 pairs exceed 10% prose overlap. Measure prose; never judge by
+  slug pattern. Consolidating a templated family on pattern alone is the most
+  expensive mistake available here.
+- **A cluster of identical dates.** Check `publishedAt == updatedAt` first. Ours
+  was a creation batch (23 posts on 2026-02-20), not a freshness bump.
+- **Losing AI Overview citations.** That is a retrieval system, not a spam
+  signal.
+
+### Verification
+
+```bash
+# every external citation, deduped — check the suspicious ones resolve
+grep -rhoE "\[[^]]*\]\(https?://[^)]*\)" content/blog/ | grep -v monkeytravel | sort -u
+
+# unsourced named-company claims
+grep -rnoE "(Skyscanner|Booking\.com|Tripadvisor|Hostelworld|Kayak)[^.]{0,40}(survey|study) found" content/blog/
+```
+
+**Every fix must be applied to all four locales** — `content/blog/` plus
+`content/blog/{es,it,pt}/`. Fixing EN only leaves three languages wrong, which
+is worse than not starting. Two locale copies of one post were also found
+serving *English* meta descriptions; check those when touching frontmatter.
+
 ## gstack
 
 This repo uses [gstack](https://github.com/garrytan/gstack) — a shared toolkit of Claude Code skills. Teammates install it once with `git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup`.
