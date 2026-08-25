@@ -141,7 +141,7 @@ export default function BestTimeToVisit({
               {t("bestTime.offSeason")}
             </span>
           </div>
-          <span className="text-[var(--foreground-muted)]/50">|</span>
+          <span aria-hidden="true" className="text-[var(--foreground-muted)]/50">|</span>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span className="text-[var(--foreground-muted)]">

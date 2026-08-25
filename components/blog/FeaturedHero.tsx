@@ -55,7 +55,7 @@ export default function FeaturedHero({
         <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-3">
             {category}
-            <span className="mx-2 text-slate-300">·</span>
+            <span aria-hidden="true" className="mx-2 text-slate-300">·</span>
             <span className="text-slate-500">{minuteReadLabel}</span>
           </p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight tracking-tight group-hover:text-[var(--primary-ink)] transition-colors">

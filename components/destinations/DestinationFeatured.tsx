@@ -63,7 +63,7 @@ export default function DestinationFeatured({
         <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)] mb-3">
             {countryName}
-            <span className="mx-2 text-slate-300">·</span>
+            <span aria-hidden="true" className="mx-2 text-slate-300">·</span>
             <span className="text-slate-500">{daysLabel}</span>
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-4 leading-tight tracking-tight group-hover:text-[var(--primary-ink)] transition-colors">

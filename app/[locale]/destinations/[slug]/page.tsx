@@ -267,7 +267,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200/80">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary-ink)]">
                 {destination.country[loc]}
-                <span className="mx-2 text-slate-300">·</span>
+                <span aria-hidden="true" className="mx-2 text-slate-300">·</span>
                 <span className="text-slate-500 normal-case tracking-normal">
                   {t("card.days", { days: destination.stats.avgStayDays })}
                 </span>
