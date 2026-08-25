@@ -67,7 +67,7 @@ The tourism model here is built around biodiversity: 5% of all species on Earth 
 
 **What makes it sustainable:** Government-backed conservation infrastructure, high percentage of renewable energy, established certification system (CST — Certificate of Sustainable Tourism) for hotels and tour operators.
 
-**Insider tip:** The Osa Peninsula is less visited than Arenal or Manuel Antonio but has higher biodiversity and more authentic wildlife encounters. Plan through [our free AI trip planner](/free-ai-trip-planner) to find the right lodge for your timing — dry season runs December to April. Costa Rica is also one of the best picks in our [where to go in June](/blog/where-to-go-in-june) guide.
+**Insider tip:** The Osa Peninsula is less visited than Arenal or Manuel Antonio but has higher biodiversity and more authentic wildlife encounters. Plan through [our free AI trip planner](/trips/new) to find the right lodge for your timing — dry season runs December to April. Costa Rica is also one of the best picks in our [where to go in June](/blog/where-to-go-in-june) guide.
 
 ---
 
@@ -225,7 +225,7 @@ The destinations on this list — particularly Bhutan, Rwanda, New Zealand, Keny
 
 **Eat local, eat seasonal.** In most of the destinations on this list, the local food economy is already more sustainable than imported alternatives. It's also usually better. This isn't a sacrifice.
 
-Use [our free AI trip planner](/free-ai-trip-planner) to build itineraries that cluster activities geographically, minimise in-destination transport, and prioritise operators with verified certifications.
+Use [our free AI trip planner](/trips/new) to build itineraries that cluster activities geographically, minimise in-destination transport, and prioritise operators with verified certifications.
 
 ---
 
@@ -249,7 +249,7 @@ Bhutan, by design. The Sustainable Development Fee, strict visitor caps, constit
 
 ### Can AI help me plan a more sustainable trip?
 
-Yes — specifically for itinerary clustering and transport optimisation. [MonkeyTravel's AI trip planner](/free-ai-trip-planner) can help you build routes that minimise transfers, identify certified operators, and structure a trip that spends more time in fewer places. The planning itself is only part of it — the choices you make within that plan are yours.
+Yes — specifically for itinerary clustering and transport optimisation. [MonkeyTravel's AI trip planner](/trips/new) can help you build routes that minimise transfers, identify certified operators, and structure a trip that spends more time in fewer places. The planning itself is only part of it — the choices you make within that plan are yours.
 
 ---
 

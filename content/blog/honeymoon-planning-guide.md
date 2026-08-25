@@ -205,7 +205,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **Realistic 10-night cost (2 people, flights from US or Europe):** $9,500–$14,000. Boutique Tokyo hotel $250–$400/night, Kyoto machiya $300–$500/night, ryokan with dinner and breakfast $400–$700/couple, JR Pass $570/person.
 
-**My take:** Book the ryokan first, then build the trip around it. Cherry blossom and autumn ryokans sell out three to four months ahead. The yen is still historically weak against the dollar, which is the under-discussed reason Japan is the best premium honeymoon value in 2026. Use our [free AI trip planner](/free-ai-trip-planner) to draft a Japan honeymoon route.
+**My take:** Book the ryokan first, then build the trip around it. Cherry blossom and autumn ryokans sell out three to four months ahead. The yen is still historically weak against the dollar, which is the under-discussed reason Japan is the best premium honeymoon value in 2026. Use our [free AI trip planner](/trips/new) to draft a Japan honeymoon route.
 
 ### St Lucia
 
@@ -410,7 +410,7 @@ Designing Day 1 to be empty. Almost no one does it. Almost everyone regrets it. 
 
 ---
 
-*Plan your 2026 honeymoon with our [free AI trip planner](/free-ai-trip-planner) — drop in your destination, dates, and budget tier, and get a sequenced day-by-day plan with realistic costs and shoulder-season recommendations.*
+*Plan your 2026 honeymoon with our [free AI trip planner](/trips/new) — drop in your destination, dates, and budget tier, and get a sequenced day-by-day plan with realistic costs and shoulder-season recommendations.*
 
 *Sources:*
 

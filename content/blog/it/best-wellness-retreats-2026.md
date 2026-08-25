@@ -277,7 +277,7 @@ La pratica funziona nella sua forma più semplice: trova un posto buio, sdraiati
 
 **5. Supporto all'integrazione.** Ciò che accade quando si torna a casa conta più di ciò che accade nel ritiro. I programmi che forniscono protocolli di follow-up — orari del sonno, linee guida nutrizionali, piani di rientro strutturati — hanno risultati misurativamente migliori. I protocolli post-programma di SHA sono tra i più dettagliati del settore.
 
-Usa il nostro [pianificatore di viaggio gratuito con AI](/free-ai-trip-planner) per costruire un itinerario wellness personalizzato che sequenzi le destinazioni giuste per la tua situazione specifica — adattando durata, budget e tipo di programma a ciò di cui hai realmente bisogno.
+Usa il nostro [pianificatore di viaggio gratuito con AI](/trips/new) per costruire un itinerario wellness personalizzato che sequenzi le destinazioni giuste per la tua situazione specifica — adattando durata, budget e tipo di programma a ciò di cui hai realmente bisogno.
 
 ---
 

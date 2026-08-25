@@ -141,7 +141,7 @@ Esto no es un parche, es usar cada herramienta para lo que fue disenada. ChatGPT
 
 Si has decidido usar una herramienta dedicada (buena decision), aqui tienes un resumen rapido:
 
-- **MonkeyTravel** — Mejor para grupos, viajeros multilingues (EN/ES/IT) y obtener un itinerario solido rapido sin registrarse. El sistema de votacion para planificacion grupal resuelve un problema real. [Pruebalo gratis](/free-ai-trip-planner).
+- **MonkeyTravel** — Mejor para grupos, viajeros multilingues (EN/ES/IT) y obtener un itinerario solido rapido sin registrarse. El sistema de votacion para planificacion grupal resuelve un problema real. [Pruebalo gratis](/trips/new).
 - **Layla AI** — Mejor para viajeros solos y parejas que quieren precios en vivo integrados en el itinerario. La integracion con Skyscanner y Booking.com te permite pasar del plan a la reserva rapidamente.
 - **Mindtrip** — Mejor para investigacion profunda. Su base de datos de mas de 11 millones de puntos de interes hace que encuentre cosas que otras herramientas pasan por alto.
 - **Wonderplan** — Mejor para planes rapidos enfocados en presupuesto cuando no necesitas la profundidad de una plataforma completa.

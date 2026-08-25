@@ -235,11 +235,11 @@ La maggior parte dei tour di un giorno (14-28 €) coprono le province di My Tho
 
 ## Pianifica il tuo Viaggio in Vietnam Senza il Foglio Excel
 
-Un percorso da Hanoi al Mekong ha molte parti in movimento: scadenze del visto, finestre di prenotazione delle crociere, combinazioni di voli interni e capire quale crociera di Ha Long vale i soldi. Il nostro [pianificatore di viaggi AI gratuito](/free-ai-trip-planner) costruisce l'itinerario completo in base alle tue date e al tuo budget — con opzioni reali, prezzi reali e percorsi che hanno senso. Se vuoi tenere i costi sotto controllo, il [pianificatore budget](/budget-trip-planner) ti mostra cosa è possibile a ogni fascia di prezzo.
+Un percorso da Hanoi al Mekong ha molte parti in movimento: scadenze del visto, finestre di prenotazione delle crociere, combinazioni di voli interni e capire quale crociera di Ha Long vale i soldi. Il nostro [pianificatore di viaggi AI gratuito](/trips/new) costruisce l'itinerario completo in base alle tue date e al tuo budget — con opzioni reali, prezzi reali e percorsi che hanno senso. Se vuoi tenere i costi sotto controllo, il [pianificatore budget](/budget-trip-planner) ti mostra cosa è possibile a ogni fascia di prezzo.
 
 Digli che vuoi 10 giorni in Vietnam. Ottieni un piano funzionante in meno di un minuto.
 
-[Pianifica il mio Viaggio in Vietnam — Gratis](/free-ai-trip-planner)
+[Pianifica il mio Viaggio in Vietnam — Gratis](/trips/new)
 
 ---
 

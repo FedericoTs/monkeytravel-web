@@ -237,7 +237,7 @@ Estos aplican independientemente del destino.
 
 Planificar un viaje en solitario significa que cada decision recae en ti. Los planificadores de viaje con AI reducen esa carga de formas concretas.
 
-**Itinerarios personalizados.** Herramientas como [MonkeyTravel](/free-ai-trip-planner) generan itinerarios dia a dia que tienen en cuenta la agrupacion geografica, tiempos de transporte realistas y restricciones de presupuesto. En lugar de pasar horas investigando el mejor orden para visitar atracciones, obtienes un plan logico en segundos.
+**Itinerarios personalizados.** Herramientas como [MonkeyTravel](/trips/new) generan itinerarios dia a dia que tienen en cuenta la agrupacion geografica, tiempos de transporte realistas y restricciones de presupuesto. En lugar de pasar horas investigando el mejor orden para visitar atracciones, obtienes un plan logico en segundos.
 
 **Rutas con conciencia de seguridad.** Los planificadores dedicados pueden considerar la transitabilidad a pie, disponibilidad de transporte publico y seguridad del barrio al crear itinerarios. La diferencia entre un plan que te lleva por zonas turisticas bien iluminadas y uno que te envia por una zona industrial desierta a las 21:00 importa cuando viajas sola.
 

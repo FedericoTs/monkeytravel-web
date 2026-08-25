@@ -134,7 +134,7 @@ Oktoberfest confusingly runs mostly in September, but its final days spill into 
 
 ## Plan Your October Trip in 30 Seconds
 
-Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it. Ready when you are: [plan your October trip](/trips/new).
+Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it. Ready when you are: [plan your October trip](/trips/new).
 
 ## Frequently Asked Questions (FAQ)
 

@@ -132,11 +132,11 @@ Se é sua primeira vez, este percurso cobre o essencial sem te esgotar:
 
 ## Planeje Sua Viagem ao Japão em 30 Segundos
 
-O sistema de transporte do Japão, os passes regionais, a cultura dos restaurantes e as opções de bate-volta criam um quebra-cabeça de planejamento que leva horas para resolver na mão. O [planejador de viagens com AI gratis da MonkeyTravel](/free-ai-trip-planner) cuida de tudo — gerando um roteiro personalizado com lugares reais, avaliações verificadas, estimativas de orçamento e rotas otimizadas entre os bairros. Vai viajar com amigos? Nosso [planejador de viagens em grupo](/group-trip-planner) deixa todo mundo votar nas atividades.
+O sistema de transporte do Japão, os passes regionais, a cultura dos restaurantes e as opções de bate-volta criam um quebra-cabeça de planejamento que leva horas para resolver na mão. O [planejador de viagens com AI gratis da MonkeyTravel](/trips/new?destination=tokyo) cuida de tudo — gerando um roteiro personalizado com lugares reais, avaliações verificadas, estimativas de orçamento e rotas otimizadas entre os bairros. Vai viajar com amigos? Nosso [planejador de viagens em grupo](/group-trip-planner) deixa todo mundo votar nas atividades.
 
 Diga que você quer 7 dias no Japão e o que te interessa. Receba um plano completo antes do seu café esfriar.
 
-[Planejar Minha Viagem ao Japão — Gratis](/free-ai-trip-planner)
+[Planejar Minha Viagem ao Japão — Gratis](/trips/new?destination=tokyo)
 
 ---
 

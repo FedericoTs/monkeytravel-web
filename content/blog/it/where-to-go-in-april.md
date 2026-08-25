@@ -292,7 +292,7 @@ Giappone nella finestra del sakura (28 marzo-7 aprile): sì, subito; voli e hote
 
 ---
 
-*Pianifica il tuo viaggio di aprile 2026 con il nostro [planner di viaggio AI gratuito](/free-ai-trip-planner): inserisci date, città di partenza e budget, e ricevi un piano giorno per giorno sequenziato, con costi realistici e previsioni meteo specifiche di aprile.*
+*Pianifica il tuo viaggio di aprile 2026 con il nostro [planner di viaggio AI gratuito](/trips/new): inserisci date, città di partenza e budget, e ricevi un piano giorno per giorno sequenziato, con costi realistici e previsioni meteo specifiche di aprile.*
 
 *Fonti:*
 

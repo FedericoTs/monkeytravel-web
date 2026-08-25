@@ -134,7 +134,7 @@ If September has a festival to rival Edinburgh's August, it's this one: Oktoberf
 
 ## Plan Your September Trip in 30 Seconds
 
-Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it. When you're ready, [plan your September trip](/trips/new) or start from our [free AI trip planner](/free-ai-trip-planner) and let it suggest the dates that dodge the crowds.
+Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/new) will build a day-by-day itinerary for it — real places, opening hours, budgets — in about half a minute. No signup needed to try it. When you're ready, [plan your September trip](/trips/new) or start from our [free AI trip planner](/trips/new) and let it suggest the dates that dodge the crowds.
 
 ## Frequently Asked Questions (FAQ)
 

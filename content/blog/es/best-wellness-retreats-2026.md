@@ -279,7 +279,7 @@ La práctica funciona en su forma más sencilla: encuentra un lugar oscuro, túm
 
 **5. Apoyo a la integración.** Lo que ocurre cuando te vas importa más que lo que ocurre en el retiro. Los programas que proporcionan protocolos de seguimiento — horarios de sueño, pautas nutricionales, planes estructurados de reincorporación — tienen resultados mediblemente mejores. Los protocolos post-programa de SHA están entre los más detallados del sector.
 
-Usa nuestro [planificador de viajes gratuito con AI](/free-ai-trip-planner) para construir un itinerario de bienestar personalizado que secuencie los destinos correctos para tu situación específica — adaptando duración, presupuesto y tipo de programa a lo que realmente necesitas.
+Usa nuestro [planificador de viajes gratuito con AI](/trips/new) para construir un itinerario de bienestar personalizado que secuencie los destinos correctos para tu situación específica — adaptando duración, presupuesto y tipo de programa a lo que realmente necesitas.
 
 ---
 

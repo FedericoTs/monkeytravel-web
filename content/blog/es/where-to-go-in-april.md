@@ -292,7 +292,7 @@ Japón en la ventana del sakura (28 de marzo-7 de abril): sí, ya mismo; los vue
 
 ---
 
-*Planifica tu viaje de abril de 2026 con nuestro [planificador de viajes con AI gratuito](/free-ai-trip-planner): pon tus fechas, tu ciudad de origen y tu presupuesto, y recibe un plan día a día secuenciado, con costes y previsiones meteorológicas realistas para abril.*
+*Planifica tu viaje de abril de 2026 con nuestro [planificador de viajes con AI gratuito](/trips/new): pon tus fechas, tu ciudad de origen y tu presupuesto, y recibe un plan día a día secuenciado, con costes y previsiones meteorológicas realistas para abril.*
 
 *Fuentes:*
 

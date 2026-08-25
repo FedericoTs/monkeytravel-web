@@ -134,7 +134,7 @@ Se settembre ha un festival all'altezza dell'agosto di Edimburgo, è questo: l'O
 
 ## Pianifica il tuo viaggio di settembre in 30 secondi
 
-Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi. Quando sei pronto, [pianifica il tuo viaggio di settembre](/trips/new) oppure parti dal nostro [planner di viaggio AI gratuito](/free-ai-trip-planner) e lascia che ti suggerisca le date che schivano la folla.
+Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi. Quando sei pronto, [pianifica il tuo viaggio di settembre](/trips/new) oppure parti dal nostro [planner di viaggio AI gratuito](/trips/new) e lascia che ti suggerisca le date che schivano la folla.
 
 ## Domande frequenti (FAQ)
 

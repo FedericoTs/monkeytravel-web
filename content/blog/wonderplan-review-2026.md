@@ -82,7 +82,7 @@ If Wonderplan's output feels too generic — or you're planning a group trip or 
 
 ### 1. MonkeyTravel — free, but more personalized
 
-[MonkeyTravel](/free-ai-trip-planner) is also free and also gives you a full day-by-day plan with PDF-friendly output — but its three budget tiers (Budget, Balanced, Premium) produce **meaningfully different** itineraries, not the same plan with different price labels. It plans in English, Spanish, Italian, and Portuguese, and adds group voting for travel companions who can't agree. If Wonderplan's output felt flat, this is the closest free upgrade.
+[MonkeyTravel](/trips/new) is also free and also gives you a full day-by-day plan with PDF-friendly output — but its three budget tiers (Budget, Balanced, Premium) produce **meaningfully different** itineraries, not the same plan with different price labels. It plans in English, Spanish, Italian, and Portuguese, and adds group voting for travel companions who can't agree. If Wonderplan's output felt flat, this is the closest free upgrade.
 
 ### 2. Mindtrip — free, with the deepest data
 
@@ -96,7 +96,7 @@ Layla adds live flight and hotel pricing, though its day-by-day detail sits behi
 
 Wonderplan is a fine pick if you want a quick, free itinerary for a single-destination budget trip and don't need deep personalization, group features, or multiple languages.
 
-If you want output that actually changes with your travel style, a group voting feature, or planning in Spanish, Italian, or Portuguese, [MonkeyTravel](/free-ai-trip-planner) gives you all three for free.
+If you want output that actually changes with your travel style, a group voting feature, or planning in Spanish, Italian, or Portuguese, [MonkeyTravel](/trips/new) gives you all three for free.
 
 **Want a free plan that's actually tailored to you?** [Try MonkeyTravel](/trips/new) — three real budget tiers, four languages, no signup.
 
@@ -112,7 +112,7 @@ For quick, single-destination budget trips, it's a decent free option. Its main 
 
 ### What's the best free alternative to Wonderplan?
 
-[MonkeyTravel](/free-ai-trip-planner) is the closest free upgrade — genuinely different itineraries across three budget tiers, group voting, and support for English, Spanish, Italian, and Portuguese. Mindtrip is the best free option for data depth and booking.
+[MonkeyTravel](/trips/new) is the closest free upgrade — genuinely different itineraries across three budget tiers, group voting, and support for English, Spanish, Italian, and Portuguese. Mindtrip is the best free option for data depth and booking.
 
 ### Does Wonderplan support group planning or other languages?
 

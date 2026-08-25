@@ -203,7 +203,7 @@ Apps dedicados de planejamento de viagem mantêm tudo em um só lugar: roteiro, 
 
 A parte mais difícil de fazer um roteiro de grupo não é o modelo — é preenchê-lo. Pesquisar restaurantes, conferir horários de funcionamento, estimar tempos de deslocamento entre as atividades, encontrar coisas para fazer que caibam no seu orçamento.
 
-O [planejador de viagens com AI grátis da MonkeyTravel](/free-ai-trip-planner) gera um roteiro completo dia a dia com locais reais, preços de verdade e roteirização geográfica inteligente — em cerca de 30 segundos. Compartilhe com o seu grupo pelo nosso [planejador de viagens em grupo](/group-trip-planner), votem nas âncoras, troquem o que não encaixar, e você terá um plano de viagem que levou minutos em vez de semanas.
+O [planejador de viagens com AI grátis da MonkeyTravel](/trips/new) gera um roteiro completo dia a dia com locais reais, preços de verdade e roteirização geográfica inteligente — em cerca de 30 segundos. Compartilhe com o seu grupo pelo nosso [planejador de viagens em grupo](/group-trip-planner), votem nas âncoras, troquem o que não encaixar, e você terá um plano de viagem que levou minutos em vez de semanas.
 
 [Gerar um Roteiro de Grupo — Grátis](/group-trip-planner)
 

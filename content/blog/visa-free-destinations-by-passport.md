@@ -220,7 +220,7 @@ When visa-free entry is not available, check whether the destination offers an e
 
 ### 8. Build Flexible Itineraries
 
-Use tools like MonkeyTravel's [AI trip planner](/free-ai-trip-planner) to build itineraries that can be adjusted based on visa requirements. The AI considers travel documents and entry requirements as part of its planning, making it easier to pivot between destinations if visa issues arise.
+Use tools like MonkeyTravel's [AI trip planner](/trips/new) to build itineraries that can be adjusted based on visa requirements. The AI considers travel documents and entry requirements as part of its planning, making it easier to pivot between destinations if visa issues arise.
 
 ## Frequently Asked Questions
 

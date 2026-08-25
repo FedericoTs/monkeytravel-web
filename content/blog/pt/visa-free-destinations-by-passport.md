@@ -221,7 +221,7 @@ Quando a entrada sem visto não estiver disponível, verifique se o destino ofer
 
 ### 8. Monte roteiros flexíveis
 
-Use ferramentas como o [planejador de viagens com AI](/free-ai-trip-planner) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A AI considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
+Use ferramentas como o [planejador de viagens com AI](/trips/new) da MonkeyTravel para montar roteiros que podem ser ajustados de acordo com os requisitos de visto. A AI considera os documentos de viagem e os requisitos de entrada como parte do seu planejamento, facilitando a troca entre destinos caso surjam problemas de visto.
 
 ## Perguntas frequentes
 

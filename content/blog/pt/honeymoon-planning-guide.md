@@ -206,7 +206,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Custo realista de 10 noites (2 pessoas, voos dos EUA ou da Europa):** US$ 9.500–14.000. Hotel boutique em Tóquio US$ 250–400/noite, machiya em Quioto US$ 300–500/noite, ryokan com jantar e café da manhã US$ 400–700/casal, JR Pass US$ 570/pessoa.
 
-**Minha opinião:** reserve primeiro o ryokan, depois construa a viagem em torno dele. Os ryokans de flor de cerejeira e de outono esgotam três a quatro meses antes. O iene continua historicamente fraco frente ao dólar, que é o motivo pouco discutido pelo qual o Japão é o melhor custo-benefício de lua de mel premium em 2026. Use nosso [planejador de viagens com AI gratis](/free-ai-trip-planner) para esboçar uma rota de lua de mel pelo Japão.
+**Minha opinião:** reserve primeiro o ryokan, depois construa a viagem em torno dele. Os ryokans de flor de cerejeira e de outono esgotam três a quatro meses antes. O iene continua historicamente fraco frente ao dólar, que é o motivo pouco discutido pelo qual o Japão é o melhor custo-benefício de lua de mel premium em 2026. Use nosso [planejador de viagens com AI gratis](/trips/new) para esboçar uma rota de lua de mel pelo Japão.
 
 ### Santa Lúcia
 
@@ -411,7 +411,7 @@ Projetar o Dia 1 para ser vazio. Quase ninguém faz isso. Quase todo mundo se ar
 
 ---
 
-*Planeje sua lua de mel 2026 com o nosso [planejador de viagens com AI gratis](/free-ai-trip-planner) — insira seu destino, datas e faixa de orçamento, e receba um plano sequenciado dia a dia com custos realistas e recomendações de temporada intermediária.*
+*Planeje sua lua de mel 2026 com o nosso [planejador de viagens com AI gratis](/trips/new) — insira seu destino, datas e faixa de orçamento, e receba um plano sequenciado dia a dia com custos realistas e recomendações de temporada intermediária.*
 
 *Fontes:*
 

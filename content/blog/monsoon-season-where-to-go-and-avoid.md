@@ -234,7 +234,7 @@ Planning around monsoon season requires juggling rainfall data, regional pattern
 
 MonkeyTravel's AI builds your itinerary around real weather patterns — routing you to the dry side of a country while others are fighting the rain. Drop in your dates, and get a personalized monsoon-smart itinerary in 30 seconds.
 
-[Plan My Monsoon Season Trip — Free](/free-ai-trip-planner)
+[Plan My Monsoon Season Trip — Free](/trips/new)
 
 ## Where to go next
 

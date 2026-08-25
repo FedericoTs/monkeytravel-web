@@ -309,7 +309,7 @@ Scegliere la stagione giusta per la meta che hai scelto. Santorini a maggio e Sa
 
 ---
 
-*Pianifica la tua luna di miele 2026 con il nostro [planner di viaggio AI gratuito](/free-ai-trip-planner): inserisci meta, date e fascia di budget e ricevi un piano giorno per giorno, in sequenza, con costi realistici e consigli sulla bassa stagione.*
+*Pianifica la tua luna di miele 2026 con il nostro [planner di viaggio AI gratuito](/trips/new): inserisci meta, date e fascia di budget e ricevi un piano giorno per giorno, in sequenza, con costi realistici e consigli sulla bassa stagione.*
 
 *Fonti:*
 

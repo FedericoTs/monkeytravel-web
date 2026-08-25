@@ -141,7 +141,7 @@ Questo non e un compromesso — e usare ogni strumento per cio per cui e stato p
 
 Se hai deciso di usare uno strumento dedicato (scelta intelligente), ecco un riepilogo veloce:
 
-- **MonkeyTravel** — Ideale per gruppi, viaggiatori multilingue (EN/ES/IT) e ottenere un itinerario solido velocemente senza registrarsi. Il sistema di votazione per la pianificazione di gruppo risolve un problema concreto. [Provalo gratis](/free-ai-trip-planner).
+- **MonkeyTravel** — Ideale per gruppi, viaggiatori multilingue (EN/ES/IT) e ottenere un itinerario solido velocemente senza registrarsi. Il sistema di votazione per la pianificazione di gruppo risolve un problema concreto. [Provalo gratis](/trips/new).
 - **Layla AI** — Ideale per viaggiatori soli e coppie che vogliono prezzi in tempo reale integrati nell'itinerario. L'integrazione con Skyscanner e Booking.com ti permette di passare dal piano alla prenotazione rapidamente.
 - **Mindtrip** — Ideale per ricerche approfondite. Il suo database di oltre 11 milioni di punti di interesse fa emergere cose che altri strumenti perdono.
 - **Wonderplan** — Ideale per piani rapidi orientati al budget quando non serve la profondita di una piattaforma completa.

@@ -134,7 +134,7 @@ Per quanto suoni assurdo, l'Oktoberfest si svolge quasi tutto a settembre, ma i 
 
 ## Pianifica il tuo viaggio di ottobre in 30 secondi
 
-Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/free-ai-trip-planner) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi. Quando vuoi: [pianifica il tuo viaggio di ottobre](/trips/new).
+Scegli una delle dodici mete qui sopra e il [planner di viaggio AI gratuito di MonkeyTravel](/trips/new) ti costruisce un itinerario giorno per giorno — posti reali, orari di apertura, budget — in circa mezzo minuto. Per provarlo non serve registrarsi. Quando vuoi: [pianifica il tuo viaggio di ottobre](/trips/new).
 
 ## Domande frequenti (FAQ)
 

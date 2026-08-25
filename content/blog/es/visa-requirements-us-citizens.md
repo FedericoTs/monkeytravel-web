@@ -275,7 +275,7 @@ Todos los viajeros de paises exentos de visa que visiten la Zona Schengen, inclu
 
 **Importante:** ETIAS no reemplaza la regla de 90/180 dias. Sigues sin poder permanecer en la Zona Schengen mas de 90 dias en cualquier ventana de 180 dias.
 
-Al planificar un viaje a Europa, el [planificador de viajes con AI gratuito de MonkeyTravel](/free-ai-trip-planner) puede organizar tus estancias en Schengen entre varios paises para que veas las cuentas de los 90 dias de un vistazo, en vez de contar con los dedos.
+Al planificar un viaje a Europa, el [planificador de viajes con AI gratuito de MonkeyTravel](/trips/new) puede organizar tus estancias en Schengen entre varios paises para que veas las cuentas de los 90 dias de un vistazo, en vez de contar con los dedos.
 
 ---
 
@@ -328,7 +328,7 @@ Imprime tus aprobaciones de e-visa y confirmaciones de ETA. Las copias digitales
 
 ### 6. Rastrea la Regla de 90 Dias
 
-Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos los paises Schengen. Una semana en Francia, dos semanas en Italia y un mes en Espana cuentan para el mismo limite de 90 dias. Usa una calculadora Schengen o deja que el [planificador con AI de MonkeyTravel](/free-ai-trip-planner) rastree tus dias automaticamente al construir itinerarios europeos de multiples paises.
+Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos los paises Schengen. Una semana en Francia, dos semanas en Italia y un mes en Espana cuentan para el mismo limite de 90 dias. Usa una calculadora Schengen o deja que el [planificador con AI de MonkeyTravel](/trips/new) rastree tus dias automaticamente al construir itinerarios europeos de multiples paises.
 
 ---
 
@@ -362,11 +362,11 @@ Los requisitos de visa cambian frecuentemente: los paises actualizan politicas, 
 
 La buena noticia es que la tendencia es hacia viajes mas faciles. Las e-visas estan reemplazando las solicitudes en papel, los ETA estan reemplazando las visas con sello en pasaporte, y los tiempos de tramite siguen acortandose. El pasaporte estadounidense sigue siendo uno de los documentos de viaje mas poderosos del mundo.
 
-Una vez resuelta la cuestion del papeleo, planificar deberia ser la parte facil. Pon un destino y el [planificador de viajes con AI gratuito de MonkeyTravel](/free-ai-trip-planner) construye un itinerario dia a dia con lugares reales, horarios y presupuestos en unos treinta segundos, sin necesidad de cuenta. No tramitara tu visa, pero si te dira que hacer con los dias cuando aterrices.
+Una vez resuelta la cuestion del papeleo, planificar deberia ser la parte facil. Pon un destino y el [planificador de viajes con AI gratuito de MonkeyTravel](/trips/new) construye un itinerario dia a dia con lugares reales, horarios y presupuestos en unos treinta segundos, sin necesidad de cuenta. No tramitara tu visa, pero si te dira que hacer con los dias cuando aterrices.
 
 Si prefieres empezar por la parte del mapa sin papeleo, nuestra guia de [destinos sin visa segun tu pasaporte](/blog/visa-free-destinations-by-passport) es el camino mas corto entre "donde puedo ir" y un plan.
 
-[Planifica un Viaje — Gratis, Sin Registro](/free-ai-trip-planner)
+[Planifica un Viaje — Gratis, Sin Registro](/trips/new)
 
 **Buen viaje, y no olvides tu pasaporte.**
 

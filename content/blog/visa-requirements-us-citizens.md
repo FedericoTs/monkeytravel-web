@@ -336,7 +336,7 @@ All travelers from visa-exempt countries visiting the Schengen Zone, including U
 
 **Important:** ETIAS does not replace the 90/180-day rule. You still cannot stay in the Schengen Zone for more than 90 days in any 180-day window.
 
-When planning a European trip, [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) can map out your Schengen stays across multiple countries so you can see the 90-day maths at a glance instead of counting on your fingers.
+When planning a European trip, [MonkeyTravel's free AI trip planner](/trips/new) can map out your Schengen stays across multiple countries so you can see the 90-day maths at a glance instead of counting on your fingers.
 
 ---
 
@@ -423,11 +423,11 @@ Visa requirements change frequently — countries update policies, launch new el
 
 The good news is that the trend is toward easier travel. E-visas are replacing paper applications, ETAs are replacing stamp-in-passport visas, and processing times keep getting shorter. The US passport remains one of the most powerful travel documents in the world.
 
-Once the paperwork question is settled, the planning should be the easy part. Drop in a destination and [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) builds a day-by-day itinerary with real venues, opening hours and budgets in about thirty seconds — no account needed. It will not file your visa application, but it will tell you what to do with the days once you land.
+Once the paperwork question is settled, the planning should be the easy part. Drop in a destination and [MonkeyTravel's free AI trip planner](/trips/new) builds a day-by-day itinerary with real venues, opening hours and budgets in about thirty seconds — no account needed. It will not file your visa application, but it will tell you what to do with the days once you land.
 
 If you would rather start from the no-paperwork end of the map, our guide to [visa-free destinations by passport](/blog/visa-free-destinations-by-passport) is the shortest route from "where can I actually go" to a plan.
 
-[Plan a Trip — Free, No Signup](/free-ai-trip-planner)
+[Plan a Trip — Free, No Signup](/trips/new)
 
 **Happy travels, and do not forget your passport.**
 

@@ -122,7 +122,7 @@ Se você leu todos os dez erros, há um padrão: a maioria dos problemas de viag
 
 O planejamento assistido por AI resolve um número surpreendente desses problemas. Em vez de começar de uma planilha em branco, o grupo parte de um roteiro pronto, adaptado ao destino, ao orçamento e às datas. Isso elimina por completo o problema das "200 mensagens, zero decisões" — você está reagindo a um plano, não construindo um do zero.
 
-O [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner) gera o roteiro base em segundos usando nosso [planejador de viagens com AI gratis](/free-ai-trip-planner), e então seu grupo vota em cada atividade, propõe alternativas e vê o detalhamento do orçamento de forma transparente. Uma única pessoa não precisa fazer toda a pesquisa. Todo mundo tem voz sem o caos de um grupo de WhatsApp. E como a AI já inclui tempo de folga e blocos flexíveis por padrão, você evita automaticamente a armadilha de lotar a agenda.
+O [planejador de viagens em grupo da MonkeyTravel](/group-trip-planner) gera o roteiro base em segundos usando nosso [planejador de viagens com AI gratis](/trips/new), e então seu grupo vota em cada atividade, propõe alternativas e vê o detalhamento do orçamento de forma transparente. Uma única pessoa não precisa fazer toda a pesquisa. Todo mundo tem voz sem o caos de um grupo de WhatsApp. E como a AI já inclui tempo de folga e blocos flexíveis por padrão, você evita automaticamente a armadilha de lotar a agenda.
 
 As melhores viagens em grupo não são as que têm os roteiros mais impressionantes. São aquelas em que todos se sentiram ouvidos, ninguém se sentiu preso e o planejamento não demorou mais do que a própria viagem.
 

@@ -135,11 +135,11 @@ Aqui vai uma rota que equilibra os grandes destaques com as joias escondidas:
 
 ## Planeje a Sua Viagem à Itália em 30 Segundos
 
-Aqui vai um choque de realidade: juntar todos esses horários de trem, recomendações de restaurante, estimativas de orçamento e janelas de reserva leva horas. Criamos o [planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) exatamente para isso. Vai para a Itália com amigos? Nosso [planejador de viagens em grupo](/group-trip-planner) permite que todo mundo vote nas atividades e veja os custos de forma transparente.
+Aqui vai um choque de realidade: juntar todos esses horários de trem, recomendações de restaurante, estimativas de orçamento e janelas de reserva leva horas. Criamos o [planejador de viagens com AI gratuito da MonkeyTravel](/trips/new?destination=rome) exatamente para isso. Vai para a Itália com amigos? Nosso [planejador de viagens em grupo](/group-trip-planner) permite que todo mundo vote nas atividades e veja os custos de forma transparente.
 
 Diga à nossa AI para onde você quer ir e qual é o seu orçamento. Ela monta um roteiro dia a dia personalizado com restaurantes reais avaliados no Google, preços verificados e atividades que combinam com o que você realmente gosta. Nada de conselho genérico tipo "visite o Coliseu" — lugares, horários e custos específicos.
 
-[Planejar Minha Viagem à Itália — Grátis](/free-ai-trip-planner)
+[Planejar Minha Viagem à Itália — Grátis](/trips/new?destination=rome)
 
 ---
 

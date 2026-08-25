@@ -140,7 +140,7 @@ This isn't a workaround — it's using each tool for what it's built to do. Chat
 
 If you've decided to use a dedicated tool (smart move), here's a quick breakdown:
 
-- **MonkeyTravel** — Best for groups, multilingual travelers (EN/ES/IT), and getting a solid itinerary fast with no signup. The voting system for group planning solves a real pain point. [Try it free](/free-ai-trip-planner).
+- **MonkeyTravel** — Best for groups, multilingual travelers (EN/ES/IT), and getting a solid itinerary fast with no signup. The voting system for group planning solves a real pain point. [Try it free](/trips/new).
 - **Layla AI** — Best for solo travelers and couples who want live pricing integrated into the itinerary. The Skyscanner and Booking.com integration means you can go from plan to booked quickly.
 - **Mindtrip** — Best for deep research. Its database of 11M+ points of interest means it surfaces things other tools miss.
 - **Wonderplan** — Best for quick, budget-focused plans when you don't need the depth of a full platform.

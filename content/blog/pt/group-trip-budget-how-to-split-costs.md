@@ -110,7 +110,7 @@ Você não precisa de uma planilha. Existem vários apps feitos especificamente 
 - **Tricount** — Popular na Europa. Funciona offline (útil no exterior), suporta múltiplas moedas e não exige que todos criem uma conta.
 - **Settle Up** — Parecido com o Splitwise, com melhor tratamento de várias moedas e simplificação das dívidas do grupo.
 
-**Para o orçamento da viagem como um todo:** [O planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) gera roteiros com três faixas de orçamento — Econômico, Equilibrado e Premium — com preços reais para cada atividade, restaurante e hotel. Todo mundo no grupo consegue ver exatamente quanto custa cada dia antes de se comprometer. Sem surpresas.
+**Para o orçamento da viagem como um todo:** [O planejador de viagens com AI gratuito da MonkeyTravel](/trips/new) gera roteiros com três faixas de orçamento — Econômico, Equilibrado e Premium — com preços reais para cada atividade, restaurante e hotel. Todo mundo no grupo consegue ver exatamente quanto custa cada dia antes de se comprometer. Sem surpresas.
 
 **Para total transparência:** Uma planilha do Google compartilhada com três colunas (data, despesa, quem pagou) funciona bem se o seu grupo preferir algo manual. Atualizem todas as noites no jantar.
 

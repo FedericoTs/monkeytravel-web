@@ -85,7 +85,7 @@ Mindtrip is hard to beat on data and booking. But if your priority is planning i
 
 ### 1. MonkeyTravel — for groups and multilingual travelers
 
-[MonkeyTravel](/free-ai-trip-planner) matches Mindtrip on the thing most people actually want — a free, full day-by-day itinerary with real venue names and budget tiers — and adds the two things Mindtrip doesn't have:
+[MonkeyTravel](/trips/new) matches Mindtrip on the thing most people actually want — a free, full day-by-day itinerary with real venue names and budget tiers — and adds the two things Mindtrip doesn't have:
 
 - **Four languages.** Plan in English, Spanish, Italian, or Portuguese. Mindtrip is English-only.
 - **Group voting.** When your travel companions can't agree, everyone votes on the options and the plan settles itself. Mindtrip lets you co-edit; MonkeyTravel lets you *decide*. See our [group trip planner](/group-trip-planner) guide for how that works.
@@ -106,7 +106,7 @@ Free, budget-first, PDF export. It's more template than deep personalization, bu
 
 Use Mindtrip if you plan in English and want research and booking under one roof with the best data in the category. It's an excellent choice for US-based travelers who'd rather not juggle four tabs.
 
-Choose an alternative like [MonkeyTravel](/free-ai-trip-planner) if you plan in Spanish, Italian, or Portuguese, if you're coordinating a group that needs to vote rather than co-edit, or if you just want a full itinerary without creating an account.
+Choose an alternative like [MonkeyTravel](/trips/new) if you plan in Spanish, Italian, or Portuguese, if you're coordinating a group that needs to vote rather than co-edit, or if you just want a full itinerary without creating an account.
 
 **Want to try the group-friendly, multilingual alternative?** [Plan your trip with MonkeyTravel](/trips/new) — free, no signup, in four languages.
 
@@ -118,7 +118,7 @@ Yes. Mindtrip has no premium tier and no locked core planning features. It earns
 
 ### What's the best alternative to Mindtrip?
 
-For group trips and non-English planning, [MonkeyTravel](/free-ai-trip-planner) is the strongest free alternative — it adds group voting and Spanish, Italian, and Portuguese support. For live flight and hotel pricing, Layla. For a quick budget plan, Wonderplan.
+For group trips and non-English planning, [MonkeyTravel](/trips/new) is the strongest free alternative — it adds group voting and Spanish, Italian, and Portuguese support. For live flight and hotel pricing, Layla. For a quick budget plan, Wonderplan.
 
 ### Is Mindtrip or Layla better?
 

@@ -68,7 +68,7 @@ El modelo turístico aquí se construye en torno a la biodiversidad: el 5% de to
 
 **Por qué es sostenible:** Infraestructura de conservación respaldada por el gobierno, alto porcentaje de energía renovable, sistema de certificación establecido (CST — Certificado de Sostenibilidad Turística) para hoteles y operadores turísticos.
 
-**Consejo insider:** La Península de Osa está menos visitada que Arenal o Manuel Antonio, pero tiene mayor biodiversidad y encuentros más auténticos con la fauna. Planifica con [nuestro planificador de viajes AI gratuito](/free-ai-trip-planner) para encontrar el lodge adecuado según tu época — la temporada seca va de diciembre a abril. Costa Rica también es una de las mejores opciones en nuestra guía de [dónde ir en junio](/blog/where-to-go-in-june).
+**Consejo insider:** La Península de Osa está menos visitada que Arenal o Manuel Antonio, pero tiene mayor biodiversidad y encuentros más auténticos con la fauna. Planifica con [nuestro planificador de viajes AI gratuito](/trips/new) para encontrar el lodge adecuado según tu época — la temporada seca va de diciembre a abril. Costa Rica también es una de las mejores opciones en nuestra guía de [dónde ir en junio](/blog/where-to-go-in-june).
 
 ---
 
@@ -226,7 +226,7 @@ Los destinos de esta lista — particularmente Bután, Ruanda, Nueva Zelanda, Ke
 
 **Come local, come de temporada.** En la mayoría de los destinos de esta lista, la economía alimentaria local ya es más sostenible que las alternativas importadas. Además, suele ser mejor. Esto no es un sacrificio.
 
-Usa [nuestro planificador de viajes AI gratuito](/free-ai-trip-planner) para construir itinerarios que agrupen actividades geográficamente, minimicen el transporte en destino y prioricen operadores con certificaciones verificadas.
+Usa [nuestro planificador de viajes AI gratuito](/trips/new) para construir itinerarios que agrupen actividades geográficamente, minimicen el transporte en destino y prioricen operadores con certificaciones verificadas.
 
 ---
 
@@ -250,7 +250,7 @@ Bután, por diseño. La Tasa de Desarrollo Sostenible, los estrictos límites de
 
 ### ¿Puede la AI ayudarme a planificar un viaje más sostenible?
 
-Sí — específicamente para la agrupación de itinerarios y la optimización del transporte. [El planificador de viajes AI de MonkeyTravel](/free-ai-trip-planner) puede ayudarte a construir rutas que minimicen los traslados, identificar operadores certificados y estructurar un viaje que pase más tiempo en menos lugares. La planificación en sí es solo una parte — las elecciones que haces dentro de ese plan son tuyas.
+Sí — específicamente para la agrupación de itinerarios y la optimización del transporte. [El planificador de viajes AI de MonkeyTravel](/trips/new) puede ayudarte a construir rutas que minimicen los traslados, identificar operadores certificados y estructurar un viaje que pase más tiempo en menos lugares. La planificación en sí es solo una parte — las elecciones que haces dentro de ese plan son tuyas.
 
 ---
 

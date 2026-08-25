@@ -254,11 +254,11 @@ The Reunification Express train running the full Hanoi-HCMC route is scenic and 
 
 ## Plan Your Vietnam Trip Without the Spreadsheet
 
-A Hanoi-to-Mekong route has a lot of moving parts: e-visa timing, cruise booking windows, domestic flight combinations, and figuring out which Ha Long cruise is worth the money. Our [free AI trip planner](/free-ai-trip-planner) builds the full itinerary around your travel dates and budget — with real options, real prices, and routing that actually makes sense. If you're focused on keeping costs down, the [budget trip planner](/budget-trip-planner) shows you what's possible at every price point.
+A Hanoi-to-Mekong route has a lot of moving parts: e-visa timing, cruise booking windows, domestic flight combinations, and figuring out which Ha Long cruise is worth the money. Our [free AI trip planner](/trips/new) builds the full itinerary around your travel dates and budget — with real options, real prices, and routing that actually makes sense. If you're focused on keeping costs down, the [budget trip planner](/budget-trip-planner) shows you what's possible at every price point.
 
 Tell it you want 10 days in Vietnam. Get a working plan back in under a minute.
 
-[Plan My Vietnam Trip — Free](/free-ai-trip-planner)
+[Plan My Vietnam Trip — Free](/trips/new)
 
 ---
 

@@ -240,7 +240,7 @@ Estas valem independentemente do destino.
 
 Planejar uma viagem solo significa que cada decisão recai sobre você. Os planejadores de viagem com AI reduzem essa carga de maneiras específicas.
 
-**Roteiros personalizados.** Ferramentas como o [MonkeyTravel](/free-ai-trip-planner) geram roteiros dia a dia que levam em conta o agrupamento geográfico, tempos de deslocamento realistas e restrições de orçamento. Em vez de passar horas pesquisando a melhor ordem para visitar as atrações, você recebe um plano lógico em segundos.
+**Roteiros personalizados.** Ferramentas como o [MonkeyTravel](/trips/new) geram roteiros dia a dia que levam em conta o agrupamento geográfico, tempos de deslocamento realistas e restrições de orçamento. Em vez de passar horas pesquisando a melhor ordem para visitar as atrações, você recebe um plano lógico em segundos.
 
 **Rotas com consciência de segurança.** Planejadores dedicados podem levar em conta a facilidade de circular a pé, a disponibilidade de transporte público e a segurança do bairro ao montar os roteiros. A diferença entre um plano que te leva por áreas turísticas bem iluminadas e um que te manda por uma zona industrial deserta às 21h importa quando você viaja sozinha.
 

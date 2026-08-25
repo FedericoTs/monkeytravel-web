@@ -272,7 +272,7 @@ Tutti i viaggiatori da paesi esenti da visto che visitano la Zona Schengen, incl
 
 **Importante:** L'ETIAS non sostituisce la regola dei 90/180 giorni. Non puoi comunque restare nella Zona Schengen per piu di 90 giorni in qualsiasi finestra di 180 giorni.
 
-Quando pianifichi un viaggio in Europa, il [pianificatore di viaggi AI gratuito di MonkeyTravel](/free-ai-trip-planner) puo organizzare i tuoi soggiorni Schengen su piu paesi cosi vedi il conto dei 90 giorni a colpo d'occhio, invece di contare sulle dita.
+Quando pianifichi un viaggio in Europa, il [pianificatore di viaggi AI gratuito di MonkeyTravel](/trips/new) puo organizzare i tuoi soggiorni Schengen su piu paesi cosi vedi il conto dei 90 giorni a colpo d'occhio, invece di contare sulle dita.
 
 ---
 
@@ -325,7 +325,7 @@ Stampa le approvazioni dell'e-visa e le conferme ETA. Le copie digitali sul tele
 
 ### 6. Monitora la Regola dei 90 Giorni
 
-Per i viaggi nella Zona Schengen, il conteggio dei 90/180 giorni e cumulativo in tutti i paesi Schengen. Una settimana in Francia, due settimane in Italia e un mese in Spagna contano tutti per lo stesso limite di 90 giorni. Usa un calcolatore Schengen o lascia che il [pianificatore AI di MonkeyTravel](/free-ai-trip-planner) monitori i tuoi giorni automaticamente quando costruisci itinerari europei multi-paese.
+Per i viaggi nella Zona Schengen, il conteggio dei 90/180 giorni e cumulativo in tutti i paesi Schengen. Una settimana in Francia, due settimane in Italia e un mese in Spagna contano tutti per lo stesso limite di 90 giorni. Usa un calcolatore Schengen o lascia che il [pianificatore AI di MonkeyTravel](/trips/new) monitori i tuoi giorni automaticamente quando costruisci itinerari europei multi-paese.
 
 ---
 
@@ -359,11 +359,11 @@ I requisiti di visto cambiano frequentemente: i paesi aggiornano le politiche, l
 
 La buona notizia e che la tendenza va verso viaggi piu semplici. Le e-visa stanno sostituendo le domande cartacee, gli ETA stanno sostituendo i visti con timbro sul passaporto, e i tempi di elaborazione continuano a ridursi. Il passaporto americano resta uno dei documenti di viaggio piu potenti al mondo.
 
-Una volta risolta la questione burocratica, pianificare dovrebbe essere la parte facile. Inserisci una destinazione e il [pianificatore di viaggi AI gratuito di MonkeyTravel](/free-ai-trip-planner) costruisce un itinerario giorno per giorno con posti reali, orari e budget in circa trenta secondi, senza account. Non presentera la tua domanda di visto, ma ti dira cosa fare dei giorni una volta atterrato.
+Una volta risolta la questione burocratica, pianificare dovrebbe essere la parte facile. Inserisci una destinazione e il [pianificatore di viaggi AI gratuito di MonkeyTravel](/trips/new) costruisce un itinerario giorno per giorno con posti reali, orari e budget in circa trenta secondi, senza account. Non presentera la tua domanda di visto, ma ti dira cosa fare dei giorni una volta atterrato.
 
 Se preferisci partire dalla parte della mappa senza burocrazia, la nostra guida alle [destinazioni senza visto per passaporto](/blog/visa-free-destinations-by-passport) e la strada piu breve tra "dove posso andare" e un piano.
 
-[Pianifica un Viaggio — Gratis, Senza Registrazione](/free-ai-trip-planner)
+[Pianifica un Viaggio — Gratis, Senza Registrazione](/trips/new)
 
 **Buon viaggio, e non dimenticare il passaporto.**
 

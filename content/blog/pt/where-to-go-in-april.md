@@ -293,7 +293,7 @@ Japão na janela da sakura (28 de março a 7 de abril): sim, imediatamente — v
 
 ---
 
-*Planeje sua viagem de abril de 2026 com nosso [planejador de viagens com AI grátis](/free-ai-trip-planner) — informe suas datas, cidade de origem e orçamento, e receba um plano dia a dia sequenciado, com custos realistas e previsões de clima específicas de abril.*
+*Planeje sua viagem de abril de 2026 com nosso [planejador de viagens com AI grátis](/trips/new) — informe suas datas, cidade de origem e orçamento, e receba um plano dia a dia sequenciado, com custos realistas e previsões de clima específicas de abril.*
 
 *Fontes:*
 

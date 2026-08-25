@@ -292,7 +292,7 @@ Sakura-window Japan (March 28-April 7): yes, immediately — flights and hotels 
 
 ---
 
-*Plan your April 2026 trip with our [free AI trip planner](/free-ai-trip-planner) — drop in your dates, origin city, and budget, and get a sequenced day-by-day plan with realistic April-specific costs and weather forecasts.*
+*Plan your April 2026 trip with our [free AI trip planner](/trips/new) — drop in your dates, origin city, and budget, and get a sequenced day-by-day plan with realistic April-specific costs and weather forecasts.*
 
 *Sources:*
 

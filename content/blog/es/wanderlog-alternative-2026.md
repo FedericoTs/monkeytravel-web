@@ -77,7 +77,7 @@ El planificador manual básico es genuinamente gratis y generoso. La pega es que
 
 ## MonkeyTravel: la alternativa gratis y con AI primero
 
-Donde Wanderlog te pide construir (o pagar por la AI), [MonkeyTravel](/free-ai-trip-planner) hace lo contrario: eliges un destino, fijas tus fechas y presupuesto, y obtienes un itinerario completo día a día — nombres reales de lugares, precios estimados, rutas inteligentes — generado en unos 30 segundos, **gratis, sin registro y sin muro de pago para la AI**.
+Donde Wanderlog te pide construir (o pagar por la AI), [MonkeyTravel](/trips/new) hace lo contrario: eliges un destino, fijas tus fechas y presupuesto, y obtienes un itinerario completo día a día — nombres reales de lugares, precios estimados, rutas inteligentes — generado en unos 30 segundos, **gratis, sin registro y sin muro de pago para la AI**.
 
 | | Wanderlog | MonkeyTravel |
 |---|---|---|
@@ -95,7 +95,7 @@ En lo que Wanderlog sigue ganando: importación de reservas, años de pulido en 
 ## Quién debería usar cuál
 
 - **Usa Wanderlog** si te encanta construir viajes a mano, quieres importación de reservas y móvil de primer nivel, y no te importa pagar $39.99/año por la AI.
-- **Usa [MonkeyTravel](/free-ai-trip-planner)** si quieres que la AI construya el primer borrador gratis, planificas en un grupo que vota, o planificas en español, italiano o portugués.
+- **Usa [MonkeyTravel](/trips/new)** si quieres que la AI construya el primer borrador gratis, planificas en un grupo que vota, o planificas en español, italiano o portugués.
 
 Muchos viajeros usan ambas: MonkeyTravel para generar el itinerario en segundos, y luego una herramienta más manual para refinar e importar reservas. Para ver el panorama más amplio, consulta nuestra [comparativa de los mejores planificadores de viajes con AI](/blog/best-ai-trip-planners-2026-compared).
 
@@ -109,7 +109,7 @@ Wanderlog Pro cuesta $39.99/año, sin opción mensual. Desbloquea el asistente d
 
 ### ¿Hay una alternativa gratis a Wanderlog?
 
-Sí. [MonkeyTravel](/free-ai-trip-planner) es una alternativa gratis y con AI primero que genera un itinerario completo día a día sin registro y sin muro de pago para la AI. Además admite español, italiano y portugués, y tiene votación en grupo.
+Sí. [MonkeyTravel](/trips/new) es una alternativa gratis y con AI primero que genera un itinerario completo día a día sin registro y sin muro de pago para la AI. Además admite español, italiano y portugués, y tiene votación en grupo.
 
 ### ¿Es gratis la AI de Wanderlog?
 

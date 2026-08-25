@@ -134,11 +134,11 @@ Here's a route that balances the big hits with the hidden gems:
 
 ## Plan Your Italy Trip in 30 Seconds
 
-Here's a reality check: pulling together all these train schedules, restaurant recommendations, budget estimates, and booking windows takes hours. We built [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) specifically for this. Heading to Italy with friends? Our [group trip planner](/group-trip-planner) lets everyone vote on activities and see costs transparently.
+Here's a reality check: pulling together all these train schedules, restaurant recommendations, budget estimates, and booking windows takes hours. We built [MonkeyTravel's free AI trip planner](/trips/new?destination=rome) specifically for this. Heading to Italy with friends? Our [group trip planner](/group-trip-planner) lets everyone vote on activities and see costs transparently.
 
 Tell our AI where you want to go and your budget. It builds a personalized day-by-day itinerary with real Google-rated restaurants, verified prices, and activities matched to what you actually like. Not generic "visit the Colosseum" advice — specific places, times, and costs.
 
-[Plan My Italy Trip — Free](/free-ai-trip-planner)
+[Plan My Italy Trip — Free](/trips/new?destination=rome)
 
 ---
 

@@ -223,7 +223,7 @@ Planejar em torno da temporada de monções exige malabarismos com dados de prec
 
 A AI da MonkeyTravel monta o seu roteiro com base em padrões climáticos reais — direcionando você para o lado seco de um país enquanto outros lutam contra a chuva. Coloque suas datas e receba um roteiro personalizado e inteligente para a monção em 30 segundos.
 
-[Planejar Minha Viagem na Temporada de Monções — Grátis](/free-ai-trip-planner)
+[Planejar Minha Viagem na Temporada de Monções — Grátis](/trips/new)
 
 ---
 

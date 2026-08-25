@@ -106,7 +106,7 @@ You don't need a spreadsheet. Several apps exist specifically for this problem:
 - **Tricount** — Popular in Europe. Works offline (useful abroad), supports multiple currencies, and doesn't require everyone to create an account.
 - **Settle Up** — Similar to Splitwise with better multi-currency handling and group debt simplification.
 
-**For trip-level budgeting:** [MonkeyTravel's free AI trip planner](/free-ai-trip-planner) generates itineraries with three budget tiers — Budget, Balanced, and Premium — with real prices for every activity, restaurant, and hotel. Everyone in the group can see exactly what each day costs before committing. No surprises.
+**For trip-level budgeting:** [MonkeyTravel's free AI trip planner](/trips/new) generates itineraries with three budget tiers — Budget, Balanced, and Premium — with real prices for every activity, restaurant, and hotel. Everyone in the group can see exactly what each day costs before committing. No surprises.
 
 **For full transparency:** A shared Google Sheet with three columns (date, expense, who paid) works fine if your group prefers something manual. Update it each evening over dinner.
 

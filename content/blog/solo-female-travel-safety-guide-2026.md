@@ -235,7 +235,7 @@ These apply regardless of destination.
 
 Planning a solo trip means every decision falls on you. AI trip planners reduce that burden in specific ways.
 
-**Personalized itineraries.** Tools like [MonkeyTravel](/free-ai-trip-planner) generate day-by-day itineraries that account for geographic clustering, realistic transit times, and budget constraints. Instead of spending hours researching the best order to visit attractions, you get a logical plan in seconds.
+**Personalized itineraries.** Tools like [MonkeyTravel](/trips/new) generate day-by-day itineraries that account for geographic clustering, realistic transit times, and budget constraints. Instead of spending hours researching the best order to visit attractions, you get a logical plan in seconds.
 
 **Safety-aware routing.** Dedicated planners can factor in walkability, public transit availability, and neighborhood safety when building itineraries. The difference between a plan that routes you through well-lit tourist areas and one that sends you through a deserted industrial zone at 9 PM matters when you're traveling alone.
 

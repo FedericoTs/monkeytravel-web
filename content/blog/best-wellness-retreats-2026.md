@@ -275,7 +275,7 @@ The practice works at its simplest: find a dark spot, lie down, look up, and giv
 
 **5. Integration support.** What happens when you leave matters more than what happens in the retreat. Programs that provide follow-up protocols — sleep schedules, nutritional guidelines, structured re-entry plans — have measurably better outcomes. SHA's post-program protocols are among the most detailed in the industry.
 
-Use our [free AI trip planner](/free-ai-trip-planner) to build a custom wellness itinerary that sequences the right destinations for your specific situation — matching duration, budget, and program type to what you actually need.
+Use our [free AI trip planner](/trips/new) to build a custom wellness itinerary that sequences the right destinations for your specific situation — matching duration, budget, and program type to what you actually need.
 
 ---
 
