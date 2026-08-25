@@ -44,7 +44,7 @@ const META: Record<string, { title: string; description: string }> = {
   },
   it: {
     title:
-      'Generatore di Itinerari con AI — Piani di Viaggio Giorno per Giorno',
+      'Generatore di Itinerari con AI — Giorno per Giorno',
     description:
       'Genera itinerari di viaggio completi con AI in 30 secondi. Piani giorno per giorno con luoghi reali, prezzi attuali e blocchi orari intelligenti. Gratuito, senza registrazione.',
   },
@@ -60,7 +60,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

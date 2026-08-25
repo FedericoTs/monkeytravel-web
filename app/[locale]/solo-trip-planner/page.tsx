@@ -27,24 +27,24 @@ const PAGE_PATH = '/solo-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagem Solo — Rotas Seguras, Roteiros Inteligentes, 100% Grátis',
+    title: 'Planejador de Viagem Solo — Rotas Seguras',
     description:
       'Planos de viagem solo com AI: dicas de segurança, restaurantes ideais para quem viaja sozinho e pontos de encontro. Roteiro personalizado em 30 segundos. Sem cadastro.',
   },
   en: {
-    title: 'Solo Trip Planner — Safe Routes, Smart Itineraries, 100% Free',
+    title: 'Solo Trip Planner — Safe Routes, Smart Itineraries',
     description:
       'AI-powered solo travel plans with safety tips, solo-friendly restaurants, and social spots. Personalized day-by-day itinerary in 30 seconds. No signup needed.',
   },
   es: {
     title:
-      'Planificador de Viajes en Solitario — Rutas Seguras, Itinerarios Inteligentes, 100% Gratis',
+      'Planificador de Viajes en Solitario con AI',
     description:
       'Planes de viaje en solitario con AI con consejos de seguridad, restaurantes solo-friendly y puntos sociales. Itinerario personalizado en 30 segundos. Sin registro.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi in Solitaria — Percorsi Sicuri, Itinerari Smart, 100% Gratis',
+      'Pianificatore di Viaggi in Solitaria con AI',
     description:
       'Piani di viaggio in solitaria con AI con consigli di sicurezza, ristoranti solo-friendly e punti sociali. Itinerario personalizzato in 30 secondi. Senza registrazione.',
   },
@@ -60,7 +60,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

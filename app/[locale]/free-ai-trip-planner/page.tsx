@@ -27,7 +27,7 @@ const PAGE_PATH = '/free-ai-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens com AI Grátis — Sem Cadastro, Sem Cartão',
+    title: 'Planejador de Viagens com AI Grátis — Sem Cadastro',
     description:
       'Crie roteiros personalizados dia a dia com lugares reais e 3 níveis de orçamento em 30 segundos. Funciona em português, inglês, espanhol e italiano. Sem conta, nunca.',
   },
@@ -44,7 +44,7 @@ const META: Record<string, { title: string; description: string }> = {
   },
   it: {
     title:
-      'Pianificatore di Viaggi AI Gratis — Senza Registrazione, Senza Carta',
+      'Pianificatore di Viaggi AI Gratis — Senza Account',
     description:
       'Crea itinerari personalizzati giorno per giorno con luoghi reali e 3 livelli di budget in 30 secondi. Nessun account necessario, mai.',
   },
@@ -60,7 +60,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

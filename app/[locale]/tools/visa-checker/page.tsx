@@ -75,7 +75,9 @@ export async function generateMetadata({
   }
 
   return {
-    title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template — this
+    // page targets generic terms where the brand costs 15 of ~60 chars.
+    title: { absolute: title },
     description,
     alternates: {
       canonical,

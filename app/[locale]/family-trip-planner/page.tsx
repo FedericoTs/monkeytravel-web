@@ -27,7 +27,7 @@ const PAGE_PATH = '/family-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens em Família — Roteiros com AI Para Todas as Idades',
+    title: 'Planejador de Viagens em Família com AI',
     description:
       'Planeje as férias em família perfeitas com AI. Roteiros para crianças com atividades por idade, restaurantes para famílias e horários equilibrados. 100% grátis.',
   },
@@ -38,13 +38,13 @@ const META: Record<string, { title: string; description: string }> = {
   },
   es: {
     title:
-      'Planificador de Viajes Familiares — Itinerarios con AI Para Todas las Edades',
+      'Planificador de Viajes Familiares con AI',
     description:
       'Planifica las vacaciones familiares perfectas con AI. Obtén itinerarios aptos para niños con actividades por edad, restaurantes familiares y horarios equilibrados. 100% gratis.',
   },
   it: {
     title:
-      'Pianificatore di Viaggi per Famiglie — Itinerari con AI Per Tutte le Età',
+      'Pianificatore di Viaggi per Famiglie con AI',
     description:
       'Pianifica la vacanza in famiglia perfetta con AI. Ottieni itinerari adatti ai bambini con attività per età, ristoranti per famiglie e orari equilibrati. 100% gratis.',
   },
@@ -60,7 +60,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

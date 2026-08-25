@@ -22,19 +22,19 @@ const BASE_URL = 'https://monkeytravel.app';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens com AI Grátis | Roteiros Dia a Dia em Minutos',
+    title: 'Planejador de Viagens com AI Grátis',
     description: 'Planeje a viagem perfeita com roteiros dia a dia gerados por AI. Receba planos de viagem personalizados em minutos — grátis, sem cartão de crédito.',
   },
   en: {
-    title: 'Free AI Trip Planner | Day-by-Day Itineraries in 30 Seconds',
+    title: 'Free AI Trip Planner in 30 Seconds',
     description: 'Plan your perfect trip with AI-generated day-by-day itineraries. Get personalized travel plans in minutes — free, no credit card required.',
   },
   es: {
-    title: 'Planificador de Viajes AI Gratis | Itinerarios en Minutos',
+    title: 'Planificador de Viajes con AI Gratis',
     description: 'Planifica tu viaje perfecto con itinerarios generados por AI día a día. Obtén planes de viaje personalizados en minutos — gratis, sin tarjeta de crédito.',
   },
   it: {
-    title: 'Pianificatore Viaggi AI Gratuito | Itinerari in Pochi Minuti',
+    title: 'Pianificatore di Viaggi AI Gratuito',
     description: 'Pianifica il tuo viaggio perfetto con itinerari generati con AI giorno per giorno. Ottieni piani di viaggio personalizzati in pochi minuti — gratis, senza carta di credito.',
   },
 };

@@ -26,7 +26,7 @@ const PAGE_PATH = '/group-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Planejador de Viagens em Grupo com AI — Planeje, Vote, Decida',
+    title: 'Planejador de Viagens em Grupo com AI — Vote e Decida',
     description:
       'O único planejador de viagens com AI feito para grupos. Gere roteiros, convide amigos, votem nas atividades e decidam juntos — tudo em um só lugar. Grátis.',
   },
@@ -37,13 +37,13 @@ const META: Record<string, { title: string; description: string }> = {
   },
   es: {
     title:
-      'Planificador AI para Viajes en Grupo — Planifica, Vota, Decide',
+      'Planificador AI para Viajes en Grupo — Vota y Decide',
     description:
       'El único planificador AI para grupos. Genera itinerarios, invita amigos, vota actividades y decide en grupo — todo en un lugar. Gratis.',
   },
   it: {
     title:
-      'Pianificatore AI per Viaggi di Gruppo — Pianifica, Vota, Decidi',
+      'Pianificatore AI per Viaggi di Gruppo — Vota e Decidi',
     description:
       'L\'unico pianificatore AI per gruppi. Genera itinerari, invita amici, vota le attività e decidi insieme — tutto in un posto. Gratuito.',
   },
@@ -59,7 +59,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,

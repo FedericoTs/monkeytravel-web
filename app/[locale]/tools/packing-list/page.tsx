@@ -16,25 +16,25 @@ const BASE_URL = "https://monkeytravel.app";
 const META: Record<string, { title: string; description: string }> = {
   pt: {
     title:
-      "Gerador de Lista de Bagagem Grátis — Personalizada por AI",
+      "Gerador de Lista de Bagagem com AI",
     description:
       "Receba uma lista de bagagem personalizada em 10 segundos. Nossa AI considera o clima do destino, as tomadas locais e suas atividades. Grátis, sem cadastro.",
   },
   en: {
     title:
-      "Free Packing List Generator — Personalized by AI for Any Trip",
+      "Free AI Packing List Generator",
     description:
       "Get a personalized packing list in 10 seconds. Our AI factors in destination weather, local outlets, and your planned activities. No signup, free forever.",
   },
   it: {
     title:
-      "Generatore Liste Bagaglio Gratuito — Personalizzato dall'AI",
+      "Generatore di Liste Bagaglio con AI",
     description:
       "Ricevi una lista bagaglio personalizzata in 10 secondi. La nostra AI considera clima, prese elettriche e le tue attività. Gratis, senza registrazione.",
   },
   es: {
     title:
-      "Generador Gratis de Lista de Equipaje — Personalizada por AI",
+      "Generador de Lista de Equipaje con AI",
     description:
       "Recibe una lista de equipaje personalizada en 10 segundos. Nuestra AI considera el clima, los enchufes locales y tus actividades. Gratis, sin registro.",
   },
@@ -50,7 +50,9 @@ export async function generateMetadata({
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const canonical = `${BASE_URL}${localePrefix}/tools/packing-list`;
   return {
-    title: m.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // Generic commercial terms; the brand costs 15 of ~60 chars.
+    title: { absolute: m.title },
     description: m.description,
     alternates: {
       canonical,

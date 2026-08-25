@@ -9,7 +9,7 @@ const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: "Ferramentas de Viagem Grátis — Lista de Bagagem, Verificador de Visto e Mais",
+    title: "Ferramentas de Viagem Grátis — Bagagem e Vistos",
     description:
       "Ferramentas de viagem gratuitas que economizam horas de planejamento. Lista de bagagem personalizada com AI, requisitos de visto e mais. Sem cadastro.",
   },
@@ -20,13 +20,13 @@ const META: Record<string, { title: string; description: string }> = {
   },
   it: {
     title:
-      "Strumenti di Viaggio Gratuiti — Lista Bagaglio, Verifica Visto e Altro",
+      "Strumenti di Viaggio Gratuiti — Bagaglio e Visti",
     description:
       "Strumenti gratuiti che ti fanno risparmiare ore di pianificazione. Lista bagaglio personalizzata con AI, requisiti visa e altro. Senza registrazione.",
   },
   es: {
     title:
-      "Herramientas de Viaje Gratis — Lista de Equipaje, Verificador de Visa y Más",
+      "Herramientas de Viaje Gratis — Equipaje y Visados",
     description:
       "Herramientas gratuitas que te ahorran horas de planificación. Lista de equipaje con AI, requisitos de visa y más. Sin registro.",
   },
@@ -42,7 +42,10 @@ export async function generateMetadata({
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const canonical = `${BASE_URL}${localePrefix}/tools`;
   return {
-    title: m.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: m.title },
     description: m.description,
     alternates: {
       canonical,

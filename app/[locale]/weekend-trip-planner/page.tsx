@@ -38,7 +38,7 @@ const META: Record<string, { title: string; description: string }> = {
   },
   es: {
     title:
-      'Planificador de Escapadas de Fin de Semana — Viajes de 2-3 Dias con AI',
+      'Planificador de Escapadas de Fin de Semana',
     description:
       'Planifica la escapada de fin de semana perfecta en 15 minutos con AI. Itinerarios personalizados de 2-3 dias con joyas locales, precios reales y horarios inteligentes. 100% gratis.',
   },
@@ -60,7 +60,10 @@ export async function generateMetadata({
   const prefix = locale === 'en' ? '' : `/${locale}`;
 
   return {
-    title: meta.title,
+    // `absolute` opts out of the root "%s | MonkeyTravel" template.
+    // These pages target generic commercial terms where the brand buys
+    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
+    title: { absolute: meta.title },
     description: meta.description,
     alternates: {
       canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,
