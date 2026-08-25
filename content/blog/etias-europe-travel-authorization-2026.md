@@ -21,7 +21,7 @@ seo:
   # Rewritten 2026-05-30 to lead with year + the literal launch context.
   title: 'ETIAS 2026: Europe''s New Travel Authorization Explained'
   description: >-
-    ETIAS launches Q4 2026 for Americans and 60+ nationalities. Cost (€7),
+    ETIAS has no confirmed launch date - the 2026 target was withdrawn. Cost (EUR 20),
     application process, the 30 countries that require it, and how it differs
     from a Schengen visa.
   keywords:
@@ -60,7 +60,13 @@ The purpose is straightforward: give European border authorities advance notice 
 
 ## When Does ETIAS Launch?
 
-ETIAS is scheduled to become operational in **Q4 2026** — the final quarter of the year. The European Commission has confirmed the rollout after multiple delays since the system was originally proposed in 2016.
+**Nobody knows yet, and that is the honest answer.**
+
+For most of 2025 and 2026 the official line was the last quarter of 2026. That statement has since been **removed from the official ETIAS site**, which now says only that ETIAS "is currently not in operation and no applications for travel authorisations are collected at this point."
+
+The Financial Times reported that eu-LISA, the EU agency building the system, considers a 2026 launch no longer feasible. Its management board discussed the timeline in June 2026 and is due to reconvene in **September 2026** to settle a revised date. A 2027 start is the widely expected outcome, but no date has been confirmed.
+
+What this means practically: **you cannot apply for ETIAS today**, and any site inviting you to pre-register or pay for one is not legitimate.
 
 There will be a **transition period** of approximately six months after launch, during which ETIAS will be operational but enforcement may be gradual. However, airlines and carriers are expected to check ETIAS status at boarding from day one.
 
@@ -70,15 +76,17 @@ There will be a **transition period** of approximately six months after launch, 
 - **2018:** ETIAS regulation officially adopted
 - **2023-2025:** Multiple delays due to technical integration with the Entry/Exit System (EES)
 - **2025:** EES begins rolling out at land, sea, and air borders
-- **Q4 2026:** ETIAS goes live for all eligible travelers
+- **Jul 2026:** the "last quarter of 2026" target is quietly removed from the official ETIAS site
+- **Sep 2026:** eu-LISA management board expected to set a revised launch date
+- **2027:** the expected launch window — not yet confirmed
 
-The advice is simple: if your Europe trip falls after October 2026, apply for ETIAS before you book your flights.
+The practical advice is simple: **ETIAS is not required for any trip you are booking right now.** Check the official site again before travelling in 2027, and ignore anyone selling you an application in the meantime.
 
 ---
 
 ## Who Needs ETIAS?
 
-ETIAS is required for citizens of **more than 60 countries** that currently have visa-free access to the Schengen Area. These are travelers who can currently enter Europe without any advance authorization — starting in Q4 2026, they will need ETIAS approval before departure.
+ETIAS is required for citizens of **more than 60 countries** that currently have visa-free access to the Schengen Area. These are travelers who can currently enter Europe without any advance authorization — once ETIAS launches, they will need approval before departure.
 
 ### Countries Whose Citizens Need ETIAS
 
@@ -139,9 +147,9 @@ If you are visiting only non-Schengen European countries (UK, Ireland, Turkey, e
 
 ## How Much Does ETIAS Cost?
 
-**€7 per application.**
+**€20 per application.**
 
-That is approximately $7.50 USD at current exchange rates. For context:
+The fee was raised from €7 in July 2025, bringing it closer to comparable schemes. Travellers **under 18 or over 70 are exempt** and pay nothing. For context:
 
 - US ESTA costs $21
 - UK ETA costs £10
@@ -162,7 +170,7 @@ The application process is designed to be quick and straightforward.
 
 ### Step 1: Visit the Official ETIAS Website or App
 
-Apply only through the official EU ETIAS portal or mobile app. Avoid third-party sites that charge inflated fees for the same application. The official fee is €7 — if a site charges more, it is a middleman.
+Apply only through the official EU ETIAS portal or mobile app. Avoid third-party sites that charge inflated fees for the same application. The official fee is €20 — if a site charges more, it is a middleman.
 
 ### Step 2: Complete the Online Form
 
@@ -174,7 +182,7 @@ The application asks for:
 - **Background questions:** Criminal history, prior immigration refusals, travel to conflict zones, medical conditions relevant to public health
 - **Contact information:** Email address, phone number, home address
 
-### Step 3: Pay the €7 Fee
+### Step 3: Pay the €20 Fee
 
 Credit or debit card. Processing happens immediately.
 
@@ -209,7 +217,7 @@ This is the most common point of confusion. ETIAS is categorically different fro
 | Feature | ETIAS | Schengen Visa |
 |---------|-------|---------------|
 | **Application** | Online, 10 minutes | In-person at consulate/embassy |
-| **Cost** | €7 | €80-90 |
+| **Cost** | €20 | €80-90 |
 | **Processing time** | Minutes to 4 days | 15 to 45 calendar days |
 | **Documents needed** | Passport only | Passport, photos, insurance, hotel bookings, financial proof, flight itineraries, invitation letters |
 | **Interview** | No | Sometimes required |
@@ -285,11 +293,11 @@ ETIAS does not require proof of travel insurance, unlike a Schengen visa. Howeve
 
 ### Is ETIAS the same as a visa?
 
-No. ETIAS is a travel authorization, not a visa. It is a simple online pre-screening check that takes minutes and costs €7. A Schengen visa is a longer, more expensive, in-person process for travelers from countries that do not have visa-free access to Europe.
+No. ETIAS is a travel authorization, not a visa. It is a simple online pre-screening check that takes minutes and costs €20. A Schengen visa is a longer, more expensive, in-person process for travelers from countries that do not have visa-free access to Europe.
 
 ### Do Americans need ETIAS to visit Europe in 2026?
 
-Yes, starting Q4 2026. US citizens will need an approved ETIAS before traveling to any of the 30 Schengen Area countries. This replaces the current system where Americans can simply show up with a valid passport.
+Yes, once it launches. US citizens will need an approved ETIAS before traveling to any of the 30 Schengen Area countries. This replaces the current system where Americans can simply show up with a valid passport.
 
 ### How long does ETIAS take to process?
 
@@ -305,7 +313,7 @@ If your ETIAS expires while you are in the Schengen Area, you can still complete
 
 ### Do children need ETIAS?
 
-Yes, all travelers need ETIAS regardless of age. However, travelers under 18 and over 70 are exempt from the €7 fee.
+Yes, all travelers need ETIAS regardless of age. However, travelers under 18 and over 70 are exempt from the €20 fee.
 
 ### Is ETIAS required for cruise ship passengers?
 
@@ -324,3 +332,10 @@ ETIAS adds one small step to your travel planning — but the rest of your trip 
 Whether you are planning a week in Paris, a Schengen-spanning multi-city adventure, or your first trip to Europe after the ETIAS rollout, the AI handles the logistics so you can focus on the experience.
 
 **[Start Planning My Europe Trip](/trips/new)**
+
+## Sources
+
+- [ETIAS will cost EUR 20](https://home-affairs.ec.europa.eu/news/european-travel-authorisation-etias-will-cost-eur-20-2025-07-17_en) — European Commission, Migration and Home Affairs (17 July 2025): the fee is EUR 20, with under-18s and over-70s exempt
+- [ETIAS — official EU site](https://travel-europe.europa.eu/etias_en) — currently states the system is not in operation and no applications are being collected
+- Financial Times reporting (July 2026), as covered by [The Independent](https://www.aol.com/articles/etias-travel-permit-delayed-again-165222000.html) and [iVisa](https://www.ivisa.com/news/2026-07-20-eu-etias-launch-date-removed-website-delay): the Q4 2026 statement was removed from the official site; eu-LISA considers 2026 unfeasible and reconvenes in September 2026 to set a revised date
+- Checked 25 August 2026. ETIAS dates have moved repeatedly since 2016 — confirm on the official EU site before you travel.

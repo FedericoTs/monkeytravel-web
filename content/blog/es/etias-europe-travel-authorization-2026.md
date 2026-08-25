@@ -21,7 +21,7 @@ seo:
     Viaje a Europa
   description: >-
     ETIAS se lanza en el Q4 de 2026 para estadounidenses y más de 60
-    nacionalidades. Conoce el coste (7 €), proceso de solicitud, qué 30 países
+    nacionalidades. Conoce el coste (20 €), proceso de solicitud, qué 30 países
     lo exigen y en qué se diferencia de un visado.
   keywords:
     - etias 2026
@@ -59,7 +59,13 @@ El propósito es directo: dar a las autoridades fronterizas europeas aviso previ
 
 ## Cuándo Se Lanza ETIAS
 
-ETIAS está programado para entrar en funcionamiento en el **Q4 de 2026** — el último trimestre del año. La Comisión Europea ha confirmado el lanzamiento tras múltiples retrasos desde que el sistema se propuso originalmente en 2016.
+**Todavía no se sabe, y esa es la respuesta honesta.**
+
+Durante buena parte de 2025 y 2026 la fecha oficial era el último trimestre de 2026. Esa mención ha sido **retirada del sitio oficial de ETIAS**, que ahora solo indica que el sistema «no está en funcionamiento y no se recogen solicitudes de autorización de viaje en este momento».
+
+El Financial Times informó de que eu-LISA, la agencia de la UE que construye el sistema, considera que un lanzamiento en 2026 ya no es viable. Su consejo de administración trató el calendario en junio de 2026 y volverá a reunirse en **septiembre de 2026** para fijar una nueva fecha. Se espera 2027, pero no hay ninguna fecha confirmada.
+
+En la práctica: **hoy no puedes solicitar ETIAS**, y cualquier web que te invite a preinscribirte o pagar por uno no es legítima.
 
 Habrá un **período de transición** de aproximadamente seis meses tras el lanzamiento, durante el cual ETIAS estará operativo pero la aplicación podrá ser gradual. Sin embargo, se espera que las aerolíneas y transportistas comprueben el estado ETIAS al embarcar desde el primer día.
 
@@ -69,9 +75,11 @@ Habrá un **período de transición** de aproximadamente seis meses tras el lanz
 - **2018:** Reglamento ETIAS adoptado oficialmente
 - **2023-2025:** Múltiples retrasos por integración técnica con el Sistema de Entrada/Salida (SES)
 - **2025:** SES comienza a implementarse en fronteras terrestres, marítimas y aéreas
-- **Q4 2026:** ETIAS entra en vigor para todos los viajeros elegibles
+- **Jul 2026:** la fecha del último trimestre de 2026 se retira discretamente del sitio oficial
+- **Sep 2026:** se espera que el consejo de eu-LISA fije una nueva fecha de lanzamiento
+- **2027:** ventana de lanzamiento esperada, aún sin confirmar
 
-El consejo es simple: si tu viaje a Europa cae después de octubre de 2026, solicita ETIAS antes de reservar tus vuelos.
+El consejo práctico es simple: **ETIAS no es necesario para ningún viaje que estés reservando ahora mismo.** Vuelve a comprobar el sitio oficial antes de viajar en 2027 e ignora a quien te venda una solicitud mientras tanto.
 
 ---
 
@@ -138,9 +146,9 @@ Si solo visitas países europeos fuera de Schengen (Reino Unido, Irlanda, Turqu�
 
 ## Cuánto Cuesta ETIAS
 
-**7 € por solicitud.**
+**20 € por solicitud.**
 
-Eso es aproximadamente 7,50 $ USD al tipo de cambio actual. Para contexto:
+La tasa subió desde los 7 € en julio de 2025. Los viajeros **menores de 18 y mayores de 70 están exentos** y no pagan nada. Para contexto:
 
 - ESTA de EE. UU. cuesta 21 $
 - ETA del Reino Unido cuesta 10 £
@@ -161,7 +169,7 @@ El proceso de solicitud está diseñado para ser rápido y sencillo.
 
 ### Paso 1: Visita la Web o App Oficial de ETIAS
 
-Solicita solo a través del portal oficial ETIAS de la UE o la aplicación móvil. Evita sitios de terceros que cobran tarifas infladas por la misma solicitud. La tasa oficial es de 7 € — si un sitio cobra más, es un intermediario.
+Solicita solo a través del portal oficial ETIAS de la UE o la aplicación móvil. Evita sitios de terceros que cobran tarifas infladas por la misma solicitud. La tasa oficial es de 20 € — si un sitio cobra más, es un intermediario.
 
 ### Paso 2: Completa el Formulario Online
 
@@ -173,7 +181,7 @@ La solicitud pide:
 - **Preguntas de antecedentes:** Historial criminal, rechazos migratorios previos, viajes a zonas de conflicto, condiciones médicas relevantes para salud pública
 - **Información de contacto:** Correo electrónico, teléfono, dirección
 
-### Paso 3: Paga la Tasa de 7 €
+### Paso 3: Paga la Tasa de 20 €
 
 Tarjeta de crédito o débito. El procesamiento ocurre inmediatamente.
 
@@ -208,7 +216,7 @@ Este es el punto de confusión más común. ETIAS es categóricamente diferente 
 | Característica | ETIAS | Visado Schengen |
 |---------------|-------|-----------------|
 | **Solicitud** | Online, 10 minutos | En persona en consulado/embajada |
-| **Coste** | 7 € | 80-90 € |
+| **Coste** | 20 € | 80-90 € |
 | **Tiempo de procesamiento** | Minutos a 4 días | 15 a 45 días naturales |
 | **Documentos necesarios** | Solo pasaporte | Pasaporte, fotos, seguro, reservas de hotel, prueba financiera, itinerarios de vuelo, cartas de invitación |
 | **Entrevista** | No | A veces requerida |
@@ -284,7 +292,7 @@ ETIAS no requiere prueba de seguro de viaje, a diferencia de un visado Schengen.
 
 ### Es ETIAS lo mismo que un visado?
 
-No. ETIAS es una autorización de viaje, no un visado. Es un simple control de preselección online que lleva minutos y cuesta 7 €. Un visado Schengen es un proceso más largo, más caro y presencial para viajeros de países que no tienen acceso sin visado a Europa.
+No. ETIAS es una autorización de viaje, no un visado. Es un simple control de preselección online que lleva minutos y cuesta 20 €. Un visado Schengen es un proceso más largo, más caro y presencial para viajeros de países que no tienen acceso sin visado a Europa.
 
 ### Necesitan los estadounidenses ETIAS para visitar Europa en 2026?
 
@@ -304,7 +312,7 @@ Si tu ETIAS caduca mientras estás en el Espacio Schengen, puedes completar tu e
 
 ### Necesitan ETIAS los niños?
 
-Sí, todos los viajeros necesitan ETIAS independientemente de la edad. Sin embargo, los viajeros menores de 18 y mayores de 70 están exentos de la tasa de 7 €.
+Sí, todos los viajeros necesitan ETIAS independientemente de la edad. Sin embargo, los viajeros menores de 18 y mayores de 70 están exentos de la tasa de 20 €.
 
 ### Se requiere ETIAS para pasajeros de cruceros?
 
@@ -323,3 +331,10 @@ ETIAS añade un pequeño paso a tu planificación de viaje — pero el resto de 
 Tanto si estás planeando una semana en París, una aventura multi-ciudad por Schengen o tu primer viaje a Europa tras el lanzamiento de ETIAS, la AI se encarga de la logística para que tú puedas centrarte en la experiencia.
 
 **[Empezar a Planificar Mi Viaje a Europa](/trips/new)**
+
+## Fuentes
+
+- [ETIAS costará 20 EUR](https://home-affairs.ec.europa.eu/news/european-travel-authorisation-etias-will-cost-eur-20-2025-07-17_en) — Comisión Europea, Migración y Asuntos de Interior (17 de julio de 2025): la tasa es de 20 EUR, con menores de 18 y mayores de 70 exentos
+- [ETIAS — sitio oficial de la UE](https://travel-europe.europa.eu/etias_es) — actualmente indica que el sistema no está en funcionamiento y no se recogen solicitudes
+- Información del Financial Times (julio de 2026): la mención al último trimestre de 2026 fue retirada del sitio oficial; eu-LISA considera 2026 inviable y se reúne en septiembre de 2026 para fijar una nueva fecha
+- Comprobado el 25 de agosto de 2026. Las fechas de ETIAS se han movido repetidamente desde 2016: confirma en el sitio oficial de la UE antes de viajar.
