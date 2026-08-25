@@ -6,7 +6,7 @@ description: >-
   sem visto, e-vistos, custos, prazos de processamento e o novo ETIAS para a Europa.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: "Travel Tips"
 tags: ["documentos de viagem", "estados unidos"]
 image: /images/blog/visa-requirements-us-citizens.jpg
@@ -37,7 +37,7 @@ schema: Article
 
 # Requisitos de Visto para Cidadãos dos EUA 2026: Todos os Países que Exigem Visto
 
-O passaporte americano ocupa a 10ª posição no mundo em liberdade de viagem em 2026, garantindo acesso a aproximadamente 186 países e territórios sem visto tradicional ou com entrada simplificada. Isso é excelente segundo os padrões globais — mas não significa que você pode aparecer em qualquer lugar apenas com o passaporte e um sorriso.
+O passaporte americano ocupa a 10ª posição no mundo em liberdade de viagem em 2026, O Henley Passport Index coloca seu acesso sem visto e com visto na chegada em 180 destinos; some os poucos que exigem apenas uma autorização eletrônica rápida e você chega a cerca de 186 lugares alcançáveis sem visto tradicional. Isso é excelente segundo os padrões globais — mas não significa que você pode aparecer em qualquer lugar apenas com o passaporte e um sorriso.
 
 Pelo menos 20 países exigem que os cidadãos americanos obtenham um visto ou uma autorização eletrônica de viagem antes da chegada, e esse número está prestes a crescer. O sistema ETIAS da Europa será lançado ainda este ano, o Reino Unido já aplica seu requisito de ETA, e vários países mudaram recentemente suas políticas.
 
@@ -54,13 +54,15 @@ De acordo com o Henley Passport Index, o passaporte dos EUA oferece:
 - **ETA/autorização eletrônica:** ~6 países (cadastro rápido online)
 - **Visto obrigatório:** ~20+ países (é preciso solicitar antes de viajar)
 
-Isso soma cerca de 186 destinos que você pode alcançar com burocracia mínima. Para os demais países, será preciso planejar com antecedência — às vezes semanas ou meses antes.
+As duas primeiras linhas são os 180 destinos que a Henley conta para o ranking. Some os países com ETA e você chega a cerca de 186 alcançáveis com burocracia mínima. Para os demais países, será preciso planejar com antecedência — às vezes semanas ou meses antes.
 
 ---
 
 ## Para Onde os Cidadãos dos EUA Podem Viajar Sem Visto
 
 A maioria dos destinos turísticos populares recebe os portadores de passaporte americano sem visto. Veja um detalhamento por região.
+
+Tudo o que aparece nesta seção é um lugar que você pode decidir hoje e para onde pode voar semana que vem. Se algum chamar sua atenção, dá para [transformá-lo em um roteiro dia a dia](/trips/new) em cerca de trinta segundos, sem conta e sem cartão.
 
 ### Europa (Espaço Schengen + Não Schengen)
 
@@ -78,7 +80,7 @@ Quase todos os países da América do Norte, Central e do Sul permitem a entrada
 - **Maior parte da América do Sul (Argentina, Chile, Colômbia, Equador, Peru, Uruguai):** 30-90 dias sem visto
 - **Caribe:** A maioria das ilhas permite estadias de 30-90 dias sem visto
 
-**Exceção:** O Brasil agora exige um e-visto a partir de janeiro de 2026 (consulte a seção de e-visto abaixo).
+**Exceção:** O Brasil exige um e-visto desde abril de 2025 (consulte a seção de e-visto abaixo).
 
 ### Ásia-Pacífico
 
@@ -172,12 +174,12 @@ A Índia oferece um dos sistemas de e-visto mais flexíveis para cidadãos dos E
 
 **Prazo de processamento:** 3-6 dias no padrão, a maioria aprovada em 24-72 horas. Processamento urgente ($99) disponível para resposta em 1-3 dias. Solicite pelo menos 4 dias antes da chegada.
 
-### Brasil — Novo Requisito de E-Visto (Janeiro de 2026)
+### Brasil — E-Visto Obrigatório
 
-O Brasil encerrou a viagem sem visto para cidadãos dos EUA a partir de 1º de janeiro de 2026. Agora você precisa de um e-visto:
+O Brasil encerrou a viagem sem visto para cidadãos dos EUA em abril de 2025, depois de vários adiamentos, e a plataforma atual de e-visto operada pela VFS entrou no ar no início de 2026. Você precisa de um e-visto:
 
-- **Custo:** ~$51 (taxa de processamento)
-- **Processamento:** A maioria aprovada em até 72 horas
+- **Custo:** **$80,90** ($80 de taxa consular mais $0,90 de processamento)
+- **Processamento:** **Cerca de 10 dias úteis.** Solicite com pelo menos duas semanas de antecedência
 - **Validade:** Múltiplas entradas, até 90 dias por visita (180 dias em 12 meses)
 - **Solicitação:** Totalmente online
 
@@ -255,9 +257,9 @@ A APEC (Cooperação Econômica Ásia-Pacífico) inclui 21 economias membros. Ve
 
 Várias mudanças significativas nas políticas de visto entraram em vigor recentemente:
 
-- **ETA do Reino Unido (fevereiro de 2026):** Os cidadãos dos EUA agora precisam se cadastrar online (GBP 10) antes de viajar ao Reino Unido. As companhias aéreas negam o embarque sem ele.
-- **E-Visto do Brasil (janeiro de 2026):** O Brasil encerrou a viagem sem visto para americanos. Agora é obrigatório um e-visto ($51, ~72 horas).
-- **ETIAS (final de 2026):** O novo sistema de autorização eletrônica da Europa será lançado no 4º trimestre de 2026 para todas as viagens ao Espaço Schengen. EUR 7, válido por 3 anos.
+- **ETA do Reino Unido:** Os cidadãos dos EUA precisam se cadastrar online antes de viajar ao Reino Unido. A taxa subiu para **GBP 20** em 8 de abril de 2026, contra GBP 16 antes. As companhias aéreas negam o embarque sem ele.
+- **E-Visto do Brasil:** O Brasil encerrou a viagem sem visto para americanos em abril de 2025 e migrou para uma plataforma de e-visto da VFS no início de 2026. Reserve **$80,90** e cerca de **10 dias úteis** — não as 72 horas que muitos guias ainda repetem.
+- **ETIAS (adiado, agora esperado para 2027):** A meta do 4º trimestre de 2026 foi retirada do próprio site do ETIAS da UE em julho de 2026. A taxa foi fixada em **EUR 20**, não os EUR 7 ainda citados em quase todo lugar.
 - **Plataforma COVA da China (setembro de 2025):** A solicitação de visto online simplificada substituiu o antigo sistema em papel. A política de trânsito sem visto de 240 horas foi ampliada.
 - **Suspensão do K-ETA da Coreia do Sul:** Suspenso até 2026, tornando a entrada novamente sem visto para cidadãos dos EUA, na prática.
 - **Extensão de 60 dias da Tailândia:** As estadias sem visto foram ampliadas de 30 para 60 dias (desde 2024), tornando a Tailândia um dos países mais acessíveis da Ásia.
@@ -277,9 +279,9 @@ Os ETAs ficam em algum ponto entre o "sem visto" e o e-visto. São cadastros rá
 
 ### ETA do Reino Unido (Em vigor desde Fevereiro de 2026)
 
-A partir de 25 de fevereiro de 2026, o Reino Unido exige uma Autorização Eletrônica de Viagem de todos os cidadãos dos EUA:
+O Reino Unido exige uma Autorização Eletrônica de Viagem de todos os cidadãos dos EUA:
 
-- **Custo:** GBP 10 (~$13 USD)
+- **Custo:** **GBP 20 (~$27 USD)** desde 8 de abril de 2026, contra GBP 16 antes
 - **Validade:** 2 anos ou até o vencimento do passaporte
 - **Permite:** Múltiplas entradas, até 6 meses por estadia
 - **Aplicação:** As companhias aéreas negarão o embarque sem um ETA válido
@@ -310,7 +312,7 @@ Todos os viajantes de países isentos de visto que visitam o Espaço Schengen, i
 
 ### Custo e Validade
 
-- **Taxa:** EUR 7 (~$8 USD) — isenta para viajantes com menos de 18 e mais de 70 anos
+- **Taxa:** **EUR 20 (~$23 USD)** — a Comissão elevou a taxa a partir dos EUR 7 em julho de 2025 para alinhá-la ao ETA britânico e ao ESTA americano. Continua isenta para menores de 18 e maiores de 70 anos
 - **Validade:** 3 anos ou até o vencimento do passaporte (o que ocorrer primeiro)
 - **Múltiplas viagens:** Entradas ilimitadas durante o período de validade
 - **Limites de estadia:** Aplica-se a mesma regra de 90 dias em 180 dias
@@ -319,12 +321,12 @@ Todos os viajantes de países isentos de visto que visitam o Espaço Schengen, i
 
 1. Preencha o formulário online (dados pessoais, informações do passaporte, planos de viagem)
 2. Responda às perguntas de triagem de segurança e saúde
-3. Pague a taxa de EUR 7
+3. Pague a taxa de EUR 20
 4. A maioria das aprovações chega em poucos minutos; uma pequena porcentagem pode levar até 30 dias para revisão manual
 
 **Importante:** O ETIAS não substitui a regra de 90/180 dias. Você ainda não pode permanecer no Espaço Schengen por mais de 90 dias em qualquer janela de 180 dias.
 
-Ao planejar uma viagem pela Europa, o planejador de viagens com AI da MonkeyTravel pode ajudar você a organizar suas estadias em Schengen e garantir que você permaneça dentro do limite de 90 dias em vários países.
+Ao planejar uma viagem pela Europa, o [planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) pode organizar suas estadias em Schengen por vários países para você ver a conta dos 90 dias de relance, em vez de contar nos dedos.
 
 ---
 
@@ -334,11 +336,11 @@ Veja uma comparação lado a lado do que os cidadãos dos EUA pagam pela documen
 
 | Destino | Tipo | Custo (USD) | Válido Por | Processamento |
 |-------------|------|-----------|-----------|------------|
-| Europa (ETIAS) | Autorização eletrônica | ~$8 | 3 anos | Minutos |
-| Reino Unido | ETA | ~$13 | 2 anos | 1-3 dias |
+| Europa (ETIAS) | Autorização eletrônica | ~$23 | 3 anos | Minutos |
+| Reino Unido | ETA | ~$27 | 2 anos | 1-3 dias |
 | Austrália | ETA | ~$13 | 12 meses | Instantâneo-24h |
 | Índia (1 ano) | E-visto | $40 | 1 ano | 1-6 dias |
-| Brasil | E-visto | $51 | Múltiplas entradas | ~72 horas |
+| Brasil | E-visto | $80,90 | Até 10 anos | ~10 dias úteis |
 | China | Visto de embaixada | $68 | 10 anos | 4-7 dias |
 | Vietnã | E-visto | $25 | 90 dias | 3 dias |
 | Rússia | Visto de embaixada | $198+ | 30 dias | ~10 dias |
@@ -377,7 +379,7 @@ Imprima suas aprovações de e-visto e confirmações de ETA. As cópias digitai
 
 ### 6. Acompanhe a Regra dos 90 Dias
 
-Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em todos os países Schengen. Uma semana na França, duas semanas na Itália e um mês na Espanha contam todos para o mesmo limite de 90 dias. Use uma calculadora Schengen ou deixe o planejador com AI da MonkeyTravel acompanhar seus dias automaticamente ao montar roteiros europeus por vários países.
+Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em todos os países Schengen. Uma semana na França, duas semanas na Itália e um mês na Espanha contam todos para o mesmo limite de 90 dias. Use uma calculadora Schengen ou deixe o [planejador com AI da MonkeyTravel](/free-ai-trip-planner) acompanhar seus dias automaticamente ao montar roteiros europeus por vários países.
 
 ---
 
@@ -385,15 +387,15 @@ Para viagens ao Espaço Schengen, o cronômetro de 90/180 dias é cumulativo em 
 
 ### Os cidadãos dos EUA precisam de visto para a Europa em 2026?
 
-Ainda não — mas em breve você precisará de uma autorização ETIAS. O sistema será lançado no final de 2026 (4º trimestre). Até lá, os cidadãos dos EUA podem entrar nos países do Espaço Schengen apenas com um passaporte válido por até 90 dias em qualquer período de 180 dias. O ETIAS custa EUR 7, é válido por 3 anos e leva poucos minutos para solicitar online. É uma autorização de viagem, não um visto.
+Não. O ETIAS deveria chegar no 4º trimestre de 2026, mas essa meta foi retirada do próprio site da UE em julho de 2026 e 2027 é agora a expectativa realista. Até o lançamento, os cidadãos dos EUA entram no Espaço Schengen apenas com um passaporte válido por até 90 dias em qualquer período de 180 dias. Quando chegar, custará EUR 20 (elevada a partir dos EUR 7), durará 3 anos e levará minutos online. É uma autorização de viagem, não um visto.
 
 ### Quantos países os cidadãos dos EUA podem visitar sem visto?
 
-Os portadores de passaporte americano podem visitar aproximadamente 186 países e territórios, seja sem visto, com visto na chegada ou com uma autorização eletrônica simples (ETA). Cerca de 146 países são totalmente sem visto, 34 oferecem visto na chegada e 6 exigem um cadastro rápido de ETA online.
+Os portadores de passaporte americano podem alcançar aproximadamente 186 países e territórios, seja sem visto, com visto na chegada ou com uma autorização eletrônica simples. Cerca de 146 são totalmente sem visto, 34 oferecem visto na chegada e 6 exigem um cadastro rápido de ETA. O Henley Passport Index conta apenas as duas primeiras categorias, e é por isso que coloca os EUA em 180.
 
 ### Preciso de visto para o Brasil como cidadão dos EUA?
 
-Sim, a partir de 1º de janeiro de 2026, os cidadãos dos EUA precisam obter um e-visto antes de viajar ao Brasil. O e-visto custa cerca de $51, é processado em até 72 horas e permite múltiplas entradas com estadias de até 90 dias. Toda a solicitação é feita online — sem necessidade de visita à embaixada.
+Sim. O Brasil encerrou a entrada sem visto para americanos em abril de 2025. O e-visto custa $80,90, leva cerca de 10 dias úteis para ser processado e permite múltiplas entradas com estadias de até 90 dias, em um documento válido por até 10 anos. Toda a solicitação é online — sem visita à embaixada — mas esses 10 dias significam que não é algo para deixar para a semana anterior.
 
 ### Os cidadãos dos EUA podem obter um e-visto para a Rússia?
 
@@ -407,10 +409,21 @@ As taxas de recusa de visto para cidadãos dos EUA costumam ser baixas para vist
 
 ## Planeje Sua Viagem com Confiança
 
-Os requisitos de visto mudam com frequência — os países atualizam políticas, lançam novos sistemas eletrônicos e ajustam taxas. As informações deste guia estão atualizadas até fevereiro de 2026, mas sempre confira no site oficial da embaixada ou do consulado antes de solicitar.
+Os requisitos de visto mudam com frequência — os países atualizam políticas, lançam novos sistemas eletrônicos e ajustam taxas. Este guia foi verificado pela última vez em agosto de 2026, e as entradas sobre ETIAS e Brasil são dois casos em que números muito repetidos já estavam desatualizados. Sempre confira no site oficial da embaixada ou do consulado antes de solicitar.
 
 A boa notícia é que a tendência é de viagens mais fáceis. Os e-vistos estão substituindo as solicitações em papel, os ETAs estão substituindo os vistos com carimbo no passaporte e os prazos de processamento continuam encurtando. O passaporte americano segue sendo um dos documentos de viagem mais poderosos do mundo.
 
-Quando estiver pronto para planejar sua próxima viagem, o planejador de viagens com AI da MonkeyTravel cuida da logística para que você possa focar na experiência. Informe o seu destino e receba um roteiro personalizado que leva em conta os requisitos de entrada, o melhor momento e dicas locais — tudo em segundos.
+Resolvida a questão da papelada, planejar deveria ser a parte fácil. Informe um destino e o [planejador de viagens com AI gratuito da MonkeyTravel](/free-ai-trip-planner) monta um roteiro dia a dia com lugares reais, horários e orçamentos em cerca de trinta segundos, sem precisar de conta. Ele não vai solicitar o seu visto, mas vai dizer o que fazer com os dias depois que você pousar.
+
+Se preferir começar pelo lado do mapa sem papelada, nosso guia de [destinos sem visto por passaporte](/blog/visa-free-destinations-by-passport) é o caminho mais curto entre "para onde eu posso ir" e um plano.
+
+[Planeje uma Viagem — Grátis, Sem Cadastro](/free-ai-trip-planner)
 
 **Boa viagem, e não esqueça o passaporte.**
+
+## Fontes
+
+- [Comissão Europeia — a taxa do ETIAS sobe para 20 EUR](https://home-affairs.ec.europa.eu/news/european-travel-authorisation-etias-will-cost-eur-20-2025-07-17_en)
+- [Fragomen — situação do lançamento do ETIAS/EES](https://www.fragomen.com/insights/european-union-european-travel-information-and-authorisation-system-etias-launch-delayed.html)
+- [KPMG — Coreia do Sul estende a isenção de K-ETA até 31 de dezembro de 2026](https://kpmg.com/xx/en/our-insights/gms-flash-alert/2026/flash-alert-2026-024.html)
+- [VisaHQ — o sistema de e-visto do Brasil para viajantes dos EUA](https://www.visahq.com/news/2026-02-05/br/brazil-switches-on-new-e-visa-system-for-us-canadian-mexican-and-french-travelers/)

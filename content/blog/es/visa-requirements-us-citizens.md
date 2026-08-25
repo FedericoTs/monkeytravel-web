@@ -9,7 +9,7 @@ description: >-
   Europa.
 author: Giuseppe G.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Travel Tips
 tags: ["documentos de viaje", "estados unidos"]
 image: /images/blog/visa-requirements-us-citizens.jpg
@@ -33,7 +33,7 @@ schema: Article
 
 # Requisitos de Visa para Ciudadanos de EE.UU. 2026: Todos los Paises Donde Necesitas Visa
 
-El pasaporte estadounidense ocupa el puesto 10 en el mundo en libertad de viaje en 2026, otorgando acceso a aproximadamente 186 paises y territorios sin visa tradicional o con entrada simplificada. Eso es excelente segun los estandares globales, pero no significa que puedas presentarte en cualquier lugar solo con tu pasaporte y una sonrisa.
+El pasaporte estadounidense ocupa el puesto 10 en el mundo en libertad de viaje en 2026, El Henley Passport Index situa su acceso sin visa y con visa al llegar en 180 destinos; suma los pocos que solo requieren una autorizacion electronica rapida y llegas a unos 186 lugares alcanzables sin visa tradicional. Eso es excelente segun los estandares globales, pero no significa que puedas presentarte en cualquier lugar solo con tu pasaporte y una sonrisa.
 
 Al menos 20 paises requieren que los ciudadanos estadounidenses obtengan una visa o autorizacion electronica de viaje antes de llegar, y ese numero esta a punto de crecer. El sistema ETIAS de Europa se lanza este ano, el Reino Unido ya exige su requisito de ETA, y varios paises han cambiado recientemente sus politicas.
 
@@ -50,13 +50,15 @@ Segun el Henley Passport Index, el pasaporte de EE.UU. proporciona:
 - **ETA/autorizacion electronica:** ~6 paises (registro rapido en linea)
 - **Visa requerida:** ~20+ paises (debes solicitarla antes de viajar)
 
-Eso suma aproximadamente 186 destinos accesibles con minima burocracia. Para los paises restantes, necesitaras planificar con anticipacion, a veces semanas o meses.
+Las dos primeras lineas son los 180 destinos que Henley cuenta para su ranking. Suma los paises con ETA y llegas a unos 186 accesibles con minima burocracia. Para los paises restantes, necesitaras planificar con anticipacion, a veces semanas o meses.
 
 ---
 
 ## Donde Pueden Viajar los Ciudadanos de EE.UU. sin Visa
 
 La mayoria de los destinos turisticos populares reciben a los portadores de pasaporte estadounidense sin visa. Aqui tienes un desglose por region.
+
+Todo lo que aparece en esta seccion es un lugar que puedes decidir hoy y volar la semana que viene. Si alguno te llama la atencion, puedes [convertirlo en un itinerario dia a dia](/trips/new) en unos treinta segundos, sin cuenta y sin tarjeta.
 
 ### Europa (Zona Schengen + No Schengen)
 
@@ -170,10 +172,10 @@ India ofrece uno de los sistemas de e-visa mas flexibles para ciudadanos de EE.U
 
 ### Brasil: Nuevo Requisito de E-Visa (Enero 2026)
 
-Brasil termino con la entrada sin visa para ciudadanos de EE.UU. a partir del 1 de enero de 2026. Ahora necesitas una e-visa:
+Brasil termino con la entrada sin visa para ciudadanos de EE.UU. en abril de 2025, tras varios aplazamientos, y la plataforma actual de e-visa operada por VFS entro en funcionamiento a principios de 2026. Necesitas una e-visa:
 
-- **Costo:** ~$51 (tarifa de tramite)
-- **Tramite:** La mayoria aprobada en 72 horas
+- **Costo:** **$80,90** ($80 de tarifa consular mas $0,90 de gestion)
+- **Tramite:** **Unos 10 dias habiles.** Solicitala con al menos dos semanas de antelacion
 - **Validez:** Multi-entrada, hasta 90 dias por visita (180 dias en 12 meses)
 - **Solicitud:** Completamente en linea
 
@@ -226,9 +228,9 @@ Los ETA estan entre la entrada sin visa y la e-visa. Son registros rapidos en li
 
 ### UK ETA (Vigente desde Febrero 2026)
 
-Desde el 25 de febrero de 2026, el Reino Unido requiere una Autorizacion Electronica de Viaje para todos los ciudadanos de EE.UU.:
+El Reino Unido exige una Autorizacion Electronica de Viaje a todos los ciudadanos de EE.UU.:
 
-- **Costo:** GBP 10 (~$13 USD)
+- **Costo:** **GBP 20 (~$27 USD)** desde el 8 de abril de 2026, frente a las GBP 16 anteriores
 - **Validez:** 2 anos o hasta la expiracion del pasaporte
 - **Permite:** Multi-entrada, hasta 6 meses por estancia
 - **Aplicacion:** Las aerolineas negaran el embarque sin un ETA valido
@@ -259,7 +261,7 @@ Todos los viajeros de paises exentos de visa que visiten la Zona Schengen, inclu
 
 ### Costo y Validez
 
-- **Tarifa:** EUR 7 (~$8 USD) - exentos los menores de 18 y mayores de 70 anos
+- **Tarifa:** **EUR 20 (~$23 USD)** - la Comision la subio desde EUR 7 en julio de 2025 para igualarla al ETA britanico y al ESTA estadounidense. Siguen exentos los menores de 18 y mayores de 70 anos
 - **Validez:** 3 anos o hasta la expiracion del pasaporte (lo que ocurra primero)
 - **Multiples viajes:** Entradas ilimitadas durante el periodo de validez
 - **Limites de estancia:** Se aplica la misma regla de 90 dias en 180 dias
@@ -268,12 +270,12 @@ Todos los viajeros de paises exentos de visa que visiten la Zona Schengen, inclu
 
 1. Completa el formulario en linea (datos personales, info del pasaporte, planes de viaje)
 2. Responde preguntas de seguridad y salud
-3. Paga la tarifa de EUR 7
+3. Paga la tarifa de EUR 20
 4. La mayoria de las aprobaciones llegan en minutos; un pequeno porcentaje puede tardar hasta 30 dias por revision manual
 
 **Importante:** ETIAS no reemplaza la regla de 90/180 dias. Sigues sin poder permanecer en la Zona Schengen mas de 90 dias en cualquier ventana de 180 dias.
 
-Al planificar un viaje a Europa, el planificador de viajes con AI de MonkeyTravel puede ayudarte a organizar tus estancias en Schengen y asegurarte de que permaneces dentro del limite de 90 dias en multiples paises.
+Al planificar un viaje a Europa, el [planificador de viajes con AI gratuito de MonkeyTravel](/free-ai-trip-planner) puede organizar tus estancias en Schengen entre varios paises para que veas las cuentas de los 90 dias de un vistazo, en vez de contar con los dedos.
 
 ---
 
@@ -283,11 +285,11 @@ Aqui tienes una comparacion lado a lado de lo que pagan los ciudadanos de EE.UU.
 
 | Destino | Tipo | Costo (USD) | Validez | Tramite |
 |---------|------|-----------|---------|---------|
-| Europa (ETIAS) | Autorizacion electronica | ~$8 | 3 anos | Minutos |
-| Reino Unido | ETA | ~$13 | 2 anos | 1-3 dias |
+| Europa (ETIAS) | Autorizacion electronica | ~$23 | 3 anos | Minutos |
+| Reino Unido | ETA | ~$27 | 2 anos | 1-3 dias |
 | Australia | ETA | ~$13 | 12 meses | Instantaneo-24h |
 | India (1 ano) | E-visa | $40 | 1 ano | 1-6 dias |
-| Brasil | E-visa | $51 | Multi-entrada | ~72 horas |
+| Brasil | E-visa | $80,90 | Hasta 10 anos | ~10 dias habiles |
 | China | Visa de embajada | $68 | 10 anos | 4-7 dias |
 | Vietnam | E-visa | $25 | 90 dias | 3 dias |
 | Rusia | Visa de embajada | $198+ | 30 dias | ~10 dias |
@@ -326,7 +328,7 @@ Imprime tus aprobaciones de e-visa y confirmaciones de ETA. Las copias digitales
 
 ### 6. Rastrea la Regla de 90 Dias
 
-Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos los paises Schengen. Una semana en Francia, dos semanas en Italia y un mes en Espana cuentan para el mismo limite de 90 dias. Usa una calculadora Schengen o deja que el planificador de AI de MonkeyTravel rastree tus dias automaticamente al construir itinerarios europeos de multiples paises.
+Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos los paises Schengen. Una semana en Francia, dos semanas en Italia y un mes en Espana cuentan para el mismo limite de 90 dias. Usa una calculadora Schengen o deja que el [planificador con AI de MonkeyTravel](/free-ai-trip-planner) rastree tus dias automaticamente al construir itinerarios europeos de multiples paises.
 
 ---
 
@@ -334,15 +336,15 @@ Para viajes a la Zona Schengen, el reloj de 90/180 dias es acumulativo en todos 
 
 ### Los ciudadanos de EE.UU. necesitan visa para Europa en 2026?
 
-Todavia no, pero pronto necesitaras una autorizacion ETIAS. El sistema se lanza a finales de 2026 (Q4). Hasta entonces, los ciudadanos de EE.UU. pueden entrar a los paises de la Zona Schengen con solo un pasaporte valido por hasta 90 dias en cualquier periodo de 180 dias. ETIAS cuesta EUR 7, es valido por 3 anos y toma minutos solicitarlo en linea. Es una autorizacion de viaje, no una visa.
+No. ETIAS deberia haber llegado en el Q4 de 2026, pero ese objetivo se retiro de la propia web de la UE en julio de 2026 y 2027 es ahora la expectativa realista. Hasta que se lance, los ciudadanos de EE.UU. entran a la Zona Schengen con solo un pasaporte valido por hasta 90 dias en cualquier periodo de 180 dias. Cuando llegue costara EUR 20 (subida desde EUR 7), durara 3 anos y se tramitara en minutos. Es una autorizacion de viaje, no una visa.
 
 ### Cuantos paises pueden visitar los ciudadanos de EE.UU. sin visa?
 
-Los portadores de pasaporte estadounidense pueden visitar aproximadamente 186 paises y territorios ya sea sin visa, con visa al llegar o con una autorizacion electronica simple (ETA). Aproximadamente 146 paises son completamente sin visa, 34 ofrecen visa al llegar y 6 requieren un registro rapido de ETA en linea.
+Los portadores de pasaporte estadounidense pueden alcanzar aproximadamente 186 paises y territorios sin visa, con visa al llegar o con una autorizacion electronica simple. Unos 146 son completamente sin visa, 34 ofrecen visa al llegar y 6 requieren un registro rapido de ETA. El Henley Passport Index solo cuenta las dos primeras categorias, y por eso situa a EE.UU. en 180.
 
 ### Necesito visa para Brasil como ciudadano de EE.UU.?
 
-Si, desde el 1 de enero de 2026, los ciudadanos de EE.UU. deben obtener una e-visa antes de viajar a Brasil. La e-visa cuesta aproximadamente $51, se procesa en 72 horas y permite multiples entradas con estancias de hasta 90 dias. Toda la solicitud se completa en linea, sin visita a la embajada.
+Si. Brasil termino con la entrada sin visa para americanos en abril de 2025. La e-visa cuesta $80,90, tarda unos 10 dias habiles en tramitarse y permite multiples entradas con estancias de hasta 90 dias, en un documento valido hasta 10 anos. Todo se solicita en linea, sin visita a la embajada, pero esos 10 dias significan que no es algo que dejar para la semana anterior.
 
 ### Pueden los ciudadanos de EE.UU. obtener una e-visa para Rusia?
 
@@ -356,10 +358,21 @@ Las tasas de rechazo de visa para ciudadanos de EE.UU. son generalmente bajas pa
 
 ## Planifica tu Viaje con Confianza
 
-Los requisitos de visa cambian frecuentemente: los paises actualizan politicas, lanzan nuevos sistemas electronicos y ajustan tarifas. La informacion en esta guia es vigente a febrero de 2026, pero siempre verifica con el sitio web oficial de la embajada o consulado antes de solicitar.
+Los requisitos de visa cambian frecuentemente: los paises actualizan politicas, lanzan nuevos sistemas electronicos y ajustan tarifas. Esta guia se verifico por ultima vez en agosto de 2026, y las entradas de ETIAS y Brasil son dos casos en los que cifras muy repetidas se habian quedado obsoletas. Verifica siempre con el sitio web oficial de la embajada o consulado antes de solicitar.
 
 La buena noticia es que la tendencia es hacia viajes mas faciles. Las e-visas estan reemplazando las solicitudes en papel, los ETA estan reemplazando las visas con sello en pasaporte, y los tiempos de tramite siguen acortandose. El pasaporte estadounidense sigue siendo uno de los documentos de viaje mas poderosos del mundo.
 
-Cuando estes listo para planificar tu proximo viaje, el planificador de viajes con AI de MonkeyTravel se encarga de la logistica para que puedas concentrarte en la experiencia. Pon tu destino y obtendras un itinerario personalizado que tiene en cuenta los requisitos de entrada, el momento optimo y consejos locales, todo en segundos.
+Una vez resuelta la cuestion del papeleo, planificar deberia ser la parte facil. Pon un destino y el [planificador de viajes con AI gratuito de MonkeyTravel](/free-ai-trip-planner) construye un itinerario dia a dia con lugares reales, horarios y presupuestos en unos treinta segundos, sin necesidad de cuenta. No tramitara tu visa, pero si te dira que hacer con los dias cuando aterrices.
+
+Si prefieres empezar por la parte del mapa sin papeleo, nuestra guia de [destinos sin visa segun tu pasaporte](/blog/visa-free-destinations-by-passport) es el camino mas corto entre "donde puedo ir" y un plan.
+
+[Planifica un Viaje — Gratis, Sin Registro](/free-ai-trip-planner)
 
 **Buen viaje, y no olvides tu pasaporte.**
+
+## Fuentes
+
+- [Comisión Europea — la tasa ETIAS sube a 20 EUR](https://home-affairs.ec.europa.eu/news/european-travel-authorisation-etias-will-cost-eur-20-2025-07-17_en)
+- [Fragomen — estado del lanzamiento de ETIAS/EES](https://www.fragomen.com/insights/european-union-european-travel-information-and-authorisation-system-etias-launch-delayed.html)
+- [KPMG — Corea del Sur extiende la exención K-ETA hasta el 31 de diciembre de 2026](https://kpmg.com/xx/en/our-insights/gms-flash-alert/2026/flash-alert-2026-024.html)
+- [VisaHQ — el sistema de e-visa de Brasil para viajeros de EE.UU.](https://www.visahq.com/news/2026-02-05/br/brazil-switches-on-new-e-visa-system-for-us-canadian-mexican-and-french-travelers/)
