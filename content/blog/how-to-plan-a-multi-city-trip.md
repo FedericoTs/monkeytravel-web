@@ -113,7 +113,7 @@ A three-night stop therefore has one real day, one strong day, and two half days
 
 Most trip planning tools handle one city at a time. You plan Rome, then you start a new plan for Florence, and nothing connects them — the transit days vanish, and the tool cheerfully gives you a full day in a city you arrive in at 4pm.
 
-That gap is the reason [MonkeyTravel](https://monkeytravel.app) plans multi-city natively. You give it the cities and the total days, and it splits them, keeps the transitions visible, and builds each city's days around the actual arrival and departure times rather than pretending every day is a full one.
+That gap is the reason [MonkeyTravel](/) plans multi-city natively. You give it the cities and the total days, and it splits them, keeps the transitions visible, and builds each city's days around the actual arrival and departure times rather than pretending every day is a full one.
 
 It is ours, so the honest caveats: it does not book your trains or flights and it does not read live timetables. Confirm the connections before you commit to the shape of the trip, and treat the plan as a strong draft you edit.
 
@@ -149,7 +149,7 @@ Go in a line rather than a loop, put the longest journey where losing a day hurt
 
 ---
 
-Planning more than one city? [Build the whole route on MonkeyTravel](https://monkeytravel.app) — every city planned day by day, with the transitions accounted for. No account, no card.
+Planning more than one city? [Build the whole route on MonkeyTravel](/trips/new?multi=1) — every city planned day by day, with the transitions accounted for. No account, no card.
 
 ## Related reading
 

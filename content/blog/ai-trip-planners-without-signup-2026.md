@@ -77,7 +77,7 @@ Most tools pass one and fail three. That is not a reason to avoid them, it is a 
 
 ## Our position, stated plainly
 
-We build [MonkeyTravel](https://monkeytravel.app), so this is not neutral.
+We build [MonkeyTravel](/), so this is not neutral.
 
 We made no-account a product decision rather than a growth tactic, and it costs us. We cannot email you. We cannot attribute a booking to you. Our analytics undercount because we ask consent before tracking. Every one of those is a real disadvantage against tools that take the email first.
 
@@ -115,7 +115,7 @@ Usually one of three: a paywall on the genuinely useful feature (Wanderlog puts 
 
 ---
 
-[Plan a trip on MonkeyTravel](https://monkeytravel.app) — full day-by-day itinerary, real venues, three budget levels, no account required.
+[Plan a trip on MonkeyTravel](/trips/new) — full day-by-day itinerary, real venues, three budget levels, no account required.
 
 ## Sources
 

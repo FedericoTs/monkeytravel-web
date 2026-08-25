@@ -175,6 +175,17 @@ Ninguna herramienta lo hace todo bien. El mejor enfoque en 2026 sigue siendo por
 
 *¿Dudas solo entre esos dos? Los comparamos cara a cara en [Layla vs Mindtrip](/blog/layla-vs-mindtrip-2026).*
 
+## Profundiza en cualquiera de estas
+
+Si quieres el cara a cara en vez del campo completo:
+
+- [Wanderlog vs Mindtrip](/blog/wanderlog-vs-mindtrip-2026) — las dos opciones gratuitas más fuertes, y por qué en realidad no compiten
+- [Alternativas a Mindtrip](/blog/mindtrip-alternative-2026) — seis opciones si lo que te echó atrás fue el muro de acceso
+- [Planificadores AI sin registro](/blog/ai-trip-planners-without-signup-2026) — qué herramientas te enseñan un itinerario antes de pedirte una cuenta
+- [ChatGPT vs planificadores AI](/blog/chatgpt-vs-ai-trip-planners) — cuando el asistente general basta y cuándo no
+- [¿Puedes fiarte de un itinerario hecho con AI?](/blog/can-you-trust-ai-travel-itinerary) — las comprobaciones que hacer a cualquier plan generado antes de viajar
+- [Cómo planificar un viaje multiciudad](/blog/how-to-plan-a-multi-city-trip) — orden de la ruta, vuelos open-jaw y los días que pierdes en tránsito
+
 ## Preguntas frecuentes
 
 ### ¿Cuál es el mejor planificador de viajes con AI gratis en 2026?

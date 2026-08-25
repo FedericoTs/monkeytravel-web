@@ -138,7 +138,7 @@ Yes, in practice. None of these tools import from each other. If you have signif
 
 ---
 
-[Try MonkeyTravel](https://monkeytravel.app) — no signup, no card, a full day-by-day itinerary in about thirty seconds.
+[Try MonkeyTravel](/trips/new) — no signup, no card, a full day-by-day itinerary in about thirty seconds.
 
 ## Sources
 

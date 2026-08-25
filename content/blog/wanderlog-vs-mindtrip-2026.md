@@ -81,7 +81,7 @@ The other shared gap is the account wall. Mindtrip asks you to log in before you
 
 ## An honest note about what we make
 
-We build [MonkeyTravel](https://monkeytravel.app), which is a third option, so treat this section with the scepticism it deserves.
+We build [MonkeyTravel](/), which is a third option, so treat this section with the scepticism it deserves.
 
 The specific bet we made is different: no account at all, ever, and the schedule is the output rather than the map. You get a day-by-day plan with real venues, current prices, three budget levels, in about thirty seconds, and you can read the whole thing before deciding whether we are worth your time.
 
@@ -131,7 +131,7 @@ Then neither fits cleanly. Mindtrip requires one up front, and Wanderlog gates i
 
 ---
 
-Ready to see the difference? [Plan a trip on MonkeyTravel](https://monkeytravel.app) — no account, no card, about thirty seconds.
+Ready to see the difference? [Plan a trip on MonkeyTravel](/trips/new) — no account, no card, about thirty seconds.
 
 ## Sources
 
