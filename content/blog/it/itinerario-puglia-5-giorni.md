@@ -37,6 +37,8 @@ Cinque giorni sono il formato giusto per una prima volta. Abbastanza per coprire
 
 Questo itinerario è pensato per chi noleggia un'auto. Le distanze sono corte (la Puglia è lunga e stretta), ma i mezzi pubblici non coprono i borghi e le spiagge.
 
+Se invece preferisci non cambiare albergo ogni notte — o non guidare affatto — c'è una seconda forma per lo stesso volo: base fissa a Bari e gite in treno. L'abbiamo scritta a parte: **[Bari e dintorni in 5 giorni: cosa raggiungi davvero](/blog/bari-e-dintorni-in-5-giorni)**.
+
 ## Prima di Partire: Le Cose Pratiche
 
 ### Come Arrivare
