@@ -87,7 +87,7 @@ function TemplateCard({
         {/* Top badges */}
         <div className="flex items-center justify-between">
           {isFeatured && (
-            <span className="px-1.5 py-0.5 rounded-full bg-[var(--primary-ink)] text-white text-[6px] md:text-[7px] font-medium">
+            <span className="px-1.5 py-0.5 rounded-full bg-[var(--primary)] text-white text-[6px] md:text-[7px] font-medium">
               Featured
             </span>
           )}
@@ -238,7 +238,7 @@ export default function TemplatesScreen() {
           <span className="text-[6px]">My Trips</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <div className="w-6 h-6 rounded-full bg-[var(--primary-ink)] flex items-center justify-center text-white text-[10px]">
+          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-[10px]">
             +
           </div>
         </div>

@@ -61,7 +61,7 @@ export default function StagedLoadingIndicator({
                 className={`
                   w-7 h-7 rounded-full flex items-center justify-center
                   ${isCompleted ? "bg-emerald-500" : ""}
-                  ${isCurrent ? "bg-[var(--primary-ink)]" : ""}
+                  ${isCurrent ? "bg-[var(--primary)]" : ""}
                   ${isPending ? "bg-slate-200" : ""}
                 `}
                 initial={{ scale: 0.8 }}

@@ -88,7 +88,7 @@ export default function OAuthConsentClient({
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="bg-[var(--primary-ink)] p-6 text-white text-center">
+        <div className="bg-[var(--primary)] p-6 text-white text-center">
           <Image
             src="/images/logo.png"
             alt="MonkeyTravel"
@@ -170,7 +170,7 @@ export default function OAuthConsentClient({
             <button
               onClick={handleApprove}
               disabled={isLoading}
-              className="flex-1 px-4 py-3 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[#083d5c] transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="flex-1 px-4 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[#083d5c] transition-colors disabled:opacity-50 flex items-center justify-center"
             >
               {isLoading ? (
                 <svg

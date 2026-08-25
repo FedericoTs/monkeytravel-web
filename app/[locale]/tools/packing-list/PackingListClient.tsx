@@ -332,7 +332,7 @@ export default function PackingListClient({ locale }: Props) {
             type="button"
             onClick={handleGenerate}
             disabled={!canSubmit}
-            className="w-full bg-[var(--primary-ink)] text-white py-3.5 rounded-xl font-semibold text-base hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-[var(--primary)] text-white py-3.5 rounded-xl font-semibold text-base hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -540,7 +540,7 @@ export default function PackingListClient({ locale }: Props) {
                 <button
                   type="submit"
                   disabled={emailSending || !email.trim()}
-                  className="bg-[var(--primary-ink)] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
+                  className="bg-[var(--primary)] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
                 >
                   {emailSending ? "..." : t("emailSubmit")}
                 </button>

@@ -99,7 +99,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
             onClick={() => handleCategoryChange(null)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeCategory === null
-                ? "bg-[var(--primary-ink)] text-white"
+                ? "bg-[var(--primary)] text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
@@ -118,7 +118,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
                 onClick={() => handleCategoryChange(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   activeCategory === cat
-                    ? "bg-[var(--primary-ink)] text-white"
+                    ? "bg-[var(--primary)] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -236,7 +236,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
               onClick={() => handlePageChange(page)}
               className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
                 currentPage === page
-                  ? "bg-[var(--primary-ink)] text-white"
+                  ? "bg-[var(--primary)] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
               aria-label={t("pagination.page", { page })}

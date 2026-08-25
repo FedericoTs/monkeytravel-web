@@ -640,8 +640,8 @@ export default function DestinationAutocomplete({
           <button
             type="button"
             onClick={() => handleSelect(createManualPrediction(value))}
-            className="w-full py-3 px-4 rounded-xl bg-[var(--primary-ink)] text-white font-medium
-                       hover:bg-[var(--primary-ink)]/90 transition-colors shadow-md shadow-[var(--primary)]/25"
+            className="w-full py-3 px-4 rounded-xl bg-[var(--primary)] text-white font-medium
+                       hover:bg-[var(--primary)]/90 transition-colors shadow-md shadow-[var(--primary)]/25"
           >
             {t("continueWith", { destination: value })}
           </button>

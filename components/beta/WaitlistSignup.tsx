@@ -151,7 +151,7 @@ export default function WaitlistSignup({
               <button
                 onClick={() => handleSubmit()}
                 disabled={loading}
-                className="w-full px-6 py-3 bg-[var(--primary-ink)] text-white font-semibold rounded-xl hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -192,7 +192,7 @@ export default function WaitlistSignup({
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className="px-6 py-3 bg-[var(--primary-ink)] text-white font-semibold rounded-xl hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

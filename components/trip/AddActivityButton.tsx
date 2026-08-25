@@ -300,7 +300,7 @@ export default function AddActivityButton({
             <button
               type="submit"
               disabled={!customActivity.name.trim()}
-              className="flex-1 py-2 px-4 text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 py-2 px-4 text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors disabled:opacity-50"
             >
               {t("add")}
             </button>
@@ -333,7 +333,7 @@ export default function AddActivityButton({
                 onClick={() => handleCategorySelect(cat.type)}
                 className={`px-3 py-1.5 text-sm rounded-full transition-colors flex items-center gap-1.5 ${
                   selectedCategory === cat.type
-                    ? "bg-[var(--primary-ink)] text-white"
+                    ? "bg-[var(--primary)] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >

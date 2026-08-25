@@ -350,7 +350,7 @@ export default function GenerationProgress({
           {/* Animated destination badge */}
           <div className="flex justify-center mb-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-full border border-[var(--primary)]/20">
-              <span className="w-2 h-2 bg-[var(--primary-ink)] rounded-full animate-pulse" />
+              <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
               <span className="text-sm font-medium text-[var(--primary-ink)]">
                 {destination}
               </span>
@@ -379,7 +379,7 @@ export default function GenerationProgress({
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
                   ${idx < currentPhaseIndex
-                    ? "bg-[var(--primary-ink)] text-white"
+                    ? "bg-[var(--primary)] text-white"
                     : idx === currentPhaseIndex
                       ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)] ring-offset-2"
                       : "bg-slate-100 text-slate-300"

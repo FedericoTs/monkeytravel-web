@@ -110,7 +110,7 @@ function SortableActivityCard({
             transition-all duration-200
             rounded-l-xl border border-r-0
             ${isDragging
-              ? "bg-[var(--primary-ink)] border-[var(--primary)] text-white"
+              ? "bg-[var(--primary)] border-[var(--primary)] text-white"
               : "bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200 hover:from-slate-200 hover:to-slate-100 text-slate-400 hover:text-slate-600"
             }
           `}

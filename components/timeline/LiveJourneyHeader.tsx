@@ -112,7 +112,7 @@ export default function LiveJourneyHeader({
                   ${day.is_completed
                     ? "bg-emerald-500"
                     : day.is_current
-                      ? "bg-[var(--primary-ink)] ring-2 ring-[var(--primary)]/30"
+                      ? "bg-[var(--primary)] ring-2 ring-[var(--primary)]/30"
                       : "bg-slate-200"
                   }
                 `}

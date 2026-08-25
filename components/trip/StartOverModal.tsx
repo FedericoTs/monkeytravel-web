@@ -231,7 +231,7 @@ export default function StartOverModal({
       <div className="px-6 pb-6 flex flex-col-reverse sm:flex-row gap-3">
         <button
           onClick={onClose}
-          className="flex-1 px-6 py-3 bg-[var(--secondary)] text-white font-semibold rounded-xl hover:bg-[var(--secondary)]/90 transition-colors shadow-lg shadow-[var(--secondary)]/25"
+          className="flex-1 px-6 py-3 bg-[var(--secondary-ink)] text-white font-semibold rounded-xl hover:bg-[var(--secondary-ink)]/90 transition-colors shadow-lg shadow-[var(--secondary)]/25"
         >
           {t("cancel")}
         </button>

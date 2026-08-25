@@ -136,7 +136,7 @@ export default function TourTrigger({
             Hidden while the tour is disabled — there's nothing new to see. */}
         {TOUR_ENABLED && isReady && hasSeenTour === false && variant === "button" && (
           <span
-            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary-ink)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
+            className="absolute -top-2 -right-2 px-2 py-0.5 bg-[var(--primary)] text-white text-xs font-bold rounded-full animate-[badge-pop-in_0.3s_ease-out_forwards]"
             style={{ transform: "scale(0)" }}
           >
             {t("newBadge")}

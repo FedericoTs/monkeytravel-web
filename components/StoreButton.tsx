@@ -22,7 +22,7 @@ export default function StoreButton({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-3 px-5 py-3 bg-[var(--primary-dark)] text-white rounded-xl hover:bg-[var(--primary-ink)] transition-colors ${className}`}
+      className={`inline-flex items-center gap-3 px-5 py-3 bg-[var(--primary-dark)] text-white rounded-xl hover:bg-[var(--primary)] transition-colors ${className}`}
     >
       {isApple ? (
         <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">

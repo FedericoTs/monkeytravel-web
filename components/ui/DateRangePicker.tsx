@@ -340,7 +340,7 @@ export default function DateRangePicker({
                   : "hover:bg-[var(--primary)]/10 cursor-pointer"
                 }
                 ${isStart || isEnd
-                  ? "bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90 shadow-md"
+                  ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 shadow-md"
                   : ""
                 }
                 ${inRange && !isStart && !isEnd
@@ -484,7 +484,7 @@ export default function DateRangePicker({
                   px-3.5 py-1.5 rounded-full text-xs font-medium min-h-[36px]
                   border transition-all duration-200
                   ${active
-                    ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white shadow-sm"
+                    ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
                     : "border-slate-200 text-slate-600 hover:border-[var(--primary)]/50 hover:text-[var(--primary-ink)]"
                   }
                 `}
@@ -584,7 +584,7 @@ export default function DateRangePicker({
             </button>
             <button
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors"
+              className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
             >
               {t("done")}
             </button>

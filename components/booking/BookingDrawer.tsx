@@ -257,7 +257,7 @@ export default function BookingDrawer({
           <button
             onClick={handleSearch}
             disabled={!originCity}
-            className="w-full py-4 bg-[var(--primary-ink)] text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--primary-ink)]/90 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[var(--primary)] text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2"
           >
             <Plane className="w-5 h-5" />
             {t("searchFlightsTo", { destination })}

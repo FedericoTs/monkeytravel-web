@@ -106,7 +106,7 @@ export function UnsubscribeConfirmButton({
         type="button"
         onClick={handleClick}
         disabled={state.kind === "loading"}
-        className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {state.kind === "loading" ? "Unsubscribing…" : "Confirm unsubscribe"}
       </button>

@@ -333,7 +333,7 @@ export default async function ComparePage({
             <div className="mt-8">
               <Link
                 href="/trips/new"
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold shadow-sm hover:opacity-95 transition-opacity"
+                className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-sm hover:opacity-95 transition-opacity"
               >
                 {ui.ctaButton}
               </Link>
@@ -489,7 +489,7 @@ export default async function ComparePage({
             <p className="text-slate-600 mb-7">{ui.ctaSub}</p>
             <Link
               href="/trips/new"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[var(--primary-ink)] text-white font-semibold shadow-sm hover:opacity-95 transition-opacity"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-sm hover:opacity-95 transition-opacity"
             >
               {ui.ctaButton}
             </Link>

@@ -192,7 +192,7 @@ export default function EarlyAccessModal({
                   <button
                     type="submit"
                     disabled={!code.trim() || isSubmitting}
-                    className="px-4 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

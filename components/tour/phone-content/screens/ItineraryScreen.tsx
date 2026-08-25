@@ -133,7 +133,7 @@ function WalkingBadge({ time, distance }: { time: string; distance: string }) {
 
         {/* Dot */}
         <motion.div
-          className="w-1.5 h-1.5 rounded-full bg-[var(--secondary)] mr-1.5 relative z-10"
+          className="w-1.5 h-1.5 rounded-full bg-[var(--secondary-ink)] mr-1.5 relative z-10"
           animate={{ scale: [1, 1.3, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         />
@@ -151,7 +151,7 @@ function WalkingBadge({ time, distance }: { time: string; distance: string }) {
           transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
         >
           <span className="text-[8px]">🚶</span>
-          <span className="text-[7px] md:text-[8px] text-[var(--secondary)] font-medium">~{time}</span>
+          <span className="text-[7px] md:text-[8px] text-[var(--secondary-ink)] font-medium">~{time}</span>
           <span className="text-[6px] md:text-[7px] text-gray-400">~{distance}</span>
         </motion.div>
       </div>
@@ -180,7 +180,7 @@ export default function ItineraryScreen() {
             key={tab}
             className={`px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-medium ${
               index === 1
-                ? "bg-[var(--primary-ink)] text-white"
+                ? "bg-[var(--primary)] text-white"
                 : "text-gray-500 hover:bg-gray-100"
             }`}
             whileTap={{ scale: 0.95 }}
@@ -192,7 +192,7 @@ export default function ItineraryScreen() {
 
       {/* Day header */}
       <motion.div variants={itemVariants} className="flex items-center gap-2 px-3 py-2">
-        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[var(--primary-ink)] text-white flex items-center justify-center text-[10px] md:text-[12px] font-bold">
+        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] md:text-[12px] font-bold">
           1
         </div>
         <div>
@@ -261,7 +261,7 @@ export default function ItineraryScreen() {
           <span className="text-[6px]">My Trips</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <div className="w-6 h-6 rounded-full bg-[var(--primary-ink)] flex items-center justify-center text-white text-[10px]">
+          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-[10px]">
             +
           </div>
         </div>

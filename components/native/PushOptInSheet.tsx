@@ -169,7 +169,7 @@ export default function PushOptInSheet() {
             type="button"
             onClick={handleAllow}
             disabled={submitting}
-            className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
+            className="w-full bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
           >
             {submitting ? t("allowing") : t("allow")}
           </button>

@@ -271,7 +271,7 @@ function NotificationItem({
     >
       <div className="flex items-start gap-2">
         {unread && (
-          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--primary-ink)] shrink-0" />
+          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--primary)] shrink-0" />
         )}
         <div className={`flex-1 min-w-0 ${unread ? "" : "pl-4"}`}>
           <p className={`text-sm ${unread ? "font-medium text-slate-900" : "text-slate-700"}`}>

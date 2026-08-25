@@ -201,7 +201,7 @@ export default function AnonAssistantPanel({
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-[var(--primary-ink)] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "border border-slate-200 bg-white text-slate-700"
                   }`}
                 >
@@ -219,7 +219,7 @@ export default function AnonAssistantPanel({
                   <ul className="mt-2 space-y-1">
                     {m.edit.activities.map((a, j) => (
                       <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
-                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary-ink)]" />
+                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary)]" />
                         {a.name}
                       </li>
                     ))}
@@ -243,7 +243,7 @@ export default function AnonAssistantPanel({
                           }
                           setEditState(i, "applied");
                         }}
-                        className="rounded-lg bg-[var(--primary-ink)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
+                        className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
                       >
                         {t("assistant.apply")}
                       </button>
@@ -291,7 +291,7 @@ export default function AnonAssistantPanel({
                               });
                               onRequestSave();
                             }}
-                            className="rounded-lg bg-[var(--secondary)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--secondary)]/90"
+                            className="rounded-lg bg-[var(--secondary-ink)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--secondary-ink)]/90"
                           >
                             {t("assistant.keepEditsButton")}
                           </button>
@@ -355,7 +355,7 @@ export default function AnonAssistantPanel({
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="flex-shrink-0 rounded-xl bg-[var(--primary-ink)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)] disabled:opacity-50"
+          className="flex-shrink-0 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)] disabled:opacity-50"
         >
           {t("assistant.ask")}
         </button>

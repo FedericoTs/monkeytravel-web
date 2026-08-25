@@ -259,7 +259,7 @@ export default function EngagementBar({
         <button
           onClick={doFork}
           disabled={busy === "fork"}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--primary-ink)] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-60"
           aria-label={t("forkAriaLabel")}
         >
           <svg

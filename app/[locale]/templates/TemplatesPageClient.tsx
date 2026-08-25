@@ -336,7 +336,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       </p>
       <button
         onClick={onClear}
-        className="px-5 py-2.5 bg-[var(--primary-ink)] text-white font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors text-sm"
+        className="px-5 py-2.5 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm"
       >
         Clear filters
       </button>
@@ -511,7 +511,7 @@ export default function TemplatesPageClient() {
             <div className="w-5 sm:w-auto">
               <Link
                 href="/trips/new"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
               >
                 <Plane className="w-4 h-4" />
                 Create Trip
@@ -551,7 +551,7 @@ export default function TemplatesPageClient() {
               onClick={openFilterSheet}
               className={`lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                 activeFilterCount > 0
-                  ? "bg-[var(--primary-ink)] text-white border-[var(--primary)]"
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                   : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
               }`}
             >
@@ -573,7 +573,7 @@ export default function TemplatesPageClient() {
                   onClick={() => setSelectedMood(mood.id)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     selectedMood === mood.id
-                      ? "bg-[var(--primary-ink)] text-white shadow-md"
+                      ? "bg-[var(--primary)] text-white shadow-md"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -743,7 +743,7 @@ export default function TemplatesPageClient() {
                   onClick={() => setTempMood(mood.id)}
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     tempMood === mood.id
-                      ? "bg-[var(--primary-ink)] text-white shadow-md"
+                      ? "bg-[var(--primary)] text-white shadow-md"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
                   }`}
                 >
@@ -817,7 +817,7 @@ export default function TemplatesPageClient() {
             </button>
             <button
               onClick={applyFilters}
-              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 transition-colors shadow-lg"
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 transition-colors shadow-lg"
             >
               Show Results
             </button>

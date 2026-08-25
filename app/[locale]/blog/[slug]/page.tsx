@@ -470,7 +470,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </div>
               <Link
                 href={tripsNewHref}
-                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary-ink)] text-white font-semibold text-sm hover:bg-[var(--primary-ink)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
+                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold text-sm hover:bg-[var(--primary)]/90 transition-all hover:shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-0.5 min-h-[48px]"
               >
                 {t("detail.inlineCtaButton")}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -482,7 +482,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         </section>
 
         {/* Bottom CTA */}
-        <section className="relative py-20 overflow-hidden bg-[var(--primary-ink)]">
+        <section className="relative py-20 overflow-hidden bg-[var(--primary)]">
           {/* Background decorations */}
           <div className="absolute inset-0 bg-grid-pattern opacity-40" />
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-[var(--accent)]/10 blur-3xl" />

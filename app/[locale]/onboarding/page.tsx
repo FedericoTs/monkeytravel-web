@@ -308,7 +308,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                i + 1 <= step ? "bg-[var(--primary-ink)]" : "bg-slate-200"
+                i + 1 <= step ? "bg-[var(--primary)]" : "bg-slate-200"
               }`}
             />
           ))}
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
           <button
             onClick={step === TOTAL_STEPS ? () => handleFinish(false) : handleNext}
             disabled={loading}
-            className="flex-1 bg-[var(--primary-ink)] text-white py-3 rounded-xl font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-semibold hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

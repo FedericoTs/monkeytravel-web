@@ -992,7 +992,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
             {/* Hide on mobile when no trips (empty state has its own CTA) */}
             <Link
               href="/trips/new"
-              className={`bg-[var(--primary-ink)] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25 ${
+              className={`bg-[var(--primary)] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25 ${
                 activeTrips.length === 0 ? "hidden sm:flex" : ""
               }`}
             >
@@ -1060,7 +1060,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
                 </svg>
                 {t('filters')}
                 {(filterStatus !== "all" || sortBy !== "newest") && (
-                  <span className="w-2 h-2 rounded-full bg-[var(--primary-ink)]" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
                 )}
               </button>
 
@@ -1259,7 +1259,7 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
             </p>
             <Link
               href="/trips/new"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--primary-ink)] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors w-full sm:w-auto max-w-xs shadow-lg shadow-[var(--primary)]/25"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors w-full sm:w-auto max-w-xs shadow-lg shadow-[var(--primary)]/25"
             >
               <svg
                 className="w-5 h-5"

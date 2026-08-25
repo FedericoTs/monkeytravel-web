@@ -673,7 +673,7 @@ function SignupForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

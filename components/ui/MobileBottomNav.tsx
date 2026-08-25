@@ -83,7 +83,7 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center -mt-4 shadow-lg ${
               isActive("new")
                 ? "bg-[var(--primary-dark)] shadow-[var(--primary)]/40"
-                : "bg-[var(--primary-ink)] shadow-[var(--primary)]/30"
+                : "bg-[var(--primary)] shadow-[var(--primary)]/30"
             }`}>
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -154,7 +154,7 @@ export function AnonymousActivityVoteBar({
           <button
             type="button"
             onClick={handleConfirmWithName}
-            className="px-2.5 py-1 text-xs font-medium rounded bg-[var(--primary-ink)] text-white hover:opacity-90"
+            className="px-2.5 py-1 text-xs font-medium rounded bg-[var(--primary)] text-white hover:opacity-90"
           >
             {t("submit")}
           </button>

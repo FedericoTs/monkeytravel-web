@@ -103,7 +103,7 @@ export function CookieConsentBanner() {
             </button>
             <button
               onClick={acceptAll}
-              className="flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-dark)] transition-colors text-xs sm:text-sm shadow-lg shadow-[var(--primary)]/25"
+              className="flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-colors text-xs sm:text-sm shadow-lg shadow-[var(--primary)]/25"
             >
               {t("banner.acceptAll")}
             </button>

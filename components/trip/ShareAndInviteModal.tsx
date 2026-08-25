@@ -378,7 +378,7 @@ export default function ShareAndInviteModal({
       >
         <div className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center relative",
-          activeTab === "invite" ? "bg-[var(--primary-ink)]" : "bg-blue-100"
+          activeTab === "invite" ? "bg-[var(--primary)]" : "bg-blue-100"
         )}>
           <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary-ink)]")} />
           {hasCollaborators && (
@@ -418,7 +418,7 @@ export default function ShareAndInviteModal({
                     <button
                       onClick={onEnableSharing}
                       disabled={isLoading}
-                      className="px-6 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
+                      className="px-6 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
                     >
                       {isLoading ? ts("invite.enabling") : ts("invite.enableSharingButton")}
                     </button>
@@ -445,7 +445,7 @@ export default function ShareAndInviteModal({
                             "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                             copied
                               ? "bg-green-100 text-green-700"
-                              : "bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90"
+                              : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
                           )}
                         >
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -633,7 +633,7 @@ export default function ShareAndInviteModal({
                   <button
                     onClick={handleGenerateInvite}
                     disabled={isGeneratingInvite}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary-ink)] text-white rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
                   >
                     {isGeneratingInvite ? (
                       <>

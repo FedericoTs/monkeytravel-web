@@ -589,7 +589,7 @@ function EditableActivityCard({
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors"
                 >
                   {t('detail.saveChanges')}
                 </button>

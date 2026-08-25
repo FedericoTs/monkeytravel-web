@@ -148,7 +148,7 @@ function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 ${
-          checked ? "bg-[var(--primary-ink)]" : "bg-slate-200"
+          checked ? "bg-[var(--primary)]" : "bg-slate-200"
         }`}
       >
         <span
@@ -686,7 +686,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white"
+                            ? "border-[var(--primary)] bg-[var(--primary)] text-white"
                             : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
                         }`}
                       >
@@ -732,7 +732,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-[var(--primary)] bg-[var(--primary-ink)] text-white"
+                            ? "border-[var(--primary)] bg-[var(--primary)] text-white"
                             : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
                         }`}
                       >
@@ -769,8 +769,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
                           isSelected
-                            ? "border-[var(--secondary)] bg-[var(--secondary)] text-white"
-                            : "border-slate-200 text-slate-600 hover:border-[var(--secondary)] hover:text-[var(--secondary)]"
+                            ? "border-[var(--secondary)] bg-[var(--secondary-ink)] text-white"
+                            : "border-slate-200 text-slate-600 hover:border-[var(--secondary)] hover:text-[var(--secondary-ink)]"
                         }`}
                       >
                         {t(`profile.travelPrefs.dietaryOptions.${diet.key}`)}

@@ -35,7 +35,7 @@ export default function BlogCard({
           loading="lazy"
         />
         {/* Category badge */}
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary-ink)] text-white text-xs font-medium">
+        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[var(--primary)] text-white text-xs font-medium">
           {category}
         </div>
       </div>

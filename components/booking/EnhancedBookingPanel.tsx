@@ -221,7 +221,7 @@ export default function EnhancedBookingPanel({
                   capture("booking_drawer_request", { trip_id: tripId, type: "flights" });
                   onSetOrigin?.();
                 }}
-                className="mt-2 px-4 py-2 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90"
+                className="mt-2 px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90"
               >
                 {t("setOriginCity")}
               </button>

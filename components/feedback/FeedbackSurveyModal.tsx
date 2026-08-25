@@ -158,7 +158,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors"
+            className="w-full bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors"
           >
             {t("close")}
           </button>
@@ -330,7 +330,7 @@ export default function FeedbackSurveyModal({ eligible }: { eligible: boolean })
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !hasContent}
-              className="flex-1 bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? t("sending") : t("send")}
             </button>

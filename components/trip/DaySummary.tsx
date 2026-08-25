@@ -109,7 +109,7 @@ export function DaySummary({
         <>
           <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-1.5 text-sm">
-            <CalendarClock className="w-4 h-4 text-[var(--secondary)]" />
+            <CalendarClock className="w-4 h-4 text-[var(--secondary-ink)]" />
             <span className="font-semibold text-slate-700">
               {t("daySummary.planned", { time: feasibility.plannedText })}
             </span>
@@ -134,7 +134,7 @@ export function DaySummary({
 
           {/* Total distance */}
           <div className="flex items-center gap-1.5 text-sm">
-            <Route className="w-4 h-4 text-[var(--secondary)]" />
+            <Route className="w-4 h-4 text-[var(--secondary-ink)]" />
             <span className="font-semibold text-slate-700">{stats.distanceText}</span>
           </div>
 

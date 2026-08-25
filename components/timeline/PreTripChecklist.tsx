@@ -181,9 +181,9 @@ export default function PreTripChecklist({
                     onClick={handleAddItem}
                     className="
                       px-3 py-2 rounded-lg
-                      bg-[var(--primary-ink)] text-white
+                      bg-[var(--primary)] text-white
                       text-sm font-medium
-                      hover:bg-[var(--primary-ink)]/90
+                      hover:bg-[var(--primary)]/90
                     "
                   >
                     {t("add")}
@@ -258,7 +258,7 @@ function ChecklistRow({
           flex items-center justify-center
           transition-all duration-200
           ${item.is_checked
-            ? "bg-[var(--primary-ink)] border-[var(--primary)]"
+            ? "bg-[var(--primary)] border-[var(--primary)]"
             : "border-slate-300 hover:border-[var(--primary)]"
           }
         `}

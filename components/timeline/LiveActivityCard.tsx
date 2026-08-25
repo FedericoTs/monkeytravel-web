@@ -343,7 +343,7 @@ export default function LiveActivityCard({
                 className={`
                   absolute left-1 top-1 bottom-1
                   w-12 rounded-full
-                  bg-[var(--primary-ink)] shadow-lg
+                  bg-[var(--primary)] shadow-lg
                   flex items-center justify-center
                   cursor-grab active:cursor-grabbing
                   touch-none

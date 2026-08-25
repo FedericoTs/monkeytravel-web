@@ -58,7 +58,7 @@ export default function NotFound() {
           <div className="space-y-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--primary-ink)] hover:bg-[var(--primary-ink)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full"
             >
               <svg
                 className="w-5 h-5"

@@ -326,7 +326,7 @@ export default async function ExplorePage({
             <p className="text-slate-700">{t("comingSoon")}</p>
             <Link
               href="/trips/new"
-              className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
+              className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition-all shadow-sm"
             >
               {t("planATrip")} →
             </Link>
@@ -412,7 +412,7 @@ export default async function ExplorePage({
                     <span
                       key={n}
                       aria-current="page"
-                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--primary-ink)] text-white font-medium text-sm"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--primary)] text-white font-medium text-sm"
                     >
                       {n}
                     </span>

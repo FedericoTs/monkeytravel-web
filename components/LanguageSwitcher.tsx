@@ -81,7 +81,7 @@ export default function LanguageSwitcher({
             onClick={() => handleLanguageChange(loc)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               locale === loc
-                ? "bg-[var(--primary-ink)] text-white"
+                ? "bg-[var(--primary)] text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >

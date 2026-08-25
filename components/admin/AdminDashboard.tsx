@@ -324,7 +324,7 @@ function Ux10xBaselineCard() {
         <button
           onClick={load}
           disabled={loading}
-          className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--primary-ink)] hover:opacity-90 text-white rounded-lg text-sm transition disabled:opacity-50"
+          className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--primary)] hover:opacity-90 text-white rounded-lg text-sm transition disabled:opacity-50"
         >
           <RefreshIcon spinning={loading} />
           {data ? "Refresh" : "Load"}
@@ -489,7 +489,7 @@ function MetricCard({
 }) {
   const colorClasses = {
     primary: "bg-[var(--primary)]/10 text-[var(--primary-ink)]",
-    secondary: "bg-[var(--secondary)]/10 text-[var(--secondary)]",
+    secondary: "bg-[var(--secondary)]/10 text-[var(--secondary-ink)]",
     accent: "bg-[var(--accent)]/20 text-amber-600",
     navy: "bg-slate-100 text-slate-600",
   };
@@ -1281,7 +1281,7 @@ function EmptyState({ onLoad }: { onLoad: () => void }) {
         </p>
         <button
           onClick={onLoad}
-          className="px-6 py-3 bg-[var(--primary-ink)] text-white rounded-xl hover:opacity-90 transition font-medium"
+          className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:opacity-90 transition font-medium"
         >
           Load Analytics
         </button>

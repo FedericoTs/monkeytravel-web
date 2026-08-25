@@ -114,7 +114,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             </button>
             <Link
               href="/trips"
-              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary-ink)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
             >
               {t('navigation.myTrips')}
             </Link>
@@ -152,7 +152,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             <TourTrigger
               variant="custom"
               skipToAuthIfCompleted={true}
-              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary-ink)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
             >
               {t('buttons.getStarted')}
             </TourTrigger>
@@ -217,7 +217,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                   </button>
                   <Link
                     href="/trips"
-                    className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-medium"
+                    className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('navigation.myTrips')}
@@ -259,7 +259,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                     <TourTrigger
                       variant="custom"
                       skipToAuthIfCompleted={true}
-                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary-ink)] text-white font-medium w-full"
+                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
                     >
                       {t('buttons.getStarted')}
                     </TourTrigger>

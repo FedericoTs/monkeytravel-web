@@ -291,7 +291,7 @@ export default function NotificationPreferencesClient() {
                       disabled={isDisabled}
                       className={`shrink-0 mt-1 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                         value
-                          ? "bg-[var(--primary-ink)]"
+                          ? "bg-[var(--primary)]"
                           : "bg-slate-300"
                       } ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
                     >
@@ -311,7 +311,7 @@ export default function NotificationPreferencesClient() {
                 type="button"
                 onClick={save}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 disabled:opacity-50 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors"
               >
                 {saving ? "Saving…" : "Save preferences"}
               </button>

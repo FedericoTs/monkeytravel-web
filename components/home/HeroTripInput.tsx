@@ -58,7 +58,7 @@ export default function HeroTripInput({
         />
         <button
           type="submit"
-          className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary-ink)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary-ink)]/90"
+          className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--primary)] px-8 py-4 font-semibold text-white transition-all hover:bg-[var(--primary)]/90"
         >
           <span>{cta}</span>
           <svg

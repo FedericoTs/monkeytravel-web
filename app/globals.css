@@ -28,16 +28,49 @@
      so one token serves both "coral text on a light surface" and "coral fill
      under a white label".
 
-     USE --primary-ink whenever the token is carrying or backing TEXT.
+     USE --primary-ink for TEXT on light surfaces.
      KEEP --primary for decoration that is not text: gradients, borders, focus
      rings, glows, illustration. Those answer to the 3:1 non-text rule or to
-     nothing at all, and keeping them bright is what preserves the brand. */
+     nothing at all, and keeping them bright is what preserves the brand.
+
+     ── ACCEPTED EXCEPTION: primary BUTTONS stay brand coral ──
+     Solid primary buttons briefly used --primary-ink as their fill. Federico
+     rolled that back on 2026-08-25 after seeing it in the admin dashboard:
+     the primary action is the most recognisable coral surface in the product
+     and a brick-red button reads as a different brand.
+
+     So `bg-[var(--primary)]` + `text-white` is a KNOWN 2.78:1 AA failure that
+     we are carrying deliberately. Do not "fix" it by darkening the fill again
+     without asking — that decision has already been made once.
+
+     If we ever want coral buttons that DO pass, the move is the label, not the
+     fill: --foreground on --primary is 4.57:1. That keeps the coral exactly as
+     it is and swaps the white label for charcoal. */
   --primary-ink: #C93232;
 
   /* Secondary - Ocean Teal */
   --secondary: #00B4A6;
   --secondary-light: #B2F5EA;
   --secondary-dark: #008B80;
+
+  /* The text-safe end of the teal ramp — the same split as --primary-ink,
+     for the same reason. --secondary is 2.60:1 under white and 2.51:1 on
+     cream, and --secondary-dark is ALREADY the dark end of the ramp yet still
+     only reaches 4.20:1 on white and 3.79:1 on the teal tint. So neither can
+     carry text or back a white label.
+
+     --secondary-ink keeps the brand hue (175.5deg against the brand teal's
+     175.3deg) and clears AA on every surface it touches:
+        on cream #FFFAF5 .... 4.94:1
+        on white  #FFFFFF .... 5.36:1
+        on teal tint #E5F7F6 . 4.84:1  <- the tightest surface
+        white on it .......... 5.36:1
+
+     NOTE the same trap as the coral: --secondary on our navy sections is
+     4.88:1 and PASSES, while --secondary-ink there is 2.36:1 and would not.
+     Use ink for text on LIGHT surfaces and for fills under white labels.
+     Keep --secondary for decoration and for anything sitting on dark. */
+  --secondary-ink: #00786F;
 
   /* Accent - Sunny Gold */
   --accent: #FFD93D;

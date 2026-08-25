@@ -264,7 +264,7 @@ export default function FeedbackPageForm({ token }: { token: string }) {
           type="button"
           onClick={handleSubmit}
           disabled={submitting || !hasContent}
-          className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[var(--primary)] text-white py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? t("sending") : t("send")}
         </button>

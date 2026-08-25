@@ -32,7 +32,7 @@ const defaultLocale = "en";
 const LASTMOD_HOMEPAGE = "2026-08-25";
 const LASTMOD_LANDING = "2026-08-25";
 const LASTMOD_DESTINATIONS = "2026-08-25";
-const LASTMOD_LEGAL = "2026-05-25";
+const LASTMOD_LEGAL = "2026-08-25";
 
 // The pt locale shipped 2026-06-09 (commit 988c1f6 — 29 destinations + 65 blog
 // posts). pt pages must NEVER carry an en/es/it date that PRE-DATES the pt

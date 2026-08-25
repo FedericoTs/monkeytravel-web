@@ -212,7 +212,7 @@ export default function TranslationsClient() {
                   onClick={() => setSelectedLang(lang.code)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedLang === lang.code
-                      ? "bg-[var(--primary-ink)] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -302,7 +302,7 @@ export default function TranslationsClient() {
                                     <button
                                       onClick={() => handleSave(key, editValue)}
                                       disabled={saving}
-                                      className="px-3 py-1.5 bg-[var(--primary-ink)] text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                                      className="px-3 py-1.5 bg-[var(--primary)] text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                                     >
                                       {saving ? "..." : "Save"}
                                     </button>

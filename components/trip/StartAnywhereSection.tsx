@@ -377,7 +377,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
           onClick={() => setMode("image")}
           className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
             mode === "image"
-              ? "bg-[var(--primary-ink)] text-white"
+              ? "bg-[var(--primary)] text-white"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -388,7 +388,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
           onClick={() => setMode("url")}
           className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
             mode === "url"
-              ? "bg-[var(--primary-ink)] text-white"
+              ? "bg-[var(--primary)] text-white"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -458,7 +458,7 @@ function StartAnywhereSectionInner({ onExtracted }: Props) {
           (mode === "image" && !imageFile && !imageUrl.startsWith("http")) ||
           (mode === "url" && !websiteText.trim())
         }
-        className="mt-4 w-full rounded-xl bg-[var(--primary-ink)] text-white font-semibold py-2.5 hover:bg-[var(--primary-ink)]/90 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        className="mt-4 w-full rounded-xl bg-[var(--primary)] text-white font-semibold py-2.5 hover:bg-[var(--primary)]/90 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
         {loading ? (
           <>

@@ -227,7 +227,7 @@ export default async function BlogTagPage({ params }: PageProps) {
                 </h2>
                 <Link
                   href={plannerLink.path}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary-ink)] px-6 py-3 text-white font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors min-h-[44px]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-white font-semibold hover:bg-[var(--primary)]/90 transition-colors min-h-[44px]"
                 >
                   {t(`detail.relatedToolsLabels.${plannerLink.labelKey}`)}
                 </Link>

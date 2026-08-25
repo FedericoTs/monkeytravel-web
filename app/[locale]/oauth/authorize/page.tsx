@@ -88,7 +88,7 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
           </p>
           <a
             href="/"
-            className="inline-block px-6 py-3 bg-[var(--primary-ink)] text-white rounded-lg hover:bg-[#083d5c] transition-colors"
+            className="inline-block px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[#083d5c] transition-colors"
           >
             Return Home
           </a>

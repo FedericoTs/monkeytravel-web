@@ -178,7 +178,7 @@ export default function PartnerButton({
   // for its per-partner brand-color buttons).
   const variantClasses: Record<NonNullable<PartnerButtonProps["variant"]>, string> = {
     primary:
-      "bg-[var(--primary-ink)] text-white hover:bg-[var(--primary-ink)]/90 shadow-sm",
+      "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 shadow-sm",
     secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200",
     outline: "border border-slate-300 text-slate-700 hover:bg-slate-50",
     ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",

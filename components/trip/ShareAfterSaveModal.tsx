@@ -491,7 +491,7 @@ export default function ShareAfterSaveModal({
                       />
                       <button
                         onClick={handleCopy}
-                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary-ink)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--primary-ink)]/90 transition-colors"
+                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--primary)]/90 transition-colors"
                       >
                         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         {copied ? ts("afterSave.copied") : ts("afterSave.copy")}
@@ -513,7 +513,7 @@ export default function ShareAfterSaveModal({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleInvite}
                     disabled={isMinting}
-                    className="w-full py-3.5 px-4 bg-[var(--primary-ink)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-70"
+                    className="w-full py-3.5 px-4 bg-[var(--primary)] text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/25 hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-70"
                   >
                     <Users className="w-5 h-5" />
                     {isMinting ? ts("afterSave.creatingLink") : ts(`intent.${intentKey}.cta`)}

@@ -367,7 +367,7 @@ export default function SaveTripModal({
               <button
                 onClick={handleSave}
                 disabled={!startDate || isSaving}
-                className="w-full px-6 py-4 rounded-xl bg-[var(--primary-ink)] text-white font-semibold hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25"
+                className="w-full px-6 py-4 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25"
               >
                 {isSaving ? (
                   <>

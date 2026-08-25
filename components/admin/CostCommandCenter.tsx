@@ -88,7 +88,7 @@ export default function CostCommandCenter() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="px-6 py-3 bg-[var(--primary-ink)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
             {loading ? (
               <>
@@ -145,7 +145,7 @@ export default function CostCommandCenter() {
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition ${
               autoRefresh
-                ? "bg-[var(--secondary)]/10 text-[var(--secondary)]"
+                ? "bg-[var(--secondary)]/10 text-[var(--secondary-ink)]"
                 : "bg-[var(--foreground-light)]/20 text-[var(--foreground-muted)]"
             }`}
           >
@@ -291,8 +291,8 @@ function MetricCard({
     secondary: {
       bg: "bg-gradient-to-br from-[var(--secondary)]/10 to-[var(--secondary)]/5",
       border: "border-[var(--secondary)]/20",
-      text: "text-[var(--secondary)]",
-      icon: "bg-[var(--secondary)]/20 text-[var(--secondary)]",
+      text: "text-[var(--secondary-ink)]",
+      icon: "bg-[var(--secondary)]/20 text-[var(--secondary-ink)]",
     },
     accent: {
       bg: "bg-gradient-to-br from-[var(--accent)]/15 to-[var(--accent)]/5",
@@ -473,7 +473,7 @@ function LatencyBadge({
   color?: "secondary" | "warning" | "error";
 }) {
   const colors = {
-    secondary: "bg-[var(--secondary)]/10 text-[var(--secondary)] border-[var(--secondary)]/20",
+    secondary: "bg-[var(--secondary)]/10 text-[var(--secondary-ink)] border-[var(--secondary)]/20",
     warning: "bg-orange-50 text-orange-600 border-orange-200",
     error: "bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20",
   };
@@ -730,7 +730,7 @@ function TopEndpointsTable({ endpoints }: { endpoints: EnhancedCostAnalytics["to
               {endpoint.avgLatency > 0 && <span>{endpoint.avgLatency}ms</span>}
             </div>
           </div>
-          <span className="text-[var(--secondary)] font-bold text-sm">
+          <span className="text-[var(--secondary-ink)] font-bold text-sm">
             ${endpoint.cost.toFixed(3)}
           </span>
         </div>
@@ -785,7 +785,7 @@ function ActivityFeed({ activities }: { activities: EnhancedCostAnalytics["recen
           <span className="col-span-1 text-right text-orange-500">
             {activity.responseTimeMs > 0 ? `${activity.responseTimeMs}ms` : "-"}
           </span>
-          <span className="col-span-1 text-right text-[var(--secondary)]">
+          <span className="col-span-1 text-right text-[var(--secondary-ink)]">
             ${activity.costUsd.toFixed(4)}
           </span>
           <span className="col-span-1 text-center">

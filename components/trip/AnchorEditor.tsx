@@ -258,7 +258,7 @@ export default function AnchorEditor({
           <span aria-hidden="true">📌</span>
           {t("wizard.anchors.cta")}
           {anchors.length > 0 && (
-            <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--primary-ink)] px-1 text-[10px] font-bold text-white">
+            <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--primary)] px-1 text-[10px] font-bold text-white">
               {anchors.length}
             </span>
           )}
@@ -320,7 +320,7 @@ export default function AnchorEditor({
                   type="button"
                   onClick={importPlan}
                   disabled={importing || pasteText.trim().length < 25}
-                  className="min-h-[44px] flex-1 rounded-lg bg-[var(--primary-ink)] px-3 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-h-[44px] flex-1 rounded-lg bg-[var(--primary)] px-3 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {importing ? t("wizard.anchors.import.working") : t("wizard.anchors.import.submit")}
                 </button>
@@ -495,7 +495,7 @@ export default function AnchorEditor({
                 type="button"
                 onClick={addAnchor}
                 disabled={!draft.title.trim()}
-                className="w-full min-h-[44px] rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-ink)] transition-colors hover:bg-[var(--primary-ink)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
+                className="w-full min-h-[44px] rounded-lg border border-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-ink)] transition-colors hover:bg-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:bg-transparent"
               >
                 {t("wizard.anchors.add")}
               </button>

@@ -139,7 +139,7 @@ function ForgotPasswordForm() {
                 </button>
                 <Link
                   href="/auth/login"
-                  className="block w-full px-4 py-2.5 bg-[var(--primary-ink)] text-white rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors text-center"
+                  className="block w-full px-4 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
                 >
                   {t("backToLogin")}
                 </Link>
@@ -210,7 +210,7 @@ function ForgotPasswordForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--primary-ink)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

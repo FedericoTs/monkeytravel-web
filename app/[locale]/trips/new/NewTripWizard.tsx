@@ -2838,7 +2838,7 @@ export default function NewTripPage({
                     handleSaveTrip();
                   }
                 }}
-                className="hidden md:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border border-[var(--secondary)] text-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-colors"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -2882,7 +2882,7 @@ export default function NewTripPage({
                 <button
                   type="button"
                   disabled
-                  className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
                 >
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -2902,7 +2902,7 @@ export default function NewTripPage({
                 <button
                   onClick={handleSaveTrip}
                   disabled={loading}
-                  className="bg-[var(--secondary)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary-ink)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -2994,7 +2994,7 @@ export default function NewTripPage({
             <button
               type="button"
               onClick={() => handleSaveTrip()}
-              className="mb-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-colors"
+              className="mb-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -3039,7 +3039,7 @@ export default function NewTripPage({
               <button
                 type="button"
                 disabled
-                className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -3058,7 +3058,7 @@ export default function NewTripPage({
               <button
                 onClick={handleSaveTrip}
                 disabled={loading}
-                className="flex-1 bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -3172,7 +3172,7 @@ export default function NewTripPage({
                   aria-pressed={showMap}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     showMap
-                      ? "bg-[var(--primary-ink)] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -3352,7 +3352,7 @@ export default function NewTripPage({
                           id={activityDomId}
                           className="relative scroll-mt-24"
                         >
-                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary-ink)] border-4 border-white shadow" />
+                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
                           <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
@@ -3714,7 +3714,7 @@ export default function NewTripPage({
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i + 1 <= step ? "bg-[var(--primary-ink)] w-8" : "bg-slate-200 w-4"
+                  i + 1 <= step ? "bg-[var(--primary)] w-8" : "bg-slate-200 w-4"
                 }`}
               />
             ))}
@@ -3744,7 +3744,7 @@ export default function NewTripPage({
                 <div className="flex items-center gap-3 mt-3">
                   <Link
                     href="/trips"
-                    className="px-4 py-2 bg-[var(--primary-ink)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-ink)]/90 transition-colors"
+                    className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
                   >
                     {t("wizard.returningUser.goToMyTrips")}
                   </Link>
@@ -4057,7 +4057,7 @@ export default function NewTripPage({
                   aria-label={t("wizard.multiCity.toggleAria")}
                   onClick={() => setMultiCityMode((m) => !m)}
                   className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
-                    multiCityMode ? "bg-[var(--primary-ink)]" : "bg-slate-300"
+                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
                   }`}
                 >
                   <span
@@ -4593,7 +4593,7 @@ export default function NewTripPage({
                 setStep(step + 1);
               }}
               disabled={!canProceed()}
-              className="bg-[var(--primary-ink)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 active:bg-[var(--primary-ink)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
+              className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
             >
               {t("wizard.step1.continue")} →
             </button>

@@ -143,7 +143,7 @@ export default function ValuePropositionBanner({
           {/* Header */}
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-lg bg-[var(--secondary)]/20 flex items-center justify-center">
-              <svg className="w-4 h-4 text-[var(--secondary)]" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-[var(--secondary-ink)]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
               </svg>
             </div>
@@ -173,7 +173,7 @@ export default function ValuePropositionBanner({
           <button
             onClick={onSave}
             disabled={isSaving}
-            className="w-full bg-[var(--secondary)] text-white py-3 rounded-xl font-semibold shadow-lg shadow-[var(--secondary)]/25 hover:shadow-xl hover:shadow-[var(--secondary)]/30 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold shadow-lg shadow-[var(--secondary)]/25 hover:shadow-xl hover:shadow-[var(--secondary)]/30 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
           >
             {isSaving ? (
               <>

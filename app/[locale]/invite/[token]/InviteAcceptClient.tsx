@@ -357,7 +357,7 @@ export default function InviteAcceptClient({
               <button
                 onClick={handleAcceptInvite}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[var(--primary-ink)] text-white rounded-xl font-medium hover:bg-[var(--primary-ink)]/90 transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

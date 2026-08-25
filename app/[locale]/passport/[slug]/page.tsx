@@ -212,7 +212,7 @@ export default async function PassportPage({ params }: PageProps) {
             <p className="mt-2 text-slate-700">{t("cta.body")}</p>
             <Link
               href="/trips/new"
-              className="mt-5 inline-flex items-center justify-center rounded-xl bg-[var(--primary-ink)] px-6 py-3 font-semibold text-white hover:opacity-90 transition"
+              className="mt-5 inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white hover:opacity-90 transition"
             >
               {t("cta.button")}
             </Link>
