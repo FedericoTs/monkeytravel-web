@@ -7,7 +7,7 @@ description: >-
   honestos sobre transporte.
 author: Enrico E.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["roteiro", "ásia", "viagem de uma semana", "bali"]
 image: /images/blog/bali-7-day-itinerary.jpg
@@ -335,6 +335,12 @@ A AI da MonkeyTravel cria um **roteiro personalizado de Bali, dia a dia**, em 30
 [Gerar Meu Roteiro de Bali — Grátis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
+
+**[Planejar minha viagem para Bali grátis](/trips/new?destination=bali)**
 
 ## Perguntas Frequentes
 

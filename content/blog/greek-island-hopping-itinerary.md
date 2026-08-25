@@ -4,7 +4,7 @@ slug: "greek-island-hopping-itinerary"
 description: "The classic Cyclades route without the classic mistakes — how many days each stop actually deserves, Blue Star vs SeaJets vs flying, June vs September in 2026, real per-day costs in euros, and the Santorini crowd math nobody prints."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: "2026-07-06"
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["itinerary", "europe", "week-long trip", "multi-city trip"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
@@ -121,6 +121,12 @@ For how this window compares with the rest of the year, see the [2026 travel cal
 **Sunset monomania.** If your Santorini plan hangs entirely on one 20:15 moment in Oia, a windy evening or one extra cruise ship flattens the whole day. Skaros Rock is the insurance policy.
 
 **Booking ferries through third parties in peak season.** When the 15:00 sailing moves to 17:30, you want the operator's SMS, not a reseller's support queue.
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Greece Trip Free](/trips/new?destination=santorini)**
 
 ## Frequently Asked Questions
 

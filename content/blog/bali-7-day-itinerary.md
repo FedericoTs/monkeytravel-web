@@ -7,7 +7,7 @@ description: >-
   advice.
 author: Enrico E.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "asia", "week-long trip", "bali"]
 image: /images/blog/bali-7-day-itinerary.jpg
@@ -333,6 +333,12 @@ MonkeyTravel's AI creates a **personalized day-by-day Bali itinerary** in 30 sec
 [Generate My Bali Itinerary — Free](https://monkeytravel.app)
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Bali Trip Free](/trips/new?destination=bali)**
 
 ## FAQ
 

@@ -323,4 +323,4 @@ ETIAS adds one small step to your travel planning — but the rest of your trip 
 
 Whether you are planning a week in Paris, a Schengen-spanning multi-city adventure, or your first trip to Europe after the ETIAS rollout, the AI handles the logistics so you can focus on the experience.
 
-**[Start Planning My Europe Trip](/trips/new?destination=europe)**
+**[Start Planning My Europe Trip](/trips/new)**

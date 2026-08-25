@@ -331,4 +331,4 @@ MonkeyTravel's AI trip planner builds day-by-day Portuguese itineraries — whet
 
 Tell it your dates and budget. You will have a plan in minutes.
 
-**[Plan My Lisbon Trip Free](/trips/new?destination=lisbon)** | **[Plan My Porto Trip Free](/trips/new?destination=porto)**
+**[Plan My Lisbon Trip Free](/trips/new?destination=lisbon)** | **[Plan My Porto Trip Free](/trips/new)**

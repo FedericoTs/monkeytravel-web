@@ -6,7 +6,7 @@ description: >-
   Sintra. Precios reales de 2026, pastéis de nata, rutas de tranvía.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "lisboa"]
 image: /images/blog/lisbon-3-day-itinerary.jpg
@@ -312,6 +312,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Lisboa día a día**
 [Genera Mi Itinerario de Lisboa — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Lisboa gratis](/trips/new?destination=lisbon)**
 
 ## Preguntas Frecuentes
 

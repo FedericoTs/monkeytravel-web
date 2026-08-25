@@ -7,7 +7,7 @@ description: >-
   restaurantes reales.
 author: Enrico E.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "japón", "asia", "viaje de fin de semana", "tokio"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
@@ -308,6 +308,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Tokio día a día** 
 [Generar Mi Itinerario de Tokio — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Tokio gratis](/trips/new?destination=tokyo)**
 
 ## FAQ
 

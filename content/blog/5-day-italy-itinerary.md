@@ -7,7 +7,7 @@ description: >-
   train routing.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "italy", "europe", "week-long trip", "multi-city trip", "rome"]
 image: /images/blog/5-day-italy-itinerary.jpg
@@ -356,6 +356,12 @@ MonkeyTravel's AI creates a **personalized day-by-day Italy itinerary** in 30 se
 [Generate My Italy Itinerary — Free](https://monkeytravel.app)
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Italy Trip Free](/trips/new?destination=rome)**
 
 ## FAQ
 

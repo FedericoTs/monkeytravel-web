@@ -332,4 +332,4 @@ O planejador de viagens com AI da MonkeyTravel monta roteiros portugueses dia a 
 
 Informe suas datas e seu orçamento. Você terá um plano em minutos.
 
-**[Planejar Minha Viagem a Lisboa Grátis](/trips/new?destination=lisbon)** | **[Planejar Minha Viagem ao Porto Grátis](/trips/new?destination=porto)**
+**[Planejar Minha Viagem a Lisboa Grátis](/trips/new?destination=lisbon)** | **[Planejar Minha Viagem ao Porto Grátis](/trips/new)**

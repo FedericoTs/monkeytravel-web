@@ -324,4 +324,4 @@ ETIAS aggiunge un piccolo passo alla pianificazione del viaggio — ma il resto 
 
 Che tu stia pianificando una settimana a Parigi, un'avventura multi-città attraverso Schengen o il tuo primo viaggio in Europa dopo il lancio di ETIAS, l'AI gestisce la logistica così tu puoi concentrarti sull'esperienza.
 
-**[Inizia a Pianificare il Mio Viaggio in Europa](/trips/new?destination=europe)**
+**[Inizia a Pianificare il Mio Viaggio in Europa](/trips/new)**

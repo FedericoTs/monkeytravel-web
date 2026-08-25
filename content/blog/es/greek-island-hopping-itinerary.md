@@ -4,7 +4,7 @@ slug: "greek-island-hopping-itinerary"
 description: "La ruta clásica de las Cícladas sin los errores clásicos — cuántos días merece de verdad cada parada, Blue Star vs SeaJets vs avión, junio frente a septiembre en 2026, costes reales por día en euros y la aritmética de multitudes de Santorini que nadie publica."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: "2026-07-06"
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["itinerario", "europa", "viaje de una semana", "viaje multiciudad"]
 image: "/images/blog/greek-island-hopping-itinerary.jpg"
@@ -121,6 +121,12 @@ Suma las piezas móviles: €150–260 por persona cubren todo el transporte ent
 **Monomanía del atardecer.** Si tu plan de Santorini pende por completo de un momento a las 20:15 en Oia, una tarde de viento o un crucero de más te tumban el día entero. La roca de Skaros es la póliza de seguros.
 
 **Reservar ferris con intermediarios en plena temporada.** Cuando la salida de las 15:00 se mueve a las 17:30, quieres el SMS del operador, no la cola de soporte de un revendedor.
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Grecia gratis](/trips/new?destination=santorini)**
 
 ## Preguntas frecuentes (FAQ)
 

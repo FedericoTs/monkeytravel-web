@@ -7,7 +7,7 @@ description: >-
   restaurantes reales y trenes bien planificados.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "italia", "europa", "viaje de una semana", "viaje multiciudad", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
@@ -356,6 +356,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Italia día a día**
 [Generar Mi Itinerario de Italia — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Italia gratis](/trips/new?destination=rome)**
 
 ## FAQ
 

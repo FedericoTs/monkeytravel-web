@@ -7,7 +7,7 @@ description: >-
   inteligentes.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["roteiro", "guia da cidade", "viagem de fim de semana", "istambul"]
 image: /images/blog/istanbul-3-day-itinerary.jpg
@@ -275,6 +275,12 @@ Para sua última noite, capriche:
 - **Fileira de Meyhanes de Asmalimescit:** Para uma noite final mais tradicional, vá até os meyhanes da Asmalimescit. Peça meze (pratinhos) — haydari (pasta espessa de iogurte), sigara boregi (rolinhos fritos de queijo feta), salada de polvo — com raki (destilado de anis). Um jantar de meze e raki para dois com bebidas: 800-1200 TL (~€25-35). Os meyhanes ficam animados depois das 21h com música ao vivo.
 
 ---
+
+---
+
+**Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
+
+**[Planejar minha viagem para Istambul grátis](/trips/new?destination=istanbul)**
 
 ## Dicas Práticas e Perguntas Frequentes
 

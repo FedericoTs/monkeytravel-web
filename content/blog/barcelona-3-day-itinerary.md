@@ -7,7 +7,7 @@ description: >-
   wasting time or money.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "city guide", "europe", "weekend trip", "barcelona"]
 image: /images/blog/barcelona-3-day-itinerary.jpg
@@ -276,6 +276,12 @@ MonkeyTravel's AI creates a **personalized day-by-day Barcelona itinerary** in 3
 [Generate My Barcelona Itinerary — Free](https://monkeytravel.app)
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Barcelona Trip Free](/trips/new?destination=barcelona)**
 
 ## FAQ
 

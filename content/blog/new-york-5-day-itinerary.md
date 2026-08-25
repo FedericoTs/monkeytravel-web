@@ -6,7 +6,7 @@ description: >-
   2026 prices, real restaurants, and smart subway routing.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "city guide", "united states", "week-long trip", "new york"]
 image: /images/blog/new-york-5-day-itinerary.jpg
@@ -396,6 +396,12 @@ MonkeyTravel's AI creates a **personalized day-by-day New York itinerary** in 30
 [Generate My NYC Itinerary — Free](https://monkeytravel.app)
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My New York Trip Free](/trips/new?destination=new-york)**
 
 ## FAQ
 

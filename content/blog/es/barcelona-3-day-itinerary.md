@@ -7,7 +7,7 @@ description: >-
   sin perder tiempo ni dinero.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "barcelona"]
 image: /images/blog/barcelona-3-day-itinerary.jpg
@@ -276,6 +276,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Barcelona día a dí
 [Generar Mi Itinerario de Barcelona — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Barcelona gratis](/trips/new?destination=barcelona)**
 
 ## FAQ
 

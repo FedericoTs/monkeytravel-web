@@ -331,4 +331,4 @@ Il pianificatore di viaggi con AI di MonkeyTravel crea itinerari portoghesi gior
 
 Digli le tue date e il tuo budget. Avrai un piano in pochi minuti.
 
-**[Pianifica il Mio Viaggio a Lisbona Gratis](/trips/new?destination=lisbon)** | **[Pianifica il Mio Viaggio a Porto Gratis](/trips/new?destination=porto)**
+**[Pianifica il Mio Viaggio a Lisbona Gratis](/trips/new?destination=lisbon)** | **[Pianifica il Mio Viaggio a Porto Gratis](/trips/new)**

@@ -6,7 +6,7 @@ description: >-
   reais de 2026, restaurantes reais e rotas inteligentes de metrô.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["roteiro", "guia da cidade", "estados unidos", "viagem de uma semana", "nova york"]
 image: /images/blog/new-york-5-day-itinerary.jpg
@@ -397,6 +397,12 @@ A AI da MonkeyTravel cria um **roteiro personalizado de Nova York dia a dia** em
 [Gerar Meu Roteiro de Nova York — Grátis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
+
+**[Planejar minha viagem para Nova York grátis](/trips/new?destination=new-york)**
 
 ## Perguntas Frequentes
 

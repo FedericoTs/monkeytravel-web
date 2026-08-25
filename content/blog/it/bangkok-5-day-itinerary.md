@@ -7,7 +7,7 @@ description: >-
   BTS/MRT.
 author: Enrico E.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guida città", "asia", "viaggio di una settimana", "bangkok"]
 image: /images/blog/bangkok-5-day-itinerary.jpg
@@ -443,6 +443,12 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Bangkok giorno per g
 [Genera il Mio Itinerario di Bangkok — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a Bangkok gratis](/trips/new?destination=bangkok)**
 
 ## FAQ
 

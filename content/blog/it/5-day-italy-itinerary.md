@@ -7,7 +7,7 @@ description: >-
   veri e treni ben pianificati.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "italia", "europa", "viaggio di una settimana", "viaggio multi-città", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
@@ -354,6 +354,12 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato per l'Italia giorno per
 [Genera il Mio Itinerario per l'Italia — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a Italia gratis](/trips/new?destination=rome)**
 
 ## FAQ
 

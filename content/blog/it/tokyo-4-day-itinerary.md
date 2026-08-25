@@ -7,7 +7,7 @@ description: >-
   reali.
 author: Enrico E.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guida città", "giappone", "asia", "viaggio weekend", "tokyo"]
 image: /images/blog/tokyo-4-day-itinerary.jpg
@@ -308,6 +308,12 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di Tokyo giorno per gio
 [Genera il Mio Itinerario di Tokyo — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo)**
 
 ## FAQ
 

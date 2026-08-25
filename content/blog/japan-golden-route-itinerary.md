@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "The Tokyo–Kyoto–Osaka corridor is the classic first Japan trip for a reason. How to split 10–14 days between the three cities, a day-by-day skeleton, why the JR Pass math stopped working in 2023, when to go, and realistic daily budgets in yen."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: "2026-07-06"
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["itinerary", "japan", "asia", "multi-city trip", "week-long trip"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -127,6 +127,12 @@ First time in the country? The [first trip to Japan guide](/blog/first-trip-to-j
 The route is standardized; your version of it is not. Sakura dates move, Universal Studios needs a full day or zero, and whether Tokyo gets four days or five depends on your flights. Our [multi-city trip planner](/multi-city-trip-planner) handles the part spreadsheets are bad at: which day is the train day, where Nara fits without wrecking a Kyoto morning, how everything rebalances when 12 days become 14.
 
 **[Build this route and let the AI split the days](/trips/new?multi=1)** — set Tokyo, Kyoto and Osaka, pick your dates, and it drafts each city day-by-day in about 30 seconds.
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Japan Trip Free](/trips/new?destination=tokyo)**
 
 ## Frequently Asked Questions
 

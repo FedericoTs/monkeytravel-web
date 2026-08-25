@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "Il corridoio Tokyo–Kyoto–Osaka è il classico primo viaggio in Giappone, e c'è un motivo. Come dividere 10–14 giorni tra le tre città, uno scheletro giorno per giorno, perché i conti del JR Pass non tornano più dal 2023, quando andare e budget giornalieri realistici in yen."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: "2026-07-06"
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["itinerario", "giappone", "asia", "viaggio multi-città", "viaggio di una settimana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -127,6 +127,12 @@ Prima volta nel paese? La [guida al primo viaggio in Giappone](/blog/first-trip-
 La rotta è standardizzata; la tua versione no. Le date dei sakura si spostano, gli Universal Studios richiedono un giorno intero o zero, e se Tokyo prende quattro giorni o cinque dipende dai tuoi voli. Il nostro [pianificatore di viaggi multi-città](/multi-city-trip-planner) gestisce la parte in cui i fogli di calcolo falliscono: quale giorno è quello del treno, dove entra Nara senza rovinare una mattina di Kyoto, come si ribilancia tutto quando 12 giorni diventano 14.
 
 **[Costruisci questa rotta e lascia che l'AI divida i giorni](/trips/new?multi=1)** — imposta Tokyo, Kyoto e Osaka, scegli le date, e in circa 30 secondi hai la bozza di ogni città giorno per giorno.
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a Tokyo gratis](/trips/new?destination=tokyo)**
 
 ## Domande frequenti (FAQ)
 

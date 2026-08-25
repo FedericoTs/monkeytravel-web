@@ -6,7 +6,7 @@ description: >-
   Kadikoy, and Beyoglu. Real 2026 prices, real restaurants, and smart routing.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "city guide", "weekend trip", "istanbul"]
 image: /images/blog/istanbul-3-day-itinerary.jpg
@@ -273,6 +273,12 @@ For your last evening, go big:
 - **Asmalimescit Meyhane Row:** For a more traditional final night, head to the meyhanes in Asmalimescit. Order meze (small plates) — haydari (thick yogurt dip), sigara boregi (fried feta rolls), octopus salad — with raki (anise spirit). A meze-and-raki dinner for two with drinks: 800-1200 TL (~€25-35). The meyhanes get lively after 9 PM with live music.
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Istanbul Trip Free](/trips/new?destination=istanbul)**
 
 ## Practical Tips & FAQ
 

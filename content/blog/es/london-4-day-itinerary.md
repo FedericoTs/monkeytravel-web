@@ -7,7 +7,7 @@ description: >-
   de metro.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "londres"]
 image: /images/blog/london-4-day-itinerary.jpg
@@ -357,6 +357,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de Londres día a día*
 [Genera Mi Itinerario de Londres — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Londres gratis](/trips/new?destination=london)**
 
 ## Preguntas Frecuentes
 

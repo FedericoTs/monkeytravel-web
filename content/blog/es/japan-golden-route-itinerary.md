@@ -4,7 +4,7 @@ slug: "japan-golden-route-itinerary"
 description: "El corredor Tokio–Kioto–Osaka es el primer viaje clásico a Japón por una razón. Cómo repartir 10–14 días entre las tres ciudades, un esqueleto día a día, por qué las cuentas del JR Pass dejaron de salir en 2023, cuándo ir y presupuestos diarios realistas en yenes."
 author: "Emanuela P."
 publishedAt: "2026-07-06"
-updatedAt: "2026-07-06"
+updatedAt: '2026-08-25'
 category: "Destination Guides"
 tags: ["itinerario", "japón", "asia", "viaje multiciudad", "viaje de una semana"]
 image: "/images/blog/japan-golden-route-itinerary.jpg"
@@ -127,6 +127,12 @@ Tres notas. Osaka sale un 10–15% más barata que Tokio o Kioto para la misma c
 La ruta está estandarizada; tu versión no. Las fechas del sakura se mueven, Universal Studios necesita un día entero o ninguno, y que Tokio reciba cuatro días o cinco depende de tus vuelos. Nuestro [planificador de viajes multiciudad](/multi-city-trip-planner) resuelve la parte en la que las hojas de cálculo fallan: qué día es el del tren, dónde encaja Nara sin arruinar una mañana de Kioto, cómo se reequilibra todo cuando 12 días se convierten en 14.
 
 **[Crea esta ruta y deja que la AI reparta los días](/trips/new?multi=1)** — pon Tokio, Kioto y Osaka, elige tus fechas y genera cada ciudad día a día en unos 30 segundos.
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a Tokio gratis](/trips/new?destination=tokyo)**
 
 ## FAQ: preguntas frecuentes
 

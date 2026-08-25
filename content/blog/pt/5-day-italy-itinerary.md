@@ -7,7 +7,7 @@ description: >-
   trens bem planejados.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["roteiro", "itália", "europa", "viagem de uma semana", "viagem multicidade", "roma"]
 image: /images/blog/5-day-italy-itinerary.jpg
@@ -357,6 +357,12 @@ A AI da MonkeyTravel cria um **roteiro personalizado da Itália dia a dia** em 3
 [Gerar Meu Roteiro da Itália — Grátis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este roteiro é um ponto de partida, não um script.** Se quiser um montado para as suas datas, o seu orçamento e o seu ritmo — com lugares reais e horários — a MonkeyTravel faz isso em cerca de trinta segundos, grátis e sem conta.
+
+**[Planejar minha viagem para Itália grátis](/trips/new?destination=rome)**
 
 ## Perguntas Frequentes
 

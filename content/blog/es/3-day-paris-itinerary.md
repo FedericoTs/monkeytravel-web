@@ -7,7 +7,7 @@ description: >-
   ni dinero.
 author: Francesca A.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guía de ciudad", "europa", "viaje de fin de semana", "parís"]
 image: /images/blog/3-day-paris-itinerary.jpg
@@ -194,6 +194,12 @@ La AI de MonkeyTravel crea un **itinerario personalizado de París día a día**
 [Generar Mi Itinerario de París — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Este itinerario es un punto de partida, no un guion.** Si quieres uno hecho a la medida de tus fechas, tu presupuesto y tu ritmo — con lugares reales y horarios — MonkeyTravel lo crea en unos treinta segundos, gratis y sin cuenta.
+
+**[Planificar mi viaje a París gratis](/trips/new?destination=paris)**
 
 ## FAQ
 

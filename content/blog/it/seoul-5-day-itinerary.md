@@ -7,7 +7,7 @@ description: >-
   inclusa.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-03-25'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guida città", "asia", "viaggio di una settimana", "seul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -340,6 +340,12 @@ Il [pianificatore di viaggio AI di MonkeyTravel](/free-ai-trip-planner) crea un 
 Letture consigliate: [Cosa sapere prima del tuo primo viaggio in Giappone](/blog/first-trip-to-japan-what-you-need-to-know), [guida alla destinazione Seul](/destinations/seoul) e [migliori destinazioni gastronomiche 2026](/blog/best-food-destinations-2026).
 
 ---
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a Seul gratis](/trips/new?destination=seoul)**
 
 ## Domande Frequenti
 

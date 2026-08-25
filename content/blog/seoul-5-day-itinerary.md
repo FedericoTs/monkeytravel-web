@@ -7,7 +7,7 @@ description: >-
   built in.
 author: Enrico E.
 publishedAt: '2026-03-25'
-updatedAt: '2026-03-25'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerary", "city guide", "asia", "week-long trip", "seoul"]
 image: /images/blog/seoul-5-day-itinerary.jpg
@@ -372,6 +372,12 @@ This guide gives you a framework. But your Seoul might look very different — m
 Also worth reading: [What to know before your first trip to Japan](/blog/first-trip-to-japan-what-you-need-to-know), [Seoul destination guide](/destinations/seoul), and [best food destinations for 2026](/blog/best-food-destinations-2026).
 
 ---
+
+---
+
+**This itinerary is a starting point, not a script.** If you want one built around your own dates, budget and pace — with real venues and opening hours — MonkeyTravel does it in about thirty seconds, free and with no account.
+
+**[Plan My Seoul Trip Free](/trips/new?destination=seoul)**
 
 ## FAQ
 

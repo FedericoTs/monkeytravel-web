@@ -7,7 +7,7 @@ description: >-
   metropolitana.
 author: Federico S.
 publishedAt: '2026-02-20'
-updatedAt: '2026-02-20'
+updatedAt: '2026-08-25'
 category: Destination Guides
 tags: ["itinerario", "guida città", "stati uniti", "viaggio di una settimana", "new york"]
 image: /images/blog/new-york-5-day-itinerary.jpg
@@ -396,6 +396,12 @@ L'AI di MonkeyTravel crea un **itinerario personalizzato di New York giorno per 
 [Genera il Mio Itinerario di NYC — Gratis](https://monkeytravel.app)
 
 ---
+
+---
+
+**Questo itinerario è un punto di partenza, non un copione.** Se ne vuoi uno costruito sulle tue date, sul tuo budget e sul tuo ritmo — con luoghi veri e orari — MonkeyTravel lo crea in circa trenta secondi, gratis e senza account.
+
+**[Pianifica il mio viaggio a New York gratis](/trips/new?destination=new-york)**
 
 ## FAQ
 

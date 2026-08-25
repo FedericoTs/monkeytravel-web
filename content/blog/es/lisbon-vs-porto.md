@@ -331,4 +331,4 @@ El planificador de viajes con AI de MonkeyTravel crea itinerarios portugueses d√
 
 Dile tus fechas y presupuesto. Tendr√°s un plan en minutos.
 
-**[Planifica Mi Viaje a Lisboa Gratis](/trips/new?destination=lisbon)** | **[Planifica Mi Viaje a Oporto Gratis](/trips/new?destination=porto)**
+**[Planifica Mi Viaje a Lisboa Gratis](/trips/new?destination=lisbon)** | **[Planifica Mi Viaje a Oporto Gratis](/trips/new)**
