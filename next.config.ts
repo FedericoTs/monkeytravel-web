@@ -178,6 +178,33 @@ const nextConfig: NextConfig = {
       });
     }
 
+    // 2026-08-26: contact-intent aliases were 404ing. The daily crawl found
+    // Google sending real (if small) traffic to /contact-us and /get-in-touch
+    // while only /contact serves a 200. Normally 1-2 landings/week would not
+    // be worth a rule, but monkeytravel.app has no MX record — support@,
+    // privacy@ and legal@ all bounce — so the on-site form at /contact is the
+    // ONLY working way to reach us. A 404 on a contact-intent query is a lost
+    // business or support conversation, not a lost pageview.
+    //
+    // NOT redirected here: /about and /about-us, which also 404. There is no
+    // about page to point them at — app/[locale]/about/ contains only
+    // authors/[slug]/. Pointing them at /contact would be a wrong answer to
+    // an informational query. See the daily report for the hub-page proposal.
+    for (const alias of ["contact-us", "get-in-touch"]) {
+      rules.push({
+        source: `/${alias}`,
+        destination: `/contact`,
+        permanent: true,
+      });
+      for (const locale of ["es", "it", "pt"]) {
+        rules.push({
+          source: `/${locale}/${alias}`,
+          destination: `/${locale}/contact`,
+          permanent: true,
+        });
+      }
+    }
+
     return rules;
   },
 
