@@ -103,6 +103,12 @@ async function fetchLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
  */
 export const getDestinationLeaderboard = unstable_cache(
   fetchLeaderboard,
-  ["destination-leaderboard"],
+  // The trailing version is load-bearing. Vercel's Data Cache SURVIVES a
+  // deployment, so shipping a corrected RPC does not invalidate entries the
+  // old logic wrote — the 20260826231948 attribution fix went live while the
+  // homepage kept serving the pre-fix board for the rest of the hour. Bump
+  // this whenever the shape or meaning of the result changes, so the new code
+  // reads a new key instead of inheriting stale rows.
+  ["destination-leaderboard", "v2-per-day-city-attribution"],
   { revalidate: REVALIDATE_SECONDS, tags: ["destination-leaderboard"] },
 );
