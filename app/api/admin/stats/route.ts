@@ -262,6 +262,10 @@ export async function GET() {
       supabase.rpc("get_engagement_metrics"),
       // Time to first trip
       supabase.rpc("get_time_to_first_trip"),
+      // Recent activity feed
+      fetchRecentActivity(supabase),
+      // User growth trend
+      fetchUserTrend(supabase),
     ]);
 
     // Safely extract results — failed queries return null instead of crashing
@@ -288,6 +292,11 @@ export async function GET() {
     const referrerResult = safe(13, { data: [] as { source: string; count: number }[] });
     const engagementResult = safe(14, { data: [{ dau: 0, wau: 0, mau: 0, stickiness_pct: 0, users_with_trips: 0, total_users: 0 }] });
     const timeToTripResult = safe(15, { data: [{ avg_hours: 0, median_hours: 0, users_count: 0, within_1h: 0, within_24h: 0, within_7d: 0 }] });
+    const recentActivityResult = safe(16, [] as AdminStats["recentActivity"]);
+    const userTrendResult = safe(17, {
+      daily: [],
+      summary: { totalGrowth: 0, avgDaily: 0, bestDay: null, currentStreak: 0 },
+    } as AdminStats["userTrend"]);
 
     // Fallback to direct queries if RPC doesn't exist
     const userMetrics = usersResult.data || (await fetchUserMetricsDirect(supabase));
@@ -432,8 +441,8 @@ export async function GET() {
         };
       })(),
       topDestinations: topDestinationsResult || [],
-      recentActivity: await fetchRecentActivity(supabase),
-      userTrend: await fetchUserTrend(supabase),
+      recentActivity: recentActivityResult,
+      userTrend: userTrendResult,
     };
 
     return apiSuccess(stats);
