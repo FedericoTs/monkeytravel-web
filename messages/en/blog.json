@@ -84,6 +84,14 @@
       "packingList": "Packing List Generator",
       "visaChecker": "Visa Requirements Checker",
       "multiCityTripPlanner": "Multi-City Trip Planner"
+    },
+    "destinationPicks": {
+      "heading": "Ready to plan? Start with one of these",
+      "thingsToDo": "What to do",
+      "whereToEat": "Where to eat",
+      "planCta": "Plan a trip to {city}",
+      "stayCta": "Find a place to stay",
+      "affiliateNote": "Affiliate link"
     }
   },
   "tag": {

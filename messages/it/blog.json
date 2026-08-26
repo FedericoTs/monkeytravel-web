@@ -84,6 +84,14 @@
       "packingList": "Generatore Lista Bagaglio",
       "visaChecker": "Verifica Requisiti Visto",
       "multiCityTripPlanner": "Pianificatore Viaggi Multi-Città"
+    },
+    "destinationPicks": {
+      "heading": "Pronto a partire? Inizia da una di queste",
+      "thingsToDo": "Cosa fare",
+      "whereToEat": "Dove mangiare",
+      "planCta": "Organizza un viaggio a {city}",
+      "stayCta": "Trova dove dormire",
+      "affiliateNote": "Link di affiliazione"
     }
   },
   "tag": {

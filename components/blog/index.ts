@@ -4,6 +4,7 @@ export { default as BlogContent } from "./BlogContent";
 export { default as BlogGrid } from "./BlogGrid";
 export { default as BlogInlineAiCta } from "./BlogInlineAiCta";
 export { default as BlogPlanThisCta } from "./BlogPlanThisCta";
+export { default as BlogDestinationPicks } from "./BlogDestinationPicks";
 export { default as BlogLane } from "./BlogLane";
 export { default as BlogPrevNext } from "./BlogPrevNext";
 export { default as FeaturedHero } from "./FeaturedHero";

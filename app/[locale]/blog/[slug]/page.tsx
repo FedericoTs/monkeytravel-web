@@ -9,6 +9,7 @@ import { getAllSlugs, getAllFrontmatter, getPostBySlug, getRelatedPosts, getPrev
 import { getAuthorByFrontmatterId } from "@/lib/blog/authors";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 import { getDestinationsForBlogPost } from "@/lib/cross-links";
+import { seasonalDestinationsForPost } from "@/lib/blog/seasonal-destinations";
 import { getRegionForPost } from "@/lib/blog/regions";
 import type { Locale } from "@/lib/destinations/types";
 import {
@@ -21,7 +22,7 @@ import {
 import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogContent, BlogByline, BlogCard, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
+import { BlogContent, BlogByline, BlogCard, BlogDestinationPicks, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
 import ShareRow from "@/components/ShareRow";
 import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import { tripsNewHrefForPost } from "@/lib/blog/trip-prefill";
@@ -224,7 +225,17 @@ export default async function BlogDetailPage({ params }: PageProps) {
   }
 
   const related = getRelatedPosts(slug, 3, locale);
-  const relatedDestinations = getDestinationsForBlogPost(slug, frontmatter.tags, 3);
+  // The seasonal round-ups carry an explicit destination list, because their
+  // tags are generic taxonomy concepts ("seasonal", "monthly travel guide")
+  // and the cities appear only in the body — so the keyword matcher below
+  // returns nothing for three of the four, and off-topic Tokyo for the
+  // fourth. See lib/blog/seasonal-destinations.ts for the measurements.
+  const seasonalPicks = seasonalDestinationsForPost(slug);
+  // When a curated list exists it REPLACES the keyword-matched card grid
+  // rather than stacking a second destination section under it.
+  const relatedDestinations = seasonalPicks
+    ? []
+    : getDestinationsForBlogPost(slug, frontmatter.tags, 3);
   // Concept-based, not keyword-based: see lib/blog/landing-page-links.ts.
   // The keyword version put /free-ai-trip-planner on 80 of 84 posts and left
   // /multi-city-trip-planner with none, and matched ~20% worse on it/es/pt
@@ -537,6 +548,29 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+        )}
+
+        {/* Curated destination picks — seasonal round-ups only. Richer than
+            the card grid below: real activities from the destination data,
+            a prefilled planner link, and (when the affiliate is live) a
+            place-to-stay CTA. */}
+        {seasonalPicks && seasonalPicks.length > 0 && (
+          <BlogDestinationPicks
+            destinations={seasonalPicks}
+            locale={loc}
+            postSlug={slug}
+            labels={{
+              heading: t("detail.destinationPicks.heading"),
+              thingsToDo: t("detail.destinationPicks.thingsToDo"),
+              whereToEat: t("detail.destinationPicks.whereToEat"),
+              // raw(): the message holds a literal {city} that this component
+              // substitutes per card. t() would try to resolve it as an ICU
+              // argument at call time and throw, since there is no single city.
+              planCta: t.raw("detail.destinationPicks.planCta"),
+              stayCta: t("detail.destinationPicks.stayCta"),
+              affiliateNote: t("detail.destinationPicks.affiliateNote"),
+            }}
+          />
         )}
 
         {/* Related Destinations */}

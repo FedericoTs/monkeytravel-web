@@ -45,6 +45,7 @@ type PartnerSurface =
   | "provider_tiles"
   | "visa_checker"
   | "backpacker_landing"
+  | "blog_destination_picks"
   | "legacy_panel"
   | "other";
 
