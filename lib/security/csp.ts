@@ -32,6 +32,20 @@
 const LANDING_PAGE_PATHS = new Set(["/", "/es", "/it", "/pt"]);
 
 /**
+ * Whether this path is one BuildHop is allowed to frame.
+ *
+ * Exported because X-Frame-Options has to agree with frame-ancestors, and the
+ * two used to live in different files: frame-ancestors here, and a blanket
+ * `X-Frame-Options: SAMEORIGIN` on '/:path*' in next.config.ts. XFO is the
+ * older, cruder header and browsers enforce it independently, so the static
+ * one silently overruled this policy and BuildHop's embed stayed blocked even
+ * though the CSP allowed it. Both now derive from this single predicate.
+ */
+export function allowsThirdPartyFraming(pathname: string): boolean {
+  return LANDING_PAGE_PATHS.has(pathname);
+}
+
+/**
  * BuildHop (a launch-directory site) needs to embed the homepage in a
  * live iframe preview for its listing. Scoped to the homepage only —
  * every other route (trips, auth, admin, blog, ...) keeps the default
@@ -144,7 +158,7 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       "https://accounts.google.com",
       "https://js.stripe.com",
     ],
-    "frame-ancestors": LANDING_PAGE_PATHS.has(pathname)
+    "frame-ancestors": allowsThirdPartyFraming(pathname)
       ? ["'self'", ...BUILDHOP_FRAME_ANCESTORS]
       : ["'self'"],
     "object-src": ["'none'"],

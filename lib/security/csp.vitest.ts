@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { buildCspHeader } from "./csp";
+import { buildCspHeader, allowsThirdPartyFraming } from "./csp";
 
 /**
  * The CSP has silently dropped analytics twice, the same way both times.
@@ -141,6 +141,43 @@ describe("CSP frame-ancestors: BuildHop is scoped to the homepage only", () => {
     const stripLine = (h: string, name: string) =>
       h.split(";").map((d) => d.trim()).filter((d) => !d.startsWith(name)).join("; ");
     expect(stripLine(home, "frame-ancestors")).toBe(stripLine(other, "frame-ancestors"));
+  });
+});
+
+/**
+ * The bug that actually shipped: frame-ancestors allowed buildhop.io, and a
+ * blanket `X-Frame-Options: SAMEORIGIN` in next.config.ts blocked it anyway.
+ * Browsers enforce XFO independently, and it has no per-origin allow value, so
+ * the only correct move is to omit XFO exactly where frame-ancestors opens up.
+ *
+ * Both now derive from allowsThirdPartyFraming(), so this asserts the property
+ * that matters — they can never disagree again — rather than re-listing paths.
+ */
+describe("X-Frame-Options and frame-ancestors cannot disagree", () => {
+  const PATHS = [
+    "/", "/es", "/it", "/pt",
+    "/trips/new", "/admin", "/auth/login", "/blog", "/estimate", "/es/blog/x",
+  ];
+
+  it.each(PATHS)("%s: XFO is omitted iff buildhop is framed-allowed", (path) => {
+    const framingAllowed = allowsThirdPartyFraming(path);
+    const fa = directive("frame-ancestors", path);
+    const cspAllowsBuildhop = fa.includes("https://buildhop.io");
+
+    // The invariant. If these ever diverge, one of the two headers is lying.
+    expect(cspAllowsBuildhop).toBe(framingAllowed);
+  });
+
+  it("still sends XFO on authenticated routes — this is not a blanket removal", () => {
+    for (const p of ["/trips/new", "/admin", "/auth/login"]) {
+      expect(allowsThirdPartyFraming(p)).toBe(false);
+    }
+  });
+
+  it("opens framing on the landing pages only", () => {
+    for (const p of ["/", "/es", "/it", "/pt"]) {
+      expect(allowsThirdPartyFraming(p)).toBe(true);
+    }
   });
 });
 

@@ -8,6 +8,10 @@ import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { getLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import { getNonce } from "@/lib/security/nonce";
+// Static import, NOT next/dynamic: this renders a raw <script> tag that must
+// be parsed from the document for document.currentScript to resolve. See the
+// component for the full explanation.
+import BuildHopFeedbackWidget from "@/components/BuildHopFeedbackWidget";
 import { HERO_DOODLE_ENABLED } from "@/components/marketing/doodle";
 
 // Dynamic import: moves SessionTracker + its dependencies (supabase, analytics, posthog/identify)
@@ -28,9 +32,6 @@ const NativeBoot = dynamic(() => import("@/components/NativeBoot"));
 // AffiliateScript: interaction-gated loader for the Travelpayouts script
 // (was contributing to scroll-renderer-hang per LIVE_AUDIT F7).
 const AffiliateScript = dynamic(() => import("@/components/AffiliateScript"));
-// BuildHop feedback widget for the launch listing — see the component for
-// why this doesn't reuse AffiliateScript's interaction-gating.
-const BuildHopFeedbackWidget = dynamic(() => import("@/components/BuildHopFeedbackWidget"));
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,

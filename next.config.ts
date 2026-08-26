@@ -14,10 +14,13 @@ const securityHeaders = [
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload'
   },
-  {
-    key: 'X-Frame-Options',
-    value: 'SAMEORIGIN'
-  },
+  // X-Frame-Options is deliberately NOT here. It used to be a blanket
+  // 'SAMEORIGIN' on '/:path*', which silently overruled the CSP: browsers
+  // enforce XFO independently of frame-ancestors, so BuildHop's embed of the
+  // homepage stayed blocked even after frame-ancestors allowed it. Framing
+  // policy is now decided in exactly one place — middleware.ts, from
+  // allowsThirdPartyFraming() in lib/security/csp.ts — so the two headers
+  // cannot disagree again.
   {
     key: 'X-Content-Type-Options',
     value: 'nosniff'

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { updateSession, trackPageView } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
-import { buildCspHeader, shouldEnforceCsp } from "@/lib/security/csp";
+import { buildCspHeader, shouldEnforceCsp, allowsThirdPartyFraming } from "@/lib/security/csp";
 import { generateNonce } from "@/lib/security/nonce";
 
 // Create the i18n middleware
@@ -199,6 +199,16 @@ export async function middleware(request: NextRequest) {
    * untouched. Returns the same response for chaining.
    */
   const attachSecurityHeaders = (response: NextResponse): NextResponse => {
+    // X-Frame-Options is set OUTSIDE the CSP gate on purpose: shouldEnforceCsp()
+    // is false in dev, and clickjacking protection should not depend on
+    // NODE_ENV. Omitted entirely on the pages BuildHop is allowed to frame —
+    // XFO has no "allow this one origin" value (ALLOW-FROM is dead in every
+    // modern browser), so the only way to let a third party frame a page is to
+    // not send it and let frame-ancestors do the work.
+    if (!allowsThirdPartyFraming(request.nextUrl.pathname)) {
+      response.headers.set("X-Frame-Options", "SAMEORIGIN");
+    }
+
     if (!shouldEnforceCsp(request.nextUrl.pathname)) return response;
     response.headers.set("Content-Security-Policy", buildCspHeader(nonce, request.nextUrl.pathname));
     // Echo the nonce on the response too so Vercel's edge logging /
