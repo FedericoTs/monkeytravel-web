@@ -28,6 +28,9 @@ const NativeBoot = dynamic(() => import("@/components/NativeBoot"));
 // AffiliateScript: interaction-gated loader for the Travelpayouts script
 // (was contributing to scroll-renderer-hang per LIVE_AUDIT F7).
 const AffiliateScript = dynamic(() => import("@/components/AffiliateScript"));
+// BuildHop feedback widget for the launch listing — see the component for
+// why this doesn't reuse AffiliateScript's interaction-gating.
+const BuildHopFeedbackWidget = dynamic(() => import("@/components/BuildHopFeedbackWidget"));
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
@@ -247,6 +250,8 @@ export default async function RootLayout({
             LIVE_AUDIT F7 because long pages never go truly idle and
             lazyOnload would fire mid-scroll. */}
         <AffiliateScript nonce={nonce} />
+        {/* BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx */}
+        <BuildHopFeedbackWidget nonce={nonce} />
       </body>
     </html>
   );

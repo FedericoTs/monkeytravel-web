@@ -143,3 +143,28 @@ describe("CSP frame-ancestors: BuildHop is scoped to the homepage only", () => {
     expect(stripLine(home, "frame-ancestors")).toBe(stripLine(other, "frame-ancestors"));
   });
 });
+
+/**
+ * The BuildHop widget needs BOTH entries, not just script-src — that was
+ * exactly the emrldco.com bug (see the connect-src comment above): the
+ * script loads and runs fine with only script-src allowed, and then its own
+ * fetch() calls get silently refused with nothing to show for it server-side.
+ * Present on every route (not homepage-scoped, unlike frame-ancestors) since
+ * the widget is meant to be reachable wherever a BuildHop visitor lands.
+ */
+describe("CSP allows the BuildHop feedback widget to load AND to call home", () => {
+  it("allows the script to load from buildhop.io", () => {
+    expect(allows(directive("script-src"), "https://buildhop.io/feedback-widget.js")).toBe(true);
+  });
+
+  it("allows the script's own requests, not just the script load", () => {
+    expect(allows(connectSrc(), "https://buildhop.io/api/feedback")).toBe(true);
+  });
+
+  it("is present regardless of route, unlike the homepage-scoped frame-ancestors grant", () => {
+    for (const path of ["/", "/trips/new", "/admin", "/blog"]) {
+      expect(allows(directive("script-src", path), "https://buildhop.io/feedback-widget.js")).toBe(true);
+      expect(allows(directive("connect-src", path), "https://buildhop.io/api/feedback")).toBe(true);
+    }
+  });
+});

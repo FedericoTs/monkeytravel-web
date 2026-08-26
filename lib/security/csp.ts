@@ -66,6 +66,8 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       "https://maps.googleapis.com",
       "https://maps.gstatic.com",
       "https://js.stripe.com",
+      // BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx.
+      "https://buildhop.io",
     ],
     "style-src": [
       "'self'",
@@ -130,6 +132,12 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       // script's own error reporting to a third party, it is not needed for
       // affiliate links to work, and it would ship page URLs off-site.
       "https://emrldco.com",
+      // BuildHop feedback widget's own submit/config calls. Added proactively
+      // rather than after the fact: script-src alone was exactly the emrldco.com
+      // bug above — the script loads and runs, but any fetch() it makes gets
+      // silently refused without a matching connect-src entry, and the failure
+      // is invisible from the server (see the note above this list).
+      "https://buildhop.io",
     ],
     "frame-src": [
       "'self'",
