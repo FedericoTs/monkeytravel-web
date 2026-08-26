@@ -22,7 +22,25 @@
  *   `eval()` and `new Function()` which would be blocked.
  */
 
-export function buildCspHeader(nonce: string): string {
+/**
+ * The four locale homepages (`localePrefix: "as-needed"` — see
+ * lib/i18n/routing.ts — means the default "en" locale carries no prefix).
+ * This is deliberately an EXACT-match set, not a prefix check: a prefix
+ * match on "/es" would also catch "/es/blog/...", handing every Spanish
+ * page the same relaxed frame-ancestors as the homepage.
+ */
+const LANDING_PAGE_PATHS = new Set(["/", "/es", "/it", "/pt"]);
+
+/**
+ * BuildHop (a launch-directory site) needs to embed the homepage in a
+ * live iframe preview for its listing. Scoped to the homepage only —
+ * every other route (trips, auth, admin, blog, ...) keeps the default
+ * 'self'-only value, so this does not enlarge the clickjacking surface
+ * on anything that isn't the marketing pitch page.
+ */
+const BUILDHOP_FRAME_ANCESTORS = ["https://buildhop.io", "https://www.buildhop.io"];
+
+export function buildCspHeader(nonce: string, pathname: string): string {
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
     "script-src": [
@@ -118,7 +136,9 @@ export function buildCspHeader(nonce: string): string {
       "https://accounts.google.com",
       "https://js.stripe.com",
     ],
-    "frame-ancestors": ["'self'"],
+    "frame-ancestors": LANDING_PAGE_PATHS.has(pathname)
+      ? ["'self'", ...BUILDHOP_FRAME_ANCESTORS]
+      : ["'self'"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],

@@ -31,11 +31,18 @@ function allows(directive: string[], url: string): boolean {
   });
 }
 
-function connectSrc(): string[] {
-  const header = buildCspHeader("test-nonce");
-  const directive = header.split(";").map((d) => d.trim()).find((d) => d.startsWith("connect-src"));
-  expect(directive, "connect-src missing from the CSP").toBeTruthy();
-  return directive!.split(/\s+/).slice(1);
+/** Any non-landing path — connect-src doesn't vary by route, so the exact value is arbitrary. */
+const A_ROUTE = "/trips/new";
+
+function directive(name: string, pathname: string = A_ROUTE): string[] {
+  const header = buildCspHeader("test-nonce", pathname);
+  const line = header.split(";").map((d) => d.trim()).find((d) => d.startsWith(name));
+  expect(line, `${name} missing from the CSP`).toBeTruthy();
+  return line!.split(/\s+/).slice(1);
+}
+
+function connectSrc(pathname: string = A_ROUTE): string[] {
+  return directive("connect-src", pathname);
 }
 
 describe("CSP connect-src allows the analytics endpoints GA4 actually uses", () => {
@@ -88,5 +95,51 @@ describe("CSP connect-src allows the analytics endpoints GA4 actually uses", () 
     expect(allows(["https://*.example.com"], "https://example.com/x")).toBe(false);
     expect(allows(["https://example.com"], "https://a.example.com/x")).toBe(false);
     expect(allows(["https://example.com"], "https://example.com/x")).toBe(true);
+  });
+});
+
+/**
+ * BuildHop (a launch-directory site) needs to iframe the homepage for its
+ * listing preview. Scoped to the four locale homepages only — everywhere
+ * else keeps 'self'-only, so this can't quietly widen to an authenticated
+ * route (trips, admin) where letting a third party frame the page would be
+ * a real clickjacking exposure, not just an embed-preview convenience.
+ */
+describe("CSP frame-ancestors: BuildHop is scoped to the homepage only", () => {
+  const HOMEPAGES = ["/", "/es", "/it", "/pt"];
+  const OTHER_ROUTES = [
+    "/trips/new",
+    "/trips/abc123",
+    "/admin",
+    "/auth/login",
+    "/blog",
+    "/blog/where-to-go-in-december",
+    "/es/blog/where-to-go-in-december",
+    // Prefix trap: starts with "/es" but is NOT the Spanish homepage.
+    "/estimate",
+  ];
+
+  it.each(HOMEPAGES)("allows buildhop.io to frame %s", (path) => {
+    const fa = directive("frame-ancestors", path);
+    expect(fa).toContain("https://buildhop.io");
+    expect(fa).toContain("https://www.buildhop.io");
+  });
+
+  it.each(HOMEPAGES)("keeps 'self' alongside buildhop.io on %s", (path) => {
+    // The constraint was to preserve 'self', not replace it.
+    expect(directive("frame-ancestors", path)).toContain("'self'");
+  });
+
+  it.each(OTHER_ROUTES)("does NOT allow buildhop.io to frame %s", (path) => {
+    const fa = directive("frame-ancestors", path);
+    expect(fa).toEqual(["'self'"]);
+  });
+
+  it("touches only frame-ancestors — every other directive is identical on and off the homepage", () => {
+    const home = buildCspHeader("test-nonce", "/");
+    const other = buildCspHeader("test-nonce", A_ROUTE);
+    const stripLine = (h: string, name: string) =>
+      h.split(";").map((d) => d.trim()).filter((d) => !d.startsWith(name)).join("; ");
+    expect(stripLine(home, "frame-ancestors")).toBe(stripLine(other, "frame-ancestors"));
   });
 });

@@ -200,7 +200,7 @@ export async function middleware(request: NextRequest) {
    */
   const attachSecurityHeaders = (response: NextResponse): NextResponse => {
     if (!shouldEnforceCsp(request.nextUrl.pathname)) return response;
-    response.headers.set("Content-Security-Policy", buildCspHeader(nonce));
+    response.headers.set("Content-Security-Policy", buildCspHeader(nonce, request.nextUrl.pathname));
     // Echo the nonce on the response too so Vercel's edge logging /
     // debugging surfaces can see which nonce was issued for this request.
     response.headers.set("x-nonce", nonce);
