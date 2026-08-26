@@ -1380,10 +1380,18 @@ nav[data-monkey-nav].monkey-nav-scrolled {
 /* The headline highlight is a coral-to-pale-coral gradient. On the cream field
    the pale end drops to 1.6:1 and the last word of the biggest line on the page
    fades out; the approved comp draws it as one flat coral. */
+/* The doodle hero flattens the coral gradient to a single flat colour (a
+   gradient reads as muddy against the illustrated background). That flat
+   colour is the BRAND coral, not the ink: this is the headline, the most
+   recognisable surface on the site, and the same accepted exception the
+   primary buttons carry — see the "Accepted exception" note in DESIGN.md.
+   At 2.68:1 on the cream ground it does not clear AA, including large-text
+   AA (3:1). Carried deliberately; the headline is also present as real text
+   in the DOM and in the <title>, so nothing is conveyed by colour alone. */
 [data-brand="doodle"] .gradient-text-blue {
   background: none;
   -webkit-text-fill-color: currentColor;
-  color: var(--primary-ink);
+  color: var(--primary);
 }
 
 /* Sign In sat directly under the CTA in full primary coral, reading as a second
