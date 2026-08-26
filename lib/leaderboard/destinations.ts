@@ -19,16 +19,21 @@ import { unstable_cache } from "next/cache";
  * query on the site would run on every homepage render.
  *
  * WHY THERE ARE NO HOTELS HERE
- * The RPC deliberately excludes lodging. `accommodation` entries exist in the
- * itinerary JSON but are not trustworthy enough to rank: measured on prod,
- * trips titled "Dubai" carried The Greenbank Hotel (Cornwall) and Hotel
- * Seerose (Switzerland), trips titled "Tokyo" carried Osaka and Kyoto hotels
- * (multi-city trips filed under one title), and most entries are scaffolding
- * like "Arrival and Check-in" rather than a hotel name at all. Paris and
- * Barcelona — the #2 and #3 destinations — have zero lodging entries between
- * them. Publishing that as "top hotels" would state something false about
- * real businesses, so accommodation is surfaced as a live search link per
- * destination instead of a fabricated ranking.
+ * Not because the itineraries are wrong — they are not. An earlier reading of
+ * this data claimed trips titled "Dubai" carried hotels in Cornwall and
+ * Switzerland. That was an artifact of the analysis, not the product: the trip
+ * in question is "Dubai, Vienna, Villach, Cornwall & Toronto", a 21-day
+ * five-city itinerary that genuinely visits Cornwall, and the hotels were
+ * correct for it. The old query collapsed multi-city trips onto their first
+ * city and then blamed the itinerary for the mislabelling. Attribution is now
+ * per-day (see the 20260826231948 migration).
+ *
+ * The real reason is volume: across the whole dataset there are 44 lodging
+ * entries that actually name a property, spread over 30 cities — roughly 1.5
+ * per city. No city has enough to support a credible "top 3 hotels", so
+ * accommodation is surfaced as a live search link per destination rather than
+ * a ranking thin enough to be misleading. If lodging density grows, this is
+ * worth revisiting.
  */
 
 export interface LeaderboardActivity {

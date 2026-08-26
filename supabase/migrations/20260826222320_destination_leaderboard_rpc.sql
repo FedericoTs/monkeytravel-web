@@ -1,0 +1,13 @@
+-- Homepage destination leaderboard, v1.
+--
+-- SUPERSEDED THE SAME DAY by 20260826231948, which corrects how a trip's city
+-- is derived. Kept as a no-op so the repo history matches the versions
+-- actually recorded in production (supabase_migrations.schema_migrations)
+-- rather than rewriting the past. The working function is created by the
+-- next migration.
+--
+-- The defect: this version derived a trip's city with
+-- split_part(destination, ',', 1) -- the first segment before a comma. 178 of
+-- 380 trips (47%) are multi-city, so it collapsed each onto its first city and
+-- pulled the other cities' attractions along with it.
+select 1;
