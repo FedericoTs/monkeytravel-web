@@ -102,3 +102,4 @@ marketing/screenshots/*.png
 marketing/**/*.mp4
 marketing/*.mp4
 marketing/sample-clip.log
+.gstack/
