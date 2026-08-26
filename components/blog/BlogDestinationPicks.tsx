@@ -70,14 +70,19 @@ export default function BlogDestinationPicks({
 
   const stayWindow = seasonalStayWindow(postSlug);
 
-  // Only surface an outbound stay link when it actually pays us. On a trip
-  // page the reader has already committed to a destination, so the link helps
-  // them either way — which is why BackpackerHostelCta renders it
-  // unconditionally. A seasonal article is the opposite case: the reader has
-  // chosen nothing yet, and an un-monetised outbound link would compete with
-  // the planner CTA on our highest-traffic pages for no return at all.
+  // The stay CTA renders whether or not the affiliate is live — a product
+  // decision (2026-08-26): the link is useful to the reader on its own, and
+  // there is no AWIN account yet. getHostelworldSearchUrl() degrades to a
+  // clean hostelworld.com search when HOSTELWORLD_AWIN_AFFILIATE_ID is unset,
+  // so nothing has to change here if one is added later.
+  //
+  // What DOES depend on the affiliate being live is how the link is labelled:
+  // rel="sponsored" and an "Affiliate link" note are disclosures. Putting
+  // either on a link that pays us nothing states something untrue about our
+  // relationship with Hostelworld, so both are gated on affiliateActive
+  // rather than on whether the CTA renders.
   const affiliateActive = isHostelworldAffiliateActive();
-  const showStay = Boolean(stayWindow) && affiliateActive;
+  const showStay = Boolean(stayWindow);
 
   return (
     <section className="py-14 bg-[var(--background-warm)]">
@@ -184,14 +189,28 @@ export default function BlogDestinationPicks({
                           variant="custom"
                           showIcon={false}
                           showExternal={false}
-                          extraEventProps={{ post_slug: postSlug, is_affiliate_active: true }}
+                          // PartnerButton defaults to "sponsored noopener
+                          // nofollow". Correct once the link pays us, wrong
+                          // before then — "sponsored" tells Google there is a
+                          // commercial relationship behind the link.
+                          rel={
+                            affiliateActive
+                              ? "sponsored noopener nofollow"
+                              : "noopener nofollow"
+                          }
+                          extraEventProps={{
+                            post_slug: postSlug,
+                            is_affiliate_active: affiliateActive,
+                          }}
                           className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-slate-300 px-4 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--primary)]"
                         >
                           {labels.stayCta}
                         </PartnerButton>
-                        <p className="text-center text-[11px] text-[var(--foreground-muted)]">
-                          {labels.affiliateNote}
-                        </p>
+                        {affiliateActive && (
+                          <p className="text-center text-[11px] text-[var(--foreground-muted)]">
+                            {labels.affiliateNote}
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
