@@ -937,9 +937,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </span>
               </Link>
 
+              {/* The visa checker shipped — it covers 199 passports off
+                  lib/visa/matrix.json. This card was still wearing the
+                  pre-launch "Coming Soon" pill and the muted inactive
+                  styling, which told every homepage visitor a live tool
+                  did not exist. Now styled identically to the packing-list
+                  card above it. */}
               <Link
                 href="/tools/visa-checker"
-                className="group rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:p-7 hover:border-slate-300 transition-all"
+                className="group rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 hover:border-[var(--primary)] hover:shadow-lg transition-all"
               >
                 <div className="text-4xl mb-3">🛂</div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1.5">
@@ -948,8 +954,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <p className="text-sm text-[var(--foreground-muted)] mb-3">
                   {t('freeTools.visaBlurb')}
                 </p>
-                <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 bg-amber-100 text-amber-900 rounded-full">
-                  {t('freeTools.comingSoon')}
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary-ink)]">
+                  {t('freeTools.tryIt')}
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </span>
               </Link>
             </div>
