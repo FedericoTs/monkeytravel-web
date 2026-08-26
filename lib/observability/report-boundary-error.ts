@@ -32,6 +32,49 @@ import * as Sentry from "@sentry/nextjs";
  * repeating it here risks copying tokens (e.g. /shared/<token>) into a second
  * field. Pathname only.
  */
+/**
+ * Resolve `error.stack` to a STRING, or explain why it could not be.
+ *
+ * The first version of this helper assumed `error.stack` was a string and
+ * handed it straight to Sentry. JAVASCRIPT-NEXTJS-23 then recorded:
+ *
+ *     rawStack: "[Function: <anonymous>]"
+ *
+ * — Sentry's normalizer stringifying a FUNCTION. So on the very event this
+ * helper was written for, `stack` was not a string, the raw-stack escape
+ * hatch produced nothing, and the event stayed undebuggable.
+ *
+ * `stack` is not specified as a data property. It is an accessor on V8 and
+ * can be replaced outright by instrumentation, polyfills, or a wrapper that
+ * re-exposes it lazily. Read it defensively: invoke a thunk if that is what
+ * we were handed, and otherwise say what the value actually was, so the next
+ * occurrence names the problem instead of hiding it behind a placeholder.
+ */
+function resolveRawStack(error: Error & { digest?: string }): string {
+  const raw: unknown = error.stack;
+
+  if (typeof raw === "string") return raw;
+  if (raw == null) return "(no stack present on the Error object)";
+
+  // A lazily-materialised stack: call it, but never let instrumentation throw
+  // out of the error path — a crash here would replace the real error.
+  if (typeof raw === "function") {
+    try {
+      const called: unknown = (raw as () => unknown).call(error);
+      if (typeof called === "string") return called;
+      return `(error.stack was a function returning ${typeof called})`;
+    } catch {
+      return "(error.stack was a function that threw when called)";
+    }
+  }
+
+  try {
+    return `(error.stack was ${typeof raw}: ${String(raw)})`;
+  } catch {
+    return `(error.stack was ${typeof raw}, not stringifiable)`;
+  }
+}
+
 export function reportBoundaryError(
   error: Error & { digest?: string },
   errorType: string
@@ -45,7 +88,7 @@ export function reportBoundaryError(
       message: error.message,
       digest: error.digest ?? null,
       // The whole point: keep the raw stack even if Sentry parses no frames.
-      rawStack: error.stack ?? "(no stack present on the Error object)",
+      rawStack: resolveRawStack(error),
       pathname:
         typeof window !== "undefined" ? window.location.pathname : null,
     });
