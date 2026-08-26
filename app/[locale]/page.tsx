@@ -237,7 +237,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {/* Floating feature cards */}
                   <div className="absolute -left-4 top-20 glass-card rounded-2xl p-4 shadow-lg hidden lg:flex items-center gap-3 animate-float" style={{ animationDelay: '0.5s' }}>
                     <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[var(--primary-ink)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-5 h-5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
