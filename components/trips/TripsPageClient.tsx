@@ -836,9 +836,12 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
           logic. */}
       <PushOptInSheet />
 
-      {/* Demand-discovery survey — shown once to active users (>= 1 trip).
+      {/* Demand-discovery survey — DEACTIVATED 2026-08-26 (2 responses total,
+          1 in the last 30 days). eligible={false} keeps the component and
+          its /feedback/[token] outreach-page sibling intact; this is the
+          one place to flip back to `trips.length > 0` if it's revisited.
           Self-gates on localStorage; see FeedbackSurveyModal.tsx. */}
-      <FeedbackSurveyModal eligible={trips.length > 0} />
+      <FeedbackSurveyModal eligible={false} />
 
       {/* AuthEventTracker used to be mounted here. It now lives in
           app/[locale]/layout.tsx so it sees the auth_event param on every
