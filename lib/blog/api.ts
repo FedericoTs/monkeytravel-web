@@ -257,7 +257,7 @@ const MEMOIZE_FRONTMATTER = process.env.NODE_ENV !== "development";
 function parseFrontmatter(slug: string, locale = "en"): ParsedPost {
   if (!MEMOIZE_FRONTMATTER) return readAndParseFrontmatter(slug, locale);
 
-  const key = `${locale} ${slug}`;
+  const key = `${locale}\0${slug}`;
   // `has` rather than a truthiness check: a missing post memoizes as null,
   // and that negative result is worth keeping too.
   const hit = frontmatterMemo.get(key);
