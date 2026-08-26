@@ -48,8 +48,17 @@ const WHITE = "#ffffff";
  */
 const SURFACES = ["background", "background-alt", "background-warm", "background-cream"];
 
+/**
+ * Only the teal still holds the accessible-ink contract.
+ *
+ * --primary-ink was folded back to the brand coral on 2026-08-26 (product
+ * decision — see the block above its definition in globals.css). It therefore
+ * no longer clears AA, and asserting that it does would just be a red test
+ * describing a world we chose to leave. The coral's real, failing numbers are
+ * pinned in their own describe block below instead, so the cost stays visible
+ * and nobody can later claim it passes.
+ */
 const INKS = [
-  { ink: "primary-ink", bright: "primary", label: "coral" },
   { ink: "secondary-ink", bright: "secondary", label: "teal" },
 ];
 
@@ -91,6 +100,50 @@ describe.each(INKS)("--$ink stays legible", ({ ink, bright, label }) => {
     // loudly if someone "fixes" the brand colour instead — which would make the
     // split pointless and should be a deliberate, reviewed change.
     expect(contrast(token(bright), token("background"))).toBeLessThan(AA_NORMAL);
+  });
+});
+
+/**
+ * --primary-ink is the brand coral again (2026-08-26).
+ *
+ * These assertions are the opposite shape of the teal ones on purpose: they
+ * pin a KNOWN failure so it stays a deliberate, visible decision rather than
+ * drifting into something people assume is fine. If someone re-darkens the
+ * token, these fail and force the conversation back into the open.
+ */
+describe("--primary-ink is the brand coral (accepted exception)", () => {
+  it("is exactly --primary, not a near-miss shade", () => {
+    // A 'close enough' brick red is the specific outcome this reverses: it
+    // reads as a second, muddier brand colour beside the real one.
+    expect(token("primary-ink")).toBe(token("primary"));
+  });
+
+  it("does NOT clear AA on any light surface — this is the cost we accepted", () => {
+    for (const surface of SURFACES) {
+      const ratio = contrast(token("primary-ink"), token(surface));
+      expect(
+        ratio,
+        `--primary-ink on --${surface} is ${ratio.toFixed(2)}:1. If this now CLEARS ` +
+          `${AA_NORMAL}:1, the token was changed — update this test deliberately.`,
+      ).toBeLessThan(AA_NORMAL);
+    }
+  });
+
+  it("fails large-text AA too, not just normal text", () => {
+    // Worth stating separately: the hero headline is ~48px, and it is a common
+    // mistake to assume display sizes get a pass at 3:1. They do not here.
+    const AA_LARGE = 3;
+    expect(contrast(token("primary-ink"), token("background"))).toBeLessThan(AA_LARGE);
+  });
+
+  it("pins the actual ratio so a silent shift is caught", () => {
+    expect(contrast(token("primary-ink"), token("background"))).toBeCloseTo(2.68, 1);
+  });
+
+  it("keeps the documented remedy available: a charcoal label on coral", () => {
+    // Unchanged by this decision — if we ever want the coral to pass, the move
+    // is still the label, not the fill.
+    expect(contrast(token("foreground"), token("primary"))).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 });
 

@@ -46,7 +46,27 @@
      If we ever want coral buttons that DO pass, the move is the label, not the
      fill: --foreground on --primary is 4.57:1. That keeps the coral exactly as
      it is and swaps the white label for charcoal. */
-  --primary-ink: #C93232;
+  /* 2026-08-26 — PRODUCT DECISION, reversing the 2026-08-25 split.
+     --primary-ink was introduced as a darker sibling so coral could carry
+     text at AA. In practice it put a brick red next to the brand coral all
+     over the product — most visibly the hero headline sitting directly above
+     a coral CTA, two different reds in one eyeful — and the call is that the
+     brand reads as one colour everywhere: stats, secondary headings, marketing
+     pages, icons, links.
+
+     So this is now the brand coral. It is deliberately still a SEPARATE TOKEN
+     rather than a find-and-replace across 137 files: every `--primary-ink`
+     usage is a place we once judged needed an accessible text colour, and
+     keeping the name preserves that map. Restoring the accessible variant is
+     a one-line change here, not a 137-file archaeology exercise.
+
+     THE COST, stated plainly: #FF6B6B is 2.68:1 on --background and 2.61:1 on
+     --background-cream. That fails AA for normal text (4.5:1) AND for large
+     text (3:1). This is the same accepted exception the coral buttons already
+     carry (see the block above). It is a deliberate brand call, not an
+     oversight — app/ink-tokens-contrast.vitest.ts pins the real numbers so
+     nobody can claim later that it passes. */
+  --primary-ink: #FF6B6B;
 
   /* Secondary - Ocean Teal */
   --secondary: #00B4A6;
