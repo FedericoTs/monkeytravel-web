@@ -29,7 +29,7 @@ const defaultLocale = "en";
 // falls behind the newest commit touching the files it covers, so the rot
 // cannot recur silently. Update the constant AND the path list together when
 // content moves.
-const LASTMOD_HOMEPAGE = "2026-08-25";
+const LASTMOD_HOMEPAGE = "2026-08-26";
 const LASTMOD_LANDING = "2026-08-25";
 const LASTMOD_DESTINATIONS = "2026-08-25";
 const LASTMOD_LEGAL = "2026-08-25";

@@ -46,6 +46,7 @@ type PartnerSurface =
   | "visa_checker"
   | "backpacker_landing"
   | "blog_destination_picks"
+  | "home_leaderboard"
   | "legacy_panel"
   | "other";
 

@@ -259,5 +259,14 @@
     "visaBlurb": "Descubre en segundos si necesitas visa para tu próximo viaje.",
     "comingSoon": "Próximamente",
     "allTools": "Todas las herramientas"
+  },
+  "leaderboard": {
+    "heading": "Lo que se está planificando ahora",
+    "subheading": "En directo desde itinerarios reales creados en MonkeyTravel: los destinos más planificados y lo que los viajeros incluyen de verdad.",
+    "rising": "En alza",
+    "mostPlanned": "Lo más planificado",
+    "plannedTimes": "×",
+    "planCta": "Planifica {city}",
+    "stayCta": "Buscar alojamiento"
   }
 }

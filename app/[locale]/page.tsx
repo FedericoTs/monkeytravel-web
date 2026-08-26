@@ -10,6 +10,8 @@ import { getNonce } from '@/lib/security/nonce';
 // out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
 import TourTrigger from '@/components/tour/TourTrigger';
 import HeroTripInput from '@/components/home/HeroTripInput';
+import DestinationLeaderboard from '@/components/home/DestinationLeaderboard';
+import { getDestinationLeaderboard } from '@/lib/leaderboard/destinations';
 import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
 import { HERO_DOODLE_ENABLED } from '@/components/marketing/doodle';
 import { getTranslations } from 'next-intl/server';
@@ -115,6 +117,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   // Get translations for landing page
   const t = await getTranslations('landing');
   const tDest = await getTranslations('destinations');
+
+  // Live destination leaderboard, built from real trips. Cached for an hour
+  // and fetched with a cookie-free anon client precisely so it does NOT opt
+  // this page out of static/ISR rendering (see the note above). Returns []
+  // on any failure, in which case the hand-maintained grid below renders
+  // instead — the section never disappears.
+  const leaderboard = await getDestinationLeaderboard(6);
 
   // Build FAQ data from translations for both display and structured data (SEO)
   const faqs = FAQ_KEYS.map(key => ({
@@ -857,31 +866,58 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             ================================================================ */}
         <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-                {tDest('sections.popularDestinations')}
-              </h2>
-              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                {tDest('index.subtitle')}
-              </p>
-            </div>
+            {/* The leaderboard is real demand, ranked from actual trips. The
+                grid below it was `destinations.slice(0, 6)` — the first six
+                of a hand-maintained array under a "Popular Destinations"
+                heading that encoded no popularity whatsoever. It survives as
+                the fallback: if the leaderboard query returns nothing, this
+                section still renders six destination cards, so the internal
+                links it exists to carry are never lost. */}
+            {leaderboard.length > 0 ? (
+              <DestinationLeaderboard
+                entries={leaderboard}
+                locale={locale as Locale}
+                labels={{
+                  heading: t('leaderboard.heading'),
+                  subheading: t('leaderboard.subheading'),
+                  rising: t('leaderboard.rising'),
+                  mostPlanned: t('leaderboard.mostPlanned'),
+                  // raw(): holds a literal {city} substituted per row, so
+                  // t() would try to resolve it as an ICU arg and throw.
+                  planCta: t.raw('leaderboard.planCta'),
+                  plannedTimes: t('leaderboard.plannedTimes'),
+                  stayCta: t('leaderboard.stayCta'),
+                }}
+              />
+            ) : (
+              <>
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
+                    {tDest('sections.popularDestinations')}
+                  </h2>
+                  <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
+                    {tDest('index.subtitle')}
+                  </p>
+                </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {destinations.slice(0, 6).map((destination) => (
-                <DestinationCard
-                  key={destination.slug}
-                  destination={destination}
-                  locale={locale as Locale}
-                  planTripLabel={tDest('cta.planTrip')}
-                  daysLabel={tDest('card.days', { days: destination.stats.avgStayDays })}
-                  tagLabels={Object.fromEntries(
-                    ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
-                      (tag) => [tag, tDest(`tags.${tag}`)]
-                    )
-                  )}
-                />
-              ))}
-            </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {destinations.slice(0, 6).map((destination) => (
+                    <DestinationCard
+                      key={destination.slug}
+                      destination={destination}
+                      locale={locale as Locale}
+                      planTripLabel={tDest('cta.planTrip')}
+                      daysLabel={tDest('card.days', { days: destination.stats.avgStayDays })}
+                      tagLabels={Object.fromEntries(
+                        ["romantic","cultural","foodie","urban","historical","beach","nightlife","adventure","nature","wellness","shopping","offbeat"].map(
+                          (tag) => [tag, tDest(`tags.${tag}`)]
+                        )
+                      )}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
             <div className="text-center mt-10">
               <Link

@@ -259,5 +259,14 @@
     "visaBlurb": "Find out in seconds whether you need a visa for your next trip.",
     "comingSoon": "Coming soon",
     "allTools": "All tools"
+  },
+  "leaderboard": {
+    "heading": "What people are planning right now",
+    "subheading": "Live from real itineraries built on MonkeyTravel — the destinations getting planned most, and what travellers actually put in the plan.",
+    "rising": "Rising",
+    "mostPlanned": "Most planned here",
+    "plannedTimes": "×",
+    "planCta": "Plan {city}",
+    "stayCta": "Find stays"
   }
 }
