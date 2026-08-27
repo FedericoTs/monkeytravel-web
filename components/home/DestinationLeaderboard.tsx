@@ -101,7 +101,12 @@ export default function DestinationLeaderboard({
           // every city that has a page; the rest still rank, they just link
           // to the planner instead.
           const dest = bySlug.get(entry.city);
-          const city = dest ? dest.name[locale] : titleCase(entry.city);
+          // `locale` is whatever segment the [locale] route matched. The layout
+          // notFound()s on an unknown one, but the page renders in parallel with
+          // it, so a bogus segment (e.g. /apple-touch-icon-precomposed.png) still
+          // reaches here and indexes the name map to undefined — which used to
+          // throw in getHostelworldSearchUrl. Fall back to the slug's title case.
+          const city = dest?.name[locale] ?? titleCase(entry.city);
           const country = dest?.country[locale];
           const rising = isRising(entry);
 

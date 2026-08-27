@@ -52,7 +52,10 @@ export function getHostelworldSearchUrl(params: HostelSearchParams): string {
   // Hostelworld's search accepts a single "search-keyword" — passing
   // the city alone (split off any country suffix) gives the cleanest
   // results page. "Barcelona, Spain" → "Barcelona".
-  const city = params.destination.split(",")[0].trim();
+  // Defensive: callers build `destination` from locale-indexed name maps, so
+  // a missing entry can arrive as undefined. An empty keyword still renders a
+  // usable Hostelworld page; a thrown TypeError takes the whole route down.
+  const city = (params.destination ?? "").split(",")[0].trim();
   const guests = params.guests ?? 1;
 
   const qs = new URLSearchParams({
