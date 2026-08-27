@@ -1,0 +1,77 @@
+# Pre-send audit of the trip lifecycle email queue.
+#
+# The real gate is inline: lib/email/verify-render.ts runs on every rendered
+# email immediately before dispatch, and a blocking defect holds that row back
+# as `failed` rather than sending it. That cannot be skipped or forgotten.
+#
+# This job exists for the thing an inline gate cannot give you — VISIBILITY
+# BEFORE the send. It renders every pending row and reports, so a problem
+# surfaces while there is still time to fix it, rather than as a pile of
+# `failed` rows discovered afterwards. Both use the same verifier, so they
+# cannot disagree about what "correct" means.
+#
+# Runs at 05:30 UTC, ninety minutes ahead of the 07:00 UTC send cron
+# (vercel.json), so a red run is actionable on the same day.
+#
+# Also runs on pull requests that touch the email path, because that is where
+# a regression is cheapest to catch.
+
+name: Email queue audit
+
+on:
+  schedule:
+    # 05:30 UTC daily — before the 07:00 UTC scheduled-notifications cron.
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - "lib/email/**"
+      - "app/api/cron/scheduled-notifications/**"
+      - "messages/*/common.json"
+      - "scripts/audit-queued-emails.mts"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # The audit reads production rows, so it needs credentials. Forked PRs
+      # never receive secrets, and the repo may not have them configured yet —
+      # in both cases skip with a clear message rather than failing red for a
+      # reason that has nothing to do with the change under review.
+      - name: Check credentials are available
+        id: creds
+        env:
+          URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "$URL" ] && [ -n "$KEY" ]; then
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets to enable the queue audit."
+          fi
+
+      - name: Install dependencies
+        if: steps.creds.outputs.have == 'true'
+        run: npm ci
+
+      # Unit tests first: they are fast, need no credentials, and cover the
+      # verifier that the audit itself depends on. A broken verifier would
+      # otherwise make the audit pass for the wrong reason.
+      - name: Email unit tests
+        if: steps.creds.outputs.have == 'true'
+        run: npx vitest run lib/email app/api/cron/scheduled-notifications app/api/webhooks/resend
+
+      - name: Audit every queued email against production
+        if: steps.creds.outputs.have == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run email:audit

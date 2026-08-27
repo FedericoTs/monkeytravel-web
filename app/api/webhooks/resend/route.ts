@@ -146,6 +146,33 @@ interface ResendWebhookPayload {
 }
 
 /**
+ * Reduce a recipient from Resend's payload to a bare, comparable address.
+ *
+ * `payload.data.to` carries whatever was on the original envelope, and that
+ * is RFC 5322 — "Ann Bernier <ann@example.com>" is as valid there as a bare
+ * address. Lowercasing alone keeps the display name, and every consumer of
+ * this value compares by exact bare address:
+ *
+ *   - dispatchEmail's suppression check does
+ *     .eq("recipient_email", recipient) on a bare lowercase string
+ *   - optOutMarketing does .ilike("email", e) against users.email
+ *
+ * so a display-name form matches NEITHER. The bounce is recorded and looks
+ * fine in the table while suppressing nothing.
+ *
+ * Found in production 2026-08-27: one such row, for a registered user, whose
+ * hard bounce had therefore never been suppressing anything.
+ */
+export function normalizeRecipient(raw: string): string {
+  const trimmed = (raw ?? "").trim();
+  // Angle-bracket form wins when present; otherwise the whole string is
+  // already the address. Deliberately does NOT try to validate — an address
+  // we cannot parse is still better stored verbatim than dropped.
+  const angle = trimmed.match(/<([^>]+)>/);
+  return (angle ? angle[1] : trimmed).toLowerCase().trim();
+}
+
+/**
  * Mirror a marketing opt-out into OUR source of truth
  * (users.notification_settings.marketingNotifications=false) so the app's own
  * send path honours a Resend-side unsubscribe/complaint too. Without this the
@@ -157,7 +184,7 @@ async function optOutMarketing(
   admin: ReturnType<typeof createAdminClient>,
   email: string
 ): Promise<{ ok: boolean; alreadyOff?: boolean; reason?: string }> {
-  const e = email.toLowerCase().trim();
+  const e = normalizeRecipient(email);
   if (!e) return { ok: false, reason: "empty email" };
   const { data: user, error } = await admin
     .from("users")
@@ -472,7 +499,7 @@ Reply directly to this message to answer the sender.
     // recipient + event type — duplicate inserts are benign.
     if (recipients.length > 0) {
       const inserts = recipients.map((recipient) => ({
-        recipient_email: recipient.toLowerCase().trim(),
+        recipient_email: normalizeRecipient(recipient),
         template_id: "unknown",
         status: targetStatus!,
         message_id: messageId,

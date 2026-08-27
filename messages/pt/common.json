@@ -2318,6 +2318,37 @@
       "body": "Chegou o dia. Seu roteiro completo de {destination} está a um toque de distância — abra sempre que precisar de direções, horários de funcionamento ou o que vem a seguir."
     }
   },
+  "tripFollowupEmail": {
+    "followup_return_3d": {
+      "heading": "Como foi {destination}?",
+      "body": "Você voltou faz alguns dias. Seu roteiro dia a dia continua salvo — útil se alguém perguntar por onde você andou. E se alguma coisa não bateu na prática, nos conte: é o jeito mais rápido de a gente melhorar.",
+      "cta": "Abrir sua viagem"
+    },
+    "followup_next_21d": {
+      "heading": "Pensando na próxima?",
+      "body": "Já faz umas três semanas desde {destination}. Se outra viagem está tomando forma na sua cabeça, a gente transforma ela num roteiro dia a dia em cerca de um minuto — igual da última vez.",
+      "cta": "Planejar sua próxima viagem"
+    },
+    "followup_final_45d": {
+      "heading": "A última da nossa parte",
+      "body": "Não vamos ficar insistindo. Se surgir uma viagem, estamos aqui — seu roteiro de {destination} continua salvo, e criar um novo leva cerca de um minuto. Caso contrário, aproveite o sossego.",
+      "cta": "Planejar uma viagem"
+    },
+    "followup_dormant": {
+      "heading": "Seu roteiro de {destination} continua aqui",
+      "body": "Seu roteiro dia a dia de {destination} está salvo e pronto quando você quiser. E se tiver outra viagem em mente, criar um roteiro novo leva cerca de um minuto.",
+      "cta": "Planejar uma viagem"
+    },
+    "finalNote": "Este é o último e-mail desta sequência."
+  },
+  "emailContext": {
+    "weather": "O tempo durante a viagem",
+    "packing": "Vale a pena levar",
+    "goingFor": "O que você vai ver",
+    "dayOne": "Dia um",
+    "today": "O plano de hoje",
+    "yourHighlights": "Seus melhores momentos"
+  },
   "explore": {
     "filters": {
       "searchPlaceholder": "Buscar destino (Paris, Tóquio, ...)",
