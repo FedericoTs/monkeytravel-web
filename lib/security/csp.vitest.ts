@@ -198,6 +198,20 @@ describe("CSP allows the BuildHop feedback widget to load AND to call home", () 
     expect(allows(connectSrc(), "https://buildhop.io/api/feedback")).toBe(true);
   });
 
+  it("allows the panel iframe the launcher opens", () => {
+    // Found on production AFTER the widget was already mounting: the launcher
+    // rendered, the click registered, and the panel would have opened blank
+    // because frame-src did not admit buildhop.io. One integration, three
+    // directives — script-src to load it, connect-src for its session POST,
+    // frame-src for the panel. Missing any one fails silently.
+    expect(allows(directive("frame-src"), "https://buildhop.io/embed/feedback/abc")).toBe(true);
+  });
+
+  it("still refuses framing arbitrary third parties", () => {
+    // Guard against someone widening frame-src to https: to 'fix' an embed.
+    expect(allows(directive("frame-src"), "https://evil.example.com/x")).toBe(false);
+  });
+
   it("is present regardless of route, unlike the homepage-scoped frame-ancestors grant", () => {
     for (const path of ["/", "/trips/new", "/admin", "/blog"]) {
       expect(allows(directive("script-src", path), "https://buildhop.io/feedback-widget.js")).toBe(true);

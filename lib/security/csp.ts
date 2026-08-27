@@ -157,6 +157,13 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       "'self'",
       "https://accounts.google.com",
       "https://js.stripe.com",
+      // The BuildHop widget's launcher is only the visible half. Clicking it
+      // injects an iframe at buildhop.io/embed/feedback/<id> — a THIRD
+      // directive this one integration needs, after script-src (load the
+      // script) and connect-src (its session POST). Without this the launcher
+      // renders, the click registers, and the panel opens blank, which is the
+      // same silent-failure shape as the emrldco.com connect-src bug.
+      "https://buildhop.io",
     ],
     "frame-ancestors": allowsThirdPartyFraming(pathname)
       ? ["'self'", ...BUILDHOP_FRAME_ANCESTORS]
