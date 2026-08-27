@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { geolocation } from "@vercel/functions";
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
+import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 
 // Track page views with geo data (non-blocking).
 // Returns the session_id that was used (so the caller can set the cookie on
@@ -77,6 +78,12 @@ export function trackPageView(request: NextRequest, userId?: string): string | n
       user_agent: request.headers.get("user-agent") || null,
       user_id: userId || null,
       session_id: sessionId,
+      // Classified at WRITE time so the aggregates can filter on a boolean
+      // instead of re-implementing the signature list in SQL. Rows are still
+      // recorded, not dropped: knowing how much crawler load we carry is
+      // useful, and discarding it would be a one-way door. See
+      // lib/analytics/bot-detection.ts.
+      is_bot: isAnalyticsBot(request.headers.get("user-agent")),
     };
 
     // Fire and forget - don't await to avoid blocking the response
