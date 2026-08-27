@@ -13,6 +13,15 @@ import { getNonce } from "@/lib/security/nonce";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 // /explore Week 3 (2026-05-29): surface real backpacker trips on the
+// NOTE: the CTAs below deliberately carry NO utm_source. They are INTERNAL
+// links, and a UTM on an internal link is a self-referral: it does not record
+// where someone came from, it fires when someone already on the site clicks a
+// button. They previously carried `utm_source=hostelworld`, which combined
+// badly with first-touch capture — analytics consent defaults to false, so the
+// referrer cookie is usually absent, and this click would then have become the
+// user's recorded acquisition source. An organic Google visitor would have been
+// filed as "hostelworld". Verified harmless in practice only because
+// users.acquisition_source is NULL for all 478 users; see AcquisitionCapture.
 // Hostelworld wedge landing page. The exact social-proof asset that
 // would convert this segment was already built (/explore feed +
 // TripCard) but had no link from /backpacker — closing the loop.
@@ -293,7 +302,7 @@ export default async function BackpackerLandingPage({
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
-                href="/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing"
+                href="/trips/new"
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
               >
                 <span aria-hidden>🎒</span>
@@ -465,7 +474,7 @@ export default async function BackpackerLandingPage({
               {ROUTES.map((r) => (
                 <Link
                   key={r.key}
-                  href={"/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing" as never}
+                  href="/trips/new"
                   className="group p-5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:shadow-md bg-white transition-all"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -562,7 +571,7 @@ export default async function BackpackerLandingPage({
                   {t("finalCta.subtitle")}
                 </p>
                 <Link
-                  href="/trips/new?utm_source=hostelworld&utm_medium=backpacker_landing"
+                  href="/trips/new"
                   className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg"
                 >
                   <span aria-hidden>🎒</span>
