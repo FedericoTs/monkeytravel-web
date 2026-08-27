@@ -79,7 +79,7 @@
       },
       "book": {
         "title": "Prenota gli ostelli con un tap",
-        "body": "Ogni viaggio backpacker ha un pulsante \"Trova ostelli per questo viaggio\" che apre Hostelworld già filtrato sulla tua destinazione e sulle tue date."
+        "body": "Ogni viaggio backpacker ha un pulsante \"Trova ostelli per questo viaggio\" che apre Booking.com, filtrato sugli ostelli, per la tua destinazione e le tue date."
       }
     }
   },
@@ -133,7 +133,7 @@
       },
       "vsHostelworld": {
         "question": "In cosa è diverso da Hostelworld o Booking.com?",
-        "answer": "Hostelworld e Booking.com sono ottimi per prenotare un letto, ma non ti aiutano a organizzare le giornate in mezzo. Noi facciamo il contrario: pianifichiamo l'intero viaggio (giorno per giorno, quartiere per quartiere) e poi ti rimandiamo a Hostelworld per la prenotazione vera dell'ostello. Usali insieme."
+        "answer": "Hostelworld e Booking.com sono ottimi per prenotare un letto, ma non ti aiutano a organizzare le giornate in mezzo. Noi facciamo il contrario: pianifichiamo l'intero viaggio (giorno per giorno, quartiere per quartiere) e poi ti rimandiamo a Booking.com, filtrato sugli ostelli, per la prenotazione vera. Usali insieme."
       },
       "neighbourhoods": {
         "question": "Mi consiglierà ostelli in quartieri buoni?",

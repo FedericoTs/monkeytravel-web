@@ -79,7 +79,7 @@
       },
       "book": {
         "title": "Book hostels in one tap",
-        "body": "Every backpacker trip has a \"Find hostels for this trip\" button that opens Hostelworld pre-filtered to your destination + dates."
+        "body": "Every backpacker trip has a \"Find hostels for this trip\" button that opens Booking.com, filtered to hostels, for your destination + dates."
       }
     }
   },
@@ -133,7 +133,7 @@
       },
       "vsHostelworld": {
         "question": "How is this different from Hostelworld or Booking.com?",
-        "answer": "Hostelworld and Booking.com are amazing at letting you book a bed — but they don't help you plan the days in between. We do the opposite: we plan the entire trip (day-by-day itinerary, neighbourhood-by-neighbourhood) and then link out to Hostelworld for the actual hostel booking. Use both together."
+        "answer": "Hostelworld and Booking.com are amazing at letting you book a bed — but they don't help you plan the days in between. We do the opposite: we plan the entire trip (day-by-day itinerary, neighbourhood-by-neighbourhood) and then link out to Booking.com, filtered to hostels, for the actual booking. Use both together."
       },
       "neighbourhoods": {
         "question": "Will it suggest hostels in good neighbourhoods?",

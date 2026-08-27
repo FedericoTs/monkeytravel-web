@@ -79,7 +79,7 @@
       },
       "book": {
         "title": "Reserve hostels com um toque",
-        "body": "Toda viagem mochileira tem um botão \"Buscar hostels para esta viagem\" que abre o Hostelworld já filtrado pelo seu destino + datas."
+        "body": "Toda viagem mochileira tem um botão \"Buscar hostels para esta viagem\" que abre o Booking.com, filtrado para hostels, pelo seu destino + datas."
       }
     }
   },
@@ -133,7 +133,7 @@
       },
       "vsHostelworld": {
         "question": "Qual a diferença disso para o Hostelworld ou o Booking.com?",
-        "answer": "O Hostelworld e o Booking.com são incríveis para você reservar uma cama — mas não ajudam a planejar os dias intermediários. Nós fazemos o contrário: planejamos a viagem inteira (roteiro dia a dia, bairro por bairro) e depois encaminhamos você ao Hostelworld para a reserva do hostel em si. Use os dois juntos."
+        "answer": "O Hostelworld e o Booking.com são incríveis para você reservar uma cama — mas não ajudam a planejar os dias intermediários. Nós fazemos o contrário: planejamos a viagem inteira (roteiro dia a dia, bairro por bairro) e depois encaminhamos você ao Booking.com, filtrado para hostels, para a reserva em si. Use os dois juntos."
       },
       "neighbourhoods": {
         "question": "Ele vai sugerir hostels em bons bairros?",
