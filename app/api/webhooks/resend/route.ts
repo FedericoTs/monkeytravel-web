@@ -51,6 +51,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isDmarcReport } from "@/lib/email/inbound-alerts";
+import { unsubKeyToSettingPatch } from "@/lib/email/unsubscribe";
 
 const WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET;
 
@@ -146,6 +147,33 @@ interface ResendWebhookPayload {
 }
 
 /**
+ * Reduce a recipient from Resend's payload to a bare, comparable address.
+ *
+ * `payload.data.to` carries whatever was on the original envelope, and that
+ * is RFC 5322 — "Ann Bernier <ann@example.com>" is as valid there as a bare
+ * address. Lowercasing alone keeps the display name, and every consumer of
+ * this value compares by exact bare address:
+ *
+ *   - dispatchEmail's suppression check does
+ *     .eq("recipient_email", recipient) on a bare lowercase string
+ *   - optOutMarketing does .ilike("email", e) against users.email
+ *
+ * so a display-name form matches NEITHER. The bounce is recorded and looks
+ * fine in the table while suppressing nothing.
+ *
+ * Found in production 2026-08-27: one such row, for a registered user, whose
+ * hard bounce had therefore never been suppressing anything.
+ */
+export function normalizeRecipient(raw: string): string {
+  const trimmed = (raw ?? "").trim();
+  // Angle-bracket form wins when present; otherwise the whole string is
+  // already the address. Deliberately does NOT try to validate — an address
+  // we cannot parse is still better stored verbatim than dropped.
+  const angle = trimmed.match(/<([^>]+)>/);
+  return (angle ? angle[1] : trimmed).toLowerCase().trim();
+}
+
+/**
  * Mirror a marketing opt-out into OUR source of truth
  * (users.notification_settings.marketingNotifications=false) so the app's own
  * send path honours a Resend-side unsubscribe/complaint too. Without this the
@@ -155,9 +183,23 @@ interface ResendWebhookPayload {
  */
 async function optOutMarketing(
   admin: ReturnType<typeof createAdminClient>,
-  email: string
+  email: string,
+  /**
+   * How much to silence.
+   *
+   * "lifecycle" — a Resend-native unsubscribe. Turns off the whole automated
+   *   trip stream, matching what the tokenized one-click link does. Turning
+   *   off only marketing here would leave pre-trip reminders arriving after
+   *   someone pressed unsubscribe, and the next click is the spam button.
+   *
+   * "all" — a SPAM COMPLAINT. The user did not ask to receive less; they
+   *   reported us. That is the strongest signal a recipient can send and it
+   *   is cross-channel, so it sets the master switch. Anything narrower means
+   *   we keep emailing someone who has formally called our mail abuse.
+   */
+  scope: "lifecycle" | "all"
 ): Promise<{ ok: boolean; alreadyOff?: boolean; reason?: string }> {
-  const e = email.toLowerCase().trim();
+  const e = normalizeRecipient(email);
   if (!e) return { ok: false, reason: "empty email" };
   const { data: user, error } = await admin
     .from("users")
@@ -166,11 +208,24 @@ async function optOutMarketing(
     .maybeSingle();
   if (error) return { ok: false, reason: error.message };
   if (!user) return { ok: false, reason: "no matching user" };
+
   const ns = (user.notification_settings ?? {}) as Record<string, unknown>;
-  if (ns.marketingNotifications === false) return { ok: true, alreadyOff: true };
+  // Reuses the SAME mapping the tokenized unsubscribe link uses, so the two
+  // routes to "stop emailing me" cannot silence different things.
+  const patch = unsubKeyToSettingPatch(
+    scope === "all" ? "all" : "marketingNotifications"
+  );
+
+  // Short-circuit only when EVERY key in the patch is already off. The old
+  // check looked at marketingNotifications alone, so once that was false a
+  // later complaint could no longer reach emailNotifications — the stronger
+  // signal was swallowed by the weaker one having arrived first.
+  const alreadyOff = Object.entries(patch).every(([k, v]) => ns[k] === v);
+  if (alreadyOff) return { ok: true, alreadyOff: true };
+
   const { error: updErr } = await admin
     .from("users")
-    .update({ notification_settings: { ...ns, marketingNotifications: false } })
+    .update({ notification_settings: { ...ns, ...patch } })
     .eq("id", user.id);
   if (updErr) return { ok: false, reason: updErr.message };
   return { ok: true };
@@ -277,7 +332,10 @@ export async function POST(request: NextRequest) {
     const unsubscribed =
       eventType === "contact.deleted" || payload.data?.unsubscribed === true;
     if (contactEmail && unsubscribed) {
-      const r = await optOutMarketing(admin, contactEmail);
+      // A native Resend unsubscribe silences the same thing the tokenized
+      // one-click link does — the whole automated trip stream, not just
+      // marketing. Two routes to "stop emailing me" must not differ.
+      const r = await optOutMarketing(admin, contactEmail, "lifecycle");
       if (!r.ok) {
         console.error("[resend-webhook] contact opt-out sync failed", r.reason);
       }
@@ -398,12 +456,14 @@ Reply directly to this message to answer the sender.
       return NextResponse.json({ ok: true, ignored: eventType });
   }
 
-  // A spam complaint is the strongest opt-out signal there is: stop ALL
-  // marketing to this address across every channel, not just suppress this
-  // one message. Mirror it into notification_settings immediately.
+  // A spam complaint is the strongest opt-out signal there is. The user did
+  // not ask for less mail, they reported us — so this sets the MASTER switch,
+  // not just the marketing key. Anything narrower means we keep emailing
+  // someone who has formally called our mail abuse, which is both a trust
+  // failure and the fastest way to lose the sending domain.
   if (targetStatus === "complained") {
     for (const recipient of recipients) {
-      const r = await optOutMarketing(admin, recipient);
+      const r = await optOutMarketing(admin, recipient, "all");
       if (!r.ok && !r.alreadyOff) {
         console.error(
           "[resend-webhook] complaint opt-out sync failed",
@@ -472,7 +532,7 @@ Reply directly to this message to answer the sender.
     // recipient + event type — duplicate inserts are benign.
     if (recipients.length > 0) {
       const inserts = recipients.map((recipient) => ({
-        recipient_email: recipient.toLowerCase().trim(),
+        recipient_email: normalizeRecipient(recipient),
         template_id: "unknown",
         status: targetStatus!,
         message_id: messageId,

@@ -65,6 +65,23 @@ export async function GET(request: Request) {
   const referralCode = searchParams.get("ref");
   const locale = searchParams.get("locale") || "en";
 
+  /**
+   * Accept a locale from auth user_metadata only if it is one we actually
+   * support, else undefined so the caller can fall back.
+   *
+   * Returns undefined rather than "en" on purpose: "en" is a real answer for
+   * OAuth (where the query param carries the truth) and a wrong one here, so
+   * the two cases must stay distinguishable. Must match the
+   * users.preferred_language CHECK — writing an unsupported value would fail
+   * the whole upsert and leave the user with no profile row at all.
+   */
+  const SUPPORTED_SIGNUP_LOCALES = new Set(["en", "es", "it", "pt"]);
+  const normalizeSignupLocale = (raw: unknown): string | undefined => {
+    if (typeof raw !== "string") return undefined;
+    const base = raw.trim().toLowerCase().split(/[-_]/)[0];
+    return SUPPORTED_SIGNUP_LOCALES.has(base) ? base : undefined;
+  };
+
   // Helper to build locale-prefixed URLs
   const getLocalePath = (path: string) => {
     if (locale === "en") {
@@ -256,10 +273,25 @@ export async function GET(request: Request) {
           email: data.user.email,
           display_name: displayName,
           avatar_url: data.user.user_metadata?.avatar_url || null,
-          // UI language at signup time — drives the language we email them
-          // in. `locale` comes from the OAuth callback query param the
-          // signup/login pages append.
-          preferred_language: locale,
+          // UI language at signup time — drives the language we email them in.
+          //
+          // `locale` above is `searchParams.get("locale") || "en"`. For OAuth
+          // that param is always present (the signup/login pages append it).
+          // For EMAIL signup it is not: the signup page only sets
+          // `emailRedirectTo` — the thing that carries ?locale= through the
+          // confirm-email round-trip — when a referral code is present. So for
+          // every unreferred email signup this fell back to "en", and because
+          // this is an UPSERT it overwrote the correct value the signup page
+          // had already written client-side.
+          //
+          // supabase.auth.signUp() stamps the true UI locale into auth
+          // user_metadata before that round-trip, so it survives. Prefer it,
+          // and fall back to the query param for OAuth where it does not exist.
+          //
+          // Measured 2026-08-27: 64 users browse in es/it/pt while stored as
+          // 'en', 19 of them with reminders already queued.
+          preferred_language:
+            normalizeSignupLocale(data.user.user_metadata?.locale) ?? locale,
           preferences: {}, // Will be filled by complete-profile page if from onboarding
           onboarding_completed: true, // Skip onboarding — users can personalize later in profile settings
           welcome_completed: true, // Skip welcome gate — go straight to trip creation

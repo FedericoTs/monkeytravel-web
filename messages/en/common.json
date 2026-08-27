@@ -2318,6 +2318,37 @@
       "body": "Today's the day. Your full {destination} itinerary is one tap away — open it whenever you need directions, opening hours, or what's next."
     }
   },
+  "tripFollowupEmail": {
+    "followup_return_3d": {
+      "heading": "How was {destination}?",
+      "body": "You got back a few days ago. Your day-by-day plan is still saved — handy if someone asks where you went. And if anything in it turned out wrong on the ground, tell us: that's the fastest way we get better.",
+      "cta": "Open your trip"
+    },
+    "followup_next_21d": {
+      "heading": "Thinking about the next one?",
+      "body": "It's been about three weeks since {destination}. If another trip is forming in the back of your mind, we can turn it into a day-by-day plan in about a minute — same as last time.",
+      "cta": "Plan your next trip"
+    },
+    "followup_final_45d": {
+      "heading": "Last one from us",
+      "body": "We won't keep nudging. If a trip comes up we're here — your {destination} plan is still saved, and a new one takes about a minute. Otherwise, enjoy the quiet.",
+      "cta": "Plan a trip"
+    },
+    "followup_dormant": {
+      "heading": "Your {destination} plan is still here",
+      "body": "Your day-by-day {destination} plan is saved and ready whenever you want it. And if another trip is on your mind, a new plan takes about a minute to put together.",
+      "cta": "Plan a trip"
+    },
+    "finalNote": "This is the last email in this sequence."
+  },
+  "emailContext": {
+    "weather": "Weather while you're there",
+    "packing": "Worth packing",
+    "goingFor": "What you're going for",
+    "dayOne": "Day one",
+    "today": "Today's plan",
+    "yourHighlights": "Your highlights"
+  },
   "explore": {
     "filters": {
       "searchPlaceholder": "Search destination (Paris, Tokyo, ...)",

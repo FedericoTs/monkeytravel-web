@@ -18,6 +18,8 @@
 
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
+import { ContextBlocks, contextBlocksText } from "./_context-blocks";
+import type { ContextBlock } from "../trip-context";
 import type { EmailLocale } from "../copy";
 
 /**
@@ -50,6 +52,13 @@ export interface TripReminderEmailProps {
   unsubscribeUrl?: string;
   /** Recipient UI language — localizes the shared shell. */
   locale?: EmailLocale;
+  /**
+   * Per-trip enrichment (weather note, packing, day-one plan), built by
+   * lib/email/trip-context.ts from data the generator already stored.
+   * Optional and frequently absent — a third of trips have no highlights —
+   * so the email must read as finished with none of it.
+   */
+  contextBlocks?: ContextBlock[];
 }
 
 /** Slot → emoji. Visual hook, not load-bearing for the message. */
@@ -73,6 +82,7 @@ export default function TripReminderEmail({
   tripUrl,
   unsubscribeUrl,
   locale = "en",
+  contextBlocks,
 }: TripReminderEmailProps) {
   const preview = `${SLOT_EMOJI[slot]} ${heading} — ${destination}`;
 
@@ -93,6 +103,8 @@ export default function TripReminderEmail({
 
       <Text style={bodyText}>{body}</Text>
 
+      <ContextBlocks blocks={contextBlocks} />
+
       <Section style={{ textAlign: "center", margin: "32px 0" }}>
         <Button href={tripUrl} style={button}>
           {ctaLabel}
@@ -100,6 +112,34 @@ export default function TripReminderEmail({
       </Section>
     </EmailLayout>
   );
+}
+
+/**
+ * The subject line for a pre-trip reminder.
+ *
+ * Appends the destination to the heading — EXCEPT when the heading already
+ * carries it. weather_3d's heading is "Three days to {destination}" in all
+ * four locales, so appending unconditionally printed the destination twice:
+ *
+ *   "Three days to Palermo, Agrigento, Syracuse & Taormina
+ *    — Palermo, Agrigento, Syracuse & Taormina"          (95 chars)
+ *
+ * On the live queue that put 27 of 699 subjects past the ~78 characters a
+ * mail client will show, and the worst were all multi-city trips.
+ *
+ * EXPORTED because three call sites need this identical rule: the send path,
+ * scripts/audit-queued-emails.mts, and scripts/send-test-emails.mts. It was
+ * duplicated once and drifted within the hour — the fix shipped in send.ts
+ * while the review script kept mailing "Three days to Paris — Paris". One
+ * definition is the only version of this that stays true.
+ */
+export function tripReminderSubject(props: {
+  heading: string;
+  destination: string;
+}): string {
+  return props.heading.includes(props.destination)
+    ? props.heading
+    : `${props.heading} — ${props.destination}`;
 }
 
 /**
@@ -114,6 +154,7 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
     `${props.destination}${props.tripDates ? ` — ${props.tripDates}` : ""}`,
     "",
     props.body,
+    ...contextBlocksText(props.contextBlocks),
     "",
     `${props.ctaLabel}: ${props.tripUrl}`,
     "",

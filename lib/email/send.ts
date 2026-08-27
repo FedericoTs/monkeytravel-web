@@ -29,6 +29,7 @@ import VoteCastEmail, {
 } from "./templates/VoteCast";
 import TripReminderEmail, {
   tripReminderEmailText,
+  tripReminderSubject,
   type TripReminderEmailProps,
 } from "./templates/TripReminder";
 import FeedbackOutreachEmail, {
@@ -36,6 +37,11 @@ import FeedbackOutreachEmail, {
   feedbackOutreachSubject,
   type FeedbackOutreachEmailProps,
 } from "./templates/FeedbackOutreach";
+import TripFollowupEmail, {
+  tripFollowupEmailText,
+  tripFollowupSubject,
+  type TripFollowupEmailProps,
+} from "./templates/TripFollowup";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
@@ -43,6 +49,7 @@ export type EmailTemplate =
   | { id: "invite"; props: InviteEmailProps }
   | { id: "vote_cast"; props: VoteCastEmailProps }
   | { id: "trip_reminder"; props: TripReminderEmailProps }
+  | { id: "trip_followup"; props: TripFollowupEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps };
 
 /** Stable outcome shape. */
@@ -123,6 +130,23 @@ interface DispatchOptions {
    * the sender's locale.
    */
   locale?: EmailLocale;
+  /**
+   * Optional last-line check on the RENDERED output, run after the template
+   * is built and before anything is sent. Returning ok:false aborts the send
+   * and records a `failed` row carrying `reason`.
+   *
+   * A callback rather than a check baked in here, because what makes an email
+   * wrong is template-specific — the trip cron verifies that every enriched
+   * line traces back to its own trip, which is meaningless for an invite.
+   * dispatchEmail stays generic; the caller supplies the predicate.
+   *
+   * Runs on the already-rendered html/subject, so it costs no second render.
+   */
+  verify?: (rendered: {
+    html: string;
+    text: string;
+    subject: string;
+  }) => { ok: boolean; reason?: string };
 }
 
 const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
@@ -137,6 +161,12 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // (app/auth/callback/route.ts + app/[locale]/auth/signup/page.tsx);
   // we just honour it here. Read failure is fail-closed per cycle-7 #216.
   trip_reminder: "tripReminders",
+  // Post-trip re-engagement — marketing, NOT transactional. Deliberately
+  // a different key from trip_reminder: someone who opted into reminders
+  // for a trip they booked has not thereby agreed to be marketed to
+  // after it ends. Gating both on tripReminders would quietly convert a
+  // transactional consent into a marketing one.
+  trip_followup: "marketingNotifications",
   // Feedback outreach is research/marketing — gated by emailNotifications +
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
@@ -154,6 +184,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   invite: null, // transactional — recipient may not have an account yet
   vote_cast: "collabVotes",
   trip_reminder: "tripReminders",
+  trip_followup: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
 };
 
@@ -401,6 +432,51 @@ export async function dispatchEmail(
     return { ok: false, status: "failed", error: msg };
   }
 
+  // 4b. Last-line check on the rendered output, before anything leaves.
+  //
+  // Same contract as assertTranslated in the reminder cron, generalised: an
+  // email that is provably wrong is held back as `failed` rather than
+  // delivered. The row stays visible with its reason and can be retried once
+  // the cause is fixed; a delivered email cannot be recalled.
+  if (options.verify) {
+    let verdict: { ok: boolean; reason?: string };
+    try {
+      verdict = options.verify({ html, text, subject });
+    } catch (err) {
+      // A throwing verifier must not become a silent bypass. Treat it as a
+      // failure — the whole point is to fail closed.
+      verdict = {
+        ok: false,
+        reason: `verify threw: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    if (!verdict.ok) {
+      const reason = (verdict.reason ?? "verification failed").slice(0, 500);
+      console.error("[email/send] refusing to send — verification failed", {
+        template: options.template.id,
+        idempotencyKey: options.idempotencyKey,
+        reason,
+      });
+      const { error: vInsErr } = await admin.from("email_log").insert({
+        recipient_email: recipient,
+        template_id: options.template.id,
+        status: "failed",
+        error: reason,
+        idempotency_key: options.idempotencyKey ?? null,
+        metadata: { ...(options.metadata ?? {}), verification_failed: true },
+      });
+      if (vInsErr) {
+        console.error("[email/send] verification-failure log insert failed", vInsErr);
+        captureToSentry(vInsErr, {
+          stage: "log_insert_verification_failed",
+          recipient,
+          idempotencyKey: options.idempotencyKey,
+        });
+      }
+      return { ok: false, status: "failed", error: reason };
+    }
+  }
+
   // 5. Insert 'queued' row before sending — gives us the row id to
   //    update with the messageId after the send returns.
   //
@@ -606,7 +682,22 @@ async function renderTemplate(
       // it as the subject so the email subject + heading stay in sync.
       const html = await render(TripReminderEmail(template.props));
       const text = tripReminderEmailText(template.props);
-      const subject = `${template.props.heading} — ${template.props.destination}`;
+      // Shared with the audit and review scripts — see tripReminderSubject
+      // for why the destination is not always appended.
+      const subject = tripReminderSubject(template.props);
+      return { html, text, subject };
+    }
+    case "trip_followup": {
+      // Subject mirrors the heading (already a full sentence in every
+      // locale). No "— {destination}" suffix, unlike trip_reminder: see
+      // tripFollowupSubject for why.
+      const html = await render(TripFollowupEmail(template.props));
+      const text = tripFollowupEmailText(template.props);
+      const subject = tripFollowupSubject({
+        heading: template.props.heading,
+        destination: template.props.destination,
+        slot: template.props.slot,
+      });
       return { html, text, subject };
     }
     case "feedback_outreach": {
