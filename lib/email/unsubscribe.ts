@@ -184,10 +184,38 @@ export function buildUnsubscribeUrl(
 }
 
 /**
- * Map UnsubKey → users.notification_settings field to flip. "all" gets
- * special-cased — it sets the master switch.
+ * Keys that belong to the automated trip-lifecycle stream.
+ *
+ * `tripReminders` gates the pre-trip cascade; `marketingNotifications` gates
+ * the post-trip re-engagement sequence. They are separate CONSENTS — a
+ * reminder opt-in is not permission to market — but to the person receiving
+ * them they are one stream of automated email from one product.
+ *
+ * So an unsubscribe from either stops BOTH. Someone who clicks "unsubscribe"
+ * on a trip reminder and then receives "Thinking about the next one?" three
+ * weeks later has every reason to believe we ignored them, and the next click
+ * is the spam button.
+ *
+ * The asymmetry justifies it: over-stopping costs a reminder the user can
+ * restore in one click from the preference centre; under-stopping costs a
+ * spam complaint, which is permanent and lands on the whole sending domain.
+ */
+const LIFECYCLE_KEYS = ["tripReminders", "marketingNotifications"] as const;
+
+/**
+ * Map UnsubKey → the users.notification_settings fields to flip.
+ *
+ * - "all" sets the master switch off.
+ * - Any lifecycle key turns off the whole lifecycle stream (see above).
+ * - Collaboration keys (votes, proposals, comments, invites) stay
+ *   independent: someone actively planning a trip with other people wants
+ *   those, and silencing them because the user declined marketing would be
+ *   a worse product, not a safer one.
  */
 export function unsubKeyToSettingPatch(key: UnsubKey): Record<string, boolean> {
   if (key === "all") return { emailNotifications: false };
+  if ((LIFECYCLE_KEYS as readonly string[]).includes(key)) {
+    return Object.fromEntries(LIFECYCLE_KEYS.map((k) => [k, false]));
+  }
   return { [key]: false };
 }
