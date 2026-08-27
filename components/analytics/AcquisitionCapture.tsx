@@ -31,6 +31,31 @@ import { useAnalyticsConsent } from "@/lib/consent/hooks";
  * attributed, so channel mix will UNDER-count. Partial and consented beats
  * complete and not. Read the resulting numbers as "of consenting users".
  *
+ * MEASURED OUTCOME, 2026-08-27 — READ THIS BEFORE "FIXING" ANYTHING.
+ * users.acquisition_source is NULL for 478 of 478 users, including 113
+ * signups since this component shipped and 36 in the preceding week. The
+ * under-count is not partial, it is total.
+ *
+ * This is NOT a bug, and it was verified rather than assumed. On production,
+ * accepting analytics consent writes mt_utm_source/mt_utm_medium immediately
+ * (observed: source=direct, medium=none), the cookie survives a full page
+ * load, it is path=/ samesite=lax so a top-level GET carries it to
+ * /auth/callback, and the callback does read and stamp it. Every link in the
+ * chain works.
+ *
+ * The column is empty because the cookie is only ever written AFTER a user
+ * accepts analytics, and analytics defaults to false (DEFAULT_CONSENT_STATE
+ * in lib/consent/types.ts). In practice essentially nobody accepts before
+ * signing up — the wizard is the front door and signup happens fast.
+ *
+ * DECISION 2026-08-27: leave it. DB-side acquisition stays blind; the
+ * question is answered from GA4/GSC instead. The alternatives were both
+ * rejected deliberately — bucketing server-side at signup would populate the
+ * column but stores a channel without analytics consent, and prompting for
+ * consent earlier would add friction to the funnel that converts at 48.7%.
+ * Revisit only if DB-level attribution becomes genuinely necessary, and treat
+ * the consent question as the actual blocker rather than the plumbing.
+ *
  * Deliberately coarse: a bucket name only. No full referrer URL, no query
  * string, no path, nothing that identifies a person.
  */
