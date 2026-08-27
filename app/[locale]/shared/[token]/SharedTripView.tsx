@@ -10,6 +10,7 @@ import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DestinationHero from "@/components/DestinationHero";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import ActivityCard from "@/components/ActivityCard";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import DaySlider from "@/components/ui/DaySlider";
@@ -516,13 +517,26 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         {/* Interactive Map */}
         {showMap && displayItinerary.length > 0 && (
           <div className="mb-8">
-            <TripMap
-              days={displayItinerary}
-              destination={destination}
-              selectedDay={selectedDay}
-              className="h-[400px]"
-              disableApiCalls={true}
-            />
+            {/* The map is decorative here — a shared trip must still render
+                its itinerary if Google Maps throws. Sentry -26/-27: a null
+                map ref on iOS Safari took the whole page to the route-level
+                error boundary. See components/ErrorBoundary.tsx. */}
+            <ErrorBoundary
+              errorType="shared-trip-map"
+              fallback={
+                <div className="h-[400px] bg-slate-100 rounded-xl flex items-center justify-center">
+                  <p className="text-slate-500">{t("map.failedToLoad")}</p>
+                </div>
+              }
+            >
+              <TripMap
+                days={displayItinerary}
+                destination={destination}
+                selectedDay={selectedDay}
+                className="h-[400px]"
+                disableApiCalls={true}
+              />
+            </ErrorBoundary>
           </div>
         )}
 
