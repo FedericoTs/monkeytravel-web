@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import {
-  getHostelworldSearchUrl,
-  isHostelworldAffiliateActive,
-} from "@/lib/affiliates/hostelworld";
+  getStaySearchUrl,
+  isStayAffiliateActive,
+} from "@/lib/affiliates/stay-search";
 import PartnerButton from "@/components/booking/PartnerButton";
 
 interface BackpackerHostelCtaProps {
@@ -93,8 +93,12 @@ export default function BackpackerHostelCta({
   // i18n: three hardcoded English strings + the legally-important affiliate
   // disclosure. Mirrors PublishToggle pattern (commit 7db5fd8).
   const t = useTranslations("common.backpacker.hostelCta");
-  const url = getHostelworldSearchUrl({ destination, startDate, endDate });
-  const isAffiliate = isHostelworldAffiliateActive();
+  // hostelsOnly: this surface is hostel-branded ("Find hostels for this
+  // trip"), so an unfiltered hotel list would be the wrong product. The
+  // vendor moved from Hostelworld to Booking.com because the Hostelworld
+  // search path 404s — see lib/affiliates/stay-search.ts.
+  const url = getStaySearchUrl({ destination, startDate, endDate, hostelsOnly: true });
+  const isAffiliate = isStayAffiliateActive();
 
   return (
     <div className={className}>

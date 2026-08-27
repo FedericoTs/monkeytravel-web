@@ -24,11 +24,18 @@ import type { Destination } from "@/lib/destinations/types";
 
 const isActive = vi.fn<() => boolean>();
 
-vi.mock("@/lib/affiliates/hostelworld", () => ({
-  isHostelworldAffiliateActive: () => isActive(),
+// Mocks lib/affiliates/stay-search, NOT the old hostelworld module: the
+// Hostelworld search URL 404s in production and the component moved to
+// Booking.com. When that import changed, this mock silently stopped
+// intercepting — the real module ran instead, isStayAffiliateActive() is a
+// hardcoded false, and the "affiliate is on" case could no longer be
+// exercised at all. A mock pointed at a module nobody imports any more fails
+// open, which is worth remembering.
+vi.mock("@/lib/affiliates/stay-search", () => ({
+  isStayAffiliateActive: () => isActive(),
   // Mirrors the real builder closely enough to assert the city and dates
-  // reach it; the real URL shape is covered by the module's own callers.
-  getHostelworldSearchUrl: ({
+  // reach it; the real URL shape is covered by stay-search.vitest.ts.
+  getStaySearchUrl: ({
     destination,
     startDate,
     endDate,
@@ -36,7 +43,7 @@ vi.mock("@/lib/affiliates/hostelworld", () => ({
     destination: string;
     startDate: string;
     endDate: string;
-  }) => `https://www.hostelworld.com/s?k=${destination}&a=${startDate}&b=${endDate}`,
+  }) => `https://www.booking.com/searchresults.html?k=${destination}&a=${startDate}&b=${endDate}`,
 }));
 
 vi.mock("@/lib/i18n/routing", () => ({

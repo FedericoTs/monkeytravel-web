@@ -1,7 +1,7 @@
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import PartnerButton from "@/components/booking/PartnerButton";
 import { Link } from "@/lib/i18n/routing";
-import { getHostelworldSearchUrl, isHostelworldAffiliateActive } from "@/lib/affiliates/hostelworld";
+import { getStaySearchUrl, isStayAffiliateActive } from "@/lib/affiliates/stay-search";
 import { seasonalStayWindow } from "@/lib/blog/seasonal-window";
 import { tripsNewHrefForPost } from "@/lib/blog/trip-prefill";
 import type { Destination, Locale, SampleActivity } from "@/lib/destinations/types";
@@ -72,16 +72,16 @@ export default function BlogDestinationPicks({
 
   // The stay CTA renders whether or not the affiliate is live — a product
   // decision (2026-08-26): the link is useful to the reader on its own, and
-  // there is no AWIN account yet. getHostelworldSearchUrl() degrades to a
-  // clean hostelworld.com search when HOSTELWORLD_AWIN_AFFILIATE_ID is unset,
-  // so nothing has to change here if one is added later.
+  // no partner program is live (Travelpayouts returns 400 for this account,
+  // no AWIN id set). getStaySearchUrl() returns an untracked Booking.com
+  // search today and has a single seam for tracking if that changes.
   //
   // What DOES depend on the affiliate being live is how the link is labelled:
   // rel="sponsored" and an "Affiliate link" note are disclosures. Putting
   // either on a link that pays us nothing states something untrue about our
   // relationship with Hostelworld, so both are gated on affiliateActive
   // rather than on whether the CTA renders.
-  const affiliateActive = isHostelworldAffiliateActive();
+  const affiliateActive = isStayAffiliateActive();
   const showStay = Boolean(stayWindow);
 
   return (
@@ -177,14 +177,14 @@ export default function BlogDestinationPicks({
                       <>
                         <PartnerButton
                           partner="other"
-                          href={getHostelworldSearchUrl({
+                          href={getStaySearchUrl({
                             destination: city,
                             startDate: stayWindow.start,
                             endDate: stayWindow.end,
                           })}
                           destination={city}
-                          partnerName="Hostelworld"
-                          category="hostels"
+                          partnerName="Booking.com"
+                          category="hotels"
                           surface="blog_destination_picks"
                           variant="custom"
                           showIcon={false}

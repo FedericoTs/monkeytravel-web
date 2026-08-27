@@ -1,6 +1,6 @@
 import PartnerButton from "@/components/booking/PartnerButton";
 import { Link } from "@/lib/i18n/routing";
-import { getHostelworldSearchUrl } from "@/lib/affiliates/hostelworld";
+import { getStaySearchUrl } from "@/lib/affiliates/stay-search";
 import { destinations } from "@/lib/destinations/data";
 import type { Locale } from "@/lib/destinations/types";
 import type { LeaderboardEntry } from "@/lib/leaderboard/destinations";
@@ -105,7 +105,7 @@ export default function DestinationLeaderboard({
           // notFound()s on an unknown one, but the page renders in parallel with
           // it, so a bogus segment (e.g. /apple-touch-icon-precomposed.png) still
           // reaches here and indexes the name map to undefined — which used to
-          // throw in getHostelworldSearchUrl. Fall back to the slug's title case.
+          // throw in getStaySearchUrl. Fall back to the slug's title case.
           const city = dest?.name[locale] ?? titleCase(entry.city);
           const country = dest?.country[locale];
           const rising = isRising(entry);
@@ -179,14 +179,14 @@ export default function DestinationLeaderboard({
                 </Link>
                 <PartnerButton
                   partner="other"
-                  href={getHostelworldSearchUrl({
+                  href={getStaySearchUrl({
                     destination: city,
                     startDate: stay.start,
                     endDate: stay.end,
                   })}
                   destination={city}
-                  partnerName="Hostelworld"
-                  category="hostels"
+                  partnerName="Booking.com"
+                  category="hotels"
                   surface="home_leaderboard"
                   variant="custom"
                   showIcon={false}

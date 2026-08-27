@@ -48,6 +48,22 @@ export interface HostelSearchParams {
  * Generate a Hostelworld search URL for a trip. See file header for
  * the attribution behaviour.
  */
+/**
+ * @deprecated DO NOT USE — the URL this returns is dead.
+ *
+ * https://www.hostelworld.com/pwa/wds/s?... 301s to /pwa/s, which returns 404.
+ * Every surface that rendered it was linking users to a broken page. Verified
+ * 2026-08-27.
+ *
+ * Hostelworld's working city pages (/hostels/<city>) were rejected as a
+ * replacement because unknown terms do not 404 — they resolve confidently to
+ * the WRONG city (/hostels/bali lands on Bahrain). Use getStaySearchUrl() from
+ * lib/affiliates/stay-search.ts instead, which passes the destination as a
+ * query parameter so a bad value degrades to a search page.
+ *
+ * Kept only so the click-tracking route and its admin dashboard still compile
+ * against this module's types.
+ */
 export function getHostelworldSearchUrl(params: HostelSearchParams): string {
   // Hostelworld's search accepts a single "search-keyword" — passing
   // the city alone (split off any country suffix) gives the cleanest
