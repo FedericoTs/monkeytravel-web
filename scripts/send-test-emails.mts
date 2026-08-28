@@ -198,10 +198,22 @@ const followupCopy = commonMessages.tripFollowupEmail;
 const contextLabels = commonMessages.emailContext;
 
 /**
- * Block CONTENT stays English across all locales on purpose: the generator
- * writes trip content in the USER'S language, so in production a Spanish
- * user's blocks are Spanish. Only the headings come from
- * messages/<locale>/common.json — those are what a locale review checks.
+ * Block CONTENT stays English in this fixture across every locale, and that
+ * is not just a shortcut — it matches what those users actually receive.
+ *
+ * An earlier version of this comment said the fixture was English "because
+ * the generator writes trip content in the user's language, so in production
+ * a Spanish user's blocks are Spanish". That was wrong. The generator uses
+ * whatever preferred_language held AT GENERATION TIME, and that column was
+ * 'en' for every user until the 2026-08-27 repair. All 57 trips belonging to
+ * the 63 now-non-English users predate it.
+ *
+ * So an es/it preview here — Spanish headings over English block content — is
+ * an accurate preview, not a limitation of the fixture. See
+ * lib/email/trip-context.ts for why that state is accepted rather than fixed.
+ *
+ * Only the headings come from messages/<locale>/common.json, and those are
+ * what a locale review of this script is actually checking.
  */
 const ctxFor = (slot: string) =>
   buildContextBlocks(slot, SAMPLE_TRIP.context, {
