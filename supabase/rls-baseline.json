@@ -2418,7 +2418,6 @@
       "anon": [
         "DELETE",
         "INSERT",
-        "SELECT",
         "UPDATE"
       ],
       "authenticated": [
@@ -2441,11 +2440,11 @@
       },
       {
         "cmd": "SELECT",
-        "name": "users_select_public",
+        "name": "users_select_own",
         "roles": [
           "public"
         ],
-        "using": "true",
+        "using": "(id = ( SELECT auth.uid() AS uid))",
         "permissive": true,
         "with_check": null
       },
