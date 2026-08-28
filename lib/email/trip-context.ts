@@ -39,12 +39,33 @@
  * times (Sentry JAVASCRIPT-NEXTJS-12). Everything below treats the input as
  * unknown and drops anything that is not a usable string.
  *
- * LANGUAGE
- * --------
- * Block CONTENT is not translated here — the generator writes it in the
- * user's own language already. Only the headings are localised, via
- * common.emailContext. Passing them in (rather than importing next-intl)
- * keeps this module pure and unit-testable.
+ * LANGUAGE — READ THIS, IT IS NOT WHAT IT LOOKS LIKE
+ * --------------------------------------------------
+ * Only the headings are localised, via common.emailContext. Passing them in
+ * (rather than importing next-intl) keeps this module pure and unit-testable.
+ *
+ * Block CONTENT is never translated here, and an earlier version of this
+ * comment justified that by claiming the generator already writes trip
+ * content in the user's own language. That is false in a way that matters.
+ *
+ * The generator writes in whatever users.preferred_language said AT
+ * GENERATION TIME — and that column was 'en' for all 478 users until it was
+ * repaired on 2026-08-27 (see app/auth/callback/route.ts for the signup bug
+ * that caused it). Measured immediately after that repair: 63 users now hold
+ * es/it/pt, they own 57 trips between them, and ZERO of those trips were
+ * created after the repair.
+ *
+ * So for every one of them the email shell is correctly Spanish or Italian
+ * while these blocks are English:
+ *
+ *   [El tiempo durante tu viaje] Expected cool temperatures (10-18°C)…
+ *
+ * That is a deliberate accepted state, not an oversight. It is strictly
+ * better than the fully-English email those users received before, it costs
+ * no Gemini call to leave alone, and it self-heals: the next trip they
+ * generate comes out in their real language. Anyone tempted to "fix" it by
+ * translating at send time should price the per-email model call first —
+ * fewer calls per trip is a standing constraint on this product.
  */
 
 /** One row in a list block. `meta` renders muted, to the right. */
