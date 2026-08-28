@@ -38,7 +38,7 @@ function goodEmail(overrides: Partial<Parameters<typeof verifyRenderedEmail>[0]>
       <a href="https://monkeytravel.app/trips/abc-123?slot=morning_of">Open</a>
       </body></html>`,
     destination: "Paris",
-    tripId: "abc-123",
+    ctaUrl: "https://monkeytravel.app/trips/abc-123?slot=morning_of",
     contextBlocks: [
       { label: "Today's plan", items: [{ text: "Louvre Museum", meta: "09:30" }] },
     ],
@@ -60,7 +60,7 @@ describe("correct emails are not blocked", () => {
       destination: dest,
       subject: `Three days to ${dest}`,
       html: `<p>Three days to ${escapeHtmlText(dest)}</p>
-             <a href="/trips/abc-123">x</a><p>Louvre Museum</p>`,
+             <a href="https://monkeytravel.app/trips/abc-123?slot=morning_of">x</a><p>Louvre Museum</p>`,
       contextBlocks: [],
     });
     expect(blockingDefects(defects)).toEqual([]);
@@ -128,15 +128,36 @@ describe("broken emails are caught", () => {
   });
 
   it("blocks when the destination never reaches the body", () => {
-    const defects = goodEmail({ html: "<p>somewhere else</p><a href='/trips/abc-123'>x</a>" });
+    const defects = goodEmail({
+      html: "<p>somewhere else</p><a href='https://monkeytravel.app/trips/abc-123?slot=morning_of'>x</a>",
+    });
     expect(blockingDefects(defects).map((d) => d.check)).toContain("destination_missing");
   });
 
-  it("blocks when there is no link back to this trip", () => {
+  it("blocks when the CTA does not reach its target", () => {
     const defects = goodEmail({
       html: "<p>Paris</p><p>Louvre Museum</p><a href='/trips/SOMEONE-ELSE'>x</a>",
     });
-    expect(blockingDefects(defects).map((d) => d.check)).toContain("link_missing");
+    expect(blockingDefects(defects).map((d) => d.check)).toContain("cta_missing");
+  });
+
+  it("does NOT block a followup whose CTA is the wizard, not the trip", () => {
+    // The regression the audit caught on live rows. followup_next_21d and
+    // followup_final_45d deliberately link to the wizard — sending someone
+    // back to a trip six weeks gone is a dead end — so they carry no trip id.
+    // The old check demanded one, and being a BLOCKING defect it would have
+    // silently killed the last two emails of every Loop 2 sequence.
+    const wizard = "https://monkeytravel.app/trips/new?slot=followup_next_21d";
+    const defects = verifyRenderedEmail({
+      subject: "Thinking about the next one?",
+      html: `<p>Thinking about the next one?</p><p>Paris</p>
+             <a href="${wizard}">Plan your next trip</a>`,
+      destination: "Paris",
+      ctaUrl: wizard,
+      contextBlocks: [],
+      ownStrings: [],
+    });
+    expect(blockingDefects(defects)).toEqual([]);
   });
 });
 
@@ -145,9 +166,9 @@ describe("containment — the anti-cross-contamination check", () => {
     // The scenario that started all of this: a Lisbon email listing the Louvre.
     const defects = verifyRenderedEmail({
       subject: "Travel day — Lisbon",
-      html: "<p>Lisbon</p><p>Louvre Museum</p><a href='/trips/lisbon-1'>x</a>",
+      html: "<p>Lisbon</p><p>Louvre Museum</p><a href='https://monkeytravel.app/trips/lisbon-1?slot=morning_of'>x</a>",
       destination: "Lisbon",
-      tripId: "lisbon-1",
+      ctaUrl: "https://monkeytravel.app/trips/lisbon-1?slot=morning_of",
       contextBlocks: [
         { label: "Today's plan", items: [{ text: "Louvre Museum", meta: "09:30" }] },
       ],

@@ -41,8 +41,22 @@ export interface VerifyRenderInput {
   html: string;
   /** The destination as it was rendered into the email. */
   destination: string;
-  /** Used to prove the CTA links back to the right trip. */
-  tripId: string;
+  /**
+   * The exact URL this email's CTA should point at.
+   *
+   * Was `tripId` with an assertion that the body contains it. That was wrong,
+   * and the audit caught it on live rows: followup_next_21d and
+   * followup_final_45d deliberately link to the WIZARD, not the finished trip
+   * — sending someone back to a trip six weeks gone is a dead end. So those
+   * two contain no trip id, the check failed, and because it is a BLOCKING
+   * defect the gate would have silently killed the last two emails of every
+   * Loop 2 sequence.
+   *
+   * Checking the real CTA target is both correct and stronger: for reminders
+   * it still proves the link carries the right trip id, and for the wizard
+   * slots it proves they reach the wizard.
+   */
+  ctaUrl: string;
   contextBlocks?: ContextBlock[];
   /**
    * Every enrichment string belonging to THIS trip — the weather note, the
@@ -141,8 +155,12 @@ export function verifyRenderedEmail(input: VerifyRenderInput): RenderDefect[] {
     block("destination_missing", `"${input.destination}" never appears in the body`);
   }
 
-  if (input.tripId && !input.html.includes(input.tripId)) {
-    block("link_missing", "no link back to this trip");
+  // The CTA must actually reach its target. href attributes are escaped the
+  // same way text nodes are, so compare against the escaped form — a trip
+  // URL is fine either way today, but a future query string with "&" would
+  // otherwise fail on a correct email.
+  if (input.ctaUrl && !input.html.includes(escapeHtmlText(input.ctaUrl))) {
+    block("cta_missing", `CTA does not link to ${input.ctaUrl}`);
   }
 
   // CONTAINMENT — the check that answers "are we mixing trips up".

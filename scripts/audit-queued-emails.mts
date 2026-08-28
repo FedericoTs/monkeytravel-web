@@ -314,7 +314,7 @@ async function main() {
       subject,
       html,
       destination,
-      tripId: trip.id,
+      ctaUrl,
       contextBlocks: blocks,
       ownStrings,
     })) {

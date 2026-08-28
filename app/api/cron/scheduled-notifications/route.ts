@@ -671,7 +671,9 @@ async function processRow(
           subject,
           html,
           destination,
-          tripId: trip.id,
+          // The real CTA target: the trip for reminders and the +3d
+          // followup, the wizard for the later followup slots.
+          ctaUrl,
           contextBlocks,
           // This trip's own enrichment values — the corpus containment is
           // checked against. Anything rendered that is not in here came from
