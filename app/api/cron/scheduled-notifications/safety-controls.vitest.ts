@@ -79,6 +79,32 @@ describe("canary send cap", () => {
   });
 });
 
+describe("a cancelled trip must never generate mail", () => {
+  it("suppresses a queued row whose trip has since been cancelled", () => {
+    // Checked at DISPATCH, not only at enqueue, because cancelling happens
+    // after the cascade is already queued. Measured 2026-08-28: five
+    // cancelled trips still held 23 scheduled rows, all future-dated, none
+    // muted — including a Sicily trip cancelled in July that would have sent
+    // "Three days to Palermo" in August.
+    expect(SRC).toContain("trip_cancelled");
+    expect(SRC).toMatch(/trip\.status === "cancelled"/);
+  });
+
+  it("selects status so the check has something to read", () => {
+    // The guard is silently dead without this: trip.status would be
+    // undefined and the comparison always false.
+    expect(SRC).toMatch(/reminders_muted,\s*status/);
+  });
+
+  it("does NOT gate on 'planning' or require 'confirmed'", () => {
+    // 'planning' is the DEFAULT (302 of 394 live trips) and means only that
+    // nobody touched a control most users never see. Gating on 'confirmed'
+    // would silence ~84% of legitimate reminders.
+    expect(SRC).not.toMatch(/status === "planning"/);
+    expect(SRC).not.toMatch(/status !== "confirmed"/);
+  });
+});
+
 describe("the post-trip exit condition survives", () => {
   it("still suppresses once the user plans another trip", () => {
     expect(SRC).toContain("user_has_new_trip");
