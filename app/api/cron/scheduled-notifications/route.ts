@@ -12,8 +12,13 @@ import {
   FORECAST_SLOTS,
   type ContextBlock,
 } from "@/lib/email/trip-context";
-import { getTripForecast, forecastMessage } from "@/lib/email/trip-forecast";
-import { firstCoordinate } from "@/lib/email/trip-coordinates";
+import {
+  getTripForecast,
+  forecastMessage,
+  forecastLabel,
+  tripLengthDays,
+} from "@/lib/email/trip-forecast";
+import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
 import {
   verifyRenderedEmail,
   blockingDefects,
@@ -592,6 +597,7 @@ async function processRow(
   // trip_meta.weather_note, which is invented — see lib/email/trip-context.ts.
   // Every failure path returns null and the block is simply omitted.
   let forecastLine: string | undefined;
+  let weatherLabel: string | undefined;
 
   let contextBlocks: ContextBlock[] = [];
   try {
@@ -601,7 +607,7 @@ async function processRow(
     // lookup. Gated on the exported set rather than a local list, so it cannot
     // fall out of step with the switch that consumes it.
     const coord = FORECAST_SLOTS.has(row.slot)
-      ? firstCoordinate(trip.itinerary)
+      ? tripStartCoordinate(trip.itinerary)
       : null;
     if (coord) {
       const fc = await getTripForecast({
@@ -613,6 +619,14 @@ async function processRow(
       if (fc) {
         const msg = forecastMessage(fc);
         forecastLine = ctxT(msg.key, msg.values);
+        // The heading has to state the scope: at 14 days out the horizon
+        // reaches only the first day or two of the trip, and the default
+        // heading would present that as the whole thing.
+        const lbl = forecastLabel(
+          fc,
+          tripLengthDays(trip.start_date, trip.end_date)
+        );
+        weatherLabel = lbl.values ? ctxT(lbl.key, lbl.values) : ctxT(lbl.key);
       }
     }
     contextBlocks = buildContextBlocks(
@@ -624,7 +638,7 @@ async function processRow(
         day1: trip.day1,
       },
       {
-        weather: ctxT("weather"),
+        weather: weatherLabel ?? ctxT("weather"),
         packing: ctxT("packing"),
         goingFor: ctxT("goingFor"),
         dayOne: ctxT("dayOne"),

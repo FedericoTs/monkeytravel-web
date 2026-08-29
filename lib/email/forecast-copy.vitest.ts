@@ -3,7 +3,11 @@ import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { forecastMessage, type TripForecast } from "./trip-forecast";
+import {
+  forecastMessage,
+  forecastLabel,
+  type TripForecast,
+} from "./trip-forecast";
 
 /**
  * Renders the weather line from the REAL message files, in every locale we
@@ -86,5 +90,45 @@ describe.each(LOCALES)("weather copy renders in %s", (locale) => {
     expect(one).not.toBe(many);
     const unit = (s: string) => s.replace(/[\d\s°C.–-]/g, "");
     expect(unit(one)).not.toBe(unit(many));
+  });
+});
+
+describe.each(LOCALES)("the weather HEADING states its scope in %s", (locale) => {
+  function heading(fc: TripForecast, tripDays: number | null): string {
+    const messages = {
+      common: JSON.parse(
+        readFileSync(join(process.cwd(), "messages", locale, "common.json"), "utf8")
+      ),
+    };
+    const t = createTranslator({ locale, messages, namespace: "common.emailContext" });
+    const l = forecastLabel(fc, tripDays);
+    return l.values ? t(l.key as never, l.values as never) : t(l.key as never);
+  }
+
+  const fc = (days: number): TripForecast => ({
+    minC: 10, maxC: 20, days, wetDays: 0, firstDay: null,
+  });
+
+  it("full coverage keeps the plain heading", () => {
+    const h = heading(fc(5), 5);
+    expect(h).not.toContain("emailContext.");
+    expect(h).not.toMatch(/\{[a-z]+/i);
+  });
+
+  it.each([1, 2, 7])("partial coverage names %i day(s)", (days) => {
+    const h = heading(fc(days), 12);
+    expect(h).not.toContain("emailContext.");
+    expect(h).not.toMatch(/\{[a-z]+/i);
+    // Plural branches must keep the number — the `#` bug again.
+    if (days > 1) expect(h).toContain(String(days));
+    // And it must not read like the full-trip heading.
+    expect(h).not.toBe(heading(fc(12), 12));
+  });
+
+  it("singular does not reuse the plural wording", () => {
+    const one = heading(fc(1), 9);
+    const many = heading(fc(4), 9);
+    expect(one).not.toBe(many);
+    expect(one.replace(/[\d\s]/g, "")).not.toBe(many.replace(/[\d\s]/g, ""));
   });
 });

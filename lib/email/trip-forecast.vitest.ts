@@ -1,7 +1,12 @@
 /** @vitest-environment node */
 import { describe, it, expect, vi } from "vitest";
-import { getTripForecast } from "./trip-forecast";
-import { firstCoordinate } from "./trip-coordinates";
+import {
+  getTripForecast,
+  forecastLabel,
+  tripLengthDays,
+  type TripForecast,
+} from "./trip-forecast";
+import { tripStartCoordinate } from "./trip-coordinates";
 
 /**
  * This module exists because the thing it replaces was confidently wrong. So
@@ -209,7 +214,7 @@ describe("every failure is silence, never a guess", () => {
   });
 });
 
-describe("firstCoordinate", () => {
+describe("tripStartCoordinate", () => {
   const itinerary = [
     { activities: [{ name: "No coords" }, { name: "Louvre", coordinates: { lat: 48.86, lng: 2.33 } }] },
     { activities: [{ name: "Later", coordinates: { lat: 1, lng: 1 } }] },
@@ -218,18 +223,18 @@ describe("firstCoordinate", () => {
   it("takes the first usable coordinate, in order", () => {
     // Day one is where the traveller starts — and what confirm_1d and
     // morning_of are literally about.
-    expect(firstCoordinate(itinerary)).toEqual({ latitude: 48.86, longitude: 2.33 });
+    expect(tripStartCoordinate(itinerary)).toEqual({ latitude: 48.86, longitude: 2.33 });
   });
 
   it("accepts numeric strings, which is how jsonb hands them back", () => {
     expect(
-      firstCoordinate([{ activities: [{ coordinates: { lat: "55.94957", lng: "-3.1975" } }] }])
+      tripStartCoordinate([{ activities: [{ coordinates: { lat: "55.94957", lng: "-3.1975" } }] }])
     ).toEqual({ latitude: 55.94957, longitude: -3.1975 });
   });
 
   it("accepts the long key spellings", () => {
     expect(
-      firstCoordinate([{ activities: [{ coordinates: { latitude: 10, longitude: 20 } }] }])
+      tripStartCoordinate([{ activities: [{ coordinates: { latitude: 10, longitude: 20 } }] }])
     ).toEqual({ latitude: 10, longitude: 20 });
   });
 
@@ -237,7 +242,7 @@ describe("firstCoordinate", () => {
     // (0,0) is a real point in the Atlantic and in practice always means a
     // missing value. A forecast for open ocean is worse than no forecast.
     expect(
-      firstCoordinate([
+      tripStartCoordinate([
         { activities: [{ coordinates: { lat: 0, lng: 0 } }] },
         { activities: [{ coordinates: { lat: 41.12, lng: 16.87 } }] },
       ])
@@ -246,14 +251,14 @@ describe("firstCoordinate", () => {
 
   it("skips out-of-range values", () => {
     expect(
-      firstCoordinate([{ activities: [{ coordinates: { lat: 999, lng: 2 } }] }])
+      tripStartCoordinate([{ activities: [{ coordinates: { lat: 999, lng: 2 } }] }])
     ).toBeNull();
   });
 
   it("returns null for anything unparseable, without throwing", () => {
     for (const junk of [null, undefined, 42, "x", {}, [], [null], [{ activities: "no" }], [{ activities: [null, 3] }]]) {
-      expect(() => firstCoordinate(junk), JSON.stringify(junk)).not.toThrow();
-      expect(firstCoordinate(junk), JSON.stringify(junk)).toBeNull();
+      expect(() => tripStartCoordinate(junk), JSON.stringify(junk)).not.toThrow();
+      expect(tripStartCoordinate(junk), JSON.stringify(junk)).toBeNull();
     }
   });
 });
@@ -291,5 +296,103 @@ describe("the timeout actually fires", () => {
     const started = performance.now();
     await getTripForecast({ ...base, fetchImpl: mockFetch(GOOD) });
     expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
+describe("tripStartCoordinate resists a hallucinated point", () => {
+  it("ignores an outlier that the first-activity rule would have picked", () => {
+    // The real "Taipei Trip" day one, verbatim. Elephant Mountain's longitude
+    // is right and its latitude is not — it lands 300km away in mainland
+    // China, and it is the FIRST activity, so the previous rule chose it and
+    // would have fetched a real forecast for the wrong country.
+    const day1 = {
+      activities: [
+        { name: "Elephant Mountain (Xiangshan) Hike", coordinates: { lat: 27.767, lng: 121.57 } },
+        { name: "Dinner at Din Tai Fung", coordinates: { lat: 25.034, lng: 121.565 } },
+        { name: "Stroll through Xinyi", coordinates: { lat: 25.034, lng: 121.565 } },
+      ],
+    };
+    const c = tripStartCoordinate([day1])!;
+    expect(c.latitude).toBe(25.034);
+    // Taipei, not Zhejiang.
+    expect(Math.abs(c.latitude - 25.03)).toBeLessThan(0.5);
+  });
+
+  it("returns a real observation, never an average of two", () => {
+    // An average would invent a point in between; the median is always a
+    // place that appears in the itinerary.
+    const c = tripStartCoordinate([
+      { activities: [
+        { coordinates: { lat: 10, lng: 10 } },
+        { coordinates: { lat: 20, lng: 20 } },
+      ] },
+    ])!;
+    expect([10, 20]).toContain(c.latitude);
+  });
+
+  it("uses the single point when a day has only one", () => {
+    expect(
+      tripStartCoordinate([{ activities: [{ coordinates: { lat: 55.95, lng: -3.19 } }] }])
+    ).toEqual({ latitude: 55.95, longitude: -3.19 });
+  });
+
+  it("falls through to a later day when day one carries no coordinates", () => {
+    expect(
+      tripStartCoordinate([
+        { activities: [{ name: "Arrive" }] },
+        { activities: [{ coordinates: { lat: 41.12, lng: 16.87 } }] },
+      ])
+    ).toEqual({ latitude: 41.12, longitude: 16.87 });
+  });
+
+  it("does not straddle the antimeridian", () => {
+    // -179 and 179 are neighbours; their median is 0, which is the Atlantic.
+    const c = tripStartCoordinate([
+      { activities: [
+        { coordinates: { lat: -17.7, lng: 179.0 } },
+        { coordinates: { lat: -17.8, lng: -179.9 } },
+      ] },
+    ])!;
+    expect(Math.abs(c.longitude)).toBeGreaterThan(170);
+  });
+});
+
+describe("forecastLabel states the scope it can actually see", () => {
+  const fc = (days: number): TripForecast => ({
+    minC: 10, maxC: 20, days, wetDays: 0, firstDay: null,
+  });
+
+  it("claims the whole trip only when it covers the whole trip", () => {
+    expect(forecastLabel(fc(5), 5)).toEqual({ key: "weather" });
+    expect(forecastLabel(fc(9), 5)).toEqual({ key: "weather" });
+  });
+
+  it("names the covered days when the horizon falls short", () => {
+    // pack_early_14d fires 14 days out against a 16-day horizon, so 120 of
+    // 122 queued rows look like this — a 2-day window under a heading that
+    // used to say "while you're there".
+    expect(forecastLabel(fc(2), 10)).toEqual({
+      key: "weatherFirstDays",
+      values: { days: 2 },
+    });
+  });
+
+  it("does not claim the whole trip when the trip length is unknown", () => {
+    expect(forecastLabel(fc(3), null)).toEqual({
+      key: "weatherFirstDays",
+      values: { days: 3 },
+    });
+  });
+});
+
+describe("tripLengthDays", () => {
+  it("counts inclusively", () => {
+    expect(tripLengthDays("2026-09-01", "2026-09-05")).toBe(5);
+    expect(tripLengthDays("2026-09-01", "2026-09-01")).toBe(1);
+  });
+
+  it("returns null for unusable dates rather than a wrong number", () => {
+    expect(tripLengthDays("2026-09-05", "2026-09-01")).toBeNull();
+    expect(tripLengthDays("nope", "2026-09-01")).toBeNull();
   });
 });
