@@ -257,3 +257,39 @@ describe("firstCoordinate", () => {
     }
   });
 });
+
+describe("the timeout actually fires", () => {
+  /**
+   * The mocked-rejection test above proves we handle a failed fetch. It does
+   * NOT prove the AbortController ever fires — a broken timeout would pass it
+   * and then hang the cron in production, where up to 200 rows share one 60s
+   * function. This is the test that backs that claim.
+   */
+  it("gives up on a hanging request instead of waiting forever", async () => {
+    let aborted = false;
+    const hang: typeof fetch = ((_url: string, init?: RequestInit) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          aborted = true;
+          reject(new DOMException("aborted", "AbortError"));
+        });
+      })) as unknown as typeof fetch;
+
+    const started = performance.now();
+    const out = await getTripForecast({ ...base, fetchImpl: hang });
+    const elapsed = performance.now() - started;
+
+    expect(out).toBeNull();
+    expect(aborted).toBe(true);
+    // TIMEOUT_MS is 2500. Anything past ~4s means the guard is not working.
+    expect(elapsed).toBeLessThan(4000);
+  }, 10_000);
+
+  it("does not leave a timer holding the process open on the happy path", async () => {
+    // clearTimeout lives in a `finally`. If it regressed, a fast success would
+    // still keep a 2.5s timer alive per call — 200 of them per cron run.
+    const started = performance.now();
+    await getTripForecast({ ...base, fetchImpl: mockFetch(GOOD) });
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+});

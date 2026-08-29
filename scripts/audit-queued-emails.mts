@@ -80,6 +80,14 @@ const formatDateRange = LC.formatDateRange;
 const ROOT = process.cwd();
 const APP = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 const LIMIT = Number(process.env.LIMIT || 0);
+/**
+ * Which queue rows to audit. Defaults to what will send next.
+ *
+ * STATUS=suppressed audits the held backlog BEFORE it is released — those
+ * rows are flipped back to pending by hand, and the moment to find out an
+ * email is wrong is while it is still held, not after.
+ */
+const STATUS = process.env.STATUS || "pending";
 const VERBOSE = Boolean(process.env.VERBOSE);
 
 function env(name: string): string {
@@ -113,7 +121,7 @@ async function main() {
   let q = supabase
     .from("scheduled_notifications")
     .select("id, user_id, trip_id, slot, scheduled_for")
-    .eq("status", "pending")
+    .eq("status", STATUS)
     .order("scheduled_for", { ascending: true });
   if (LIMIT) q = q.limit(LIMIT);
 
@@ -127,7 +135,7 @@ async function main() {
     return;
   }
 
-  console.log(`Auditing ${rows.length} queued emails against production data.\n`);
+  console.log(`Auditing ${rows.length} ${STATUS} emails against production data.\n`);
 
   /**
    * Independent read on what language each recipient actually browses in.
@@ -167,6 +175,40 @@ async function main() {
    */
   const forecastByTrip = new Map<string, any>();
 
+  /**
+   * Trips and users fetched ONCE, in chunks, rather than two round trips per
+   * row. At 695 held rows that was 1,390 sequential queries and six minutes —
+   * slow enough that the check would not get run before a release, which is
+   * the only moment it is worth anything.
+   *
+   * Chunked at 200 because PostgREST caps a response at 1000 rows and a very
+   * long `in` list is its own problem.
+   */
+  async function fetchByIds<T>(table: string, cols: string, ids: string[]) {
+    const out = new Map<string, T>();
+    for (let i = 0; i < ids.length; i += 200) {
+      const { data, error } = await supabase
+        .from(table)
+        .select(cols)
+        .in("id", ids.slice(i, i + 200));
+      if (error) throw new Error(`${table} read failed: ${error.message}`);
+      for (const r of (data ?? []) as any[]) out.set(r.id, r as T);
+    }
+    return out;
+  }
+
+  // Same projection the cron uses.
+  const tripById = await fetchByIds<any>(
+    "trips",
+    "id, title, start_date, end_date, reminders_muted, trip_meta, itinerary",
+    [...new Set(rows.map((r: any) => r.trip_id))]
+  );
+  const userById = await fetchByIds<any>(
+    "users",
+    "id, email, preferred_language, notification_settings",
+    [...new Set(rows.map((r: any) => r.user_id))]
+  );
+
   const findings: Array<Finding & { row: string; slot: string; trip: string }> = [];
   const stats = {
     rendered: 0,
@@ -185,26 +227,14 @@ async function main() {
     const add = (level: Finding["level"], check: string, detail: string) =>
       findings.push({ level, check, detail, row: row.id, slot: row.slot, trip: row.trip_id });
 
-    // Same projection the cron uses.
-    const { data: tripRaw, error: tripErr } = await supabase
-      .from("trips")
-      .select(
-        "id, title, start_date, end_date, reminders_muted, trip_meta, itinerary"
-      )
-      .eq("id", row.trip_id)
-      .maybeSingle();
-
-    if (tripErr || !tripRaw) {
-      add("FAIL", "trip_load", tripErr?.message ?? "trip missing");
+    const tripRaw = tripById.get(row.trip_id);
+    if (!tripRaw) {
+      add("FAIL", "trip_load", "trip missing");
       continue;
     }
     const trip = tripRaw as any;
 
-    const { data: user } = await supabase
-      .from("users")
-      .select("email, preferred_language, notification_settings")
-      .eq("id", row.user_id)
-      .maybeSingle();
+    const user = userById.get(row.user_id) as any;
 
     if (!user?.email) {
       add("WARN", "no_recipient", "user has no email — will be suppressed, not sent");

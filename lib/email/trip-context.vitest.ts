@@ -5,7 +5,7 @@ import {
   FORECAST_SLOTS,
   type ContextLabels,
 } from "./trip-context";
-import { forecastMessage } from "./trip-forecast";
+import { forecastMessage, formatTempRange } from "./trip-forecast";
 
 /**
  * The input here is model-generated jsonb straight out of trips.trip_meta and
@@ -346,14 +346,33 @@ describe("forecastMessage", () => {
     // the two-message split only survives if this branch is asserted.
     expect(forecastMessage({ ...base, wetDays: 0 })).toEqual({
       key: "weatherNoRain",
-      values: { min: 18, max: 24, wet: 0, days: 5 },
+      values: { range: "18–24°C", wet: 0, days: 5 },
     });
   });
 
   it("picks the wet sentence and carries both counts", () => {
     expect(forecastMessage({ ...base, wetDays: 2 })).toEqual({
       key: "weatherWithRain",
-      values: { min: 18, max: 24, wet: 2, days: 5 },
+      values: { range: "18–24°C", wet: 2, days: 5 },
     });
+  });
+});
+
+describe("formatTempRange", () => {
+  it("uses a tight en dash between positives", () => {
+    expect(formatTempRange(22, 32)).toBe("22–32°C");
+  });
+
+  it("spaces the dash when an endpoint is negative", () => {
+    // Found by rendering the real copy: a tight dash beside a minus sign
+    // produced "-8–-1°C", which every winter trip would have shipped.
+    expect(formatTempRange(-8, -1)).toBe("-8 – -1°C");
+    expect(formatTempRange(-3, 4)).toBe("-3 – 4°C");
+  });
+
+  it("collapses an identical pair to one figure", () => {
+    // A one-day forecast produces this pair often; "3–3°C" is not a range.
+    expect(formatTempRange(3, 3)).toBe("3°C");
+    expect(formatTempRange(-1, -1)).toBe("-1°C");
   });
 });

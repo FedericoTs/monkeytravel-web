@@ -218,12 +218,34 @@ export async function getTripForecast(
  */
 export interface ForecastMessage {
   key: "weatherNoRain" | "weatherWithRain";
-  values: { min: number; max: number; wet: number; days: number };
+  values: { range: string; wet: number; days: number };
+}
+
+/**
+ * The temperature range as one pre-formatted string.
+ *
+ * Composed here rather than in the ICU message because the separator depends
+ * on the numbers. A tight en dash reads well between positives — "22–32°C" —
+ * but collides with the minus sign the moment either end goes below zero:
+ * "-8–-1°C" is what four locales rendered before this existed, and any winter
+ * trip would have shipped it. A negative endpoint gets a spaced dash instead.
+ *
+ * An identical pair collapses to a single figure. "3–3°C" is not a range, and
+ * a one-day forecast produces that pair often enough to matter.
+ */
+export function formatTempRange(minC: number, maxC: number): string {
+  if (minC === maxC) return `${minC}°C`;
+  const sep = minC < 0 || maxC < 0 ? " – " : "–";
+  return `${minC}${sep}${maxC}°C`;
 }
 
 export function forecastMessage(fc: TripForecast): ForecastMessage {
   return {
     key: fc.wetDays > 0 ? "weatherWithRain" : "weatherNoRain",
-    values: { min: fc.minC, max: fc.maxC, wet: fc.wetDays, days: fc.days },
+    values: {
+      range: formatTempRange(fc.minC, fc.maxC),
+      wet: fc.wetDays,
+      days: fc.days,
+    },
   };
 }

@@ -2348,8 +2348,8 @@
     "dayOne": "Día uno",
     "today": "El plan de hoy",
     "yourHighlights": "Tus momentos destacados",
-    "weatherNoRain": "{min}–{max}°C · sin lluvia prevista",
-    "weatherWithRain": "{min}–{max}°C · lluvia {wet} de {days} días"
+    "weatherNoRain": "{range} · sin lluvia prevista",
+    "weatherWithRain": "{range} · lluvia {wet} de {days, plural, one {# día} other {# días}}"
   },
   "explore": {
     "filters": {
