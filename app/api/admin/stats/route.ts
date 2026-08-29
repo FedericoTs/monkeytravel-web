@@ -600,6 +600,14 @@ async function fetchActivation(
 
 // Direct query fallbacks if RPC functions don't exist
 async function fetchUserMetricsDirect(supabase: SupabaseClient) {
+  // NOTE: activeLast30Days is ALWAYS 0 on this path, and that is not fixable
+  // here. public.users.last_sign_in_at is NULL for every row — the column
+  // exists and nothing writes it. The real value lives in auth.users, which
+  // PostgREST does not expose, so only get_user_metrics() (SECURITY DEFINER)
+  // can read it. Measured 2026-08-28: 0 here versus 129 actually active.
+  //
+  // This runs only if that RPC errors, so treat a 0 in this field as "the RPC
+  // failed", not as a real number.
   const { data: users } = await supabase.from("users").select("id, created_at, last_sign_in_at");
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -614,7 +622,14 @@ async function fetchUserMetricsDirect(supabase: SupabaseClient) {
 }
 
 async function fetchTripMetricsDirect(supabase: SupabaseClient) {
-  const { data: trips } = await supabase.from("trips").select("id, created_at, share_token");
+  // `.is("deleted_at", null)` is not decoration. Without it this counted
+  // tombstones as trips: 417 reported against 394 live, a 5.8% overstatement
+  // sitting on the dashboard. get_trip_metrics() filters the same way, so
+  // the RPC path and this fallback cannot disagree.
+  const { data: trips } = await supabase
+    .from("trips")
+    .select("id, created_at, share_token")
+    .is("deleted_at", null);
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
