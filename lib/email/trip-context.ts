@@ -39,6 +39,37 @@
  * times (Sentry JAVASCRIPT-NEXTJS-12). Everything below treats the input as
  * unknown and drops anything that is not a usable string.
  *
+ * WEATHER COMES FROM AN API, NEVER FROM trip_meta
+ * -----------------------------------------------
+ * trip_meta.weather_note is model-generated prose that reads like data and is
+ * not. Measured across 279 trips it is internally contradictory, which rules
+ * out imprecision and leaves invention:
+ *
+ *   Kyoto in September appears as BOTH "10-18°C" and "27-32°C" on two
+ *   different trips. Tokyo in November ("20-35°C") comes out hotter than
+ *   Tokyo in September ("8-18°C"). Oahu in May reads "10-20°C" for an island
+ *   that sits at 22-28°C year round. Rome in October reads "20-35°C".
+ *
+ * Six round-number buckets — 20-35, 18-30, 10-18, 8-18, 10-20, 0-10 — cover
+ * 229 of the 279 trips that state a range. Tropical destinations look correct
+ * only because "hot" is an easy guess. We emailed a Spanish-speaking user
+ * "10-18°C" for Los Angeles on 1 September; the forecast was 22-31°C.
+ *
+ * So the note is never rendered. `forecastLine` carries a REAL forecast
+ * instead, from lib/email/trip-forecast.ts (Open-Meteo — free, no API key, so
+ * this does not touch the standing constraint on paid per-trip calls).
+ *
+ * An earlier version of this comment argued a per-email forecast call was the
+ * wrong shape and proposed a static climate table. That was written before
+ * checking the repository: app/api/weather/route.ts and
+ * lib/api-gateway/clients/weather.ts already wrap Open-Meteo. Forecast also
+ * beats a climate table here, because every slot fires within 14 days of the
+ * trip and can therefore state what the weather WILL be rather than what it
+ * usually is.
+ *
+ * This does NOT clean the underlying field. trip_meta.weather_note is still
+ * wrong wherever else it is displayed; this only keeps it out of the emails.
+ *
  * LANGUAGE — READ THIS, IT IS NOT WHAT IT LOOKS LIKE
  * --------------------------------------------------
  * Only the headings are localised, via common.emailContext. Passing them in
@@ -68,6 +99,24 @@
  * fewer calls per trip is a standing constraint on this product.
  */
 
+/**
+ * The only slots whose blocks can render a forecast.
+ *
+ * Callers gate the Open-Meteo lookup on this so the other four slots do not
+ * pay for an answer nothing reads. That is not tidiness: the cron may process
+ * MAX_ROWS_PER_RUN (200) rows inside a 60s function, and three in five of
+ * those rows would otherwise spend up to TIMEOUT_MS on a call whose result is
+ * discarded a few lines later.
+ *
+ * It is exported — rather than each caller carrying its own list — because it
+ * is a fact about the switch below, and a copy of it elsewhere would silently
+ * stop matching the day a slot is added. The unit tests assert the two agree.
+ */
+export const FORECAST_SLOTS: ReadonlySet<string> = new Set([
+  "pack_early_14d",
+  "weather_3d",
+]);
+
 /** One row in a list block. `meta` renders muted, to the right. */
 export interface ContextItem {
   text: string;
@@ -96,6 +145,23 @@ export interface ContextLabels {
  * these come from jsonb and the caller should not have to pre-validate.
  */
 export interface TripContextSource {
+  /**
+   * Real forecast, already formatted AND localised by the caller — e.g.
+   * "22–32°C · no rain expected". Built from Open-Meteo in
+   * lib/email/trip-forecast.ts, so unlike weatherNote every number in it came
+   * from an API. Passed in pre-rendered for the same reason the labels are:
+   * this module stays pure and free of next-intl.
+   *
+   * Absent whenever the lookup could not answer — no coordinates, a timeout,
+   * dates beyond the 16-day horizon. Absent means no block, never a guess.
+   */
+  forecastLine?: unknown;
+  /**
+   * DEPRECATED as an email source. Still accepted so callers need not change
+   * shape, but never rendered — see the header. Kept in the type because it
+   * remains in trips.trip_meta and someone will otherwise "helpfully" wire it
+   * back up.
+   */
   weatherNote?: unknown;
   highlights?: unknown;
   packingSuggestions?: unknown;
@@ -200,12 +266,17 @@ export function buildContextBlocks(
   src: TripContextSource,
   labels: ContextLabels
 ): ContextBlock[] {
-  const weather = str(src.weatherNote, MAX_NOTE);
+  // Deliberately reads forecastLine, NOT weatherNote. The latter is invented;
+  // see the header.
+  const forecast = str(src.forecastLine, MAX_NOTE);
 
   switch (slot) {
     case "pack_early_14d":
+      // Forecast first — it is what makes the packing list actionable. Both
+      // blocks are optional, so this renders as weather-only, packing-only,
+      // or nothing at all.
       return compact([
-        weather ? { label: labels.weather, note: weather } : null,
+        forecast ? { label: labels.weather, note: forecast } : null,
         {
           label: labels.packing,
           items: stringList(src.packingSuggestions, MAX_PACKING_ITEMS),
@@ -221,7 +292,10 @@ export function buildContextBlocks(
       ]);
 
     case "weather_3d":
-      return compact([weather ? { label: labels.weather, note: weather } : null]);
+      // This slot's entire reason to exist. With a real forecast it can now
+      // answer the question its copy asks; without one it renders bare rather
+      // than inventing an answer.
+      return compact([forecast ? { label: labels.weather, note: forecast } : null]);
 
     case "confirm_1d":
       return compact([

@@ -2347,7 +2347,9 @@
     "goingFor": "A lo que vas",
     "dayOne": "Día uno",
     "today": "El plan de hoy",
-    "yourHighlights": "Tus momentos destacados"
+    "yourHighlights": "Tus momentos destacados",
+    "weatherNoRain": "{range} · sin lluvia prevista",
+    "weatherWithRain": "{range} · lluvia {wet} de {days, plural, one {# día} other {# días}}"
   },
   "explore": {
     "filters": {

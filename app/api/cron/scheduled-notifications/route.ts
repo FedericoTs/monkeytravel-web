@@ -9,8 +9,11 @@ import {
 } from "@/lib/email/templates/TripFollowup";
 import {
   buildContextBlocks,
+  FORECAST_SLOTS,
   type ContextBlock,
 } from "@/lib/email/trip-context";
+import { getTripForecast, forecastMessage } from "@/lib/email/trip-forecast";
+import { firstCoordinate } from "@/lib/email/trip-coordinates";
 import {
   verifyRenderedEmail,
   blockingDefects,
@@ -195,6 +198,7 @@ type TripEmailRow = {
   end_date: string;
   reminders_muted: boolean | null;
   status: string | null;
+  itinerary: unknown;
   weather_note: string | null;
   highlights: unknown;
   packing_suggestions: unknown;
@@ -367,7 +371,7 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, reminders_muted, status, " +
+      "id, title, start_date, end_date, reminders_muted, status, itinerary, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
@@ -584,13 +588,37 @@ async function processRow(
   // this adds no Gemini or Places call. Best-effort by design: a slot with
   // nothing to show renders no block, and a whole family of trips missing
   // trip_meta must not stop their reminders going out.
+  // Real forecast, from Open-Meteo via the trip's own coordinates. Never
+  // trip_meta.weather_note, which is invented — see lib/email/trip-context.ts.
+  // Every failure path returns null and the block is simply omitted.
+  let forecastLine: string | undefined;
+
   let contextBlocks: ContextBlock[] = [];
   try {
     const ctxT = await getTranslations({ locale, namespace: CONTEXT_NS });
+
+    // Only two slots render a weather block, so only those two pay for the
+    // lookup. Gated on the exported set rather than a local list, so it cannot
+    // fall out of step with the switch that consumes it.
+    const coord = FORECAST_SLOTS.has(row.slot)
+      ? firstCoordinate(trip.itinerary)
+      : null;
+    if (coord) {
+      const fc = await getTripForecast({
+        latitude: coord.latitude,
+        longitude: coord.longitude,
+        startDate: trip.start_date,
+        endDate: trip.end_date,
+      });
+      if (fc) {
+        const msg = forecastMessage(fc);
+        forecastLine = ctxT(msg.key, msg.values);
+      }
+    }
     contextBlocks = buildContextBlocks(
       row.slot,
       {
-        weatherNote: trip.weather_note,
+        forecastLine,
         highlights: trip.highlights,
         packingSuggestions: trip.packing_suggestions,
         day1: trip.day1,
@@ -607,7 +635,13 @@ async function processRow(
     // A label that fell back to its key path would render as
     // "emailContext.dayOne" above a list. Drop the enrichment rather than
     // ship that — the email is complete without it.
-    if (contextBlocks.some((b) => b.label.includes("emailContext."))) {
+    if (
+      contextBlocks.some(
+        (b) =>
+          b.label.includes("emailContext.") ||
+          (b.note ?? "").includes("emailContext.")
+      )
+    ) {
       console.warn("[cron/scheduled-notifs] context labels unresolved", { locale });
       contextBlocks = [];
     }
@@ -698,7 +732,15 @@ async function processRow(
           // This trip's own enrichment values — the corpus containment is
           // checked against. Anything rendered that is not in here came from
           // somewhere it should not have.
-          ownStrings: ownEnrichmentStrings(trip),
+          // The forecast line must be included or containment blocks it: it
+          // is derived from this trip's coordinates and dates, but it does
+          // not appear anywhere in the trip row. Omitting it here would make
+          // the gate reject every weather-bearing email — the same
+          // over-blocking failure that twice held back correct mail.
+          ownStrings: [
+            ...ownEnrichmentStrings(trip),
+            ...(forecastLine ? [forecastLine] : []),
+          ],
         })
       );
       return defects.length
