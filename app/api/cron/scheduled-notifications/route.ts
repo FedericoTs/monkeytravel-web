@@ -194,6 +194,7 @@ type TripEmailRow = {
   start_date: string;
   end_date: string;
   reminders_muted: boolean | null;
+  status: string | null;
   weather_note: string | null;
   highlights: unknown;
   packing_suggestions: unknown;
@@ -366,7 +367,7 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, reminders_muted, " +
+      "id, title, start_date, end_date, reminders_muted, status, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
@@ -397,6 +398,25 @@ async function processRow(
 
   if (trip.reminders_muted) {
     await persistOutcome(svc, row.id, "suppressed", "trip_muted");
+    return "skipped";
+  }
+
+  // A cancelled trip must never generate mail — not a countdown to it, and
+  // not a "How was it?" afterwards.
+  //
+  // Checked HERE and not only at enqueue for the same reason reminders_muted
+  // is: cancelling happens AFTER the trip was created and its cascade queued.
+  // Measured on the live queue 2026-08-28: five cancelled trips still held 23
+  // scheduled rows between them, every one with a future start date and none
+  // muted — including a Sicily trip cancelled on 27 Jul that would have sent
+  // "Three days to Palermo" on 29 Aug.
+  //
+  // Only 'cancelled' is treated as a stop signal. 'planning' is the DEFAULT
+  // status (302 of 394 live trips) and means only that nobody touched a
+  // control most users never see; gating on 'confirmed' would silence ~84%
+  // of legitimate reminders.
+  if (trip.status === "cancelled") {
+    await persistOutcome(svc, row.id, "suppressed", "trip_cancelled");
     return "skipped";
   }
 
