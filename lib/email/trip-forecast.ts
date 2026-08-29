@@ -239,6 +239,49 @@ export function formatTempRange(minC: number, maxC: number): string {
   return `${minC}${sep}${maxC}°C`;
 }
 
+/**
+ * How many days the trip runs, inclusive. Null if the dates are unusable.
+ */
+export function tripLengthDays(
+  startDate: string,
+  endDate: string
+): number | null {
+  const start = Date.parse(`${startDate}T00:00:00Z`);
+  const end = Date.parse(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+  return Math.round((end - start) / 86_400_000) + 1;
+}
+
+/**
+ * Which HEADING the weather block should carry.
+ *
+ * This exists because a forecast usually cannot see the whole trip, and the
+ * default heading claims otherwise. Measured over the queued backlog:
+ *
+ *   pack_early_14d   120 of 122 rows cover only PART of the trip — a median
+ *                    of 29% of it, as little as 10% — because the slot fires
+ *                    14 days out and the horizon reaches 16. Under a heading
+ *                    reading "Weather while you're there", a three-day sample
+ *                    was about to describe a ten-day trip.
+ *   weather_3d       124 of 146 cover the whole trip, median 100%.
+ *
+ * The numbers were never wrong; the scope was. So a partial window says so in
+ * the heading, and the line beneath it is unchanged.
+ */
+export type ForecastLabel =
+  | { key: "weather"; values?: undefined }
+  | { key: "weatherFirstDays"; values: { days: number } };
+
+export function forecastLabel(
+  fc: TripForecast,
+  tripDays: number | null
+): ForecastLabel {
+  // Unknown trip length: claim only what was actually fetched.
+  if (tripDays === null) return { key: "weatherFirstDays", values: { days: fc.days } };
+  if (fc.days >= tripDays) return { key: "weather" };
+  return { key: "weatherFirstDays", values: { days: fc.days } };
+}
+
 export function forecastMessage(fc: TripForecast): ForecastMessage {
   return {
     key: fc.wetDays > 0 ? "weatherWithRain" : "weatherNoRain",

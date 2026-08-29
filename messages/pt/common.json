@@ -2349,7 +2349,8 @@
     "today": "O plano de hoje",
     "yourHighlights": "Seus melhores momentos",
     "weatherNoRain": "{range} · sem chuva prevista",
-    "weatherWithRain": "{range} · chuva em {wet} de {days, plural, one {# dia} other {# dias}}"
+    "weatherWithRain": "{range} · chuva em {wet} de {days, plural, one {# dia} other {# dias}}",
+    "weatherFirstDays": "O tempo {days, plural, one {no primeiro dia} other {nos primeiros # dias}}"
   },
   "explore": {
     "filters": {

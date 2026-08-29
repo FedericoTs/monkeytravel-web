@@ -2349,7 +2349,8 @@
     "today": "Today's plan",
     "yourHighlights": "Your highlights",
     "weatherNoRain": "{range} · no rain expected",
-    "weatherWithRain": "{range} · rain on {wet} of {days, plural, one {# day} other {# days}}"
+    "weatherWithRain": "{range} · rain on {wet} of {days, plural, one {# day} other {# days}}",
+    "weatherFirstDays": "Weather for your first {days, plural, one {day} other {# days}}"
   },
   "explore": {
     "filters": {

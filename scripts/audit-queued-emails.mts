@@ -68,8 +68,10 @@ const FM = (ForecastMod as any).default ?? ForecastMod;
 const getTripForecast = FM.getTripForecast;
 const MAX_FORECAST_DAYS = FM.MAX_FORECAST_DAYS;
 const forecastMessage = FM.forecastMessage;
+const forecastLabel = FM.forecastLabel;
+const tripLengthDays = FM.tripLengthDays;
 const CO = (CoordMod as any).default ?? CoordMod;
-const firstCoordinate = CO.firstCoordinate;
+const tripStartCoordinate = CO.tripStartCoordinate;
 const VF = (VerifyMod as any).default ?? VerifyMod;
 const verifyRenderedEmail = VF.verifyRenderedEmail;
 const contextLines = VF.contextLines;
@@ -218,6 +220,7 @@ async function main() {
     wouldSuppress: 0,
     enrichedLines: 0,
     withForecast: 0,
+    partialCoverage: 0,
     noCoordinates: 0,
     beyondHorizonToday: 0,
     forecastFailed: 0,
@@ -296,9 +299,10 @@ async function main() {
     // A row whose lookup fails here renders with no weather block, which is
     // precisely what will happen at send time.
     let forecastLine: string | undefined;
+    let weatherLabel: string | undefined;
     if (FORECAST_SLOTS.has(row.slot)) {
       if (!forecastByTrip.has(trip.id)) {
-        const coord = firstCoordinate(trip.itinerary);
+        const coord = tripStartCoordinate(trip.itinerary);
         forecastByTrip.set(
           trip.id,
           coord
@@ -315,8 +319,11 @@ async function main() {
       if (fc) {
         const msg = forecastMessage(fc);
         forecastLine = ctxT(msg.key, msg.values);
+        const lbl = forecastLabel(fc, tripLengthDays(trip.start_date, trip.end_date));
+        weatherLabel = lbl.values ? ctxT(lbl.key, lbl.values) : ctxT(lbl.key);
+        if (lbl.key === "weatherFirstDays") stats.partialCoverage++;
         stats.withForecast++;
-      } else if (!firstCoordinate(trip.itinerary)) {
+      } else if (!tripStartCoordinate(trip.itinerary)) {
         // Permanent: no activity in this itinerary carries a coordinate, so
         // this email will never be able to carry weather. Worth surfacing —
         // it is the only bucket here that a person could act on.
@@ -348,7 +355,7 @@ async function main() {
         day1,
       },
       {
-        weather: ctxT("weather"),
+        weather: weatherLabel ?? ctxT("weather"),
         packing: ctxT("packing"),
         goingFor: ctxT("goingFor"),
         dayOne: ctxT("dayOne"),
@@ -446,7 +453,7 @@ async function main() {
   const wxRows =
     stats.withForecast + stats.noCoordinates + stats.beyondHorizonToday + stats.forecastFailed;
   console.log(`Weather-slot rows:   ${wxRows}`);
-  console.log(`  real forecast now:   ${stats.withForecast}`);
+  console.log(`  real forecast now:   ${stats.withForecast}  (${stats.partialCoverage} cover only part of the trip — heading says so)`);
   console.log(`  beyond horizon today:${stats.beyondHorizonToday}  (fires 14d/3d out — inside the horizon at SEND time, so these are expected)`);
   console.log(`  no coordinates:      ${stats.noCoordinates}  (will never carry weather)`);
   console.log(`  lookup failed:       ${stats.forecastFailed}  (inside horizon, no answer)`);
