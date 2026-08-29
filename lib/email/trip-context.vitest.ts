@@ -48,19 +48,21 @@ const FULL = {
 };
 
 describe("slot → block mapping", () => {
-  it("pack_early_14d gets the weather note AND the packing list", () => {
+  it("pack_early_14d gets the packing list, and NOT the weather note", () => {
+    // The weather note used to lead this block. It is model-invented — Kyoto
+    // in September came out as both 10-18C and 27-32C on different trips — so
+    // it is no longer rendered anywhere. See trip-context.ts for the evidence.
     const blocks = buildContextBlocks("pack_early_14d", FULL, L);
-    expect(blocks).toHaveLength(2);
-    expect(blocks[0].label).toBe(L.weather);
-    expect(blocks[0].note).toContain("mild spring weather");
-    expect(blocks[1].label).toBe(L.packing);
-    expect(blocks[1].items?.[0].text).toBe("Light rain jacket");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].label).toBe(L.packing);
+    expect(blocks[0].items?.[0].text).toBe("Light rain jacket");
   });
 
-  it("weather_3d gets only the weather note", () => {
-    const blocks = buildContextBlocks("weather_3d", FULL, L);
-    expect(blocks).toHaveLength(1);
-    expect(blocks[0].label).toBe(L.weather);
+  it("weather_3d renders NO block at all", () => {
+    // Its entire enrichment was the weather note, so it now has none. The
+    // email still reads correctly: the body says "Peek at the weather", it
+    // never claimed to state the weather.
+    expect(buildContextBlocks("weather_3d", FULL, L)).toEqual([]);
   });
 
   it("confirm_1d and morning_of both show day one, under different headings", () => {
@@ -102,17 +104,20 @@ describe("caps", () => {
   it("caps lists — 3 items, 4 for packing", () => {
     expect(buildContextBlocks("visa_check_7d", FULL, L)[0].items).toHaveLength(3);
     expect(buildContextBlocks("morning_of", FULL, L)[0].items).toHaveLength(3);
-    const packing = buildContextBlocks("pack_early_14d", FULL, L)[1];
+    // Index 0 now, not 1 — the weather block that used to precede it is gone.
+    const packing = buildContextBlocks("pack_early_14d", FULL, L)[0];
     expect(packing.items).toHaveLength(4);
   });
 
-  it("truncates a runaway note on a word boundary", () => {
+  it("truncates a runaway item on a word boundary", () => {
+    // Formerly asserted on the weather note, which is no longer rendered.
+    // The same truncation still guards every list item.
     const long = "word ".repeat(200);
-    const blocks = buildContextBlocks("weather_3d", { weatherNote: long }, L);
-    const note = blocks[0].note!;
-    expect(note.length).toBeLessThanOrEqual(241);
-    expect(note.endsWith("…")).toBe(true);
-    expect(note).not.toContain("wor…"); // did not cut mid-word
+    const blocks = buildContextBlocks("visa_check_7d", { highlights: [long] }, L);
+    const text = blocks[0].items![0].text;
+    expect(text.length).toBeLessThanOrEqual(81);
+    expect(text.endsWith("…")).toBe(true);
+    expect(text).not.toContain("wor…"); // did not cut mid-word
   });
 
   it("truncates a runaway item", () => {
@@ -133,16 +138,12 @@ describe("graceful degradation — the common case, not an edge case", () => {
     expect(buildContextBlocks("morning_of", {}, L)).toEqual([]);
   });
 
-  it("drops the empty half of a two-block slot", () => {
-    // Weather present, packing missing → one block, not one block plus a
-    // heading with nothing under it.
-    const blocks = buildContextBlocks(
-      "pack_early_14d",
-      { weatherNote: "Cold and bright." },
-      L
-    );
-    expect(blocks).toHaveLength(1);
-    expect(blocks[0].label).toBe(L.weather);
+  it("returns nothing for pack_early_14d when there is no packing list", () => {
+    // A weather note alone no longer produces a block, so this slot is empty
+    // rather than falling back to it.
+    expect(
+      buildContextBlocks("pack_early_14d", { weatherNote: "Cold and bright." }, L)
+    ).toEqual([]);
   });
 
   it("keeps the packing block when only the weather is missing", () => {
@@ -253,5 +254,28 @@ describe("defensive parsing — arbitrary jsonb must not throw", () => {
       L
     );
     expect(blocks[0].items).toEqual([{ text: "Real highlight" }]);
+  });
+});
+
+describe("the weather note is never rendered, in any slot", () => {
+  it.each([
+    "pack_early_14d",
+    "visa_check_7d",
+    "weather_3d",
+    "confirm_1d",
+    "morning_of",
+    "followup_return_3d",
+  ])("%s emits no block containing the weather note", (slot) => {
+    // Guards the removal itself. trip_meta.weather_note is invented rather
+    // than measured — Kyoto/September appears as both 10-18C and 27-32C, and
+    // Tokyo/November comes out hotter than Tokyo/September. A reminder email
+    // is the worst place for that, because people pack from it.
+    const blocks = buildContextBlocks(slot, FULL, L);
+    for (const b of blocks) {
+      expect(b.label, `${slot} rendered the weather heading`).not.toBe(L.weather);
+      expect(b.note ?? "", `${slot} rendered the weather note`).not.toContain(
+        "mild spring weather"
+      );
+    }
   });
 });

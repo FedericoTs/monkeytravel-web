@@ -39,6 +39,29 @@
  * times (Sentry JAVASCRIPT-NEXTJS-12). Everything below treats the input as
  * unknown and drops anything that is not a usable string.
  *
+ * WEATHER IS NOT SHIPPED, AND MUST NOT BE PUT BACK UNSOURCED
+ * -----------------------------------------------------------
+ * trip_meta.weather_note is model-generated prose, not data, and measuring it
+ * across 279 trips showed it is not merely imprecise — it is invented:
+ *
+ *   Kyoto in September appears as BOTH "10-18°C" and "27-32°C" on two
+ *   different trips. Tokyo in November ("20-35°C") comes out hotter than
+ *   Tokyo in September ("8-18°C"). Oahu in May reads "10-20°C" for an island
+ *   that sits at 22-28°C year round. Rome in October reads "20-35°C".
+ *
+ * Six round-number buckets — 20-35, 18-30, 10-18, 8-18, 10-20, 0-10 — cover
+ * 229 of the 279 trips that state a range. Tropical destinations look correct
+ * only because "hot" is an easy guess.
+ *
+ * A reminder email is the worst possible surface for that: someone packs from
+ * it. So the note is not rendered, in any slot. Restoring it needs a real
+ * source — a climate table keyed on destination and month would be free,
+ * deterministic and checkable; a per-email forecast call would not be, and
+ * runs against the standing constraint to make FEWER API calls per trip.
+ *
+ * This does NOT clean the underlying field. trip_meta.weather_note is still
+ * wrong wherever else it is displayed; this only stops the emails repeating it.
+ *
  * LANGUAGE — READ THIS, IT IS NOT WHAT IT LOOKS LIKE
  * --------------------------------------------------
  * Only the headings are localised, via common.emailContext. Passing them in
@@ -204,8 +227,10 @@ export function buildContextBlocks(
 
   switch (slot) {
     case "pack_early_14d":
+      // The weather note used to lead this block. See WEATHER IS NOT SHIPPED
+      // above for why it no longer does. The packing list survives: it is a
+      // list of objects, not a claim about the world.
       return compact([
-        weather ? { label: labels.weather, note: weather } : null,
         {
           label: labels.packing,
           items: stringList(src.packingSuggestions, MAX_PACKING_ITEMS),
@@ -221,7 +246,10 @@ export function buildContextBlocks(
       ]);
 
     case "weather_3d":
-      return compact([weather ? { label: labels.weather, note: weather } : null]);
+      // Deliberately empty. This slot's whole enrichment WAS the weather note,
+      // so it now renders with no block at all — which is fine: the body copy
+      // says "Peek at the weather", it does not claim to tell you the weather.
+      return [];
 
     case "confirm_1d":
       return compact([
