@@ -49,6 +49,8 @@ import { join } from "path";
 import * as TripReminderMod from "../lib/email/templates/TripReminder";
 import * as TripFollowupMod from "../lib/email/templates/TripFollowup";
 import * as TripContextMod from "../lib/email/trip-context";
+import * as ForecastMod from "../lib/email/trip-forecast";
+import * as CoordMod from "../lib/email/trip-coordinates";
 import * as LocaleMod from "../lib/email/reminder-locale";
 import * as VerifyMod from "../lib/email/verify-render";
 
@@ -61,6 +63,13 @@ const TripFollowupEmail = TF.default;
 const TERMINAL_FOLLOWUP_SLOTS = TF.TERMINAL_FOLLOWUP_SLOTS;
 const TC = (TripContextMod as any).default ?? TripContextMod;
 const buildContextBlocks = TC.buildContextBlocks;
+const FORECAST_SLOTS = TC.FORECAST_SLOTS;
+const FM = (ForecastMod as any).default ?? ForecastMod;
+const getTripForecast = FM.getTripForecast;
+const MAX_FORECAST_DAYS = FM.MAX_FORECAST_DAYS;
+const forecastMessage = FM.forecastMessage;
+const CO = (CoordMod as any).default ?? CoordMod;
+const firstCoordinate = CO.firstCoordinate;
 const VF = (VerifyMod as any).default ?? VerifyMod;
 const verifyRenderedEmail = VF.verifyRenderedEmail;
 const contextLines = VF.contextLines;
@@ -148,6 +157,16 @@ async function main() {
     }
   }
 
+  /**
+   * One Open-Meteo answer per trip, not per row.
+   *
+   * Both forecast-bearing slots for a trip resolve to the same window, so a
+   * second lookup would only spend another call to learn what we know. Keyed
+   * by trip id, and a null answer is cached too — a trip with no coordinates
+   * should not be asked five times.
+   */
+  const forecastByTrip = new Map<string, any>();
+
   const findings: Array<Finding & { row: string; slot: string; trip: string }> = [];
   const stats = {
     rendered: 0,
@@ -156,6 +175,10 @@ async function main() {
     byLocale: {} as Record<string, number>,
     wouldSuppress: 0,
     enrichedLines: 0,
+    withForecast: 0,
+    noCoordinates: 0,
+    beyondHorizonToday: 0,
+    forecastFailed: 0,
   };
 
   for (const row of rows) {
@@ -235,10 +258,61 @@ async function main() {
 
     const meta = (trip.trip_meta ?? {}) as any;
     const day1 = Array.isArray(trip.itinerary) ? trip.itinerary[0] : undefined;
+
+    // The REAL forecast, fetched exactly as the cron fetches it: same slot
+    // gate, same coordinate source, same message rule. This is the check that
+    // matters most now — trip_meta.weather_note was invented prose, and the
+    // whole point of the change is that a number in an email came from an API.
+    // A row whose lookup fails here renders with no weather block, which is
+    // precisely what will happen at send time.
+    let forecastLine: string | undefined;
+    if (FORECAST_SLOTS.has(row.slot)) {
+      if (!forecastByTrip.has(trip.id)) {
+        const coord = firstCoordinate(trip.itinerary);
+        forecastByTrip.set(
+          trip.id,
+          coord
+            ? await getTripForecast({
+                latitude: coord.latitude,
+                longitude: coord.longitude,
+                startDate: trip.start_date,
+                endDate: trip.end_date,
+              })
+            : null
+        );
+      }
+      const fc = forecastByTrip.get(trip.id);
+      if (fc) {
+        const msg = forecastMessage(fc);
+        forecastLine = ctxT(msg.key, msg.values);
+        stats.withForecast++;
+      } else if (!firstCoordinate(trip.itinerary)) {
+        // Permanent: no activity in this itinerary carries a coordinate, so
+        // this email will never be able to carry weather. Worth surfacing —
+        // it is the only bucket here that a person could act on.
+        stats.noCoordinates++;
+        add("WARN", "no_forecast_source", "itinerary has no coordinates — email renders with no weather block");
+      } else {
+        // NOT a defect, and the distinction matters: auditing is not sending.
+        // These slots fire 14 and 3 days before departure, so the trip is
+        // inside the forecast horizon AT SEND TIME. Today it is further out
+        // than Open-Meteo will answer for, which says nothing about what the
+        // email will contain when it actually goes.
+        const days = Math.round(
+          (Date.parse(`${trip.start_date}T00:00:00Z`) - Date.now()) / 86_400_000
+        );
+        if (days >= MAX_FORECAST_DAYS) stats.beyondHorizonToday++;
+        else {
+          stats.forecastFailed++;
+          add("WARN", "forecast_unavailable", `inside the horizon (${days}d) but Open-Meteo returned nothing`);
+        }
+      }
+    }
+
     const blocks = buildContextBlocks(
       row.slot,
       {
-        weatherNote: meta.weather_note,
+        forecastLine,
         highlights: meta.highlights,
         packingSuggestions: meta.packing_suggestions,
         day1,
@@ -260,8 +334,11 @@ async function main() {
     // Built from the VALUES, not JSON.stringify of the row: stringify escapes
     // embedded quotes, so a weather note containing one would never contain
     // its own text.
+    // The forecast line is generated from this trip's own coordinates and
+    // dates but appears in no jsonb column, so it must be declared here or
+    // containment would reject every weather email that is actually correct.
     const ownStrings: string[] = [
-      typeof meta.weather_note === "string" ? meta.weather_note : "",
+      forecastLine ?? "",
       ...(Array.isArray(meta.highlights) ? meta.highlights : []),
       ...(Array.isArray(meta.packing_suggestions) ? meta.packing_suggestions : []),
       ...(Array.isArray(day1?.activities)
@@ -336,6 +413,13 @@ async function main() {
   console.log("\n" + "=".repeat(66));
   console.log(`Rendered:            ${stats.rendered}`);
   console.log(`With enrichment:     ${stats.withEnrichment}  (${stats.enrichedLines} enriched lines checked for containment)`);
+  const wxRows =
+    stats.withForecast + stats.noCoordinates + stats.beyondHorizonToday + stats.forecastFailed;
+  console.log(`Weather-slot rows:   ${wxRows}`);
+  console.log(`  real forecast now:   ${stats.withForecast}`);
+  console.log(`  beyond horizon today:${stats.beyondHorizonToday}  (fires 14d/3d out — inside the horizon at SEND time, so these are expected)`);
+  console.log(`  no coordinates:      ${stats.noCoordinates}  (will never carry weather)`);
+  console.log(`  lookup failed:       ${stats.forecastFailed}  (inside horizon, no answer)`);
   console.log(`Would be suppressed: ${stats.wouldSuppress}  (consent / no email — correct behaviour)`);
   console.log(`By slot:             ${JSON.stringify(stats.bySlot)}`);
   console.log(`By locale:           ${JSON.stringify(stats.byLocale)}`);

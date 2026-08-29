@@ -2347,7 +2347,9 @@
     "goingFor": "What you're going for",
     "dayOne": "Day one",
     "today": "Today's plan",
-    "yourHighlights": "Your highlights"
+    "yourHighlights": "Your highlights",
+    "weatherNoRain": "{min}–{max}°C · no rain expected",
+    "weatherWithRain": "{min}–{max}°C · rain on {wet} of {days} days"
   },
   "explore": {
     "filters": {

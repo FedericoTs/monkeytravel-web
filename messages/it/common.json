@@ -2347,7 +2347,9 @@
     "goingFor": "Perché ci vai",
     "dayOne": "Giorno uno",
     "today": "Il piano di oggi",
-    "yourHighlights": "I tuoi momenti migliori"
+    "yourHighlights": "I tuoi momenti migliori",
+    "weatherNoRain": "{min}–{max}°C · nessuna pioggia prevista",
+    "weatherWithRain": "{min}–{max}°C · pioggia {wet} giorni su {days}"
   },
   "explore": {
     "filters": {
