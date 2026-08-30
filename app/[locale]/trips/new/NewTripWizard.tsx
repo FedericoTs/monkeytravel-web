@@ -47,7 +47,7 @@ import { streamGeneration } from "@/lib/streaming/client";
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
+import { joinCities, splitCities, addDaysISO } from "@/lib/ai/multi-city-core";
 
 // Multi-city wedge (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the default
 // single-city funnel stays byte-for-byte unchanged until we flip the flag on.
@@ -2320,11 +2320,30 @@ export default function NewTripPage({
         // Provenance - the same two keys the auto arm writes via SaveOrigin,
         // so a duplicate pair states which arm produced each row and whether
         // they came from the same wizard mount. Deliberately no longer
-        // inferred from trip_meta.destination's absence here: that only ever
-        // worked because this object happens to lack that key.
+        // inferred from trip_meta.destination's absence here — and as of
+        // 2026-08-30 that inference would be actively wrong, since this arm
+        // now writes that key too (see below).
         save_arm: "manual" as const,
         ...(wizardMountIdRef.current
           ? { wizard_mount_id: wizardMountIdRef.current }
+          : {}),
+        // Canonical user-specified destination + structured route legs. The
+        // auto arm (lib/trips/persistTrip.ts buildTripRow) has always written
+        // these; this arm never did, so getTripDestination() fell back to
+        // stripping " Trip" off the title for every manually saved trip —
+        // which is exactly the case that fallback is documented to break on
+        // (non-English, renamed, and multi-city titles). Measured 2026-08-30:
+        // 8 of 10 trips saved that day had no trip_meta.destination, all of
+        // them from this arm. `destination` holds joinCities(...) for
+        // multi-city, so `cities` is derivable the same way the auto arm
+        // derives it. Gated on a non-empty value so we never store "".
+        ...(destination.trim()
+          ? {
+              destination: destination.trim(),
+              ...(splitCities(destination.trim()).length > 1
+                ? { cities: splitCities(destination.trim()) }
+                : {}),
+            }
           : {}),
         weather_note: generatedItinerary.destination.weather_note,
         highlights: generatedItinerary.trip_summary.highlights,
