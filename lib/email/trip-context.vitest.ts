@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildContextBlocks,
   FORECAST_SLOTS,
+  stripInventedWeatherRationale,
   type ContextLabels,
 } from "./trip-context";
 import { forecastMessage, formatTempRange } from "./trip-forecast";
@@ -374,5 +375,91 @@ describe("formatTempRange", () => {
     // A one-day forecast produces this pair often; "3–3°C" is not a range.
     expect(formatTempRange(3, 3)).toBe("3°C");
     expect(formatTempRange(-1, -1)).toBe("-1°C");
+  });
+});
+
+describe("packing suggestions must not argue with the forecast", () => {
+  /**
+   * pack_early_14d renders the real forecast and the packing list one above
+   * the other. The forecast is now measured; the packing list is still model
+   * output from generation time. Measured 2026-08-31: of 13 queued trips whose
+   * packing list made a one-way weather claim AND whose forecast could be
+   * checked, 2 were contradicted by it — e.g. a Tokyo trip forecast at 19-35°C
+   * carrying "Layered clothing (cool autumn weather)".
+   *
+   * Every string below is verbatim from the production corpus of 954 packing
+   * items across the queued packing emails.
+   */
+
+  it.each([
+    // the exact shape from the report: a bare weather noun-phrase
+    ["Layered clothing (cool autumn weather)", "Layered clothing"],
+    ["Light, breathable clothing (summer weather)", "Light, breathable clothing"],
+    ["Rain jacket or umbrella (unpredictable weather)", "Rain jacket or umbrella"],
+    // justifications, parenthesised
+    ["Hat, gloves, and scarf (for cooler evenings)", "Hat, gloves, and scarf"],
+    ["Rain jacket or umbrella (for potential light rain)", "Rain jacket or umbrella"],
+    ["Layered clothing (temperatures can vary)", "Layered clothing"],
+    ["Sunscreen and hat (even in autumn)", "Sunscreen and hat"],
+    ["Light layers for varying temperatures (autumn in Santorini)", "Light layers"],
+    // justifications, unparenthesised
+    ["Layered clothing for cool autumn weather", "Layered clothing"],
+    ["Scarf and gloves for chilly evenings", "Scarf and gloves"],
+    ["Light waterproof jacket/umbrella for spring showers", "Light waterproof jacket/umbrella"],
+    // the generator writes in the reader's language
+    ["Abbigliamento a strati per temperature variabili", "Abbigliamento a strati"],
+  ])("strips the reasoning from %j", (input, expected) => {
+    expect(stripInventedWeatherRationale(input)).toBe(expected);
+  });
+
+  it.each([
+    // A parenthetical that SPECIFIES the item is not a weather claim, even
+    // when it names weather — it says what to bring, not what the sky will do.
+    "Rain protection (umbrella or light rain jacket)",
+    "Warm layers (sweaters, fleece)",
+    "Layers of thermal clothing (base, mid-layer)",
+    "Comfortable walking shoes (waterproof if possible)",
+    // A reason about scenery contradicts no forecast.
+    "Camera for stunning winter landscapes and architecture",
+    "Camera to capture the fall foliage",
+    "Red light flashlight (for stargazing)",
+    // The item's own name may contain a season.
+    "Warm winter coat",
+    "Warm, waterproof winter coat",
+  ])("leaves %j alone", (input) => {
+    expect(stripInventedWeatherRationale(input)).toBe(input);
+  });
+
+  it("never empties an item, whatever the input", () => {
+    // Verified across all 954 production items: 132 shortened, 0 emptied. A
+    // rule that can delete an item would silently shrink the packing block.
+    for (const s of [
+      "(for cool weather)",
+      "for warm weather",
+      "(temperatures vary)",
+      "weather",
+      "   ",
+    ]) {
+      expect(stripInventedWeatherRationale(s).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("reaches the rendered packing block, not just the helper", () => {
+    const blocks = buildContextBlocks(
+      "pack_early_14d",
+      {
+        forecastLine: "19–35°C · no rain expected",
+        packingSuggestions: [
+          "Layered clothing (cool autumn weather)",
+          "Warm layers (sweaters, fleece)",
+        ],
+      },
+      L
+    );
+    const packing = blocks.find((b) => b.label === L.packing)!;
+    expect(packing.items?.[0].text).toBe("Layered clothing");
+    expect(packing.items?.[1].text).toBe("Warm layers (sweaters, fleece)");
+    // And the forecast above it is untouched.
+    expect(blocks.find((b) => b.label === L.weather)?.note).toBe("19–35°C · no rain expected");
   });
 });

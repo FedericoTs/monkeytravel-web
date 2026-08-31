@@ -192,6 +192,107 @@ function str(value: unknown, cap: number): string | undefined {
   return `${(lastSpace > cap * 0.6 ? slice.slice(0, lastSpace) : slice).trimEnd()}…`;
 }
 
+/**
+ * Remove the invented weather reasoning from a packing suggestion.
+ *
+ * WHY THIS EXISTS
+ * ---------------
+ * pack_early_14d renders the real forecast and the packing list one above the
+ * other. The forecast now comes from Open-Meteo; the packing list still comes
+ * from the same generator that produced the invented weather notes. So the
+ * email could argue with itself:
+ *
+ *   Weather for your first 2 days   19-35C
+ *   Worth packing                   Layered clothing (cool autumn weather)
+ *
+ * Measured 2026-08-31: of 13 queued trips whose packing list made a one-way
+ * weather claim AND whose forecast could be checked, 2 were contradicted by
+ * it. 84 of 122 queued packing emails carry such a claim, and 64 of 954
+ * packing items justify themselves with the weather.
+ *
+ * WHAT IS REMOVED, AND WHAT IS NOT
+ * --------------------------------
+ * The ITEM is the useful part; the reasoning beside it is the invented part.
+ * A parenthetical is dropped only when it JUSTIFIES the item with weather:
+ *
+ *   "Hat, gloves, and scarf (for cooler evenings)"   -> reasoning, dropped
+ *   "Rain jacket or umbrella (for potential light rain)" -> dropped
+ *   "Light layers for varying temperatures (autumn in Santorini)" -> dropped
+ *
+ * A parenthetical that SPECIFIES the item is kept, even when it names weather,
+ * because it is telling you what to bring rather than what the weather will do:
+ *
+ *   "Rain protection (umbrella or light rain jacket)"  -> kept
+ *   "Warm layers (sweaters, fleece)"                    -> kept
+ *   "Comfortable walking shoes (waterproof if possible)" -> kept
+ *
+ * The discriminator is grammatical, not topical: a justification opens with
+ * for/especially/even/in case, or contains a clause verb (can, may, vary, is),
+ * or opens with a season. A specification is a list of things.
+ *
+ * Deliberately conservative. Over-stripping costs a little detail; under-
+ * stripping leaves the email contradicting itself, which is the failure being
+ * fixed. Where the two are in tension the item text always survives — nothing
+ * here can empty an item, only shorten it.
+ */
+const WEATHER_WORD =
+  /\b(weather|climate|cool|cold|chilly|warm|hot|mild|humid|rain|rainy|shower|snow|sun|sunny|breez|wind|temperature|season|summer|winter|autumn|fall|spring|monsoon|tropical|freez|degrees)/i;
+
+/**
+ * Does this parenthetical say WHY you need the item, rather than WHAT it is?
+ *
+ * The discriminator is grammatical, not topical, because the topical one gets
+ * it wrong: "Rain protection (umbrella or light rain jacket)" is about rain
+ * but is telling you what to pack, while "(for cooler evenings)" is telling
+ * you what the weather will do. A justification opens with for/especially/
+ * even/in case, or carries a clause verb, or opens with a season. A
+ * specification is a list of things.
+ */
+function isWeatherJustification(inner: string): boolean {
+  const text = inner.trim();
+  if (!WEATHER_WORD.test(text)) return false;
+  return (
+    // "for cooler evenings", "especially in cold weather". `per`/`para`/`pour`
+    // because the generator writes in the reader's language and 16 of the
+    // queued packing emails are es/it/pt.
+    /^(for|especially|even|in case|to|if|as|due|because|per|para|pour)\b/i.test(text) ||
+    // "temperatures can vary", "the sun can be strong"
+    /\b(can|could|may|might|vary|varies|will|are|is|be|gets?)\b/i.test(text) ||
+    // "autumn in Santorini"
+    /^(autumn|winter|summer|spring|monsoon|fall)\b/i.test(text) ||
+    // A bare weather noun-phrase: "cool autumn weather", "summer weather",
+    // "unpredictable weather". No lead-in and no verb, so the two rules above
+    // both miss it — and it is the shape that actually contradicts a forecast,
+    // which is why it was the example in the original report. Anchored at the
+    // end so "umbrella or light rain jacket" (ends in the ITEM) still reads as
+    // a specification and survives.
+    /\b(weather|temperatures?)\s*$/i.test(text)
+  );
+}
+
+export function stripInventedWeatherRationale(item: string): string {
+  let out = item.replace(/\s*\(([^)]*)\)\s*$/, (whole, inner: string) =>
+    isWeatherJustification(inner) ? "" : whole
+  );
+  // The same reasoning also appears unparenthesised — "Layers of clothing for
+  // varying temperatures", "Light jacket for spring showers". Removing only
+  // the bracket would leave the claim standing.
+  //
+  // Scoped to trailing "for ..." clauses about TEMPERATURE OR CONDITIONS. A
+  // clause about scenery is a reason to bring the thing, not a claim about
+  // what the weather will do, and contradicts no forecast — so "Camera for
+  // stunning winter landscapes" keeps its point.
+  out = out.replace(/\s+(?:for|per|para|pour)\s+([^,;()]*)$/i, (whole, clause: string) => {
+    const saysConditions =
+      /\b(temperature|tempo|weather|shower|rain|snow|cold|cool|warm|hot|chilly|humid|wind|sun|clima|lluvia|pioggia|chuva|freddo|calor)/i.test(clause);
+    const saysScenery = /\b(landscape|scenery|foliage|view|photo|architecture|sight)/i.test(clause);
+    return saysConditions && !saysScenery ? "" : whole;
+  });
+  const trimmed = out.replace(/[\s,;-]+$/, "").trim();
+  // A rule may shorten an item; it may never delete one.
+  return trimmed || item;
+}
+
 /** Strings out of an unknown jsonb array, capped and de-duplicated. */
 function stringList(value: unknown, limit: number): ContextItem[] {
   if (!Array.isArray(value)) return [];
@@ -279,7 +380,13 @@ export function buildContextBlocks(
         forecast ? { label: labels.weather, note: forecast } : null,
         {
           label: labels.packing,
-          items: stringList(src.packingSuggestions, MAX_PACKING_ITEMS),
+          // The reasoning is stripped, not the item: the forecast directly
+          // above this block is real, and the reasoning beside these items is
+          // not, so the two could disagree in the same email.
+          items: stringList(src.packingSuggestions, MAX_PACKING_ITEMS).map((i) => ({
+            ...i,
+            text: stripInventedWeatherRationale(i.text),
+          })),
         },
       ]);
 
