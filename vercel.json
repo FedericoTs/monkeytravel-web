@@ -70,6 +70,10 @@
     {
       "path": "/api/cron/sweep-unclaimed-trips",
       "schedule": "53 3 * * *"
+    },
+    {
+      "path": "/api/cron/audit-account-deletion",
+      "schedule": "12 5 * * *"
     }
   ],
   "redirects": [
