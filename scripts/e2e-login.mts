@@ -79,6 +79,16 @@ for (const [role, u] of Object.entries(manifest.users)) {
       throw new Error("email field would not hold its value (hydration reset?)");
     }
 
+    // Check for the banner AGAIN. It is client-rendered and, on a cold
+    // session, arrives AFTER the form — so a single check before filling
+    // races it and the submit click is then intercepted by the overlay
+    // ("subtree intercepts pointer events"). Only the first account of a run
+    // ever hit this, which is exactly the shape of a race.
+    if (await essential.isVisible({ timeout: 1_000 }).catch(() => false)) {
+      await essential.click().catch(() => {});
+      await essential.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
+    }
+
     await page.click('button[type="submit"]');
 
     // Success is a navigation away from /auth/login. Assert on that rather
