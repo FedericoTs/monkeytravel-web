@@ -166,14 +166,46 @@ export async function GET(request: NextRequest) {
 
   const desiredContacts = [...byEmail.values()];
 
-  // Step 2: list existing audience contacts to diff. Resend's list
-  // endpoint returns the full audience in one call (no pagination
-  // required for our scale — under 10K contacts).
+  // Step 2: list existing audience contacts to diff.
+  //
+  // The previous comment here asserted the endpoint "returns the full audience
+  // in one call (no pagination required for our scale)". That is an assumption
+  // about someone else's default page size, and it is the kind that fails
+  // silently and gradually: contacts past the first page simply never appear
+  // in `existingState`, so the diff re-creates them and, worse, never
+  // reconciles their opt-out. Someone who unsubscribed keeps receiving mail.
+  //
+  // So the count is no longer assumed. If the response says there is more, we
+  // say so loudly rather than quietly syncing a prefix of the audience.
   const existing = await resend.contacts.list({ audienceId });
   if (existing.error) {
     console.error("[sync-resend-audience] list failed:", existing.error);
     return NextResponse.json(
       { error: "List contacts failed", detail: existing.error.message },
+      { status: 500 }
+    );
+  }
+
+  const listed = (existing.data?.data ?? []) as unknown[];
+  const hasMore = Boolean(
+    (existing.data as unknown as { has_more?: boolean } | null)?.has_more
+  );
+  if (hasMore) {
+    // Refuse rather than half-sync. A partial diff would resurrect
+    // unsubscribed contacts, which is the one outcome worse than not syncing.
+    console.error(
+      "[sync-resend-audience] audience is paginated — refusing to sync a prefix",
+      { listed: listed.length }
+    );
+    return NextResponse.json(
+      {
+        error: "Audience larger than one page",
+        detail:
+          `Resend returned ${listed.length} contacts with has_more=true. ` +
+          "Syncing only the first page would re-create contacts that are not " +
+          "in it and would not reconcile their opt-outs. Add pagination here " +
+          "before this audience grows further.",
+      },
       { status: 500 }
     );
   }

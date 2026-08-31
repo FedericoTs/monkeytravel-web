@@ -6,6 +6,7 @@ import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type { ProposalVote, ProposalVoteType, Activity, ItineraryDay } from "@/types";
 import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { generateActivityId } from "@/lib/utils/activity-id";
 
 /**
@@ -192,6 +193,12 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
       .eq("user_id", user.id)
       .single();
 
+    // Whether the consensus follow-up work actually landed. Both start true
+    // and only the failure paths below can clear them, so a route that never
+    // reaches consensus reports the honest "nothing to apply" default.
+    let consensusApplied = true;
+    let activityAdded = true;
+
     let vote;
     if (existingVote) {
       // Update existing vote
@@ -291,15 +298,54 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
           expiresAt,
         });
 
-        // Auto-update proposal status if consensus is reached
+        // Auto-update proposal status if consensus is reached.
+        //
+        // WHY THIS RUNS ELEVATED, AND WHY IT CHECKS THE ROW COUNT
+        // -------------------------------------------------------
+        // Applying a reached consensus is the SYSTEM acting on a decision the
+        // crew already made — it is not the individual voter editing the trip.
+        // Written through the voter's own RLS-scoped client it simply did not
+        // happen, silently:
+        //
+        //   activity_proposals_update_consolidated allows the owner, or the
+        //   proposer while status is still pending/voting. Its WITH CHECK
+        //   re-tests the NEW row, so status='approved' is rejected even FOR
+        //   the proposer.
+        //   trips_update allows the owner or an 'editor' collaborator — but
+        //   this route lets 'voter' vote, and `voter` is the DEFAULT and
+        //   recommended role in the invite UI.
+        //
+        // So whenever the deciding vote came from anyone but the owner, both
+        // writes matched zero rows. PostgREST answers a zero-row UPDATE with
+        // 204 and error:null, the result here was not even destructured, and
+        // the next line logged success. The crew saw the proposal approved and
+        // the activity was never in the itinerary — permanently, because this
+        // is the only path that inserts it.
+        //
+        // Elevated does not mean unchecked: consensus was computed server-side
+        // from stored votes, and every write below asserts it changed a row.
         if (consensus.status === 'approved' || consensus.status === 'rejected') {
-          await supabase
+          const admin = createAdminClient();
+
+          const { data: resolvedRows, error: resolveError } = await admin
             .from("activity_proposals")
             .update({
               status: consensus.status,
               resolved_at: new Date().toISOString(),
             })
-            .eq("id", proposalId);
+            .eq("id", proposalId)
+            .select("id");
+
+          if (resolveError || !resolvedRows?.length) {
+            // Do not fall through to the itinerary write: that would add the
+            // activity while the proposal still reads as open, and every
+            // later vote would add it again.
+            console.error("[proposal vote] could not resolve proposal", {
+              proposalId,
+              error: resolveError?.message ?? "matched no rows",
+            });
+            throw new Error("Could not record the proposal outcome");
+          }
 
           // If APPROVED: Add the activity to the trip's itinerary
           if (consensus.status === 'approved') {
@@ -347,22 +393,38 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
                       return day;
                     });
 
-                    // Update the trip with the new itinerary
-                    await supabase
+                    // Update the trip with the new itinerary.
+                    // `.select()` is load-bearing — see the note above.
+                    const { data: writtenRows, error: itineraryError } = await admin
                       .from("trips")
                       .update({
                         itinerary: updatedItinerary,
                         updated_at: new Date().toISOString(),
                       })
-                      .eq("id", tripId);
+                      .eq("id", tripId)
+                      .select("id");
+
+                    if (itineraryError || !writtenRows?.length) {
+                      console.error("[proposal vote] approved activity was NOT added", {
+                        tripId,
+                        proposalId,
+                        activity: newActivity.name,
+                        error: itineraryError?.message ?? "matched no rows",
+                      });
+                      throw new Error("Could not add the approved activity to the itinerary");
+                    }
 
                     console.log(`Activity "${newActivity.name}" added to Day ${targetDayNumber} after proposal approval`);
                   }
                 }
               }
             } catch (insertError) {
-              // Log but don't fail - the proposal was still approved
+              // The vote IS recorded, so the request is not a failure — but the
+              // caller must not be told the activity landed when it did not.
+              // The response now carries `activityAdded`, and this is the one
+              // place that can set it false.
               console.error("Error adding approved activity to itinerary:", insertError);
+              activityAdded = false;
             }
           }
         }
@@ -370,12 +432,19 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     } catch (consensusError) {
       // Log but don't fail the request - vote was still recorded
       console.error("Error checking consensus:", consensusError);
+      consensusApplied = false;
     }
 
     return apiSuccess({
       success: true,
       vote,
       isUpdate: !!existingVote,
+      // Honest about the second half of the work. The vote is saved either
+      // way; these say whether the consensus that vote triggered was actually
+      // written. Previously the response said `success: true` while both
+      // writes had silently matched zero rows.
+      consensusApplied,
+      activityAdded,
     });
   } catch (error) {
     console.error("[Proposal Vote] Unexpected error in POST:", error);

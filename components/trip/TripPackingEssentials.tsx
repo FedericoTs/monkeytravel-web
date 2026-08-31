@@ -145,16 +145,28 @@ export default function TripPackingEssentials({
         packing_checked: Array.from(newChecked),
       };
 
-      // Update the trip
-      const { error: updateError } = await supabase
+      // Update the trip.
+      //
+      // `.select()` is load-bearing. trips_update permits the owner or an
+      // 'editor'; any collaborator — including a 'voter', the DEFAULT invite
+      // role — can READ this trip and so reaches this component and ticks a
+      // box. Their UPDATE then matches zero rows, and PostgREST answers a
+      // zero-row UPDATE with 204 and error:null. `updateError` was null, this
+      // threw nothing, and the checkbox stayed ticked until the page reloaded
+      // and quietly lost it.
+      const { data: writtenRows, error: updateError } = await supabase
         .from("trips")
         .update({
           trip_meta: updatedMeta,
           updated_at: new Date().toISOString()
         })
-        .eq("id", tripId);
+        .eq("id", tripId)
+        .select("id");
 
       if (updateError) throw updateError;
+      if (!writtenRows?.length) {
+        throw new Error("no row updated — you may not have permission to edit this trip");
+      }
 
     } catch (error) {
       console.error("Failed to save packing progress:", error);
