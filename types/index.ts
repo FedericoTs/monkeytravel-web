@@ -598,7 +598,16 @@ export interface StructuredAssistantResponse {
   cards?: AssistantCard[];   // Optional structured cards
   action?: {
     type: "replace_activity" | "add_activity" | "remove_activity" | "reorder" | "adjust_duration" | "add_day" | "apply_draft";
-    applied: boolean;        // Whether the action was auto-applied
+    /**
+     * TRUE only when a database write for this change SUCCEEDED. Never set
+     * from the model's own output, and never set before the write is
+     * attempted — both of which used to happen, so this field read `true` on
+     * 158 of 161 recorded actions while users were replying "I can't see the
+     * changes" in the same thread.
+     */
+    applied: boolean;
+    /** Prepared, nothing saved, waiting on the user's Apply. Never true alongside `applied`. */
+    pending?: boolean;
     activityId?: string;     // For replace/remove actions
     dayNumber?: number;
     newActivity?: Activity;  // For add/replace actions

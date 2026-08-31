@@ -124,6 +124,45 @@ function actionActivityName(message: Message): string | undefined {
   return undefined;
 }
 
+/**
+ * Did the user just say yes?
+ *
+ * Only consulted while a proposal card is on screen showing exactly what will
+ * be saved, so a match is the user's stated intent rather than a guess about
+ * it. Deliberately narrow: whole-message agreement only, so "yes but make it
+ * cheaper" or "ok what about Tuesday" fall through to the assistant instead of
+ * silently writing something the user was still negotiating.
+ *
+ * Covers the four languages the app ships. Anything unmatched is simply
+ * treated as a normal message — the cost of a miss is one extra tap, the cost
+ * of a false match is an unwanted edit.
+ */
+export function isAffirmative(text: string): boolean {
+  const t = text
+    .trim()
+    .toLowerCase()
+    .replace(/[.!¡¿?,;:]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return [
+    // en
+    "yes", "yes please", "yep", "yeah", "yup", "ok", "okay", "k", "sure",
+    "do it", "do that", "go ahead", "please do", "apply", "apply it",
+    "save", "save it", "add it", "confirm", "confirmed", "sounds good",
+    "looks good", "perfect", "great", "yes do it", "yes please do it",
+    // es
+    "si", "sí", "sí por favor", "si por favor", "vale", "de acuerdo",
+    "hazlo", "aplicalo", "aplícalo", "guardalo", "guárdalo", "confirmar",
+    "perfecto", "genial",
+    // it
+    "sì", "si grazie", "sì grazie", "va bene", "fallo", "applica",
+    "salva", "salvalo", "conferma", "perfetto",
+    // pt
+    "sim", "sim por favor", "claro", "pode ser", "faz isso", "faça isso",
+    "guarda", "guardar", "confirmar", "perfeito", "ótimo", "otimo",
+  ].includes(t);
+}
+
 export default function AIAssistantEnhanced({
   tripId,
   tripTitle,
@@ -224,7 +263,38 @@ export default function AIAssistantEnhanced({
     async (content: string, previewMode: boolean = true) => {
       if (!content.trim() || isLoading) return;
 
-      // Clear any pending changes when user sends new message
+      // A proposal is on screen. What happens next used to be: it is destroyed,
+      // silently, with no note in the transcript — triggered by the single most
+      // likely thing a person does when an assistant offers them something,
+      // which is to reply to it. They type "yes", the assistant answers "yes"
+      // agreeably, the conversation reads as an agreed change, and nothing was
+      // ever written. Compare handleCancelChange, which at least says so: the
+      // destructive path was the quiet one.
+      if (pendingChange && !isApplyingChange) {
+        if (isAffirmative(content)) {
+          // Treat it as the tap they meant. The card is right there showing
+          // exactly what will be saved, so this is their stated intent, not a
+          // guess about it.
+          setInput("");
+          setMessages((prev) => [
+            ...prev,
+            { role: "user", content: content.trim(), timestamp: new Date().toISOString() },
+          ]);
+          await applyPendingRef.current?.();
+          return;
+        }
+        // Not an agreement: the proposal is going away, so SAY that it has.
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: t("cancelledMessage"),
+            timestamp: new Date().toISOString(),
+            local: true,
+          },
+        ]);
+      }
+
       setPendingChange(null);
       clearUndo();
 
@@ -406,8 +476,15 @@ ${t("notAppliedBody")}`,
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo]
+    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t]
   );
+
+  /**
+   * Lets sendMessage (declared above) invoke the apply handler (declared
+   * below) without reordering two large callbacks. Kept current by an effect
+   * rather than written during render, which React forbids.
+   */
+  const applyPendingRef = useRef<null | (() => Promise<void>)>(null);
 
   // Apply pending change
   const handleApplyChange = useCallback(async () => {
@@ -434,12 +511,20 @@ ${t("notAppliedBody")}`,
         tripId,
         changeType: pendingChange.type,
         dayNumber: appliedDayNumber,
+        // So the transcript can record that this proposal was actually taken
+        // up. Without it, a reload cannot tell an applied change from an
+        // abandoned one and both render as "No changes made to your
+        // itinerary" — which sends people back to ask for the same edit a
+        // second time.
+        conversationId,
       };
       if (pendingChange.type === "replace") {
         applyBody.oldActivity = pendingChange.oldActivity;
         applyBody.newActivity = pendingChange.newActivity;
       } else if (pendingChange.type === "add") {
         applyBody.newActivity = pendingChange.newActivity;
+      } else if (pendingChange.type === "remove") {
+        applyBody.oldActivity = pendingChange.oldActivity;
       } else if (pendingChange.type === "adjust_duration") {
         applyBody.activity = pendingChange.activity;
         applyBody.oldDuration = pendingChange.oldDuration;
@@ -566,7 +651,11 @@ ${t("notAppliedBody")}`,
     } finally {
       setIsApplyingChange(false);
     }
-  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay]);
+  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay, conversationId]);
+
+  useEffect(() => {
+    applyPendingRef.current = handleApplyChange;
+  }, [handleApplyChange]);
 
   // Try different suggestion
   const handleTryDifferent = useCallback(() => {
