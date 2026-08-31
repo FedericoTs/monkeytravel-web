@@ -18,10 +18,13 @@
 
 name: Email queue audit
 
+# NOTE: there is NO scheduled run while repository secrets are unset — it
+# would go red every morning saying so. The real protection is unaffected:
+# lib/email/verify-render.ts runs INLINE before every dispatch and holds a
+# defective row back as `failed`, and that cannot be skipped. What is missing
+# is only the early-warning report; run `npm run email:audit` locally, or set
+# the two secrets to restore the daily job.
 on:
-  schedule:
-    # 05:30 UTC daily — before the 07:00 UTC scheduled-notifications cron.
-    - cron: "30 5 * * *"
   workflow_dispatch:
   pull_request:
     branches: [master]
@@ -62,8 +65,8 @@ jobs:
         run: |
           if [ -n "$URL" ] && [ -n "$KEY" ]; then
             echo "have=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "::error::This audit is not running. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets — until then no queued email is being checked before the 07:00 UTC send."
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::error::Nothing to run — no repository secrets. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or run `npm run email:audit` locally."
             exit 1
           else
             echo "have=false" >> "$GITHUB_OUTPUT"

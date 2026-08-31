@@ -22,10 +22,14 @@
 
 name: Account deletion audit
 
+# NOTE: the NIGHTLY run lives on Vercel cron now
+# (/api/cron/audit-account-deletion, 05:12 UTC, see vercel.json). Vercel
+# already holds the service-role key, so the scheduled check runs where the
+# credential is rather than requiring a second copy of it in GitHub.
+#
+# This workflow is kept for PULL REQUESTS, where it catches a new foreign key
+# at review time — if and when repository secrets are configured.
 on:
-  schedule:
-    # 05:00 UTC, before the working day and before the email audit at 05:30.
-    - cron: "0 5 * * *"
   workflow_dispatch:
   pull_request:
     branches: [master]
@@ -63,8 +67,8 @@ jobs:
         run: |
           if [ -n "$URL" ] && [ -n "$KEY" ]; then
             echo "have=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "::error::This guard is not running. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets — until then nothing is checking that accounts can be deleted."
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::error::Nothing to run — no repository secrets. The NIGHTLY guard is /api/cron/audit-account-deletion on Vercel; this workflow only adds PR-time coverage, and needs secrets for that."
             exit 1
           else
             echo "have=false" >> "$GITHUB_OUTPUT"
