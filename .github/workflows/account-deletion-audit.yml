@@ -49,7 +49,9 @@ jobs:
       # On a PULL REQUEST, missing secrets are not the contributor's problem —
       # forks never receive them — so skip with a notice.
       #
-      # On a SCHEDULE, missing secrets are fatal. A nightly guard that silently
+      # On a SCHEDULE or a manual run, missing secrets are fatal. Triggering
+      # a guard by hand is an explicit request for it to CHECK something, so a
+      # silent skip there is the same trap in a smaller box. A nightly guard that silently
       # skips is worse than no guard: it reports green forever while checking
       # nothing, which is exactly how the first fix was believed to be holding
       # while 283 accounts were already broken.
@@ -61,7 +63,7 @@ jobs:
         run: |
           if [ -n "$URL" ] && [ -n "$KEY" ]; then
             echo "have=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
+          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "::error::This guard is not running. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets — until then nothing is checking that accounts can be deleted."
             exit 1
           else
