@@ -1,0 +1,84 @@
+# Can every account still be deleted?
+#
+# /api/profile/delete runs in two phases: delete_user_account() over the public
+# schema, then auth.admin.deleteUser(). Any foreign key into auth.users left on
+# ON DELETE NO ACTION makes phase 2 fail — AFTER phase 1 has already destroyed
+# the person's trips. Their data is gone and their account is not, and the API
+# returns a 500 whose message ("Database error deleting user") names no
+# constraint, so the logs do not say which table did it.
+#
+# THIS HAS HAPPENED TWICE.
+#
+# A pass on 2026-08-04 fixed four such keys and measured 0 accounts affected,
+# so it was filed as latent. By 2026-08-31 six more existed that it never
+# covered, one it DID fix was NO ACTION again, and 283 of 495 real accounts
+# could not be deleted. Nobody noticed, because the only symptom is a real
+# person hitting a 500 at the moment they are trying to leave.
+#
+# This is the watcher. It exists so there is no third time.
+#
+# Runs on any PR that touches migrations — the only way a new FK arrives — and
+# daily, because a policy or constraint can also change from outside the repo.
+
+name: Account deletion audit
+
+on:
+  schedule:
+    # 05:00 UTC, before the working day and before the email audit at 05:30.
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/audit-account-deletion.mts"
+      - "app/api/profile/delete/**"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # The audit reads the live schema, so it needs credentials.
+      #
+      # On a PULL REQUEST, missing secrets are not the contributor's problem —
+      # forks never receive them — so skip with a notice.
+      #
+      # On a SCHEDULE, missing secrets are fatal. A nightly guard that silently
+      # skips is worse than no guard: it reports green forever while checking
+      # nothing, which is exactly how the first fix was believed to be holding
+      # while 283 accounts were already broken.
+      - name: Check credentials are available
+        id: creds
+        env:
+          URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "$URL" ] && [ -n "$KEY" ]; then
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "::error::This guard is not running. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets — until then nothing is checking that accounts can be deleted."
+            exit 1
+          else
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets to enable the account-deletion audit."
+          fi
+
+      - name: Install dependencies
+        if: steps.creds.outputs.have == 'true'
+        run: npm ci
+
+      # Fails non-zero if ANY foreign key into auth.users is on NO ACTION or
+      # RESTRICT. Also reports which email-keyed rows outlive a deletion —
+      # informational, because retention there is policy rather than a defect.
+      - name: Audit account deletion
+        if: steps.creds.outputs.have == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run audit:account-deletion

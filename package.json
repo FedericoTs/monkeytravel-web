@@ -22,6 +22,7 @@
     "test:bananas": "tsx scripts/banana-load-test.mts",
     "rls:check": "tsx scripts/rls-baseline.mts",
     "email:audit": "tsx scripts/audit-queued-emails.mts",
+    "audit:account-deletion": "tsx scripts/audit-account-deletion.mts",
     "e2e:fixtures": "tsx scripts/e2e-fixtures.mts",
     "e2e:login": "tsx scripts/e2e-login.mts",
     "rls:baseline": "tsx scripts/rls-baseline.mts --write"
