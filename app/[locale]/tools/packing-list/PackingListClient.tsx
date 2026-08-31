@@ -394,10 +394,21 @@ export default function PackingListClient({ locale }: Props) {
             </div>
           </div>
 
+          {/*
+            Model-generated prose. It used to render raw, in the app's amber
+            WARNING token, with no label and no source — the most authoritative
+            framing available, applied to the least verified content on the
+            page. The same field family (trip_meta.weather_note) was measured
+            contradicting itself across 279 trips, so it is labelled rather
+            than presented as the app speaking.
+          */}
           {result.contextNote && (
-            <p className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
-              {result.contextNote}
-            </p>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                {t("contextNoteLabel")}
+              </p>
+              <p className="mt-1 text-sm text-slate-700">{result.contextNote}</p>
+            </div>
           )}
 
           <div className="space-y-4">

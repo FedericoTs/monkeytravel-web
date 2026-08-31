@@ -768,14 +768,26 @@ async function processRow(
   //     accordingly. 'failed' bubbles up as a failed row + last_error.
   if (result.ok) {
     if (result.status === "sent") {
-      await svc
+      // The email HAS gone out by this point. If this flip does not land the
+      // row stays `pending` and the next run sends the same email again — the
+      // one failure here that a recipient actually experiences. It was
+      // previously not even destructured.
+      const { data: marked, error: markError } = await svc
         .from("scheduled_notifications")
         .update({
           status: "sent",
           sent_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", row.id);
+        .eq("id", row.id)
+        .select("id");
+
+      if (markError || !marked?.length) {
+        console.error(
+          "[cron/scheduled-notifs] SENT BUT NOT MARKED — this row will resend",
+          { id: row.id, slot: row.slot, error: markError?.message ?? "matched no rows" }
+        );
+      }
       return "sent";
     }
     // skipped_disabled / skipped_suppressed / skipped_duplicate /

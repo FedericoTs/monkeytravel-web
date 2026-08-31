@@ -65,7 +65,8 @@
     "shareCta": "Comparte esta lista",
     "shareCopied": "¡Enlace copiado!",
     "buyOnAmazon": "Comprar en Amazon",
-    "buyOnAmazonAria": "Buscar {item} en Amazon (enlace de afiliado)"
+    "buyOnAmazonAria": "Buscar {item} en Amazon (enlace de afiliado)",
+    "contextNoteLabel": "Sugerencia de IA: verifica lo relacionado con el tiempo"
   },
   "visaChecker": {
     "breadcrumb": "Verificador de Visa",

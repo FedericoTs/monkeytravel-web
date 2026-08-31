@@ -124,7 +124,14 @@ export default async function TripDetailPage({
   const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
-  const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
+  // An EMPTY ARRAY is truthy, so `||` never reached the fallback: a trip whose
+  // packing_list column is `[]` showed no packing block at all even when
+  // trip_meta.packing_suggestions was full. Measured 2026-08-31: 12 live trips.
+  const packingColumn = trip.packing_list as string[] | null | undefined;
+  const packingList =
+    (Array.isArray(packingColumn) && packingColumn.length > 0
+      ? packingColumn
+      : (tripMeta.packing_suggestions as string[] | undefined)) || [];
   const packingChecked = tripMeta.packing_checked || [];
 
   // Extract cached travel distances from trip_meta (calculated locally, no API cost)

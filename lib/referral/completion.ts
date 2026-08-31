@@ -239,17 +239,31 @@ export async function completeReferralIfEligible(
       const calculatedTier = getTierForConversions(newConversionCount);
       const effectiveTier = Math.max(newTier, calculatedTier);
 
-      // 6. Sync users table with updated conversion count and tier
-      const { error: syncError } = await supabase
+      // 6. Sync users table with updated conversion count and tier.
+      //
+      // adminDb, not `supabase`: this writes the REFERRER's row while
+      // `supabase` is the REFEREE's RLS-scoped client, and users_update_own is
+      // `id = auth.uid()`. The referrer is by definition not the referee, so
+      // the filter matched zero rows EVERY time — and a zero-row UPDATE comes
+      // back from PostgREST as 204 with error:null, so `syncError` was always
+      // null and the log never fired. Every other cross-user write in this
+      // block already uses adminDb; this one was missed.
+      //
+      // .select() so a future policy change cannot make it silent again.
+      const { data: syncedRows, error: syncError } = await adminDb
         .from("users")
         .update({
           lifetime_referral_conversions: newConversionCount,
           referral_tier: effectiveTier,
         })
-        .eq("id", referralCode.user_id);
+        .eq("id", referralCode.user_id)
+        .select("id");
 
-      if (syncError) {
-        console.error("[Referral Complete] Error syncing user stats:", syncError);
+      if (syncError || !syncedRows?.length) {
+        console.error("[Referral Complete] Error syncing user stats:", {
+          referrerId: referralCode.user_id,
+          error: syncError?.message ?? "matched no rows",
+        });
       }
 
       newTier = effectiveTier;

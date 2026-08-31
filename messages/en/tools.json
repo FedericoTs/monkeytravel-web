@@ -65,7 +65,8 @@
     "shareCta": "Share this list",
     "shareCopied": "Link copied!",
     "buyOnAmazon": "Buy on Amazon",
-    "buyOnAmazonAria": "Search {item} on Amazon (affiliate link)"
+    "buyOnAmazonAria": "Search {item} on Amazon (affiliate link)",
+    "contextNoteLabel": "AI suggestion — double-check anything weather-related"
   },
   "visaChecker": {
     "breadcrumb": "Visa Checker",
