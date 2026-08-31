@@ -103,7 +103,19 @@ interface AssistantMessage {
   cards?: AssistantCard[];
   action?: {
     type: string;
+    /**
+     * TRUE only when a database write for this change SUCCEEDED on this
+     * request. It was previously a literal `true` written at construction
+     * time, before any write was attempted, so it was a constant rather than
+     * a fact — 158 of 161 recorded actions said `applied: true` while users
+     * were telling us in the same thread that nothing had changed.
+     */
     applied: boolean;
+    /**
+     * The change is prepared and waiting for the user to tap Apply. Nothing
+     * is saved. `applied` and `pending` are never both true.
+     */
+    pending?: boolean;
     activityId?: string;
     dayNumber?: number;
     // apply_draft: number of days revised — the client badge renders
@@ -318,7 +330,29 @@ function detectActionIntent(message: string): {
     return { type: "add", preference: message };
   }
 
-  // Remove patterns
+  // Remove patterns.
+  //
+  // The name matters: without it the route had nothing to act on, no handler
+  // ran, and the model filled the silence — "The Harbour Museum Tour has been
+  // removed from your Day 1 plans", for an activity still sitting in the trip.
+  // 12 such removals are recorded in production as `applied: true`.
+  const removePatterns = [
+    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?\s+from\s+/i,
+    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?\s+(?:on|for)\s+day\s+\d+/i,
+    /take\s+(?:the\s+)?["']?(.+?)["']?\s+(?:out|off)\b/i,
+    /(?:get\s+)?rid\s+of\s+(?:the\s+)?["']?(.+?)["']?$/i,
+    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?$/i,
+  ];
+  for (const pattern of removePatterns) {
+    const match = message.match(pattern);
+    if (match?.[1]) {
+      const activityName = match[1].trim().replace(/\s+(?:entirely|completely|please)$/i, "").trim();
+      if (activityName) {
+        console.log(`[AI Assistant] Detected REMOVE intent for activity: "${activityName}"`);
+        return { type: "remove", activityName, preference: message };
+      }
+    }
+  }
   if (
     lowerMsg.includes("remove ") ||
     lowerMsg.includes("delete ") ||
@@ -402,6 +436,114 @@ function findActivityByName(
   return null;
 }
 
+/**
+ * The Apply button's label, in the user's language.
+ *
+ * Mirrors `common.ai.preview.applyChange` in messages/<locale>/common.json.
+ * Duplicated deliberately rather than importing next-intl into an API route
+ * outside [locale]/ — but duplication drifts, so tests/ai-assistant-honesty
+ * asserts these four strings still match the message files exactly.
+ */
+function applyButtonLabel(language: string): string {
+  switch ((language || "en").slice(0, 2).toLowerCase()) {
+    case "es":
+      return "Guardar en mi viaje";
+    case "it":
+      return "Salva nel mio viaggio";
+    case "pt":
+      return "Guardar na minha viagem";
+    default:
+      return "Save to my trip";
+  }
+}
+
+/**
+ * What the model is allowed to tell the user about a change.
+ *
+ * THIS IS THE BUG THIS FUNCTION EXISTS TO KILL
+ * --------------------------------------------
+ * The assistant is confirm-first: for most actions the server prepares the
+ * change, saves NOTHING, and shows a card with an Apply button. But the text
+ * fed to the model said, unconditionally:
+ *
+ *   "I have already replaced X with Y ... The change has been saved to the
+ *    database and will appear in the itinerary."
+ *
+ * So it told users the work was done. They looked, saw nothing, and wrote
+ * back - "It is still showing as southern steak and oyster", "i really can't
+ * see any changes", one of them for 21 turns. `add_day` and `apply_draft`
+ * already branched on previewMode and said "do NOT claim it was already
+ * added"; the three commonest actions did not, and two more (adjust_duration,
+ * reorder) got no context at all and were left to improvise.
+ *
+ * Every caller now goes through here, so a new action type cannot quietly
+ * inherit the old behaviour: it gets a correct frame or none.
+ */
+function pendingActionContext(change: string, buttonLabel: string): string {
+  return `
+IMPORTANT - NOTHING HAS BEEN SAVED. The user's itinerary is UNCHANGED.
+What is prepared: ${change}.
+A card sits directly below your reply with a button labelled "${buttonLabel}".
+The change happens only when the user taps it.
+Say in ONE short sentence what you have lined up, then tell them to tap
+"${buttonLabel}" below. Use those exact words for the button, so a distracted
+reader does not have to work out which control you mean.
+NEVER say it is done, made, added, replaced, removed, moved, updated, changed
+or saved. Never use the past tense about their itinerary.`;
+}
+
+function appliedActionContext(change: string): string {
+  return `
+IMPORTANT - THIS IS SAVED. The itinerary now shows it.
+What changed: ${change}.
+Confirm it in ONE short sentence, in the past tense.`;
+}
+
+/**
+ * One plain-language phrase naming the change, shared by both frames above so
+ * the wording cannot drift between the pending and applied cases.
+ */
+function describeChange(
+  action: NonNullable<StructuredAssistantResponse["action"]>,
+  card: AssistantCard | undefined
+): string {
+  const day = action.dayNumber;
+  switch (action.type) {
+    case "replace_activity": {
+      const c = card as { oldActivity?: { name?: string }; newActivity?: { name?: string } } | undefined;
+      const from = c?.oldActivity?.name ?? "an activity";
+      const to = c?.newActivity?.name ?? action.newActivity?.name ?? "a new activity";
+      return `swap "${from}" for "${to}" on Day ${day}`;
+    }
+    case "add_activity": {
+      const c = card as { activity?: { name?: string } } | undefined;
+      const name = c?.activity?.name ?? action.newActivity?.name ?? "a new activity";
+      return `add "${name}" to Day ${day}`;
+    }
+    case "remove_activity": {
+      const c = card as { activity?: { name?: string } } | undefined;
+      return `take "${c?.activity?.name ?? "that activity"}" off Day ${day}`;
+    }
+    case "adjust_duration":
+      return `change how long they spend at that stop on Day ${day}`;
+    case "reorder":
+      return `put Day ${day} in a different order`;
+    case "add_day": {
+      const nd = action.newDay;
+      if (!nd) return `add a new Day ${day}`;
+      const theme = nd.theme ? ` themed "${nd.theme}"` : "";
+      return `add a new Day ${day} (${nd.date})${theme} with: ${nd.activities.map((a) => a.name).join(", ")}`;
+    }
+    case "apply_draft": {
+      const days = (action.revisedDays ?? []).map((d) => d.day_number).join(", ");
+      return days ? `rewrite Day(s) ${days} from the draft they pasted` : `rewrite days from the draft they pasted`;
+    }
+    default:
+      return `change Day ${day}`;
+  }
+}
+
+
 // Build system prompt for structured responses
 function buildSystemPrompt(tripContext: TripContext): string {
   return `You are MonkeyTravel's AI assistant - concise, helpful, and action-oriented.
@@ -420,46 +562,50 @@ RESPONSE FORMAT - Return valid JSON only:
   "summary": "Brief 1-2 sentence response",
   "cards": [
     // Optional array of cards for rich display
-  ],
-  "action": {
-    // Optional - only if you're making a change
-    "type": "replace_activity" | "add_activity" | "remove_activity",
-    "applied": true,
-    "activityId": "id of affected activity",
-    "dayNumber": 1,
-    "newActivity": { /* full activity object if adding/replacing */ }
-  }
+  ]
 }
 
+NEVER include an "action" object. Whether the itinerary actually changed is
+decided by this system, not by you, and is attached to your reply
+automatically. Emitting one produced 12 recorded "removals" that never
+happened.
+
+NEVER state or imply in "summary" that anything has been added, replaced,
+removed, moved, updated, changed or saved UNLESS a NOTE below explicitly tells
+you it was saved. With no such NOTE, you have changed nothing — answer the
+question or describe what you would do, in the present or future tense.
+
 CARD TYPES:
-1. activity_suggestion: { "type": "activity_suggestion", "activity": {...}, "dayNumber": 1, "reason": "why" }
-2. activity_replacement: { "type": "activity_replacement", "oldActivity": {"id": "", "name": "", "type": ""}, "newActivity": {...}, "dayNumber": 1, "reason": "why", "autoApplied": true }
-3. tip: { "type": "tip", "icon": "lightbulb|warning|info|clock|money|weather", "title": "...", "content": "..." }
-4. comparison: { "type": "comparison", "title": "...", "options": [{"name": "", "pros": [], "cons": [], "recommended": true}] }
-5. confirmation: { "type": "confirmation", "icon": "check|swap|plus|trash", "title": "...", "description": "..." }
+1. tip: { "type": "tip", "icon": "lightbulb|warning|info|clock|money|weather", "title": "...", "content": "..." }
+2. comparison: { "type": "comparison", "title": "...", "options": [{"name": "", "pros": [], "cons": [], "recommended": true}] }
+3. confirmation: { "type": "confirmation", "icon": "check|swap|plus|trash", "title": "...", "description": "..." }
 
 ACTIVITY OBJECT FORMAT:
 {
-  "id": "act_xxx",
+  "id": "act_<unique suffix>",
   "time_slot": "morning|afternoon|evening",
   "start_time": "HH:MM",
-  "duration_minutes": 90,
+  "duration_minutes": 60-180,
   "name": "Activity Name",
   "type": "attraction|restaurant|activity|transport",
   "description": "Brief description",
   "location": "Neighborhood/Area",
-  "estimated_cost": { "amount": 25, "currency": "EUR", "tier": "budget|moderate|expensive" },
+  "estimated_cost": { "amount": number, "currency": "local currency code", "tier": "budget|moderate|expensive" },
   "tips": ["tip1"],
   "booking_required": false
 }
 
 GUIDELINES:
 - Be CONCISE - summaries should be 1-2 sentences max
-- When user asks to replace/add, ALWAYS include the full new activity object
+- NEVER put JSON, code blocks, field names or an activity object in "summary".
+  It is read by a person on a phone. The change itself is rendered for them
+  from real data; describing it in prose is all you are asked for. (This rule
+  replaces one telling you to "ALWAYS include the full new activity object" —
+  with the action object removed from your reply, that instruction made the
+  model paste raw JSON into the chat.)
 - Use cards to show structured info instead of long text
 - For tips/advice, use tip cards with appropriate icons
 - For comparisons, use comparison cards with pros/cons
-- Always confirm actions with confirmation cards
 - Keep the trip's existing style and budget level in mind`;
 }
 
@@ -742,6 +888,19 @@ CRITICAL TIMING RULES:
 
   const activity = JSON.parse(jsonMatch[0]) as Activity;
   activity.id = generateActivityId();
+
+  // Clamp the type to the four the app actually knows. The prompt asks for
+  // "attraction|restaurant|activity|transport" and the model mostly complies,
+  // but a live run returned "cafe" — which threw inside the confirmation
+  // card's label lookup and left the user with NO card to accept the change
+  // with. The card no longer crashes either, but an out-of-enum value should
+  // not reach the itinerary in the first place: it goes to jsonb, which will
+  // accept anything.
+  const ALLOWED_TYPES: Activity["type"][] = ["attraction", "restaurant", "activity", "transport"];
+  if (!ALLOWED_TYPES.includes(activity.type)) {
+    console.warn(`[AI Assistant] Coercing unknown activity type "${activity.type}" -> "activity"`);
+    activity.type = "activity";
+  }
 
   // Generate coordinates for the new activity
   // Priority: 1) Use existing activities centroid, 2) Use destination center
@@ -1036,6 +1195,56 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle autonomous activity ADD
+    // Handle activity removal
+    if (actionIntent.type === "remove" && actionIntent.activityName) {
+      console.log(`[AI Assistant] Attempting to remove activity: "${actionIntent.activityName}"`);
+      const found = findActivityByName(itinerary, actionIntent.activityName);
+
+      if (found && isLockedActivity(found.activity)) {
+        replacementError = `"${found.activity.name}" is a fixed plan, so I won't remove it. If it really changed, edit it in the trip's fixed plans first.`;
+      } else if (found) {
+        const removed = found.activity;
+        modifiedItinerary[found.dayIndex].activities.splice(found.activityIndex, 1);
+        itineraryWasModified = true;
+
+        actionTaken = {
+          type: "remove_activity",
+          applied: true,
+          activityId: removed.id,
+          dayNumber: found.dayIndex + 1,
+        };
+        // Not a member of the AssistantCard union, and deliberately so: a
+        // removal has no chat card to render (AssistantCards falls through to
+        // null). It is carried here only so the pending-change builder and the
+        // action description below can name what is going.
+        replacementCard = {
+          type: "activity_removed",
+          activity: removed,
+          dayNumber: found.dayIndex + 1,
+          reason: "Removed at your request",
+        } as unknown as AssistantCard;
+
+        if (previewMode) {
+          console.log(`[AI Assistant] Preview mode: Preparing pending removal`);
+          itineraryWasModified = false;
+        } else {
+          const { error: updateError } = await supabase
+            .from("trips")
+            .update({ itinerary: modifiedItinerary, updated_at: new Date().toISOString() })
+            .eq("id", tripId);
+          if (updateError) {
+            console.error("[AI Assistant] Database update failed:", updateError);
+            replacementError = "Failed to save changes to database";
+            itineraryWasModified = false;
+          } else {
+            console.log(`[AI Assistant] Removed "${removed.name}" from Day ${found.dayIndex + 1}`);
+          }
+        }
+      } else {
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
+      }
+    }
+
     if (actionIntent.type === "add") {
       console.log(`[AI Assistant] Attempting to add activity: "${actionIntent.preference}"`);
 
@@ -1792,48 +2001,62 @@ Return ONLY valid JSON:
       .join("\n");
 
     // Build prompt with action context
+    // ------------------------------------------------------------------
+    // WHAT ACTUALLY HAPPENED. Decided here, once, from the write itself.
+    //
+    // `itineraryWasModified` is the only honest signal in scope: each handler
+    // sets it true when it mutates the working copy, clears it in preview mode
+    // (where no write is attempted at all) and clears it again on updateError.
+    // So at this point it means exactly "a database write succeeded".
+    //
+    // Everything the user is told is derived from it. Nothing is derived from
+    // the model's own claim, which is what made `applied` a constant: it was
+    // written as a literal `true` at seven construction sites, before any
+    // write had been attempted.
+    // ------------------------------------------------------------------
+    if (replacementError) {
+      // A failed change must not leave a card behind advertising success.
+      // add_day and apply_draft already cleared themselves on updateError;
+      // replace / add / adjust_duration / reorder did not, so a genuine
+      // database failure reached the user as "saved to the database" and the
+      // error branch below was unreachable.
+      actionTaken = undefined;
+      replacementCard = undefined;
+    }
+    const changeWasSaved = Boolean(actionTaken) && itineraryWasModified;
+    if (actionTaken) {
+      actionTaken = {
+        ...actionTaken,
+        applied: changeWasSaved,
+        pending: !changeWasSaved,
+      };
+    }
+
     let actionContext = "";
-    if (actionTaken && replacementCard) {
-      if (actionTaken.type === "replace_activity") {
-        const rc = replacementCard as { oldActivity: { name: string }; newActivity: { name: string } };
-        actionContext = `
-IMPORTANT: I have already replaced "${rc.oldActivity.name}" with "${rc.newActivity.name}".
-Include the replacement card in your response and confirm the change was made.
-The change has been saved to the database and will appear in the itinerary.`;
-      } else if (actionTaken.type === "add_activity") {
-        const ac = replacementCard as { activity: { name: string }; dayNumber: number };
-        actionContext = `
-IMPORTANT: I have already added "${ac.activity.name}" to Day ${ac.dayNumber} of the itinerary.
-Include the activity_suggestion card in your response and confirm the activity was added.
-The change has been saved to the database and will appear in the itinerary.`;
-      }
-    } else if (actionTaken?.type === "add_day" && actionTaken.newDay) {
-      // Structural: the summary must match the metadata — one transcript
-      // reply narrated "a new Day 12" while the logged action was Day 1.
-      const nd = actionTaken.newDay;
-      actionContext = previewMode
-        ? `
-IMPORTANT: I have PREPARED a new Day ${actionTaken.dayNumber} (${nd.date}${nd.theme ? `, theme: "${nd.theme}"` : ""}) with: ${nd.activities.map((a) => a.name).join(", ")}. It extends the trip by one day and is awaiting the user's confirmation below. Briefly describe the proposed day and tell them to review and confirm it — do NOT claim it was already added.`
-        : `
-IMPORTANT: I have already added Day ${actionTaken.dayNumber} (${nd.date}) to the itinerary and extended the trip's end date. Confirm the change was made.`;
-    } else if (actionTaken?.type === "apply_draft") {
-      const changed = (actionTaken.revisedDays ?? []).map((d) => d.day_number).join(", ");
-      const untouched = draftUnmappedDayNumbers.length > 0
-        ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be mapped from the draft and stay UNCHANGED — say so explicitly.`
-        : "";
-      actionContext = previewMode
-        ? `
-IMPORTANT: I have PREPARED revised plans for Day(s) ${changed} based on the user's pasted draft. They are awaiting the user's confirmation below — summarize what changes and tell them to review and confirm. Do NOT claim the days were already updated.${untouched}`
-        : `
-IMPORTANT: I have already updated Day(s) ${changed} from the user's pasted draft and saved them.${untouched}`;
+    if (replacementError) {
+      // Checked FIRST. It used to be the last branch of an else-if chain whose
+      // earlier arms still matched on a failure, so it never ran.
+      actionContext = `
+IMPORTANT - THE CHANGE DID NOT HAPPEN. The itinerary is unchanged.
+Reason: ${replacementError}
+Tell the user plainly that it did not work and why, in one or two short
+sentences, then offer what they can try instead. Never suggest that any part
+of it succeeded.`;
+    } else if (actionTaken) {
+      const change = describeChange(actionTaken, replacementCard);
+      const extra =
+        actionTaken.type === "apply_draft" && draftUnmappedDayNumbers.length > 0
+          ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
+          : "";
+      actionContext =
+        (changeWasSaved
+          ? appliedActionContext(change)
+          : pendingActionContext(change, applyButtonLabel(userLanguage))) + extra;
     } else if (structuralNote) {
       actionContext = `
 NOTE: ${structuralNote}`;
-    } else if (replacementError) {
-      actionContext = `
-NOTE: The user tried to modify the itinerary, but it failed: ${replacementError}
-Explain this to the user and suggest alternatives.`;
     }
+
 
     const systemPrompt = buildSystemPrompt(tripContext);
     const languageInstruction = getLanguageInstruction(userLanguage);
@@ -1875,17 +2098,54 @@ Respond with valid JSON only.`;
       };
     }
 
-    // Add replacement card if we performed one
-    if (replacementCard) {
-      parsedResponse.cards = [replacementCard, ...(parsedResponse.cards || [])];
-      parsedResponse.action = actionTaken;
-    } else if (actionTaken) {
-      // Structural actions (add_day / apply_draft) carry no chat card —
-      // their confirm-first UI is the client's PendingChange card — but the
-      // action metadata must still ride the message: it drives the
-      // deterministic badge and the persisted history.
-      parsedResponse.action = actionTaken;
+    // The past-tense card is only shown once the change is REAL.
+    //
+    // In preview mode the server still builds `replacementCard`, because the
+    // pendingChange below is assembled from it — but rendering it was the
+    // single most misleading thing on the screen. ActivityReplacementCard is
+    // titled "Activity Replaced" and runs a 400ms animation striking the old
+    // activity through in red and fading it out; the add variant shows a green
+    // "NEW" pill beside the day number. Both are the universal idiom for "this
+    // is done", they render ABOVE the confirmation card, and on a phone the
+    // confirm button is below the fold.
+    //
+    // Correcting the assistant's sentence does nothing about this, because it
+    // is not a sentence. The PreviewChangeCard already shows the before/after,
+    // so suppressing this while pending also removes a duplicate rendering of
+    // the same activity.
+    // Cards that ASSERT a change are the server's to emit, never the model's.
+    //
+    // Removing them from the prompt's card list is not enough on its own: the
+    // model had been emitting `activity_replacement` itself, which renders as
+    // "Activity Replaced" with a strike-through animation — the completed-look
+    // card this fix is meant to suppress, arriving by a second route. Filter
+    // whatever it produces rather than trusting it to have stopped.
+    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion"]);
+    if (!changeWasSaved && Array.isArray(parsedResponse.cards)) {
+      parsedResponse.cards = parsedResponse.cards.filter(
+        (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")
+      );
     }
+
+    if (replacementCard && changeWasSaved) {
+      parsedResponse.cards = [replacementCard, ...(parsedResponse.cards || [])];
+    }
+
+    // The action metadata is the SERVER's, unconditionally — including when
+    // the server did nothing, in which case it is `undefined` and the model's
+    // own claim is discarded.
+    //
+    // This assignment used to sit behind `if (replacementCard) ... else if
+    // (actionTaken)`, so whenever neither existed the model's invented action
+    // survived into the response and the saved history. That is how 12
+    // "remove_activity ... applied: true" records exist for an intent that has
+    // no handler in this file at all: the user asked, nothing ran, and the
+    // model filled in the blank from the prompt's own example.
+    //
+    // Structural actions (add_day / apply_draft) carry no chat card — their
+    // confirm-first UI is the client's PendingChange card — but their metadata
+    // must still ride the message: it drives the badge and the history.
+    parsedResponse.action = actionTaken;
 
     // Estimate tokens and cost
     const inputTokens = Math.ceil(fullPrompt.length / 4);
@@ -1922,6 +2182,11 @@ Respond with valid JSON only.`;
       action: parsedResponse.action ? {
         type: parsedResponse.action.type,
         applied: parsedResponse.action.applied,
+        // Persisted so the history can be read back as evidence. Without it,
+        // a prepared-but-never-confirmed change is indistinguishable from a
+        // saved one — which is precisely why the old records could not be
+        // trusted when diagnosing this.
+        pending: parsedResponse.action.pending,
         activityId: parsedResponse.action.activityId,
         dayNumber: parsedResponse.action.dayNumber,
         dayCount: parsedResponse.action.dayCount,
@@ -1964,6 +2229,14 @@ Respond with valid JSON only.`;
           newActivity: actionTaken.newActivity,
           dayNumber: actionTaken.dayNumber,
           reason: "Suggested based on your preference",
+        };
+      } else if (actionTaken.type === "remove_activity") {
+        const rc = replacementCard as unknown as { activity: Activity };
+        pendingChange = {
+          type: "remove" as const,
+          oldActivity: rc.activity,
+          dayNumber: actionTaken.dayNumber,
+          reason: "Removed at your request",
         };
       } else if (actionTaken.type === "add_activity") {
         pendingChange = {

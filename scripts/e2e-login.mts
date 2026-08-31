@@ -48,16 +48,37 @@ for (const [role, u] of Object.entries(manifest.users)) {
   try {
     await page.goto(`${BASE_URL}/auth/login`, { waitUntil: "domcontentloaded" });
 
+    // Wait for hydration before touching anything. Filling a server-rendered
+    // input and letting React mount over it afterwards clears the value, and
+    // the failure looks like a wrong password: the form submits EMPTY and the
+    // browser shows "Please fill out this field" over an untouched box.
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.locator("#email").waitFor({ state: "visible", timeout: 15_000 });
+
     // The consent banner overlays the form and blocks the submit click.
     // Decline rather than remove it — removing a React-managed node crashes
     // the app with React #185, which looks exactly like a production bug.
-    const essential = page.getByRole("button", { name: /essential only|only essential|rifiuta|solo esencial/i });
-    if (await essential.isVisible({ timeout: 4000 }).catch(() => false)) {
+    // It is client-rendered, so it can arrive AFTER the form: give it long
+    // enough to appear rather than racing it.
+    const essential = page.getByRole("button", { name: /essential only|only essential|rifiuta|solo esencial|essenziali|apenas essenciais/i });
+    if (await essential.isVisible({ timeout: 10_000 }).catch(() => false)) {
       await essential.click();
+      await essential.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
     }
 
     await page.fill("#email", u.email);
     await page.fill("#password", u.password);
+
+    // Assert the values actually stuck. Submitting an empty form produces a
+    // 30s navigation timeout whose message says nothing about the real cause.
+    if ((await page.inputValue("#email")) !== u.email) {
+      await page.fill("#email", u.email);
+      await page.fill("#password", u.password);
+    }
+    if ((await page.inputValue("#email")) !== u.email) {
+      throw new Error("email field would not hold its value (hydration reset?)");
+    }
+
     await page.click('button[type="submit"]');
 
     // Success is a navigation away from /auth/login. Assert on that rather

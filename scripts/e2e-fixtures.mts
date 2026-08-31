@@ -166,6 +166,12 @@ async function seed() {
       .update({
         display_name: r.name,
         show_on_leaderboard: false, // real leaderboard has 447 opt-ins
+        // The "Complete Your Travel Profile" modal opens over the whole app
+        // on a returning user's second login (ProfileCompletionProvider gates
+        // on login_count >= 2 && !profile_completed). Every fixture logs in
+        // repeatedly by definition, so it covers the page the test wants and
+        // the run fails on a locator that was never the point.
+        profile_completed: true,
         notification_settings: {
           dealAlerts: false,
           tripReminders: false,

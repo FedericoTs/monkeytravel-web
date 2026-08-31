@@ -14,6 +14,12 @@ import {
 
 interface ApplyChangeRequest {
   tripId: string;
+  /**
+   * The conversation this confirmation belongs to, so the transcript can be
+   * annotated once the write succeeds. Optional: an older client that does not
+   * send it still applies the change, it just leaves history unannotated.
+   */
+  conversationId?: string;
   changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "add_day" | "apply_draft" | "shift_days";
   oldActivity?: Activity;
   newActivity?: Activity;
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return errors.badRequest("Body must be valid JSON");
     }
-    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays } = body;
+    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays, conversationId } = body;
 
     // Validate based on change type.
     // Bug-bounty 2026-05-24 P1: `!dayNumber` rejected `dayNumber === 0`
@@ -358,8 +364,17 @@ export async function POST(request: NextRequest) {
       modifiedItinerary.splice(0, modifiedItinerary.length, ...withIds);
     }
 
-    // Save to database
-    const { error: updateError } = await supabase
+    // Save to database.
+    //
+    // `.select("id")` is load-bearing, not decoration. PostgREST answers an
+    // UPDATE that matched ZERO rows with 204 and `error: null`, so checking
+    // only `updateError` cannot tell a successful write from one an RLS
+    // policy silently refused, or one whose row was deleted a moment ago.
+    // This route is the Apply button: it is the last thing standing between
+    // the user and being told a change was saved when it was not, which is
+    // the exact failure this whole change exists to remove. Asking for the
+    // row back turns the ambiguous 204 into an answer.
+    const { data: written, error: updateError } = await supabase
       .from("trips")
       .update({
         itinerary: modifiedItinerary,
@@ -369,11 +384,54 @@ export async function POST(request: NextRequest) {
         ...(newStartDate ? { start_date: newStartDate } : {}),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", tripId);
+      .eq("id", tripId)
+      .select("id");
 
     if (updateError) {
       console.error("[AI Assistant Apply] Database update failed:", updateError);
       return errors.internal("Failed to save changes", "AI Assistant Apply");
+    }
+
+    if (!written || written.length === 0) {
+      // No error and no row: the write was refused or matched nothing. Saying
+      // "saved" here would be indistinguishable, to the user, from the bug.
+      console.error("[AI Assistant Apply] Update matched no rows", { tripId });
+      return errors.internal("Failed to save changes", "AI Assistant Apply");
+    }
+
+    // The transcript is the only durable record of what happened here, and it
+    // was previously written once — when the change was PROPOSED — and never
+    // touched again. So a confirmed change and an abandoned one persisted
+    // identically, and after a reload both rendered as "no changes made".
+    // People then asked for the same edit again; this codebase has a
+    // documented history of duplicate rows from exactly that loop.
+    //
+    // Best-effort: a failure to annotate history must never fail a write that
+    // already succeeded.
+    if (typeof conversationId === "string" && conversationId) {
+      try {
+        const { data: conv } = await supabase
+          .from("ai_conversations")
+          .select("messages")
+          .eq("id", conversationId)
+          .maybeSingle();
+        const msgs = Array.isArray(conv?.messages) ? [...(conv!.messages as unknown[])] : [];
+        // The proposal is the most recent assistant message still marked
+        // pending — walk backwards so an older one is never overwritten.
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          const m = msgs[i] as { role?: string; action?: Record<string, unknown> } | null;
+          if (!m || m.role !== "assistant" || !m.action) continue;
+          if (m.action.applied === true) break;
+          msgs[i] = { ...m, action: { ...m.action, applied: true, pending: false } };
+          await supabase
+            .from("ai_conversations")
+            .update({ messages: msgs, updated_at: new Date().toISOString() })
+            .eq("id", conversationId);
+          break;
+        }
+      } catch (err) {
+        console.error("[AI Assistant Apply] Could not annotate conversation", err);
+      }
     }
 
     return apiSuccess({
