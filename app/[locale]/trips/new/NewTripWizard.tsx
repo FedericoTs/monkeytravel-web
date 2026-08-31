@@ -3215,9 +3215,18 @@ export default function NewTripPage({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
-                <span className="text-sm text-slate-500 line-clamp-2 sm:line-clamp-1">
-                  {generatedItinerary.destination.weather_note}
-                </span>
+                {/*
+                  The subtitle used to be destination.weather_note — model prose
+                  presented with no label and no source, in a slot the eye reads
+                  as a fact about the trip. Measured across 279 trips it
+                  contradicts itself: Kyoto in September appears as both
+                  "10-18°C" and "27-32°C", and a user was emailed "10-18°C" for
+                  Los Angeles when the real forecast was 22-32°C.
+                  The emails now carry a real Open-Meteo forecast. This view has
+                  none — the trip is not saved yet and is usually months out,
+                  beyond any forecast horizon — so it states nothing rather than
+                  stating something invented.
+                */}
               </div>
 
               {/* View-mode + map toggles — added 2026-05-24 for parity with

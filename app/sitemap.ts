@@ -30,7 +30,7 @@ const defaultLocale = "en";
 // cannot recur silently. Update the constant AND the path list together when
 // content moves.
 const LASTMOD_HOMEPAGE = "2026-08-27";
-const LASTMOD_LANDING = "2026-08-27";
+const LASTMOD_LANDING = "2026-08-31";
 const LASTMOD_DESTINATIONS = "2026-08-25";
 const LASTMOD_LEGAL = "2026-08-25";
 

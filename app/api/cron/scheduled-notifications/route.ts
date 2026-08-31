@@ -98,6 +98,87 @@ const FOLLOWUP_NS = "common.tripFollowupEmail";
  */
 const CONTEXT_NS = "common.emailContext";
 
+/**
+ * How many days before departure each pre-trip slot is meant to arrive.
+ *
+ * Mirrors the enqueue offsets in
+ * supabase/migrations/20260827120000_fix_reminder_timing_and_enqueue_trigger.sql.
+ * The post-trip family is absent on purpose: those fire AFTER the trip and
+ * cannot be overtaken by it.
+ */
+const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
+  pack_early_14d: 14,
+  visa_check_7d: 7,
+  weather_3d: 3,
+  confirm_1d: 1,
+  morning_of: 0,
+};
+
+/**
+ * Is this row's moment gone?
+ *
+ * Every pre-trip subject line makes a claim about WHEN: "Two weeks to go",
+ * "One week out", "Three days to Palermo", "Tomorrow — final checks",
+ * "Travel day". Those are true only near the offset they were queued for. A
+ * row that goes out late does not merely arrive late — it arrives WRONG, and
+ * confidently: "Three days to Palermo" landing the day after someone got home
+ * reads as the product having no idea what it is talking about.
+ *
+ * The queue is normally punctual, so this cannot fire in ordinary operation.
+ * It exists for the case that has already happened here twice: the queue was
+ * paused (670 rows held under `manual_hold_2026_08_27`), and a cron outage or
+ * a second hold would release a batch whose moments had passed. One such row
+ * was live on 2026-08-31 — a `morning_of` for a trip that had started the day
+ * before.
+ *
+ * TOLERANCE IS PER SLOT, because grace is only defensible while the copy stays
+ * TRUE. The cron runs once daily at 07:00 UTC against slots stamped 06:00, so
+ * a single missed run puts a row 24h behind — and whether that matters depends
+ * entirely on what the row says:
+ *
+ *   "Two weeks to go"          at 13 days   still true enough      -> 1 day
+ *   "One week out"             at 6 days    still true enough      -> 1 day
+ *   "Three days to Palermo"    at 2 days    close enough           -> 1 day
+ *   "Tomorrow - final checks"  at 0 days    the trip is TODAY      -> 0 days
+ *   "Travel day"               at -1 day    they already left      -> 0 days
+ *
+ * The last two name a specific imminent day, so a day's slip makes them
+ * false rather than merely loose. A single global tolerance got this wrong in
+ * the first draft of this function: it forgave a "Travel day" mail sent the
+ * morning after departure, which is the exact row that prompted the guard.
+ *
+ * Returns a reason string when the row should be suppressed, or null to send.
+ */
+const STALE_GRACE_DAYS: Record<string, number> = {
+  pack_early_14d: 1,
+  visa_check_7d: 1,
+  weather_3d: 1,
+  confirm_1d: 0,
+  morning_of: 0,
+};
+
+export function staleReason(
+  slot: string,
+  tripStartDate: string,
+  now: Date
+): string | null {
+  const intended = PRE_TRIP_OFFSET_DAYS[slot];
+  if (intended === undefined) return null; // post-trip slot, or unknown
+
+  const start = Date.parse(`${tripStartDate}T00:00:00Z`);
+  if (Number.isNaN(start)) return null; // unusable dates are not this guard's problem
+
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const daysUntilStart = Math.round((start - today) / 86_400_000);
+
+  // How late is this row against the moment its copy describes? Positive =
+  // late. `morning_of` (intended 0) is late the moment the trip has begun.
+  const daysLate = intended - daysUntilStart;
+  if (daysLate <= (STALE_GRACE_DAYS[slot] ?? 1)) return null;
+
+  return `stale_${slot}_${daysLate}d_late`;
+}
+
 /** A queue row belongs to the post-trip family iff its slot says so. */
 function isFollowupSlot(slot: QueueSlot): slot is TripFollowupSlot {
   return slot.startsWith("followup_");
@@ -426,6 +507,23 @@ async function processRow(
   // of legitimate reminders.
   if (trip.status === "cancelled") {
     await persistOutcome(svc, row.id, "suppressed", "trip_cancelled");
+    return "skipped";
+  }
+
+  // A reminder whose moment has passed is not late, it is WRONG.
+  //
+  // See staleReason() for the reasoning and the tolerance. This cannot fire
+  // while the queue is punctual; it exists for the release of a held or
+  // backed-up batch, which has already happened once here.
+  const stale = staleReason(row.slot, trip.start_date, new Date());
+  if (stale) {
+    console.warn("[cron/scheduled-notifs] suppressing a reminder whose moment passed", {
+      id: row.id,
+      slot: row.slot,
+      startDate: trip.start_date,
+      reason: stale,
+    });
+    await persistOutcome(svc, row.id, "suppressed", stale);
     return "skipped";
   }
 
