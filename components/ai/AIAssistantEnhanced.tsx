@@ -175,6 +175,7 @@ export default function AIAssistantEnhanced({
   onFocusDay,
 }: AIAssistantEnhancedProps) {
   const t = useTranslations("common.ai.assistant");
+  const tCommon = useTranslations("common");
 
   // Build quick actions from translations
   const QUICK_ACTIONS = QUICK_ACTION_IDS.map((action) => ({
@@ -823,6 +824,7 @@ ${t("notAppliedBody")}`,
               </button>
               <button
                 onClick={onClose}
+                aria-label={tCommon("buttons.close")}
                 className="p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

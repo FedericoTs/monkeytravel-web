@@ -90,9 +90,13 @@ async function clearOverlays(page: import("@playwright/test").Page) {
       await skip.click({ force: true }).catch(() => {});
       await skip.waitFor({ state: "hidden", timeout: 4000 }).catch(() => {});
     }
-    const closeAssistant = page.getByRole("button", { name: /close/i }).first();
-    if (await closeAssistant.isVisible({ timeout: 1200 }).catch(() => false)) {
+    // The assistant opens itself 2.5s after load and its panel is z-[70], so
+    // it intercepts clicks on the page beneath — which is how this test failed
+    // against production while passing locally on different timing.
+    const closeAssistant = page.getByRole("button", { name: /^close$/i }).first();
+    if (await closeAssistant.isVisible({ timeout: 2000 }).catch(() => false)) {
       await closeAssistant.click({ force: true }).catch(() => {});
+      await closeAssistant.waitFor({ state: "hidden", timeout: 4000 }).catch(() => {});
     }
     await page.waitForTimeout(900);
   }
