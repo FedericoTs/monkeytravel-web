@@ -1202,6 +1202,66 @@
     "rls_enabled": true
   },
   {
+    "table": "page_view_fingerprint",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "page_view_rollup",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "page_view_rollup_meta",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "page_views",
     "grants": {
       "anon": [
