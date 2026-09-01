@@ -11,6 +11,7 @@ import {
   captureReferralConverted,
   captureTripCreated,
 } from "@/lib/posthog/events";
+import { safeGet } from "@/lib/safe-storage";
 
 export interface ReferralCompletionResponse {
   success: boolean;
@@ -138,9 +139,11 @@ export async function handleTripCreatedWithReferral(
  * The actual eligibility is verified server-side.
  */
 export function mightBeEligibleForReferralReward(): boolean {
-  if (typeof window === "undefined") return false;
-
-  // Check if user signed up with a referral code
-  const referralCode = localStorage.getItem("referral_code");
-  return !!referralCode;
+  // `typeof window === "undefined"` is an SSR check, not a storage check. It
+  // passes in a real Safari with "block all cookies", where the localStorage
+  // identifier is unresolvable and the access below throws — the same
+  // ReferenceError that took the login page down (JAVASCRIPT-NEXTJS-28).
+  // safeGet answers null instead, which for a "might be eligible" hint is the
+  // right degradation: the server verifies eligibility anyway.
+  return !!safeGet("referral_code");
 }

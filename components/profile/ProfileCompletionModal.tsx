@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import posthog from "posthog-js";
+import { safeSet } from "@/lib/safe-storage";
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export default function ProfileCompletionModal({
     if (isOpen) {
       posthog.capture("profile_modal_shown");
       // Store in session to prevent showing again this session
-      sessionStorage.setItem("profile_modal_shown", "true");
+      safeSet("profile_modal_shown", "true", "session");
     }
   }, [isOpen]);
 

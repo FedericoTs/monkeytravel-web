@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileCompletionModal from "./ProfileCompletionModal";
+import { safeGet } from "@/lib/safe-storage";
 
 interface ProfileCompletionContextType {
   showProfileModal: () => void;
@@ -61,7 +62,7 @@ export default function ProfileCompletionProvider({
   const checkProfileCompletion = async () => {
     // Check if we've already shown the modal this session
     if (typeof window !== "undefined") {
-      const shownThisSession = sessionStorage.getItem("profile_modal_shown");
+      const shownThisSession = safeGet("profile_modal_shown", "session");
       if (shownThisSession === "true") {
         setHasChecked(true);
         return;

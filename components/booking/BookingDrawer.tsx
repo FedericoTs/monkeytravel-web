@@ -6,6 +6,7 @@ import { X, Plane, MapPin, Clock } from "lucide-react";
 import { getCityIATA, CITY_IATA_CODES } from "@/lib/affiliates";
 import { openExternal } from "@/lib/native/external-link";
 import { capture } from "@/lib/posthog";
+import { safeGet, safeRemove, safeSet } from "@/lib/safe-storage";
 import {
   generateTripComLink,
   generateCheapOairLink,
@@ -47,7 +48,7 @@ export default function BookingDrawer({
   // before storing.
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const recent = localStorage.getItem(RECENT_ORIGINS_KEY);
+      const recent = safeGet(RECENT_ORIGINS_KEY);
       if (recent) {
         try {
           const parsed = JSON.parse(recent);
@@ -58,11 +59,11 @@ export default function BookingDrawer({
             setRecentOrigins(parsed);
           } else {
             // Bad shape — clear so we don't keep tripping over it.
-            localStorage.removeItem(RECENT_ORIGINS_KEY);
+            safeRemove(RECENT_ORIGINS_KEY);
           }
         } catch {
           // Bad JSON — clear + ignore.
-          localStorage.removeItem(RECENT_ORIGINS_KEY);
+          safeRemove(RECENT_ORIGINS_KEY);
         }
       }
     }
@@ -102,7 +103,7 @@ export default function BookingDrawer({
       originCity,
       ...recentOrigins.filter((o) => o !== originCity),
     ].slice(0, 5);
-    localStorage.setItem(RECENT_ORIGINS_KEY, JSON.stringify(updated));
+    safeSet(RECENT_ORIGINS_KEY, JSON.stringify(updated));
 
     // Track origin selection
     capture("booking_origin_selected", {

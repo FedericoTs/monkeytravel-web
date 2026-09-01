@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 // Re-importing the constant here (rather than from ./index) avoids a
 // circular import: index.ts re-exports this file.
 import { TOUR_ENABLED } from "./tour-flag";
+import { safeGet } from "@/lib/safe-storage";
 
 // Dynamically import ProductTour to avoid SSR issues
 const ProductTour = dynamic(() => import("./ProductTour"), {
@@ -38,7 +39,7 @@ export default function TourTrigger({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const completed = localStorage.getItem(TOUR_COMPLETED_KEY) === "true";
+      const completed = safeGet(TOUR_COMPLETED_KEY) === "true";
       setHasSeenTour(completed);
       setIsReady(true);
     }
@@ -157,7 +158,7 @@ export function useTourAutoShow(): [boolean, () => void] {
     // Respect the kill-switch — never auto-show while the tour is deactivated.
     if (!TOUR_ENABLED) return;
     if (typeof window !== "undefined") {
-      const completed = localStorage.getItem(TOUR_COMPLETED_KEY) === "true";
+      const completed = safeGet(TOUR_COMPLETED_KEY) === "true";
       // Auto-show on first visit after a short delay
       if (!completed) {
         const timer = setTimeout(() => {

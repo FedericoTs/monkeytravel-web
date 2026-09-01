@@ -1,0 +1,43 @@
+# Does every browser-storage access survive a browser that blocks storage?
+#
+# Sentry JAVASCRIPT-NEXTJS-28 was a login-page crash for Safari users with
+# "block all cookies": that setting makes the `localStorage` IDENTIFIER
+# unresolvable, so a bare access throws a ReferenceError rather than returning
+# nothing. The code that broke was guarded — with `typeof window !==
+# "undefined"`, which passes, because `window` resolves fine. That is exactly
+# why this needs a machine check: the wrong guard reads as the right one.
+#
+# Static analysis only — no secrets, no network, no database. Safe on PRs from
+# forks, and it fails the build on a NEW unguarded access rather than waiting
+# for the next person on a locked-down browser to hit it.
+name: Storage guard
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # The audit parses source with the TypeScript compiler API, so it needs
+      # exactly two packages — not the whole dependency tree.
+      #
+      # It does NOT use `npm ci`, deliberately. package-lock.json is currently
+      # out of sync with package.json (`npm error Missing: @swc/helpers@0.5.23
+      # from lock file`), so `npm ci` fails on this repo today. The two guard
+      # workflows that call it never noticed, because their install step is
+      # gated behind credentials that are not configured, so it is skipped.
+      # Installing only what this check needs keeps the guard honest instead of
+      # red for a reason that has nothing to do with browser storage.
+      - name: Install the parser
+        run: npm install --no-save --no-audit --no-fund typescript@^5 tsx@^4.21.0
+      - name: Every localStorage/sessionStorage access is guarded
+        run: npm run audit:storage

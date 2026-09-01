@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import type { GeneratedItinerary, TripAnchor } from "@/types";
+import { safeGet, safeRemove } from "@/lib/safe-storage";
 
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
 const DRAFT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -61,7 +62,11 @@ export function useItineraryDraft(userId?: string): UseItineraryDraftReturn {
   // Load draft from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(DRAFT_KEY);
+      // safeGet, not localStorage.getItem: a blocked store means "no draft",
+      // which is a state this hook already handles. Reading it as a THROW
+      // instead logged "Failed to load draft" on every mount for anyone
+      // browsing with storage off, and buried a real parse failure in noise.
+      const stored = safeGet(DRAFT_KEY);
       if (stored) {
         const parsed: ItineraryDraft = JSON.parse(stored);
 
@@ -69,7 +74,7 @@ export function useItineraryDraft(userId?: string): UseItineraryDraftReturn {
         const now = Date.now();
         if (now - parsed.savedAt > DRAFT_EXPIRY_MS) {
           setIsExpired(true);
-          localStorage.removeItem(DRAFT_KEY);
+          safeRemove(DRAFT_KEY);
           return;
         }
 
@@ -83,7 +88,12 @@ export function useItineraryDraft(userId?: string): UseItineraryDraftReturn {
       }
     } catch (error) {
       console.error("Failed to load draft:", error);
-      localStorage.removeItem(DRAFT_KEY);
+      // safeRemove, not localStorage.removeItem: if storage is what threw
+      // above — Safari with "block all cookies" makes the identifier
+      // unresolvable — then the bare call throws AGAIN, out of the catch,
+      // where nothing is left to handle it. The recovery path becomes the
+      // crash. Same class as JAVASCRIPT-NEXTJS-28.
+      safeRemove(DRAFT_KEY);
     }
   }, [userId]);
 

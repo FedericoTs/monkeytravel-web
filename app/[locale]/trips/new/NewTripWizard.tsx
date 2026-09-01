@@ -202,6 +202,7 @@ import DecisionIntake from "@/components/wizard/DecisionIntake";
 import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
   updateTrip as persistUpdateTrip,
@@ -1408,7 +1409,7 @@ export default function NewTripPage({
         }
         clearDraft();
         if (typeof window !== "undefined") {
-          sessionStorage.setItem("profile_modal_shown", "true");
+          safeSet("profile_modal_shown", "true", "session");
         }
         // Post-save virality prompt. The manual-save trigger
         // (setShowShareAfterSaveModal at ~1581) lives inside the AUTHED branch
@@ -1485,12 +1486,11 @@ export default function NewTripPage({
   // (sessionStorage once-flag; desktop + mobile pills share this one effect).
   useEffect(() => {
     if (!hasResult || !isUnsaved) return;
-    try {
-      if (sessionStorage.getItem("mt_save_nudge_pill_captured") === "1") return;
-      sessionStorage.setItem("mt_save_nudge_pill_captured", "1");
-    } catch {
-      return; // storage blocked — skip rather than spam once per remount
-    }
+    if (safeGet("mt_save_nudge_pill_captured", "session") === "1") return;
+    // A blocked store cannot dedupe, and safeSet reports that instead of
+    // throwing. Skip rather than spam this once-per-session event on every
+    // remount — which is what the old try/catch achieved by catching.
+    if (!safeSet("mt_save_nudge_pill_captured", "1", "session")) return;
     void capture("save_nudge_shown", {
       source: "unsaved_pill",
       gen_count: getGenCount(),
@@ -1500,12 +1500,9 @@ export default function NewTripPage({
   // T4: save_nudge_shown for the session tray — once per session.
   useEffect(() => {
     if (!sessionTrayVisible) return;
-    try {
-      if (sessionStorage.getItem("mt_save_nudge_tray_captured") === "1") return;
-      sessionStorage.setItem("mt_save_nudge_tray_captured", "1");
-    } catch {
-      return;
-    }
+    if (safeGet("mt_save_nudge_tray_captured", "session") === "1") return;
+    // Same as the pill above: no store means no dedupe, so stay quiet.
+    if (!safeSet("mt_save_nudge_tray_captured", "1", "session")) return;
     void capture("save_nudge_shown", {
       source: "session_tray",
       gen_count: getGenCount(),
@@ -1543,11 +1540,9 @@ export default function NewTripPage({
       resultExitFiredRef.current = true;
       let editsApplied = editsAppliedRef.current;
       if (!editsApplied) {
-        try {
-          editsApplied = sessionStorage.getItem("mt_edits_applied") === "1";
-        } catch {
-          /* private mode — the ref value stands */
-        }
+        // safeGet reports a blocked store as null rather than throwing, and
+        // null is the same answer the ref already gave us.
+        editsApplied = safeGet("mt_edits_applied", "session") === "1";
       }
       captureResultExitUnsaved({
         gen_count: getGenCount(),
@@ -2483,7 +2478,7 @@ export default function NewTripPage({
       // Prevent ProfileCompletionModal from showing after trip creation
       // Users just completed a complex flow, don't interrupt with another modal
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("profile_modal_shown", "true");
+        safeSet("profile_modal_shown", "true", "session");
       }
 
       // Capture display name for the Publish-to-Explore prefill (best-
@@ -2605,11 +2600,9 @@ export default function NewTripPage({
       // Save Sprint T3: remember that this session applied an assistant edit
       // (forwarded on result_exit_unsaved as edits_applied).
       editsAppliedRef.current = true;
-      try {
-        sessionStorage.setItem("mt_edits_applied", "1");
-      } catch {
-        /* private mode — the ref covers this page's lifetime */
-      }
+      // Best-effort mirror for the post-auth round trip. When storage is
+      // blocked safeSet just returns false; the ref covers this page's life.
+      safeSet("mt_edits_applied", "1", "session");
       setGeneratedItinerary((prev) => {
         if (!prev) return prev;
         const target = prev.days.find((d) => d.day_number === dayNumber);
