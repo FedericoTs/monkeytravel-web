@@ -1,6 +1,22 @@
 import { test, expect } from "@playwright/test";
 
 /**
+ * Dates relative to the run, not hardcoded.
+ *
+ * These were fixed strings ("2026-07-15"). /api/ai/generate rejects a start
+ * date in the past, so the moment the wall-clock passed them the suite began
+ * returning 400 and two @prod tests went permanently red — nothing to do with
+ * the API, which answers 200 for the identical body with future dates.
+ * A verification suite with permanent reds cannot verify anything.
+ */
+function daysFromNow(n: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+
+/**
  * Anonymous trip generation — the critical conversion path.
  *
  * Pre-2026-05-23: clicking Generate forced a signup modal. 75% of users
@@ -18,8 +34,8 @@ test.describe("anonymous trip generation @prod", () => {
     const res = await request.post("/api/ai/generate", {
       data: {
         destination: "Lisbon, Portugal",
-        startDate: "2026-07-15",
-        endDate: "2026-07-17",
+        startDate: daysFromNow(45),
+        endDate: daysFromNow(47),
         vibes: ["foodie"],
         budgetTier: "balanced",
         pace: "moderate",
@@ -40,8 +56,8 @@ test.describe("anonymous trip generation @prod", () => {
     const res = await request.post("/api/ai/generate", {
       data: {
         destination: "Rome, Italy",
-        startDate: "2026-08-01",
-        endDate: "2026-08-02",
+        startDate: daysFromNow(60),
+        endDate: daysFromNow(61),
         vibes: ["cultural"],
       },
     });
@@ -64,8 +80,8 @@ test.describe("anonymous trip generation @prod", () => {
     const res = await request.post("/api/ai/generate", {
       data: {
         destination: "Paris",
-        startDate: "2026-08-10",
-        endDate: "2026-08-05", // end before start
+        startDate: daysFromNow(40),
+        endDate: daysFromNow(35), // end before start
         vibes: ["foodie"],
       },
     });
@@ -78,7 +94,7 @@ test.describe("anonymous trip generation @prod", () => {
     await page.goto("/trips/new");
     // Wait for either the destination input or the form root
     await expect(
-      page.getByRole("textbox").first()
+      page.getByRole("combobox").first()
     ).toBeVisible({ timeout: 15_000 });
     // The signup modal should NOT be present on initial load
     await expect(page.locator('[role="dialog"]')).not.toBeVisible();
