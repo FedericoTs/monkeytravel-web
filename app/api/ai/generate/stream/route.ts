@@ -226,6 +226,14 @@ export async function POST(request: NextRequest) {
       params.budgetTier,
       userLanguage,
       params.travelStyle ?? "classic",
+      // Never accept a cached entry SHORTER than the trip being asked for.
+      // Computed inline because `totalDays` below is derived after this
+      // parallel block and the lookup needs the number now.
+      Math.ceil(
+        (new Date(params.endDate).getTime() -
+          new Date(params.startDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ) + 1,
     ),
   ]);
 
@@ -263,7 +271,11 @@ export async function POST(request: NextRequest) {
       // and is now part of the pre-flight Promise.all above. We just
       // consume the pre-resolved value here.
       const cached = isPersonalized ? null : preflightCachedItinerary;
-      if (cached && cached.days.length >= 1) {
+      // `>= totalDays`, not `>= 1`. The cache key omits trip length, so a
+      // 5-day entry used to answer a 14-day request and the user silently got
+      // 5 days. adjustItineraryDates slices a LONGER entry down to fit, so
+      // only too-short entries are rejected here.
+      if (cached && cached.days.length >= totalDays) {
         const adjusted = adjustItineraryDates(
           cached,
           params.startDate,

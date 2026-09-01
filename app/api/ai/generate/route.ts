@@ -13,6 +13,7 @@ import {
 } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import {
+  canGroundDestination,
   generateItineraryWithMapsGrounding,
   isMapsGroundingAvailable,
   getMapsGroundingCost,
@@ -271,6 +272,8 @@ export async function POST(request: NextRequest) {
         params.budgetTier,
         userLanguage,
         params.travelStyle ?? "classic",
+        // Never accept an entry SHORTER than the trip being asked for.
+        totalDays,
       ),
     ]);
 
@@ -315,8 +318,19 @@ export async function POST(request: NextRequest) {
       if (anchored.issues.length > 0) {
         console.warn(`[AI Generate] anchored issues: ${anchored.issues.join(" | ")}`);
       }
-    } else if (!isPersonalized && cachedItinerary && cachedItinerary.days.length >= 1) {
+    } else if (
+      !isPersonalized &&
+      cachedItinerary &&
+      cachedItinerary.days.length >= totalDays
+    ) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
+      //
+      // The guard was `>= 1`, which accepted ANY cached itinerary however
+      // short. Combined with a cache key that omits trip length, a 5-day entry
+      // answered a 14-day request and the user silently got 5 days. Measured
+      // 2026-09-01 across 428 saved trips: 93 (21.7%) hold fewer days than
+      // their own date range, 0 hold more. `>= totalDays` is the invariant;
+      // adjustItineraryDates then slices a longer entry down to fit.
       itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
       cacheHit = true;
       console.log(`[AI Generate] Using cached itinerary for ${params.destination}`);
@@ -326,10 +340,33 @@ export async function POST(request: NextRequest) {
 
       // Try Maps Grounding first (59% cost savings)
       // Falls back to traditional Gemini if Maps Grounding fails or is disabled
-      if (USE_MAPS_GROUNDING && isMapsGroundingAvailable()) {
+      // canGroundDestination: skip the whole call when the coordinate table does
+      // not know this place. Otherwise grounding falls back to PARIS
+      // coordinates, spends 40s+, grounds zero places, and we fall through to
+      // the normal generator anyway -- turning a working request into a
+      // timeout. Measured on a 14-day Valencia request: 44s wasted, then 500.
+      if (
+        USE_MAPS_GROUNDING &&
+        isMapsGroundingAvailable() &&
+        canGroundDestination(params.destination)
+      ) {
         try {
           console.log(`[AI Generate] Using Maps Grounding for ${params.destination}...`);
           itinerary = await generateItineraryWithMapsGrounding(params);
+          // A short result is a FAILURE, not a success.
+          //
+          // parseGroundedItinerary builds days by regex-matching "Day N"
+          // headers in the model's prose and `continue`s past any it cannot
+          // find, so a truncated response yields fewer days with no error --
+          // and this branch used to log "SUCCESS: 8 days" for a 14-day trip.
+          // Throwing here routes it into the catch below, which already falls
+          // back to generateItinerary. That fallback is the whole reason this
+          // is wrapped in a try.
+          if (itinerary.days.length < totalDays) {
+            throw new Error(
+              `Maps Grounding returned ${itinerary.days.length}/${totalDays} days`
+            );
+          }
           usedMapsGrounding = true;
           console.log(`[AI Generate] Maps Grounding SUCCESS: ${itinerary.days.length} days, ${itinerary.days.reduce((sum, d) => sum + d.activities.length, 0)} activities`);
         } catch (mapsError) {

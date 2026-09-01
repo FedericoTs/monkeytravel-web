@@ -110,9 +110,17 @@ const DESTINATION_COORDINATES: Record<string, Coordinates> = {
 };
 
 /**
- * Get coordinates for a destination
+ * Look up a destination in the hardcoded coordinate table, or null.
+ *
+ * Split out from getDestinationCoordinates so callers can ask "can this even
+ * be grounded?" BEFORE paying for the call. Grounding an unknown city silently
+ * used Paris coordinates, which is both wrong and slow: measured 2026-09-01,
+ * a Valencia request logged "Unknown destination ... using Paris coordinates"
+ * and then spent 44s to ground ZERO places.
  */
-function getDestinationCoordinates(destination: string): Coordinates {
+export function lookupDestinationCoordinates(
+  destination: string
+): Coordinates | null {
   const normalized = destination.toLowerCase().trim();
 
   // Direct match
@@ -126,7 +134,29 @@ function getDestinationCoordinates(destination: string): Coordinates {
     return DESTINATION_COORDINATES[firstWord];
   }
 
-  // Default to Paris as fallback
+  return null;
+}
+
+/**
+ * True when Maps Grounding actually knows where this place is.
+ *
+ * Callers should skip grounding entirely when this is false: the alternative
+ * is a 40s+ call that grounds nothing and yields an itinerary anchored to the
+ * wrong city.
+ */
+export function canGroundDestination(destination: string): boolean {
+  return lookupDestinationCoordinates(destination) !== null;
+}
+
+/**
+ * Get coordinates for a destination
+ */
+function getDestinationCoordinates(destination: string): Coordinates {
+  const found = lookupDestinationCoordinates(destination);
+  if (found) return found;
+
+  // Retained for safety, but callers should have used canGroundDestination()
+  // and never reached here.
   console.warn(`[MapsGrounding] Unknown destination: ${destination}, using Paris coordinates`);
   return DESTINATION_COORDINATES.paris;
 }
@@ -261,7 +291,13 @@ export async function callMapsGrounding(
       // debugging. Cannot use responseMimeType: "application/json" with Maps
       // Grounding, so deterministic-leaning sampling is our shape guarantee.
       temperature: 0.4,
-      maxOutputTokens: 8192,
+      // 2026-09-01: 8192 -> 16000. This path answers most fresh generations,
+      // and parseGroundedItinerary reads day sections out of FREE TEXT --
+      // `if (!startMatch) continue;` silently skips any "Day N" header the
+      // model never got to emit. So a truncated response does not error, it
+      // just returns fewer days and the route logs SUCCESS. Measured on a
+      // 14-day request: 8 days one run, 2 days the next.
+      maxOutputTokens: 16000,
     },
   };
 
