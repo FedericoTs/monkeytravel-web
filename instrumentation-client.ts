@@ -70,6 +70,15 @@ function initMonitoring() {
       // Environment identification
       environment: process.env.NODE_ENV,
 
+      // Only report from real deployments -- same reasoning as
+      // sentry.server.config.ts. A developer running `next dev` otherwise
+      // files errors into the production project, where they read as live
+      // incidents; that is what happened with JAVASCRIPT-NEXTJS-2B on
+      // 2026-09-01. Set NEXT_PUBLIC_SENTRY_ENABLE_DEV=1 to opt back in.
+      enabled:
+        process.env.NODE_ENV === "production" ||
+        process.env.NEXT_PUBLIC_SENTRY_ENABLE_DEV === "1",
+
       // Performance Monitoring - only with analytics consent
       tracesSampleRate: hasAnalyticsConsent
         ? process.env.NODE_ENV === "production"
