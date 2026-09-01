@@ -2241,7 +2241,7 @@
         "roles": [
           "public"
         ],
-        "using": "((deleted_at IS NULL) AND ((user_id = ( SELECT auth.uid() AS uid)) OR (share_token IS NOT NULL) OR ((is_template = true) AND (visibility = 'public'::text)) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trips.id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid))))) OR ((visibility = 'public'::text) AND (share_token IS NOT NULL) AND (is_hidden = false))))",
+        "using": "((deleted_at IS NULL) AND ((user_id = ( SELECT auth.uid() AS uid)) OR ((is_template = true) AND (visibility = 'public'::text)) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trips.id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid))))) OR ((visibility = 'public'::text) AND (share_token IS NOT NULL) AND (is_hidden = false))))",
         "permissive": true,
         "with_check": null
       },
