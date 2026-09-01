@@ -56,6 +56,34 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 const AI_REQUEST_TIMEOUT_MS = 50_000;
 
 /**
+ * How long to allow ONE itinerary generation, scaled by trip length.
+ *
+ * 50s is a sensible guard for the median 3-5 day trip. It is the wrong guard
+ * for a 14-day trip, which emits roughly three times the tokens and needs
+ * proportionally longer: measured 2026-09-01, a 14-day request timed out at
+ * 50s, retried, timed out again and returned a 500 -- while the same length
+ * for another city completed in 26s. A fixed ceiling turns "slow" into
+ * "broken" for exactly the trips that are hardest to produce.
+ *
+ * Capped at 90s so a single attempt still fits inside the route's 120s Vercel
+ * maxDuration with room for the surrounding work.
+ */
+export function itineraryTimeoutMs(days?: number): number {
+  if (!days || days <= 7) return AI_REQUEST_TIMEOUT_MS;
+  return Math.min(90_000, AI_REQUEST_TIMEOUT_MS + (days - 7) * 6_000);
+}
+
+/** Days a params object covers, inclusive. */
+function tripDayCount(p: { startDate: string; endDate: string }): number {
+  return (
+    Math.ceil(
+      (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1
+  );
+}
+
+/**
  * Backfill a missing or partial trip_summary so downstream consumers
  * (wizard render, persistTrip, banana cost calc) don't crash when the
  * model truncates the response before emitting the summary block.
@@ -1001,7 +1029,21 @@ async function generateItineraryInternal(
       // (external ChatGPT) bridge. Lower volume than the wizard, but
       // the same truncation failure mode and the user has even less
       // visibility into the partial result. Parity is the safer call.
-      maxOutputTokens: 8000,
+      // 2026-09-01: 8000 -> 16000. MEASURED across 428 saved trips: 93 (21.7%)
+      // hold fewer days than their own date range and 0 hold more, scaling hard
+      // with length -- 7d 6% short, 10d 70%, 14d 90%. A fresh 14-day generation
+      // (cache forced to miss) returned 8 days. MAX_TRIP_DAYS is 14 and a day
+      // costs ~750 output tokens, so the honest budget is ~10.5k; 8000 could
+      // never fit the longest trip the wizard offers as a one-tap preset.
+      //
+      // On cost: the comment below this one claimed the cap itself is billed.
+      // It is not -- Gemini bills EMITTED output tokens, which the sibling
+      // comment on the non-streaming path already states ("Output is billed
+      // per emitted tokens (not the cap)"). Those two notes contradicted each
+      // other and the pessimistic one set the cap. A 3-day trip emits ~2.2k
+      // either way and pays exactly the same after this change; only the long
+      // trips that are currently BROKEN cost more, which is the point.
+      maxOutputTokens: 16000,
       responseMimeType: "application/json",
       // Cast: legacy SDK types lack `thinkingConfig`; the REST API has
       // accepted it since 2025-Q2. If a future SDK upgrade exposes it
@@ -1026,7 +1068,7 @@ async function generateItineraryInternal(
   try {
     const result = await withTimeout(
       chat.sendMessage(userPrompt),
-      AI_REQUEST_TIMEOUT_MS,
+      itineraryTimeoutMs(tripDayCount(params)),
       "Itinerary generation"
     );
     const response = result.response;
@@ -2281,7 +2323,21 @@ export async function* generateItineraryStream(
       // unchanged. The 8000 ceiling supports trips up to ~10 days
       // (the 14-day max would still risk truncation; revisit only if
       // 8-14 day trip volume becomes material).
-      maxOutputTokens: 8000,
+      // 2026-09-01: 8000 -> 16000. MEASURED across 428 saved trips: 93 (21.7%)
+      // hold fewer days than their own date range and 0 hold more, scaling hard
+      // with length -- 7d 6% short, 10d 70%, 14d 90%. A fresh 14-day generation
+      // (cache forced to miss) returned 8 days. MAX_TRIP_DAYS is 14 and a day
+      // costs ~750 output tokens, so the honest budget is ~10.5k; 8000 could
+      // never fit the longest trip the wizard offers as a one-tap preset.
+      //
+      // On cost: the comment below this one claimed the cap itself is billed.
+      // It is not -- Gemini bills EMITTED output tokens, which the sibling
+      // comment on the non-streaming path already states ("Output is billed
+      // per emitted tokens (not the cap)"). Those two notes contradicted each
+      // other and the pessimistic one set the cap. A 3-day trip emits ~2.2k
+      // either way and pays exactly the same after this change; only the long
+      // trips that are currently BROKEN cost more, which is the point.
+      maxOutputTokens: 16000,
       responseMimeType: "application/json",
       // 2026-06-01 P0 FIX: disable extended thinking on the streaming
       // path, matching the non-streaming path's fix from commit 83eaf7f.

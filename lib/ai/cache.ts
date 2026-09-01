@@ -112,12 +112,33 @@ export async function getCachedItinerary(
   budgetTier: string,
   language: SupportedLanguage,
   travelStyle: TravelStyle = "classic",
+  /**
+   * How many days the caller actually asked for.
+   *
+   * THE CACHE KEY DOES NOT INCLUDE TRIP LENGTH — it is
+   * (destination_hash, budget_tier, vibes, language, travel_style). So a
+   * 5-day Valencia entry was a hit for a 14-day Valencia request, and the
+   * caller got five days for a fortnight. Reproduced 2026-09-01: requested
+   * 14 days, `cached: true`, five days returned.
+   *
+   * Serving a LONGER entry is fine and stays supported — adjustItineraryDates
+   * slices it to the requested range — so this only rejects entries that are
+   * too SHORT. Cache hit rate for short trips is unaffected, and long trips
+   * now correctly miss and generate.
+   *
+   * Optional so existing callers keep compiling; when omitted the old
+   * any-length behaviour applies.
+   */
+  requestedDays?: number,
 ): Promise<GeneratedItinerary | null> {
   const destinationHash = hashDestination(destination);
   const sortedVibes = [...vibes].sort();
   const supabase = getServiceClient();
 
-  const { data, error } = await supabase
+  // Fetch a few candidates rather than one: the most-hit entry may be too
+  // short for this request while an older, longer one would serve perfectly.
+  // `.single()` on limit(1) would have thrown that away and generated instead.
+  const { data: rows, error } = await supabase
     .from("destination_activity_cache")
     .select("*")
     .eq("destination_hash", destinationHash)
@@ -127,10 +148,16 @@ export async function getCachedItinerary(
     .contains("vibes", sortedVibes)
     .gt("expires_at", new Date().toISOString())
     .order("hit_count", { ascending: false })
-    .limit(1)
-    .single();
+    .limit(5);
 
-  if (error || !data) return null;
+  if (error || !rows?.length) return null;
+
+  const longEnough = (row: { activities?: unknown }) =>
+    !requestedDays ||
+    (Array.isArray(row.activities) && row.activities.length >= requestedDays);
+
+  const data = rows.find(longEnough);
+  if (!data) return null;
 
   // Background hit-count bump. Atomic RPC preferred; .then() update is
   // the fallback if the RPC doesn't exist in this env.
