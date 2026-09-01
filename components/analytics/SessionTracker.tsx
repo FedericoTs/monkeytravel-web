@@ -9,6 +9,7 @@ import {
   setUserPropertiesEnhanced,
 } from "@/lib/analytics";
 import { identifyUser, type PostHogUserProperties } from "@/lib/posthog";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 const SESSION_STORAGE_KEY = "mt_last_visit";
 const SESSION_COUNT_KEY = "mt_session_count";
@@ -54,9 +55,16 @@ export default function SessionTracker() {
       const {
         data: { user },
       } = await supabaseAuth.auth.getUser();
-      // Calculate days since last visit
-      const lastVisit = localStorage.getItem(SESSION_STORAGE_KEY);
-      const sessionCount = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || "0", 10) + 1;
+      // Calculate days since last visit.
+      //
+      // safeGet, not localStorage.getItem: Safari with "block all cookies"
+      // makes the identifier unresolvable, so a bare access throws a
+      // ReferenceError — and because this function is async, that became an
+      // UNHANDLED REJECTION on the login page (Sentry JAVASCRIPT-NEXTJS-28).
+      // Session counting is a nicety; it must never be able to throw on a page
+      // whose job is to log somebody in.
+      const lastVisit = safeGet(SESSION_STORAGE_KEY);
+      const sessionCount = parseInt(safeGet(SESSION_COUNT_KEY) || "0", 10) + 1;
       const now = Date.now();
       let daysSinceLastVisit = 0;
 
@@ -65,9 +73,11 @@ export default function SessionTracker() {
         daysSinceLastVisit = Math.floor((now - lastVisitTime) / (1000 * 60 * 60 * 24));
       }
 
-      // Update localStorage
-      localStorage.setItem(SESSION_STORAGE_KEY, now.toString());
-      localStorage.setItem(SESSION_COUNT_KEY, sessionCount.toString());
+      // Update localStorage. A blocked store simply does not remember, and
+      // the visitor counts as new next time — the correct degradation for a
+      // browser that has been told not to keep anything.
+      safeSet(SESSION_STORAGE_KEY, now.toString());
+      safeSet(SESSION_COUNT_KEY, sessionCount.toString());
 
       if (!user) {
         // Anonymous session
