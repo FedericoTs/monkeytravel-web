@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/lib/i18n/routing";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MaintenancePage from "./MaintenancePage";
 
@@ -15,7 +15,62 @@ interface MaintenanceWrapperProps {
   children: React.ReactNode;
 }
 
+/**
+ * Site config, fetched at most once per TTL for the whole tab.
+ *
+ * This wrapper mounts in the locale layout, so it survives client-side
+ * navigation and its effect re-ran on every pathname change — one
+ * /api/admin/config request per navigation, forever, for every visitor. The
+ * config cannot differ per path, so all but the first were redundant.
+ *
+ * The route already sets `Cache-Control: public, s-maxage=60,
+ * stale-while-revalidate=300`, and that IS working — measured on production,
+ * repeat requests return `X-Vercel-Cache: HIT` with a rising `Age`, so they are
+ * served from the edge without invoking the function or touching Supabase. So
+ * this is not the serverless-cost fix it looks like; the waste was a redundant
+ * network request per navigation, not a redundant function invocation.
+ *
+ * TTL matches the route's own s-maxage, so the freshness guarantee is
+ * unchanged: a maintenance toggle is still picked up within ~60s of the next
+ * navigation, exactly as before.
+ */
+const CONFIG_TTL_MS = 60_000;
+let cachedConfig: SiteConfig | null = null;
+let cachedAt = 0;
+let inflight: Promise<SiteConfig | null> | null = null;
+
+async function loadSiteConfig(): Promise<SiteConfig | null> {
+  if (cachedConfig && Date.now() - cachedAt < CONFIG_TTL_MS) {
+    return cachedConfig;
+  }
+  // Share one request between concurrent callers rather than racing.
+  if (inflight) return inflight;
+
+  inflight = fetch("/api/admin/config")
+    .then((r) => (r.ok ? (r.json() as Promise<SiteConfig>) : null))
+    .then((cfg) => {
+      if (cfg) {
+        cachedConfig = cfg;
+        cachedAt = Date.now();
+      }
+      return cfg;
+    })
+    .catch(() => null)
+    .finally(() => {
+      inflight = null;
+    });
+
+  return inflight;
+}
+
 export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
+  // Locale-aware usePathname: the raw next/navigation one KEEPS the locale
+  // prefix, so `pathname.startsWith("/auth/login")` was false on /es, /it and
+  // /pt. During maintenance that meant a Spanish or Italian visitor could not
+  // reach the login page to sign in — including an admin trying to turn
+  // maintenance back off. /privacy and /terms were unreachable on those
+  // locales too. This one strips the prefix, so the skip list applies to every
+  // locale equally.
   const pathname = usePathname();
   // Task #181 cleanup: read auth state from the single AuthProvider
   // instead of firing our own getUser(). `loading` is used to defer the
@@ -27,9 +82,13 @@ export default function MaintenanceWrapper({ children }: MaintenanceWrapperProps
 
   const checkAccess = useCallback(async () => {
     try {
-      // Fetch site config
-      const configResponse = await fetch("/api/admin/config");
-      const siteConfig: SiteConfig = await configResponse.json();
+      const siteConfig = await loadSiteConfig();
+
+      // Fail open. A config we cannot read must never lock everyone out.
+      if (!siteConfig) {
+        setIsBlocked(false);
+        return;
+      }
       setConfig(siteConfig);
 
       // If maintenance mode is off, allow access
