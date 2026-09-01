@@ -19,6 +19,7 @@ import {
 } from "@/lib/visa/passport-pages";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
 import PassportMap from "@/components/passport/PassportMap";
+import { ogImages, twitterImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -93,8 +94,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: { absolute: title },
     description,
     alternates: { canonical: languages[locale], languages },
-    openGraph: { title, description, url: languages[locale], type: "website" },
-    twitter: { card: "summary_large_image", title, description },
+    // images is load-bearing, not decoration. Declaring an `openGraph` object
+    // here REPLACES the root layout's, so omitting images dropped og:image
+    // entirely and a pasted passport link previewed as a bare URL with no
+    // card. Verified against production before the fix: /passport/italy
+    // emitted og:title, og:description and og:url and zero og:image tags,
+    // while every sibling page emitted one.
+    openGraph: {
+      title,
+      description,
+      url: languages[locale],
+      type: "website",
+      images: ogImages(title),
+    },
+    twitter: { card: "summary_large_image", title, description, images: twitterImages },
   };
 }
 

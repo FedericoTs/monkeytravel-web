@@ -101,3 +101,34 @@ describe("isAnalyticsBot — edge cases", () => {
     // misses "Bytespider", "Slurp" and most SEO crawlers.
   });
 });
+
+describe("exact-match automation fleet", () => {
+  const FLEET =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+
+  it("flags the fleet UA that produced 37% of all recorded human traffic", () => {
+    // 203,038 rows / 68,432 sessions / 43 countries and ZERO of those sessions
+    // ever carried a user_id, against 438 distinct users everywhere else.
+    expect(isAnalyticsBot(FLEET)).toBe(true);
+  });
+
+  it("does NOT flag desktop Linux generally", () => {
+    // Real Linux users are rare for this product but they exist, and every
+    // other X11 variant in the data has plausible session ratios. Matching
+    // "X11; Linux" broadly would be a worse error than the one being fixed.
+    expect(
+      isAnalyticsBot(
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+      ),
+    ).toBe(false);
+    expect(
+      isAnalyticsBot("Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0"),
+    ).toBe(false);
+  });
+
+  it("matches exactly, not by substring", () => {
+    // A suffix would mean a real browser string that merely CONTAINS the
+    // fleet UA gets dropped. Equality is the whole point of the second list.
+    expect(isAnalyticsBot(FLEET + " SomeOtherToken/1.0")).toBe(false);
+  });
+});
