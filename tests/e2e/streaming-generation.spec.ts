@@ -21,10 +21,21 @@ import type {
   SseErrorData,
 } from "@/lib/streaming/sse";
 
+/**
+ * Relative, not hardcoded: /api/ai/generate rejects a past start date, so a
+ * fixed string silently turns this whole file red the day it expires. The
+ * previous value was 2026-09-01 — already today when this was written.
+ */
+function daysFromNow(n: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 const VALID_BODY = {
   destination: "Lisbon, Portugal",
-  startDate: "2026-09-01",
-  endDate: "2026-09-04",
+  startDate: daysFromNow(50),
+  endDate: daysFromNow(53),
   budgetTier: "balanced",
   pace: "moderate",
   vibes: ["cultural", "foodie"],
@@ -51,7 +62,7 @@ test.describe("Streaming generation — pre-flight gates @prod", () => {
 
   test("API: invalid date range returns 400", async ({ request }) => {
     const res = await request.post("/api/ai/generate/stream", {
-      data: { ...VALID_BODY, endDate: "2026-08-01" }, // end before start
+      data: { ...VALID_BODY, endDate: daysFromNow(45) }, // end before start
     });
     expect(res.status()).toBe(400);
   });
@@ -95,7 +106,12 @@ test.describe("Streaming generation — live Gemini stream @prod @slow", () => {
     expect(events[0]?.event).toBe("metadata");
     const meta = events[0].data as SseMetadataData;
     expect(meta.totalDays).toBe(4); // 4-day trip per VALID_BODY
-    expect(meta.mode).toBe("stream");
+    // "cache" is a legitimate answer, not a failure: the generator caches by
+    // destination+shape, so any recent identical request (another test run, a
+    // real user, a manual probe) makes this a hit. Asserting "stream" made the
+    // test fail for the app working correctly. What actually matters is that
+    // the stream is well-formed, which the assertions below cover.
+    expect(["stream", "cache"]).toContain(meta.mode);
     expect(meta.destination?.name).toBeDefined();
 
     // At least one day event between metadata and complete.
