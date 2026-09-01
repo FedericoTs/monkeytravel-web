@@ -27,8 +27,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      # The audit parses TypeScript with the compiler API, so it needs the
-      # dev dependencies. `npm ci` keeps it pinned to the lockfile.
-      - run: npm ci
+      # The audit parses source with the TypeScript compiler API, so it needs
+      # exactly two packages — not the whole dependency tree.
+      #
+      # It does NOT use `npm ci`, deliberately. package-lock.json is currently
+      # out of sync with package.json (`npm error Missing: @swc/helpers@0.5.23
+      # from lock file`), so `npm ci` fails on this repo today. The two guard
+      # workflows that call it never noticed, because their install step is
+      # gated behind credentials that are not configured, so it is skipped.
+      # Installing only what this check needs keeps the guard honest instead of
+      # red for a reason that has nothing to do with browser storage.
+      - name: Install the parser
+        run: npm install --no-save --no-audit --no-fund typescript@^5 tsx@^4.21.0
       - name: Every localStorage/sessionStorage access is guarded
         run: npm run audit:storage
