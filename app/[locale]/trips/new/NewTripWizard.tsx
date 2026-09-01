@@ -202,6 +202,7 @@ import DecisionIntake from "@/components/wizard/DecisionIntake";
 import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
+import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -1270,11 +1271,33 @@ export default function NewTripPage({
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
   // the in-flight save promise (so regenerate can await it), error
   // surfacing, and the discard path. See hooks/useAutoSaveTrip.ts.
-  // useFlag returns `boolean | undefined` while PostHog is still loading
-  // — coerce to a strict boolean so the hook's "off by default" semantics
-  // are explicit (no auto-save until the flag has actually evaluated).
+  // useFlag returns `boolean | undefined`. undefined means PostHog has not
+  // resolved the flag — and for a large cohort it NEVER will: analytics
+  // consent declined, an ad blocker, or a failed network call all leave it
+  // permanently undefined. There is no later evaluation to wait for.
+  //
+  // This used to read `=== true`, which meant those users got no auto-save.
+  // The redemption fallback below could not cover them either, because it
+  // requires `=== false` (a RESOLVED off). undefined satisfies NEITHER, so a
+  // signed-in user generated an itinerary and nothing persisted it — their
+  // trip was silently dropped unless they found the manual Save button.
+  //
+  // Measured 2026-09-01: 30 users burned 44 successful generations and ended
+  // with zero trips. Among users who DID generate, those who lost the trip
+  // were half as likely to have analytics consent (36.7% vs 69.9%) - the
+  // signature of the flag never resolving rather than of disinterest.
+  //
+  // auto-save-v1 has been at rollout_percentage 100 since 2026-07-02, so ON
+  // is the intended behaviour for everyone. Failing OPEN is also the safe
+  // direction: saving a trip the user asked for is never the harmful outcome,
+  // losing it is. An explicit `false` (kill-switch flipped to 0%) still turns
+  // auto-save off and still hands the post-auth path to the redemption effect
+  // below, so exactly one owner persists in every case.
+  // shouldAutoSave / shouldRedeemSaveIntent are complements, proven so by
+  // lib/trips/autoSaveGate.vitest.ts. Keeping both sides of the decision in one
+  // tested module is what stops the two gates drifting apart again.
   const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
-  const autoSaveEnabled = autoSaveEnabledRaw === true;
+  const autoSaveEnabled = shouldAutoSave(autoSaveEnabledRaw);
   // The Explore-UGC gate now arrives as a prop, resolved server-side from
   // EXPLORE_UGC_ENABLED (see this route's page.tsx). It used to be read from
   // the PostHog flag FLAG_EXPLORE_UGC, which was never created — so the CTA
@@ -2566,7 +2589,10 @@ export default function NewTripPage({
   useEffect(() => {
     if (saveIntentRedeemedRef.current) return;
     if (!isAuthenticated) return;
-    if (autoSaveEnabledRaw !== false) return; // ON cohort → v1; loading → wait
+    // The complement of shouldAutoSave: this runs exactly when the hook is
+    // inert. Unresolved (undefined) now belongs to the hook, not to a wait
+    // that never ends.
+    if (!shouldRedeemSaveIntent(autoSaveEnabledRaw)) return;
     if (!draftAutoRestored || !generatedItinerary) return;
     if (savedTripId || autoSave.savedTripId) return; // already persisted
     if (savingTripRef.current) return; // a save is already in flight
